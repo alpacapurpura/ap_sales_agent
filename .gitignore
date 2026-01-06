@@ -1,0 +1,16 @@
+# Environments
+.env
+.env.dev
+.env.prod
+.env.test
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,218 @@
+networks:
+  web_gateway:
+    external: true
+  services_network:
+    driver: bridge
+
+# NOTA: Se usan bind mounts locales (./data/*) en lugar de named volumes
+# para prevenir pérdida de datos al usar 'docker compose down -v'
+# Los datos persisten en el directorio ./data/ del proyecto
+
+
+services:
+  # Flowise Service
+  flowise:
+    profiles:
+      - flowise
+    image: flowiseai/flowise:latest
+    container_name: flowise
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - DATABASE_PATH=/root/.flowise
+      - APIKEY_PATH=/root/.flowise
+      - SECRETKEY_OVERWRITE=${FLOWISE_SECRET_KEY}
+      - FLOWISE_USERNAME=${FLOWISE_USERNAME}
+      - FLOWISE_PASSWORD=${FLOWISE_PASSWORD}
+      - DEBUG=false
+      - EXECUTION_MODE=main
+    volumes:
+      - ./data/flowise:/root/.flowise
+    networks:
+      - web_gateway
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web_gateway"
+      # HTTPS router
+      - "traefik.http.routers.flowise.rule=Host(`${FLOWISE_DOMAIN}`)"
+      - "traefik.http.routers.flowise.entrypoints=websecure"
+      - "traefik.http.routers.flowise.tls.certresolver=letsencrypt"
+      - "traefik.http.services.flowise.loadbalancer.server.port=3000"
+      # Security headers middleware (HSTS)
+      - "traefik.http.middlewares.flowise.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.flowise.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.flowise.headers.stspreload=true"
+      - "traefik.http.routers.flowise.middlewares=flowise"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL for n8n
+  postgres:
+    profiles:
+      - n8n
+    image: postgres:16-alpine
+    container_name: postgres-n8n
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - services_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # n8n Service
+  n8n:
+    profiles:
+      - n8n
+    build: .
+    container_name: n8n
+    restart: unless-stopped
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
+      - N8N_HOST=${N8N_DOMAIN}
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - WEBHOOK_URL=https://${N8N_DOMAIN}/
+      - N8N_SECURE_COOKIE=true
+      - N8N_LOG_LEVEL=info
+      - N8N_LOG_OUTPUT=file
+      - N8N_LOG_FILE_LOCATION=/home/node/.n8n/logs/n8n.log
+      - N8N_LOG_FILE_MAX_SIZE=10485760
+      - N8N_LOG_FILE_MAX_FILES=10
+      - N8N_DIAGNOSTICS_ENABLED=true
+      - N8N_PERSONALIZATION_ENABLED=true
+      - N8N_TEMPLATES_ENABLED=true
+      - N8N_EXECUTIONS_PROCESS=main
+      - TZ=America/Lima
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+    networks:
+      - web_gateway
+      - services_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web_gateway"
+      # HTTPS router
+      - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
+      - "traefik.http.routers.n8n.entrypoints=websecure"
+      - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      # Security headers middleware (HSTS)
+      - "traefik.http.middlewares.n8n.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.n8n.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.n8n.headers.stspreload=true"
+      - "traefik.http.routers.n8n.middlewares=n8n"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:5678/healthz" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    profiles:
+      - flowise
+      - n8n
+    environment:
+      # Habilitar autenticación mediante API Key
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    networks:
+      - web_gateway
+      - services_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web_gateway"
+      # Router HTTPS
+      - "traefik.http.routers.qdrant.rule=Host(`${QDRANT_DOMAIN}`)"
+      - "traefik.http.routers.qdrant.entrypoints=websecure"
+      - "traefik.http.routers.qdrant.tls.certresolver=letsencrypt"
+      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
+      # Security headers (Igual que tus otros servicios)
+      - "traefik.http.middlewares.qdrant.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.qdrant.headers.stsincludesubdomains=true"
+      - "traefik.http.routers.qdrant.middlewares=qdrant"
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c '</dev/tcp/localhost/6333'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL for NocoDB
+  nocodb-db:
+    profiles:
+      - nocodb
+    image: postgres:16-alpine
+    container_name: nocodb-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${NOCODB_DATABASE}
+      POSTGRES_USER: ${NOCODB_USER}
+      POSTGRES_PASSWORD: ${NOCODB_PASSWORD}
+    volumes:
+      - ./data/nocodb-db:/var/lib/postgresql/data
+    networks:
+      - services_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -h localhost -U ${NOCODB_USER} -d ${NOCODB_DATABASE}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NocoDB Service
+  nocodb:
+    profiles:
+      - nocodb
+    image: nocodb/nocodb:latest
+    container_name: nocodb
+    restart: unless-stopped
+    depends_on:
+      nocodb-db:
+        condition: service_healthy
+    environment:
+      - NC_DB=pg://nocodb-db:5432?u=${NOCODB_USER}&p=${NOCODB_PASSWORD}&d=${NOCODB_DATABASE}
+      - NC_PUBLIC_URL=https://${NOCODB_DOMAIN}
+      - NC_DISABLE_TELE=true
+    volumes:
+      - ./data/nocodb:/usr/app/data
+    networks:
+      - web_gateway
+      - services_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web_gateway"
+      # HTTPS router
+      - "traefik.http.routers.nocodb.rule=Host(`${NOCODB_DOMAIN}`)"
+      - "traefik.http.routers.nocodb.entrypoints=websecure"
+      - "traefik.http.routers.nocodb.tls.certresolver=letsencrypt"
+      - "traefik.http.services.nocodb.loadbalancer.server.port=8080"
+      # Security headers
+      - "traefik.http.middlewares.nocodb.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.nocodb.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.nocodb.headers.stspreload=true"
+      - "traefik.http.routers.nocodb.middlewares=nocodb"

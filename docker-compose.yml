@@ -1,0 +1,80 @@
+services:
+  # --- Application Service ---
+  app:
+    build: .
+    container_name: visionarias_brain
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - qdrant
+      - postgres
+    networks:
+      - internal_net
+      - gateway  # Dynamic Gateway Network
+    profiles: ["development", "production"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      # Router for HTTPS
+      - "traefik.http.routers.visionarias.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.visionarias.entrypoints=websecure"
+      - "traefik.http.routers.visionarias.tls.certresolver=myresolver"
+      # Middleware (Optional: e.g., redirect http to https handled globally usually)
+      # Service definition
+      - "traefik.http.services.visionarias.loadbalancer.server.port=8000"
+
+  # --- Infrastructure Services ---
+  redis:
+    image: redis:7-alpine
+    container_name: visionarias_redis
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal_net
+    profiles: ["development", "production"]
+    ports:
+      - "6379:6379"  # Exposed in dev, but can be restricted in prod if needed (kept for now for debugging if needed, usually removed in strict prod)
+
+  qdrant:
+    image: qdrant/qdrant:v1.7.3
+    container_name: visionarias_qdrant
+    restart: always
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - internal_net
+    profiles: ["development", "production"]
+    ports:
+      - "6333:6333" # HTTP API
+      - "6334:6334" # gRPC
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: visionarias_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+    profiles: ["development", "production"]
+    ports:
+      - "5432:5432"
+
+networks:
+  internal_net:
+    driver: bridge
+  gateway:
+    name: ${TRAEFIK_NETWORK}
+    external: true
+
+volumes:
+  redis_data:
+  qdrant_data:
+  postgres_data:
