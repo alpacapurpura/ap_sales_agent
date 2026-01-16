@@ -1,18 +1,29 @@
 ---
-alwaysApply: false
-description: 
+alwaysApply: true
 ---
-# Arquitectura: Visionarias Agent (AISALESHT)
+# Arquitectura: Visionarias Agent
 
-## Filosofía Code-First
-*   **No Low-Code**: Lógica 100% en Python para garantizar control, testabilidad y versionado.
-*   **Determinismo**: El agente sigue una Máquina de Estados Finita (S1 $\rightarrow$ S6) definida explícitamente con `LangGraph`. No hay divagación.
-*   **Separación de Capas**: 
-    *   `src/core`: Lógica Cognitiva (Grafos, Nodos).
-    *   `src/api`: Transporte (Webhooks, HTTP).
-    *   `src/services`: Infraestructura (DB, Redis).
+## Filosofía
+Python 100%. Code-First. Flujo determinista con LangGraph (Máquina de Estados).
 
-## Seguridad y Datos
-*   **Cero Alucinaciones**: El LLM **NUNCA** calcula precios.
-*   **Financial Enforcer**: Herramienta determinista obligatoria que sobrescribe cualquier número generado por el LLM con datos de la "Fuente de Verdad" (Base de Datos).
-*   **RAG Contextual**: El retriever debe filtrar chunks por estado actual (ej. en `S5_Anchoring` priorizar etiquetas `hard_data` y `finance`).
+## Estructura de Capas
+1. Canales: `src/channels`. Adapters I/O (WA/TG).
+2. API: `src/api`. Webhooks.
+3. Core: `src/core`. Lógica cognitiva, Nodos, Estado.
+4. Servicios: `src/services`. DB, Vector Store.
+
+## Mapa de Navegación
+
+| Necesidad | Ruta |
+|---|---|
+| Ventas & Copy | `src/core/nodes.py`, `src/core/prompts/templates/` |
+| Datos Usuario | `src/core/state.py` (Memoria), `src/services/models.py` (DB) |
+| Integraciones | `src/channels/`, `src/api/routes.py` |
+| IA & RAG | `src/services/router_service.py`, `src/services/vector_store.py` |
+| Admin | `src/admin/app.py` |
+
+## Reglas Críticas
+* Cero Alucinaciones: LLM NUNCA calcula precios.
+* Financial Enforcer: Cálculo determinista obligatorio (usa DB).
+* RAG Contextual: Filtra chunks por estado del grafo.
+* Agnosticismo: El Core desconoce el canal (WA/TG).

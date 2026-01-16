@@ -4,6 +4,9 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.core.llm.base import BaseLLMService
 from src.config import settings
 
+from src.core.tracing import current_trace_id
+from src.services.repository import Repository
+
 class GeminiService(BaseLLMService):
     """
     Concrete implementation for Google Gemini (Adapter Pattern).
@@ -51,8 +54,43 @@ class GeminiService(BaseLLMService):
             elif role == "system":
                 lc_messages.append(SystemMessage(content=content))
                 
-        response = self.chat_model.invoke(lc_messages, **kwargs)
-        return response.content
+        try:
+            response = self.chat_model.invoke(lc_messages, **kwargs)
+            response_text = response.content
+            
+            # Extract Usage Metadata
+            # Google Generative AI usually provides usage_metadata
+            usage = response.usage_metadata or {}
+            tokens_in = usage.get("input_tokens", 0)
+            tokens_out = usage.get("output_tokens", 0)
+            
+        except Exception as e:
+            response_text = f"ERROR: {str(e)}"
+            tokens_in = 0
+            tokens_out = 0
+            raise e
+        finally:
+            # --- TRACING LOGIC ---
+            trace_id = current_trace_id.get()
+            if trace_id:
+                try:
+                    repo = Repository()
+                    full_prompt_str = f"System: {system_prompt}\nMessages: {messages}"
+                    
+                    repo.create_llm_log(
+                        trace_id=trace_id,
+                        model=self.model_name,
+                        prompt_template="unknown",
+                        prompt_rendered=full_prompt_str,
+                        response_text=response_text,
+                        tokens_input=tokens_in,
+                        tokens_output=tokens_out
+                    )
+                    repo.close()
+                except Exception as log_err:
+                    print(f"Failed to log Gemini LLM call: {log_err}")
+                    
+        return response_text
 
     def get_embedding_model(self) -> Any:
         return self.embeddings

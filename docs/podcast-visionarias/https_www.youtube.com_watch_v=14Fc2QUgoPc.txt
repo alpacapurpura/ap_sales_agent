@@ -1,0 +1,227 @@
+## Apertura del episodio y presentación de la invitada (Marina, fundadora de Renzo Costa)
+
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana abren el episodio de Visionarias sobre expansión personal y empresarial, y presentan a Marina, fundadora de Renzo Costa, como invitada central para hablar de visión, liderazgo y trayectoria en retail."
+  entidades_clave: "[Visionarias Podcast, Camila Klausen, Ileana Tapia, Marina, Renzo Costa, Perú, retail, cueros]"
+  preguntas_hipoteticas:
+    - "¿Cómo se presenta el propósito del podcast Visionarias y el enfoque del episodio?"
+    - "¿Quién es la invitada y por qué es relevante su trayectoria?"
+    - "¿Qué promesa de valor ofrece el episodio a emprendedoras?"
+  keywords: "[apertura, Visionarias, invitada, Renzo Costa, propósito]"
+  speakers: "[Camila, Ileana, Marina]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Camila:** Todo empieza con una visión, una visión que te reta, te expande y te libera. Una visión que honra el bienestar sobre la autoexigencia. Y la autenticidad sobre perfección. Porque una mujer visionaria convierte sus miedos en sabiduría. Y su propósito en impacto.  
+- **Camila:** El camino no será fácil. Pero no tienes que hacerlo sola. Somos Camila Klausen e Ileana Tapia, dos emprendedoras que convertimos nuestras caídas en aprendizajes, y nuestros aprendizajes en misión. Y esto es Visionarias, el podcast en donde expandir tu negocio empieza con expandirte a ti misma. Bienvenidas a un nuevo capítulo de Visionarias Podcast.  
+- **Camila:** El día de hoy tenemos una invitada de lujo, la fundadora con más trayectoria en el mundo retail en el Perú. Ella es la fundadora de Renzo Costa, la marca peruana de cueros, con más de 60 tiendas a nivel nacional e internacional. Así que me acompañan a darle un fuerte aplauso a Marina. Bienvenida.  
+- **Ileana:** Marina, bienvenida.  
+- **Marina:** Muchas gracias por invitarme, estoy muy contenta.  
+- **Camila:** Te admiramos un montón y para nosotros es un honor tenerte aquí.  
+- **Marina:** Y para mí, te agradezco haberme invitado, y dime lo que quieran.  
+- **Camila:** Acá estamos para conocerte un poco más y que nos cuentes un poco más de tu trayectoria.  
+
+---
+
+## La primera visión: del olor del cuero al primer cinturón (creatividad, nicho y cliente)
+
+```yaml
+metadata:
+  contexto_denso: "Marina cuenta cómo a los 17 años inició su camino emprendedor inspirada por el olor del cuero y la moda hippie, creando cinturones y luego bolsos, destacando creatividad, nichos vacíos y escucha del cliente como base de su visión empresarial."
+  entidades_clave: "[Marina, Renzo Costa, Rastro San Francisco, Centro de Lima, Iglesia San Francisco, moda hippie, Jimi Hendrix, consignación, creatividad, nicho, cliente]"
+  preguntas_hipoteticas:
+    - "¿Cómo nació la primera idea de negocio de Marina y cuál fue el detonante emocional?"
+    - "¿Qué principios recomienda Marina para iniciar un emprendimiento creativo?"
+    - "¿Cómo validó Marina su producto sin capital y qué rol tuvo la consignación?"
+  keywords: "[visión, cuero, creatividad, nicho, cliente]"
+  speakers: "[Ileana, Marina]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Ileana:** Cuéntanos, Marina, acá en Visionarias siempre creemos que todo parte de una primera visión, que es eso que nos impulsa a empezar a crear nuestras empresas, nuestros negocios. ¿Cuál fue esa primera visión que te impulsó a ti?  
+- **Marina:** Mira, yo a los 17 años pasaba por Rastro San Francisco, un lugar donde habían locales comerciales que vendían cueros. Siempre digo que el olfato es uno de los sentidos que más memoria tienen. Cuando iba a visitar a mi abuela, me decía: “tu abuelo ha sido curtidor”, y en la parte de atrás de su casa tenía un pozo de un olor feo. Pero cuando yo pasé por el Rastro de San Francisco, en el centro de Lima, cerca de la iglesia San Francisco, sentí el olor del cuero, pero ya no tan feo: era rico, era lindo.  
+- **Marina:** Entré con toda la propina que junté, porque yo era siempre ahorrativa. Me compré una manta de cuero y corté con tijera: hice el primer cinturón. El primer cinturón que hice me lo compraron. Lo hice porque veía bastantes revistas antiguas y era la época de los hippies; yo me vestía tal cual, copiaba la moda y me encantaba: era irreverente, no obedecía los cánones normales de “cartera que haga juego con tus zapatos”.  
+- **Marina:** Comencé a copiar los cinturones de Jimi Hendrix y a crear modelos. Ahí empieza todo. Tú tienes que identificar, número uno, tus gustos. Número dos, ser creativa: hacer lo que los otros no hacen. Como yo era disruptiva, rebelde, caía con mi carácter. Empecé a hacer cinturones de cuero con tachas, con hebillas grandes.  
+- **Marina:** Caminando por el centro de Lima vi “La Casa del Hippie”. Fui y les ofrecí mis cinturones. Al dueño le encantó: “déjamelo, pero en consignación”. Le dejé tres cinturones y pasaba a ver si se habían vendido. No veía que los exhibiera y me dijo: “al día siguiente los vendí”. Me pagó.  
+- **Marina:** Le dije: “ya no tengo más capital”. Y me respondió: “hazme más cinturones, hazme más de tu creatividad, de tus cosas, de tu locura, en el buen sentido”. Me dio plata para comenzar a hacer más. Yo vendía y tenía que ir corriendo a comprar el cuero, los remaches, las hebillas. Ya empecé a mandar a hacer hebillas.  
+- **Marina:** De ahí comencé a hacer bolsos hechos a mano. No tenía máquina, tenía callos en los dedos, hasta ahora los tengo. Comencé a hacer carteras con flecos, con pieles, y poco a poco fui creando una moda que acá no existía.  
+- **Marina:** Yo siempre aconsejo: busquen el nicho que está vacío, el lugar vacío. Pero, sobre todo, busquen qué les gusta a tus clientes. A ti te pueden gustar muchas cosas, pero si a tus clientes no les gusta, poquito a poquito tienes que ir investigando, estudiando. En ese tiempo no existían las herramientas que tienen ustedes actualmente. Yo crecí empresarialmente en la Edad de Piedra.  
+
+---
+
+## Miedo, resiliencia y mentalidad: “del suelo no hay más” y buscar el “sí”
+
+```yaml
+metadata:
+  contexto_denso: "Marina profundiza en cómo gestionó el miedo y las caídas durante su etapa emprendedora, enfatizando resiliencia, mentalidad positiva, no victimización y la búsqueda persistente del 'sí' como motor para avanzar."
+  entidades_clave: "[miedo, resiliencia, mentalidad positiva, victimización, emprendimiento, aprendizaje, gestión emocional]"
+  preguntas_hipoteticas:
+    - "¿Cómo recomienda Marina gestionar el miedo al emprender?"
+    - "¿Qué significa para ella caer, aprender y volver a escalar?"
+    - "¿Cómo influye la mentalidad (optimismo vs. victimización) en el crecimiento del negocio?"
+  keywords: "[miedo, resiliencia, mentalidad, optimismo, aprendizaje]"
+  speakers: "[Marina, Camila]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Marina:** A veces me preguntan: “¿y no tenías miedo?” Sí que tenía miedo, todos tenemos miedo. Pero el asunto es cómo gestionas tu miedo, cómo te enfrentas a ese miedo, cómo te fortaleces si te caes, cómo aprendes si te caes. Las dificultades nos hacen crecer, nos hacen más fuertes.  
+- **Marina:** Yo empecé de abajo y comencé a escalar. Si la situación es difícil o adversa, yo decía: “del suelo ya no hay más”. Si me caigo, comienzo a subir, porque ya me he entrenado. Esa era mi idea. Y siempre decía: “el no existe, pero lo importante es conseguir el sí”.  
+- **Marina:** Durante la etapa de emprendimiento encontré muchas piedras en el camino. Si te la ponen, la dejas de lado y sigues avanzando. Lo importante es no quedarte, no victimizarte. Siempre positivo, mente positiva. No creer que el mundo está contra ti, no creer que la mala suerte siempre te acompaña.  
+- **Marina:** En la vida profesional, laboral y personal pasamos por momentos muy difíciles. Eso crea trabas para avanzar. Tenemos que fortalecernos emocionalmente. A veces nos sentimos bajoneadas, pero eso tenemos que superar. Todo pasa; a pesar de las circunstancias difíciles, uno tiene que avanzar.  
+- **Marina:** Yo siempre comento que debemos tener una sonrisa, una alegría que demuestre que estamos bien, a pesar de que las circunstancias son adversas. Hay que ganarle a las circunstancias adversas con nuestra sonrisa, con nuestra alegría. ¿Qué ganamos con ponernos tristes? ¿Mejoramos nuestra situación? No. Pero si nos ponemos alegres, optimistas, decir “esto ya va a pasar”, y pasa.  
+- **Camila:** Gracias por compartir esta primera parte. De acuerdo contigo: las cosas igual van a pasar y siempre para adelante, tratando siempre cuidarnos a nosotras mismas. A veces sí va a haber tristeza, pero lo importante es identificarla y cómo la podemos superar para vivir en una armonía más equilibrada.  
+
+---
+
+## Retos históricos en Perú y decisiones estratégicas: terrorismo, hiperinflación y El Niño
+
+```yaml
+metadata:
+  contexto_denso: "Marina relata crisis macro del Perú (terrorismo, hiperinflación, toque de queda y El Niño) y cómo respondió con trabajo en equipo, ventas itinerantes y adaptación por regiones, conectándolo con la visión de resiliencia del episodio."
+  entidades_clave: "[terrorismo en Perú, hiperinflación, toque de queda, El Niño, Arequipa, Juliaca, hoteles, centros comerciales, Renzo Costa, trabajo en equipo, segmentación por gustos]"
+  preguntas_hipoteticas:
+    - "¿Qué crisis externas enfrentó Renzo Costa y cómo afectaron la operación?"
+    - "¿Qué estrategia usaron cuando El Niño redujo la demanda de casacas de cuero?"
+    - "¿Cómo aprendieron a adaptar producto y surtido según región y cliente?"
+  keywords: "[crisis, El Niño, equipo, provincias, adaptación]"
+  speakers: "[Camila, Ileana, Marina]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Camila:** En tu trayectoria, porque tienes más de 50 años como empresaria, imagino que has afrontado muchísimos retos. De los más difíciles, ¿cuál ha sido el que más te ha costado superar?  
+- **Marina:** En lo laboral, momentos difíciles siempre han existido. En la época del terrorismo, en la época de la superhiperinflación, que teníamos que guardar el dinero en costales. En la época del terrorismo trabajábamos con los vidrios cerrados; los colaboradores venían de noche para quedarse a trabajar en la noche, y en el día irse. En la época del toque de queda.  
+- **Marina:** También en la corriente del Niño: nosotros vendíamos casacas de cuero y nadie nos compraba.  
+- **Marina:** Se nos ocurre con el equipo —porque ya trabajamos en equipo, esto es importante—: tú sola no puedes, no puedes ser “todista”. Tienes que confiar en tu equipo, formar líderes, dejarles que vuelen, y así tú te liberas y avanzas, y también te das tus vacaciones.  
+- **Marina:** En la época de la corriente del Niño éramos cuatro: ¿qué hacemos? ¿Nos fundimos o vamos adelante? Vamos adelante. Nos vamos a provincias donde hace frío. Cargamos nuestras casacas de cuero que habíamos hecho para el invierno y nos vamos a Arequipa, a Juliaca.  
+- **Marina:** Íbamos a hoteles, contratábamos el lobby y les decíamos: “cuando termine nuestra campaña, te pagamos el hotel”. No teníamos dinero, y confiaban en nosotros. Vendíamos las casacas, pagábamos el hotel y ganábamos. Nos íbamos con nuestra camioneta, porque no había dinero para avión ni vuelos. Dormíamos en un hotel más barato.  
+- **Marina:** Ahí entendimos que el gusto de un lugar no es el mismo de otro: los colores no son los mismos, las tallas no son las mismas. Eso nos sirvió después cuando se abrieron los centros comerciales: no ponemos todos los artículos iguales, sino según el gusto de los clientes de cada zona.  
+- **Marina:** Cuando abrieron los centros comerciales, nos llamaban para darnos las mejores ubicaciones. “Está Renzo Costa aquí”. Éramos el gancho. Colegas nos llamaban: “¿qué te parece el centro?” Yo decía: “no soy pitonisa”, pero pienso que va a ir bien. Entremos. “Quien no se tira al ruedo, no torea.”  
+- **Ileana:** Y creo que es ahí justamente en donde se desarrolla esta creatividad, esta recursividad: cuando me enfrento a un reto, sí, de repente hay unos minutos en donde me frustro, lloro, pero de ahí salir rápido y decir: ¿qué puedo hacer?, ¿qué soluciones puedo encontrar? Ahí aparecen nuevas ideas, nuevas oportunidades.  
+- **Marina:** Es así. Hay un dicho: “no llores, porque tus lágrimas impedirán ver la luz”. Si tú te angustias y dices “no voy a salir de esta”, no sales. Tienes que tener una mirada optimista. La mente manda mucho, tiene mucho poder.  
+
+---
+
+## Formación, sesgos de género y gestión humana: universidad, empatía y cultura de equipo
+
+```yaml
+metadata:
+  contexto_denso: "Marina explica cómo su formación universitaria y la discriminación de época moldearon su liderazgo, destacando empatía, gestión humana y cultura de equipo comprometido como pilares para sostener el crecimiento de Renzo Costa."
+  entidades_clave: "[Universidad Nacional Mayor de San Marcos, psicología, sesgos de género, liderazgo, empatía, gestión humana, equipo, cultura, Renzo Costa, Sicurezza]"
+  preguntas_hipoteticas:
+    - "¿Qué rol tuvo la universidad en el desarrollo del liderazgo de Marina?"
+    - "¿Cómo enfrentó la discriminación hacia mujeres en negocios y finanzas?"
+    - "¿Por qué considera que la gestión humana es clave para crecer una empresa?"
+  keywords: "[liderazgo, empatía, equipo, San Marcos, género]"
+  speakers: "[Ileana, Marina, Camila]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Marina:** Yo creo que con la experiencia, con el tiempo y aparte, seis años de estudios en la universidad. Mi padre no quería que sea negociante. Me decía que las mujeres quiebran, que no tienen mentalidad para hacer negocios, que eso es para los hombres. Primera traba: el hogar. Y como yo era rebelde, me importaba un comino lo que mi padre me decía.  
+- **Marina:** Mi papá quería que postule a la universidad. No tenía medios económicos: San Marcos. Yo quería entrar a sociología y me decía: “no te vas a volver comunista”. Quise psicología. Postulé e ingresé con puntaje alto. Mi papá me decía: “agarraste medicina”. Yo: “no, papá, le tengo miedo a la sangre”. Me dijo: “Dios da barba a quien no tiene quijada”.  
+- **Marina:** Nunca ejercí directamente la profesión, pero me sirvió mucho: para la empatía, para comprender la gestión humana. Llevar adelante una empresa: si no gestionas lo humano, si no valoras tu equipo, no crece. Tienen que estar interiorizados en que todo va a ir bien.  
+- **Marina:** Tienes que crear un buen equipo humano comprometido, con amor a la camiseta, amor a Renzo Costa, amor a Sicurezza. Haces a tu marca fuerte, porque les pones en el corazón el nombre de tu empresa.  
+- **Camila:** Me encanta. Gracias por compartirlo.  
+
+---
+
+## Inteligencia emocional aplicada: curiosidad, aprendizaje continuo y diversidad en el equipo
+
+```yaml
+metadata:
+  contexto_denso: "Marina define la inteligencia emocional en liderazgo como superar limitaciones, cultivar curiosidad y aprendizaje continuo, y fortalecer el equilibrio personal para transmitir confianza al equipo, incluyendo prácticas de inclusión con personas con discapacidad auditiva."
+  entidades_clave: "[inteligencia emocional, liderazgo, curiosidad, aprendizaje continuo, cursos, maestrías, diplomados, lenguaje de señas, discapacidad auditiva, inclusión, Renzo Costa]"
+  preguntas_hipoteticas:
+    - "¿Qué hábitos concretos recomienda Marina para desarrollar inteligencia emocional como líder?"
+    - "¿Cómo conecta el aprendizaje continuo del equipo con el crecimiento de la empresa?"
+    - "¿Qué ejemplo da Marina sobre inclusión y cómo impacta en la cultura organizacional?"
+  keywords: "[inteligencia emocional, aprendizaje, curiosidad, inclusión, liderazgo]"
+  speakers: "[Camila, Marina]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Camila:** Has tenido que desarrollar tu inteligencia emocional para ser una buena líder, tanto para sostenerte a ti misma en el camino. ¿Cuáles han sido esos aprendizajes sobre tu liderazgo en cuanto a la inteligencia emocional?  
+- **Marina:** Primero, superar ciertas limitaciones. Por ejemplo, no victimizarte por el pasado, porque tu padre te dijo esto o lo otro. Ser un buen líder también se aprende en el camino. Ser empático, creer en tu equipo, darles herramientas.  
+- **Marina:** Hay algo bien importante: el aprendizaje, la curiosidad. Tienes que ser curiosa y no dejar pasar las cosas. Ahora tenemos tantas herramientas para el conocimiento. Si tú no investigas, no aprendes, no tienes amor al conocimiento de lo que has elegido. Tienes que investigar qué es tu trabajo y eso pasarlo a tu equipo.  
+- **Marina:** Al equipo con el que trabajo tengo que darles confianza, entenderlos, hacerlos crecer con nosotros. Si ellos crecen, tu empresa crece. Que se inscriban a cursos, foros, maestrías, diplomados.  
+- **Marina:** Tenemos que fortalecernos nosotros mismos como personas para poder transmitir, porque nadie puede dar lo que no tiene. Nosotros trabajamos con un porcentaje alto de personas con discapacidad auditiva. Hace 18 años trabajamos con ellos. Hemos conmemorado el día de la discapacidad, aprender lenguaje de señas, comunicarnos con ellos: eso nos hace crecer como persona.  
+- **Marina:** Si tú como persona estás bien, con tranquilidad y equilibrio, puedes dar a tu empresa el equilibrio y la tranquilidad que necesita tu equipo y tu empresa.  
+
+---
+
+## Crecimiento empresarial en contextos sin herramientas: banca, crédito y “espíritu ganador”
+
+```yaml
+metadata:
+  contexto_denso: "Marina describe el crecimiento de Renzo Costa en una época sin internet ni celulares, enfrentando discriminación y negociando con bancos y grandes pedidos, resaltando audacia, cálculo financiero y 'espíritu ganador' para obtener capital de trabajo."
+  entidades_clave: "[Renzo Costa, bancos, sobregiro, orden de compra, capital de trabajo, discriminación, Perú, crédito, finanzas]"
+  preguntas_hipoteticas:
+    - "¿Cómo consiguió Marina financiamiento y capital de trabajo en etapas tempranas?"
+    - "¿Qué papel jugó la audacia y la negociación en su relación con bancos?"
+    - "¿Cómo influyó el contexto de discriminación en su estrategia para avanzar?"
+  keywords: "[financiamiento, banca, negociación, crédito, audacia]"
+  speakers: "[Ileana, Marina, Camila]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Ileana:** ¿Cómo dirías que ha sido esa principal transformación entre esa versión tuya que empezó haciendo las correas de cuero y la empresa que hoy es Renzo Costa? Cuéntanos de ese viaje de crecimiento empresarial.  
+- **Marina:** Tú vas creciendo poco a poco, porque las situaciones de ahora son completamente diferentes a las de antes. No teníamos herramientas, no teníamos internet, no teníamos celulares. Era una etapa difícil, pero no imposible.  
+- **Marina:** Como mujeres, antes estábamos bastante discriminadas. Había una fila en los bancos donde todos eran hombres con sus maletines, y apareces una mujer. Como yo era atrevida, me ponía en la fila; me decían “pase”. Les parecía raro que una mujer jovencita esté ahí. Yo me aprovechaba de eso.  
+- **Marina:** Yo entraba al banco a ver qué pasa, si me dan sobregiro. No tenía garantía, no tenía nada. Una marca grande en Perú abrió su local en el Óvalo Gutiérrez y me pidió 200 carteras. Fui con la orden de compra al banco y solicité financiamiento. Me dijeron: “le vamos a dar el 40% para que trabaje este pedido”.  
+- **Marina:** Les dije: “si no gano el 40%, yo gano el 20% nada más. ¿Ustedes me podrían dar el 80%?” Lo estudiaron y a la semana me dieron el 80%, porque yo saqué mi cuenta: con menos no podía hacer nada. Con ese dinero pude trabajar y vender mis carteras.  
+- **Camila:** Creyeron en ti, qué importante eso.  
+- **Marina:** Tú tienes que ir con un espíritu de ganador.  
+
+---
+
+## La primera tienda: negociación, recursos limitados y creatividad austera
+
+```yaml
+metadata:
+  contexto_denso: "Marina narra cómo consiguió su primer local en la Galería Gran Vía (Jirón de la Unión) mediante negociación y recursos limitados, usando creatividad austera para montar la tienda y operar con consignación, reforzando la mentalidad de soluciones del episodio."
+  entidades_clave: "[Galería Gran Vía, Jirón de la Unión, Lima, alquiler, garante, San Marcos, decoración, consignación, Olivetti]"
+  preguntas_hipoteticas:
+    - "¿Cómo consiguió Marina su primer local comercial y qué tácticas de negociación usó?"
+    - "¿Cómo montó una tienda sin capital suficiente para decoración e inventario?"
+    - "¿Qué enseña esta historia sobre mentalidad de recursos y creatividad?"
+  keywords: "[primera tienda, negociación, creatividad, consignación, recursos]"
+  speakers: "[Marina, Camila, Ileana]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Marina:** La primera tienda que tuve fue en la Gran Vía, la galería Gran Vía, en la cuadra 8 de Jirón de la Unión. Me pedían 1000 dólares de alquiler. Fui a buscar al dueño, un médico que tenía consultorio en la avenida Alfonso Ugarte.  
+- **Marina:** Le dije que quería alquilar su local. Me preguntó: “¿para quién? ¿para ti o para tu papá?” Le dije: “para mí”. Me dijo: “oye, chibola, ¿tú cómo vas a pagar?”  
+- **Marina:** Vi en su diploma que decía Universidad Nacional Mayor de San Marcos. Le dije: “doctor, usted estudiaba en San Fernando y mi hermana también estudia medicina”. Y me preguntó: “¿tú eres de San Marcos? ¿cuándo has ingresado?” Le dije que ya estaba en segundo o tercer año.  
+- **Marina:** Cuando quieres conseguir algo, tienes que entrar a la conversación de lo que a esa persona le interese: puntos en común. Antes, el que ingresaba a San Marcos era considerado superinteligente porque el ingreso era muy difícil. Nos hicimos amigos.  
+- **Marina:** Me dijo: “te voy a pedir garante”. Fui y busqué a mi cuñado, que era trabajador de Olivetti. Le dije que se haga una hoja con membrete, un sello, que era “empresario”. Ese fue mi primer engaño, pero era una mentirita. Presenté esa documentación.  
+- **Marina:** Me conseguí los 3000 dólares: 1000 de adelanto y 2000 de garantía. Préstamo por aquí, préstamo por allá. Pero no era todo: había que llenar el local, decorarlo.  
+- **Marina:** Hice una decoración creativa, austera. Pinté unas cajas como de frutas, de diferentes colores, y puse las carteras. Me conseguí fabricantes de zapatos que me daban a consignación. Y así empecé.  
+- **Ileana:** Yo siempre repito una frase: “¿qué cosa puedo hacer con los recursos que tengo disponibles hoy?” Esa es la mentalidad de abundancia. En vez de decir “no tengo dinero”, decir “qué cosas sí tengo”, ahí se activa la creatividad.  
+
+---
+
+## Éxito, logros y legado: equilibrio personal, evolución continua y gratitud
+
+```yaml
+metadata:
+  contexto_denso: "En el cierre, Marina redefine el éxito como equilibrio y felicidad, prioriza logros continuos e innovación, y comparte el legado que desea dejar: resiliencia sin victimización, humildad de valores y gratitud, alineado con la misión de Visionarias."
+  entidades_clave: "[éxito, logros, equilibrio, innovación, legado, resiliencia, humildad, gratitud, Visionarias Latinoamérica, Renzo Costa, Jefa (productora)]"
+  preguntas_hipoteticas:
+    - "¿Qué significa el éxito para Marina hoy y por qué prefiere hablar de logros?"
+    - "¿Qué legado quiere dejar y cómo quiere ser recordada?"
+    - "¿Cómo cierran Camila e Ileana el episodio conectando la historia con la audiencia?"
+  keywords: "[éxito, logros, legado, equilibrio, gratitud]"
+  speakers: "[Camila, Ileana, Marina]"
+  source: "[transcripcion_visionarias_marina_renzo_costa.txt]"
+```
+
+- **Camila:** Para ir cerrando, cuéntame: para ti, ¿qué significa éxito al día de hoy?  
+- **Marina:** Lo más importante para ser exitosa o exitoso es ser una persona equilibrada y feliz, y de ahí viene todo: haber conseguido tus metas. La palabra éxito la siento un poco estática. Siempre pienso en logros, logros tras logros, motivaciones. Cuando pienso en “éxito”, siento que es fría, estática, pero todo el mundo quiere conseguir el éxito. Porque llegado el éxito, ¿qué más?  
+- **Marina:** En cambio, los logros: tienes este logro, tienes otro logro, y después preguntarte como los niños: “¿y ahora qué más?” Nunca te quedes, porque el que se queda retrocede. Siempre tenemos que avanzar. Que la palabra éxito no sea soberbia, de haber llegado a la cúspide y “aquí me quedo”. No. Tienes que avanzar, crear, innovarte.  
+- **Ileana:** Algo en común que han compartido todas las mujeres que hemos entrevistado es que al final es un viaje de evolución continua a lo largo de toda una vida. Son logros profesionales, pero también satisfacción en nuestras familias. La satisfacción de saber que estás cumpliendo ese potencial que sabes que tienes dentro tuyo.  
+- **Marina:** Eso es lo importante: la tranquilidad, el equilibrio, la paz contigo, en tu hogar, con tus hijos, con tus nietos o con tu marido. Si tienes esa tranquilidad, puedes encarar muchas cosas. Aun así haya situaciones adversas, puedes tener logros, siempre y cuando gestiones esas situaciones adversas de la mejor manera.  
+- **Marina:** Mi legado: que me recuerden como una mujer que las situaciones adversas no la dañaron, pese a que nunca se victimizó; una mujer humilde, en el sentido de valores, que siempre quiso dar. Y sobre todo, me gustaría que me recuerden como una mujer agradecida, que respondió a todo lo que la sociedad le dio buenamente, y que dio todo lo que pudo.  
+- **Camila:** Hermoso. Gracias por compartirlo, Marina. Para nosotras ha sido un honor tenerte aquí. Eres una de las empresarias peruanas que más admiración me genera por la trayectoria de largo aliento. Emprender hoy no es lo mismo que hace 50 años, y a pesar de todas las circunstancias sigues acá, con humor, energía, tan fashion.  
+- **Camila:** Es un ejemplo de mujer que a muchísimas de nuestra comunidad de Visionarias Latinoamérica les va a gustar conocer. Si Marina pudo con esas circunstancias, nosotras también podemos. Es cuestión de seguir para adelante, tener inteligencia emocional y trabajar con propósito.  
+- **Ileana:** Me quedo con una frase: “el no ya lo tengo, ahora vamos a buscar el sí”. Muchísimas gracias, Marina. También queremos agradecer a Jefa, que es nuestra productora, que ha hecho posible este episodio. Les vamos a dejar la información y los links, tanto de Jefa como también de Renzo Costa, para que puedan ver más de estos increíbles emprendimientos peruanos.  
+- **Camila:** Hasta un nuevo capítulo y nos vemos pronto. Chao, Visionarias.

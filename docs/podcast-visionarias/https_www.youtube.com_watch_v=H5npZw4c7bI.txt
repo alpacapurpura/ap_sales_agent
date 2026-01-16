@@ -1,0 +1,230 @@
+## Apertura del podcast: visión, bienestar y autenticidad como base del éxito
+
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana abren el episodio de Visionarias estableciendo que el éxito real se sostiene en paz y bienestar, introduciendo el tema central: el costo invisible del éxito y la necesidad de trabajo interior para crecer en negocios."
+  entidades_clave: "[Visionarias, Camila Klausen, Ileana Tapia, éxito, bienestar, autoexigencia, autenticidad, propósito, impacto, mentalidad, sistema nervioso]"
+  preguntas_hipoteticas:
+    - "¿Qué significa ser una mujer visionaria según el podcast Visionarias?"
+    - "¿Por qué el éxito puede tener un costo invisible como ansiedad o soledad?"
+    - "¿Por qué el crecimiento del negocio requiere trabajo interior y mentalidad?"
+  keywords: "[visión, bienestar, autenticidad, éxito, mentalidad]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Camila:** Todo empieza con una visión, una visión que te reta, te expande y te libera.  
+- **Ileana:** Una visión que honra el bienestar sobre la autoexigencia.  
+- **Camila:** Y la autenticidad sobre perfección.  
+- **Ileana:** Porque una mujer visionaria convierte sus miedos en sabiduría.  
+- **Camila:** Y su propósito en impacto. El camino no será fácil. Pero no tienes que hacerlo sola. Somos Camila Klausen e Ileana Tapia, dos emprendedoras que convertimos nuestras caídas en aprendizajes, y nuestros aprendizajes en visión. Y esto es…  
+- **Ileana:** Visionarias, el podcast en donde expandir tu negocio empieza con expandirte a ti misma. Sin trabajo interior y en mentalidad no hay crecimiento real, ni del negocio ni de ti misma, porque emprender pone a prueba todo nuestro sistema. Y si no aprendemos herramientas para entrenar nuestra mente y regular nuestro sistema nervioso, lo más probable es que eventualmente colapse. Hoy vamos a hablar del costo invisible del éxito, quizás lo que nadie te cuenta, pero que es muy importante, porque el éxito muchas personas piensan que se mide en cifras, pero no siempre es así. El éxito puede traer mucho dinero, mucha visibilidad, muchos logros, pero también está acompañado de ansiedad, de autoexigencia, de soledad. Así que hoy día vamos a explorar ese balance que todo líder necesita, ese bienestar integral, y sobre todo esa claridad que nos va a ayudar a trascender.  
+- **Camila:** Porque en Visionarias creemos que el verdadero éxito es el que se sostiene en paz, y nuestra mente es nuestro activo principal, pero si no sabemos cómo usarlo a nuestro favor, puede terminar saboteándonos.  
+- **Ileana:** Así que bienvenidas a un capítulo más de Visionarias Podcast. Este capítulo es muy especial, ya que vamos a explicarles mucho más a profundidad lo que significa el neurohacking y todas esas herramientas que a mí me han ayudado como empresaria, gracias a mi coach, estos últimos cinco años, para que pueda evolucionar y expandirme, no solamente como profesional, sobre todo como mujer. Entonces, Cami, cuéntanos, ¿qué es el neurohacking y cómo llegaste a él?
+
+---
+
+## Qué es el neurohacking y por qué emprender activa el “modo supervivencia”
+
+```yaml
+metadata:
+  contexto_denso: "Camila define el neurohacking como entrenamiento mental basado en neurociencia y explica cómo el estrés emprendedor activa el cerebro de supervivencia (cortisol), limitando creatividad y liderazgo, conectándolo con el costo invisible del éxito."
+  entidades_clave: "[neurohacking, neurociencia, coaching, ansiedad, cortisol, cerebro de supervivencia, corteza prefrontal, creatividad, liderazgo, sistema nervioso]"
+  preguntas_hipoteticas:
+    - "¿Qué es el neurohacking y cómo se relaciona con la neurociencia?"
+    - "¿Por qué emprender puede activar el cerebro de supervivencia y aumentar el cortisol?"
+    - "¿Qué rol cumple la corteza prefrontal en la creatividad y la toma de decisiones?"
+  keywords: "[neurohacking, cortisol, supervivencia, prefrontal, creatividad]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Camila:** El neurohacking es la ciencia y el arte de entrenar nuestra mente. Hay hoy mucha evidencia científica desde la neurociencia que nos enseña cómo cambiar esos patrones automáticos, reactivos, esas creencias limitantes que a veces nos frenan, pero acá está el componente importante: al final del día es un arte, porque muchas veces tenemos el conocimiento, tenemos las herramientas, pero lo más importante es ponerlo en práctica e integrarlo.  
+  Justamente la razón por la que yo llego al neurohacking fue mi propia búsqueda personal, porque en mi primer emprendimiento yo terminé cerrándolo, quebrando, terminé endeudada, y terminé en una crisis gigante, no solamente una crisis financiera, sino una crisis de ansiedad, que me llevó a ese lugar oscuro a decidir: tengo que encontrar una forma distinta de salir de esto y de vivir, tiene que existir un camino diferente. Entonces, eso me llevó a todo un proceso de introspección, de crecimiento personal, y ahí fue donde encontré no solamente el coaching, sino también el neurohacking.  
+- **Ileana:** Yo he vivido todo eso contigo de la mano, y yo también estaba en crisis, también estaba colapsada, no me entendía a mí ni al resto, me chocaba contra paredes, y también llegué por eso. Qué loco, ¿no? Como que tenemos que llegar por algo tan difícil para realmente empezar a trabajar en nosotras.  
+- **Camila:** Emprender te reta en todos los sentidos posibles, porque sobre todo en los primeros años se vuelve este camino de supervivencia. Literalmente sacar adelante tu negocio y que sobreviva financieramente se vuelve un vida o muerte, o por lo menos así es como lo interpretamos las emprendedoras.  
+  Entonces, ahí lo que sucede internamente es que se activa nuestro mecanismo de supervivencia. Por eso se dispara esta hormona famosa conocida: el cortisol, que es la hormona del estrés, porque lo que sentimos es que estamos en una situación en donde nuestra vida está en peligro. Ahí es donde se activa nuestro cerebro de supervivencia, y ese cerebro de supervivencia es reactivo: no es un cerebro que piensa, es un cerebro que solamente reacciona con la información que tiene del pasado.  
+  Si nosotras como empresarias queremos crear cosas diferentes, innovar, estar a la vanguardia, liderar, no podemos hacerlo desde la información del pasado y desde ese sistema nervioso desbalanceado que está gritando auxilio. Necesitamos saber cómo regularlo para poder activar esa otra región del cerebro que se llama nuestra corteza prefrontal. Esa región es responsable de encontrar soluciones, de nuestra creatividad, de tomar decisiones y de innovar. Qué importante es entender nuestra mente para potenciar ese cerebro maravilloso que está dentro de nosotras y saber cómo usarlo a nuestro favor.  
+- **Ileana:** Entonces, ¿cuáles serían estas diferencias entre una mente entrenada y una mente reactiva?
+
+---
+
+## Mente reactiva vs. mente entrenada: estrés, burnout y la voz del saboteador
+
+```yaml
+metadata:
+  contexto_denso: "Se contrasta la mente reactiva (ansiedad, urgencia, burnout) con una mente entrenada, introduciendo el concepto de saboteadores internos y cómo se manifiestan en el liderazgo y la operación del negocio dentro del tema del costo invisible del éxito."
+  entidades_clave: "[mente reactiva, burnout, ansiedad, estrés, saboteador, juez interno, liderazgo, emprendedoras]"
+  preguntas_hipoteticas:
+    - "¿Cómo se comporta una mente reactiva en el día a día de una emprendedora?"
+    - "¿Qué relación hay entre estrés sostenido y burnout en el emprendimiento?"
+    - "¿Qué es el saboteador interno y cómo se manifiesta en la gestión del negocio?"
+  keywords: "[reactividad, burnout, saboteador, ansiedad, liderazgo]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Camila:** Una mente reactiva simplemente reacciona. Como empresarias nos van a pasar distintas cosas, van a aparecer retos en donde las cosas no salen como quisiéramos, y eso es parte del camino. Una mente reactiva se desespera, intenta resolver a la rápida, y se experimenta muchísimo estrés y ansiedad. Eventualmente, estar constantemente en ese estado te va a llevar al agotamiento, al burnout, porque tu cuerpo y tu sistema no pueden sostener ese ritmo por tanto tiempo.  
+  Y ahí entra esa voz, ese saboteador que te comienza a decir cosas.  
+- **Ileana:** En mi caso, el juez me decía: tienes que controlarlo todo si no se te va a desordenar la empresa, o si no eres la mejor, vas a quedarte atrás. Ahí empieza todo eso, ¿verdad?  
+- **Camila:** Cuando hablamos de mente reactiva la entendemos desde el sistema nervioso, pero de forma práctica nos sirve identificar esa voz, nuestro saboteador. Hay distintos arquetipos de saboteadores. Les vamos a dejar el test para que puedan hacerlo e identificar cuáles tienen más fuertes. Eso fue lo que trabajamos contigo: identificar cuáles eran los más altos. A ver, cuéntanos, ¿cuáles eran esos que tú identificabas?
+
+---
+
+## Arquetipos de saboteadores: controladora, hiperlogradora y otros patrones comunes
+
+```yaml
+metadata:
+  contexto_denso: "Ileana comparte sus saboteadores principales (controladora e hiperlogradora) y Camila explica que los saboteadores suelen ser el sobreuso de dones, enumerando otros arquetipos frecuentes en mujeres emprendedoras dentro del marco del neurohacking."
+  entidades_clave: "[saboteadores, controladora, hiperlogradora, complaciente, víctima, hipervigilante, perfeccionista, evitador, empatía, límites]"
+  preguntas_hipoteticas:
+    - "¿Cuáles son los saboteadores más comunes en emprendedoras y cómo se expresan?"
+    - "¿Por qué los saboteadores pueden ser el sobreuso de dones y talentos naturales?"
+    - "¿Cómo afecta el control excesivo y la complacencia a la empresa y al equipo?"
+  keywords: "[saboteadores, control, autoexigencia, límites, empatía]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Ileana:** Del 1 al 10, yo tenía dos que tenía 9.5, el tope: la controladora, que quería tener todo bajo control; y la hiperlogradora, que quería destacar, ser la mejor. Si no destaco o no impacto, no sirve nada lo que estoy haciendo. Me ponía expectativas muy altas.  
+- **Camila:** Lo más interesante es que yo ya vengo trabajando con muchas emprendedoras y esos dos suelen ser los más altos. Hay una tendencia en el perfil. Y el otro punto importante: nuestros saboteadores son el sobreuso de nuestros dones y talentos naturales. El sobreuso de nuestra pasión, nuestro fuego, nuestras ganas de crear y romper límites, sobreusado, nos lleva a esa sobreexigencia desmesurada, en donde si no logro eso, ya no soy nada o nada importa.  
+  Ese estado en el que entramos muchas veces de que lo único que importa es el negocio.  
+- **Ileana:** Nada más, ni siquiera yo, era el negocio.  
+- **Camila:** Exacto. Y lo mismo con el control: es una herramienta poderosa para organizar y gestionar, pero sobreusada, no confiamos en nuestro equipo.  
+- **Ileana:** ¿Qué otros saboteadores hay en esa lista, Cami?  
+- **Camila:** Tenemos al complaciente, que aparece muchísimo: es el sobreuso del don de la empatía. Tenemos este corazón enorme y ganas de servir, pero sobreusado entra la complacencia de decir “no te preocupes, te bajo el precio” o no me atrevo a poner límites.  
+  También está la víctima: “¿por qué me pasa a mí?”. No nos gusta ser víctimas, pero todas lo somos en algún momento.  
+  Está el hipervigilante, sintiendo que algo va a pasar constantemente.  
+  Está el perfeccionista.  
+  Y está el evitador: cuando nos enfrentamos a situaciones que incomodan, la tendencia es paralizarnos o no afrontar. El don del evitador es que le gusta crear paz y armonía, pero lo evita y se vuelve un “monstruo en el clóset” que crece. Luego salen tendencias pasivo-agresivas y otros comportamientos que no suman.  
+- **Ileana:** Ahora que me pongo a pensar, yo no podía estar tranquila en ningún momento. Si había un momento tranquilo, pensaba: “algo está mal, ¿qué está pasando? Algo va a venir”. Vivía en caos, y el caos se volvió mi nueva forma de emprender.
+
+---
+
+## La “sabia interior” y el juez: nombrar voces internas para gestionarlas (Paz vs. “Hitler”)
+
+```yaml
+metadata:
+  contexto_denso: "Camila propone equilibrar los saboteadores con la sabia interior (liderazgo desde corteza prefrontal) y muestran una técnica práctica: poner nombre a esas voces; Ileana nombra a su líder 'Paz' y a su juez 'Hitler' para reconocer patrones y responder con más conciencia."
+  entidades_clave: "[sabia interior, líder interior, corteza prefrontal, juez interno, Paz, Camila Klausen, Ileana Tapia Hildebrant, vulnerabilidad]"
+  preguntas_hipoteticas:
+    - "¿Cómo ayuda ponerle nombre y cara al juez interno o saboteador?"
+    - "¿Qué es la sabia interior y cómo se relaciona con la corteza prefrontal?"
+    - "¿Cómo se usa una identidad como 'Paz' para responder distinto ante el caos?"
+  keywords: "[sabia interior, juez interno, Paz, gestión emocional, conciencia]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Camila:** Así como identificamos nuestros saboteadores, también está nuestra sabia interior o líder interior: esa versión de mí que lidera cuando se activa mi corteza prefrontal. En ese proceso de conocer a mi sabia y ponerle un nombre, llegamos a tu nombre: Paz, porque era lo que tú más deseabas.  
+- **Ileana:** Antes de trabajar con Cami, yo no respiraba o me costaba demasiado respirar. En una meditación me dijo: “¿Cómo te quieres sentir? ¿Cómo vibra Ileana en su mejor momento?”. Yo le dije: “en paz”. Yo estaba acostumbrada al ruido, y me acordé que esa era mi sabia. Le pusimos Paz, y cada vez que pasaba un caos, Camila me preguntaba: “¿y qué haría Paz en este momento?”. Paz no reaccionaría así.  
+  Y por otro lado tenía a mi juez, que también le pusimos un nombre, porque el juez todo el día me hablaba, me hacía reaccionar mal cuando las cosas no salían como yo quería.  
+- **Camila:** ¿Quieres contar el nombre que le pusimos a tu juez?  
+- **Ileana:** Me da roche, pero lo tengo que contar porque esa es la forma de ser más real. Yo soy Ileana Tapia Hildebrant, y Cami me dijo: “¿cómo se llama esa voz?”. Y le dije: “es Hitler”.  
+- **Camila:** Porque eso es lo que nuestro juez hace: está juzgándonos, criticándonos, con el látigo. Dentro del programa Neurohacking para Empresarias, en la primera sesión lo primero que hago es un demo de cómo se ve mi juez, con transparencia: “así se ve, así me habla”. A mí me da con látigo cada vez que me olvido de algo o me equivoco, porque siempre he tenido una mente dispersa.  
+  Lo primero es reconocer y aceptar que a todas nos pasa. Todos los seres humanos tenemos ese juez dentro. La pregunta es qué tanto lo conoces y lo reconoces.  
+- **Ileana:** Es verdad, porque cuanto más lo conozcas, mejor lo puedes manejar. A mí me ayudó un montón: “¿le está pareciendo Hitler?”. Cuando era muy rígida, muy dura, muy cuadriculada, no era yo: era Hitler.  
+- **Camila:** Exacto. Cuando abrimos esa puerta y lo ponemos al frente, podemos empezar a tener conversaciones reales: ya no se trata de si lo tengo o no, se trata de cómo lo gestiono y cómo lo transformo.
+
+---
+
+## Método ARA: Atrapar, Regular y Accionar (neurohacking aplicado a la vida y al negocio)
+
+```yaml
+metadata:
+  contexto_denso: "Camila enseña el método ARA (Atrapar, Regular, Accionar) como estructura práctica de neurohacking: identificar el saboteador, regular el sistema nervioso con sentidos/respiración para activar corteza prefrontal, y actuar desde la líder interior."
+  entidades_clave: "[método ARA, atrapar, regular, accionar, Stanford, sistema nervioso, respiración, sentidos, serotonina, endorfina, corteza prefrontal]"
+  preguntas_hipoteticas:
+    - "¿Cuál es el método ARA y cómo se aplica paso a paso?"
+    - "¿Qué técnicas ayudan a regular el sistema nervioso para bajar cortisol?"
+    - "¿Cómo se pasa de reaccionar a accionar desde la líder interior?"
+  keywords: "[ARA, regulación, respiración, sistema nervioso, acción]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Ileana:** Muchos van a querer saber: “ya, Cami, ¿cómo puedo neurohackear mi vida?”. Cuéntanos, ¿cómo podemos hacerlo?  
+- **Camila:** Hay tres músculos principales que tenemos que trabajar. Esto lo he estudiado con un profesor en Stanford, viene con términos en inglés, pero lo traduje y le puse un nombre fácil: método ARA, que son estos tres músculos: atrapar, regular y accionar.  
+  Lo primero es fortalecer el músculo de atrapar: mi capacidad de darme cuenta en qué momento aparece ese saboteador, en qué momento aparece ese juez. Ese es el paso número uno.  
+- **Ileana:** Identificarlo, estar consciente, porque a veces estamos en automático y ni siquiera nos damos el tiempo de detectarlo.  
+- **Camila:** Exacto. Ayuda volverlos personajes, porque eso le ayuda al cerebro a recordar: vincular una sensación física (ansiedad, miedo, nervios, contracción) con el personaje y con frases que se repiten en tu cabeza.  
+  Luego viene regular: regular el sistema nervioso y salir del cerebro de supervivencia, bajar la actividad y activar la corteza prefrontal. La ciencia valida que cada vez que llevo la atención a alguno de mis sentidos —respiración, tacto, olfato, vista, contemplación— bajan los niveles de cortisol, baja la actividad del cerebro de supervivencia, se elevan químicos y hormonas como serotonina, endorfina, etcétera, y se empieza a activar la corteza prefrontal. Por eso trabajábamos tanto la respiración.  
+- **Ileana:** Hasta me hacías ejercicios con los dedos, traer la atención a los dedos… me daba nervios, no podía, de verdad.  
+- **Camila:** Y por eso nuestro proceso de maestría interior ha venido mucho con el contacto con el cuerpo: cuando nos sentimos en el cuerpo, en presencia, la mente se ordena.  
+  Y ahí pasamos al músculo número tres: accionar, pero accionar desde la nueva perspectiva: la perspectiva de tu sabia, de Paz, de tu líder interior. Esa versión siempre ve posibilidades, ve el regalo o el aprendizaje en el reto.  
+  Hay una pregunta clave: ¿qué es lo que tendría que pasar para poder decir de acá a un año que esto que estoy viviendo en este momento fue lo mejor que me pudo haber pasado?
+
+---
+
+## Caso pandemia y Sicurezza: convertir crisis en oportunidad con una pregunta poderosa
+
+```yaml
+metadata:
+  contexto_denso: "Ileana aplica la pregunta de reencuadre durante la pandemia y relata cómo Sicurezza creció al enfocarse en comodidad y oportunidades comerciales; Camila refuerza con un caso de Wall Street 2008 para mostrar cómo la mente busca soluciones según la hipótesis que se plantea."
+  entidades_clave: "[pandemia, Sicurezza, centros comerciales, Salaverry, banco, crisis, Wall Street, 2008, CEO, coach, comodidad, ropa interior sin costuras]"
+  preguntas_hipoteticas:
+    - "¿Cómo usar una pregunta de reencuadre para atravesar una crisis empresarial?"
+    - "¿Qué aprendizajes del 2008 en Wall Street se aplican al emprendimiento?"
+    - "¿Cómo logró Sicurezza crecer durante la pandemia y qué decisiones lo hicieron posible?"
+  keywords: "[pandemia, Sicurezza, reencuadre, oportunidad, comodidad]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Camila:** Qué fuerte esa pregunta.  
+- **Ileana:** Me has hecho recordar a la pandemia. Primer mes: la incertidumbre era enorme. Nos decían cada dos semanas que ya nos iban a liberar, y luego dos semanas más. Yo había abierto mi primera tienda en Salaverry, me había endeudado con el banco hace tres meses, era una tienda recién abierta, y para mí era: ¿qué va a pasar? Todo lo que he creado, si Sicurezza en esos años se va a ir, va a desaparecer. Ese miedo me dominaba.  
+  Camila me hizo esa pregunta: “Ili, ¿qué tiene que pasar para que la pandemia sea lo mejor que le pasó a Sicurezza?”. Mi primera reacción fue: nada, es un desastre, lo peor que me ha pasado. Yo estaba en crisis, llorando, pensé que todo mi esfuerzo se iba a ir al tacho. Y Camila me explicó un caso de Estados Unidos, de la bolsa, del 2008.  
+- **Camila:** Estaba este coach trabajando con un CEO de una empresa de banca en Wall Street durante la crisis del 2008. Le hace la pregunta: “¿qué tendría que pasar para poder decir que esta crisis fue lo mejor que le pudo haber pasado a la empresa?”. La primera reacción es “nada, es lo peor”. Pero sostuvo la pregunta y le dijo: “llévala a tu equipo”.  
+  Un año después, esa empresa era más rentable de lo que era precrisis. ¿Por qué? Porque mientras todo el mundo se enfocaba en “esto es lo peor y nos vamos a morir”, ellos se enfocaron en responder esa pregunta. Así funciona nuestra mente: trata de responder las hipótesis que le ponemos.  
+  ¿Qué hicieron? Eliminaron toda la grasa de sus servicios, se quedaron con la membrana y la fibra de sus productos y servicios más ganadores, y un año después fueron más rentables mientras el mundo seguía en crisis. Y eso fue lo mismo que pasó con Sicurezza.  
+- **Ileana:** Me pasó algo muy similar. Al comienzo era lo peor, pero Cami estuvo acompañándome, segura de que iba a ser lo mejor, y yo trabajé mi mente hacia eso. ¿Qué pasó en pandemia? La comodidad comenzó a ser prioridad. La gente estaba en casa. Qué mejor que estar cómoda.  
+  Tuvimos “happy problems”: no tener mercadería que vender. Todo el mundo quería estar cómoda. La tecnología sin costuras comenzó a ser tendencia, porque la gente se dio cuenta que era lo más cómodo para la piel, para vivir el día a día sin alambre ni nada.  
+  Ese año abrí dos nuevas tiendas que no estaban presupuestadas, porque muchos centros comerciales tenían demasiados espacios abiertos y estaban a precio ganga. Cerramos alquileres muy baratos en dos nuevas tiendas, y crecimos casi por tres, cuando ni cerca iba a pasar sin pandemia. Realmente sí fue lo mejor que le pasó.  
+  Por eso recomiendo tanto el neurohacking: a veces todo está aquí. Si estás viviendo un momento difícil, hazte esa pregunta: ¿qué es lo que tiene que pasar para que lo que estoy viviendo hoy sea lo mejor que me pasó? Si lo trabajas de verdad, va a ser algo muy positivo en tu vida.  
+- **Camila:** Ese trabajo interior no solo impacta en ti, que es la prioridad, sino que termina teniendo un impacto financiero. En tu última línea se ve reflejado ese trabajo interno, porque cuando la corteza prefrontal está activa, encuentras soluciones y aparece la creatividad. Ese es el superpoder de la emprendedora.
+
+---
+
+## Redefinir el éxito: paz, bienestar integral y sostener el crecimiento sin agotarse
+
+```yaml
+metadata:
+  contexto_denso: "Ileana redefine el éxito desde la paz y el bienestar integral (emocional, mental, físico y financiero) y Camila refuerza la filosofía de Visionarias: negocios sostenibles sin ansiedad, con regulación del sistema nervioso y liderazgo desde el corazón."
+  entidades_clave: "[éxito, bienestar integral, paz, libertad financiera, relaciones, sistema nervioso, corazón lidera y la mente ejecuta, audio mentalidad]"
+  preguntas_hipoteticas:
+    - "¿Cómo redefinir el éxito más allá de facturación y métricas?"
+    - "¿Qué significa bienestar integral aplicado al emprendimiento?"
+    - "¿Cómo sostener el crecimiento del negocio sin agotamiento ni ansiedad?"
+  keywords: "[éxito, paz, bienestar, sostenibilidad, libertad]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Ileana:** El neurohacking me ayudó a redefinir lo que era el éxito. En el capítulo 1 les contaba que para mí el éxito era cuando mi empresa facture más de 10,000,000 de soles. Si no facturaba 10,000,000, yo no servía, era una fracasada. No me preguntes por qué ese número.  
+  Hoy, después de más de cinco años de trabajo, para mí el éxito es estar en paz: en paz con mi pasado, con mi presente y con mi futuro, y sobre todo tener bienestar integral. Si tengo eso, lo tengo todo. Bienestar integral: bienestar emocional, mental, físico, financiero.  
+- **Camila:** Cuando todas estas piezas se juntan, logramos esa verdadera definición del éxito. Parte de la filosofía de Visionarias es redefinir la forma de hacer negocios: ya no enfocarnos solo en el número, sino en cómo nos sentimos como mujeres, qué pasa en nuestras relaciones. Cuando estamos en modo supervivencia, las primeras afectadas son nuestras relaciones cercanas.  
+  Ver el crecimiento de forma integral, porque esa es la verdadera libertad que queremos. Y por supuesto está la libertad financiera dentro de esa ecuación. También tenemos que trabajar nuestra relación con el dinero; vamos a tener un capítulo de ese tema.  
+  Les queremos regalar un audio: comenten la palabra “mentalidad” y les regalamos un audio para empezar a entrenar. Lo más importante es darte tiempo para regresar a ti, a tu respiración. A mí me gusta sentir el latido de mi corazón: cuando siento ese pulso, me alineo.  
+  Por eso digo: el corazón lidera y la mente ejecuta. Cuando llevo mi atención al latido, regulo mi sistema, activo mi corteza prefrontal y mi mente ejecuta desde una perspectiva distinta. Primero al cuerpo, primero al corazón, primero al sentir y después me muevo a la acción.  
+- **Ileana:** Me gustaría compartir una frase: “Si puedes dominar tu mente, puedes liderar cualquier negocio. Si puedes regular tu sistema nervioso, puedes expandirte sin agotarte, porque el verdadero poder de una visionaria no está en hacer más, está en ser la mujer que puede sostener lo que construye”. Esto me llegó al alma, porque es cierto.  
+- **Camila:** Lo más importante es sostener a largo plazo el crecimiento del negocio. Si estás creciendo en ansiedad, va a llegar un punto donde no lo vas a poder sostener. Si realmente estamos creando negocios y marcas a largo plazo que dejen huella, lo más importante es cómo te sostienes tú, regulándote para navegar los picos y los altos y bajos, y no agotarte en el camino. Recuerda que el éxito real es el que se sostiene en paz.
+
+---
+
+## Cierre y agradecimientos: equipo, productora y despedida
+
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana cierran el episodio agradeciendo a la audiencia y a la productora Jefa Corp, reforzando el mensaje de sostener el éxito en paz y continuar el aprendizaje en próximos capítulos."
+  entidades_clave: "[Visionarias Podcast, Jefa Corp, productora, equipo]"
+  preguntas_hipoteticas:
+    - "¿Cuál es el mensaje final del episodio sobre éxito y paz?"
+    - "¿A quién agradecen en el cierre del capítulo?"
+    - "¿Qué continuidad anuncian para próximos episodios?"
+  keywords: "[cierre, agradecimientos, productora, equipo, continuidad]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_neurohacking.md]"
+```
+
+- **Ileana:** Gracias por acompañarnos en un capítulo más de Visionarias Podcast, y gracias también a nuestro equipo de Jefa Corp, nuestra productora, que nos ha acompañado en este capítulo y en todos los que vienen. Una casa productora que estoy segura que va a ayudar a muchísimas emprendedoras a manejar su marca y a trascender.  
+- **Camila:** Gracias por estar aquí, espero que este capítulo te haya servido, y nos vemos en el siguiente. Chao.

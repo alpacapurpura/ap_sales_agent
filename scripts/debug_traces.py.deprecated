@@ -1,0 +1,12 @@
+from src.services.database import SessionLocal
+from src.services.models import AgentTrace, LLMCallLog
+from sqlalchemy import desc
+
+db = SessionLocal()
+traces = db.query(AgentTrace).order_by(desc(AgentTrace.created_at)).limit(10).all()
+
+print(f"Total Traces Found: {len(traces)}")
+for t in traces:
+    print(f"ID: {t.id} | Node: {t.node_name} | User: {t.user_id} | Time: {t.created_at}")
+
+db.close()

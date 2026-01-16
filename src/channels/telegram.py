@@ -1,7 +1,7 @@
 import httpx
-from typing import Any, Optional, Dict
-from src.channels.base import BaseChannel
+from typing import Dict, Any, Optional
 from src.core.schema import IncomingMessage, OutgoingMessage
+from src.channels.base import BaseChannel
 from src.config import settings
 import logging
 
@@ -9,44 +9,36 @@ logger = logging.getLogger(__name__)
 
 class TelegramChannel(BaseChannel):
     """
-    Adaptador para la API de Bots de Telegram.
+    Adapter for Telegram Bot API.
     """
     
-    def __init__(self):
-        self.api_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}"
-
-    def normalize_payload(self, request: Dict[str, Any]) -> Optional[IncomingMessage]:
+    def normalize_payload(self, payload: Dict[str, Any]) -> Optional[IncomingMessage]:
         """
-        Telegram envía un objeto Update:
-        {
-            "update_id": 1234,
-            "message": {
-                "message_id": 1,
-                "from": {"id": 123, "first_name": "Chris", ...},
-                "chat": {"id": 123, ...},
-                "date": 123456,
-                "text": "Hola"
-            }
-        }
+        Extracts message from Telegram webhook update.
+        Structure: { "update_id": ..., "message": { "message_id": ..., "from": {...}, "text": ... } }
         """
-        if "message" not in request:
-            # Podría ser edited_message, callback_query, etc. Ignorar por ahora.
+        # We only care about text messages for now
+        message = payload.get("message")
+        
+        if not message:
+            # Ignore other updates like edited_message, channel_post, etc.
             return None
             
-        msg = request["message"]
-        
-        # Validar que sea texto
-        if "text" not in msg:
+        if "text" not in message:
+            # Ignore non-text messages (photos, stickers) for now
             return None
             
-        user_id = str(msg["chat"]["id"])
-        text = msg["text"]
+        user_data = message.get("from", {})
+        user_id = str(user_data.get("id"))
+        text = message.get("text", "")
         
-        # Extraer metadatos útiles
+        # Extract useful metadata for the agent profile
         metadata = {
-            "first_name": msg.get("from", {}).get("first_name", ""),
-            "username": msg.get("from", {}).get("username", ""),
-            "message_id": msg.get("message_id")
+            "first_name": user_data.get("first_name", ""),
+            "last_name": user_data.get("last_name", ""),
+            "username": user_data.get("username", ""),
+            "language_code": user_data.get("language_code", ""),
+            "source": "telegram"
         }
         
         return IncomingMessage(
@@ -56,22 +48,42 @@ class TelegramChannel(BaseChannel):
             metadata=metadata
         )
 
-    async def send_message(self, message: OutgoingMessage) -> None:
+    async def send_message(self, message: OutgoingMessage) -> Dict[str, Any]:
         """
-        Envía respuesta a Telegram usando sendMessage.
+        Sends text message to Telegram Chat ID.
+        Retries without Markdown if it fails (400 Bad Request).
         """
-        endpoint = f"{self.api_url}/sendMessage"
+        if not settings.TELEGRAM_BOT_TOKEN:
+            logger.error("TELEGRAM_BOT_TOKEN not set")
+            return {"error": "configuration_missing"}
+            
+        token = settings.TELEGRAM_BOT_TOKEN.strip()
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
         
+        # Try with Markdown first
         payload = {
             "chat_id": message.user_id,
             "text": message.text,
-            "parse_mode": "Markdown" # Opcional, para formato
+            "parse_mode": "Markdown" 
         }
         
         async with httpx.AsyncClient() as client:
             try:
-                response = await client.post(endpoint, json=payload)
+                response = await client.post(url, json=payload, timeout=10.0)
                 response.raise_for_status()
-            except Exception as e:
-                logger.error(f"Error sending to Telegram: {e}")
-                raise
+                logger.info(f"Message sent to Telegram user {message.user_id}")
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                # If 400 Bad Request (likely Markdown error), retry as plain text
+                if e.response.status_code == 400:
+                    logger.warning(f"Telegram Markdown send failed ({e}), retrying as plain text...")
+                    payload.pop("parse_mode")
+                    retry_response = await client.post(url, json=payload, timeout=10.0)
+                    retry_response.raise_for_status()
+                    return retry_response.json()
+                else:
+                    logger.error(f"Failed to send Telegram message: {e}")
+                    raise e
+            except httpx.HTTPError as e:
+                logger.error(f"Failed to send Telegram message (Network): {e}")
+                raise e

@@ -1,23 +1,28 @@
 ---
-alwaysApply: false
-description: 
+alwaysApply: true
 ---
-# Stack Tecnológico: Visionarias Agent
+# Stack Tecnológico
 
 ## Core
-*   **Lenguaje**: Python 3.11+ con **Tipado Estricto** obligatorio.
-*   **API**: `FastAPI`. Uso de modelos Pydantic para Request/Response bodies.
-*   **Orquestación**: `LangGraph` (v0.1+). Preferido sobre cadenas lineales.
-*   **Validación**: `Pydantic` v2. Todo input/output del LLM debe validarse contra un esquema.
+* Lenguaje: Python 3.11+ (Tipado Estricto).
+* API: `FastAPI`. Modelos Pydantic v2 para validación I/O.
+* Orquestación: `LangGraph`. Máquinas de estado complejas.
+* LLM: Multi-Provider Factory (`OpenAI` GPT-4 / `Gemini` 1.5). Configurable por entorno.
 
 ## Infraestructura de Datos
-*   **Vectorial**: `Qdrant` con filtrado por metadatos (Payload Filtering).
-*   **Estado**: `Redis` para persistencia de sesión y `AgentState`.
-*   **Logs**: `PostgreSQL` para telemetría y auditoría.
-*   **Templating**: `Jinja2`. Prompts en archivos `.j2` (no f-strings).
+* Vectorial: `Qdrant`. Payload Filtering obligatorio.
+* Embeddings Locales: Caché PERSISTENTE obligatorio en volumen Docker (e.g., `/app/model_cache`). Prohibido descargar en runtime a `/tmp`.
+* Estado: `Redis`. Persistencia de sesión y `AgentState`.
+* Logs: `PostgreSQL`. Auditoría y Telemetría.
+* ORM: `SQLAlchemy`.
+* Templating: `Jinja2` para prompts (.j2).
 
-## Despliegue (Docker)
-*   **Perfiles**:
-    *   `development`: Puertos abiertos (API:8000, DBs).
-    *   `production`: Red interna aislada, expuesto vía **Traefik**.
-*   **Configuración**: Variables de entorno (`.env`) gestionadas por `pydantic-settings`.
+## Despliegue & Dev
+* Docker: Perfiles `development` y `production`.
+* Tunneling: `Cloudflare Tunnel` para exponer entorno local (Webhooks).
+* Gateway: `Traefik` para enrutamiento en producción.
+* Config: `pydantic-settings` (.env).
+
+## Reglas de Dependencias
+* Versiones: Pinneadas en `requirements.txt`.
+* Migraciones: Scripts SQL o Alembic (si aplica) para cambios de esquema.

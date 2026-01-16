@@ -1,0 +1,41 @@
+import sys
+import os
+
+# Add project root to path
+sys.path.append(os.getcwd())
+
+from src.config import settings
+from src.core.llm.factory import LLMFactory
+
+def test_embedding():
+    print(f"--- DIAGNÓSTICO DE EMBEDDINGS ---")
+    print(f"Configurado en settings.OPENAI_EMBEDDING_MODEL: '{settings.OPENAI_EMBEDDING_MODEL}'")
+    print(f"Configurado en settings.QDRANT_VECTOR_SIZE: {settings.QDRANT_VECTOR_SIZE}")
+    
+    try:
+        service = LLMFactory.get_service()
+        emb_model = service.get_embedding_model()
+        
+        # Check internal attributes if possible
+        if hasattr(emb_model, 'model'):
+            print(f"Modelo interno en LangChain object: '{emb_model.model}'")
+        
+        print("Generando embedding de prueba...")
+        vector = emb_model.embed_query("test")
+        dim = len(vector)
+        
+        print(f"Dimensión del vector generado: {dim}")
+        
+        if dim == 1536:
+            print("⚠️ ALERTA: El modelo está generando vectores de 1536 dimensiones (compatible con ada-002 o 3-small).")
+            print("Posible causa: La variable de entorno OPENAI_EMBEDDING_MODEL podría estar establecida a un modelo pequeño en .env")
+        elif dim == 3072:
+            print("✅ El modelo está generando 3072 dimensiones correctamente.")
+        else:
+            print(f"Dimensión inesperada: {dim}")
+            
+    except Exception as e:
+        print(f"Error durante la prueba: {e}")
+
+if __name__ == "__main__":
+    test_embedding()

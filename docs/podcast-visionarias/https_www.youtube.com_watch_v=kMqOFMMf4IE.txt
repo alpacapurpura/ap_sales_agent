@@ -1,0 +1,185 @@
+## Manifiesto e introducción de *Visionarias*: visión, autenticidad y libertad
+
+```yaml
+metadata:
+  contexto_denso: "Apertura del episodio 1 de Visionarias: Camila Klausen e Ileana Tapia presentan el propósito del podcast como un espacio para expandir el negocio desde la expansión personal, priorizando bienestar y autenticidad."
+  entidades_clave: "[Camila Klausen, Ileana Tapia, Visionarias, emprendimiento, bienestar, autenticidad, perfeccionismo, autoexigencia]"
+  preguntas_hipoteticas:
+    - "¿De qué trata el podcast Visionarias y cuál es su propósito?"
+    - "¿Qué significa ser una mujer visionaria según las hosts?"
+    - "¿Por qué el bienestar y la autenticidad son pilares del emprendimiento que proponen?"
+  keywords: "[Visionarias, visión, autenticidad, bienestar, libertad]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_ep1.txt]"
+```
+
+- **Camila:** Todo empieza con una visión, una visión que te reta, te expande y te libera. Una visión que honra el bienestar sobre la autoexigencia. Y la autenticidad sobre perfección. Porque una mujer visionaria convierte sus miedos en sabiduría. Y su propósito en impacto.
+- **Camila:** El camino no será fácil. Pero no tienes que hacerlo sola. Somos Camila Klausen e Ileana Tapia, 2 emprendedoras que convertimos nuestras caídas en aprendizajes, y nuestros aprendizajes en misión. Y esto es Visionarias, el podcast en donde expandir tu negocio empieza con expandirte a ti misma.
+- **Ileana:** Bienvenidas al primer episodio de Visionarias.
+- **Camila:** Nos emociona muchísimo poder compartir este nuevo camino junto a ustedes, porque este va a ser un espacio que no solamente lo queríamos para nosotras, sino porque estoy segura que le va a servir a 1000 de mujeres emprendedoras.
+- **Ileana:** Y aquí queremos contarles algo importante, que este podcast no nace de un manual, sino nace de nuestra propia historia, de todas nuestras caídas, todos los aprendizajes que hemos tenido en este camino emprendiendo.
+- **Camila:** Así es, este no va a ser un podcast más de negocio, sino al revés, hablaremos de lo que nadie te cuenta, lo que está detrás del éxito, lo invisible, lo que te pesa, y además de cómo transformarlo para que empieces a vivir una vida con más libertad.
+- **Ileana:** Y queremos que te sientas parte de esta comunidad desde el día 1. Aquí vamos a hablar de visión, de propósito, de bienestar, de estrategias de negocios, pero también de esos miedos y esas dudas que todas vivimos.
+- **Camila:** Así es, así que bienvenidas todas, gracias por estar aquí, porque además este es un gran sueño que teníamos con Cami hace más de un año.
+- **Ileana:** Y ya se hizo realidad. Mucho amor, está aquí para ustedes. Esto recién comienza.
+
+
+## Emprender, burnout y pedir ayuda: el negocio como espejo y el “KPI de energía”
+
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana conectan el crecimiento del negocio con el trabajo interno: hablan de burnout, presión emprendedora, pedir ayuda y la idea de que el KPI más importante es el nivel de energía."
+  entidades_clave: "[Sicurezza, burnout, mentalidad, inteligencia emocional, KPI, energía, neurohacking, sistema nervioso, pandemia, Salaverry]"
+  preguntas_hipoteticas:
+    - "¿Por qué emprender suele llevar al burnout y cómo se relaciona con la presión interna?"
+    - "¿Qué significa que el KPI más importante del negocio sea tu nivel de energía?"
+    - "¿Cómo reconocer el momento de pedir ayuda y qué cambia cuando lo haces?"
+  keywords: "[burnout, energía, KPI, ayuda, presión]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_ep1.txt]"
+```
+
+- **Camila:** Emprender Sicurezza ha sido de los desafíos más retadores que he tenido que atravesar mis últimos 10 años.
+- **Ileana:** Y mi camino como coach ha sido muy similar también, y al final del día creo que el de todas, porque nuestros negocios son esos espejos de nosotras mismas, de nuestras heridas, de nuestros miedos, de nuestras dudas, y nos muestran todo eso que tenemos que trabajar internamente. Y por eso es que es tan importante trabajar también nuestra mentalidad, nuestra inteligencia emocional, porque crecer y expandir un negocio nos va a retar y nos va a llevar a tener que desarrollar esas habilidades.
+- **Camila:** Exactamente, porque no sé si ustedes saben, pero 9 de cada 10 emprendimientos cierran el primer año. ¿Pueden creerlo? La mayoría. Y ¿por qué solamente 1 se queda? Quizás dirán, porque no tienen las herramientas de gestión o se quedaron sin dinero, pero la realidad va más allá. Yo creo que también es porque no aguantan la presión, los sacrificios y todo lo que conlleva realmente poder sostener ese proceso.
+- **Ileana:** Y por eso es que hemos creado Visionarias, un movimiento de mujeres emprendedoras que están creando su definición de libertad.
+- **Camila:** Visionarias va a ser un hub de emprendimiento, donde vamos a tener masterclasses, programas intensivos de emprendimiento, también mentorías grupales y mentorías personalizadas para ayudarlas a ustedes a expandir sus negocios y también a ustedes mismas, porque si tú creces, tu negocio crece, y eso lo he comprobado yo misma cuando cambié siendo mi coach, con todas las herramientas de neurohacking, he logrado que Sicurezza crezca por 15 en los últimos 5 años.
+- **Ileana:** Y lo más importante es que, al final del día, esos resultados son una consecuencia de todo ese trabajo interno y de realmente disfrutar del camino de emprender, porque lo que no queremos es que se vuelva nuestra propia jaula, que nos sintamos esclavas de nuestro negocio. He visto a muchas mujeres empresarias sintiéndose esclavas de su propio negocio, entonces, por eso es que es tan importante integrar y complementar con todas estas herramientas de autoconocimiento, de maestría interior, de autoliderazgo, para justamente poder tomar las decisiones necesarias para cuidar de nosotras, de nuestro bienestar y disfrutar de nuestro proceso de creación.
+- **Camila:** Literal, yo me sentía esclava de mi propio negocio. Hasta mi identidad giraba alrededor de Sicurezza, Ileana no existía sin Sicurezza. Es la razón por la cual dije, no puede ser, y te busqué a ti, Cami, hace 5 años o un poco más.
+- **Ileana:** Yo justo acababa de renunciar también para dedicarme ya a full time al coaching, y fuiste una de mis primeras clientas, y hasta ahora, hasta el día de hoy, ahora socias. Yo me acuerdo en ese momento que tú llegaste, que estabas completamente agotada, estabas en un burnout bravísimo.
+- **Camila:** Me acuerdo de estar muy abrumada. Acababa de abrir mi primera tienda en Salaverry, sin saber nada. Yo pensé que la tienda me iba a costar X, y cuando me mandaron la cotización yo tenía el contrato firmado y era 5X. Dije: “¿en qué me he metido?”. Comenzaba a dudar de mí misma, y a la semana llegó pandemia. Ahí sí fue una locura.
+- **Ileana:** Qué importante también es darnos cuenta en qué momento necesitamos ayuda, saber levantar la mano y decir: “ya, esto no está bien, hay algo que tengo que hacer, me tengo que hacer cargo de mí, de mi bienestar, y necesito ayuda”.
+- **Camila:** Exacto. Yo venía desde el 2015 emprendiendo. Yo fundé Sicurezza sola, sin ni un socio, con 1200 soles, que era mi sueldo de practicante, y literalmente nadie de mi familia había emprendido. Me sentí muy sola todo ese proceso. Por muchos años, con esa pasión y con tanto propósito, creo que es lo que me sostuvo para que Sicurezza igual crezca, pero mientras Sicurezza crecía, yo sentía que me derrumbaba por dentro. Hoy le puedo decir que era un burnout; en ese momento no tenía idea. Para mí pedir ayuda fue de las mejores decisiones que tomé.
+- **Ileana:** Es muy común ese burnout que es el sobreuso de tu pasión. Es esa pasión y ese fuego y esas ganas de comernos el mundo, de crear, de impactar, de romper los límites. Esa energía sobreusada es la que nos lleva a quemarnos. A mí también me ha pasado. Se vuelve nuestra única prioridad: el emprendimiento y el negocio se vuelve el único foco, y nos olvidamos completamente de nosotras mismas, de nuestro bienestar, de nuestra salud, de hacer ejercicio, de nada más importa.
+- **Camila:** Para mí fue un camino muy duro, porque trabajar contigo cuando nunca habías tenido herramientas de autoconocimiento, te sobreexigías tanto y tu vida gira alrededor de tu empresa, no tienes ni siquiera ese espacio de pensar en ti misma. Hoy quiero decir que sí se puede. Si hoy nos estás escuchando y resuena eso contigo, es momento de parar y ver qué es lo que queremos y cómo queremos estar, porque si nosotras no estamos bien, nuestra empresa finalmente no va a estar bien.
+- **Ileana:** Totalmente. Y ¿sabes cuál fue una de las frases que usé para hackear mi cerebro? La frase que me inventé fue que el KPI más importante de tu negocio es tu nivel de energía. Entonces, si yo quiero que mi negocio crezca, tengo que monitorear ese KPI, que es mi propio nivel de energía, y ponerle el tiempo, el cuidado y la atención a eso.
+- **Camila:** Yo vivía cansada. No tenía energía, no tenía fuerza. Y cuando me dices que el KPI es la energía, y darme cuenta que mi energía estaba en el piso, dije: “algo estoy haciendo mal”.
+
+
+## Saboteadores, ansiedad y sistema nervioso: supervivencia vs. creatividad
+
+```yaml
+metadata:
+  contexto_denso: "Se profundiza en los saboteadores (sobreexigencia y control), la ansiedad y la supervivencia emprendedora; explican cómo el sistema nervioso alterado limita la creatividad y por qué regularlo es clave."
+  entidades_clave: "[saboteadores, test de saboteadores, hyper achiever, control, ansiedad, sistema nervioso, supervivencia, corteza prefrontal, neurociencia]"
+  preguntas_hipoteticas:
+    - "¿Qué son los saboteadores y cómo se manifiestan en el emprendimiento?"
+    - "¿Por qué emprender activa un modo de supervivencia y cómo afecta al cerebro?"
+    - "¿Qué prácticas ayudan a regular el sistema nervioso para tomar mejores decisiones?"
+  keywords: "[saboteadores, ansiedad, control, supervivencia, neurociencia]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_ep1.txt]"
+```
+
+- **Camila:** Algo que me ayudó un montón es el tema de los saboteadores. Cami mandó un test para poder entender dónde realmente estaba sobreexagerando mis dones. Tenía 2: el *hyper achiever*, que es como la que quiere destacar, hacerla mejor, sobreexigente. Yo vengo de una familia exigente, de un colegio exigente, una educación exigente, un deporte exigente. Vivía rodeada de eso. Y el segundo saboteador era el control: si sentía que no tenía algo bajo control, me alteraba, me abrumaba, y eso bajaba mucho más mi nivel de energía.
+- **Ileana:** Totalmente, porque creo que esa es una de las cosas bien importantes: entender que el emprendimiento es un juego a largo plazo, y si no estamos dándole esa sostenibilidad a nuestro cuerpo, literalmente nos vamos a quemar.
+- **Ileana:** Nuestros saboteadores son el sobreuso de nuestros dones y talentos naturales. Esa sobreexigencia es el sobreuso de tu pasión. El control es el sobreuso de tu capacidad de gestionar y planificar, que es una habilidad necesaria en el negocio, pero que es sobreusada, parte también de un miedo y de un estado de supervivencia.
+- **Camila:** Yo sentía que tenía que sobrevivir. Hoy digo: “guau”, ya soy mucho más tranquila, con más herramientas, he madurado un montón, me has ayudado mucho, pero de verdad no me podía ni siquiera manejar a mí misma ni a mis emociones. En mi caso personal la ansiedad me dominó. Llegué a entrar a capítulos muy difíciles que mi mente me ganaba y yo realmente no me podía manejar.
+- **Camila:** Sé también que tener la ayuda adecuada o las personas correctas no necesariamente las tenemos todas. Y además la inversión: tener el acompañamiento adecuado para muchas quizás no es tan factible. También es la razón por la cual estamos aquí: cómo podemos acompañar y sostener, y alejar un poco esa soledad, y al revés cómo comenzamos a estar en comunidad y ayudarnos entre nosotras.
+- **Ileana:** Si hoy en general estamos viviendo una crisis de salud mental, cuando emprendes se multiplica por 100. En los primeros años literalmente es un camino de supervivencia. Estamos tratando de sobrevivir, porque esa supervivencia es sacar adelante el negocio. Si no lo saco adelante, esto muere.
+- **Ileana:** Como hay una conexión tan cercana entre lo que estamos creando y nosotras mismas, nuestro subconsciente lo interioriza como “yo me voy a morir”. Entonces se activa nuestro mecanismo de supervivencia, se activa nuestro sistema nervioso, y literalmente ese cerebro es un cerebro reactivo, no es un cerebro que piensa, no es un cerebro creativo. Por eso entramos en esta rueda de hámster: ansiedad, seguir, seguir, seguir, no puedo parar. Por eso es tan importante aprender sobre nuestro sistema nervioso y saber cómo regularlo.
+- **Camila:** Tú me veías tan abrumada y me dices: “Ili, ¿cuándo vas a parar? ¿Qué tiene que pasar para que pares?”. ¿Saben cuál fue mi respuesta? “Cuando Sicurezza venda 10,000,000 de soles. Si no vendo 10,000,000 antes, yo no voy a parar”.
+- **Camila:** Me decías: “estás poniendo tu salud en juego por esos 10,000,000. ¿Y qué pasa si no llegas?”. Y me hizo pensar, porque yo estaba tan cegada en un número, tan cegada de mis metas, tan cegada de mis resultados, que me hizo repensar mucho las cosas y darme cuenta quién quería ser y hacia dónde quería llegar.
+- **Ileana:** En mi caso también no ha sido diferente. He tenido esos mismos episodios. Una cosa es entenderlo y otra cosa es aplicarlo. En mi caso era el doble de culpa, porque era como “tú sabes qué tienes que hacer” e igual lo estás sintiendo.
+- **Ileana:** Esa ansiedad se proyectaba en el dinero: si llegaba a la meta o no llegaba. Y al final eso desgasta nuestro bienestar, desgasta nuestras relaciones. Por eso creemos en esa libertad 360, en donde el éxito no tiene que ser a costa de mi bienestar personal y de mis relaciones.
+- **Camila:** Años más tarde llegué a esa facturación, la pasamos y me seguía sintiendo igual.
+- **Ileana:** Igualito yo. Era como: “cuando tengas ese lanzamiento…”. Llegué y seguía sintiendo la misma ansiedad. Y después: “¿y ahora cómo lo vuelvo a hacer?”.
+- **Camila:** Cada vez la vara más alta, las expectativas más altas, y la presión que tú misma te pones es la más fuerte. A veces pensamos que son los demás, pero no: es nuestra propia cabeza.
+
+
+## Qué es una mujer visionaria y las 4 cadenas invisibles: valor, sacrificio, soledad y moldes ajenos
+
+```yaml
+metadata:
+  contexto_denso: "Definen a la mujer visionaria y presentan cuatro cadenas invisibles que frenan a las emprendedoras: no sentirse suficiente, sacrificio glorificado, soledad emprendedora y seguir moldes ajenos."
+  entidades_clave: "[mujer visionaria, autoconocimiento, perfeccionismo, sobreexigencia, sacrificio glorificado, soledad emprendedora, moldes ajenos, liderazgo, ciclicidad femenina]"
+  preguntas_hipoteticas:
+    - "¿Cuáles son las cuatro cadenas invisibles que identifican en el emprendimiento femenino?"
+    - "¿Cómo se manifiesta la cadena de no sentirse suficiente en una emprendedora?"
+    - "¿Qué implica dejar de seguir moldes ajenos y crear desde la propia energía?"
+  keywords: "[autoconocimiento, sacrificio, soledad, moldes, valor]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_ep1.txt]"
+```
+
+- **Ileana:** Vamos a empezar a contarles más sobre quién es una mujer visionaria y un poco más de lo que realmente queremos hacer con ustedes aquí.
+- **Ileana:** Una mujer visionaria es una mujer que tiene una gran visión y que se atreve a crearla. Entonces, ¿cuál sería el primer paso para ser una mujer visionaria?
+- **Camila:** Definitivamente trabajar en tu propio autoconocimiento.
+- **Ileana:** Claro, porque solo desde ahí puedes identificar esas cadenas invisibles que te están frenando.
+- **Camila:** Cadenas como la sobreexigencia, el perfeccionismo, poner a todos y a tu empresa antes que ti como prioridad.
+- **Ileana:** Y es por eso que el primer paso para ser una mujer visionaria es decidir ponerte a ti y a tu bienestar en primer lugar.
+- **Camila:** Ahora vamos a empezar a hablar sobre las cadenas invisibles que hemos identificado en este proceso, que son 4. La primera es la cadena del valor personal, de no sentirte suficiente. La segunda es el sacrificio glorificado, tener que sacrificar, sacrificar, sacrificar, y no ver retribución sobre ello.
+- **Ileana:** La tercera es la cadena de la soledad emprendedora, que todas la hemos vivido, y la cuarta es la cadena de seguir moldes ajenos, esa definición de éxito que le pertenece a otra persona y no a nosotras.
+- **Camila:** En mi caso, yo empecé sola, siendo mujer, sin socios, sin nadie alrededor que me pudiera sostener porque tenga experiencia en el emprendimiento, y por ende no me sentía suficiente. Para mí era: “quizás necesito un socio”, o “necesito ser más y más”, porque no veía todo ese valor. Cuando habían otras personas que me decían: “Ili, pero has sacado a Sicurezza sola, eso es guau”, y yo: “no, necesito más, no es suficiente”, porque realmente no veía eso.
+- **Ileana:** Todas tenemos esa voz de ese saboteador que nos hace sentir que no somos suficientes, y es un músculo que tenemos que trabajar activamente cada día: recordarnos que somos suficientes, mirar atrás y ver el camino que hemos recorrido y sentirnos orgullosas de lo que hemos logrado.
+- **Ileana:** Es muy fácil que nos vayamos hacia lo que queremos crear y, por ende, ver el vaso medio vacío, pero es nuestra responsabilidad verlo medio lleno.
+- **Ileana:** Y esto nos lleva a la segunda cadena, que es el sacrificio glorificado. Yo decía: “cuanto más me esfuerzo, cuanto más cansada estoy y más me duele, es porque realmente más éxito voy a tener”. El éxito para mí era sacrificio. Si no había sacrificio, no era suficiente.
+- **Ileana:** Hay frases como “no pain, no gain”. Como si no te duele, no hay ganancia. No mereces ese reconocimiento, recibir la ganancia, si es que no te duele, si es que no hay sacrificio.
+- **Camila:** Van a haber retos, va a ser difícil, pero acá estamos hablando de ese exceso: “más pesado, más ganancia”. Esa es la creencia que tenemos que reprogramar.
+- **Camila:** Algo que a mí me ayudó mucho es: ¿cómo llego a ese punto medio? Porque sin esfuerzo no hay recompensa, pero ¿a qué costo y hasta dónde?
+- **Ileana:** Eso nos lleva a nuestra cadena número 3, que es la soledad en el proceso de emprender, y creo que es una de las razones fundamentales por las cuales estamos creando Visionarias. Cuando nos sentimos parte de una comunidad, sentimos que hay otras mujeres que están pasando por lo mismo, en contextos similares, y nos sentimos vistas, sostenidas, acompañadas. Ahí es donde todo cambia.
+- **Camila:** Yo emprendí sola, no tenía socios, entonces estaba mucho más sola que las personas que emprenden de 2 o de 3. Mi familia no me entendía tanto, mis amigas menos; a muchas les incomodaba que yo esté hablando de esto. Te aleja mucho más de las personas, y te das cuenta que emprendes sola contra el mundo, que no es así, pero así te sientes.
+- **Camila:** Lo que me ha servido muchísimo: dejarme ayudar de profesionales, pero también encontrar un círculo en el cual sí haya gente que te entienda, que está viviendo procesos similares. Hoy ya no me siento sola, y he aprendido a identificar las personas correctas que me sostienen y me ayudan a vivir este proceso con mayor libertad y con mayor felicidad.
+- **Ileana:** La fuerza de la comunidad tiene un impacto gigantesco, no solamente en tu mentalidad y en tu bienestar, sino en los resultados de tu negocio. Cuando tú te elevas, se eleva tu negocio. Yo ya lo he visto pasar con más de 200 empresarias que han pasado por el programa de neurohacking.
+- **Camila:** Si tú te sientes sola, no te preocupes, porque justamente es la razón por la cual estamos aquí. Vamos a reunir una comunidad donde todas nos sostengamos juntas para crecer nuestros negocios, y eso lo vamos a lograr en nuestras mentorías personalizadas o grupales, y también en los eventos que vayamos a crear.
+- **Ileana:** Queremos ponerle mucho énfasis a este componente: no estás sola. Amamos la virtualidad, pero necesitamos ese contacto humano.
+- **Ileana:** La cuarta cadena es la cadena de los moldes ajenos, en donde muchas veces nos obligamos a encajar en modelos de negocio o estilo de liderazgo que no son nuestros.
+- **Camila:** Yo había visto muchos ejemplos de empresarios hombres, pero no tenía un ejemplo de una mujer exitosa. Entonces yo me guiaba de lo que habían hecho esos hombres empresarios: quizás tenían 60 años, eran millonarios, yo tenía 22 años y ya me estaba comparando con este empresario que había tenido otro trayecto de vida.
+- **Ileana:** Qué importante es empezar a integrar nuestra propia ciclicidad femenina, en donde entendemos que tenemos otro ritmo y otra forma de trabajar. Ese crecimiento lineal, ese liderazgo jerárquico no es de la esencia femenina. Parte de esta revolución es encontrar una nueva forma de liderar y nuevos modelos de negocio que se adapten a nuestra propia energía.
+- **Camila:** Los hombres tienen ciclos de 24 horas, ¿y las mujeres de cuánto? De 28 días. Cada 7 días tenemos un ciclo diferente. Nuestro cuerpo es totalmente diferente. Por eso el primer paso de una visionaria es conocerte: saber cuándo descansar, cuándo bajar el ritmo, cuándo tienes más energía, para cogerlo a tu favor y no compararte con absolutamente nadie.
+- **Ileana:** No solamente nos comparamos con los modelos que utilizan los hombres, sino entre mujeres también. El hecho de que a ella le haya funcionado ese modelo de negocio o esa estrategia no quiere decir que a ti también te va a funcionar. Para mí es tan importante conectar con el latido de tu corazón y qué cosa tú quieres crear, y desde ahí encontrar la forma de hacerlo. Si estamos enfocándonos afuera, no va a haber alineación energética. Cuando la energía acompaña la estrategia en coherencia, ahí se crea la magia.
+
+
+## Sostener la liberación: raíces internas, cuerpo, pausas y autorregulación
+
+```yaml
+metadata:
+  contexto_denso: "Cierran con la idea de que no basta con liberar creencias: hay que sostener el cambio con autoconocimiento, raíces internas, conexión con el cuerpo y autorregulación del sistema nervioso para emprender con disfrute."
+  entidades_clave: "[autoconocimiento, raíces internas, maestría interior, niña interior, cuerpo, respiración, autorregulación, corteza prefrontal, bienestar]"
+  preguntas_hipoteticas:
+    - "¿Cómo se sostiene el cambio interno para que no se derrumbe con los retos del negocio?"
+    - "¿Por qué el cuerpo es un portal para desarrollar maestría interior y autorregulación?"
+    - "¿Qué micro-pausas o prácticas recomiendan para recuperar claridad y eficiencia?"
+  keywords: "[autorregulación, cuerpo, raíces, pausa, claridad]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_ep1.txt]"
+```
+
+- **Camila:** Para ir cerrando este capítulo, queríamos decirles que no solamente hay que liberar, porque hay que liberar mucho, el primer paso siempre es liberar, liberar, liberar, pero no hay éxito si no sostenemos esa liberación. Si liberamos, pero no lo sostenemos, eso también se puede derrumbar.
+- **Ileana:** Es en ese autoconocimiento y es en la conexión con tu verdad, con tu visión y con tu confianza, la conexión con el desde dónde estás creando lo que estás creando. Cuando eso se fortalece, ahí es donde se crean esas raíces internas, porque cuando tú te sostienes a ti misma y tú sabes que tienes las herramientas, que tienes la inteligencia emocional, que tienes la maestría interior para poder sostenerte durante los retos, en los momentos difíciles, en los momentos bajos, cuando las cosas no salen como quieres, ahí desarrollas esas raíces internas para poder sostenerte a ti y sostener todo lo que estás creando.
+- **Camila:** Sostenerte a ti es una maestría. Yo he tenido que trabajar mucho mi niña interior, cómo me visualicé a mí y cómo esa niña estaba esperando que otras la sostengan, ya sea familiares, amigos, etcétera, pero en realidad la única que te puede sostener a ti misma 24/7 eres tú.
+- **Ileana:** Algo que tenemos en común en este camino es que para desarrollar esas raíces internas y esa maestría, el medio para llegar ahí es el cuerpo: la conexión con nuestro cuerpo, escucharlo, escuchar sus señales, sentir nuestra energía, saber en qué momento tenemos que parar, saber en qué momento y cómo prender también ese fuego creador para movernos a la acción, y bailar entre esas 2 energías. Para ambas ha sido la conexión con nuestro cuerpo ese portal que nos ha llevado a desarrollar esa maestría interior, porque al final del día es un camino de toda una vida.
+- **Camila:** Yo he tenido que ir a retiros de sanación, he hecho muchos ejercicios de coaching, más de 5 años, psicóloga, acompañándome con mi entrenador físico, integrar todo mi bienestar de manera constante. No es “ya hice deporte 2 días, check”, o “ya tuve 2 sesiones con mi psicóloga, check”. Es un músculo que hay que trabajar.
+- **Camila:** Y les dejo una pregunta: ¿qué están haciendo para trabajar en su bienestar y en esa calma y en ese proceso para justamente puedan sostenerse en este camino? A veces estamos tan en automático que no tenemos ninguna herramienta que hoy nos esté sosteniendo.
+- **Ileana:** La importancia de parar cuando realmente lo necesitamos, y en general parar, porque podemos parar también 2 minutos, hacer una respiración profunda. Nuestra mente siempre nos va a decir: “no tengo tiempo para eso, tengo que seguir”. Pero la pregunta es: ¿qué tan productiva y eficiente estás siendo con el uso de tu tiempo en esa ejecución? Si tu sistema nervioso está desbalanceado, no vas a ser eficiente. Lo más eficiente es darte esa pausa para regularte y para activar esa corteza prefrontal, que te va a dar la solución, en donde va a aterrizar esa claridad, esas ideas y, sobre todo, ese disfrute.
+- **Camila:** Queremos que este podcast sea ese recordatorio: que te priorices a ti misma y comiences a cuestionarte el camino en el que estás y cómo lo quieres llevar a partir de ahora.
+
+
+## Invitación a comunidad y evento presencial: masterclass del 8 de noviembre + cierre del episodio
+
+```yaml
+metadata:
+  contexto_denso: "Anuncian el primer evento presencial (8 de noviembre) y refuerzan la invitación a la comunidad Visionarias; cierran recordando que el éxito es la definición personal de libertad y agradecen a la productora."
+  entidades_clave: "[evento presencial, masterclass, 8 de noviembre, mentorías, comunidad, YouTube, redes sociales, Jefa Corp]"
+  preguntas_hipoteticas:
+    - "¿Qué evento presencial anunciaron y qué prometen trabajar ahí?"
+    - "¿Cómo se puede unir una emprendedora a la comunidad Visionarias?"
+    - "¿Cuál es el mensaje final sobre éxito, libertad y compartir el episodio?"
+  keywords: "[evento, masterclass, comunidad, libertad, JefaCorp]"
+  speakers: "[Camila, Ileana]"
+  source: "[transcripcion_visionarias_ep1.txt]"
+```
+
+- **Camila:** Se viene nuestro primer evento presencial, este 8 de noviembre. Va a ser un masterclass de 3 horas intensivas, en las cuales vamos a hablarles integralmente cómo expandirte a ti para expandir tu marca. Vamos a hacer que tu marca se vuelva una marca poderosa cuidándote a ti primero.
+- **Ileana:** Porque esa siempre va a ser nuestra estrategia y el modelo que les vamos a compartir: el balance entre la estrategia de negocios y el trabajo interior para que tú te expandas como mujer y como líder.
+- **Camila:** Vamos a dejar acá abajo el link para que se puedan inscribir todas las que estén interesadas, porque ya pronto van a ver toda la información de este evento para que puedan saber todo y se puedan inscribir con sus amigas o todo el ecosistema que quieran o crean que les va a servir este máster.
+- **Ileana:** Nos da demasiada ilusión conocerlas, verlas en persona, poder hacer ese trabajo juntas, porque realmente no hay nada más poderoso que hacerlo en comunidad.
+- **Camila:** En estos 10 años que vengo emprendiendo, más de 500 mujeres se me han acercado a decirme que les encantaría que sea su mentora, y la verdad es que por fin lo podemos hacer realidad, y qué mejor con mi coach, que fue prácticamente mi mentora en crecimiento personal, para que hoy Sicurezza esté donde esté, y yo, Ileana, esté donde esté.
+- **Ileana:** Bienvenidas a este nuevo comienzo. Estoy segura que vamos a formar a 1000 mujeres visionarias del Perú, del mundo y de Latinoamérica.
+- **Ileana:** Y lo más importante al final del día que les queremos recordar es que esto no solo se trata de los resultados a nivel financiero, los resultados del negocio, se trata de tu definición de libertad. ¿Cuál es esa definición para ti? Y solamente puedes llegar a esa definición con ese autoconocimiento, con ese tiempo para ti, con descubrirte y con rodearte de otras mujeres que te inspiren. Así que bienvenidas a esta comunidad, a esta tribu de mujeres visionarias.
+- **Camila:** Gracias por acompañarnos en nuestro primer episodio de Visionarias.
+- **Ileana:** Y si algo de lo que escuchaste hoy resonó contigo, compártelo con otra mujer emprendedora.
+- **Camila:** Porque aquí expandir tu negocio también significa expandirte a ti misma. Las invito a unirse a nuestra comunidad, seguirnos en nuestras redes sociales y en nuestro canal de YouTube.
+- **Ileana:** Y gracias a Jefa Corp, que es nuestra productora que ha hecho posible este episodio y todos los que vendrán. Les vamos a dejar sus redes sociales para que sigan más de su trabajo.
+- **Camila:** Nos vemos en el siguiente episodio Visionarias. Muchísimas gracias.
+- **Ileana:** Gracias por estar aquí. Chao, chao.

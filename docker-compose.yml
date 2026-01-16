@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    volumes:
+      - .:/app
     depends_on:
       - redis
       - qdrant
@@ -17,39 +19,66 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
-      # Router for HTTPS
-      - "traefik.http.routers.visionarias.rule=Host(`${DOMAIN_NAME}`)"
+      # Router for HTTPS (API)
+      - "traefik.http.routers.visionarias.rule=Host(`${API_DOMAIN}`)"
       - "traefik.http.routers.visionarias.entrypoints=websecure"
       - "traefik.http.routers.visionarias.tls.certresolver=myresolver"
-      # Middleware (Optional: e.g., redirect http to https handled globally usually)
       # Service definition
       - "traefik.http.services.visionarias.loadbalancer.server.port=8000"
+
+  # --- Admin Interface ---
+  admin:
+    build: .
+    container_name: visionarias_admin
+    restart: unless-stopped
+    command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - qdrant
+    networks:
+      - internal_net
+      - gateway
+    ports:
+      - "127.0.0.1:8501:8501" # Localhost only, let Traefik handle external
+    profiles: ["development", "production"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.admin.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.admin.entrypoints=websecure"
+      - "traefik.http.routers.admin.tls.certresolver=myresolver"
+      - "traefik.http.services.admin.loadbalancer.server.port=8501"
+      # Basic Auth could be added here for security
 
   # --- Infrastructure Services ---
   redis:
     image: redis:7-alpine
     container_name: visionarias_redis
     restart: always
+    command: redis-server --appendonly yes
     volumes:
-      - redis_data:/data
+      - ./data/redis_data:/data
     networks:
       - internal_net
     profiles: ["development", "production"]
     ports:
-      - "6379:6379"  # Exposed in dev, but can be restricted in prod if needed (kept for now for debugging if needed, usually removed in strict prod)
+      - "127.0.0.1:6379:6379" # Secure binding
 
   qdrant:
     image: qdrant/qdrant:v1.7.3
     container_name: visionarias_qdrant
     restart: always
     volumes:
-      - qdrant_data:/qdrant/storage
+      - ./data/qdrant_data:/qdrant/storage
     networks:
       - internal_net
     profiles: ["development", "production"]
     ports:
-      - "6333:6333" # HTTP API
-      - "6334:6334" # gRPC
+      - "127.0.0.1:6333:6333" # Secure binding
+      - "127.0.0.1:6334:6334"
 
   postgres:
     image: postgres:15-alpine
@@ -60,12 +89,30 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres_data:/var/lib/postgresql/data
     networks:
       - internal_net
     profiles: ["development", "production"]
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432" # Secure binding
+
+  # --- Cloudflare Tunnel (Dev only usually, or Prod if no external Traefik) ---
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    volumes:
+      # Mount the credentials file (Absolute path as requested by user instructions)
+      - /home/chris/.cloudflared/cert.json:/etc/cloudflared/cert.json:ro
+      # Mount the config file we just created
+      - ./cloudflare/config.yml:/etc/cloudflared/config.yml:ro
+    networks:
+      - gateway # Connects to the same network as Traefik (web_gateway_local in dev)
+    profiles: ["development"] # Typically for dev testing or specific deployments
+    # depends_on:
+    #   - traefik # Removed because Traefik is external in this setup
+
 
 networks:
   internal_net:
@@ -74,7 +121,7 @@ networks:
     name: ${TRAEFIK_NETWORK}
     external: true
 
-volumes:
-  redis_data:
-  qdrant_data:
-  postgres_data:
+# volumes:
+#   redis_data:
+#   qdrant_data:
+#   postgres_data:

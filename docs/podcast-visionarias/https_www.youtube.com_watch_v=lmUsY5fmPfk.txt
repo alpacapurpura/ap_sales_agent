@@ -1,0 +1,222 @@
+## Apertura del podcast: visión, propósito y legado
+
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana presentan Visionarias y enmarcan el episodio en la idea de que una marca poderosa nace de una visión con propósito y acompañamiento, no solo de vender productos."
+  entidades_clave: "Visionarias Podcast, Camila Klausen, Ileana Tapia, marca, legado, propósito, autenticidad, perfección, bienestar"
+  preguntas_hipoteticas:
+    - "¿Cuál es la premisa central de Visionarias y qué busca inspirar en mujeres emprendedoras?"
+    - "¿Por qué una marca puede crear un legado más allá de generar ingresos?"
+    - "¿Qué significa ser una mujer visionaria según la introducción del episodio?"
+  keywords: "visión, legado, propósito, autenticidad, bienestar"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Camila:** Todo empieza con una visión, una visión que te reta, te expande y te libera.  
+- **Ileana:** Una visión que honra el bienestar sobre la autoexigencia. Y la autenticidad sobre perfección. Porque una mujer visionaria convierte sus miedos en sabiduría. Y su propósito en impacto. El camino no será fácil.  
+- **Camila:** Pero no tienes que hacerlo sola. Somos Camila Klausen e Ileana Tapia, dos emprendedoras que convertimos nuestras caídas en aprendizajes, y nuestros aprendizajes en misión. Y esto es…  
+- **Ileana:** Visionarias, el podcast en donde expandir tu negocio empieza con expandirte a ti misma.  
+- **Camila:** Un negocio puede generar ingresos, pero una marca puede crear un legado. Y tú…  
+- **Ileana:** …como mujer visionaria, no viniste a vender productos, viniste a dejar una huella.
+
+
+## De vender productos a construir una marca con propósito: el caso Sicurezza
+
+```yaml
+metadata:
+  contexto_denso: "Ileana introduce el tema del episodio contando la evolución de Sicurezza de vender ropa interior a convertirse en una marca con filosofía y recordación, como ejemplo de transición de emprendimiento a marca poderosa."
+  entidades_clave: "Sicurezza, El Comercio, Falabella, ropa interior, vivir sin costuras, marca recordada, categoría"
+  preguntas_hipoteticas:
+    - "¿Cómo pasó Sicurezza de vender productos a ser una marca con propósito?"
+    - "¿Qué significa la filosofía de 'vivir sin costuras' dentro de Sicurezza?"
+    - "¿Qué indicadores muestran que una marca está siendo recordada por el mercado?"
+  keywords: "Sicurezza, propósito, recordación, filosofía, categoría"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Ileana:** Bienvenidas a un nuevo capítulo de Visionarias Podcast. El día de hoy vamos a hablar de cómo pasar de un emprendimiento a ser una marca poderosa, cómo pasé con mi propia historia de vender calzones y sostenes a hoy ser una marca con propósito, y además la cuarta marca más recordada en este país en la categoría. Y hoy sabiendo que no solamente vendemos productos, sino tenemos una filosofía de vivir sin costuras, donde las mujeres pueden vivir libres y cómodas todos los días.  
+- **Camila:** Oye, cuarta marca más reconocida, bien, y celebrando este logro, no es menor.  
+- **Ileana:** Salió hace poco en *El Comercio*, así que feliz.  
+- **Camila:** Buenísimo. Así que hoy día tenemos una masterclass de marcas poderosas. Entonces, Ili, cuéntanos, desde tu perspectiva, ¿cuál es la principal diferencia entre un emprendimiento y una marca?
+
+
+## Negocio vs. marca: transacción, comunidad y visión de largo plazo
+
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana diferencian negocio y marca: el negocio se centra en transacción y procesos, mientras la marca construye comunidad, propósito y fidelización sostenida en el tiempo."
+  entidades_clave: "Sicurezza, Falabella, comunidad, fidelización, propósito, transaccional, visión a largo plazo"
+  preguntas_hipoteticas:
+    - "¿Cuál es la diferencia entre un negocio transaccional y una marca con propósito?"
+    - "¿Cómo se relaciona la fidelización con la construcción de marca?"
+    - "¿Por qué pensar en largo plazo es clave para crear una marca poderosa?"
+  keywords: "negocio, marca, comunidad, fidelización, largo plazo"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Ileana:** Muy buena pregunta, Cami. La mayoría de personas que emprenden piensan que hacer un negocio es lo mismo de crear una marca y se equivocan. Un negocio está enfocado mucho más en el dinero, en cuánto estoy facturando, en los procesos, en toda la parte más técnica. En cambio, una marca crea comunidad, tiene una filosofía clara, sus objetivos son cómo fidelizo a mis clientes, te importan las personas más allá que el dinero.  
+- **Camila:** La diferencia es que un negocio es transaccional, no es solamente la venta: te vendo esto e intercambiamos dinero. Una marca es mucho más profunda, tiene un propósito, tiene una filosofía, e invita a la gente a ser parte de ese movimiento.  
+- **Ileana:** Una marca es para dejar huella, es para impactar. Si tú creas una marca es porque estás pensando en el largo plazo, no estás pensando solamente “acá dos meses genero tanta plata y listo”. Es una visión mucho más a largo plazo que muy pocos están dispuestos a sostener.  
+- **Camila:** Al crear esa conexión con tu cliente, a largo plazo se fideliza, se vuelve cliente recurrente, genera sostenibilidad e impacto financiero, pero sobre todo porque se crea esa conexión.  
+- **Ileana:** A mí me pasaba que me decían: “Fui a Falabella a comprarme un sostén” y yo preguntaba “¿qué marca?” y me respondían “un sostén de Falabella”. En cambio, no es lo mismo que digan “compré un sostén de Sicurezza y me encanta”: por ende tengo la marca en la cabeza, la puedo recomendar más fácil, y es más probable que genere recurrencia.  
+- **Camila:** Ahí la persona conecta con los valores, y eso es por lo que la marca se sostiene: esa visión que tiene la marca también.  
+- **Ileana:** Hoy vamos a contarles todo lo que he aprendido en estos 10 años para crear una marca poderosa. Yo considero Sicurezza una marca poderosa, y en estos años he creado una fórmula: las 3P, para saber si tengo o no una marca potente.
+
+
+## Las 3P (1): Marca profunda — raíces, propósito y coherencia
+
+```yaml
+metadata:
+  contexto_denso: "Ileana presenta la primera P (profunda) y ambas conectan el propósito con historia personal y coherencia interna, destacando que sin alineación real el mercado percibe incongruencia."
+  entidades_clave: "3P, marca profunda, propósito, coherencia, Sicurezza, vivir sin costuras, maestría interior, neurohacking, ansiedad, energía, redes sociales"
+  preguntas_hipoteticas:
+    - "¿Qué significa que una marca sea 'profunda' y cómo se construye?"
+    - "¿Cómo se conecta el propósito de marca con la historia personal de la fundadora?"
+    - "¿Por qué la coherencia es clave para que el propósito no sea solo marketing?"
+  keywords: "profunda, propósito, coherencia, historia, energía"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Camila:** Cuéntanos, ¿cuál es la primera P de esas 3P?  
+- **Ileana:** Las 3P son: que sea profunda, la segunda es que sea prometedora, y la tercera es que esté preparada. Vamos a entrar una por una.  
+- **Camila:** Vamos a explorar la profunda. ¿Qué significa tener una marca profunda?  
+- **Ileana:** La marca profunda tiene raíces sólidas, es la que mueve, la que sabe transformar, la que tiene un para qué demasiado claro. Yo hago esto no porque necesito plata. Mucha gente decide emprender porque quiere ser más libre o ser su propio jefe, pero una marca profunda tiene claro el más allá del dinero.  
+- **Camila:** Es importante ese propósito que te mueve. A veces empezamos por supervivencia y está bien, pero en el proceso nos conectamos con el para qué. Esa raíz nos permite sostenernos en el largo plazo cuando nos encontremos con retos y queramos tirar la toalla.  
+- **Ileana:** Normalmente ese propósito sale ligado a tu historia personal. En mi caso, Sicurezza es “ayudamos a las mujeres a vivir sin costuras”. Una costura puede ser algo que te limita, que te aleja de tu mejor versión, que te presiona o te hace daño. Pero, ¿cómo puedo ayudar a otras mujeres a vivir sin costuras si yo estoy llena de costuras? Entonces, la coherencia es muy importante: que tú como fundadora estés conectada con ello para que sea genuino y conecte con otras personas.  
+- **Camila:** En mi caso, mi marca personal usa “maestría interior”. ¿Por qué? Porque mi primer emprendimiento fracasó, quebré, y me llevó a niveles de ansiedad fuertes. Eso me llevó a investigar neurohacking y entender la mente. Para mí no hay éxito profesional si no hay maestría interior: el negocio no crece si no hay maestría interior. Cuando fusionamos historia personal y lo que compartimos con el negocio, ahí creamos una marca poderosa.  
+- **Ileana:** La marca es el intangible más importante que tiene una empresa, pero muchos no lo priorizan porque están viendo el producto, el servicio o la venta. Cuando arranqué Sicurezza, “vivir sin costuras” llegó en el año 3. Empezó más por la tecnología y los productos. Pero un producto lo puede vender cualquiera y lo puede copiar cualquiera. Un legado, una filosofía, ese propósito para el mundo, no es así nomás.  
+- **Camila:** Eso te diferencia en el mercado. Va a salir competencia que venda lo mismo, quizá hasta mejor, pero construir marca, filosofía, innovar y crecer te posiciona a largo plazo.  
+- **Ileana:** Desde que posicioné “vivir sin costuras” más allá de la tecnología de las prendas y conecté desde otro ángulo con mis clientas, Sicurezza creció un montón, sobre todo desde que empecé a trabajar en mí misma y ser coherente con ese propósito.  
+- **Camila:** No se trata solo de buen marketing. En redes sociales se siente cuando no hay coherencia: dices algo, pero tu energía no está alineada. Se percibe y la gente pasa de largo.  
+- **Ileana:** Es importante ser sincera: ¿mi propósito lo siento o lo escribí porque me dijeron que necesito uno? Si no lo tienes, no pasa nada. Yo me demoré del 2015 al 2020 en realmente sentir mi propósito: trabajar mis costuras, ver mis sombras, enfrentarme a mí. Eso me expandió como persona y por ende el negocio también. Al final les vamos a enseñar cómo llegar a ese propósito genuino que conecte con sus clientas.  
+- **Camila:** Para darles herramientas desde el día 1, pueden escribir un DM al Instagram de Visionarias con la palabra “propósito” y les compartimos un ejercicio para empezar ese trabajo interno.
+
+
+## Las 3P (2): Marca prometedora — visión, confianza, talento e innovación
+
+```yaml
+metadata:
+  contexto_denso: "Desarrollan la segunda P (prometedora): visión clara, confianza, innovación, conocimiento del cliente y desarrollo de talento, enfatizando que el mindset del fundador sostiene el crecimiento más allá de la microempresa."
+  entidades_clave: "3P, marca prometedora, visión, confianza, innovación, cliente ideal, equipo, talento, Perú, microempresa, mindset, Sicurezza (mediana empresa)"
+  preguntas_hipoteticas:
+    - "¿Qué elementos hacen que una marca sea 'prometedora' y crezca a largo plazo?"
+    - "¿Por qué el desarrollo de equipo y talento es clave para trascender como marca?"
+    - "¿Cómo influye el mindset del fundador en salir de la microempresa?"
+  keywords: "prometedora, visión, innovación, talento, mindset"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Ileana:** Una marca prometedora es una marca que tiene la visión clara, está pensando en el largo plazo y no solo en el corto plazo. Genera mucha confianza, está constantemente innovando, y las personas a su alrededor se dan cuenta del potencial que tiene.  
+- **Camila:** Otro componente importante es conocer realmente a tu cliente: identificar dolores, miedos, deseos. Mientras más lo conozcas, más puedes hablarle en su lenguaje y crear conexión genuina.  
+- **Ileana:** Es importante que tú, como fundadora, tengas claridad hacia dónde quieres ir. Muchas veces solo quieres vender más, pero no tienes idea hacia dónde apuntas. Sin visión y claridad es imposible cumplir esta segunda P.  
+- **Camila:** Una marca es más allá que marketing: es cómo vives esa filosofía dentro de casa, con trabajadores y colaboradores, y cómo juntos la encarnan. Ahí se construye talento y se apunta a la visión a largo plazo.  
+- **Ileana:** Cuando arranqué pensaba que lo podía hacer sola o con pocas personas, pero una marca prometedora desarrolla talento, tiene un equipo, busca crecer el legado para que trascienda. Para eso necesitamos gente que comparta propósito y valores, e invertir en otras personas para desarrollarlas.  
+- **Camila:** Y el componente de la innovación: siempre buscar “¿cómo lo puedo hacer mejor?”. Tú lo has hecho encontrando mejores productos, innovando en telas, texturas, propuesta, buscando vanguardia.  
+- **Ileana:** En Perú, la mayoría se queda en microempresa: más del 97% de los emprendimientos son micros. Se conforman con ingresos mínimos viables para sobrevivir y listo. Parte de mi misión como visionaria es ayudar a más microempresarios a salir de la microempresa y trascender: volverse pequeña, mediana, incluso gran empresa. Sicurezza ya es mediana empresa.  
+- **Camila:** Importa el trabajo de mentalidad: no es solo estrategia de posicionamiento o marketing, sino tu mentalidad y visión a largo plazo para seguir construyendo el mañana.  
+- **Ileana:** Para cerrar: una marca prometedora tiene un fundador trabajando el mindset de manera constante. Si quieres trascender como visionaria, hay que romper costuras y seguir para adelante.
+
+
+## Las 3P (3): Marca preparada — propuesta de valor, diferencial, adaptación y branding real
+
+```yaml
+metadata:
+  contexto_denso: "Explican la tercera P (preparada): propuesta de valor clara, nicho, diferencial para no competir por precio, preparación continua del fundador, adaptación (incluida IA) y branding entendido como estrategia integral más allá del logo."
+  entidades_clave: "3P, propuesta de valor, nicho, diferencial, guerra de precios, inteligencia artificial, branding, identidad visual, identidad verbal, posicionamiento, 'vivir sin costuras'"
+  preguntas_hipoteticas:
+    - "¿Qué significa tener una marca 'preparada' en términos de propuesta de valor y nicho?"
+    - "¿Por qué competir por precio debilita la construcción de marca?"
+    - "¿Qué es branding realmente y cómo se construye recordación con repetición?"
+  keywords: "propuesta de valor, nicho, diferencial, branding, adaptación"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Camila:** Entonces, ahora cuéntanos de la tercera P, una marca preparada. ¿Qué significa una marca preparada?  
+- **Ileana:** Una marca preparada tiene su propuesta de valor muy clara, conoce a su público objetivo. Primero que nada, tiene una necesidad. No es “vendo pizzas y todo el mundo vende pizzas”. ¿A quién le voy a vender pizzas? ¿De qué sabores? ¿Qué características voy a tener para saber si conecto con un nicho o no?  
+- **Ileana:** Tener propuesta de valor significa conocer bien a tu cliente y cuál va a ser tu diferencial. Si te conformas con “todo el mundo vende ropa, yo también”, vas a ser una marca más y vas a tener que matarte por precio. Y yo, como empresaria, si emprendo no es para competir con precio. Que se maten en otro lado: es una guerra de precios.  
+- **Ileana:** Cuando creas una marca y estás preparada, tienes tan claro tu valor que puedes cobrar lo que quieres, porque sabes lo que vales.  
+- **Camila:** Un negocio resuelve una necesidad específica. Cuando no tenemos claro qué estamos resolviendo y cuál es el valor diferencial de cómo lo resolvemos distinto, entramos en la nebulosa mental y en los saboteadores. Eso es un pilar raíz de estrategia de marca que hay que aterrizar con claridad.  
+- **Ileana:** En una marca preparada es imposible que no esté detrás un fundador preparado: mindset, aprendizaje constante, nuevos recursos, tendencias. Ahora con inteligencia artificial, ¿cómo me adapto? Una marca preparada se adapta y sigue a la vanguardia.  
+- **Ileana:** También es importante invertir en branding: estrategia de cómo me ven. Si solo comunico sin estrategia de marca, no voy a conectar.  
+- **Camila:** Vivimos en un mundo visual: colores, letras, tono, todo transmite lo que quiero transmitir.  
+- **Ileana:** Branding es como el maquillaje: si me maquillo pero por dentro no estoy bien, no es sostenible. Mucha gente cree que un logo es branding, y no. El branding es lo que no se ve, y lo que se ve es el posicionamiento: personalidad, valores y atributos, identidad visual, identidad verbal, cómo me comunico, cuál es esa frase que repito para ser recordada.  
+- **Ileana:** Si tú no repites “vive sin costuras” una y otra vez, no importa si crees que aburres: tienes que seguir. Si hoy le pregunto a alguien “¿cuál es la marca que te ayuda a vivir sin costuras?”, estoy segura que la mayoría dirá Sicurezza. Eso es lo que más me importa.  
+- **Camila:** Muchas emprendedoras sienten que se repiten y se activa el “no quiero incomodar”, pero la recurrencia es clave para entrar en la mente del consumidor. El metro cuadrado más valioso es la mente de tu consumidor: si entras ahí, tienes ese valor intangible que es la marca.
+
+
+## Cómo conocer al público objetivo sin presupuesto: entrevistas, encuestas y data (con IA)
+
+```yaml
+metadata:
+  contexto_denso: "Ileana y Camila comparten tácticas prácticas para investigar al cliente sin grandes recursos: entrevistas a clientas, preguntas de feedback, encuestas y uso de IA para procesar insights y lenguaje del consumidor."
+  entidades_clave: "público objetivo, entrevistas, encuestas, feedback, inteligencia artificial, Sicurezza, 1200 soles, practicante, mejora continua"
+  preguntas_hipoteticas:
+    - "¿Cómo puedo conocer a mi cliente si no tengo presupuesto para investigación de mercado?"
+    - "¿Qué preguntas concretas puedo hacer para mejorar mi producto o servicio?"
+    - "¿Cómo puede ayudar la inteligencia artificial a convertir feedback en insights accionables?"
+  keywords: "entrevistas, encuestas, feedback, data, cliente"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Ileana:** Me han preguntado: “¿cómo hago para conocer bien a mi público objetivo?” Bien simple: la mayoría no tenemos presupuesto, recursos limitados. Yo empecé Sicurezza con 1200 soles, mi sueldo de practicante a los 22 años. No tenía recursos, pero sí ganas de conocer a mi cliente. Me sentaba en mi casa e invité a 10 clientas que me habían comprado a preguntarles: ¿por qué me compraste? ¿Qué fue lo que más te gustó? ¿Qué no te gustó? ¿Cómo crees que puede mejorar mi producto? Y estar en constante mejora continua para trascender.  
+- **Camila:** Yo también hice mucho eso: encuestas previas y al terminar el servicio. ¿Qué fue lo que te interesó? ¿Qué fue lo que te jaló? Ahí identificas frases y palabras que hacen que tu cliente se sienta atraído. Y hoy, con la inteligencia artificial, podemos procesar esa información y tener oro puro. Pero hay que salir a la cancha: conversar y levantar esa data.
+
+
+## Ejemplos de marcas con propósito: CAO, Patagonia, Creana y Laboratoria
+
+```yaml
+metadata:
+  contexto_denso: "Mencionan ejemplos de marcas y movimientos impulsados por propósito (CAO, Patagonia, Creana, Laboratoria) para ilustrar cómo filosofía, comunidad y solución de problemas reales construyen marcas poderosas."
+  entidades_clave: "CAO, Ale Iosa, Train for happiness, Patagonia, medio ambiente, Creana, Laboratoria, tecnología, educación, comunidad, propósito"
+  preguntas_hipoteticas:
+    - "¿Qué ejemplos concretos muestran cómo un propósito se convierte en comunidad y expansión?"
+    - "¿Por qué consumidores pagan más por marcas con principios claros como Patagonia?"
+    - "¿Cómo emprendimientos como Creana o Laboratoria solucionan retos sociales a través de su modelo?"
+  keywords: "CAO, Patagonia, Creana, Laboratoria, comunidad"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Ileana:** Me gustaría mencionar la marca CAO, fundada por Ale Iosa, una chica que admiramos un montón. Ella creó desde su propia historia: odiaba el deporte hasta que, por estrés o ansiedad, descubrió el entrenamiento de fuerza y el box como algo que le ayudaba. Se dio cuenta que la felicidad llegaba cuando entrenaba, y creó una filosofía que está en más de 5 países: “Train for happiness”.  
+- **Camila:** Y todo un movimiento, porque tienen una comunidad maravillosa que se conecta con ese propósito, ese mensaje y con la energía que se crea en el espacio.  
+- **Ileana:** Otra marca: Patagonia.  
+- **Camila:** Patagonia tiene la filosofía de cuidar el medio ambiente. Yo como consumidora estoy dispuesta a pagar más porque sé lo que está detrás en su cadena de valor y los principios en los que se paran. Pago más porque cuidan su impacto ambiental.  
+- **Ileana:** Cada vez los consumidores son más conscientes. Leí que más del 65% hoy prefieren marcas con propósito, con algo más allá de un producto barato.  
+- **Camila:** Más allá de tendencia, estamos en un contexto histórico con retos sociales y ambientales. Ya no estamos para solo vender un producto: necesitamos solucionar problemas reales, sociales y ambientales, con soluciones innovadoras. Esa es la visión de esta comunidad de Mujeres Visionarias.  
+- **Ileana:** Nuestro propósito en Visionarias es ayudar a más mujeres emprendedoras —o con ganas de emprender— a aprovechar su talento y recursos para sacar su máximo potencial, bajo nuestra experiencia. Cuando comparto lo que sé y veo cómo suma a otras personas, siento que ya gané en la vida.  
+- **Camila:** Si no sientes claro tu propósito, mira hacia atrás: tu historia, los “puntos de acupuntura” que viviste, esos momentos que cambiaron tu camino. Ahí están las pepitas de oro para construir el por qué hago lo que hago.  
+- **Ileana:** Un ejemplo más: Creana, que democratiza el acceso a la información y educación a precio bajo. Pagas 200 o 300 soles al año y accedes a más de 10,000 cursos. Yo aprendí a crear mi página web con un curso de Creana: costó 34 soles, por 34 soles tenía una web que me pudo costar 3000 dólares. Me encanta hablar de emprendimientos con propósito, porque el siguiente puede ser el tuyo.  
+- **Camila:** Y el caso de Laboratoria: solucionando el reto social de pocas mujeres en tecnología. Han crecido de forma maravillosa, están en varios países. Cómo vincular “veo un reto” que a la vez es una posibilidad: ¿cómo lo soluciono? Si esa problemática te llama, no es coincidencia: hay algo en tu historia personal que te atrae a eso. Cuando juntas esas dos cosas, creas la marca y el impacto que el mundo necesita.
+
+
+## Cierre e invitación: masterclass presencial “Lidera con tu historia” (8 de noviembre) + recursos por DM
+
+```yaml
+metadata:
+  contexto_denso: "Cierran el episodio invitando a una masterclass presencial para aplicar lo aprendido (marca y mentalidad), comparten fecha, nombre del evento, cupos limitados, y CTAs por DM para recibir recursos y detalles."
+  entidades_clave: "masterclass presencial, Lidera con tu historia, 8 de noviembre, Visionarias (Instagram), DM 'propósito', DM 'masterclass', neurohacking, Jefa Corp (productora)"
+  preguntas_hipoteticas:
+    - "¿Qué evento presencial anunciaron y qué trabajarán ahí sobre marca y mentalidad?"
+    - "¿Cómo puedo recibir el ejercicio gratuito para encontrar mi propósito?"
+    - "¿Qué llamadas a la acción dejaron para obtener información del masterclass?"
+  keywords: "masterclass, Lidera con tu historia, DM, propósito, 8 de noviembre"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_marcas_poderosas.md"
+```
+
+- **Ileana:** Si este capítulo te ha hecho pensar diferente, es porque ya estás lista para construir algo que trascienda.  
+- **Camila:** Un legado y una marca poderosa. Por eso queremos invitarlas a nuestro primer masterclass presencial. Lo vamos a ver en persona, queremos conocerlas y compartirles herramientas para crear una marca poderosa, pero también trabajando en su mentalidad y ustedes como empresarias.  
+- **Ileana:** Las vamos a ayudar a reconectar con su historia, con herramientas de neurohacking, a descubrir su propio poder, y a construir una marca que genere mucha confianza, entre muchas otras cosas.  
+- **Camila:** Este 8 de noviembre las esperamos en este masterclass que se llama “Lidera con tu historia”. Vamos a estar compartiendo en nuestras redes toda la información para que se sumen.  
+- **Ileana:** Las invitamos, van a ser cupos limitados. Me emociona muchísimo porque hace más de 3 o 4 años muchas me vienen pidiendo: “Ileana, ¿cuándo nos puedes dar un masterclass?” Las últimas veces que di fueron en pandemia, online, y hoy estamos más listas que nunca, más preparadas y más seguras de compartir todo lo que aprendí en 10 años, ojalá en uno de 3 horas.  
+- **Ileana:** Gracias por acompañarnos en un capítulo más de Visionarias Podcast, y también gracias a Jefa Corp, que es nuestra productora en esta temporada. Les voy a dejar sus redes para que sepan más, ya que como mujeres emprendedoras seguramente también las puedan ayudar para contenido y estrategia digital.  
+- **Camila:** Ya saben: pueden hacer DM con la palabra “propósito” para recibir el recurso gratuito, y también “masterclass” para que les enviemos toda la información sobre esta masterclass presencial.  
+- **Ileana:** Cualquier pregunta o sugerencia, déjenla en los comentarios. Feliz de leerlas.  
+- **Camila:** Hasta la próxima. Adiós.

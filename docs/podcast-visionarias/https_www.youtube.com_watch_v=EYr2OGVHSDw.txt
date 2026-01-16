@@ -1,0 +1,279 @@
+## Apertura del episodio: visión, propósito y presentación de “Visionarias”
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana abren el episodio con el manifiesto de Visionarias y presentan el propósito del podcast: expandir el negocio expandiéndose internamente, antes de dar paso a la invitada del capítulo."
+  entidades_clave: "Visionarias Podcast, Camila Klausen, Ileana Tapia"
+  preguntas_hipoteticas:
+    - "¿Cuál es la premisa central del podcast Visionarias?"
+    - "¿Qué valores se priorizan en la visión que propone el programa?"
+    - "¿Cómo se enmarca el episodio antes de presentar a la invitada?"
+  keywords: "visión, propósito, autenticidad, bienestar, manifiesto"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Camila**: Todo empieza con una visión, una visión que te reta, te expande y te libera. Una visión que honra el bienestar sobre la autoexigencia. Y la autenticidad sobre perfección. Porque una mujer visionaria convierte sus miedos en sabiduría. Y su propósito en impacto.  
+- **Camila**: El camino no será fácil. Pero no tienes que hacerlo sola. Somos Camila Klausen e Ileana Tapia, dos emprendedoras que convertimos nuestras caídas en aprendizajes, y nuestros aprendizajes en misión. Y esto es Visionarias, el podcast en donde expandir tu negocio empieza con expandirte a ti misma. Bienvenidas a un nuevo capítulo muy especial en Visionarias Podcast.
+
+
+## Presentación de la invitada: Mariana Costa y el impacto de Laboratoria
+```yaml
+metadata:
+  contexto_denso: "Camila presenta a Mariana Costa, cofundadora de Laboratoria, destacando su alcance regional y su formación de mujeres en tecnología, preparando el terreno para hablar de visión e impacto."
+  entidades_clave: "Mariana Costa, Laboratoria, América Latina, tecnología"
+  preguntas_hipoteticas:
+    - "¿Quién es la invitada del episodio y por qué es relevante?"
+    - "¿Qué es Laboratoria y cuál es su impacto en la región?"
+    - "¿Qué credenciales se destacan de Mariana Costa al inicio?"
+  keywords: "Mariana Costa, Laboratoria, mujeres, tecnología, Latinoamérica"
+  speakers: "Camila, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Camila**: El día de hoy tenemos una invitada muy especial. Ella es Mariana Costa, cofundadora de Laboratoria, una organización que tiene presencia en muchos países de América Latina, y además ha formado a miles de mujeres en tecnología. Así que, sin mucho más, se la presento. Bienvenida, Mariana. Muchas gracias por estar aquí.  
+- **Invitada (Mariana Costa)**: Gracias, gracias por la invitación.
+
+
+## La visión inicial: volver a Perú y construir igualdad de oportunidades
+```yaml
+metadata:
+  contexto_denso: "Ileana pregunta por la primera visión de Mariana; ella relata su regreso a Perú tras años fuera y su deseo de contribuir a la igualdad de oportunidades como motor del proyecto que luego sería Laboratoria."
+  entidades_clave: "Mariana Costa, Perú, maestría en Columbia, igualdad de oportunidades, América Latina"
+  preguntas_hipoteticas:
+    - "¿Cuál fue la visión inicial que impulsó a Mariana a emprender?"
+    - "¿Cómo influyó su experiencia viviendo fuera de Perú en su propósito?"
+    - "¿Qué necesidad social quería atender desde el inicio?"
+  keywords: "Perú, visión, propósito, igualdad, retorno"
+  speakers: "Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Ileana**: Gracias por estar aquí, Mariana. Quisiera partir con una primera pregunta. Acá en Visionarias siempre creemos que todo parte de una visión, ¿no? De lo que quiero crear. Yo sé que tú empezaste regresando de tu maestría a Columbia. ¿Cuál fue esa primera visión?  
+- **Invitada (Mariana Costa)**: Me encanta la pregunta, porque es verdad, esa es la semillita del comienzo de todo. En mi caso, yo soy de Perú, aquí nací, aquí crecí, pero luego a los 18 tuve la oportunidad de irme a vivir fuera, primero por estudios, luego por trabajo, luego otra vez por estudios, y terminé pasando casi una década afuera.  
+- **Invitada (Mariana Costa)**: Realmente quería volver a Perú. Todos esos años que estuve fuera siempre sentía: estoy acá aprendiendo del mundo, teniendo la oportunidad increíble de trabajar en toda América Latina, de tener amigos de todas partes del mundo, pero sentía esa responsabilidad de en qué momento regreso a hacer algo en mi país, que tiene tantas necesidades urgentes por todas partes.  
+- **Invitada (Mariana Costa)**: Esa era mi primera visión: cómo puedo orientar mi carrera a construir y a contribuir a que Perú sea un país donde haya más igualdad de oportunidades. Y luego, a veces el desafío es que una tiene la visión, pero ¿cómo lo hace realidad? Yo siempre pienso: hay que empezar por algún lado, porque en la cancha encuentras el camino.
+
+
+## Del primer emprendimiento a la idea: agencia, demanda de talento y nacimiento de Laboratoria
+```yaml
+metadata:
+  contexto_denso: "Mariana cuenta cómo, al volver a Perú, inició una agencia tecnológica con socios y detectó la escasez de mujeres programadoras; esa brecha y el potencial de movilidad social dieron origen a Laboratoria."
+  entidades_clave: "Laboratoria, agencia de tecnología, programadores, mujeres programadoras, ecosistema digital 2013, Perú, América Latina"
+  preguntas_hipoteticas:
+    - "¿Cómo surgió Laboratoria a partir de una agencia tecnológica?"
+    - "¿Qué problema del mercado laboral detectaron al contratar desarrolladores?"
+    - "¿Por qué la programación era una vía de oportunidad más flexible?"
+  keywords: "agencia, talento, programadoras, demanda, movilidad"
+  speakers: "Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Invitada (Mariana Costa)**: Volví a Perú. En esos años que estaba afuera me casé, mi esposo es de Ecuador, entonces vinimos los dos juntos. Yo dije: yo acá consigo un trabajo, pero ¿qué puede hacer él acá? Él en esos tiempos era programador. Y dijimos: de repente comenzamos una empresa de tecnología.  
+- **Invitada (Mariana Costa)**: Un amigo más se mudó también, venezolano, se mudó a Perú por el trabajo de su esposa. Y al final los tres decidimos que regresando a Latinoamérica después de un montón de años, de repente era una oportunidad de intentar emprender.  
+- **Invitada (Mariana Costa)**: El ecosistema era otro, esto era el 2013, todo el mundo digital recién empezaba, y teníamos el sueño de hacer algo que combinase tecnología con impacto social. Terminamos comenzando una agencia, porque algo había que empezar.  
+- **Invitada (Mariana Costa)**: Fue con la experiencia de la agencia que nos dimos con la necesidad de contratar un equipo de desarrolladores y crecerlo, y nos dimos cuenta que había un montón de demanda por este perfil, que casi no había mujeres programadoras, era una aguja en un pajar.  
+- **Invitada (Mariana Costa)**: Además era un espacio muy especial, porque permitía caminos hacia una carrera profesional linda, bien remunerada, llena de oportunidades, sin necesariamente venir de la superbuena universidad. Era mucho más flexible.  
+- **Invitada (Mariana Costa)**: Juntando las piezas, nació la idea de Laboratoria: ¿qué tal si nos ponemos a encontrar esas mujeres talentosas que quieren un futuro distinto y quieren construir algo grande para ellas, y las acompañamos a formarse como programadoras increíbles, que luego puedan salir a comenzar carreras en este sector, en Perú y después en Latinoamérica?
+
+
+## Sostenibilidad y escalabilidad del impacto social: modelo híbrido, donantes y fondo para el futuro
+```yaml
+metadata:
+  contexto_denso: "Camila pregunta cómo se vuelve sostenible un proyecto de alto impacto; Mariana explica la decisión de ser asociación sin fines de lucro, la excelencia como principio, la diversificación de ingresos y alianzas con grandes fundaciones, incluyendo un fondo tipo endowment."
+  entidades_clave: "Laboratoria, asociación civil sin fines de lucro, Google.org, Citibank Foundation, GitLab Foundation, Banco Interamericano de Desarrollo (BID), Mackenzie Scott, Jeff Bezos, Amazon, Quasi Endowment Fund, fondo para el futuro"
+  preguntas_hipoteticas:
+    - "¿Cómo se construye sostenibilidad financiera en una organización de impacto social?"
+    - "¿Por qué Laboratoria eligió ser una asociación sin fines de lucro?"
+    - "¿Qué rol juegan donantes grandes y un fondo tipo endowment en la resiliencia?"
+  keywords: "sostenibilidad, donantes, diversificación, fundaciones, endowment"
+  speakers: "Camila, Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Camila**: A mí me encanta el propósito de Laboratoria, me parece genial, y admiro mucho cómo lo han ido evolucionando en el tiempo. Una pregunta: ¿cómo han hecho que sea sostenible y escalable una empresa con tanto impacto social? ¿Cómo has logrado eso?  
+- **Invitada (Mariana Costa)**: Esa es la pregunta del millón. Mirando atrás, pienso que en algunas convicciones nos mantuvimos firmes, porque sentíamos que era lo mejor, a pesar de la presión. Por ejemplo, tomamos la decisión de ser una asociación civil sin fines de lucro. Y eso fue algo que un montón de gente nos desafió, sobre todo en el mundo de las startups.  
+- **Invitada (Mariana Costa)**: En Laboratoria teníamos un principio: vamos a hacer trabajo de impacto social con excelencia, de clase mundial, porque es lo que se tiene que hacer. Los problemas más grandes del mundo no son un delivery más; tienen que ver con cómo generamos condiciones para que todas las personas podamos tener una vida digna, una vida de oportunidad.  
+- **Invitada (Mariana Costa)**: Hay una falla de mercado: no necesariamente hay capital para resolver esos desafíos. Cuando empezamos no encontrábamos un modelo de negocio escalable. Queríamos formar a mujeres en contexto de vulnerabilidad económica, que justamente no habían podido estudiar porque no tenían recursos.  
+- **Invitada (Mariana Costa)**: Con tropiezos, logramos una sostenibilidad especial porque tenemos un modelo de ingresos diversificado. Tenemos ingresos propios: programas (algunos pagos) y servicios para empresas. Pero también tenemos donantes grandes. Al escalar en Latinoamérica pudimos tocar la puerta y formar relación con la fundación de Google, la fundación de Citibank, la fundación de GitLab, con el Banco Interamericano de Desarrollo.  
+- **Invitada (Mariana Costa)**: Teníamos un sueño: un patronato, como las grandes universidades. Una especie de fondo que garantice sostenibilidad a futuro. Tuvimos la suerte de una donación significativa de Mackenzie Scott, que estuvo casada con Jeff Bezos, de Amazon, y ha sido una filántropa espectacular.  
+- **Invitada (Mariana Costa)**: Hoy tenemos un “Quasi Endowment Fund”, nuestro fondo para el futuro, que se convierte en otro mecanismo de ingreso para la operación. Eso nos ha hecho resilientes. Cuando demuestras que el trabajo genera valor, ese valor no siempre es económico para el dueño; a veces es social. En nuestro caso es el valor para las miles de mujeres que hoy tienen una mejor condición económica gracias a nuestros programas.
+
+
+## Crisis de crecimiento: errores en la expansión, escuchar para reconstruir confianza y cultura de responsabilidad
+```yaml
+metadata:
+  contexto_denso: "Ileana pide ejemplos de caídas; Mariana describe el doloroso aprendizaje de escalar rápido, cometer errores con estudiantes (especialmente en Chile) y cómo la escucha activa y la reparación fortalecieron la cultura de Laboratoria."
+  entidades_clave: "Laboratoria, Chile, estallido social, estudiantes, egresadas, CEO David, escala, calidad vs. crecimiento, escucha activa, confianza"
+  preguntas_hipoteticas:
+    - "¿Qué errores pueden aparecer al escalar una organización de impacto?"
+    - "¿Cómo se repara la confianza cuando una comunidad siente que no se cumplió la promesa?"
+    - "¿Qué prácticas fortalecen la cultura interna tras una crisis?"
+  keywords: "escala, crisis, Chile, confianza, escucha"
+  speakers: "Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Ileana**: Has hablado de crisis, caídas, tropezones. Cuéntanos más de esos momentos retadores y cómo los has gestionado.  
+- **Invitada (Mariana Costa)**: Partiría con todo lo que tuvo que ver con nuestra escala. El más duro que a mí me tocó fue nuestro crecimiento. Laboratoria empezó como un proyecto pequeño y de pronto empezamos a crecer y expandirnos: llegamos a ser un equipo de 130 personas, con operación en un montón de países.  
+- **Invitada (Mariana Costa)**: Nos autoimpusimos una presión fuerte por escalar. En esa escala, a veces las cosas se rompen. Hay un balance entre calidad y escala, profundidad de impacto, agilidad, tiempo. Estás descifrando mientras haces.  
+- **Invitada (Mariana Costa)**: En un momento, en esa escala, siento que cometimos errores con nuestras estudiantes, especialmente en Chile. Era un momento delicado como país, antes del estallido social. Hubo malas contrataciones, una mala experiencia para las estudiantes, comunicación poco clara.  
+- **Invitada (Mariana Costa)**: Esto ocasionó un grupo de estudiantes y egresadas que sentía que Laboratoria no había cumplido su promesa. En Laboratoria las mujeres no vienen solo a aprender programación (hoy data o AI, o liderazgo); vienen a poner todo lo que tienen para construir un futuro mejor. Es una responsabilidad inmensa. Sentir que habíamos fallado a eso fue una dada al corazón.  
+- **Invitada (Mariana Costa)**: Lo primero que hicimos fue sentarnos a escuchar. Mi low total fue una llamada con egresadas molestas: me dieron con palo por una hora, yo lloraba. Luego hicimos un espacio presencial con todas ellas y nos sentamos a escuchar. Suena simple, pero es poderoso: cuando te equivocas, la otra persona necesita sentirse escuchada.  
+- **Invitada (Mariana Costa)**: En lugar de defenderte, decir: “sí, fue así, metimos la pata, y vamos a tratar de reconstruir la confianza en conjunto”. Y así lo hicimos. Nos hizo una organización más resiliente. Hoy siento que el equipo vive ese compromiso con cada mujer que pasa por nuestros programas: “quiero hacer lo mejor para ti”, y eso se siente.
+
+
+## Expansión regional: salir de Perú “sin plan perfecto”, confianza en el equipo y estructura legal para donantes
+```yaml
+metadata:
+  contexto_denso: "Camila pregunta cuándo decidió expandirse; Mariana explica que fue una decisión poco estratégica impulsada por confianza en amigas y valores compartidos, y cómo luego formalizaron una matriz en EE. UU. para acceder a donantes regionales."
+  entidades_clave: "Laboratoria, Perú, Chile, México, Estados Unidos, entidad legal matriz, donantes, fundaciones"
+  preguntas_hipoteticas:
+    - "¿Cuándo y por qué Laboratoria decidió expandirse fuera de Perú?"
+    - "¿Qué rol juega la confianza y alineación de valores al abrir nuevos países?"
+    - "¿Por qué una entidad legal en EE. UU. facilita el acceso a donantes?"
+  keywords: "expansión, Chile, México, confianza, matriz"
+  speakers: "Camila, Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Camila**: En este tiempo, ¿en qué momento sentiste que era el momento para salir de Perú y llevarlo a otro nivel?  
+- **Invitada (Mariana Costa)**: Fue bien atolondrado y poco estratégico. La salida de Perú no fue superplanificada. A veces la falta de experiencia te hace tomar más riesgo.  
+- **Camila**: Te lo digo porque yo hace años leí una entrevista y pensé “voy a estar en Argentina, Colombia”, pero hasta el día de hoy no logro salir. Por eso te pregunto.  
+- **Invitada (Mariana Costa)**: En la maestría, uno de mis socios era venezolano y teníamos un grupo de amigos latinoamericanos. Entre ellos, dos amigas queridísimas: una brasilera viviendo en México y otra medio ecuatoriana viviendo en Chile. Siempre decíamos: “algún día llevamos Laboratoria a Chile y a México”.  
+- **Invitada (Mariana Costa)**: Un día me dijeron: “estamos hartas de nuestros trabajos, queríamos cambiar el mundo y estamos en un cubículo. ¿Qué tal si intentamos traer Laboratoria a Chile y a México?”. Yo dije: confío plenamente en ellas. ¿Qué es lo peor que puede pasar?  
+- **Invitada (Mariana Costa)**: Eso fue en 2015, al año de empezar. En Perú éramos un equipo de 15 personas. Fue un caos, tuvimos mil problemas, pero fue clave: rápidamente fuimos un sueño latinoamericano, no solo peruano. Las estudiantes se sentían parte de algo más grande.  
+- **Invitada (Mariana Costa)**: Para donantes también ayudó. Unos años después pusimos nuestra entidad legal matriz en Estados Unidos, porque nos permitía acceder a donantes que decían: “puedo apoyar a esta organización y llegar a mujeres en cinco países de la región”.
+
+
+## Conseguir donantes: estrategia de presencia, redes, alianzas y “suerte preparada”
+```yaml
+metadata:
+  contexto_denso: "Mariana detalla que levantar fondos fue retador pero posible gracias a presencia constante en EE. UU., networking y un equipo de alianzas; resalta la combinación de preparación y oportunidades inesperadas."
+  entidades_clave: "Estados Unidos, Kunan, premios, CONCYTEC, equipo de alianzas, donantes, fundraising"
+  preguntas_hipoteticas:
+    - "¿Cómo se construye una estrategia práctica para conseguir donantes grandes?"
+    - "¿Qué limitaciones encontró en el ecosistema de financiamiento en Perú?"
+    - "¿Cómo influyen la presencia física y el networking en el fundraising?"
+  keywords: "fundraising, alianzas, networking, Estados Unidos, Kunan"
+  speakers: "Camila, Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Camila**: ¿Y ese proceso de conseguir los donantes fue muy retador?  
+- **Invitada (Mariana Costa)**: Sí, no voy a decir que no. Pero cuando una tiene tanto compromiso por lo que hace, lo haces. Yo me di cuenta rápido: si queremos crecer, no va a ser solo en Perú, porque en Perú el ecosistema de financiamiento para impacto social es pequeñito.  
+- **Invitada (Mariana Costa)**: En Perú era un premio aquí, un premio allá. Tuvimos un fondo de CONCYTEC al comienzo, pero todo era pequeño. Ganamos con Kunan 40 mil soles y yo sentía que ya éramos millonarios. Pero los fondos eran chiquitos.  
+- **Invitada (Mariana Costa)**: Si queríamos hacer algo grande y atraer talento, eventualmente necesitaba pagar buenos salarios a gente crack. Entonces dije: “vamos a Estados Unidos”. Empecé a viajar: dos semanas, ¿quién conozco que conoce a quién que me puede presentar?  
+- **Invitada (Mariana Costa)**: Nuestros donantes más grandes han llegado de maneras casuales, pero por estar allá: eventos, conferencias, alguien que conoce a alguien. Luego armamos un equipo. Una de mis socias que comenzó en Chile pasó a liderar esa área regional y era muy buena. Después creamos un equipo de alianzas que hoy se dedica al relacionamiento con donantes.  
+- **Invitada (Mariana Costa)**: Sí pienso que hay magia en el camino: que la suerte te agarre preparada. Hemos estado siempre preparadas, pero hemos tenido olas de suerte inimaginables.
+
+
+## Maternidad y liderazgo: límites, sostenibilidad personal y sistemas de cuidado
+```yaml
+metadata:
+  contexto_denso: "Camila pregunta por la maternidad; Mariana explica cómo ser mamá de tres la obligó a poner límites y le dio perspectiva, además de señalar la deuda social de sistemas de cuidado y la corresponsabilidad en el hogar."
+  entidades_clave: "maternidad, sistemas de cuidado, primera infancia, Claudia Goldin, equidad en el hogar, mercado laboral"
+  preguntas_hipoteticas:
+    - "¿Cómo cambia la maternidad la forma de liderar y trabajar en emprendimiento?"
+    - "¿Qué límites concretos ayudan a sostener una carrera a largo plazo?"
+    - "¿Por qué los sistemas de cuidado son clave para la equidad laboral?"
+  keywords: "maternidad, límites, cuidado, corresponsabilidad, perspectiva"
+  speakers: "Camila, Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Camila**: Eres mamá de tres. ¿Cómo ha sido todo este crecimiento profesional siendo mujer y madre? ¿Cómo te organizas para cumplir todos tus roles?  
+- **Invitada (Mariana Costa)**: Tengo niña, niño, niña. La maternidad da para un episodio en sí mismo. Es maravillosa, intensa, desafiante. Para mí ha sido un reto y una oportunidad especial. Amo mi vida de mamá y me ha dado cosas que también me han ayudado como emprendedora.  
+- **Invitada (Mariana Costa)**: La maternidad me ayudó a tener una vida profesional más sostenible. Antes de ser mamá, Laboratoria era mi mundo entero: trabajaba todo el día, fines de semana, noches. Encima uno de mis socios era mi esposo, entonces los dos estábamos metidos.  
+- **Invitada (Mariana Costa)**: Cuando nació Lucía, nuestra primera hija, no se puede. Tienes una bebé que cuidar. Tenemos apoyo en casa, que ha sido fundamental para poder seguir trabajando. Pero ella está en su casa a las 6, y a las 6 ya no puedo tomar reuniones: toca bañar, alimentar, acostar y disfrutar ese tiempo.  
+- **Invitada (Mariana Costa)**: Los fines de semana, desde que nació mi hija, cuento con mis manos los fines de semana que he trabajado. Me obligó a poner límites.  
+- **Invitada (Mariana Costa)**: También me dio perspectiva: en lo laboral todo lo veo con tres pasos de distancia. Digo: va a estar bien, resolveremos, los problemas son parte de la vida. En lo personal sí me mueve más: si mis hijos se enferman, me duele muchísimo.  
+- **Invitada (Mariana Costa)**: Para organizarme, tengo apoyo en casa, un privilegio. Y eso me motiva: cómo podemos tener sistemas de cuidado que permitan a las mujeres trabajar. Si no tienes un familiar o puedes pagar cuidado, no hay un sistema público consolidado para primera infancia. El colegio dura seis horas, el trabajo ocho, y hay gente que se transporta dos horas ida y dos vuelta: no dan los números.  
+- **Invitada (Mariana Costa)**: Esa es una deuda con las mujeres. Y los hombres también: me encanta una frase de Claudia Goldin: no va a haber equidad en el mundo del trabajo si no hay equidad en el hogar. En parejas heterosexuales, los hombres son habilitadores de que las mujeres persigamos nuestras carreras haciendo su parte en la casa.
+
+
+## Evolución interna: separar identidad del negocio, autoconversación y prácticas para resiliencia emocional
+```yaml
+metadata:
+  contexto_denso: "Ileana pregunta por la evolución mental y emocional; Mariana comparte aprendizajes sobre experiencia, separar valor personal del desempeño del negocio y cultivar una autoconversación compasiva para sostener críticas y errores."
+  entidades_clave: "identidad, confianza, agencia, autoconversación, resiliencia, crítica, experiencia emprendedora"
+  preguntas_hipoteticas:
+    - "¿Cómo desarrollar perspectiva emocional al emprender sin vivirlo todo a flor de piel?"
+    - "¿Por qué es clave separar el valor personal del desempeño del negocio?"
+    - "¿Cómo influye la autoconversación en la resiliencia y la confianza?"
+  keywords: "identidad, confianza, resiliencia, agencia, autoconversación"
+  speakers: "Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Ileana**: ¿Cómo sientes que ha sido tu proceso de evolución interna, mental y emocional, para llegar a este lugar de ver las cosas dos pasos atrás? ¿Qué recomendación darías?  
+- **Invitada (Mariana Costa)**: Hay algo que es la experiencia: te lo da el paso de los años, se te endurece un poco la espalda. Los primeros años emprendiendo todo está a flor de piel: todo está en riesgo, es emocional e intenso. Con el tiempo, viviendo altos y bajos, te das cuenta que así es el camino y generas distancia. Mi consejo sería: aguanta, va a llegar ese momento.  
+- **Invitada (Mariana Costa)**: Pero también hay cosas para que no sea tan tortuoso. Tiene que ver con separar nuestra identidad y nuestro valor como persona de nuestro yo profesional. A veces sentimos que todo está en juego: si no le va bien a mi empresa, no me fue bien a mí; si mi empresa no es reconocida, será porque yo no valgo. Eso es perverso, porque que le vaya bien o no a una empresa depende de mil factores, muchos fuera de nuestro control.  
+- **Invitada (Mariana Costa)**: El trabajo de conocernos, reconocer nuestro valor independiente de todo, cultivar confianza, cambiar cómo nos hablamos. La conversación más importante de nuestras vidas es la que tenemos con nosotras mismas: está todo el tiempo en la cabeza. Lo mejor es amistarnos con esa conversación: que sea cariñosa, no complaciente, que empuje desde el amor.  
+- **Invitada (Mariana Costa)**: Cuando navegas desde confianza y seguridad, cometes un error o te critican y esa confianza protege tu núcleo. Duele, pero el impacto no es tan nocivo. Te recuperas y sigues adelante.
+
+
+## Bienestar y autocuidado: priorizar, movimiento, lectura/escritura y aprender a decir que no
+```yaml
+metadata:
+  contexto_denso: "Mariana describe prácticas concretas de autocuidado (deporte, alimentación, lectura de novelas, escritura) y enfatiza que el bienestar no es sumar tareas sino priorizar; también habla de aprender a decir que no para proteger energía y tiempo."
+  entidades_clave: "bienestar, autocuidado, deporte, pilates, lectura, escritura, newsletter Travesías, límites, decir que no, coach"
+  preguntas_hipoteticas:
+    - "¿Qué hábitos ayudan a sostener energía y claridad en liderazgo?"
+    - "¿Cómo integrar autocuidado sin sentir que es ‘una cosa más’ en la agenda?"
+    - "¿Por qué aprender a decir que no es una habilidad clave para mujeres líderes?"
+  keywords: "autocuidado, límites, deporte, lectura, escritura"
+  speakers: "Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Ileana**: ¿Qué prácticas de bienestar o autocuidado has aprendido para estar mejor, para tu familia y tu empresa?  
+- **Invitada (Mariana Costa)**: A veces pensamos que se trata de meter más cosas en el día, y el día no da. En mi caso he aprendido que no tiene tanto que ver con cómo meto más, sino con qué decido priorizar. Yo estar bien es prioridad: si yo no estoy bien, nada más puedo hacer bien.  
+- **Invitada (Mariana Costa)**: En los últimos años me he hecho deportista. Ahora corro, hago pilates, hago deporte. Una semana ocupada logro al menos tres o cuatro días; aspiro a cinco. No es perfecto: no siempre corro una hora, a veces veinte minutos. Corrí veinte minutos, mejor que no correr nada.  
+- **Invitada (Mariana Costa)**: Con la alimentación también: la pandemia me ayudó, ahora como más en mi casa, más sano, y eso me hace sentir mejor.  
+- **Invitada (Mariana Costa)**: Leer y escribir siempre han sido parte de mi vida. Pero lo desprioricé: tenía libros de negocios y a las ocho de la noche estaba agotada. El año pasado dije: “vamos a leer novelas”. Este año he leído muchísimo, casi todas las noches, porque amo leer.  
+- **Invitada (Mariana Costa)**: Con la escritura, busqué cómo hacerla parte del trabajo: tenemos un newsletter, Travesías, y muchas entradas las escribo yo. Es una manera de traer cosas que me hacen bien y alinearlas con algo valioso para el trabajo.  
+- **Invitada (Mariana Costa)**: Y algo clave: aprender a decir que no. Lo trabajé con una coach. No puedo reunirme con todo el mundo que pide reunión, porque si no, no trabajo en el día y termino a la una de la mañana. No pasa nada si digo de buena manera que no puedo.  
+- **Invitada (Mariana Costa)**: También romper la barrera mental: decir que no no implica que van a pensar que soy creída. Puedo decir que no con amabilidad. Si alguien quiere pensar otra cosa, ya no es mi rollo.
+
+
+## Éxito, valores, intencionalidad y legado: paz interna, coherencia y amabilidad
+```yaml
+metadata:
+  contexto_denso: "En el cierre, Camila pregunta por el éxito y el legado; Mariana define éxito como acostarse tranquila, alineada a valores, y destaca la intencionalidad para vivir con agencia; desea contribuir al progreso del Perú y ser recordada por su amabilidad."
+  entidades_clave: "éxito, valores, intencionalidad, legado, Perú, amabilidad, Barbie (reconocimiento)"
+  preguntas_hipoteticas:
+    - "¿Cómo define Mariana Costa el éxito hoy?"
+    - "¿Qué relación hay entre paz interna y vivir alineada a valores?"
+    - "¿Qué legado busca dejar en Perú y en su forma de relacionarse con otros?"
+  keywords: "éxito, valores, legado, intencionalidad, amabilidad"
+  speakers: "Camila, Ileana, Invitada"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Camila**: Para ir cerrando: has tenido muchos logros y reconocimientos, incluso tienes una propia Barbie. Sacando eso de lado, ¿cómo definirías tú el éxito el día de hoy?  
+- **Invitada (Mariana Costa)**: Para mí, éxito es acostarte tranquila todas las noches. Es algo inalcanzable para un montón de personas, y tiene un aspecto emocional y social: tranquilidad de poder sostener tus necesidades y proveer para tu familia, y a la vez paz para ver las cosas con perspectiva, no estar en un nudo de ansiedad o depresión, disfrutar tu vida y valorar lo que tienes.  
+- **Invitada (Mariana Costa)**: Esa tranquilidad también viene de saber que estás en línea con tus valores. Cuando no me siento alineada con mis valores, me genera intranquilidad. He aprendido que la vida no es blanco y negro, hay que ser flexibles, pero intento revertirlo en la medida de lo posible. A más alineamiento entre quién somos y cómo somos en el mundo, más tranquilidad interna hay, y eso te permite hacer más hacia afuera.  
+- **Ileana**: Para mí ha sido un entrenamiento intencional en las noches: redirigir la atención a qué cosas sí hay, de qué me siento satisfecha, orgullosa, en paz.  
+- **Invitada (Mariana Costa)**: Para mí también el aprendizaje es el valor de la intencionalidad: no solo ir por el río y que te lleve la corriente, sino tener herramientas para hacer de nuestras carreras y vidas una experiencia más consciente. Sentir que estamos eligiendo da un sentimiento de estar un poquito más en control. Esa intencionalidad me hace sentir más dueña de mi vida, y ese sentimiento me encanta.  
+- **Camila**: ¿Qué legado quieres dejar? ¿Cómo te gustaría que te recuerden?  
+- **Invitada (Mariana Costa)**: Me encantaría contribuir de alguna manera al progreso del Perú. Pienso en cómo las personas podemos interesarnos por problemas que no nos tocan directamente. Si a mí no me tocan, muchas veces es por un golpe de suerte. Sin caer en “soy la mártir” ni “tengo que salvar el mundo”, quiero mantener esa conexión con desafíos grandes y enfocar mi carrera a eso.  
+- **Invitada (Mariana Costa)**: Y algo más simple: cultivar la amabilidad, el cariño, la cercanía con las personas. Lo valoro mucho. Quiero acordarme de eso, incluso en momentos de poca paciencia, y volver a la amabilidad.
+
+
+## Cierre y agradecimientos
+```yaml
+metadata:
+  contexto_denso: "Camila e Ileana agradecen a Mariana por su historia y aprendizajes, y cierran el episodio reconociendo el impacto de Laboratoria y al equipo de producción."
+  entidades_clave: "Visionarias Podcast, Mariana Costa, Laboratoria, Jefa Corp (productora)"
+  preguntas_hipoteticas:
+    - "¿Cómo cierran Camila e Ileana el episodio con Mariana?"
+    - "¿Qué agradecimientos y reconocimientos se mencionan al final?"
+    - "¿Qué invitación se hace a la audiencia para conocer al equipo de producción?"
+  keywords: "cierre, agradecimientos, producción, impacto, episodio"
+  speakers: "Camila, Ileana"
+  source: "transcripcion_visionarias_mariana_costa.txt"
+```
+
+- **Ileana**: Gracias por estar aquí, por compartir tu historia, tus aprendizajes. Ha sido supervalioso para mí escucharte en este recorrido, y estoy segura que para muchos también. Gracias por tu tiempo.  
+- **Camila**: Gracias, te admiramos mucho, y sé que estás inspirando a muchas personas, sobre todo a mujeres peruanas que quieren seguir el mundo de la tecnología, y sobre todo ayudando a otras personas a crecer. Gracias por lo que haces, y estoy segura que vas a dejar muchísima huella aquí en Latinoamérica.  
+- **Camila**: Gracias también a nuestra productora, Jefa Corp, por hacer realidad este episodio. Si quieren saber más de ellos, les vamos a dejar un link con sus redes sociales para que los puedan conocer. Gracias de nuevo, y hasta un nuevo episodio.

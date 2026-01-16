@@ -1,0 +1,22 @@
+import sys
+import os
+
+# Add project root to path
+sys.path.append(os.getcwd())
+
+from src.services.database import engine
+from src.services.models import Base
+
+def create_missing_tables():
+    print("Conectando a la base de datos...")
+    print("Creando tablas faltantes (si existen)...")
+    try:
+        # Esto crea solo las tablas que no existen, no sobrescribe datos
+        Base.metadata.create_all(bind=engine)
+        print("✅ Tablas creadas/verificadas correctamente.")
+        print("Específicamente se asegura que la tabla 'documents' exista.")
+    except Exception as e:
+        print(f"❌ Error creando tablas: {e}")
+
+if __name__ == "__main__":
+    create_missing_tables()

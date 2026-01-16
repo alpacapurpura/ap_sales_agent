@@ -1,23 +1,24 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from src.core.schema import IncomingMessage, OutgoingMessage
 
 class BaseChannel(ABC):
     """
-    Clase abstracta que define el contrato para cualquier canal de comunicación.
+    Abstract base class for channel adapters.
+    Enforces the Port (Interface) for all external communication channels.
     """
     
     @abstractmethod
-    def normalize_payload(self, request: Any) -> Optional[IncomingMessage]:
+    def normalize_payload(self, payload: Dict[str, Any]) -> Optional[IncomingMessage]:
         """
-        Convierte el payload específico del canal a un IncomingMessage unificado.
-        Retorna None si el payload no es un mensaje de texto válido (ej. status update).
+        Convert raw webhook payload to unified IncomingMessage.
+        Returns None if the payload should be ignored (e.g. status updates).
         """
         pass
-
+        
     @abstractmethod
-    async def send_message(self, message: OutgoingMessage) -> None:
+    async def send_message(self, message: OutgoingMessage) -> Dict[str, Any]:
         """
-        Envía una respuesta al canal específico.
+        Send unified OutgoingMessage to the specific channel API.
         """
         pass

@@ -1,5 +1,6 @@
 from typing import Optional
 from src.config import settings
+from src.core.schema import AIProvider
 from src.core.llm.base import BaseLLMService
 from src.core.llm.providers.openai import OpenAIService
 
@@ -24,9 +25,9 @@ class LLMFactory:
     def _create_service(cls) -> BaseLLMService:
         provider = settings.AI_PROVIDER.lower()
         
-        if provider == "openai":
+        if provider == AIProvider.OPENAI:
             return OpenAIService()
-        elif provider == "gemini":
+        elif provider == AIProvider.GEMINI:
             from src.core.llm.providers.gemini import GeminiService
             return GeminiService()
         else:

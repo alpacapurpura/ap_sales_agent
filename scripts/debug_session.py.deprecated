@@ -1,0 +1,87 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import desc
+import json
+import os
+from src.services.models import User, Enrollment, Message, Product
+
+# Hardcode or fetch from env since we can't import config easily without potential side effects
+# Assuming defaults from docker-compose or standard local dev
+POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "postgres")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "visionarias_db")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+
+DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+# Create Engine
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def inspect_latest_session():
+    db = SessionLocal()
+    try:
+        # 0. Check Products
+        print("\n=== PRODUCTS ===")
+        products = db.query(Product).all()
+        for p in products:
+            print(f"ID: {p.id} | Name: {p.name} | Status: {p.status} | Type: {p.type}")
+            print(f"Dates: {p.dates}")
+        
+        # 1. Get the most recently updated user
+        user = db.query(User).order_by(desc(User.updated_at)).first()
+        
+        if not user:
+            print("No users found in database.")
+            return
+
+        print(f"\n=== USER: {user.full_name or 'Unknown'} (ID: {user.id}) ===")
+        print(f"Created: {user.created_at}")
+        print(f"Updated: {user.updated_at}")
+        
+        print("\n--- PSYCHOGRAPHICS (Profile) ---")
+        if user.psychographics:
+            print(json.dumps(user.psychographics, indent=2, ensure_ascii=False))
+        else:
+            print("{}")
+        
+        # 2. Get Enrollments
+        print("\n--- ENROLLMENTS (State Journey) ---")
+        enrollments = db.query(Enrollment).filter(Enrollment.user_id == user.id).all()
+        if not enrollments:
+            print("No enrollments found for this user.")
+            
+        for env in enrollments:
+            print(f"Product ID: {env.product_id}")
+            print(f"Status: {env.status}")
+            print(f"Current Stage: {env.stage}")
+            print(f"Lead Score: {env.lead_score}")
+            print(f"Objections: {env.objections}")
+            print(f"Updated: {env.updated_at}")
+            print("-" * 20)
+
+        # 3. Get Messages (Conversation Flow)
+        print("\n--- MESSAGE HISTORY (Most recent last) ---")
+        messages = db.query(Message).filter(Message.user_id == user.id).order_by(Message.created_at).all()
+        for msg in messages:
+            role = msg.role.upper()
+            content = msg.content
+            # Truncate content if too long
+            if len(content) > 150:
+                content = content[:150] + "..."
+            
+            # Check metadata for state snapshots
+            state_snapshot = "N/A"
+            if msg.metadata_log and isinstance(msg.metadata_log, dict):
+                state_snapshot = msg.metadata_log.get('state_snapshot', 'N/A')
+                
+            print(f"[{msg.created_at}] [{state_snapshot}] {role}: {content}")
+
+    except Exception as e:
+        print(f"Error inspecting DB: {e}")
+    finally:
+        db.close()
+
+if __name__ == "__main__":
+    inspect_latest_session()
