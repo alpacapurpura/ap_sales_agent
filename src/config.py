@@ -52,7 +52,12 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "postgres"
     POSTGRES_PORT: int = 5432
 
+    # Production Domains
+    API_DOMAIN: str = ""
+    DASHBOARD_DOMAIN: str = ""
+
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()

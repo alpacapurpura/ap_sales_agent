@@ -18,6 +18,10 @@ venv/
 .docs
 data/
 
+
+/.trae
+
+
 # Cloudflare
 /cloudfare
 cloudflared.deb
