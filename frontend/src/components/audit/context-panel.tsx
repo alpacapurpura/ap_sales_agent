@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useUserDetails, useTraceDetails } from "@/lib/api/audit";
-import { Loader2 } from "lucide-react";
+import { useUserDetails, useTraceDetails, clearUserHistory } from "@/lib/api/audit";
+import { Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 interface ContextPanelProps {
   userId: string | null;
@@ -17,6 +21,22 @@ interface ContextPanelProps {
 export function ContextPanel({ userId, lastTraceId, isOpen, onOpenChange, defaultTab = "profile" }: ContextPanelProps) {
   const { data: user, isLoading: loadingUser } = useUserDetails(userId);
   const { data: trace, isLoading: loadingTrace } = useTraceDetails(lastTraceId);
+  
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteHistory, isPending: isDeleting } = useMutation({
+    mutationFn: (uid: string) => clearUserHistory(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["audit"] });
+      setDeleteOpen(false);
+      onOpenChange(false); // Close panel after delete
+    },
+    onError: (error) => {
+      console.error(error);
+      alert("Error al eliminar historial");
+    }
+  });
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -28,11 +48,45 @@ export function ContextPanel({ userId, lastTraceId, isOpen, onOpenChange, defaul
         
         {/* Key forces re-mount when defaultTab changes (e.g. clicking different button) */}
         <Tabs key={defaultTab} defaultValue={defaultTab} className="flex-1 flex flex-col min-h-0">
-          <div className="px-6 border-b bg-muted/40">
-            <TabsList className="grid w-full grid-cols-2">
+          <div className="px-6 border-b bg-muted/40 flex items-center gap-2 py-2">
+            <TabsList className="grid flex-1 grid-cols-2">
               <TabsTrigger value="profile">Perfil Usuario</TabsTrigger>
               <TabsTrigger value="state">Agent State</TabsTrigger>
             </TabsList>
+            
+            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" size="icon" title="Borrar Historial" disabled={!userId}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-destructive">
+                    <AlertTriangle className="h-5 w-5" />
+                    Borrar Historial de Conversación
+                  </DialogTitle>
+                  <DialogDescription>
+                    Esta acción eliminará permanentemente todos los mensajes, trazas y memoria de este usuario. 
+                    El usuario volverá al inicio del funnel.
+                    <br/><br/>
+                    <strong>Esta acción no se puede deshacer.</strong>
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={isDeleting}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => userId && deleteHistory(userId)}
+                    disabled={isDeleting || !userId}
+                  >
+                    {isDeleting ? "Borrando..." : "Sí, borrar todo"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <TabsContent value="profile" className="flex-1 m-0 min-h-0 relative">

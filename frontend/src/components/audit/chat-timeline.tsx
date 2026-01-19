@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useMemo, useState } from "react";
-import { useUserTimeline, TimelineEvent } from "@/lib/api/audit";
+import { useUserTimeline, TimelineEvent, clearUserHistory } from "@/lib/api/audit";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Bot, User as UserIcon, BrainCircuit, ArrowRight, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Bot, User as UserIcon, BrainCircuit, ArrowRight, Activity, Trash2, AlertTriangle } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContextPanel } from "./context-panel";
 
 interface ChatTimelineProps {
@@ -25,6 +28,21 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
   
   const [contextOpen, setContextOpen] = useState(false);
   const [contextTab, setContextTab] = useState<"profile" | "state">("profile");
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteHistory, isPending: isDeleting } = useMutation({
+    mutationFn: (uid: string) => clearUserHistory(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["audit"] });
+      setDeleteOpen(false);
+    },
+    onError: (error) => {
+      console.error(error);
+      alert("Error al eliminar historial");
+    }
+  });
 
   // Get last trace ID for context
   const lastTraceId = useMemo(() => {
@@ -101,6 +119,40 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
                      <Badge variant="outline" className="cursor-pointer hover:bg-muted/80 transition-colors" onClick={openState}>
                         <Activity size={12} className="mr-1.5"/> AgentState
                      </Badge>
+                     
+                     <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" title="Borrar Historial">
+                                <Trash2 size={14} />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-destructive">
+                                <AlertTriangle className="h-5 w-5" />
+                                Borrar Historial de Conversación
+                            </DialogTitle>
+                            <DialogDescription>
+                                Esta acción eliminará permanentemente todos los mensajes, trazas y memoria de este usuario. 
+                                El usuario volverá al inicio del funnel.
+                                <br/><br/>
+                                <strong>Esta acción no se puede deshacer.</strong>
+                            </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={isDeleting}>
+                                Cancelar
+                            </Button>
+                            <Button 
+                                variant="destructive" 
+                                onClick={() => userId && deleteHistory(userId)}
+                                disabled={isDeleting || !userId}
+                            >
+                                {isDeleting ? "Borrando..." : "Sí, borrar todo"}
+                            </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                     </Dialog>
                 </div>
             )}
         </div>

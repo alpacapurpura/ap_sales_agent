@@ -108,6 +108,13 @@ services:
       - "traefik.http.routers.client.entrypoints=web"
       - "traefik.http.services.client.loadbalancer.server.port=3000"
 
+  init_cache:
+    image: alpine:latest
+    command: sh -c "mkdir -p /app/model_cache && chmod 777 /app/model_cache"
+    volumes:
+      - ./data/model_cache:/app/model_cache
+    profiles: ["development", "production"]
+
   # --- Infrastructure Services ---
   redis:
     image: redis:7-alpine

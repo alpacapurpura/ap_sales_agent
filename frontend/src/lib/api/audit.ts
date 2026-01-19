@@ -111,3 +111,11 @@ export function useTraceDetails(traceId: string | null) {
     enabled: !!traceId,
   });
 }
+
+export async function clearUserHistory(userId: string) {
+  const res = await fetch(`${API_BASE}/audit/users/${userId}/history`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to clear history");
+  return res.json();
+}

@@ -3,10 +3,12 @@ from typing import List, Any, Dict
 from src.services.db.repositories.user import UserRepository
 from src.services.db.repositories.audit import AuditRepository
 from src.services.knowledge_service import KnowledgeService
+from src.services.buffer_service import SmartBufferService
 from src.services.database import SessionLocal
 
 router = APIRouter()
 kb_service = KnowledgeService()
+buffer_service = SmartBufferService()
 
 def get_repos():
     db = SessionLocal()
@@ -71,13 +73,19 @@ async def get_user_details(user_id: str, repos: tuple = Depends(get_repos)):
         "updated_at": user.updated_at
     }
 
-@router.delete("/users/{user_id}/history")
+@router.delete("/audit/users/{user_id}/history")
 async def clear_user_history(user_id: str, repos: tuple = Depends(get_repos)):
     _, audit_repo = repos
-    success = audit_repo.clear_user_history(user_id)
-    if not success:
+    
+    # 1. Clear SQL DB
+    success_db = audit_repo.clear_user_history(user_id)
+    
+    # 2. Clear Redis Cache
+    success_cache = buffer_service.clear_user_cache(user_id)
+    
+    if not success_db:
         raise HTTPException(status_code=500, detail="Failed to clear history")
-    return {"status": "cleared", "user_id": user_id}
+    return {"status": "cleared", "user_id": user_id, "cache_cleared": success_cache}
 
 @router.get("/audit/users/{user_id}/timeline")
 async def get_user_timeline(user_id: str, limit: int = 50, repos: tuple = Depends(get_repos)):

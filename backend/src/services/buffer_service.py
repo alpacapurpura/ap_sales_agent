@@ -82,3 +82,19 @@ class SmartBufferService:
 
     def release_lock(self, user_id: str):
         self.redis.delete(self._key_lock(user_id))
+
+    def clear_user_cache(self, user_id: str) -> bool:
+        """
+        Clears all buffer and metadata keys for a user.
+        """
+        try:
+            keys = [
+                self._key_buffer(user_id),
+                self._key_meta(user_id),
+                self._key_lock(user_id)
+            ]
+            self.redis.delete(*keys)
+            return True
+        except Exception as e:
+            logger.error("error_clearing_cache", user_id=user_id, error=str(e))
+            return False
