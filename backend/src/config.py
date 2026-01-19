@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     # Production Domains
     API_DOMAIN: str = ""
     DASHBOARD_DOMAIN: str = ""
+    
+    # CORS
+    CORS_ORIGINS: list[str] = []
 
     class Config:
         env_file = ".env"

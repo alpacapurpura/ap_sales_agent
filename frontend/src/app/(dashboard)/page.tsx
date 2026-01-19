@@ -7,10 +7,11 @@ import { FileText, Database, Activity, Eye } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { config } from "@/lib/config";
 
 export default function Home() {
   const { getToken } = useAuth();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://api.salesagent.local";
+  const API_URL = config.api.baseUrl;
 
   const { data: stats, isLoading, isError } = useQuery({
     queryKey: ['stats'],

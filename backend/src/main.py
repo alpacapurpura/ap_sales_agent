@@ -16,7 +16,8 @@ logger = structlog.get_logger()
 app = FastAPI(title=settings.PROJECT_NAME)
 
 # CORS Configuration
-origins = [
+# Default local development origins
+default_origins = [
     "http://localhost:3000",
     "http://localhost:8501", # Streamlit
     "http://127.0.0.1:3000",
@@ -26,6 +27,9 @@ origins = [
     "https://salesagent.local",
     "https://api.salesagent.local",
 ]
+
+# Combine with environment-configured origins
+origins = default_origins + settings.CORS_ORIGINS
 
 app.add_middleware(
     CORSMiddleware,
