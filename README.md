@@ -30,21 +30,33 @@ Sistema de agente de ventas basado en Inteligencia Artificial, diseñado con una
     ```
 2.  Editar `.env` con tus credenciales de Meta (WhatsApp API) y OpenAI.
 
+## Comandos Rápidos (Makefile)
+
+Este proyecto incluye un `Makefile` para simplificar la gestión de Docker y permisos.
+
+| Comando | Descripción |
+| :--- | :--- |
+| `make setup` | **Ejecutar primero.** Crea carpetas de datos/logs con permisos correctos. |
+| `make dev` | Inicia el entorno de **Desarrollo** (Hot-reload, puertos expuestos). |
+| `make prod` | Inicia el entorno de **Producción** (Optimizado, usa `.env.prod`). |
+| `make stop` | Detiene todos los contenedores. |
+| `make fix-permissions` | Repara problemas de propiedad (candados) en archivos generados por Docker. |
+| `make install-front p=lib` | Instala librerías npm en Host y Docker simultáneamente. |
+
 ## Despliegue
 
 ### Desarrollo (Development)
 
-Expone los puertos de todos los servicios (API: 8000, Redis: 6379, Qdrant: 6333).
-
 ```bash
-docker compose --profile development up --build
+make setup
+make dev
 ```
 
 Acceso: `http://localhost:8000/docs`
 
 ### Producción (Production)
 
-Diseñado para correr detrás de un Traefik existente en la red `web_gateway`.
+Diseñado para correr detrás de un Traefik existente.
 
 1.  Asegúrate de que la red externa existe:
     ```bash
@@ -52,7 +64,7 @@ Diseñado para correr detrás de un Traefik existente en la red `web_gateway`.
     ```
 2.  Lanzar servicios:
     ```bash
-    docker compose --profile production up -d --build
+    make prod
     ```
 
-El servicio estará disponible en `https://salesagent.alpacapurpura.lat` (configurado vía etiquetas Traefik en `docker-compose.yml`).
+El servicio estará disponible en `https://salesagent.alpacapurpura.lat`.

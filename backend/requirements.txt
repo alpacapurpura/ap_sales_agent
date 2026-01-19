@@ -28,3 +28,4 @@ structlog>=24.1.0
 python-multipart>=0.0.9 # Required for UploadFile
 pyjwt==2.8.0
 cryptography==42.0.5
+gunicorn==21.2.0

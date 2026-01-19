@@ -1,10 +1,12 @@
 services:
-  # --- Application Service (API) ---
-  api:
-    build: ./backend
-    container_name: visionarias_brain
+  # --- Application Service (API - Development) ---
+  api_dev:
+    build: 
+      context: ./backend
+      target: final
+    container_name: visionarias_brain_dev
     restart: unless-stopped
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
     volumes:
@@ -17,7 +19,41 @@ services:
     networks:
       - internal_net
       - gateway
-    profiles: ["development", "production"]
+    profiles: ["development"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      # Router for HTTP (Dev)
+      - "traefik.http.routers.visionarias_http.rule=Host(`${API_DOMAIN}`)"
+      - "traefik.http.routers.visionarias_http.entrypoints=web"
+      - "traefik.http.routers.visionarias_http.service=visionarias_api_dev"
+      # Service definition
+      - "traefik.http.services.visionarias_api_dev.loadbalancer.server.port=8000"
+    ports:
+      - "8000:8000"
+
+  # --- Application Service (API - Production) ---
+  api_prod:
+    build: 
+      context: ./backend
+      target: final
+    container_name: visionarias_brain
+    restart: unless-stopped
+    # Use Gunicorn for production: 4 workers, binding to 0.0.0.0:8000
+    command: gunicorn -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:8000 --workers 4
+    env_file:
+      - .env
+    volumes:
+      # Only mount cache, NOT code
+      - ./data/model_cache:/app/model_cache
+    depends_on:
+      - redis
+      - qdrant
+      - postgres
+    networks:
+      - internal_net
+      - gateway
+    profiles: ["production"]
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -26,20 +62,16 @@ services:
       - "traefik.http.routers.visionarias.entrypoints=websecure"
       - "traefik.http.routers.visionarias.tls.certresolver=myresolver"
       - "traefik.http.routers.visionarias.service=visionarias_api"
-      # Router for HTTP (Dev)
-      - "traefik.http.routers.visionarias_http.rule=Host(`${API_DOMAIN}`)"
-      - "traefik.http.routers.visionarias_http.entrypoints=web"
-      - "traefik.http.routers.visionarias_http.service=visionarias_api"
       # Service definition
       - "traefik.http.services.visionarias_api.loadbalancer.server.port=8000"
     ports:
       - "8000:8000"
 
-  # --- Admin Interface (Streamlit) ---
-  admin_dashboard:
-    image: visionarias_brain:latest # Reuse API image (or build . if not built yet, but usually distinct services build independently in compose)
+  # --- Admin Interface (Streamlit - Development) ---
+  admin_dashboard_dev:
+    image: visionarias_brain_dev:latest 
     build: ./backend
-    container_name: visionarias_admin
+    container_name: visionarias_admin_dev
     restart: unless-stopped
     command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
     volumes:
@@ -47,37 +79,59 @@ services:
     env_file:
       - .env
     environment:
-      - API_URL=http://api:8000 # Admin might need to talk to API if we refactor it later
+      - API_URL=http://api_dev:8000 
     depends_on:
-      - api
+      - api_dev
       - qdrant
       - postgres
     networks:
       - internal_net
       - gateway
     ports:
-      - "127.0.0.1:8501:8501" # Localhost only
-    profiles: ["development", "production"]
+      - "127.0.0.1:8501:8501" 
+    profiles: ["development"]
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
-      - "traefik.http.routers.admin.rule=Host(`${DASHBOARD_DOMAIN}`)"
-      - "traefik.http.routers.admin.entrypoints=websecure"
-      - "traefik.http.routers.admin.tls.certresolver=myresolver"
       # Router for HTTP (Dev)
       - "traefik.http.routers.admin_http.rule=Host(`${DASHBOARD_DOMAIN}`)"
       - "traefik.http.routers.admin_http.entrypoints=web"
-      - "traefik.http.routers.admin_http.service=admin"
-      - "traefik.http.services.admin.loadbalancer.server.port=8501"
+      - "traefik.http.routers.admin_http.service=admin_dev"
+      - "traefik.http.services.admin_dev.loadbalancer.server.port=8501"
 
-  # --- Client Dashboard (Next.js) ---
-  client_dashboard:
+  # --- Admin Interface (Streamlit - Production) ---
+  admin_dashboard_prod:
+    image: visionarias_brain:latest 
+    build: ./backend
+    container_name: visionarias_admin
+    restart: unless-stopped
+    command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
+    # No code volume mount
+    env_file:
+      - .env
+    environment:
+      - API_URL=http://api_prod:8000 
+    depends_on:
+      - api_prod
+      - qdrant
+      - postgres
+    networks:
+      - internal_net
+      - gateway
+    ports:
+      - "127.0.0.1:8501:8501" # Secure binding: Only accessible via localhost (SSH Tunnel)
+    profiles: ["production"]
+
+
+  # --- Client Dashboard (Next.js - Development) ---
+  client_dashboard_dev:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
+      target: dev
       args:
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-    container_name: visionarias_client
+    container_name: visionarias_client_dev
     restart: unless-stopped
     env_file:
       - .env
@@ -101,12 +155,48 @@ services:
     networks:
       - internal_net
       - gateway
-    profiles: ["development", "production"]
+    profiles: ["development"]
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
-      - "traefik.http.routers.client.rule=Host(`salesagent.local`)"
-      - "traefik.http.routers.client.entrypoints=web"
+      - "traefik.http.routers.client_dev.rule=Host(`salesagent.local`)"
+      - "traefik.http.routers.client_dev.entrypoints=web"
+      - "traefik.http.services.client_dev.loadbalancer.server.port=3000"
+
+  # --- Client Dashboard (Next.js - Production) ---
+  client_dashboard_prod:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    container_name: visionarias_client
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - INTERNAL_API_URL=${INTERNAL_API_URL}
+      - PORT=3000
+    extra_hosts:
+      - "api.salesagent.local:host-gateway"
+      - "salesagent.local:host-gateway"
+      - "admin.salesagent.local:host-gateway"
+    depends_on:
+      - api
+    networks:
+      - internal_net
+      - gateway
+    profiles: ["production"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.client.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.client.entrypoints=websecure"
+      - "traefik.http.routers.client.tls.certresolver=myresolver"
       - "traefik.http.services.client.loadbalancer.server.port=3000"
 
   init_cache:
