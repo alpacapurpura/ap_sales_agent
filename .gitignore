@@ -1,53 +1,50 @@
-# --- Environments ---
+# --- Global / Root ---
+# Environments (Secrets)
 .env
 .env.*
 !.env.example
+!.env.test.example
 
-
-# --- OS & System ---
+# OS & System
 .DS_Store
 Thumbs.db
 .Desktop
 .VolumeIcon.icns
 ._*
 
-# --- IDEs & Editors ---
+# IDEs & Editors
 .idea/
 .vscode/
 *.swp
 *.swo
-.trae/
 *.sublime-project
 *.sublime-workspace
+.trae/
 
-# --- Python / Backend ---
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Backend (Python/FastAPI) ---
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/.Python
+backend/build/
+backend/dist/
+backend/*.egg-info/
+backend/.installed.cfg
+backend/*.egg
 
 # Virtual Environments
+backend/venv/
+backend/.venv/
+backend/env/
 venv/
-env/
-ENV/
 .venv/
 
 # Testing & Coverage
@@ -55,44 +52,32 @@ ENV/
 .coverage.*
 htmlcov/
 .pytest_cache/
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-test-results/
+backend/.pytest_cache/
 
-# --- Node / Frontend ---
+# AI Models & Cache (Large Files)
+backend/model_cache/
+backend/data/
+model_cache/
+
+# --- Frontend (Next.js/React) ---
+frontend/node_modules/
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.turbo/
+frontend/*.tsbuildinfo
 
-# Next.js
-.next/
-out/
-build/
-dist/
-.turbo/
+# --- Infrastructure & Data ---
+# Docker Volumes & Persistence
+data/
+tmp/
+temp/
 
-# TypeScript
-*.tsbuildinfo
-
-# --- Docker & Infrastructure ---
-.docker/
+# Cloudflare
 cloudflared.deb
 backend/cloudflare/cloudflared*
 
-# --- Data & Persistence ---
-data/
-backend/model_cache/
-
-# --- Logs ---
-logs/
-*.log
-
-# --- Temporary ---
-tmp/
-temp/
+# Miscellaneous
 scripts/temp/
