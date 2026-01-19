@@ -1,20 +1,21 @@
 services:
-  # --- Application Service ---
-  app:
-    build: .
+  # --- Application Service (API) ---
+  api:
+    build: ./backend
     container_name: visionarias_brain
     restart: unless-stopped
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
     env_file:
       - .env
     volumes:
-      - .:/app
+      - ./backend:/app
     depends_on:
       - redis
       - qdrant
       - postgres
     networks:
       - internal_net
-      - gateway  # Dynamic Gateway Network
+      - gateway
     profiles: ["development", "production"]
     labels:
       - "traefik.enable=true"
@@ -23,26 +24,38 @@ services:
       - "traefik.http.routers.visionarias.rule=Host(`${API_DOMAIN}`)"
       - "traefik.http.routers.visionarias.entrypoints=websecure"
       - "traefik.http.routers.visionarias.tls.certresolver=myresolver"
+      - "traefik.http.routers.visionarias.service=visionarias_api"
+      # Router for HTTP (Dev)
+      - "traefik.http.routers.visionarias_http.rule=Host(`${API_DOMAIN}`)"
+      - "traefik.http.routers.visionarias_http.entrypoints=web"
+      - "traefik.http.routers.visionarias_http.service=visionarias_api"
       # Service definition
-      - "traefik.http.services.visionarias.loadbalancer.server.port=8000"
+      - "traefik.http.services.visionarias_api.loadbalancer.server.port=8000"
+    ports:
+      - "8000:8000"
 
-  # --- Admin Interface ---
-  admin:
-    build: .
+  # --- Admin Interface (Streamlit) ---
+  admin_dashboard:
+    image: visionarias_brain:latest # Reuse API image (or build . if not built yet, but usually distinct services build independently in compose)
+    build: ./backend
     container_name: visionarias_admin
     restart: unless-stopped
     command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
     volumes:
-      - .:/app
+      - ./backend:/app
     env_file:
       - .env
+    environment:
+      - API_URL=http://api:8000 # Admin might need to talk to API if we refactor it later
     depends_on:
+      - api
       - qdrant
+      - postgres
     networks:
       - internal_net
       - gateway
     ports:
-      - "127.0.0.1:8501:8501" # Localhost only, let Traefik handle external
+      - "127.0.0.1:8501:8501" # Localhost only
     profiles: ["development", "production"]
     labels:
       - "traefik.enable=true"
@@ -50,8 +63,49 @@ services:
       - "traefik.http.routers.admin.rule=Host(`${DASHBOARD_DOMAIN}`)"
       - "traefik.http.routers.admin.entrypoints=websecure"
       - "traefik.http.routers.admin.tls.certresolver=myresolver"
+      # Router for HTTP (Dev)
+      - "traefik.http.routers.admin_http.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.admin_http.entrypoints=web"
+      - "traefik.http.routers.admin_http.service=admin"
       - "traefik.http.services.admin.loadbalancer.server.port=8501"
-      # Basic Auth could be added here for security
+
+  # --- Client Dashboard (Next.js) ---
+  client_dashboard:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    container_name: visionarias_client
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./frontend:/app
+      - /app/.next
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - CHOKIDAR_USEPOLLING=true # Essential for Windows/WSL hot reload
+      - WATCHPACK_POLLING=true
+    extra_hosts:
+      - "api.salesagent.local:host-gateway"
+      - "salesagent.local:host-gateway"
+      - "admin.salesagent.local:host-gateway"
+    depends_on:
+      - api
+    networks:
+      - internal_net
+      - gateway
+    profiles: ["development", "production"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.client.rule=Host(`salesagent.local`)"
+      - "traefik.http.routers.client.entrypoints=web"
+      - "traefik.http.services.client.loadbalancer.server.port=3000"
 
   # --- Infrastructure Services ---
   redis:
@@ -96,23 +150,18 @@ services:
     ports:
       - "127.0.0.1:5432:5432" # Secure binding
 
-  # --- Cloudflare Tunnel (Dev only usually, or Prod if no external Traefik) ---
+  # --- Cloudflare Tunnel ---
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: cloudflare-tunnel
     restart: unless-stopped
     command: tunnel run
     volumes:
-      # Mount the credentials file (Absolute path as requested by user instructions)
       - /home/chris/.cloudflared/cert.json:/etc/cloudflared/cert.json:ro
-      # Mount the config file we just created
-      - ./cloudflare/config.yml:/etc/cloudflared/config.yml:ro
+      - ./backend/cloudflare/config.yml:/etc/cloudflared/config.yml:ro
     networks:
-      - gateway # Connects to the same network as Traefik (web_gateway_local in dev)
-    profiles: ["development"] # Typically for dev testing or specific deployments
-    # depends_on:
-    #   - traefik # Removed because Traefik is external in this setup
-
+      - gateway
+    profiles: ["development"]
 
 networks:
   internal_net:
@@ -120,8 +169,3 @@ networks:
   gateway:
     name: ${TRAEFIK_NETWORK}
     external: true
-
-# volumes:
-#   redis_data:
-#   qdrant_data:
-#   postgres_data:

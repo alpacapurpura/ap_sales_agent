@@ -1,27 +1,98 @@
-# Environments
+# --- Environments ---
 .env
-.env.dev
-.env.prod
-.env.test
+.env.*
+!.env.example
 
-# Python
-__pycache__/
-*.pyc
-venv/
-.pytest_cache/
 
-# IDE
-.vscode/
-.idea/
+# --- OS & System ---
 .DS_Store
-.trae
-.docs
-data/
+Thumbs.db
+.Desktop
+.VolumeIcon.icns
+._*
 
+# --- IDEs & Editors ---
+.idea/
+.vscode/
+*.swp
+*.swo
+.trae/
+*.sublime-project
+*.sublime-workspace
 
-/.trae
+# --- Python / Backend ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
 
-# Cloudflare
-/cloudfare
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+test-results/
+
+# --- Node / Frontend ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+build/
+dist/
+.turbo/
+
+# TypeScript
+*.tsbuildinfo
+
+# --- Docker & Infrastructure ---
+.docker/
 cloudflared.deb
+backend/cloudflare/cloudflared*
+
+# --- Data & Persistence ---
+data/
+backend/model_cache/
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Temporary ---
+tmp/
+temp/
+scripts/temp/
