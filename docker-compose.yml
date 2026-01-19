@@ -9,6 +9,7 @@ services:
       - .env
     volumes:
       - ./backend:/app
+      - ./data/model_cache:/app/model_cache
     depends_on:
       - redis
       - qdrant
