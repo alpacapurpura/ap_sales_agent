@@ -151,7 +151,7 @@ services:
       - "salesagent.local:host-gateway"
       - "admin.salesagent.local:host-gateway"
     depends_on:
-      - api
+      - api_dev
     networks:
       - internal_net
       - gateway
@@ -186,7 +186,7 @@ services:
       - "salesagent.local:host-gateway"
       - "admin.salesagent.local:host-gateway"
     depends_on:
-      - api
+      - api_prod
     networks:
       - internal_net
       - gateway
