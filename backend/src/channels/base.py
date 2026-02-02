@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
-from src.core.schema import IncomingMessage, OutgoingMessage
+from src.core.domain.schema import IncomingMessage, OutgoingMessage
 
 class BaseChannel(ABC):
     """

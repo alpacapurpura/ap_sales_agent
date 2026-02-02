@@ -3,8 +3,8 @@ import asyncio
 import random
 import re
 import structlog
-from typing import List, Union
-from src.core.schema import OutgoingMessage
+from typing import List
+from src.core.domain.schema import OutgoingMessage
 
 logger = structlog.get_logger()
 

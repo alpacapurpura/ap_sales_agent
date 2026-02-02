@@ -1,6 +1,6 @@
 import httpx
 from typing import Dict, Any, Optional
-from src.core.schema import IncomingMessage, OutgoingMessage
+from src.core.domain.schema import IncomingMessage, OutgoingMessage
 from src.channels.base import BaseChannel
 from src.config import settings
 import logging

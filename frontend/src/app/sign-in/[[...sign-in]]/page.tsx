@@ -6,7 +6,19 @@ export default function Page() {
       <SignIn 
         routing="path" 
         path="/sign-in" 
-        signUpUrl="/sign-up"
+        appearance={{
+          elements: {
+            footerAction: "!hidden",
+            footerActionText: "!hidden",
+            footerActionLink: "!hidden",
+            createOrganizationtext: "!hidden"
+          },
+          layout: {
+             socialButtonsPlacement: "bottom",
+             showOptionalFields: false,
+          }
+        }}
+        signUpUrl={null}
         forceRedirectUrl="/"
       />
     </div>

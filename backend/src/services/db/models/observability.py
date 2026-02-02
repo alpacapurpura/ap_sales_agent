@@ -9,7 +9,9 @@ class Message(Base):
     __tablename__ = "messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    # Map 'lead_id' attribute to 'user_id' column in DB to preserve data without migration
+    lead_id = Column("user_id", UUID(as_uuid=True), ForeignKey("leads.id"))
     role = Column(String, nullable=False) # user, assistant, system
     content = Column(Text, nullable=False)
     channel = Column(String, nullable=True) # telegram, whatsapp
@@ -23,7 +25,7 @@ class Message(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="messages")
+    lead = relationship("Lead", back_populates="messages")
 
 class AgentTrace(Base):
     """
@@ -33,7 +35,8 @@ class AgentTrace(Base):
     __tablename__ = "agent_traces"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    lead_id = Column("user_id", UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True)
     session_id = Column(String, nullable=True) # To group a single turn
     
     node_name = Column(String, nullable=False) # e.g. "manager", "router"
@@ -45,6 +48,7 @@ class AgentTrace(Base):
     
     # Relationship to LLM Logs
     llm_logs = relationship("LLMCallLog", back_populates="trace")
+    lead = relationship("Lead", back_populates="agent_traces")
 
 class LLMCallLog(Base):
     """
@@ -53,6 +57,7 @@ class LLMCallLog(Base):
     __tablename__ = "llm_call_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     trace_id = Column(UUID(as_uuid=True), ForeignKey("agent_traces.id"), nullable=True)
     
     model = Column(String) # e.g. "gpt-4-turbo"

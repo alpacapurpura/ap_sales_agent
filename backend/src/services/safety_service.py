@@ -1,11 +1,10 @@
 import re
 import structlog
-from typing import Tuple, List, Optional
+from typing import Tuple, List
 from sqlalchemy.orm import Session
 from src.services.database import SessionLocal
 from src.services.db.models.business import SensitiveData
-from src.core.llm.providers.openai import OpenAIService
-from langchain_core.messages import SystemMessage, HumanMessage
+from src.core.services.llm.providers.openai import OpenAIService
 
 logger = structlog.get_logger()
 
@@ -20,7 +19,7 @@ class SafetyLayerService:
         
     def _get_rules(self, db: Session) -> List[SensitiveData]:
         """Fetch active rules from DB."""
-        return db.query(SensitiveData).filter(SensitiveData.is_active == True).all()
+        return db.query(SensitiveData).filter(SensitiveData.is_active.is_(True)).all()
 
     async def sanitize_content(self, content: str) -> Tuple[str, bool]:
         """

@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
 from src.api.routes import router as api_router
-from src.api.routers import knowledge, admin, products, avatars
+from src.api.routers import knowledge, admin, products, avatars, onboarding, settings as user_settings, webhook, channels, calendar, public_links, event_types, gmail
+from src.api.dependencies import get_tenant_context
 from src.services.database import init_db
 from src.core.logging_config import configure_logging
 import structlog
@@ -21,15 +22,13 @@ default_origins = [
     "http://localhost:3000",
     "http://localhost:8501", # Streamlit
     "http://127.0.0.1:3000",
-    "http://salesagent.local",
-    "http://salesagent.local:3000",
-    "http://api.salesagent.local",
-    "https://salesagent.local",
-    "https://api.salesagent.local",
 ]
 
 # Combine with environment-configured origins
 origins = default_origins + settings.CORS_ORIGINS
+
+# Log configured origins for debugging
+logger.info("cors_origins_configured", origins=origins)
 
 app.add_middleware(
     CORSMiddleware,
@@ -81,10 +80,18 @@ def on_startup():
 app.include_router(api_router, prefix="/api/v1")
 
 # New Routers (API-First Architecture)
-app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["Knowledge"])
-app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
-app.include_router(products.router, prefix="/api/v1/products", tags=["Products"])
-app.include_router(avatars.router, prefix="/api/v1/avatars", tags=["Avatars"])
+app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["Knowledge"], dependencies=[Depends(get_tenant_context)])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"], dependencies=[Depends(get_tenant_context)])
+app.include_router(products.router, prefix="/api/v1/products", tags=["Products"], dependencies=[Depends(get_tenant_context)])
+app.include_router(avatars.router, prefix="/api/v1/avatars", tags=["Avatars"], dependencies=[Depends(get_tenant_context)])
+app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["Onboarding"], dependencies=[Depends(get_tenant_context)])
+app.include_router(user_settings.router, prefix="/api/v1/settings", tags=["Settings"], dependencies=[Depends(get_tenant_context)])
+app.include_router(channels.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
+app.include_router(calendar.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
+app.include_router(gmail.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
+app.include_router(event_types.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
+app.include_router(public_links.router, prefix="/api/v1/public", tags=["Public"]) # No Auth Dependency (Token based)
+app.include_router(webhook.router, prefix="/api/v1/webhook", tags=["Webhook"]) # No Auth Dependency here (uses header secret)
 
 @app.get("/health")
 def health_check():

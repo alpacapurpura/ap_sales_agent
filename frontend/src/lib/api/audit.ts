@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { config } from "../config";
+import { fetchClient } from "../http-client";
+import { useAuth } from "@clerk/nextjs";
 
 const API_BASE = `${config.api.baseUrl}/api/v1/admin`;
 
-export interface AuditUser {
-  user: {
+export interface AuditLead {
+  lead: {
     id: string;
     full_name: string;
     telegram_id: string | null;
@@ -48,7 +50,7 @@ export interface LLMLog {
   metadata: any;
 }
 
-export interface UserDetails {
+export interface LeadDetails {
   id: string;
   full_name: string;
   email: string | null;
@@ -62,49 +64,69 @@ export interface UserDetails {
   updated_at: string;
 }
 
-export function useAuditUsers() {
-  return useQuery<AuditUser[]>({
-    queryKey: ["audit", "users"],
+export function useAuditLeads() {
+  const { getToken } = useAuth();
+  return useQuery<AuditLead[]>({
+    queryKey: ["audit", "leads"],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/audit/users`);
-      if (!res.ok) throw new Error("Failed to fetch users");
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+      const res = await fetchClient(`${API_BASE}/audit/leads`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch leads");
       return res.json();
     },
   });
 }
 
-export function useUserDetails(userId: string | null) {
-  return useQuery<UserDetails>({
-    queryKey: ["audit", "user", userId],
+export function useLeadDetails(leadId: string | null) {
+  const { getToken } = useAuth();
+  return useQuery<LeadDetails>({
+    queryKey: ["audit", "lead", leadId],
     queryFn: async () => {
-      if (!userId) return null;
-      const res = await fetch(`${API_BASE}/audit/users/${userId}`);
-      if (!res.ok) throw new Error("Failed to fetch user details");
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+      if (!leadId) return null;
+      const res = await fetchClient(`${API_BASE}/audit/leads/${leadId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch lead details");
       return res.json();
     },
-    enabled: !!userId,
+    enabled: !!leadId,
   });
 }
 
-export function useUserTimeline(userId: string | null) {
+export function useLeadTimeline(leadId: string | null) {
+  const { getToken } = useAuth();
   return useQuery<TimelineEvent[]>({
-    queryKey: ["audit", "timeline", userId],
+    queryKey: ["audit", "timeline", leadId],
     queryFn: async () => {
-      if (!userId) return [];
-      const res = await fetch(`${API_BASE}/audit/users/${userId}/timeline`);
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+      if (!leadId) return [];
+      const res = await fetchClient(`${API_BASE}/audit/leads/${leadId}/timeline`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Failed to fetch timeline");
       return res.json();
     },
-    enabled: !!userId,
+    enabled: !!leadId,
   });
 }
 
 export function useTraceDetails(traceId: string | null) {
+  const { getToken } = useAuth();
   return useQuery<TraceDetail>({
     queryKey: ["audit", "trace", traceId],
     queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
       if (!traceId) return null;
-      const res = await fetch(`${API_BASE}/audit/traces/${traceId}`);
+      const res = await fetchClient(`${API_BASE}/audit/traces/${traceId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Failed to fetch trace details");
       return res.json();
     },
@@ -112,9 +134,10 @@ export function useTraceDetails(traceId: string | null) {
   });
 }
 
-export async function clearUserHistory(userId: string) {
-  const res = await fetch(`${API_BASE}/audit/users/${userId}/history`, {
+export async function clearLeadHistory(token: string, leadId: string) {
+  const res = await fetchClient(`${API_BASE}/audit/leads/${leadId}/history`, {
     method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Failed to clear history");
   return res.json();

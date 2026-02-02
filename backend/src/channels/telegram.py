@@ -1,6 +1,6 @@
 import httpx
 from typing import Dict, Any, Optional
-from src.core.schema import IncomingMessage, OutgoingMessage
+from src.core.domain.schema import IncomingMessage, OutgoingMessage
 from src.channels.base import BaseChannel
 from src.config import settings
 import logging
@@ -10,8 +10,18 @@ logger = logging.getLogger(__name__)
 class TelegramChannel(BaseChannel):
     """
     Adapter for Telegram Bot API.
+    Supports multi-tenant configuration via token injection.
     """
     
+    def __init__(self, token: Optional[str] = None):
+        """
+        Initialize with specific bot token.
+        If no token provided, falls back to settings.TELEGRAM_BOT_TOKEN (legacy/global mode).
+        """
+        self.token = token or settings.TELEGRAM_BOT_TOKEN
+        if not self.token:
+            logger.warning("TelegramChannel initialized without a token")
+
     def normalize_payload(self, payload: Dict[str, Any]) -> Optional[IncomingMessage]:
         """
         Extracts message from Telegram webhook update.
@@ -53,11 +63,11 @@ class TelegramChannel(BaseChannel):
         Sends text message to Telegram Chat ID.
         Retries without Markdown if it fails (400 Bad Request).
         """
-        if not settings.TELEGRAM_BOT_TOKEN:
-            logger.error("TELEGRAM_BOT_TOKEN not set")
+        if not self.token:
+            logger.error("Telegram token not configured")
             return {"error": "configuration_missing"}
             
-        token = settings.TELEGRAM_BOT_TOKEN.strip()
+        token = self.token.strip()
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         
         # Try with Markdown first
@@ -92,10 +102,10 @@ class TelegramChannel(BaseChannel):
         """
         Sends 'typing' action to Telegram.
         """
-        if not settings.TELEGRAM_BOT_TOKEN:
+        if not self.token:
             return
 
-        token = settings.TELEGRAM_BOT_TOKEN.strip()
+        token = self.token.strip()
         url = f"https://api.telegram.org/bot{token}/sendChatAction"
         
         payload = {

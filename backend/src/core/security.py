@@ -40,7 +40,8 @@ def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(secu
             signing_key.key,
             algorithms=["RS256"],
             # Audience check can be tricky with Clerk dev keys, often safe to skip in dev or set explicitly
-            options={"verify_aud": False} 
+            options={"verify_aud": False},
+            leeway=60 # Add 60s leeway for clock skew
         )
         return payload # Retorna el dict con user_id (sub), org_id, email, etc.
     except jwt.exceptions.PyJWTError as e:

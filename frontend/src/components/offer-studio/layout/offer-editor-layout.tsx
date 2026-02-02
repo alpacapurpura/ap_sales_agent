@@ -1,9 +1,13 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Offer, offerApi } from "@/lib/api/offer";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   LayoutDashboard, 
   Users, 
@@ -18,6 +22,25 @@ interface SidebarProps {
 
 export function OfferEditorLayout({ children, offerId }: { children: React.ReactNode, offerId: string }) {
   const pathname = usePathname();
+  const { getToken } = useAuth();
+  const [offer, setOffer] = useState<Offer | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOfferName = async () => {
+        try {
+            const token = await getToken();
+            if (!token) return;
+            const data = await offerApi.getOffer(offerId, token);
+            setOffer(data);
+        } catch (error) {
+            console.error("Error fetching offer name:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchOfferName();
+  }, [offerId, getToken]);
   
   const items = [
     {
@@ -27,7 +50,7 @@ export function OfferEditorLayout({ children, offerId }: { children: React.React
       exact: true
     },
     {
-      title: "Avatar & Personalidad",
+      title: "Avatar Objetivo",
       href: `/offer-studio/offer/${offerId}/avatar`,
       icon: Users
     },
@@ -53,7 +76,11 @@ export function OfferEditorLayout({ children, offerId }: { children: React.React
             </Button>
           </Link>
           <div>
-            <h2 className="text-lg font-semibold">High Ticket Mentorship</h2>
+            {loading ? (
+                <Skeleton className="h-6 w-48" />
+            ) : (
+                <h2 className="text-lg font-semibold">{offer?.name || "Oferta Desconocida"}</h2>
+            )}
             <p className="text-xs text-muted-foreground">Editando Oferta</p>
           </div>
        </div>

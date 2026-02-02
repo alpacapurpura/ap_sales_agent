@@ -1,9 +1,9 @@
 from typing import List, Dict, Optional, Any
 from sqlalchemy import desc, func
-from src.services.db.models.user import User
+from src.services.db.models.lead import Lead
 from src.services.db.models.observability import Message, AgentTrace, LLMCallLog
 from src.services.db.models.business import Enrollment
-from src.core.schema import FunnelStage, LeadStatus
+from src.core.domain.schema import FunnelStage, LeadStatus
 from .base import BaseRepository
 import logging
 
@@ -13,12 +13,13 @@ class AuditRepository(BaseRepository):
     def log_message(self, user_id, role, content, channel=None, product_context_id=None):
         try:
             msg = Message(
-                user_id=user_id,
+                lead_id=user_id,
                 role=role,
                 content=content,
                 channel=channel,
                 product_context_id=product_context_id
             )
+            self._set_tenant(msg)
             self.db.add(msg)
             self.db.commit()
         except Exception as e:
@@ -27,13 +28,13 @@ class AuditRepository(BaseRepository):
 
     def get_last_message(self, user_id) -> Optional[Message]:
         return self.db.query(Message).filter(
-            Message.user_id == user_id,
+            Message.lead_id == user_id,
             Message.role == "user"
         ).order_by(desc(Message.created_at)).first()
 
     def get_chat_history(self, user_id, limit=20) -> List[Dict[str, str]]:
         messages = self.db.query(Message).filter(
-            Message.user_id == user_id
+            Message.lead_id == user_id
         ).order_by(desc(Message.created_at)).limit(limit).all()
         
         messages.reverse()
@@ -46,30 +47,38 @@ class AuditRepository(BaseRepository):
             })
         return history
 
-    def get_recent_users(self, limit=20) -> List[Any]:
+    def get_recent_users(self, tenant_id, limit=20) -> List[Any]:
+        # 1. Subconsulta para encontrar la fecha del último mensaje por usuario
+        # IMPORTANTE: Usamos label("lead_id") porque la columna en DB es "user_id"
+        # y al usar subquery(), SQLAlchemy expone el nombre de la columna DB, no el atributo.
         subquery = self.db.query(
-            Message.user_id,
+            Message.lead_id.label("lead_id"),
             func.max(Message.created_at).label("last_activity")
-        ).group_by(Message.user_id).subquery()
+        ).filter(Message.tenant_id == tenant_id)\
+        .group_by(Message.lead_id).subquery()
         
-        results = self.db.query(User, subquery.c.last_activity)\
-            .join(subquery, User.id == subquery.c.user_id)\
+        # 2. Join con la tabla Lead para obtener datos del usuario + fecha actividad
+        results = self.db.query(Lead, subquery.c.last_activity)\
+            .join(subquery, Lead.id == subquery.c.lead_id)\
+            .filter(Lead.tenant_id == tenant_id)\
             .order_by(desc(subquery.c.last_activity))\
             .limit(limit)\
             .all()
             
         return results
 
-    def get_full_timeline(self, user_id: str, limit: int = 50) -> List[Dict]:
+    def get_full_timeline(self, user_id: str, tenant_id: Any = None, limit: int = 50) -> List[Dict]:
         # Messages
-        messages = self.db.query(Message).filter(
-            Message.user_id == user_id
-        ).order_by(desc(Message.created_at)).limit(limit).all()
+        query_msg = self.db.query(Message).filter(Message.lead_id == user_id)
+        if tenant_id:
+            query_msg = query_msg.filter(Message.tenant_id == tenant_id)
+        messages = query_msg.order_by(desc(Message.created_at)).limit(limit).all()
 
         # Traces
-        traces = self.db.query(AgentTrace).filter(
-            AgentTrace.user_id == user_id
-        ).order_by(desc(AgentTrace.created_at)).limit(limit).all()
+        query_trace = self.db.query(AgentTrace).filter(AgentTrace.lead_id == user_id)
+        if tenant_id:
+            query_trace = query_trace.filter(AgentTrace.tenant_id == tenant_id)
+        traces = query_trace.order_by(desc(AgentTrace.created_at)).limit(limit).all()
 
         timeline = []
         for m in messages:
@@ -95,8 +104,12 @@ class AuditRepository(BaseRepository):
         timeline.sort(key=lambda x: x["timestamp"])
         return timeline
 
-    def get_trace_details(self, trace_id: str) -> Optional[Dict]:
-        trace = self.db.query(AgentTrace).filter(AgentTrace.id == trace_id).first()
+    def get_trace_details(self, trace_id: str, tenant_id: Any = None) -> Optional[Dict]:
+        query = self.db.query(AgentTrace).filter(AgentTrace.id == trace_id)
+        if tenant_id:
+            query = query.filter(AgentTrace.tenant_id == tenant_id)
+        trace = query.first()
+        
         if not trace:
             return None
             
@@ -126,13 +139,14 @@ class AuditRepository(BaseRepository):
     def create_trace(self, user_id, session_id, node_name, input_state, output_state, execution_time_ms) -> Optional[AgentTrace]:
         try:
             trace = AgentTrace(
-                user_id=user_id,
+                lead_id=user_id,
                 session_id=session_id,
                 node_name=node_name,
                 input_state=input_state,
                 output_state=output_state,
                 execution_time_ms=execution_time_ms
             )
+            self._set_tenant(trace)
             self.db.add(trace)
             self.db.commit()
             self.db.refresh(trace)
@@ -154,6 +168,7 @@ class AuditRepository(BaseRepository):
                 tokens_output=tokens_output,
                 metadata_info=metadata or {}
             )
+            self._set_tenant(log)
             self.db.add(log)
             self.db.commit()
             return log
@@ -161,25 +176,50 @@ class AuditRepository(BaseRepository):
             logger.error(f"Error creating LLM log: {e}")
             self.db.rollback()
             return None
-    def clear_user_history(self, user_id) -> bool:
+    def clear_user_history(self, user_id, tenant_id=None) -> bool:
         try:
-            self.db.query(Message).filter(Message.user_id == user_id).delete(synchronize_session=False)
+            # Delete messages
+            q_msg = self.db.query(Message).filter(Message.lead_id == user_id)
+            if tenant_id:
+                q_msg = q_msg.filter(Message.tenant_id == tenant_id)
+            q_msg.delete(synchronize_session=False)
             
-            traces = self.db.query(AgentTrace).filter(AgentTrace.user_id == user_id).all()
+            # Get traces to delete logs
+            q_trace = self.db.query(AgentTrace).filter(AgentTrace.lead_id == user_id)
+            if tenant_id:
+                q_trace = q_trace.filter(AgentTrace.tenant_id == tenant_id)
+            traces = q_trace.all()
             trace_ids = [t.id for t in traces]
             
             if trace_ids:
-                self.db.query(LLMCallLog).filter(LLMCallLog.trace_id.in_(trace_ids)).delete(synchronize_session=False)
-                self.db.query(AgentTrace).filter(AgentTrace.user_id == user_id).delete(synchronize_session=False)
+                # Logs
+                # LLMCallLog might check tenant too, but trace ownership implies safety usually.
+                # Adding tenant check if model supports it (LLMCallLog has tenant_id)
+                q_logs = self.db.query(LLMCallLog).filter(LLMCallLog.trace_id.in_(trace_ids))
+                if tenant_id:
+                    q_logs = q_logs.filter(LLMCallLog.tenant_id == tenant_id)
+                q_logs.delete(synchronize_session=False)
                 
-            enrollments = self.db.query(Enrollment).filter(Enrollment.user_id == user_id).all()
+                # Delete traces
+                q_trace.delete(synchronize_session=False)
+                
+            # Enrollments
+            q_enr = self.db.query(Enrollment).filter(Enrollment.lead_id == user_id)
+            if tenant_id:
+                q_enr = q_enr.filter(Enrollment.tenant_id == tenant_id)
+            enrollments = q_enr.all()
+            
             for e in enrollments:
                 e.stage = FunnelStage.RAPPORT.value
                 e.status = LeadStatus.AWARENESS.value
                 e.lead_score = 0
                 e.objections = []
             
-            user = self.db.query(User).filter(User.id == user_id).first()
+            # Profile Data
+            q_lead = self.db.query(Lead).filter(Lead.id == user_id)
+            if tenant_id:
+                q_lead = q_lead.filter(Lead.tenant_id == tenant_id)
+            user = q_lead.first()
             if user:
                 user.profile_data = {}
             

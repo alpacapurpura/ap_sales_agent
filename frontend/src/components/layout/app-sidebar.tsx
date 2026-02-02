@@ -12,15 +12,21 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Briefcase,
-  Users
+  Users,
+  MessageSquare,
+  Lock,
+  Link as LinkIcon,
+  Building2,
+  CalendarCheck
 } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
-import { useState } from "react";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useSidebar } from "./sidebar-context";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useUserProfile } from "@/hooks/use-profile";
 
 const navItems = [
   {
@@ -29,14 +35,14 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Sobre la Marca",
+    href: "/brand-settings",
+    icon: Building2,
+  },
+  {
     title: "Offer Studio",
     href: "/offer-studio",
     icon: Briefcase,
-  },
-  {
-    title: "Avatares de Marca",
-    href: "/avatars",
-    icon: Users,
   },
   {
     title: "Conocimiento",
@@ -47,6 +53,16 @@ const navItems = [
     title: "Auditoría",
     href: "/audit",
     icon: Activity,
+  },
+  {
+    title: "Ventas",
+    href: "/sales",
+    icon: CalendarCheck,
+  },
+  {
+    title: "Conexiones",
+    href: "/connections",
+    icon: LinkIcon,
   },
   {
     title: "Configuración",
@@ -65,13 +81,17 @@ interface NavContentProps {
 
 // Extracted component to avoid re-creation on render and scope issues
 function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname }: NavContentProps) {
+  const { user } = useUser();
+  const { data: profile } = useUserProfile();
+  const tenantName = profile?.tenant?.name || "Visionarias AI";
+
   return (
     <div className="flex h-full flex-col gap-4">
       <div className={cn("flex h-16 items-center px-4 border-b", isCollapsed && !mobile ? "justify-center" : "justify-between")}>
         {!isCollapsed || mobile ? (
-          <span className="text-lg font-bold tracking-tight text-primary truncate">Visionarias AI</span>
+          <span className="text-lg font-bold tracking-tight text-primary truncate" title={tenantName}>{tenantName}</span>
         ) : (
-          <span className="text-lg font-bold tracking-tight text-primary">V</span>
+          <span className="text-lg font-bold tracking-tight text-primary">{tenantName.charAt(0)}</span>
         )}
         
         {!mobile && (
@@ -134,10 +154,10 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
           <div className="flex items-center gap-3">
             <UserButton afterSignOutUrl="/sign-in" />
             {(!isCollapsed || mobile) && (
-              <div className="flex flex-col overflow-hidden">
-                <span className="text-sm font-medium truncate">Cuenta</span>
-                <span className="text-xs text-muted-foreground truncate">Gestión de perfil</span>
-              </div>
+              <Link href="/settings?tab=profile" className="flex flex-col overflow-hidden hover:underline text-left min-w-0">
+                <span className="text-sm font-medium truncate">{user?.fullName || "Usuario"}</span>
+                <span className="text-xs text-muted-foreground truncate">{user?.primaryEmailAddress?.emailAddress || "Gestión de perfil"}</span>
+              </Link>
             )}
           </div>
           <ModeToggle />
@@ -151,6 +171,12 @@ export function AppSidebar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { isCollapsed, toggleSidebar } = useSidebar();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Fix hydration error by delaying mobile sheet rendering
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <>
@@ -171,24 +197,30 @@ export function AppSidebar() {
 
       {/* Mobile Header & Sidebar */}
       <div className="flex h-16 items-center border-b bg-background px-4 md:hidden fixed inset-x-0 top-0 z-50">
-        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="mr-2">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72" aria-describedby="mobile-nav-desc">
-            <SheetTitle className="sr-only">Menú de Navegación</SheetTitle>
-            <div id="mobile-nav-desc" className="sr-only">Menú de navegación principal</div>
-            <NavContent 
-              mobile 
-              isCollapsed={isCollapsed} 
-              toggleSidebar={toggleSidebar} 
-              setIsMobileOpen={setIsMobileOpen}
-              pathname={pathname}
-            />
-          </SheetContent>
-        </Sheet>
+        {isMounted ? (
+          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="mr-2">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72" aria-describedby="mobile-nav-desc">
+              <SheetTitle className="sr-only">Menú de Navegación</SheetTitle>
+              <div id="mobile-nav-desc" className="sr-only">Menú de navegación principal</div>
+              <NavContent 
+                mobile 
+                isCollapsed={isCollapsed} 
+                toggleSidebar={toggleSidebar} 
+                setIsMobileOpen={setIsMobileOpen}
+                pathname={pathname}
+              />
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <Button variant="ghost" size="icon" className="mr-2">
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         <span className="font-bold">Visionarias Dashboard</span>
       </div>
     </>

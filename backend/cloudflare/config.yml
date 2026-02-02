@@ -4,8 +4,10 @@ credentials-file: /etc/cloudflared/cert.json
 ingress:
   # Traffic to the tunnel domain is forwarded to the Traefik container
   # which then routes it to the correct service based on Host labels.
+  - hostname: laptopchris-api.alpacapurpura.lat
+    service: http://visionarias_brain_dev:8000
   - hostname: laptopchris.alpacapurpura.lat
-    service: http://visionarias_brain:8000
+    service: http://visionarias_client_dev:3000
     
   # Default rule
   - service: http_status:404

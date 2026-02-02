@@ -9,6 +9,7 @@ export interface Offer {
   id?: string;
   name: string;
   price: number;
+  currency?: string;
   promise: string;
   guarantees: string[];
   qualification_rules: string[];
@@ -37,7 +38,7 @@ import { config } from "../config";
 const API_URL = config.api.baseUrl;
 
 export const offerApi = {
-  listOffers: async (): Promise<Offer[]> => {
+  listOffers: async (token: string): Promise<Offer[]> => {
     try {
         const url = `${API_URL}/api/v1/products/`;
         console.log(`[OfferAPI] Fetching offers from: ${url}`);
@@ -47,7 +48,12 @@ export const offerApi = {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         try {
-            const res = await fetch(url, { signal: controller.signal });
+            const res = await fetch(url, { 
+                signal: controller.signal,
+                headers: { 
+                    Authorization: `Bearer ${token}` 
+                }
+            });
             clearTimeout(timeoutId);
             
             if (!res.ok) {
@@ -60,6 +66,7 @@ export const offerApi = {
               id: item.id,
               name: item.name,
               price: item.pricing?.amount || 0,
+              currency: item.pricing?.currency || "USD",
               // Normalize status to Title Case for UI consistency
               status: item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase() : "Draft",
               avatar: "Global", // TODO: Fetch avatar name if needed
@@ -81,11 +88,14 @@ export const offerApi = {
     }
   },
 
-  createOffer: async (name: string): Promise<Offer> => {
+  createOffer: async (name: string, token: string): Promise<Offer> => {
     try {
         const res = await fetch(`${API_URL}/api/v1/products/`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
           body: JSON.stringify({ name, type: "program" })
         });
         if (!res.ok) {
@@ -109,14 +119,19 @@ export const offerApi = {
     }
   },
 
-  getOffer: async (id: string): Promise<Offer> => {
-    const res = await fetch(`${API_URL}/api/v1/products/${id}`);
+  getOffer: async (id: string, token: string): Promise<Offer> => {
+    const res = await fetch(`${API_URL}/api/v1/products/${id}`, {
+        headers: { 
+            Authorization: `Bearer ${token}` 
+        }
+    });
     if (!res.ok) throw new Error("Failed to fetch offer");
     const data = await res.json();
     return {
       id: data.id,
       name: data.name,
       price: data.pricing?.amount || 0,
+      currency: data.pricing?.currency || "USD",
       promise: data.metadata_info?.big_promise || "",
       guarantees: data.metadata_info?.guarantees || [],
       qualification_rules: data.metadata_info?.qualification_rules || [],
@@ -135,10 +150,10 @@ export const offerApi = {
     return data;
   },
 
-  saveOffer: async (id: string, data: Offer) => {
+  saveOffer: async (id: string, data: Offer, token: string) => {
     const payload: any = {
       name: data.name,
-      pricing: { amount: Number(data.price) },
+      pricing: { amount: Number(data.price), currency: data.currency },
       metadata_info: {
         big_promise: data.promise,
         guarantees: data.guarantees,
@@ -152,7 +167,10 @@ export const offerApi = {
     
     const res = await fetch(`${API_URL}/api/v1/products/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
       body: JSON.stringify(payload)
     });
     

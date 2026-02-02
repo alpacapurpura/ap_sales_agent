@@ -1,0 +1,55 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+import structlog
+
+from src.services.database import get_db
+from src.api.dependencies import get_current_user
+from src.services.db.models.user import User
+from src.core.services.event_type_service import EventTypeService
+from src.core.domain.event_type_schema import EventType, EventTypeUpdate
+
+router = APIRouter(prefix="/event-types", tags=["event-types"])
+logger = structlog.get_logger()
+
+@router.get("", response_model=List[EventType])
+async def list_event_types(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    service = EventTypeService(db, user.tenant_id)
+    return service.list_event_types()
+
+@router.post("", response_model=EventType)
+async def create_event_type(
+    event_type: EventType,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    service = EventTypeService(db, user.tenant_id)
+    return service.create_event_type(event_type)
+
+@router.patch("/{event_type_id}", response_model=EventType)
+async def update_event_type(
+    event_type_id: str,
+    update: EventTypeUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    service = EventTypeService(db, user.tenant_id)
+    updated = service.update_event_type(event_type_id, update)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Event Type not found")
+    return updated
+
+@router.delete("/{event_type_id}")
+async def delete_event_type(
+    event_type_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    service = EventTypeService(db, user.tenant_id)
+    deleted = service.delete_event_type(event_type_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Event Type not found")
+    return {"status": "deleted"}

@@ -27,6 +27,10 @@ services:
       - "traefik.http.routers.visionarias_http.rule=Host(`${API_DOMAIN}`)"
       - "traefik.http.routers.visionarias_http.entrypoints=web"
       - "traefik.http.routers.visionarias_http.service=visionarias_api_dev"
+      # Router for HTTP (Local Dev)
+      - "traefik.http.routers.visionarias_api_local.rule=Host(`api.salesagent.local`)"
+      - "traefik.http.routers.visionarias_api_local.entrypoints=web"
+      - "traefik.http.routers.visionarias_api_local.service=visionarias_api_dev"
       # Service definition
       - "traefik.http.services.visionarias_api_dev.loadbalancer.server.port=8000"
     ports:

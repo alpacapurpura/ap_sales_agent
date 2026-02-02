@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Tuple, Optional
+from typing import Tuple, Optional
 from fastembed import TextEmbedding
 import numpy as np
 

@@ -5,7 +5,6 @@ from src.services.database import SessionLocal
 import uuid
 
 from src.services.vector_store import qdrant_client
-from qdrant_client.http import models as qmodels
 
 class DocumentService:
     @staticmethod

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from src.core.schema import PromptSource
+from src.core.domain.schema import PromptSource
 
 class Settings(BaseSettings):
     # API Config
@@ -18,7 +18,12 @@ class Settings(BaseSettings):
     WHATSAPP_VERIFY_TOKEN: str
     
     # Telegram
-    TELEGRAM_BOT_TOKEN: str
+    TELEGRAM_BOT_TOKEN: str = ""
+
+    # Google Calendar
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "https://laptopchris.alpacapurpura.lat/connections"
     
     # OpenAI
     OPENAI_API_KEY: str
@@ -58,6 +63,10 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: list[str] = []
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     class Config:
         env_file = ".env"

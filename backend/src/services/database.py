@@ -1,10 +1,15 @@
 import redis
-import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.config import settings
 from src.services.db.models._base import Base
-from src.services.db.models.business import Product, PromptVersion
+# Import all models to ensure they are registered with SQLAlchemy
+from src.services.db.models.tenant import Tenant
+from src.services.db.models.user import User
+from src.services.db.models.lead import Lead
+from src.services.db.models.business import Product, Enrollment, Appointment, AvatarDefinition, MarketingAsset, Objection, OfferLog, Document, PromptVersion, SensitiveData
+from src.services.db.models.channel_connection import ChannelConnection
+from src.services.db.models.observability import Message, AgentTrace, LLMCallLog
 import os
 
 # Redis Client
@@ -154,7 +159,7 @@ def init_db():
                 print(f"   ⚠️ Prompt file not found: {file_path}")
 
         db.commit()
-        print(f"Seeded products and prompts successfully.")
+        print("Seeded products and prompts successfully.")
             
     except Exception as e:
         print(f"Error seeding database: {e}")

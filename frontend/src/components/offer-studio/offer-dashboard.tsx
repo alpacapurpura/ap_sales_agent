@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,8 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, MoreHorizontal, Briefcase, Users, Loader2 } from "lucide-react";
 import { Offer, offerApi } from "@/lib/api/offer";
+import { CURRENCIES } from "@/lib/constants/currencies";
 
 export function OfferDashboard() {
+  const { getToken } = useAuth();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,27 +24,38 @@ export function OfferDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    setLoading(true);
-    offerApi.listOffers()
-      .then((data) => {
-        setOffers(data);
-        setError(null);
-      })
-      .catch((err) => {
-        console.error("Dashboard Error:", err);
-        setError("No se pudieron cargar las ofertas. Verifica que el backend esté corriendo.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+    const fetchOffers = async () => {
+        setLoading(true);
+        try {
+            const token = await getToken();
+            if (!token) {
+                // Wait for auth to be ready or redirect
+                setLoading(false);
+                return;
+            }
+            const data = await offerApi.listOffers(token);
+            setOffers(data);
+            setError(null);
+        } catch (err) {
+            console.error("Dashboard Error:", err);
+            setError("No se pudieron cargar las ofertas. Verifica que el backend esté corriendo.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    fetchOffers();
+  }, [getToken]);
 
   const handleCreateOffer = async () => {
     if (!newOfferName.trim()) return;
     
     setCreating(true);
     try {
-      const newOffer = await offerApi.createOffer(newOfferName);
+      const token = await getToken();
+      if (!token) throw new Error("No authenticated");
+      
+      const newOffer = await offerApi.createOffer(newOfferName, token);
       if (newOffer.id) {
         setIsDialogOpen(false);
         router.push(`/offer-studio/offer/${newOffer.id}`);
@@ -55,6 +69,19 @@ export function OfferDashboard() {
   const openCreateDialog = () => {
     setNewOfferName("");
     setIsDialogOpen(true);
+  };
+
+  const getFormattedPrice = (price: number, currencyCode?: string) => {
+    const code = currencyCode || "USD";
+    const currency = CURRENCIES.find(c => c.code === code);
+    const symbol = currency ? currency.symbol : "$";
+    
+    return new Intl.NumberFormat('es-US', {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    }).format(price);
   };
 
   if (loading) {
@@ -72,8 +99,7 @@ export function OfferDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Mis Ofertas</h2>
+      <div className="flex items-center justify-end">
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -128,7 +154,7 @@ export function OfferDashboard() {
               </div>
               <CardDescription>
                  {offer.status === "Active" ? <span className="text-green-500 font-medium">Activa</span> : <span className="text-muted-foreground">Borrador</span>}
-                 {' • '}${offer.price}
+                 {' • '}{getFormattedPrice(offer.price, offer.currency)}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -139,7 +165,10 @@ export function OfferDashboard() {
             </CardContent>
             <CardFooter>
                <Link href={`/offer-studio/offer/${offer.id}`} className="w-full">
-                 <Button className="w-full" variant="secondary">
+                 <Button 
+                    className="w-full cursor-pointer border-primary/20 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300" 
+                    variant="outline"
+                 >
                    <Briefcase className="mr-2 h-4 w-4" /> Gestionar
                  </Button>
                </Link>

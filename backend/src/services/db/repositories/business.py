@@ -1,8 +1,6 @@
 from typing import Optional, Tuple
-from sqlalchemy import desc
-from src.services.db.models.business import Product, Enrollment, Appointment
-from src.services.db.models.user import User
-from src.core.schema import FunnelStage, LeadStatus, ProductLaunchStage
+from src.services.db.models.business import Product, Enrollment
+from src.core.domain.schema import FunnelStage, LeadStatus, ProductLaunchStage
 from .base import BaseRepository
 import datetime
 import logging
@@ -16,10 +14,12 @@ class BusinessRepository(BaseRepository):
         Returns tuple: (product, launch_stage)
         """
         now = datetime.datetime.now()
-        products = self.db.query(Product).filter(
+        query = self.db.query(Product).filter(
             Product.status == "active",
             Product.type == type_filter
-        ).all()
+        )
+        query = self._apply_tenant_filter(query, Product)
+        products = query.all()
         
         valid_candidates = []
         
@@ -80,15 +80,18 @@ class BusinessRepository(BaseRepository):
         return best_match["product"], best_match["stage"]
 
     def get_enrollment(self, user_id, product_id) -> Optional[Enrollment]:
-        return self.db.query(Enrollment).filter(
-            Enrollment.user_id == user_id,
+        query = self.db.query(Enrollment).filter(
+            Enrollment.lead_id == user_id,
             Enrollment.product_id == product_id
-        ).first()
+        )
+        query = self._apply_tenant_filter(query, Enrollment)
+        return query.first()
 
     def update_enrollment(self, user_id, product_id, status=None, stage=None, lead_score_inc=0) -> Enrollment:
         enrollment = self.get_enrollment(user_id, product_id)
         if not enrollment:
-            enrollment = Enrollment(user_id=user_id, product_id=product_id)
+            enrollment = Enrollment(lead_id=user_id, product_id=product_id)
+            self._set_tenant(enrollment)
             self.db.add(enrollment)
         
         if status:
@@ -114,7 +117,8 @@ class BusinessRepository(BaseRepository):
         if target_product_id:
             enrollment = self.get_enrollment(user_id, target_product_id)
             if not enrollment:
-                enrollment = Enrollment(user_id=user_id, product_id=target_product_id)
+                enrollment = Enrollment(lead_id=user_id, product_id=target_product_id)
+                self._set_tenant(enrollment)
                 self.db.add(enrollment)
             
             if state.get("current_state"):

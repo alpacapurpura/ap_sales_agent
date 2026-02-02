@@ -4,6 +4,8 @@ from typing import Optional, Dict, Any, List
 import uuid
 from src.services.db.repositories.avatar import AvatarRepository
 from src.services.database import SessionLocal
+from src.services.db.models.user import User
+from src.api.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -43,43 +45,70 @@ class AvatarResponse(AvatarBase):
 # Endpoints
 
 @router.get("/", response_model=List[AvatarResponse])
-async def list_avatars(scope: str = "GLOBAL", repo: AvatarRepository = Depends(get_avatar_repo)):
-    return repo.list_avatars(scope=scope)
+async def list_avatars(
+    scope: str = "GLOBAL", 
+    repo: AvatarRepository = Depends(get_avatar_repo),
+    user: User = Depends(get_current_user)
+):
+    return repo.list_avatars(scope=scope, tenant_id=user.tenant_id)
 
 @router.post("/", response_model=AvatarResponse)
-async def create_avatar(avatar: AvatarCreate, repo: AvatarRepository = Depends(get_avatar_repo)):
+async def create_avatar(
+    avatar: AvatarCreate, 
+    repo: AvatarRepository = Depends(get_avatar_repo),
+    user: User = Depends(get_current_user)
+):
     return repo.create_avatar(
         name=avatar.name,
         scope=avatar.scope,
         icp_description=avatar.icp_description,
         anti_avatar=avatar.anti_avatar,
-        voice_tone_config=avatar.voice_tone_config
+        voice_tone_config=avatar.voice_tone_config,
+        tenant_id=user.tenant_id,
+        user_id=user.id
     )
 
 @router.get("/{avatar_id}", response_model=AvatarResponse)
-async def get_avatar(avatar_id: str, repo: AvatarRepository = Depends(get_avatar_repo)):
-    avatar = repo.get_by_id(avatar_id)
+async def get_avatar(
+    avatar_id: str, 
+    repo: AvatarRepository = Depends(get_avatar_repo),
+    user: User = Depends(get_current_user)
+):
+    avatar = repo.get_by_id(avatar_id, tenant_id=user.tenant_id)
     if not avatar:
         raise HTTPException(status_code=404, detail="Avatar not found")
     return avatar
 
 @router.patch("/{avatar_id}", response_model=AvatarResponse)
-async def update_avatar(avatar_id: str, update: AvatarUpdate, repo: AvatarRepository = Depends(get_avatar_repo)):
-    updated = repo.update_avatar(avatar_id, update.model_dump(exclude_unset=True))
+async def update_avatar(
+    avatar_id: str, 
+    update: AvatarUpdate, 
+    repo: AvatarRepository = Depends(get_avatar_repo),
+    user: User = Depends(get_current_user)
+):
+    updated = repo.update_avatar(avatar_id, update.model_dump(exclude_unset=True), tenant_id=user.tenant_id)
     if not updated:
         raise HTTPException(status_code=404, detail="Avatar not found")
     return updated
 
 @router.delete("/{avatar_id}")
-async def delete_avatar(avatar_id: str, repo: AvatarRepository = Depends(get_avatar_repo)):
-    success = repo.delete_avatar(avatar_id)
+async def delete_avatar(
+    avatar_id: str, 
+    repo: AvatarRepository = Depends(get_avatar_repo),
+    user: User = Depends(get_current_user)
+):
+    success = repo.delete_avatar(avatar_id, tenant_id=user.tenant_id)
     if not success:
         raise HTTPException(status_code=404, detail="Avatar not found")
     return {"status": "success"}
 
 @router.post("/{avatar_id}/set-default", response_model=AvatarResponse)
-async def set_default_avatar(avatar_id: str, repo: AvatarRepository = Depends(get_avatar_repo)):
-    updated = repo.set_default(avatar_id)
+async def set_default_avatar(
+    avatar_id: str, 
+    repo: AvatarRepository = Depends(get_avatar_repo),
+    user: User = Depends(get_current_user)
+):
+    updated = repo.set_default(avatar_id, tenant_id=user.tenant_id)
     if not updated:
         raise HTTPException(status_code=404, detail="Avatar not found")
     return updated

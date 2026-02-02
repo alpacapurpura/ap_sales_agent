@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Any, Union
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from src.config import settings
-from src.core.llm.factory import LLMFactory
+from src.core.services.llm.factory import LLMFactory
 import logging
 from fastembed import SparseTextEmbedding
 from flashrank import Ranker, RerankRequest
@@ -208,8 +208,8 @@ def add_texts(texts: List[str], metadatas: List[dict], collection_name: str = se
 
 def search_knowledge_base(
     query_text: str, 
+    tenant_id: str, # Mandatory Tenant Isolation
     limit: int = 5, # Fetch more for reranking (Recal@K)
-    client_id: str = "visionarias",
     collection_name: str = settings.QDRANT_COLLECTION_HYBRID,
     filters: Optional[Dict[str, Any]] = None,
     scope_options: Optional[Dict[str, Any]] = None, # New: {product_id: uuid, marketing_asset_id: uuid}
@@ -221,6 +221,7 @@ def search_knowledge_base(
     Supports Multi-scoped Context (Global + Offer + Asset).
     
     Args:
+        tenant_id: Mandatory UUID for data isolation.
         filters: Dictionary of metadata filters (e.g. category).
         scope_options: Dict with 'product_id' and/or 'marketing_asset_id' to build the Scope Mixing filter.
         return_raw: If True, returns List[Dict] with full metadata and scores instead of formatted string.
@@ -237,6 +238,15 @@ def search_knowledge_base(
 
         # 2. Build Filter Conditions
         filter_conditions = []
+        
+        # --- TENANT ISOLATION (SECURITY) ---
+        # This MUST be present to prevent data leakage between tenants
+        filter_conditions.append(
+            models.FieldCondition(
+                key="tenant_id",
+                match=models.MatchValue(value=str(tenant_id))
+            )
+        )
         
         # --- SCOPE MIXING LOGIC ---
         if scope_options:

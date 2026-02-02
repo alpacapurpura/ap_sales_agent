@@ -1,8 +1,5 @@
 from typing import Optional
-from sqlalchemy import desc
 from src.services.db.models.user import User
-from src.services.db.models.business import Enrollment, Product
-from src.services.db.models.observability import Message
 from .base import BaseRepository
 import uuid
 

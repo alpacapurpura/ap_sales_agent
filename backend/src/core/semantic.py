@@ -1,5 +1,5 @@
 from langchain_core.messages import HumanMessage, SystemMessage
-from src.core.llm.providers.openai import OpenAIService
+from src.core.services.llm.providers.openai import OpenAIService
 import structlog
 
 logger = structlog.get_logger()

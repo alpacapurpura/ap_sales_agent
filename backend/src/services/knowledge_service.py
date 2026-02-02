@@ -8,7 +8,7 @@ from langchain_experimental.text_splitter import SemanticChunker
 from langchain_core.documents import Document
 
 from src.config import settings
-from src.core.llm.factory import LLMFactory
+from src.core.services.llm.factory import LLMFactory
 from src.services.vector_store import (
     add_texts, 
     ensure_collection_exists, 
@@ -144,6 +144,7 @@ class KnowledgeService:
         file_content: bytes, 
         categories: List[str], 
         strategy: str,
+        tenant_id: str, # Mandatory Tenant Isolation
         scope: str = "GLOBAL",
         product_id: Optional[str] = None,
         marketing_asset_id: Optional[str] = None,
@@ -268,7 +269,8 @@ class KnowledgeService:
                             "parent_content": p_content, # Store Big Chunk for Retrieval
                             "scope": scope,
                             "product_id": product_id,
-                            "marketing_asset_id": marketing_asset_id
+                            "marketing_asset_id": marketing_asset_id,
+                            "tenant_id": str(tenant_id)
                         })
                         
                         splits.append(Document(page_content=enriched_content, metadata=new_meta))
@@ -285,6 +287,7 @@ class KnowledgeService:
                 m["scope"] = scope
                 m["product_id"] = product_id
                 m["marketing_asset_id"] = marketing_asset_id
+                m["tenant_id"] = str(tenant_id)
                 
             add_texts(texts, metadatas, collection_name=settings.QDRANT_COLLECTION_HYBRID)
             
@@ -345,12 +348,13 @@ class KnowledgeService:
     def search(
         self, 
         query: str, 
+        tenant_id: str,
         filters: Optional[Dict] = None, 
         scope_options: Optional[Dict] = None,
         limit: int = 5, 
         return_raw: bool = False
     ) -> Union[str, List[Dict]]:
-        return search_knowledge_base(query, limit=limit, filters=filters, scope_options=scope_options, return_raw=return_raw)
+        return search_knowledge_base(query, tenant_id=tenant_id, limit=limit, filters=filters, scope_options=scope_options, return_raw=return_raw)
 
     def list_documents(self):
         return DocumentService.list_documents()

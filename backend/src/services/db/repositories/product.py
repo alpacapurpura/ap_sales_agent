@@ -1,5 +1,4 @@
 from typing import Optional, Dict, Any, List
-from sqlalchemy.orm import Session
 from src.services.db.models.business import Product
 from .base import BaseRepository
 import uuid
@@ -11,10 +10,15 @@ class ProductRepository(BaseRepository):
                 product_id = uuid.UUID(product_id)
             except ValueError:
                 return None
-        return self.db.query(Product).filter(Product.id == product_id).first()
+        
+        query = self.db.query(Product).filter(Product.id == product_id)
+        query = self._apply_tenant_filter(query, Product)
+        return query.first()
     
     def list_products(self, limit: int = 20, skip: int = 0) -> List[Product]:
-        return self.db.query(Product).order_by(Product.name).offset(skip).limit(limit).all()
+        query = self.db.query(Product)
+        query = self._apply_tenant_filter(query, Product)
+        return query.order_by(Product.name).offset(skip).limit(limit).all()
 
     def update_product(self, product_id: str | uuid.UUID, update_data: Dict[str, Any]) -> Optional[Product]:
         product = self.get_by_id(product_id)
@@ -45,6 +49,7 @@ class ProductRepository(BaseRepository):
 
     def create_product(self, name: str, type: str = "program") -> Product:
         product = Product(name=name, type=type)
+        self._set_tenant(product)
         self.db.add(product)
         self.db.commit()
         self.db.refresh(product)

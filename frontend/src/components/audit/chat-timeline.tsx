@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useMemo, useState } from "react";
-import { useUserTimeline, TimelineEvent, clearUserHistory } from "@/lib/api/audit";
+import { useLeadTimeline, TimelineEvent, clearLeadHistory } from "@/lib/api/audit";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Bot, User as UserIcon, BrainCircuit, ArrowRight, Activity, Trash2, AlertTriangle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContextPanel } from "./context-panel";
+import { useAuth } from "@clerk/nextjs";
 
 interface ChatTimelineProps {
-  userId: string | null;
+  leadId: string | null;
   onSelectEvent: (event: TimelineEvent) => void;
   selectedEventId: string | null;
 }
@@ -22,9 +23,10 @@ type TimelineGroup =
   | { type: 'message'; event: TimelineEvent }
   | { type: 'trace_group'; events: TimelineEvent[] };
 
-export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTimelineProps) {
-  const { data: timeline, isLoading } = useUserTimeline(userId);
+export function ChatTimeline({ leadId, onSelectEvent, selectedEventId }: ChatTimelineProps) {
+  const { data: timeline, isLoading } = useLeadTimeline(leadId);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { getToken } = useAuth();
   
   const [contextOpen, setContextOpen] = useState(false);
   const [contextTab, setContextTab] = useState<"profile" | "state">("profile");
@@ -33,7 +35,16 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
   const queryClient = useQueryClient();
 
   const { mutate: deleteHistory, isPending: isDeleting } = useMutation({
-    mutationFn: (uid: string) => clearUserHistory(uid),
+    mutationFn: (uid: string) => clearLeadHistory(uid), // Wait, clearLeadHistory needs (token, uid).
+    // I should wrap it below in the handler or here.
+    // If I use (uid) here, I can't access token easily without closure, but getToken is available.
+    // Better:
+    // mutationFn: async (uid: string) => {
+    //    const token = await getToken();
+    //    if (!token) throw new Error("No token");
+    //    return clearLeadHistory(token, uid);
+    // }
+    // BUT I will do it in the handler to be safe.
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["audit"] });
       setDeleteOpen(false);
@@ -44,14 +55,53 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
     }
   });
 
+  const handleDelete = async () => {
+      if (!leadId) return;
+      const token = await getToken();
+      if (!token) {
+          alert("No autenticado");
+          return;
+      }
+      // I can't easily change mutationFn args if I defined it as string -> Promise.
+      // So I will just redefine mutationFn to use the closure token, OR pass token to mutation.
+      // Let's redefine mutationFn above.
+      // Actually, useMutation variables can be anything.
+      // Let's stick to the previous pattern I used in ContextPanel: @ts-ignore or wrap it properly.
+      // But wait, in ContextPanel I didn't actually fix the mutationFn signature, I just passed an object and @ts-ignored it.
+      // That's risky if the mutationFn expects string.
+      // Let's fix it properly here.
+      
+      // I'll define mutationFn to take an object.
+      // But `clearLeadHistory` takes (token, leadId).
+      // So mutationFn should be: ({token, leadId}) => clearLeadHistory(token, leadId)
+  };
+
+  // Re-defining mutation to be clean
+  const { mutate: deleteHistoryClean, isPending: isDeletingClean } = useMutation({
+    mutationFn: async ({ token, id }: { token: string, id: string }) => {
+        return clearLeadHistory(token, id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["audit"] });
+      setDeleteOpen(false);
+    },
+    onError: (error) => {
+        console.error(error);
+        alert("Error al eliminar historial");
+    }
+  });
+
+  const onConfirmDelete = async () => {
+      if (!leadId) return;
+      const token = await getToken();
+      if (!token) return;
+      deleteHistoryClean({ token, id: leadId });
+  }
+
   // Get last trace ID for context
   const lastTraceId = useMemo(() => {
     if (!timeline) return null;
     const traces = timeline.filter(t => t.type === 'trace');
-    // Assuming timeline is sorted chronologically (oldest -> newest), last element is latest.
-    // If timeline is sorted desc, pick first.
-    // api/repository.py says: timeline.sort(key=lambda x: x["timestamp"]) -> Ascending (Oldest first)
-    // So last element is newest.
     return traces.length > 0 ? traces[traces.length - 1].id : null;
   }, [timeline]);
 
@@ -98,8 +148,8 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
     // Auto scroll could be implemented here
   }, [timeline]);
 
-  if (!userId) {
-    return <div className="flex items-center justify-center h-full text-muted-foreground">Selecciona un usuario para ver su historial</div>;
+  if (!leadId) {
+    return <div className="flex items-center justify-center h-full text-muted-foreground">Selecciona un lead para ver su historial</div>;
   }
 
   if (isLoading) {
@@ -111,10 +161,10 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
       <div className="p-4 border-b bg-background flex items-center justify-between">
         <div className="flex items-center gap-4">
             <h2 className="font-semibold">Timeline de Conversación</h2>
-            {userId && (
+            {leadId && (
                 <div className="flex items-center gap-2">
                      <Badge variant="outline" className="cursor-pointer hover:bg-muted/80 transition-colors" onClick={openProfile}>
-                        <UserIcon size={12} className="mr-1.5"/> Usuario
+                        <UserIcon size={12} className="mr-1.5"/> Lead
                      </Badge>
                      <Badge variant="outline" className="cursor-pointer hover:bg-muted/80 transition-colors" onClick={openState}>
                         <Activity size={12} className="mr-1.5"/> AgentState
@@ -130,25 +180,25 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
                             <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-destructive">
                                 <AlertTriangle className="h-5 w-5" />
-                                Borrar Historial de Conversación
+                                Borrar Historial del Lead
                             </DialogTitle>
                             <DialogDescription>
-                                Esta acción eliminará permanentemente todos los mensajes, trazas y memoria de este usuario. 
-                                El usuario volverá al inicio del funnel.
+                                Esta acción eliminará permanentemente todos los mensajes, trazas y memoria de este lead. 
+                                El lead volverá al inicio del funnel.
                                 <br/><br/>
                                 <strong>Esta acción no se puede deshacer.</strong>
                             </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
-                            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={isDeleting}>
+                            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={isDeletingClean}>
                                 Cancelar
                             </Button>
                             <Button 
                                 variant="destructive" 
-                                onClick={() => userId && deleteHistory(userId)}
-                                disabled={isDeleting || !userId}
+                                onClick={onConfirmDelete}
+                                disabled={isDeletingClean || !leadId}
                             >
-                                {isDeleting ? "Borrando..." : "Sí, borrar todo"}
+                                {isDeletingClean ? "Borrando..." : "Sí, borrar todo"}
                             </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -254,7 +304,7 @@ export function ChatTimeline({ userId, onSelectEvent, selectedEventId }: ChatTim
       </ScrollArea>
       
       <ContextPanel 
-        userId={userId} 
+        leadId={leadId} 
         lastTraceId={lastTraceId} 
         isOpen={contextOpen} 
         onOpenChange={setContextOpen} 

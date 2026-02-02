@@ -9,6 +9,7 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     name = Column(String, nullable=False)
     type = Column(String, nullable=False) # program, webinar, community
     status = Column(String, default="active") # active, archived
@@ -40,7 +41,8 @@ class Enrollment(Base):
     __tablename__ = "enrollments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    lead_id = Column("user_id", UUID(as_uuid=True), ForeignKey("leads.id"))
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
     
     # Status in the funnel
@@ -58,14 +60,15 @@ class Enrollment(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    user = relationship("User", back_populates="enrollments")
+    lead = relationship("Lead", back_populates="enrollments")
     product = relationship("Product", back_populates="enrollments")
 
 class Appointment(Base):
     __tablename__ = "appointments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    lead_id = Column("user_id", UUID(as_uuid=True), ForeignKey("leads.id"))
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
     
     scheduled_at = Column(DateTime(timezone=True), nullable=False)
@@ -74,7 +77,7 @@ class Appointment(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="appointments")
+    lead = relationship("Lead", back_populates="appointments")
 
 class AvatarDefinition(Base):
     """
@@ -84,6 +87,7 @@ class AvatarDefinition(Base):
     __tablename__ = "avatar_definitions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     # Removed unique=True to allow multiple avatars
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id")) 
     
@@ -108,6 +112,7 @@ class MarketingAsset(Base):
     __tablename__ = "marketing_assets"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True) # Can be global if null
     
     name = Column(String, nullable=False)
@@ -128,6 +133,7 @@ class Objection(Base):
     __tablename__ = "objections"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
     
     trigger_phrase = Column(String, nullable=False) # "Es muy caro"
@@ -145,20 +151,22 @@ class OfferLog(Base):
     __tablename__ = "offer_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    lead_id = Column("user_id", UUID(as_uuid=True), ForeignKey("leads.id"))
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
     
     offered_at = Column(DateTime(timezone=True), server_default=func.now())
     pitch_type = Column(String) # e.g., "webinar_invite", "program_pitch", "downsell"
     response = Column(String, default="pending") # pending, accepted, rejected, ignored
     
-    user = relationship("User")
+    lead = relationship("Lead")
     product = relationship("Product")
 
 class Document(Base):
     __tablename__ = "documents"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     filename = Column(String, nullable=False)
     collection_name = Column(String, nullable=False)
     category = Column(String, default="general") # factural, style, objection, general
@@ -186,6 +194,7 @@ class PromptVersion(Base):
     __tablename__ = "prompt_versions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     key = Column(String, nullable=False, index=True) # e.g., "sales_system"
     version = Column(Integer, nullable=False)
     content = Column(Text, nullable=False) # Jinja2 template content
@@ -206,6 +215,7 @@ class SensitiveData(Base):
     __tablename__ = "sensitive_data"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     pattern = Column(String, nullable=False) # Regex or Keyword
     replacement = Column(String, nullable=False) # e.g. [REDACTED]
     category = Column(String, nullable=False) # financial, pii, business_secret, system

@@ -11,25 +11,39 @@ import { avatarApi } from "@/lib/api/avatar";
 import { offerApi } from "@/lib/api/offer";
 import { CheckCircle2, ExternalLink, Loader2, Star, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@clerk/nextjs";
 
 export default function AvatarPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const queryClient = useQueryClient();
+  const { getToken } = useAuth();
 
   // Fetch Offer to get current avatar_id
   const { data: offer, isLoading: isLoadingOffer } = useQuery({
     queryKey: ["offer", id],
-    queryFn: () => offerApi.getOffer(id),
+    queryFn: async () => {
+        const token = await getToken();
+        if (!token) throw new Error("No token");
+        return offerApi.getOffer(id, token);
+    },
   });
 
   // Fetch Avatars
   const { data: avatars, isLoading: isLoadingAvatars } = useQuery({
     queryKey: ["avatars"],
-    queryFn: () => avatarApi.listAvatars("GLOBAL"),
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("No token");
+      return avatarApi.listAvatars(token, "GLOBAL");
+    },
   });
 
   const selectAvatarMutation = useMutation({
-    mutationFn: (avatarId: string) => offerApi.saveOffer(id, { ...offer!, name: offer!.name, avatar_id: avatarId }),
+    mutationFn: async (avatarId: string) => {
+        const token = await getToken();
+        if (!token) throw new Error("No token");
+        return offerApi.saveOffer(id, { ...offer!, name: offer!.name, avatar_id: avatarId }, token);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offer", id] });
     },
@@ -39,13 +53,13 @@ export default function AvatarPage({ params }: { params: Promise<{ id: string }>
 
   // Auto-select default if none selected
   useEffect(() => {
-    if (avatars && offer && !offer.avatar_id) {
-        const defaultAvatar = avatars.find(a => a.is_default);
-        if (defaultAvatar) {
-            selectAvatarMutation.mutate(defaultAvatar.id);
+        if (avatars && offer && !offer.avatar_id) {
+            const defaultAvatar = avatars.find(a => a.is_default);
+            if (defaultAvatar) {
+                selectAvatarMutation.mutate(defaultAvatar.id);
+            }
         }
-    }
-  }, [avatars, offer]);
+    }, [avatars, offer, selectAvatarMutation]);
 
   if (isLoading) {
     return (
