@@ -15,6 +15,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/api/webhooks/:path*',
+        destination: `${process.env.INTERNAL_API_URL || 'http://visionarias_brain_dev:8000'}/api/v1/webhooks/:path*`,
+      },
+      {
         source: '/api/v1/:path*',
         destination: `${process.env.INTERNAL_API_URL || 'http://visionarias_brain_dev:8000'}/api/v1/:path*`,
       },

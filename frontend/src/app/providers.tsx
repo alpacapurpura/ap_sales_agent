@@ -2,8 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
-import { ThemeProvider } from '@/components/theme-provider'
-import DevelopmentTools from '@/components/development-tools'
+import { ThemeProvider } from '@/components/providers/theme-provider'
+import DevelopmentTools from '@/components/shared/development-tools'
 import { Toaster } from "@/components/ui/sonner"
 
 export default function Providers({ children }: { children: React.ReactNode }) {

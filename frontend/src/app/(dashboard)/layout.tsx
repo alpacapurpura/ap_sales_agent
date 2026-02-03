@@ -1,7 +1,7 @@
 "use client";
 
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarProvider, useSidebar } from "@/components/layout/sidebar-context";
+import { AppSidebar } from "@/components/shared/layout/app-sidebar";
+import { SidebarProvider, useSidebar } from "@/components/shared/layout/sidebar-context";
 import { cn } from "@/lib/utils";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {

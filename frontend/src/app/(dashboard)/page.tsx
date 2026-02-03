@@ -2,7 +2,7 @@
 
 import { useAuth, UserButton } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
-import { StatsCard } from "@/components/dashboard/stats-card";
+import { StatsCard } from "@/features/dashboard/components/stats-card";
 import { FileText, Database, Activity, Eye } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

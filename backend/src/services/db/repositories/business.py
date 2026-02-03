@@ -1,5 +1,5 @@
 from typing import Optional, Tuple
-from src.services.db.models.business import Product, Enrollment
+from src.services.db.models.business import Product, JourneyProgress
 from src.core.domain.schema import FunnelStage, LeadStatus, ProductLaunchStage
 from .base import BaseRepository
 import datetime
@@ -79,71 +79,74 @@ class BusinessRepository(BaseRepository):
         best_match = sorted(valid_candidates, key=lambda x: x["priority"], reverse=True)[0]
         return best_match["product"], best_match["stage"]
 
-    def get_enrollment(self, user_id, product_id) -> Optional[Enrollment]:
-        query = self.db.query(Enrollment).filter(
-            Enrollment.lead_id == user_id,
-            Enrollment.product_id == product_id
+    def get_journey(self, user_id, product_id) -> Optional[JourneyProgress]:
+        query = self.db.query(JourneyProgress).filter(
+            JourneyProgress.lead_id == user_id,
+            JourneyProgress.product_id == product_id
         )
-        query = self._apply_tenant_filter(query, Enrollment)
+        query = self._apply_tenant_filter(query, JourneyProgress)
         return query.first()
 
-    def update_enrollment(self, user_id, product_id, status=None, stage=None, lead_score_inc=0) -> Enrollment:
-        enrollment = self.get_enrollment(user_id, product_id)
-        if not enrollment:
-            enrollment = Enrollment(lead_id=user_id, product_id=product_id)
-            self._set_tenant(enrollment)
-            self.db.add(enrollment)
+    def update_journey(self, user_id, product_id, status=None, stage=None, lead_score_inc=0) -> JourneyProgress:
+        journey = self.get_journey(user_id, product_id)
+        if not journey:
+            journey = JourneyProgress(lead_id=user_id, product_id=product_id)
+            self._set_tenant(journey)
+            self.db.add(journey)
         
         if status:
-            enrollment.status = status
+            journey.status = status
         if stage:
-            enrollment.stage = stage
+            journey.stage = stage
         if lead_score_inc:
-            enrollment.lead_score = min(100, (enrollment.lead_score or 0) + lead_score_inc)
+            journey.lead_score = min(100, (journey.lead_score or 0) + lead_score_inc)
             
         self.db.commit()
-        self.db.refresh(enrollment)
-        return enrollment
+        self.db.refresh(journey)
+        return journey
 
     def persist_agent_state(self, user_id, state: dict, product_id=None):
         """
         Centralized logic to map AgentState -> DB Models.
-        Updates Enrollment Status/Stage/Score.
+        Updates JourneyProgress Status/Stage/Score.
         Note: Profile update should be done via UserRepository.
         """
-        # Enrollment Updates
+        # Journey Updates
         target_product_id = state.get("product_id") or product_id
         
         if target_product_id:
-            enrollment = self.get_enrollment(user_id, target_product_id)
-            if not enrollment:
-                enrollment = Enrollment(lead_id=user_id, product_id=target_product_id)
-                self._set_tenant(enrollment)
-                self.db.add(enrollment)
+            journey = self.get_journey(user_id, target_product_id)
+            if not journey:
+                journey = JourneyProgress(lead_id=user_id, product_id=target_product_id)
+                self._set_tenant(journey)
+                self.db.add(journey)
             
             if state.get("current_state"):
-                enrollment.stage = state["current_state"]
+                journey.stage = state["current_state"]
                 
             if state.get("lead_score") is not None:
-                enrollment.lead_score = state["lead_score"]
+                journey.lead_score = state["lead_score"]
                 
             if state.get("disqualification_reason"):
-                enrollment.status = LeadStatus.DISQUALIFIED.value
+                journey.status = LeadStatus.DISQUALIFIED.value
                 reason = f"Disqualified: {state['disqualification_reason']}"
-                current_objections = list(enrollment.objections) if enrollment.objections else []
+                # Store in historical objections
+                current_objections = list(journey.objections) if journey.objections else []
                 if reason not in current_objections:
                     current_objections.append(reason)
-                    enrollment.objections = current_objections
+                    journey.objections = current_objections
+                # Also set current blocker
+                journey.objection_status = "Disqualified"
             
-            elif enrollment.status != LeadStatus.DISQUALIFIED.value: 
+            elif journey.status != LeadStatus.DISQUALIFIED.value: 
                 current = state.get("current_state")
                 if current in [FunnelStage.RAPPORT.value, FunnelStage.DISCOVERY.value]:
-                    if enrollment.status == LeadStatus.AWARENESS.value:
-                        enrollment.status = LeadStatus.QUALIFIED.value
+                    if journey.status == LeadStatus.AWARENESS.value:
+                        journey.status = LeadStatus.QUALIFIED.value
                 elif current in [FunnelStage.GAP.value, FunnelStage.PITCH.value]:
-                    enrollment.status = LeadStatus.QUALIFIED.value
+                    journey.status = LeadStatus.QUALIFIED.value
                 elif current in [FunnelStage.ANCHORING.value, FunnelStage.CLOSING.value]:
-                    enrollment.status = LeadStatus.NEGOTIATION.value
+                    journey.status = LeadStatus.NEGOTIATION.value
             
             self.db.commit()
-            self.db.refresh(enrollment)
+            self.db.refresh(journey)

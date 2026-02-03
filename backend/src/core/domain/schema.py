@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Any, Dict, Literal
 from enum import Enum
+from .lead_enums import FinancialCapacity, SophisticationLevel, AuthorityLevel, LeadTemperature, AvatarPersona, PipelineStage
 
 class FunnelStage(str, Enum):
     RAPPORT = "S1_Rapport"
@@ -41,14 +42,8 @@ class BusinessStage(str, Enum):
     IDEA = "Idea Clara"
     NONE = "Sin Idea"
 
-class FinancialTier(str, Enum):
-    HIGH = "High (Comfortable)"
-    MEDIUM = "Medium (Stretch but possible)"
-    LOW = "Low (Survival)"
-
-class DecisionMaker(str, Enum):
-    SOLO = "Sola"
-    PARTNER = "Con Socio/Esposo"
+# class FinancialTier(str, Enum): -> Replaced by FinancialCapacity
+# class DecisionMaker(str, Enum): -> Replaced by AuthorityLevel
 
 class UserProfile(BaseModel):
     """
@@ -66,6 +61,8 @@ class UserProfile(BaseModel):
     
     occupation: Optional[str] = Field(None, description="Job title or role (e.g. Therapist, Lawyer)")
     location: Optional[str] = Field(None, description="City or Country")
+    timezone: Optional[str] = Field(None, description="Timezone (e.g. GMT-5)")
+    social_handle: Optional[str] = Field(None, description="Instagram/LinkedIn handle")
     
     # --- Contexto de la Consulta (Terceros) ---
     user: Optional[Literal["himself", "Other"]] = Field("himself", description="Is the user inquiring for themselves or others?")
@@ -74,7 +71,10 @@ class UserProfile(BaseModel):
 
     # --- Calificación (Mandatory) ---
     business_stage: Optional[BusinessStage] = Field(None, description="Current stage of their business journey")
-    financial_tier: Optional[FinancialTier] = Field(None, description="Estimated financial capacity")
+    financial_tier: Optional[FinancialCapacity] = Field(None, description="Estimated financial capacity (BROKE_STUDENT, etc.)")
+    sophistication: Optional[SophisticationLevel] = Field(None, description="Awareness level (UNAWARE, PROBLEM_AWARE, etc.)")
+    authority: Optional[AuthorityLevel] = Field(None, description="Decision making authority (SOLO, PARTNER, etc.)")
+    temperature: Optional[LeadTemperature] = Field(None, description="Lead temperature (COLD, WARM, HOT)")
     
     # --- Datos del Negocio (New) ---
     business_name: Optional[str] = Field(None, description="Name of the user's business")
@@ -84,7 +84,7 @@ class UserProfile(BaseModel):
     # --- Psicografía (Desirable) ---
     main_pain_point: Optional[str] = Field(None, description="Primary struggle (e.g. Burnout, Chaos)")
     main_goal: Optional[str] = Field(None, description="Primary desire (e.g. Freedom, Scale)")
-    decision_maker: Optional[DecisionMaker] = Field(None, description="Who makes the buying decision")
+    assigned_persona: Optional[AvatarPersona] = Field(None, description="The archetype to use (NEWBIE, SKEPTIC, VIP)")
     
     # --- Metadata de Progreso ---
     missing_fields: list[str] = Field(default_factory=list, description="Fields that are mandatory/desirable but null")

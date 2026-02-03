@@ -18,7 +18,7 @@ export default function Page() {
              showOptionalFields: false,
           }
         }}
-        signUpUrl={null}
+        signUpUrl={undefined}
         forceRedirectUrl="/"
       />
     </div>

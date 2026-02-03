@@ -1,135 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { BrandSettings, brandApi, BrandIdentity, KeyFigure, AuthorityItem, ContactData } from "@/lib/api/brand";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BrandIdentityForm } from "@/components/brand/brand-identity-form";
-import { KeyFiguresForm } from "@/components/brand/key-figures-form";
-import { AuthorityVaultForm } from "@/components/brand/authority-vault-form";
-import { ContactDataForm } from "@/components/brand/contact-data-form";
-import { AvatarManager } from "@/components/brand/avatar-manager";
-import { PersonalityCloneForm } from "@/components/brand/personality-clone-form";
-import { Loader2, Building2, Phone, Award, Users, Brain, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-function PlaceholderContent({ title, icon: Icon }: { title: string, icon: any }) {
-  return (
-    <Card className="w-full min-h-[600px]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon className="h-6 w-6" />
-          {title}
-        </CardTitle>
-        <CardDescription>Esta funcionalidad estará disponible próximamente.</CardDescription>
-      </CardHeader>
-      <CardContent className="h-[400px] flex items-center justify-center text-muted-foreground bg-muted/10 rounded-md border border-dashed m-6">
-        Aqui
-      </CardContent>
-    </Card>
-  );
-}
+import { BrandIdentityForm } from "@/features/brand/components/brand-identity-form";
+import { KeyFiguresForm } from "@/features/brand/components/key-figures-form";
+import { AuthorityVaultForm } from "@/features/brand/components/authority-vault-form";
+import { ContactDataForm } from "@/features/brand/components/contact-data-form";
+import { AvatarManager } from "@/features/brand/components/avatar-manager";
+import { PersonalityCloneForm } from "@/features/brand/components/personality-clone-form";
+import { Loader2, Building2, Phone, Users, Brain, ShieldCheck } from "lucide-react";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
 
 export default function BrandSettingsPage() {
-  const { getToken } = useAuth();
-  // const { toast } = useToast();
-  const [settings, setSettings] = useState<BrandSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const data = await brandApi.getBrandSettings(token);
-        setSettings(data);
-      } catch (error) {
-        console.error("Error fetching brand settings:", error);
-        toast.error("No se pudo cargar la configuración de marca.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSettings();
-  }, [getToken]);
-
-  const handleSaveIdentity = async (identity: BrandIdentity) => {
-    if (!settings) return;
-    setSaving(true);
-    try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, identity };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Identidad corporativa actualizada.");
-    } catch (error) {
-        console.error("Error saving identity:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveTeam = async (team: KeyFigure[]) => {
-    if (!settings) return;
-    setSaving(true);
-    try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, team };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Equipo actualizado.");
-    } catch (error) {
-        console.error("Error saving team:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveVault = async (vault: AuthorityItem[]) => {
-    if (!settings) return;
-    setSaving(true);
-    try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, authority_vault: vault };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Respaldo institucional actualizado.");
-    } catch (error) {
-        console.error("Error saving vault:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveContact = async (contact: ContactData) => {
-    if (!settings) return;
-    setSaving(true);
-    try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, contact };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Datos de contacto actualizados.");
-    } catch (error) {
-        console.error("Error saving contact:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const { 
+    settings, 
+    loading, 
+    saving, 
+    updateIdentity, 
+    updateTeam, 
+    updateVault, 
+    updateContact 
+  } = useBrandSettings();
 
   if (loading) {
     return <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin" /></div>;
@@ -228,7 +118,7 @@ export default function BrandSettingsPage() {
             <TabsContent value="identity" className="mt-0">
             <BrandIdentityForm 
                 initialData={settings.identity} 
-                onSave={handleSaveIdentity}
+                onSave={updateIdentity}
                 isSaving={saving}
             />
             </TabsContent>
@@ -236,7 +126,7 @@ export default function BrandSettingsPage() {
             <TabsContent value="contact" className="mt-0">
             <ContactDataForm 
                 initialData={settings.contact}
-                onSave={handleSaveContact}
+                onSave={updateContact}
                 isSaving={saving}
             />
             </TabsContent>
@@ -244,7 +134,7 @@ export default function BrandSettingsPage() {
             <TabsContent value="key_figures" className="mt-0">
             <KeyFiguresForm 
                 initialData={settings.team}
-                onSave={handleSaveTeam}
+                onSave={updateTeam}
                 isSaving={saving}
             />
             </TabsContent>
@@ -252,7 +142,7 @@ export default function BrandSettingsPage() {
             <TabsContent value="authority_vault" className="mt-0">
             <AuthorityVaultForm 
                 initialData={settings.authority_vault}
-                onSave={handleSaveVault}
+                onSave={updateVault}
                 isSaving={saving}
             />
             </TabsContent>

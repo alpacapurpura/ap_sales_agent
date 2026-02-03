@@ -1,8 +1,8 @@
 "use client";
 
 import { use } from "react";
-import { OfferEditorLayout } from "@/components/offer-studio/layout/offer-editor-layout";
-import { ObjectionEditor } from "@/components/offer-studio/objection-editor";
+import { OfferEditorLayout } from "@/features/offer-studio/components/layout/offer-editor-layout";
+import { ObjectionEditor } from "@/features/offer-studio/components/objection-editor";
 
 export default function ObjectionsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

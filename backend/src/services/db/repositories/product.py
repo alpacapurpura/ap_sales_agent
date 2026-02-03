@@ -25,30 +25,17 @@ class ProductRepository(BaseRepository):
         if not product:
             return None
 
-        # Update simple fields
-        if "name" in update_data:
-            product.name = update_data["name"]
-        
-        if "avatar_id" in update_data:
-            product.avatar_id = update_data["avatar_id"]
-
-        # Update JSONB fields (merge strategy)
-        if "pricing" in update_data:
-            current_pricing = dict(product.pricing) if product.pricing else {}
-            current_pricing.update(update_data["pricing"])
-            product.pricing = current_pricing
-
-        if "metadata_info" in update_data:
-            current_meta = dict(product.metadata_info) if product.metadata_info else {}
-            current_meta.update(update_data["metadata_info"])
-            product.metadata_info = current_meta
+        # Generic Update for all top-level fields
+        for field, value in update_data.items():
+            if hasattr(product, field) and value is not None:
+                setattr(product, field, value)
 
         self.db.commit()
         self.db.refresh(product)
         return product
 
     def create_product(self, name: str, type: str = "program") -> Product:
-        product = Product(name=name, type=type)
+        product = Product(name=name, type=type, status="DRAFT")
         self._set_tenant(product)
         self.db.add(product)
         self.db.commit()

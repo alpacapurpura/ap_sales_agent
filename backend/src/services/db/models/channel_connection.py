@@ -8,7 +8,8 @@ from ._base import Base
 
 class ChannelType(str, enum.Enum):
     TELEGRAM = "telegram"
-    WHATSAPP = "whatsapp"
+    WHATSAPP = "whatsapp" # Evolution / QR
+    WHATSAPP_CLOUD = "whatsapp_cloud" # Meta Cloud API
     MANYCHAT = "manychat"
 
 class ChannelConnection(Base):

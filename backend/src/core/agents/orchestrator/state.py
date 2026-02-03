@@ -39,6 +39,9 @@ class AgentState(TypedDict):
     # --- MULTI-TENANT CONTEXT ---
     tenant_id: str
     tenant_config: Dict[str, Any]
+    
+    # --- INTERNAL ROUTING ---
+    next_node: Optional[str]
 
 def create_initial_state(
     user_id: str,
@@ -107,6 +110,8 @@ def create_initial_state(
         # Reflexion Defaults
         "critique_count": 0,
         "critique_reasoning": None,
-        "is_revision": False
+        "is_revision": False,
+        
+        "next_node": None
     }
 

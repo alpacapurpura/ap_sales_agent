@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { config } from "../config";
+import { config } from "@/lib/config";
 import { fetchClient } from "../http-client";
 import { useAuth } from "@clerk/nextjs";
 
@@ -27,6 +27,10 @@ export interface TimelineEvent {
   // Trace fields
   node_name?: string;
   execution_time_ms?: number;
+  llm_summary?: {
+    model: string;
+    total_tokens: number;
+  };
 }
 
 export interface TraceDetail {

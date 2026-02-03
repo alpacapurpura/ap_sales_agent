@@ -98,7 +98,7 @@ async def connect_telegram(
     else:
          base_url = f"https://{final_domain}"
 
-    webhook_url = f"{base_url}/api/webhooks/telegram/{user.tenant_id}"
+    webhook_url = f"{base_url}/api/v1/webhooks/telegram/{user.tenant_id}"
     logger.info("setting_telegram_webhook", webhook_url=webhook_url)
     
     async with httpx.AsyncClient() as client:

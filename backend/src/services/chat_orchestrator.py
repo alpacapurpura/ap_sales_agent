@@ -1,6 +1,7 @@
 import structlog
 import asyncio
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 from fastapi import BackgroundTasks
@@ -20,6 +21,7 @@ from src.channels.telegram import TelegramChannel
 from src.channels.whatsapp import WhatsAppChannel
 from src.core.context import set_tenant_id
 from src.services.db.models.channel_connection import ChannelConnection, ChannelType
+from src.services.db.models.tenant import Tenant
 
 logger = structlog.get_logger()
 
@@ -36,7 +38,7 @@ class ChatOrchestrator:
         if self._initialized:
             return
         # Legacy/Global channels (fallback)
-        self.whatsapp_channel = WhatsAppChannel()
+        # self.whatsapp_channel = WhatsAppChannel() # Removed: WhatsAppChannel requires tenant_id
         self.buffer_service = SmartBufferService()
         self._initialized = True
 
@@ -65,7 +67,8 @@ class ChatOrchestrator:
 
     async def handle_whatsapp_webhook(self, payload: dict, background_tasks: BackgroundTasks):
         # TODO: Add multi-tenant support for WhatsApp later
-        await self._handle_incoming_webhook(self.whatsapp_channel, payload, background_tasks)
+        # We need to instantiate here with tenant_id if possible, or refactor to pass adapter from router
+        pass # Now handled via _handle_incoming_webhook directly from router
 
     async def _handle_incoming_webhook(self, channel_adapter, payload: dict, background_tasks: BackgroundTasks, tenant_id: str = None):
         incoming = channel_adapter.normalize_payload(payload)
@@ -182,6 +185,7 @@ class ChatOrchestrator:
         Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced).
         """
         # Set Tenant Context
+        tenant_config = {}
         if tenant_id:
             try:
                 set_tenant_id(UUID(tenant_id))
@@ -200,6 +204,15 @@ class ChatOrchestrator:
         biz_repo = BusinessRepository(db)
         
         try:
+            # 1. Fetch Tenant Config if tenant_id is present
+            if tenant_id:
+                try:
+                    tenant_obj = db.query(Tenant).filter(Tenant.id == UUID(tenant_id)).first()
+                    if tenant_obj:
+                        tenant_config = tenant_obj.config_json or {}
+                except Exception as e:
+                    logger.error(f"Error fetching tenant config: {e}")
+
             # 2. Persistencia: Asegurar usuario y loguear mensaje entrante
             channel_type = incoming.channel_type
             user_id_str = incoming.user_id 
@@ -254,6 +267,8 @@ class ChatOrchestrator:
 
             initial_state = create_initial_state(
                 user_id=str(user.id),
+                tenant_id=str(tenant_id) if tenant_id else str(uuid.uuid4()), # Fallback if None, though should be handled
+                tenant_config=tenant_config,
                 history=history,
                 user_profile={**base_profile, **incoming.metadata},
                 session_active=session_active,

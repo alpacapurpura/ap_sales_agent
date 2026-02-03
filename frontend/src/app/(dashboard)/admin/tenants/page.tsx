@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
+export const dynamic = 'force-dynamic'
+
 export default function TenantsPage() {
     const { getToken } = useAuth()
     const [tenants, setTenants] = useState<Tenant[]>([])

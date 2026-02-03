@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     WHATSAPP_PHONE_NUMBER_ID: str
     WHATSAPP_VERIFY_TOKEN: str
     
+    # Evolution API (Self-Hosted)
+    EVOLUTION_API_URL: str = "http://visionarias_whatsapp:8080"
+    EVOLUTION_API_KEY: str = "evolution-api-secret-key"
+    EVOLUTION_API_VERSION: str = "v1" # Options: "v1", "v2"
+    
     # Telegram
     TELEGRAM_BOT_TOKEN: str = ""
 
@@ -60,6 +65,7 @@ class Settings(BaseSettings):
     # Production Domains
     API_DOMAIN: str = ""
     DASHBOARD_DOMAIN: str = ""
+    API_URL: str = "http://visionarias_brain_dev:8000" # Internal URL for webhooks
     
     # CORS
     CORS_ORIGINS: list[str] = []

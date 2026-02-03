@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 import datetime
 from pydantic import BaseModel, EmailStr
 

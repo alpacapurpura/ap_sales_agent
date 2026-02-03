@@ -1,8 +1,9 @@
 from typing import List, Dict, Optional, Any
 from sqlalchemy import desc, func
+from sqlalchemy.orm import selectinload
 from src.services.db.models.lead import Lead
 from src.services.db.models.observability import Message, AgentTrace, LLMCallLog
-from src.services.db.models.business import Enrollment
+from src.services.db.models.business import JourneyProgress
 from src.core.domain.schema import FunnelStage, LeadStatus
 from .base import BaseRepository
 import logging
@@ -66,7 +67,7 @@ class AuditRepository(BaseRepository):
             .all()
             
         return results
-
+            
     def get_full_timeline(self, user_id: str, tenant_id: Any = None, limit: int = 50) -> List[Dict]:
         # Messages
         query_msg = self.db.query(Message).filter(Message.lead_id == user_id)
@@ -75,7 +76,7 @@ class AuditRepository(BaseRepository):
         messages = query_msg.order_by(desc(Message.created_at)).limit(limit).all()
 
         # Traces
-        query_trace = self.db.query(AgentTrace).filter(AgentTrace.lead_id == user_id)
+        query_trace = self.db.query(AgentTrace).filter(AgentTrace.lead_id == user_id).options(selectinload(AgentTrace.llm_logs))
         if tenant_id:
             query_trace = query_trace.filter(AgentTrace.tenant_id == tenant_id)
         traces = query_trace.order_by(desc(AgentTrace.created_at)).limit(limit).all()
@@ -92,13 +93,25 @@ class AuditRepository(BaseRepository):
             })
 
         for t in traces:
+            llm_summary = None
+            if t.llm_logs:
+                total_input = sum(log.tokens_input or 0 for log in t.llm_logs)
+                total_output = sum(log.tokens_output or 0 for log in t.llm_logs)
+                model = t.llm_logs[0].model if t.llm_logs else None
+                
+                llm_summary = {
+                    "model": model,
+                    "total_tokens": total_input + total_output
+                }
+
             timeline.append({
                 "type": "trace",
                 "id": str(t.id),
                 "node_name": t.node_name,
                 "execution_time_ms": t.execution_time_ms,
                 "created_at": t.created_at,
-                "timestamp": t.created_at.timestamp()
+                "timestamp": t.created_at.timestamp(),
+                "llm_summary": llm_summary
             })
 
         timeline.sort(key=lambda x: x["timestamp"])
@@ -203,17 +216,18 @@ class AuditRepository(BaseRepository):
                 # Delete traces
                 q_trace.delete(synchronize_session=False)
                 
-            # Enrollments
-            q_enr = self.db.query(Enrollment).filter(Enrollment.lead_id == user_id)
+            # Journeys (formerly Enrollments)
+            q_journey = self.db.query(JourneyProgress).filter(JourneyProgress.lead_id == user_id)
             if tenant_id:
-                q_enr = q_enr.filter(Enrollment.tenant_id == tenant_id)
-            enrollments = q_enr.all()
+                q_journey = q_journey.filter(JourneyProgress.tenant_id == tenant_id)
+            journeys = q_journey.all()
             
-            for e in enrollments:
-                e.stage = FunnelStage.RAPPORT.value
-                e.status = LeadStatus.AWARENESS.value
-                e.lead_score = 0
-                e.objections = []
+            for j in journeys:
+                j.stage = FunnelStage.RAPPORT.value
+                j.status = LeadStatus.AWARENESS.value
+                j.lead_score = 0
+                j.objections = []
+                j.objection_status = None # Reset new field
             
             # Profile Data
             q_lead = self.db.query(Lead).filter(Lead.id == user_id)

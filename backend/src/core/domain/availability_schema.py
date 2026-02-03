@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import List, Optional, Dict
-from datetime import time
+from typing import List, Optional
 import uuid
 
 class TimeRange(BaseModel):

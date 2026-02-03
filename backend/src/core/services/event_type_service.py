@@ -3,7 +3,6 @@ from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
-import re
 
 from src.services.db.models.tenant import Tenant
 from src.core.domain.event_type_schema import EventType, EventTypeUpdate

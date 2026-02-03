@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { SafetyLayerManager } from "@/components/knowledge/safety-layer"
+import { SafetyLayerManager } from "@/features/knowledge/components/safety-layer"
 import { FileText, Shield, Settings, Palette } from "lucide-react"
 
 function PlaceholderContent({ title, icon: Icon, description, content }: { title: string, icon: any, description?: string, content?: React.ReactNode }) {

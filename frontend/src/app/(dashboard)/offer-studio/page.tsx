@@ -1,6 +1,6 @@
 "use client";
 
-import { OfferDashboard } from "@/components/offer-studio/offer-dashboard";
+import { OfferDashboard } from "@/features/offer-studio/components/offer-dashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Briefcase, GraduationCap, Repeat } from "lucide-react";
@@ -79,11 +79,33 @@ export default function OfferStudioPage() {
 
           <div className="flex-1 lg:max-w-4xl">
             <TabsContent value="products" className="mt-0">
-              <PlaceholderContent title="Productos" icon={Package} />
+               <Card className="w-full min-h-[600px]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-6 w-6" />
+                    Productos
+                  </CardTitle>
+                  <CardDescription>Gestiona tus ebooks, templates y productos físicos.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <OfferDashboard filterTypes={["DIGITAL_PRODUCT", "PHYSICAL_GOODS"]} category="products" />
+                </CardContent>
+              </Card>
             </TabsContent>
             
             <TabsContent value="services" className="mt-0">
-              <PlaceholderContent title="Servicios" icon={Briefcase} />
+               <Card className="w-full min-h-[600px]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="h-6 w-6" />
+                    Servicios
+                  </CardTitle>
+                  <CardDescription>Gestiona tus paquetes de consultoría y agencia.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <OfferDashboard filterTypes={["SERVICE_RETAINER", "CONSULTING_PACKAGE"]} category="services" />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="programs" className="mt-0">
@@ -96,13 +118,24 @@ export default function OfferStudioPage() {
                   <CardDescription>Gestiona tus programas educativos y formaciones.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <OfferDashboard />
+                  <OfferDashboard filterTypes={["COHORT_PROGRAM", "HYBRID_MENTORSHIP"]} category="programs" />
                 </CardContent>
               </Card>
             </TabsContent>
 
             <TabsContent value="subscriptions" className="mt-0">
-              <PlaceholderContent title="Suscripciones" icon={Repeat} />
+               <Card className="w-full min-h-[600px]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Repeat className="h-6 w-6" />
+                    Suscripciones
+                  </CardTitle>
+                  <CardDescription>Gestiona tus membresías y comunidades recurrentes.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <OfferDashboard filterTypes={["MEMBERSHIP_SUBSCRIPTION"]} category="subscriptions" />
+                </CardContent>
+              </Card>
             </TabsContent>
           </div>
         </Tabs>

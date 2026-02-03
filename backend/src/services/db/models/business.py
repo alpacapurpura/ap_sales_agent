@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Boolean, Text
+from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Boolean, Text, Float
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -6,62 +6,97 @@ import uuid
 from ._base import Base
 
 class Product(Base):
+    """
+    The 'Offer' Entity.
+    Represents a sellable unit (Course, Mentorship, Service) with its promise and logic.
+    """
     __tablename__ = "products"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
-    name = Column(String, nullable=False)
-    type = Column(String, nullable=False) # program, webinar, community
-    status = Column(String, default="active") # active, archived
     
-    # Pricing Configuration
-    pricing = Column(JSONB, default={})
+    # --- 1. IDENTIFICATION ---
+    internal_sku = Column(String, nullable=True) # e.g., "MASTERMIND_Q1_2026"
+    name = Column(String, nullable=False) # public_name
+    type = Column(String, nullable=False) # Enum_Offer_Type
+    delivery_model = Column(String, nullable=True) # Enum_Delivery_Model (DIY, DWY, DFY)
+    status = Column(String, default="active") # Enum_Status
     
-    # Date Configuration
-    dates = Column(JSONB, default={})
+    # --- 2. THE PROMISE ---
+    headline_promise = Column(String, nullable=True)
+    target_avatar_match = Column(JSONB, default=[]) # List<Enum_Avatar>
+    primary_outcome = Column(String, nullable=True) # The tangible result
+    time_to_value = Column(String, nullable=True) # e.g. "3 weeks"
     
-    # Content/Metadata
-    metadata_info = Column(JSONB, default={})
+    # --- 3. GATEKEEPING ---
+    requires_application = Column(Boolean, default=False)
+    min_financial_capacity = Column(String, nullable=True) # Enum_Financial_Capacity
+    prerequisites = Column(JSONB, default=[]) # List<String> of requirements
     
-    # Downsell Strategy
+    # --- 4. FINANCIAL ARCHITECTURE ---
+    pricing = Column(JSONB, default={}) # Stores List<Pricing_Structure>
+    currency = Column(String, default="USD")
+    
+    # --- 5. RISK & GUARANTEE ---
+    guarantee_type = Column(String, nullable=True) # Enum_Guarantee
+    guarantee_terms = Column(Text, nullable=True) # Detailed legal/sales terms
+    
+    # --- 6. RELATIONSHIPS (Upsell/Downsell) ---
     downsell_product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
+    upsell_product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
+    includes_offers = Column(JSONB, default=[]) # List<UUID> for Value Stacking (Modular Offers)
+    deliverables = Column(JSONB, default=[]) # List<Deliverable_Item> (Specifics)
     
-    # Avatar Override (Inheritance)
+    # --- 7. ASSETS & METADATA ---
+    metadata_info = Column(JSONB, default={}) # vsl_link, checkout_url, calendar_type_id
+    specific_details = Column(JSONB, default={}) # Holds polymorphic data (ProductDetails, ServiceDetails...)
+    dates = Column(JSONB, default={}) # Launch dates
+    
+    # Avatar Override
     avatar_id = Column(UUID(as_uuid=True), ForeignKey("avatar_definitions.id"), nullable=True)
     
-    # Relationships
-    downsell_product = relationship("Product", remote_side=[id])
-    enrollments = relationship("Enrollment", back_populates="product")
+    # SQLAlchemy Relationships
+    downsell_product = relationship("Product", remote_side=[id], foreign_keys=[downsell_product_id])
+    upsell_product = relationship("Product", remote_side=[id], foreign_keys=[upsell_product_id])
+    
+    journeys = relationship("JourneyProgress", back_populates="product")
     avatar = relationship("AvatarDefinition", back_populates="products")
 
-class Enrollment(Base):
+class JourneyProgress(Base):
     """
     Tracks the User's journey with a specific Product.
+    Formerly 'Enrollment'.
     """
-    __tablename__ = "enrollments"
+    __tablename__ = "journey_progress"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     lead_id = Column("user_id", UUID(as_uuid=True), ForeignKey("leads.id"))
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
     
+    # Product Context
+    product_line = Column(String, nullable=True) # Low/Mid/High Ticket
+    funnel_entry_point = Column(String, nullable=True) # Ad, Webinar, Email
+    deal_value_potential = Column(Float, default=0.0)
+
     # Status in the funnel
     status = Column(String, default="awareness")
     
-    # Funnel Stage
-    stage = Column(String, default="awareness")
+    # Funnel Stage (PipelineStage Enum)
+    stage = Column(String, default="NEW_LEAD")
     
     # 0-100 score based on profile match and intent
     lead_score = Column(Integer, default=0)
     
     # Objections raised
-    objections = Column(JSONB, default=[])
+    objection_status = Column(String, nullable=True) # Current blocker
+    objections = Column(JSONB, default=[]) # History (legacy/detail)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    lead = relationship("Lead", back_populates="enrollments")
-    product = relationship("Product", back_populates="enrollments")
+    lead = relationship("Lead", back_populates="journeys")
+    product = relationship("Product", back_populates="journeys")
 
 class Appointment(Base):
     __tablename__ = "appointments"

@@ -2,7 +2,9 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from typing import Optional
 from sqlalchemy.orm import Session
 from src.services.database import get_db
+from src.services.db.models.user import User
 from src.services.db.repositories.user import UserRepository
+from src.api.dependencies import get_current_user
 from src.core.agents.onboarding.graph import onboarding_app
 import structlog
 
@@ -11,15 +13,16 @@ router = APIRouter()
 
 @router.post("/analyze-style")
 async def analyze_style(
-    user_id: str = Form(...),
     text_input: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Analyzes the style of the provided chat history (text or file).
     Runs the 'Ingestion Subgraph' (Janitor -> Psychologist -> Architect -> Simulator).
     """
+    user_id = str(current_user.id)
     logger.info("style_analysis_started", user_id=user_id)
     
     # 1. Extract Raw Input
@@ -46,14 +49,11 @@ async def analyze_style(
             
         # 4. Save to Database
         # We manually save here to keep the graph pure
-        user_repo = UserRepository(db)
-        user = user_repo.get_by_id(user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-            
+        # user_repo = UserRepository(db) - REMOVED: Using current_user directly
+        
         # Update User Model
-        user.style_profile = result.get("style_profile")
-        user.custom_system_instruction = result.get("system_instruction")
+        current_user.style_profile = result.get("style_profile")
+        current_user.custom_system_instruction = result.get("system_instruction")
         db.commit()
         
         return {

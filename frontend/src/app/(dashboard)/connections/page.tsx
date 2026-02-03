@@ -17,10 +17,11 @@ import {
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WebhookView } from "@/components/settings/webhook-view";
-import { TelegramView } from "@/components/connections/telegram-view";
-import { GoogleCalendarView } from "@/components/connections/google-calendar-view";
-import { GmailView } from "@/components/connections/gmail-view";
+import { WebhookView } from "@/features/settings/components/webhook-view";
+import { TelegramView } from "@/features/connections/components/telegram-view";
+import { GoogleCalendarView } from "@/features/connections/components/google-calendar-view";
+import { GmailView } from "@/features/connections/components/gmail-view";
+import WhatsAppView from "@/features/connections/components/whatsapp-view";
 
 function PlaceholderContent({ title, icon: Icon }: { title: string, icon: any }) {
   return (
@@ -174,7 +175,7 @@ function ConnectionsContent() {
         {/* Área de Contenido Principal */}
         <div className="flex-1 lg:max-w-3xl">
           <TabsContent value="whatsapp" className="mt-0">
-            <PlaceholderContent title="WhatsApp" icon={MessageCircle} />
+            <WhatsAppView />
           </TabsContent>
           <TabsContent value="email" className="mt-0">
              <GmailView />

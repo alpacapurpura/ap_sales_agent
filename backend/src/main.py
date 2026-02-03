@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
 from src.api.routes import router as api_router
-from src.api.routers import knowledge, admin, products, avatars, onboarding, settings as user_settings, webhook, channels, calendar, public_links, event_types, gmail
+from src.api.routers import knowledge, admin, products, avatars, onboarding, settings as user_settings, webhook, channels, calendar, public_links, event_types, gmail, whatsapp
 from src.api.dependencies import get_tenant_context
 from src.services.database import init_db
 from src.core.logging_config import configure_logging
@@ -90,6 +90,7 @@ app.include_router(channels.router, prefix="/api/v1", dependencies=[Depends(get_
 app.include_router(calendar.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
 app.include_router(gmail.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
 app.include_router(event_types.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
+app.include_router(whatsapp.router, prefix="/api/v1/whatsapp", dependencies=[Depends(get_tenant_context)])
 app.include_router(public_links.router, prefix="/api/v1/public", tags=["Public"]) # No Auth Dependency (Token based)
 app.include_router(webhook.router, prefix="/api/v1/webhook", tags=["Webhook"]) # No Auth Dependency here (uses header secret)
 

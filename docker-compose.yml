@@ -210,6 +210,60 @@ services:
       - ./data/model_cache:/app/model_cache
     profiles: ["development", "production"]
 
+  # --- WhatsApp Engine (Evolution API - Development v1.8.2) ---
+  whatsapp_engine:
+    image: atendai/evolution-api:v1.8.2
+    container_name: visionarias_whatsapp
+    restart: unless-stopped
+    shm_size: '2gb' # Critical for Chrome stability in Docker
+    volumes:
+      - ./data/whatsapp_data:/evolution/store
+    environment:
+      - SERVER_URL=http://visionarias_whatsapp:8080
+      - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY:-evolution-api-secret-key}
+      - DEL_INSTANCE=false
+      # Database Config (Disabled for v1 stability test in WSL2 - Uses File Store)
+      - "DATABASE_ENABLED=false"
+      - "DATABASE_PROVIDER=postgresql"
+      - "DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution"
+      - "DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange"
+      # Cache Config
+      - "CACHE_REDIS_ENABLED=true"
+      - "CACHE_REDIS_URI=redis://redis:6379/1"
+      - "CACHE_REDIS_PREFIX=evolution:"
+    networks:
+      - internal_net
+    profiles: ["development"]
+    ports:
+      - "127.0.0.1:8080:8080" # Secure binding for debugging
+
+  # --- WhatsApp Engine (Evolution API - Production v2.2.2) ---
+  whatsapp_engine_prod:
+    image: atendai/evolution-api:v2.2.2
+    container_name: visionarias_whatsapp_prod
+    restart: always
+    shm_size: '2gb'
+    environment:
+      - SERVER_URL=http://visionarias_whatsapp_prod:8080
+      - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY:-evolution-api-secret-key}
+      - DEL_INSTANCE=false
+      # Chrome Stability
+      - CHROME_ARGS=--no-sandbox --disable-setuid-sandbox --disable-gpu --disable-dev-shm-usage
+      # Database Config (Enabled for Production)
+      - "DATABASE_ENABLED=true"
+      - "DATABASE_PROVIDER=postgresql"
+      - "DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution_prod"
+      - "DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange"
+      # Cache Config
+      - "CACHE_REDIS_ENABLED=true"
+      - "CACHE_REDIS_URI=redis://redis:6379/2"
+      - "CACHE_REDIS_PREFIX=evolution_prod:"
+    networks:
+      - internal_net
+    profiles: ["production"]
+    ports:
+      - "127.0.0.1:8081:8080"
+
   # --- Infrastructure Services ---
   redis:
     image: redis:7-alpine

@@ -1,9 +1,9 @@
-import { config } from "../config";
+import { config } from "@/lib/config";
 
 const API_URL = config.api.baseUrl;
 
 export interface LinkResolveResponse {
-    valid: bool;
+    valid: boolean;
     type: string;
     tenant_name: string;
     tenant_avatar?: string;
@@ -22,6 +22,27 @@ export interface BookingRequest {
     email: string;
     phone?: string;
     notes?: string;
+}
+
+export interface EventTypeResolveResponse {
+    event_type: {
+        id: string;
+        title: string;
+        description?: string;
+        duration: number;
+        slug: string;
+        locations: any[];
+        scheduling_limits: {
+            max_advance_days: number;
+        };
+        confirmation_button?: {
+            enabled: boolean;
+            url?: string;
+            text?: string;
+        };
+    };
+    tenant_name: string;
+    tenant_avatar?: string;
 }
 
 export const publicApi = {

@@ -25,8 +25,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 // --- Components ---
 
-import { AvailabilityView } from "@/components/sales/availability-view";
-import { EventTypeView } from "@/components/sales/event-type-view";
+import { AvailabilityView } from "@/features/sales/components/availability-view";
+import { EventTypeView } from "@/features/sales/components/event-type-view";
 
 function PlaceholderContent({ title, icon: Icon }: { title: string, icon: any }) {
   return (

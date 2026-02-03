@@ -1,8 +1,13 @@
 # --- Global / Root ---
 # Environments (Secrets)
 .env
-.env.*
+.env.prod
+.env.dev
 .env.example
+*.env
+*.env.prod
+*.env.dev
+*.env.example
 
 # OS & System
 .DS_Store

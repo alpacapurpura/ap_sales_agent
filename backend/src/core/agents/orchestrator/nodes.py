@@ -188,9 +188,32 @@ def node_state_manager(state: AgentState):
             state["objection_type"] = decision["detected_intent"]
 
         # Check for Downsell/Exit
-        # TODO: Review if we need to handle this or another exit states
         if next_state == FunnelStage.DOWNSELL_EXIT.value:
-             state["disqualification_reason"] = decision.get("reason", "User opted out")
+             # 1. Fetch Current Product to find Downsell
+             from src.services.database import SessionLocal
+             from src.services.db.models.business import Product
+             
+             db = SessionLocal()
+             try:
+                 current_pid = state.get("product_id")
+                 if current_pid:
+                     product = db.query(Product).filter(Product.id == current_pid).first()
+                     
+                     if product and product.downsell_product_id:
+                         # SWITCH OFFER
+                         print(f"📉 DOWNSELL TRIGGERED: Switching from {product.name} to {product.downsell_product_id}")
+                         state["product_id"] = str(product.downsell_product_id)
+                         state["current_state"] = FunnelStage.PITCH.value # Reset to pitch
+                         state["active_strategy"] = "Downsell_Pivot"
+                     else:
+                         state["disqualification_reason"] = decision.get("reason", "User rejected offer and no downsell available.")
+                 else:
+                     state["disqualification_reason"] = decision.get("reason", "No product context.")
+             except Exception as e:
+                 print(f"Downsell Logic Error: {e}")
+                 state["disqualification_reason"] = "Error in downsell logic."
+             finally:
+                 db.close()
 
         # --- EPISODIC MEMORY GENERATION ---
         # Trigger summary if state changed OR every 5 turns to keep context fresh
@@ -483,7 +506,7 @@ def node_exit_point(state: AgentState):
         if state.get("user_profile"):
             user_repo.update_profile(user_id, state["user_profile"])
             
-        # 2. Persist Business State (Enrollment / Funnel)
+        # 2. Persist Business State (Journey / Funnel)
         # This handles stage updates, lead score, and disqualification
         # The logic is encapsulated in BusinessRepository to keep this node clean.
         biz_repo.persist_agent_state(user_id, state)

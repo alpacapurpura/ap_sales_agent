@@ -120,3 +120,12 @@ def get_tenant_context(
         pass
         
     return tenant_id
+
+def get_current_tenant_id(user: User = Depends(get_current_user)) -> str:
+    """
+    Returns the tenant_id as string for dependency injection.
+    Ensures user belongs to a tenant.
+    """
+    if not user.tenant_id:
+         raise HTTPException(status_code=403, detail="User has no tenant")
+    return str(user.tenant_id)
