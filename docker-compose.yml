@@ -48,8 +48,9 @@ services:
     env_file:
       - .env
     volumes:
-      # Only mount cache, NOT code
+      # Mount cache and static files for persistence
       - ./data/model_cache:/app/model_cache
+      - ./data/static:/app/static
     depends_on:
       - redis
       - qdrant
