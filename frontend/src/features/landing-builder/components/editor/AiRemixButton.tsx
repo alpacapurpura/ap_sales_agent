@@ -53,15 +53,15 @@ export function AiRemixButton({ offerId }: AiRemixButtonProps) {
             // Update Puck State
             dispatch({
                 type: "replace",
-                payload: {
+                destination: {
                     index: itemSelector.index,
                     zone: itemSelector.zone,
-                    data: {
-                        ...selectedBlock,
-                        props: {
-                            ...selectedBlock.props, // Keep ID and other internal props
-                            ...newProps // Overwrite content
-                        }
+                },
+                data: {
+                    ...selectedBlock,
+                    props: {
+                        ...selectedBlock.props, // Keep ID and other internal props
+                        ...newProps // Overwrite content
                     }
                 }
             });
