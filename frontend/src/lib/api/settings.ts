@@ -30,6 +30,27 @@ export interface SystemUserProfile {
   tenant: TenantProfile | null;
 }
 
+export interface BrandVisuals {
+  primary_color: string;
+  accent_color: string;
+  background_color?: string;
+  text_primary_color?: string;
+  text_on_primary?: string;
+  font_heading: string;
+  font_body: string;
+  design_style?: string;
+}
+
+export interface BrandStrategy {
+  unique_value_proposition?: string;
+  methodology_name?: string;
+}
+
+export interface BrandSettings {
+  visuals: BrandVisuals;
+  strategy: BrandStrategy;
+}
+
 export const settingsApi = {
   getGeneralSettings: async (token: string): Promise<GeneralSettings> => {
     const res = await fetch(`${API_URL}/api/v1/settings/general`, {
@@ -81,6 +102,16 @@ export const settingsApi = {
       },
     });
     if (!res.ok) throw new Error("Failed to fetch webhook settings");
+    return res.json();
+  },
+
+  getBrandSettings: async (token: string): Promise<BrandSettings> => {
+    const res = await fetch(`${API_URL}/api/v1/settings/brand`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error("Failed to fetch brand settings");
     return res.json();
   },
 

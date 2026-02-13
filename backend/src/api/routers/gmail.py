@@ -93,7 +93,7 @@ async def get_status(
     connection = db.query(ChannelConnection).filter(
         ChannelConnection.tenant_id == user.tenant_id,
         ChannelConnection.channel_type == 'gmail',
-        ChannelConnection.is_active == True
+        ChannelConnection.is_active.is_(True)
     ).first()
     
     if not connection:
@@ -134,7 +134,7 @@ async def test_connection(
     connection = db.query(ChannelConnection).filter(
         ChannelConnection.tenant_id == user.tenant_id,
         ChannelConnection.channel_type == 'gmail',
-        ChannelConnection.is_active == True
+        ChannelConnection.is_active.is_(True)
     ).first()
     
     if not connection or not connection.credentials:

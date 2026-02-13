@@ -135,6 +135,7 @@ services:
       target: dev
       args:
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: visionarias_client_dev
     restart: unless-stopped
     env_file:
@@ -175,6 +176,7 @@ services:
       target: runner
       args:
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: visionarias_client
     restart: unless-stopped
     env_file:

@@ -43,6 +43,11 @@ class AgentTrace(Base):
     input_state = Column(JSONB, default={}) # Snapshot of state BEFORE execution
     output_state = Column(JSONB, default={}) # Snapshot of state AFTER execution
     
+    # RL / Data Flywheel
+    action = Column(String, nullable=True) # e.g. "qualifier:ask_budget"
+    reward = Column(Float, nullable=True) # e.g. 1.0, -0.5
+    feedback = Column(Text, nullable=True) # Qualitative feedback
+    
     execution_time_ms = Column(Float, default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     

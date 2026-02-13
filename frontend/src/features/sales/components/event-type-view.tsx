@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { 
   EventType, 
@@ -29,17 +29,20 @@ import {
   Edit, 
   Trash2, 
   Clock,
-  Code
+  Code,
+  Link as LinkIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EventTypeSidebar } from "./event-type-form";
+import { GenerateLinkModal } from "./generate-link-modal";
 
 export function EventTypeView() {
   const { getToken } = useAuth();
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null);
+  const [selectedEventForLink, setSelectedEventForLink] = useState<EventType | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [availabilities, setAvailabilities] = useState<AvailabilitySchedule[]>([]);
   const [tenantSlug, setTenantSlug] = useState<string>("");
@@ -143,7 +146,7 @@ export function EventTypeView() {
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               <Settings2 className="h-6 w-6" />
-              Tipos de Cita
+              Citas Genéricas
             </CardTitle>
             <CardDescription>Crea eventos para que la gente reserve en tu calendario.</CardDescription>
           </div>
@@ -160,8 +163,7 @@ export function EventTypeView() {
               {eventTypes.map((et) => (
                 <Card 
                   key={et.id} 
-                  className="group cursor-pointer border hover:border-primary transition-all bg-background shadow-sm hover:shadow-md"
-                  onClick={() => handleEdit(et)}
+                  className="group border hover:border-primary transition-all bg-background shadow-sm hover:shadow-md"
                 >
                   <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between">
                     <div className="space-y-1 flex-1">
@@ -189,6 +191,16 @@ export function EventTypeView() {
                           />
                       </div>
                       
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mr-2 hidden md:flex gap-2"
+                        onClick={() => setSelectedEventForLink(et)}
+                      >
+                        <LinkIcon className="h-4 w-4" />
+                        Link Lead
+                      </Button>
+
                       <div className="flex items-center border rounded-md bg-background">
                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none border-r" onClick={() => window.open(`/book/${tenantSlug}/${et.slug}`, '_blank')}>
                               <ExternalLink className="h-4 w-4" />
@@ -244,6 +256,14 @@ export function EventTypeView() {
             fetchData();
         }}
       />
+      
+      {selectedEventForLink && (
+        <GenerateLinkModal
+            open={!!selectedEventForLink}
+            onOpenChange={(open) => !open && setSelectedEventForLink(null)}
+            eventSlug={selectedEventForLink.slug}
+        />
+      )}
     </>
   );
 }

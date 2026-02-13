@@ -1,9 +1,18 @@
 import { UseFormReturn } from "react-hook-form";
 import { OfferFormValues } from "../../types/schema";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OfferType, DeliveryModel } from "../../types/index";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { OfferType, OfferDeliveryModel as DeliveryModel } from "../../types";
+import { OFFER_TYPE_METADATA } from "../../types/offer-metadata";
+
+const DELIVERY_MODEL_DESCRIPTIONS: Record<string, string> = {
+  [DeliveryModel.DIY]: "Do It Yourself. El cliente implementa la solución por su cuenta con tus recursos.",
+  [DeliveryModel.DWY]: "Done With You. Colaboración activa entre tú y el cliente para lograr el resultado.",
+  [DeliveryModel.DFY]: "Done For You. Tú o tu equipo ejecutan todo el trabajo operativo por el cliente.",
+  [DeliveryModel.B2B]: "Business to Business. Soluciones corporativas diseñadas para empresas.",
+};
 
 interface StepProps {
   form: UseFormReturn<OfferFormValues>;
@@ -11,23 +20,8 @@ interface StepProps {
 
 export function IdentityStep({ form }: StepProps) {
   return (
-    <>
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="internal_sku"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>SKU Interno</FormLabel>
-              <FormControl>
-                <Input placeholder="MASTERMIND_Q1_2026" {...field} />
-              </FormControl>
-              <FormDescription>Identificador único para el sistema.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
+    <div className="space-y-6">
+      <div className="grid grid-cols-1">
         <FormField
           control={form.control}
           name="public_name"
@@ -44,58 +38,38 @@ export function IdentityStep({ form }: StepProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Oferta</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un tipo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(OfferType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.replace("_", " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>Define la naturaleza logística.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Card className="bg-background">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tipo de Oferta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              <Badge variant="outline" className="w-fit">
+                {OFFER_TYPE_METADATA[form.watch("type")]?.label || form.watch("type")}
+              </Badge>
+              <p className="text-sm text-muted-foreground">
+                {OFFER_TYPE_METADATA[form.watch("type")]?.description || "Descripción no disponible para este tipo."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-        <FormField
-          control={form.control}
-          name="delivery_model"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Modelo de Entrega</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona modelo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(DeliveryModel).map((model) => (
-                    <SelectItem key={model} value={model}>
-                      {model}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>Justifica el precio (DIY vs DFY).</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Card className="bg-background">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Modelo de Entrega</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              <Badge variant="outline" className="w-fit">
+                {form.watch("delivery_model") || "N/A"}
+              </Badge>
+              <p className="text-sm text-muted-foreground">
+                {DELIVERY_MODEL_DESCRIPTIONS[form.watch("delivery_model")] || "Descripción no disponible."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </>
+    </div>
   );
 }

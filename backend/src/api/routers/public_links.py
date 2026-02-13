@@ -10,7 +10,7 @@ from src.core.services.availability_service import AvailabilityService
 from src.core.services.event_type_service import EventTypeService
 from src.core.domain.event_type_schema import EventType
 from src.services.db.models.tenant import Tenant
-
+from src.services.db.models.business import BookingLink
 
 router = APIRouter()
 
@@ -29,6 +29,7 @@ class BookingRequest(BaseModel):
     email: EmailStr
     phone: Optional[str] = None
     notes: Optional[str] = None
+    booking_token: Optional[str] = None
 
 class EventTypeResolveResponse(BaseModel):
     event_type: EventType
@@ -36,7 +37,42 @@ class EventTypeResolveResponse(BaseModel):
     tenant_avatar: Optional[str] = None
     tenant_id: str
 
+class BookingLinkResolveResponse(BaseModel):
+    valid: bool
+    event_slug: str
+    lead_name: Optional[str] = None
+    lead_email: Optional[str] = None
+    lead_phone: Optional[str] = None
+    lead_id: str
+    expires_at: datetime.datetime
+
 # --- Endpoints ---
+
+@router.get("/booking-links/{token}", response_model=BookingLinkResolveResponse)
+def resolve_booking_link(token: str, db: Session = Depends(get_db)):
+    link = db.query(BookingLink).filter(
+        BookingLink.token == token,
+        BookingLink.status == 'ACTIVE'
+    ).first()
+    
+    if not link:
+         raise HTTPException(status_code=404, detail="Link invalid or expired")
+    
+    # Check expiration
+    if link.expires_at.replace(tzinfo=datetime.timezone.utc) < datetime.datetime.now(datetime.timezone.utc):
+        link.status = 'EXPIRED'
+        db.commit()
+        raise HTTPException(status_code=404, detail="Link expired")
+        
+    return BookingLinkResolveResponse(
+        valid=True,
+        event_slug=link.event_slug,
+        lead_name=link.lead.full_name if link.lead else None,
+        lead_email=link.lead.email if link.lead else None,
+        lead_phone=link.lead.phone if link.lead else None,
+        lead_id=str(link.lead_id),
+        expires_at=link.expires_at
+    )
 
 @router.get("/resolve/{token}", response_model=LinkResolveResponse)
 def resolve_link(token: str, db: Session = Depends(get_db)):
@@ -150,12 +186,40 @@ def book_event_type(
 
     av_service = AvailabilityService(db, tenant.id)
     
+    lead_id_override = None
+    
+    # Validate Booking Token if present
+    if payload.booking_token:
+        link = db.query(BookingLink).filter(
+            BookingLink.token == payload.booking_token,
+            BookingLink.status == 'ACTIVE'
+        ).first()
+        
+        if not link:
+             raise HTTPException(status_code=400, detail="Invalid booking token")
+             
+        # Check expiration (ensure UTC comparison)
+        if link.expires_at.replace(tzinfo=datetime.timezone.utc) < datetime.datetime.now(datetime.timezone.utc):
+            link.status = 'EXPIRED'
+            db.commit()
+            raise HTTPException(status_code=400, detail="Booking link expired")
+            
+        if link.event_slug != event_slug:
+             raise HTTPException(status_code=400, detail="Token does not match event type")
+             
+        lead_id_override = str(link.lead_id)
+        
+        # Mark as used
+        link.status = 'USED'
+        db.commit()
+
     lead_data = {
         "name": payload.name,
         "email": payload.email,
         "phone": payload.phone,
         "dealContext": f"Booking: {event_type.title}",
-        "notes": payload.notes
+        "notes": payload.notes,
+        "id": lead_id_override
     }
     
     try:

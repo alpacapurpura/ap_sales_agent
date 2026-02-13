@@ -149,7 +149,7 @@ class AuditRepository(BaseRepository):
             "llm_logs": llm_logs
         }
 
-    def create_trace(self, user_id, session_id, node_name, input_state, output_state, execution_time_ms) -> Optional[AgentTrace]:
+    def create_trace(self, user_id, session_id, node_name, input_state, output_state, execution_time_ms, action=None, reward=None, feedback=None) -> Optional[AgentTrace]:
         try:
             trace = AgentTrace(
                 lead_id=user_id,
@@ -157,7 +157,10 @@ class AuditRepository(BaseRepository):
                 node_name=node_name,
                 input_state=input_state,
                 output_state=output_state,
-                execution_time_ms=execution_time_ms
+                execution_time_ms=execution_time_ms,
+                action=action,
+                reward=reward,
+                feedback=feedback
             )
             self._set_tenant(trace)
             self.db.add(trace)

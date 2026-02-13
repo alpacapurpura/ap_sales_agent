@@ -19,6 +19,7 @@ class Product(Base):
     internal_sku = Column(String, nullable=True) # e.g., "MASTERMIND_Q1_2026"
     name = Column(String, nullable=False) # public_name
     type = Column(String, nullable=False) # Enum_Offer_Type
+    offer_value_level = Column(String, nullable=True) # N0-N6 (New)
     delivery_model = Column(String, nullable=True) # Enum_Delivery_Model (DIY, DWY, DFY)
     status = Column(String, default="active") # Enum_Status
     
@@ -27,6 +28,10 @@ class Product(Base):
     target_avatar_match = Column(JSONB, default=[]) # List<Enum_Avatar>
     primary_outcome = Column(String, nullable=True) # The tangible result
     time_to_value = Column(String, nullable=True) # e.g. "3 weeks"
+    
+    # --- 2.1 ACCESS & DURATION ---
+    access_duration = Column(String, nullable=True) # Enum_Access_Duration
+    access_duration_text = Column(String, nullable=True) # "1 Year", "Lifetime"
     
     # --- 3. GATEKEEPING ---
     requires_application = Column(Boolean, default=False)
@@ -51,6 +56,7 @@ class Product(Base):
     metadata_info = Column(JSONB, default={}) # vsl_link, checkout_url, calendar_type_id
     specific_details = Column(JSONB, default={}) # Holds polymorphic data (ProductDetails, ServiceDetails...)
     dates = Column(JSONB, default={}) # Launch dates
+    landing_page_config = Column(JSONB, default={}) # Landing Page Configuration
     
     # Avatar Override
     avatar_id = Column(UUID(as_uuid=True), ForeignKey("avatar_definitions.id"), nullable=True)
@@ -61,6 +67,50 @@ class Product(Base):
     
     journeys = relationship("JourneyProgress", back_populates="product")
     avatar = relationship("AvatarDefinition", back_populates="products")
+
+    @property
+    def marketing_pain_points(self):
+        return self.metadata_info.get("marketing_pain_points", [])
+
+    @marketing_pain_points.setter
+    def marketing_pain_points(self, value):
+        # Ensure metadata_info is a dict
+        if self.metadata_info is None:
+            self.metadata_info = {}
+        # Create a copy to trigger SQLAlchemy change detection
+        new_meta = dict(self.metadata_info)
+        new_meta["marketing_pain_points"] = value
+        self.metadata_info = new_meta
+
+    @property
+    def marketing_desires(self):
+        return self.metadata_info.get("marketing_desires", [])
+
+    @marketing_desires.setter
+    def marketing_desires(self, value):
+        if self.metadata_info is None:
+            self.metadata_info = {}
+        new_meta = dict(self.metadata_info)
+        new_meta["marketing_desires"] = value
+        self.metadata_info = new_meta
+
+    @property
+    def public_name(self):
+        """Alias for name to maintain compatibility with Offer interface"""
+        return self.name
+
+    @public_name.setter
+    def public_name(self, value):
+        self.name = value
+
+    @property
+    def price(self):
+        """Helper to get price from pricing JSON"""
+        # Default implementation, assumes first pricing option or 'price' key
+        if self.pricing and isinstance(self.pricing, dict):
+            return self.pricing.get('price', 'Not set')
+        return 'Not set'
+
 
 class JourneyProgress(Base):
     """
@@ -160,6 +210,25 @@ class MarketingAsset(Base):
 
     product = relationship("Product")
     documents = relationship("Document", back_populates="marketing_asset")
+
+class BookingLink(Base):
+    """
+    Traceable links for personalized booking.
+    """
+    __tablename__ = "booking_links"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=False)
+    
+    event_slug = Column(String, nullable=False)
+    token = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    status = Column(String, default="ACTIVE") # ACTIVE, USED, EXPIRED
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    lead = relationship("Lead")
 
 class Objection(Base):
     """

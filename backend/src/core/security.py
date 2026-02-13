@@ -25,14 +25,13 @@ except Exception as e:
     logger.warning(f"Could not initialize JWKS client: {e}")
     jwks_client = None
 
-def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+def verify_token_payload(token: str) -> dict:
     """
-    Verifies the Bearer Token extracted from the Authorization header against Clerk's JWKS.
+    Core verification logic, independent of FastAPI Depends.
     """
     if not CLERK_ISSUER:
          raise HTTPException(status_code=500, detail="Server misconfiguration: CLERK_ISSUER missing")
 
-    token = credentials.credentials
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)
         payload = jwt.decode(
@@ -43,10 +42,16 @@ def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(secu
             options={"verify_aud": False},
             leeway=60 # Add 60s leeway for clock skew
         )
-        return payload # Retorna el dict con user_id (sub), org_id, email, etc.
+        return payload
     except jwt.exceptions.PyJWTError as e:
         logger.error(f"JWT Validation Error: {e}")
         raise HTTPException(status_code=401, detail=f"Invalid Token: {str(e)}")
     except Exception as e:
         logger.error(f"Token Verification Error: {e}")
         raise HTTPException(status_code=401, detail="Could not verify credentials")
+
+def verify_clerk_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+    """
+    Verifies the Bearer Token extracted from the Authorization header against Clerk's JWKS.
+    """
+    return verify_token_payload(credentials.credentials)

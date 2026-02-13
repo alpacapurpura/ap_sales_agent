@@ -4,8 +4,14 @@ from typing import Optional, Dict, Any, List, Union
 import uuid
 from src.services.db.repositories.product import ProductRepository
 from src.services.database import SessionLocal
+from src.core.domain.offer_enums import OFFER_METADATA
 
 router = APIRouter()
+
+@router.get("/metadata/hints", response_model=Dict[str, Any])
+async def get_offer_metadata():
+    """Exposes business logic hints for UI components."""
+    return OFFER_METADATA
 
 def get_product_repo():
     db = SessionLocal()
@@ -26,8 +32,14 @@ class ProductResponse(BaseModel):
     headline_promise: Optional[str] = None
     primary_outcome: Optional[str] = None
     time_to_value: Optional[str] = None
+    access_duration: Optional[str] = None
+    access_duration_text: Optional[str] = None
+    support_duration_days: Optional[int] = None
     target_avatar_match: Optional[List[str]] = []
     
+    marketing_pain_points: Optional[List[str]] = []
+    marketing_desires: Optional[List[str]] = []
+
     requires_application: Optional[bool] = False
     min_financial_capacity: Optional[str] = None
     prerequisites: Optional[List[str]] = []
@@ -53,6 +65,15 @@ class ProductResponse(BaseModel):
     
     metadata_info: Optional[Dict[str, Any]] = {}
     avatar_id: Optional[uuid.UUID] = None
+    
+    # New fields for response
+    onboarding_action: Optional[str] = None
+    onboarding_url: Optional[str] = None
+    calendar_type_id: Optional[str] = None
+    checkout_page_url: Optional[str] = None
+    vsl_link: Optional[str] = None
+    
+    landing_page_config: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -71,7 +92,13 @@ class ProductUpdate(BaseModel):
     headline_promise: Optional[str] = None
     primary_outcome: Optional[str] = None
     time_to_value: Optional[str] = None
+    access_duration: Optional[str] = None
+    access_duration_text: Optional[str] = None
+    support_duration_days: Optional[int] = None
     target_avatar_match: Optional[List[str]] = None
+    
+    marketing_pain_points: Optional[List[str]] = None
+    marketing_desires: Optional[List[str]] = None
     
     requires_application: Optional[bool] = None
     min_financial_capacity: Optional[str] = None
@@ -91,6 +118,13 @@ class ProductUpdate(BaseModel):
     
     metadata_info: Optional[Dict[str, Any]] = None
     avatar_id: Optional[uuid.UUID] = None
+    
+    # New fields for onboarding logic
+    onboarding_action: Optional[str] = None
+    onboarding_url: Optional[str] = None
+    calendar_type_id: Optional[str] = None
+    checkout_page_url: Optional[str] = None
+    vsl_link: Optional[str] = None
 
 @router.get("/", response_model=List[ProductResponse])
 async def list_products(limit: int = 20, skip: int = 0, repo: ProductRepository = Depends(get_product_repo)):

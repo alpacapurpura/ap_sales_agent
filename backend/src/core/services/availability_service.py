@@ -8,7 +8,10 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from src.services.db.models.channel_connection import ChannelConnection
 from src.services.db.models.tenant import Tenant
+from src.services.db.models.business import Appointment
+from src.services.db.models.lead import Lead
 from src.channels.google_calendar import GoogleCalendarAdapter
+from src.channels.gmail import GmailAdapter
 from src.config import settings
 from src.core.domain.availability_schema import AvailabilitySchedule, WeeklySchedule, DaySchedule, TimeRange, ScheduleUpdate
 from src.core.domain.event_type_schema import EventType
@@ -27,7 +30,7 @@ class AvailabilityService:
         stmt = select(ChannelConnection).where(
             ChannelConnection.tenant_id == self.tenant_id,
             ChannelConnection.channel_type == 'google_calendar',
-            ChannelConnection.is_active == True
+            ChannelConnection.is_active.is_(True)
         )
         connection = self.db.execute(stmt).scalar_one_or_none()
         
@@ -35,6 +38,19 @@ class AvailabilityService:
             return None
             
         return GoogleCalendarAdapter(credentials_data=connection.credentials)
+
+    def _get_gmail_adapter(self) -> Optional[GmailAdapter]:
+        stmt = select(ChannelConnection).where(
+            ChannelConnection.tenant_id == self.tenant_id,
+            ChannelConnection.channel_type == 'gmail',
+            ChannelConnection.is_active.is_(True)
+        )
+        connection = self.db.execute(stmt).scalar_one_or_none()
+        
+        if not connection or not connection.credentials:
+            return None
+            
+        return GmailAdapter(credentials_data=connection.credentials)
 
     def is_connected(self) -> bool:
         return self.adapter is not None
@@ -272,6 +288,47 @@ class AvailabilityService:
             end_time=end_time,
             attendees=[lead_data.get('email')] if lead_data.get('email') else []
         )
+
+        # --- Persistence Logic ---
+        try:
+            lead_id = lead_data.get('id')
+            
+            # Find or Create Lead if not provided
+            if not lead_id and lead_data.get('email'):
+                existing_lead = self.db.query(Lead).filter(
+                    Lead.tenant_id == self.tenant_id,
+                    Lead.email == lead_data.get('email')
+                ).first()
+                
+                if existing_lead:
+                    lead_id = existing_lead.id
+                else:
+                    # Create new lead
+                    new_lead = Lead(
+                        tenant_id=self.tenant_id,
+                        full_name=lead_data.get('name'),
+                        email=lead_data.get('email'),
+                        phone=lead_data.get('phone')
+                    )
+                    self.db.add(new_lead)
+                    self.db.flush() # Get ID
+                    lead_id = new_lead.id
+            
+            if lead_id:
+                appointment = Appointment(
+                    tenant_id=self.tenant_id,
+                    lead_id=lead_id,
+                    scheduled_at=slot_time,
+                    status='scheduled',
+                    meeting_link=event.get('htmlLink')
+                )
+                self.db.add(appointment)
+                self.db.commit()
+            else:
+                logger.warning("Appointment created without Lead linkage (no email/id)")
+
+        except Exception as e:
+            logger.error(f"Failed to persist appointment in DB: {e}")
 
         # Send Email if Gmail connected
         gmail_adapter = self._get_gmail_adapter()

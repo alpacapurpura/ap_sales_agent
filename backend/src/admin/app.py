@@ -760,6 +760,18 @@ def render_prompt_manager():
 
     st.markdown("Visualiza y edita los prompts del sistema en caliente.")
     db = SessionLocal()
+    
+    # Fix: Select Tenant Context for Prompts
+    tenants = db.query(Tenant).all()
+    if not tenants:
+        st.error("No hay clientes (tenants) registrados para gestionar prompts.")
+        db.close()
+        return
+
+    tenant_options = {t.name: t.id for t in tenants}
+    selected_tenant_name = st.selectbox("Seleccionar Cliente (Contexto)", list(tenant_options.keys()))
+    current_tenant_id = tenant_options[selected_tenant_name]
+
     try:
         keys = db.scalars(
         select(PromptVersion.key)

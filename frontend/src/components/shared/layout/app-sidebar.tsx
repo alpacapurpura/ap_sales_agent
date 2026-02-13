@@ -35,7 +35,7 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Sobre la Marca",
+    title: "Brand Studio",
     href: "/brand-settings",
     icon: Building2,
   },

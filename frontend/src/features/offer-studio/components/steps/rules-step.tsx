@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { GuaranteeType } from "../../types/index";
+import { GuaranteeType, FinancialCapacity } from "../../types";
 import { Plus, Trash2, RefreshCcw } from "lucide-react";
 
 interface StepProps {
@@ -19,20 +19,20 @@ export function RulesStep({ form }: StepProps) {
   // But we can use a workaround or just manage via state if simpler. 
   // Let's stick to simple manual array management for strings to avoid object wrapper complexity in schema
   
-  const prerequisites = form.watch("prerequisites");
+  const prerequisites = form.watch("prerequisites") || [];
 
   const addPrerequisite = () => {
-    const current = form.getValues("prerequisites");
+    const current = form.getValues("prerequisites") || [];
     form.setValue("prerequisites", [...current, ""]);
   };
 
   const removePrerequisite = (index: number) => {
-    const current = form.getValues("prerequisites");
+    const current = form.getValues("prerequisites") || [];
     form.setValue("prerequisites", current.filter((_, i) => i !== index));
   };
 
   const updatePrerequisite = (index: number, value: string) => {
-    const current = form.getValues("prerequisites");
+    const current = form.getValues("prerequisites") || [];
     current[index] = value;
     form.setValue("prerequisites", [...current]); // Trigger re-render
   };
@@ -79,9 +79,18 @@ export function RulesStep({ form }: StepProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Capacidad Financiera Mínima (Filtro)</FormLabel>
-              <FormControl>
-                <Input placeholder="SOLVENT (Ej. >$3k/mes)" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona capacidad" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(FinancialCapacity).map((cap) => (
+                    <SelectItem key={cap} value={cap}>{cap}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormDescription>Debe coincidir con la clasificación del Lead.</FormDescription>
               <FormMessage />
             </FormItem>

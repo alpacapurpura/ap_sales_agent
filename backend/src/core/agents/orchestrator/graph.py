@@ -8,7 +8,8 @@ from src.core.agents.orchestrator.nodes import (
     # node_response_generation, # Replaced by Sales Swarm
     node_safety_layer,
     node_exit_point,
-    node_critic
+    node_critic,
+    node_evaluator
 )
 
 def route_logic(state: AgentState):
@@ -42,6 +43,7 @@ def create_agent_graph():
     workflow.add_node("generator", sales_app) # Sales Swarm Subgraph
     workflow.add_node("critic", node_critic) # REFLEXION
     workflow.add_node("safety_layer", node_safety_layer) # Renamed from 'financial'
+    workflow.add_node("evaluator", node_evaluator) # Scoring & RL Data
     workflow.add_node("exit_point", node_exit_point) # Final persistence layer
     
     # Edges
@@ -77,8 +79,9 @@ def create_agent_graph():
         }
     )
     
-    # Safety Layer -> Exit Point (Persistence)
-    workflow.add_edge("safety_layer", "exit_point")
+    # Safety Layer -> Evaluator -> Exit Point (Persistence)
+    workflow.add_edge("safety_layer", "evaluator")
+    workflow.add_edge("evaluator", "exit_point")
     
     # Exit Point -> END
     workflow.add_edge("exit_point", END)

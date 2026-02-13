@@ -10,6 +10,16 @@ export interface LinkResolveResponse {
     params: Record<string, any>;
 }
 
+export interface BookingLinkResolveResponse {
+    valid: boolean;
+    event_slug: string;
+    lead_name?: string;
+    lead_email?: string;
+    lead_phone?: string;
+    lead_id: string;
+    expires_at: string;
+}
+
 export interface Slot {
     start: string; // ISO String
     end: string;
@@ -22,6 +32,7 @@ export interface BookingRequest {
     email: string;
     phone?: string;
     notes?: string;
+    booking_token?: string;
 }
 
 export interface EventTypeResolveResponse {
@@ -53,6 +64,17 @@ export const publicApi = {
         if (!res.ok) {
             if (res.status === 404) throw new Error("Link not found");
             throw new Error("Failed to resolve link");
+        }
+        return res.json();
+    },
+
+    resolveBookingLink: async (token: string): Promise<BookingLinkResolveResponse> => {
+        const res = await fetch(`${API_URL}/api/v1/public/booking-links/${token}`, {
+            cache: 'no-store'
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Link not found or expired");
         }
         return res.json();
     },

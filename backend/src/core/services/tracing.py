@@ -74,6 +74,16 @@ def trace_node(node_name: str):
                 if trace:
                     trace.output_state = output_snapshot
                     trace.execution_time_ms = execution_time
+                    
+                    # RL / Data Flywheel Extraction
+                    if isinstance(result_state, dict):
+                         if "action" in result_state:
+                             trace.action = result_state["action"]
+                         if "reward" in result_state:
+                             trace.reward = result_state["reward"]
+                         if "feedback" in result_state:
+                             trace.feedback = result_state["feedback"]
+                             
                     repo.db.commit()
             except Exception as e:
                 logger.error(f"TRACING FINALIZE ERROR in {node_name}: {e}")

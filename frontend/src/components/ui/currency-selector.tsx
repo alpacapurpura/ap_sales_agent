@@ -24,16 +24,18 @@ interface CurrencySelectorProps {
   value: string;
   onValueChange: (value: string) => void;
   className?: string;
+  currencies?: Currency[];
 }
 
 export function CurrencySelector({
   value,
   onValueChange,
   className,
+  currencies = CURRENCIES,
 }: CurrencySelectorProps) {
   const [open, setOpen] = React.useState(false);
 
-  const selectedCurrency = CURRENCIES.find((c) => c.code === value);
+  const selectedCurrency = currencies.find((c) => c.code === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -64,7 +66,7 @@ export function CurrencySelector({
           <CommandList>
             <CommandEmpty>No currency found.</CommandEmpty>
             <CommandGroup>
-              {CURRENCIES.map((currency) => (
+              {currencies.map((currency) => (
                 <CommandItem
                   key={currency.code}
                   value={currency.code}

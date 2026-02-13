@@ -4,33 +4,35 @@ import { UseFormReturn } from "react-hook-form";
 import { OfferFormValues } from "../../types/schema";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ProductFormat } from "../../types/index";
+import { Switch } from "@/components/ui/switch";
+import { FulfillmentType } from "../../types/schema";
+import { RichSelect } from "@/components/ui/rich-select";
+import { 
+  FULFILLMENT_TYPE_METADATA, 
+  DIGITAL_FORMAT_METADATA, 
+  getEnumOptions 
+} from "../../types/enum-metadata";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function ProductDetailsForm({ form }: { form: UseFormReturn<OfferFormValues> }) {
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-medium">Logística del Producto</h3>
-      
-      <div className="grid grid-cols-2 gap-4">
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-6">
+          <h3 className="text-lg font-medium">Logística del Producto</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="specific_details.format"
+          name="specific_details.fulfillment_type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Formato</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value as string}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona formato" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(ProductFormat).map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Tipo de Entrega</FormLabel>
+              <RichSelect 
+                options={getEnumOptions(FULFILLMENT_TYPE_METADATA)}
+                value={field.value as string}
+                onValueChange={field.onChange}
+              />
               <FormMessage />
             </FormItem>
           )}
@@ -38,10 +40,42 @@ export function ProductDetailsForm({ form }: { form: UseFormReturn<OfferFormValu
         
         <FormField
           control={form.control}
-          name="specific_details.stock_quantity"
+          name="specific_details.format"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Stock Disponible</FormLabel>
+              <FormLabel>Formato Digital</FormLabel>
+              <RichSelect 
+                options={getEnumOptions(DIGITAL_FORMAT_METADATA)}
+                value={field.value as string}
+                onValueChange={field.onChange}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="specific_details.access_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>URL de Acceso</FormLabel>
+              <FormControl>
+                <Input placeholder="https://..." {...field} value={field.value as string || ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="specific_details.estimated_consumption_time_minutes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Minutos Estimados</FormLabel>
               <FormControl>
                 <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} value={field.value as number || 0} />
               </FormControl>
@@ -51,54 +85,58 @@ export function ProductDetailsForm({ form }: { form: UseFormReturn<OfferFormValu
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-         <FormField
-          control={form.control}
-          name="specific_details.file_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Archivo (Digital)</FormLabel>
-              <FormControl>
-                <Input placeholder="PDF, MP4, ZIP" {...field} value={field.value as string || ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="specific_details.access_link"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Link de Acceso/Descarga</FormLabel>
-              <FormControl>
-                <Input placeholder="https://..." {...field} value={field.value as string || ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-       <FormField
-          control={form.control}
-          name="specific_details.shipping_zones"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Zonas de Envío (Físico)</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="USA, MEX, LATAM (Separados por coma)" 
-                  value={(field.value as string[] || []).join(", ")}
-                  onChange={(e) => field.onChange(e.target.value.split(",").map(s => s.trim()))}
-                />
-              </FormControl>
-              <FormDescription>Dejar vacío si es 100% digital.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-    </div>
+      {form.watch("specific_details.fulfillment_type") === FulfillmentType.PHYSICAL_SHIPPING && (
+        <div className="border p-4 rounded-md space-y-4 bg-muted/20">
+          <h4 className="font-medium text-sm text-muted-foreground">Logística Física</h4>
+          <div className="grid grid-cols-2 gap-4">
+             <FormField
+              control={form.control}
+              name="specific_details.requires_shipping"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-background">
+                  <div className="space-y-0.5">
+                    <FormLabel>Requiere Envío</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value as boolean}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="specific_details.stock_quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Stock</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} value={field.value as number || 0} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormField
+            control={form.control}
+            name="specific_details.sku_inventory_code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>SKU Interno</FormLabel>
+                <FormControl>
+                  <Input placeholder="MERCH-001" {...field} value={field.value as string || ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

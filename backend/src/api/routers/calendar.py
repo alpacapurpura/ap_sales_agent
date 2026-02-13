@@ -11,6 +11,9 @@ from src.api.dependencies import get_current_user
 from src.services.db.models.user import User
 from src.services.db.models.channel_connection import ChannelConnection
 from src.services.db.models.link import ShareableLink
+from src.services.db.models.business import BookingLink
+from src.services.db.models.lead import Lead
+import secrets
 from src.channels.google_calendar import GoogleCalendarAdapter
 from src.core.services.availability_service import AvailabilityService
 from src.core.services.link_service import LinkService
@@ -37,6 +40,11 @@ class AppointmentResponse(BaseModel):
     end: datetime.datetime
     meet_link: Optional[str] = None
     attendees: List[str] = []
+
+class CreateBookingLinkRequest(BaseModel):
+    lead_id: str
+    event_slug: str
+    expiration_days: int = 7
     
 # --- Endpoints ---
 
@@ -112,14 +120,14 @@ async def get_status(
     connection = db.query(ChannelConnection).filter(
         ChannelConnection.tenant_id == user.tenant_id,
         ChannelConnection.channel_type == 'google_calendar',
-        ChannelConnection.is_active == True
+        ChannelConnection.is_active.is_(True)
     ).first()
     
     # Get active booking link
     stmt = select(ShareableLink).where(
         ShareableLink.tenant_id == user.tenant_id,
         ShareableLink.target_type == 'booking',
-        ShareableLink.is_active == True
+        ShareableLink.is_active.is_(True)
     ).order_by(ShareableLink.created_at.desc())
     link = db.execute(stmt).scalars().first()
     
@@ -156,6 +164,45 @@ async def create_booking_link(
     
     return {"token": link.token, "url": f"/visit/{link.token}"}
 
+@router.post("/personalized-link")
+async def create_personalized_link(
+    payload: CreateBookingLinkRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    """
+    Generate a personalized booking link for a specific lead.
+    """
+    # Validate lead exists
+    lead = db.query(Lead).filter(Lead.id == payload.lead_id, Lead.tenant_id == user.tenant_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+        
+    # Generate token
+    token = secrets.token_urlsafe(16)
+    expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=payload.expiration_days)
+    
+    link = BookingLink(
+        tenant_id=user.tenant_id,
+        lead_id=payload.lead_id,
+        event_slug=payload.event_slug,
+        token=token,
+        expires_at=expires_at,
+        status="ACTIVE"
+    )
+    db.add(link)
+    db.commit()
+    db.refresh(link)
+    
+    # Construct URL
+    tenant_slug = user.tenant.slug if user.tenant else "unknown"
+    
+    return {
+        "token": link.token,
+        "url": f"/book/{tenant_slug}/{payload.event_slug}?token={link.token}",
+        "expires_at": link.expires_at
+    }
+
 @router.delete("/disconnect")
 async def disconnect(
     db: Session = Depends(get_db),
@@ -186,7 +233,7 @@ async def test_connection(
     connection = db.query(ChannelConnection).filter(
         ChannelConnection.tenant_id == user.tenant_id,
         ChannelConnection.channel_type == 'google_calendar',
-        ChannelConnection.is_active == True
+        ChannelConnection.is_active.is_(True)
     ).first()
     
     if not connection or not connection.credentials:

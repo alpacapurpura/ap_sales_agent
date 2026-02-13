@@ -7,7 +7,11 @@ import {
   BrandIdentity, 
   KeyFigure, 
   AuthorityItem, 
-  ContactData 
+  ContactData,
+  BrandVisuals,
+  BrandStrategy,
+  BrandStory,
+  TestimonialItem
 } from "@/lib/api/brand";
 
 export function useBrandSettings() {
@@ -21,6 +25,20 @@ export function useBrandSettings() {
       const token = await getToken();
       if (!token) return;
       const data = await brandApi.getBrandSettings(token);
+      // Ensure visuals object exists if backend returns incomplete data (migration)
+      if (!data.visuals) {
+          data.visuals = {
+              primary_color: "#0f172a",
+              accent_color: "#3b82f6",
+              font_heading: "Inter",
+              font_body: "Inter",
+              background_color: "#ffffff",
+              text_primary_color: "#0f172a",
+              text_on_primary: "#ffffff",
+              design_style: "Minimalista",
+              usage_guidelines: []
+          };
+      }
       setSettings(data);
     } catch (error) {
       console.error("Error fetching brand settings:", error);
@@ -47,6 +65,25 @@ export function useBrandSettings() {
       toast.success("Identidad corporativa actualizada.");
     } catch (error) {
         console.error("Error saving identity:", error);
+      toast.error("No se pudo guardar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateVisuals = async (visuals: BrandVisuals) => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      
+      const newSettings = { ...settings, visuals };
+      const updated = await brandApi.updateBrandSettings(newSettings, token);
+      setSettings(updated);
+      toast.success("Identidad visual actualizada.");
+    } catch (error) {
+        console.error("Error saving visuals:", error);
       toast.error("No se pudo guardar.");
     } finally {
       setSaving(false);
@@ -110,6 +147,63 @@ export function useBrandSettings() {
     }
   };
 
+  const updateStrategy = async (strategy: BrandStrategy) => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      
+      const newSettings = { ...settings, strategy };
+      const updated = await brandApi.updateBrandSettings(newSettings, token);
+      setSettings(updated);
+      toast.success("Estrategia actualizada.");
+    } catch (error) {
+        console.error("Error saving strategy:", error);
+      toast.error("No se pudo guardar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateStory = async (story: BrandStory) => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      
+      const newSettings = { ...settings, story };
+      const updated = await brandApi.updateBrandSettings(newSettings, token);
+      setSettings(updated);
+      toast.success("Historia actualizada.");
+    } catch (error) {
+        console.error("Error saving story:", error);
+      toast.error("No se pudo guardar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateTestimonials = async (testimonials: TestimonialItem[]) => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      
+      const newSettings = { ...settings, testimonials };
+      const updated = await brandApi.updateBrandSettings(newSettings, token);
+      setSettings(updated);
+      toast.success("Testimonios actualizados.");
+    } catch (error) {
+        console.error("Error saving testimonials:", error);
+      toast.error("No se pudo guardar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return {
     settings,
     loading,
@@ -118,6 +212,10 @@ export function useBrandSettings() {
     updateTeam,
     updateVault,
     updateContact,
+    updateVisuals,
+    updateStrategy,
+    updateStory,
+    updateTestimonials,
     refetch: fetchSettings
   };
 }

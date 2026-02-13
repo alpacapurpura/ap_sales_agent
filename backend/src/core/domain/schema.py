@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, Any, Dict, Literal
+from typing import Optional, Any, Dict, Literal, List
 from enum import Enum
 from .lead_enums import FinancialCapacity, SophisticationLevel, AuthorityLevel, LeadTemperature, AvatarPersona, PipelineStage
 
@@ -142,11 +142,13 @@ class GeneralSettings(BaseModel):
     General Tenant Configuration (e.g. currency, timezone).
     """
     default_currency: str = Field("USD", description="Default currency code (ISO 4217)")
+    timezone: str = Field("UTC", description="Default timezone (e.g. America/Lima)")
 
 class TenantProfile(BaseModel):
     id: str
     name: str
     slug: str
+    timezone: str = "UTC"
 
 class SystemUserProfile(BaseModel):
     """
@@ -162,3 +164,26 @@ class GeneralSettingsUpdate(BaseModel):
     Request model for updating General Settings.
     """
     default_currency: str
+    timezone: str
+
+class BrandIdentity(BaseModel):
+    """
+    Extracted visual identity of a brand.
+    Expanded to capture a basic Design System.
+    """
+    # --- Core Colors ---
+    primary_color: str = Field(..., description="Main brand color (hex code e.g., #FF0000). Look for 'background-color' or 'color' styles on primary buttons, headers, or logos.")
+    accent_color: str = Field(..., description="Secondary/Accent color (hex code). Look for call-to-action buttons, highlights, or links.")
+    
+    # --- Extended Palette ---
+    background_color: str = Field("#FFFFFF", description="Main page background color (usually white or very light gray). Found in body or main container.")
+    text_primary_color: str = Field("#000000", description="Main text color (usually black or very dark gray). Found in body or p tags.")
+    text_on_primary: str = Field("#FFFFFF", description="Text color to use on top of primary color elements (accessibility). Check button text colors.")
+    
+    # --- Typography ---
+    font_heading: Optional[str] = Field(None, description="Font family used for headings (h1, h2).")
+    font_body: Optional[str] = Field(None, description="Font family used for body text.")
+    
+    # --- Context & Rules ---
+    design_style: str = Field(..., description="Brief style description (e.g., 'Minimalist, Clean, Corporate', 'Vibrant, Playful', 'Luxury, Dark Mode'). Infer from colors and font choices.")
+    usage_guidelines: List[str] = Field(default_factory=list, description="Inferred rules for using the visual assets (e.g., 'Use primary color for buttons', 'Headers are dark', 'Cards have shadows').")

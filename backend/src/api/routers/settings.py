@@ -33,7 +33,8 @@ async def get_general_settings(
         
     config = tenant.config_json or {}
     return GeneralSettings(
-        default_currency=config.get("default_currency", "USD")
+        default_currency=config.get("default_currency", "USD"),
+        timezone=config.get("timezone", "UTC")
     )
 
 @router.patch("/general", response_model=GeneralSettings)
@@ -55,6 +56,7 @@ async def update_general_settings(
     # Update config_json
     current_config = dict(tenant.config_json) if tenant.config_json else {}
     current_config["default_currency"] = settings.default_currency
+    current_config["timezone"] = settings.timezone
     
     # Reassign to trigger SQLAlchemy detection (if using MutableDict it's auto, but safer this way)
     tenant.config_json = current_config
@@ -63,7 +65,8 @@ async def update_general_settings(
     db.refresh(tenant)
     
     return GeneralSettings(
-        default_currency=tenant.config_json.get("default_currency", "USD")
+        default_currency=tenant.config_json.get("default_currency", "USD"),
+        timezone=tenant.config_json.get("timezone", "UTC")
     )
 
 @router.get("/ai", response_model=AISettings)
@@ -99,10 +102,12 @@ async def get_user_profile(
     if current_user.tenant_id:
         tenant = db.query(Tenant).filter(Tenant.id == current_user.tenant_id).first()
         if tenant:
+            config = tenant.config_json or {}
             tenant_profile = TenantProfile(
                 id=str(tenant.id),
                 name=tenant.name,
-                slug=tenant.slug
+                slug=tenant.slug,
+                timezone=config.get("timezone", "UTC")
             )
             
     return SystemUserProfile(

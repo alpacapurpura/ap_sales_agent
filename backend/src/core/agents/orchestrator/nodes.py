@@ -1,4 +1,5 @@
 from src.core.agents.orchestrator.state import AgentState
+from src.core.agents.orchestrator.prompts import EVALUATOR_PROMPT
 from src.core.domain.schema import FunnelStage, UserProfile
 # from src.services.database import redis_client # Removed to save RAM
 from src.core.prompts.base import prompt_loader
@@ -481,6 +482,76 @@ async def node_safety_layer(state: AgentState):
         # Fail safe: Return original state if safety layer crashes
         # (Or could return a generic error message if strict security is required)
         return state
+
+@trace_node("evaluator")
+def node_evaluator(state: AgentState):
+    """
+    Evaluator Node (Separation of Concerns).
+    Scores the lead and updates the funnel stage based on the COMPLETED interaction.
+    Does NOT generate new messages for the user.
+    """
+    messages = state.get("messages", [])
+    if len(messages) < 2:
+        return state # Need at least User + Agent pair
+
+    last_agent_msg = messages[-1]
+    last_user_msg = messages[-2]
+    
+    agent_content = last_agent_msg.get("content") if isinstance(last_agent_msg, dict) else getattr(last_agent_msg, "content", "")
+    user_content = last_user_msg.get("content") if isinstance(last_user_msg, dict) else getattr(last_user_msg, "content", "")
+
+    # Format Prompt
+    prompt = EVALUATOR_PROMPT.format(
+        current_stage=state.get("current_state", "rapport"),
+        current_score=state.get("lead_score", 0),
+        last_user_message=user_content,
+        last_agent_message=agent_content
+    )
+
+    try:
+        # Call LLM (Fast is fine for scoring)
+        response_json = LLMFactory.get_service().generate_response(
+            messages=[],
+            system_prompt=prompt,
+            model_type="fast",
+            temperature=0.0,
+            max_output_tokens=500
+        )
+        
+        # Parse JSON
+        cleaned_json = response_json.replace("```json", "").replace("```", "").strip()
+        try:
+            data = json.loads(cleaned_json)
+        except json.JSONDecodeError:
+            # Try to find JSON in text
+            match = re.search(r"\{.*\}", cleaned_json, re.DOTALL)
+            if match:
+                data = json.loads(match.group(0))
+            else:
+                raise ValueError("No JSON found")
+        
+        # Calculate Updates
+        score_delta = data.get("lead_score_delta", 0)
+        current_score = state.get("lead_score", 0)
+        new_score = current_score + score_delta
+        
+        updates = {
+            "lead_score": new_score,
+            # RL Data Flywheel
+            "action": "evaluator:score",
+            "reward": float(score_delta), # Use delta as proxy for immediate reward
+            "feedback": data.get("reasoning", "")
+        }
+        
+        # Update Stage if changed
+        if data.get("new_stage"):
+            updates["current_state"] = data["new_stage"]
+            
+        return updates
+        
+    except Exception as e:
+        print(f"EVALUATOR ERROR: {e}")
+        return {"action": "evaluator:error", "feedback": str(e)}
 
 @trace_node("exit_point")
 def node_exit_point(state: AgentState):

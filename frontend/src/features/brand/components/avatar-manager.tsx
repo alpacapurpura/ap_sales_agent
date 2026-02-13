@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { Plus, Users, Star, Edit, Trash2, CheckCircle2, Settings2 } from "lucide-react";
@@ -14,10 +15,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AvatarForm } from "@/features/brand/components/avatars/avatar-form";
 
 export function AvatarManager() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { getToken } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingAvatar, setEditingAvatar] = useState<Avatar | null>(null);
 
   const { data: avatars, isLoading, isError } = useQuery({
     queryKey: ["avatars"],
@@ -50,7 +51,6 @@ export function AvatarManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["avatars"] });
-      setIsDialogOpen(false);
       toast.success("Avatar actualizado exitosamente");
     },
     onError: () => toast.error("Error al actualizar el avatar"),
@@ -81,21 +81,17 @@ export function AvatarManager() {
   });
 
   const handleOpenNew = () => {
-    setEditingAvatar(null);
     setIsDialogOpen(true);
   };
 
   const handleOpenEdit = (avatar: Avatar) => {
-    setEditingAvatar(avatar);
-    setIsDialogOpen(true);
+    // Navigate to dedicated edit page with callbackUrl back to this settings tab
+    const currentPath = window.location.pathname + window.location.search;
+    router.push(`/avatars/${avatar.id}/edit?callbackUrl=${encodeURIComponent(currentPath)}`);
   };
 
   const handleFormSubmit = async (data: CreateAvatarDTO) => {
-    if (editingAvatar) {
-      await updateMutation.mutateAsync({ id: editingAvatar.id, data });
-    } else {
-      await createMutation.mutateAsync(data);
-    }
+    await createMutation.mutateAsync(data);
   };
 
   if (isLoading) {
@@ -229,13 +225,11 @@ export function AvatarManager() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
-            <DialogTitle>{editingAvatar ? "Editar Avatar" : "Nuevo Avatar"}</DialogTitle>
+            <DialogTitle>Nuevo Avatar</DialogTitle>
           </DialogHeader>
           <AvatarForm 
-            key={editingAvatar?.id || 'new'}
-            initialData={editingAvatar || undefined}
             onSubmit={handleFormSubmit}
-            isSubmitting={createMutation.isPending || updateMutation.isPending}
+            isSubmitting={createMutation.isPending}
             embedded={true}
           />
         </DialogContent>

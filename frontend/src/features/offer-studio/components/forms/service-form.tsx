@@ -4,45 +4,80 @@ import { UseFormReturn } from "react-hook-form";
 import { OfferFormValues } from "../../types/schema";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ServiceCapacity } from "../../types/index";
+import { ServiceCategory } from "../../types/schema";
+import { RichSelect } from "@/components/ui/rich-select";
+import { 
+  SERVICE_CATEGORY_METADATA, 
+  SERVICE_FREQUENCY_METADATA, 
+  INTERACTION_MODE_METADATA, 
+  getEnumOptions 
+} from "../../types/enum-metadata";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function ServiceDetailsForm({ form }: { form: UseFormReturn<OfferFormValues> }) {
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-medium">Gestión de Servicio</h3>
-      
-      <div className="grid grid-cols-2 gap-4">
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-6">
+          <h3 className="text-lg font-medium">Gestión de Servicio</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="specific_details.capacity_status"
+          name="specific_details.category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Estado de Capacidad</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value as string}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(ServiceCapacity).map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Categoría</FormLabel>
+              <RichSelect 
+                options={getEnumOptions(SERVICE_CATEGORY_METADATA)}
+                value={field.value as string}
+                onValueChange={field.onChange}
+              />
               <FormMessage />
             </FormItem>
           )}
         />
          <FormField
           control={form.control}
-          name="specific_details.max_concurrent_clients"
+          name="specific_details.frequency_type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cupo Máximo</FormLabel>
+              <FormLabel>Frecuencia</FormLabel>
+              <RichSelect 
+                options={getEnumOptions(SERVICE_FREQUENCY_METADATA)}
+                value={field.value as string}
+                onValueChange={field.onChange}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="specific_details.interaction_mode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Modo de Interacción</FormLabel>
+              <RichSelect 
+                options={getEnumOptions(INTERACTION_MODE_METADATA)}
+                value={field.value as string}
+                onValueChange={field.onChange}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="specific_details.booking_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Link de Agenda</FormLabel>
               <FormControl>
-                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} value={field.value as number || 0} />
+                <Input placeholder="https://calendly.com/..." {...field} value={field.value as string || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -51,21 +86,6 @@ export function ServiceDetailsForm({ form }: { form: UseFormReturn<OfferFormValu
       </div>
 
       <FormField
-        control={form.control}
-        name="specific_details.onboarding_timeline"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Timeline de Onboarding</FormLabel>
-            <FormControl>
-              <Input placeholder="Kickoff call en 48h, primer entregable día 14" {...field} value={field.value as string || ""} />
-            </FormControl>
-            <FormDescription>Define las expectativas iniciales.</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-       <FormField
         control={form.control}
         name="specific_details.deliverables_list"
         render={({ field }) => (
@@ -82,6 +102,55 @@ export function ServiceDetailsForm({ form }: { form: UseFormReturn<OfferFormValu
           </FormItem>
         )}
       />
-    </div>
+      
+      {form.watch("specific_details.category") === ServiceCategory.DONE_FOR_YOU_AGENCY && (
+         <div className="border p-4 rounded-md space-y-4 bg-muted/20">
+            <h4 className="font-medium text-sm text-muted-foreground">Lógica de Agencia</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="specific_details.turnaround_time_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Días de Entrega (SLA)</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} value={field.value as number || 0} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="specific_details.revision_rounds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rondas de Cambios</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} value={field.value as number || 0} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="specific_details.onboarding_brief_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link al Brief de Inicio</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://tally.so/..." {...field} value={field.value as string || ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+         </div>
+      )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

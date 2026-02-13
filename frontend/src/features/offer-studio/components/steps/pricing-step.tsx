@@ -43,7 +43,7 @@ export function PricingStep({ form }: StepProps) {
             variant="outline" 
             size="sm"
             onClick={() => append({ 
-              label: "Nuevo Plan", 
+              label: "", 
               total_amount: 0, 
               deposit_required: 0, 
               number_of_installments: 1, 
@@ -53,7 +53,7 @@ export function PricingStep({ form }: StepProps) {
             })}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Agregar Opción
+            Agregar Plan
           </Button>
         </div>
 
@@ -68,12 +68,12 @@ export function PricingStep({ form }: StepProps) {
 
               <FormField
                 control={form.control}
-                name={`pricing_options.${index}.label`}
+                name={`pricing.${index}.label`}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Etiqueta</FormLabel>
                     <FormControl>
-                      <Input placeholder="Pago Único (Ahorras 20%)" {...field} />
+                      <Input placeholder="Nombre del Plan" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -83,7 +83,7 @@ export function PricingStep({ form }: StepProps) {
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name={`pricing_options.${index}.total_amount`}
+                  name={`pricing.${index}.total_amount`}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Total ($)</FormLabel>
@@ -141,7 +141,7 @@ export function PricingStep({ form }: StepProps) {
                 />
                  <FormField
                   control={form.control}
-                  name={`pricing_options.${index}.installment_amount`}
+                  name={`pricing.${index}.installment_amount`}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs">Monto/Cuota</FormLabel>
@@ -156,7 +156,7 @@ export function PricingStep({ form }: StepProps) {
 
               <FormField
                 control={form.control}
-                name={`pricing_options.${index}.is_default`}
+                name={`pricing.${index}.is_default`}
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">

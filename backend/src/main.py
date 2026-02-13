@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Request, Depends
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
 from src.api.routes import router as api_router
-from src.api.routers import knowledge, admin, products, avatars, onboarding, settings as user_settings, webhook, channels, calendar, public_links, event_types, gmail, whatsapp
+from src.api.routers import knowledge, admin, products, avatars, onboarding, settings as user_settings, webhook, channels, calendar, public_links, event_types, gmail, whatsapp, definitions, leads, dashboard, tools, gallery, offer_gallery, offer_ai, landing_ai
 from src.api.dependencies import get_tenant_context
 from src.services.database import init_db
 from src.core.logging_config import configure_logging
@@ -16,10 +17,15 @@ logger = structlog.get_logger()
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
+# Mount Static Files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # CORS Configuration
 # Default local development origins
 default_origins = [
     "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
     "http://localhost:8501", # Streamlit
     "http://127.0.0.1:3000",
 ]
@@ -93,6 +99,14 @@ app.include_router(event_types.router, prefix="/api/v1", dependencies=[Depends(g
 app.include_router(whatsapp.router, prefix="/api/v1/whatsapp", dependencies=[Depends(get_tenant_context)])
 app.include_router(public_links.router, prefix="/api/v1/public", tags=["Public"]) # No Auth Dependency (Token based)
 app.include_router(webhook.router, prefix="/api/v1/webhook", tags=["Webhook"]) # No Auth Dependency here (uses header secret)
+app.include_router(definitions.router, prefix="/api/v1", tags=["Definitions"]) # Public or Auth? Maybe Auth is better but for now keep it accessible
+app.include_router(leads.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"], dependencies=[Depends(get_tenant_context)])
+app.include_router(tools.router, prefix="/api/v1/tools", tags=["Tools"], dependencies=[Depends(get_tenant_context)])
+app.include_router(gallery.router, prefix="/api/v1/gallery", tags=["Gallery"], dependencies=[Depends(get_tenant_context)])
+app.include_router(offer_gallery.router, prefix="/api/v1/offers", tags=["Offer Gallery"], dependencies=[Depends(get_tenant_context)])
+app.include_router(offer_ai.router, prefix="/api/v1/offers/ai", tags=["Offer AI"], dependencies=[Depends(get_tenant_context)])
+app.include_router(landing_ai.router, prefix="/api/v1/offers", tags=["Landing AI"]) # Dependencies defined per route to allow public/preview access
 
 @app.get("/health")
 def health_check():

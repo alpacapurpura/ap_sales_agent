@@ -6,6 +6,8 @@ from .business import Product, JourneyProgress, Appointment, OfferLog, Document,
 from .observability import Message, AgentTrace, LLMCallLog
 from .link import ShareableLink
 from .channel_connection import ChannelConnection
+from .gallery import GalleryImage
+from .offer_gallery import OfferGalleryImage
 
 __all__ = [
     "Base",
@@ -22,5 +24,7 @@ __all__ = [
     "Message",
     "AgentTrace",
     "LLMCallLog",
-    "ShareableLink"
+    "ShareableLink",
+    "GalleryImage",
+    "OfferGalleryImage"
 ]

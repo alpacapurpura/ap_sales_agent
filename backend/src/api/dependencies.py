@@ -11,8 +11,57 @@ from src.services.database import get_db
 from src.core.security import verify_clerk_token
 from src.services.db.models.user import User
 from src.core.context import set_tenant_id
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from src.core.security import verify_clerk_token, verify_token_payload
 
 logger = structlog.get_logger()
+
+# Optional Security Scheme
+security_optional = HTTPBearer(auto_error=False)
+
+def get_optional_current_user(
+    db: Session = Depends(get_db),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional)
+) -> Optional[User]:
+    """
+    Returns User if token is present and valid, else None.
+    Does NOT raise 401/403 for missing token.
+    """
+    if not credentials:
+        return None
+    
+    try:
+        # Manually call verify logic
+        payload = verify_token_payload(credentials.credentials)
+        
+        # Resolve User (Copy-paste logic from get_current_user roughly, or refactor)
+        # Refactoring get_current_user to be reusable would be best, but for speed:
+        email = payload.get("email")
+        if not email:
+            # Simplistic fallback for optional auth
+            return None
+            
+        user = db.query(User).filter(User.email == email).first()
+        return user
+    except Exception:
+        return None
+
+def get_optional_tenant_context(
+    user: Optional[User] = Depends(get_optional_current_user),
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID")
+) -> Optional[UUID]:
+    """
+    Optional tenant context. Returns None if no user/tenant.
+    """
+    if not user:
+        return None
+        
+    tenant_id = user.tenant_id
+    if tenant_id:
+        set_tenant_id(tenant_id)
+        structlog.contextvars.bind_contextvars(tenant_id=str(tenant_id))
+    
+    return tenant_id
 
 def get_current_user(
     db: Session = Depends(get_db),
