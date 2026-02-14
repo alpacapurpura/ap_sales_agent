@@ -161,7 +161,7 @@ export function RulesStep({ form }: StepProps) {
               <FormItem>
                 <FormLabel>Términos Legales/Ventas</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Si no consigues X en Y tiempo..." {...field} />
+                  <Textarea placeholder="Si no consigues X en Y tiempo..." {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -179,7 +179,7 @@ export function RulesStep({ form }: StepProps) {
               <FormItem className="mt-4">
                 <FormLabel>Oferta de Respaldo (Si dicen &quot;Muy caro&quot;)</FormLabel>
                 <FormControl>
-                  <Input placeholder="UUID del producto Downsell" {...field} />
+                  <Input placeholder="UUID del producto Downsell" {...field} value={field.value || ""} />
                 </FormControl>
                 <FormDescription>El agente pivotará a esta oferta automáticamente.</FormDescription>
                 <FormMessage />

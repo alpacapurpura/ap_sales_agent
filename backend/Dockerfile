@@ -10,7 +10,10 @@ WORKDIR /app
 
 # Install system dependencies required for building python packages
 # (gcc, libpq-dev for psycopg2, etc.)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Using BuildKit cache mounts to speed up apt
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -20,8 +23,10 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python dependencies
+# Using BuildKit cache mount to speed up pip
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
 
 # ==========================================
 # Stage 2: Runtime
@@ -36,7 +41,9 @@ WORKDIR /app
 
 # Install runtime system dependencies only
 # (libpq5 is needed for psycopg2 at runtime, but we don't need gcc)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/*

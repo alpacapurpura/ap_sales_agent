@@ -46,9 +46,7 @@ export function PolymorphicFactory({ type, form }: PolymorphicFactoryProps) {
     OfferType.PERFORMANCE_REV_SHARE,
     OfferType.CORPORATE_TRAINING,
     OfferType.BRAND_SPONSORSHIP,
-    OfferType.KEYNOTE_SPEAKING,
-    // Note: Retainers use ServiceDetails in backend, mapped here
-    OfferType.DONE_FOR_YOU_AGENCY
+    OfferType.KEYNOTE_SPEAKING
   ].includes(type)) {
     // Exception: If it's a Retainer, it might be ServiceDetails in backend.
     // Checking schema.py: MONTHLY_RETAINER -> ServiceDetails. Correct.

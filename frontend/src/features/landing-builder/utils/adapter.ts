@@ -1,4 +1,5 @@
 import { Data } from "@puckeditor/core";
+import { RootProps, Props } from "../puck.config";
 import { 
     LandingPageConfig, 
     TransformerContent, 
@@ -12,7 +13,7 @@ const generateId = (type: string) => type + '-' + Math.random().toString(36).sub
 
 // --- Archetype Transformers ---
 
-function transformTransformerArchetype(content: TransformerContent, data: Data) {
+function transformTransformerArchetype(content: TransformerContent, data: Data<Props, RootProps>) {
     // 1. Hero
     data.content.push({
         type: "HeroSection",
@@ -68,7 +69,7 @@ function transformTransformerArchetype(content: TransformerContent, data: Data) 
                 id: generateId("StackSection"),
                 modules: content.modules.map(m => ({
                     title: m.title,
-                    description: m.description
+                    description: m.description || ""
                 }))
             }
         });
@@ -85,13 +86,13 @@ function transformTransformerArchetype(content: TransformerContent, data: Data) 
             cta_text: content.cta_text,
             bonuses: (content.bonuses || []).map(b => ({
                 title: b.title,
-                description: b.description
+                description: b.description || ""
             }))
         }
     });
 }
 
-function transformSqueezeArchetype(content: SqueezeContent, data: Data) {
+function transformSqueezeArchetype(content: SqueezeContent, data: Data<Props, RootProps>) {
     // Squeeze pages focus on the Hero and Bullets
     data.content.push({
         type: "HeroSection",
@@ -118,7 +119,7 @@ function transformSqueezeArchetype(content: SqueezeContent, data: Data) {
     }
 }
 
-function transformFlashOfferArchetype(content: FlashOfferContent, data: Data) {
+function transformFlashOfferArchetype(content: FlashOfferContent, data: Data<Props, RootProps>) {
     // Flash Offer: Hero -> Problem/Solution -> Offer
     data.content.push({
         type: "HeroSection",
@@ -154,9 +155,9 @@ function transformFlashOfferArchetype(content: FlashOfferContent, data: Data) {
     });
 }
 
-export function transformConfigToPuckData(config: LandingPageConfig): Data {
+export function transformConfigToPuckData(config: LandingPageConfig): Data<Props, RootProps> {
     // Base structure
-    const data: Data = {
+    const data: Data<Props, RootProps> = {
         root: {
             props: {
                 theme: config.theme

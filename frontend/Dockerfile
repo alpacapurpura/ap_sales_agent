@@ -6,7 +6,9 @@ RUN apk add --no-cache libc6-compat
 FROM base AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+# Using npm ci for reproducible builds and cache mount for speed
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --legacy-peer-deps
 
 # Development image, copy all the files and run next
 FROM base AS dev

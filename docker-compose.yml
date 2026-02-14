@@ -125,7 +125,7 @@ services:
       - gateway
     ports:
       - "127.0.0.1:8501:8501" # Secure binding: Only accessible via localhost (SSH Tunnel)
-    profiles: ["production"]
+    profiles: ["admin-debug"]
 
 
   # --- Client Dashboard (Next.js - Development) ---

@@ -215,7 +215,7 @@ function ConnectionsContent() {
   );
 }
 
-export default function ConnectionsPage() {
+function ConnectionsPageInner() {
   const searchParams = useSearchParams();
   const [isPopupCallback, setIsPopupCallback] = useState(false);
 
@@ -255,9 +255,15 @@ export default function ConnectionsPage() {
         </p>
       </div>
       <div className="border-t my-6" />
-      <Suspense fallback={<div>Cargando conexiones...</div>}>
-        <ConnectionsContent />
-      </Suspense>
+      <ConnectionsContent />
     </div>
+  );
+}
+
+export default function ConnectionsPage() {
+  return (
+    <Suspense fallback={<div>Cargando conexiones...</div>}>
+      <ConnectionsPageInner />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Puck, Data } from "@puckeditor/core";
 import "@puckeditor/core/dist/index.css";
-import { config } from "../../puck.config";
+import { config, RootProps, Props } from "../../puck.config";
 import { LandingPageConfig } from "@/features/landing-builder/types/schema";
 import { transformConfigToPuckData } from "../../utils/adapter";
 import { useAuth } from "@clerk/nextjs";
@@ -23,11 +23,11 @@ export function PuckEditor({ initialConfig, offerId }: PuckEditorProps) {
     const { getToken } = useAuth();
     
     // Initialize Data
-    const [data] = useState<Data>(() => {
+    const [data] = useState<Data<Props, RootProps>>(() => {
         // Check if content is already Puck Data (has root and content array)
         const content = initialConfig.content as any;
         if (content && content.root && Array.isArray(content.content)) {
-            return content as Data;
+            return content as Data<Props, RootProps>;
         }
         // Otherwise transform from TransformerContent
         try {
@@ -39,11 +39,11 @@ export function PuckEditor({ initialConfig, offerId }: PuckEditorProps) {
                 root: { props: { theme: initialConfig.theme } },
                 content: [],
                 zones: {}
-            };
+            } as unknown as Data<Props, RootProps>;
         }
     });
 
-    const handleSave = async (newData: Data) => {
+    const handleSave = async (newData: Data<Props, RootProps>) => {
         const token = await getToken();
         if (!token) {
             toast.error("No autenticado");
@@ -55,7 +55,7 @@ export function PuckEditor({ initialConfig, offerId }: PuckEditorProps) {
             // We keep the theme in sync with root props
             const newConfig: LandingPageConfig = {
                 ...initialConfig,
-                theme: newData.root.props.theme || initialConfig.theme,
+                theme: newData.root.props?.theme || initialConfig.theme,
                 content: newData as any // Store Puck Data directly
             };
 

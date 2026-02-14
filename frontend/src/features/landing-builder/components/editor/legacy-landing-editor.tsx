@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LandingPageConfig, SqueezeContent, TransformerContent } from "@/features/landing-builder/types/schema";
+import { LandingPageConfig, SqueezeContent, TransformerContent, LandingPageFont } from "@/features/landing-builder/types/schema";
 import { SqueezeServerTpl } from "@/features/landing-builder/templates/server/SqueezeServerTpl";
 import { TransformerVisualEditor } from "./visual/TransformerVisualEditor";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ const INITIAL_CONFIG: LandingPageConfig = {
     theme: {
         primary_color: '#3b82f6',
         secondary_color: '#eff6ff',
-        font_pair: 'SANS_SERIF',
+        font_pair: LandingPageFont.SANS_SERIF,
         dark_mode: false,
     },
     content: {
@@ -120,9 +120,9 @@ export function LegacyLandingPageEditor({
                             if (prev.theme.primary_color === '#3b82f6') {
                                 // Heuristic for font
                                 const headingFont = data.visuals.font_heading.toLowerCase();
-                                let fontPair: 'SANS_SERIF' | 'SERIF' | 'MODERN' = 'SANS_SERIF';
-                                if (headingFont.includes('serif') && !headingFont.includes('sans')) fontPair = 'SERIF';
-                                else if (['montserrat', 'poppins', 'raleway', 'futura'].some(f => headingFont.includes(f))) fontPair = 'MODERN';
+                                let fontPair: LandingPageFont = LandingPageFont.SANS_SERIF;
+                                if (headingFont.includes('serif') && !headingFont.includes('sans')) fontPair = LandingPageFont.SERIF;
+                                else if (['montserrat', 'poppins', 'raleway', 'futura'].some(f => headingFont.includes(f))) fontPair = LandingPageFont.MODERN;
 
                                 return {
                                     ...prev,
@@ -180,23 +180,23 @@ export function LegacyLandingPageEditor({
         if (!brandSettings) return;
         
         // Map brand settings to landing page theme
-        const fontMap: Record<string, 'SANS_SERIF' | 'SERIF' | 'MODERN'> = {
-            'inter': 'SANS_SERIF',
-            'roboto': 'SANS_SERIF',
-            'playfair display': 'SERIF',
-            'merriweather': 'SERIF',
-            'montserrat': 'MODERN',
-            'raleway': 'MODERN'
+        const fontMap: Record<string, LandingPageFont> = {
+            'inter': LandingPageFont.SANS_SERIF,
+            'roboto': LandingPageFont.SANS_SERIF,
+            'playfair display': LandingPageFont.SERIF,
+            'merriweather': LandingPageFont.SERIF,
+            'montserrat': LandingPageFont.MODERN,
+            'raleway': LandingPageFont.MODERN
         };
 
         // Simple heuristic for font
         const headingFont = brandSettings.visuals.font_heading.toLowerCase();
-        let fontPair: 'SANS_SERIF' | 'SERIF' | 'MODERN' = 'SANS_SERIF';
+        let fontPair: LandingPageFont = LandingPageFont.SANS_SERIF;
         
         if (headingFont.includes('serif') && !headingFont.includes('sans')) {
-            fontPair = 'SERIF';
+            fontPair = LandingPageFont.SERIF;
         } else if (['montserrat', 'poppins', 'raleway', 'futura'].some(f => headingFont.includes(f))) {
-            fontPair = 'MODERN';
+            fontPair = LandingPageFont.MODERN;
         }
 
         setConfig(prev => ({

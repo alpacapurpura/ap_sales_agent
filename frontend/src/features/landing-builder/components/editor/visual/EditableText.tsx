@@ -6,9 +6,10 @@ interface EditableTextProps {
     onChange: (value: string) => void;
     className?: string;
     placeholder?: string;
+    as?: any; // Allow polymorphic prop to pass through (ignored for now)
 }
 
-export function EditableText({ value, onChange, className, placeholder }: EditableTextProps) {
+export function EditableText({ value, onChange, className, placeholder, as }: EditableTextProps) {
     const [localValue, setLocalValue] = useState(value || "");
 
     useEffect(() => {

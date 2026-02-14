@@ -127,7 +127,9 @@ export interface Offer {
   
   guarantee_type?: GuaranteeType;
   guarantee_terms?: string;
+  access_duration?: string;
   access_duration_text?: string;
+  support_duration_days?: number;
   instructors?: string[];
 
   onboarding_action?: OnboardingMechanism;
@@ -156,6 +158,8 @@ export interface AvatarDefinition {
     voice_tone_config?: Record<string, any>;
     pain_points?: string[];
     desires?: string[];
+    awareness_level?: string;
+    sophistication_level?: string;
 }
 
 export interface Objection {

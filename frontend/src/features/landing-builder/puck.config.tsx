@@ -8,7 +8,7 @@ import { OfferSection, OfferSectionProps } from "./components/blocks/OfferSectio
 import { LandingThemeProvider } from "./context/LandingThemeContext";
 import { LandingPageTheme, LandingPageFont } from "./types/schema";
 
-type Props = {
+export type Props = {
   HeroSection: HeroSectionProps;
   PasGridSection: PasGridSectionProps;
   SolutionSection: SolutionSectionProps;
@@ -67,13 +67,6 @@ export const config: Config<Props, RootProps> = {
             </LandingThemeProvider>
         );
     }
-  },
-  categories: {
-    hero: { components: ["HeroSection"], title: "🏁 Hero & Apertura" },
-    problem: { components: ["PasGridSection"], title: "🧠 Problema & Agitación" },
-    solution: { components: ["SolutionSection"], title: "💡 Solución & Método" },
-    authority: { components: ["AuthoritySection"], title: "⭐ Autoridad" },
-    offer: { components: ["StackSection", "OfferSection"], title: "💰 Oferta" },
   },
   components: {
     HeroSection: {

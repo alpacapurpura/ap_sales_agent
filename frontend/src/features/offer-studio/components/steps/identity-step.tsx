@@ -64,7 +64,7 @@ export function IdentityStep({ form }: StepProps) {
                 {form.watch("delivery_model") || "N/A"}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                {DELIVERY_MODEL_DESCRIPTIONS[form.watch("delivery_model")] || "Descripción no disponible."}
+                {DELIVERY_MODEL_DESCRIPTIONS[form.watch("delivery_model") || ""] || "Descripción no disponible."}
               </p>
             </div>
           </CardContent>

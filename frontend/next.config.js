@@ -9,7 +9,7 @@ const nextConfig = {
   allowedDevOrigins: ["salesagent.local", "api.salesagent.local", "admin.salesagent.local", "laptopchris.alpacapurpura.lat"],
   experimental: {
     serverActions: {
-      allowedOrigins: ['salesagent.local', 'localhost:3000', 'laptopchris.alpacapurpura.lat']
+      allowedOrigins: ['salesagent.local', 'localhost:3000', 'laptopchris.alpacapurpura.lat', 'salesagent.alpacapurpura.lat', 'clerk.alpacapurpura.lat']
     }
   },
   async rewrites() {

@@ -1,0 +1,179 @@
+version: '3.8'
+
+services:
+  # --- Backend API (FastAPI) ---
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-backend:latest
+    container_name: visionarias_brain
+    restart: always
+    command: gunicorn -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:8000 --workers 4
+    env_file:
+      - .env
+    volumes:
+      - ./data/model_cache:/app/model_cache
+      - ./data/static:/app/static
+    depends_on:
+      - redis
+      - qdrant
+      - postgres
+    networks:
+      - internal_net
+      - gateway
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      # Router for HTTPS (API)
+      - "traefik.http.routers.visionarias.rule=Host(`${API_DOMAIN}`)"
+      - "traefik.http.routers.visionarias.entrypoints=websecure"
+      - "traefik.http.routers.visionarias.tls.certresolver=myresolver"
+      - "traefik.http.routers.visionarias.service=visionarias_api"
+      # Service definition
+      - "traefik.http.services.visionarias_api.loadbalancer.server.port=8000"
+
+  # --- Admin Dashboard (Streamlit) ---
+  admin:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-backend:latest
+    container_name: visionarias_admin
+    restart: always
+    command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
+    env_file:
+      - .env
+    environment:
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+      - qdrant
+      - postgres
+    networks:
+      - internal_net
+      - gateway
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      # Router for HTTPS (Admin) - Assumed HTTPS for prod, unlike dev which was HTTP
+      - "traefik.http.routers.admin.rule=Host(`${DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.admin.entrypoints=websecure"
+      - "traefik.http.routers.admin.tls.certresolver=myresolver"
+      - "traefik.http.routers.admin.service=admin_prod"
+      - "traefik.http.services.admin_prod.loadbalancer.server.port=8501"
+
+  # --- Frontend Client (Next.js) ---
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-frontend:latest
+    container_name: visionarias_client
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - INTERNAL_API_URL=${INTERNAL_API_URL}
+      - PORT=3000
+    extra_hosts:
+      - "api.salesagent.local:host-gateway" # Keep for internal resolution if needed
+    depends_on:
+      - backend
+    networks:
+      - internal_net
+      - gateway
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.client.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.client.entrypoints=websecure"
+      - "traefik.http.routers.client.tls.certresolver=myresolver"
+      - "traefik.http.services.client.loadbalancer.server.port=3000"
+
+  # --- WhatsApp Engine (Evolution API v2) ---
+  whatsapp:
+    image: atendai/evolution-api:v2.2.2
+    container_name: visionarias_whatsapp
+    restart: always
+    shm_size: '2gb'
+    environment:
+      - SERVER_URL=https://whatsapp.${DOMAIN_NAME} 
+      - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY}
+      - DEL_INSTANCE=false
+      - CHROME_ARGS=--no-sandbox --disable-setuid-sandbox --disable-gpu --disable-dev-shm-usage
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution_prod
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379/2
+      - CACHE_REDIS_PREFIX=evolution_prod:
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - internal_net
+      - gateway
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      # Assuming you want to expose WhatsApp API via Traefik too? 
+      # Adding basic router config just in case, similar to others.
+      - "traefik.http.routers.whatsapp.rule=Host(`whatsapp.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.whatsapp.entrypoints=websecure"
+      - "traefik.http.routers.whatsapp.tls.certresolver=myresolver"
+      - "traefik.http.services.whatsapp.loadbalancer.server.port=8080"
+
+  # --- Infrastructure Services ---
+  redis:
+    image: redis:7-alpine
+    container_name: visionarias_redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data/redis_data:/data
+    networks:
+      - internal_net
+    # No ports exposed to host, only internal
+
+  qdrant:
+    image: qdrant/qdrant:v1.7.3
+    container_name: visionarias_qdrant
+    restart: always
+    volumes:
+      - ./data/qdrant_data:/qdrant/storage
+    networks:
+      - internal_net
+    # No ports exposed to host
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: visionarias_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./data/postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal_net
+    # No ports exposed to host
+
+  init_cache:
+    image: alpine:latest
+    command: sh -c "mkdir -p /app/model_cache && chmod 777 /app/model_cache"
+    volumes:
+      - ./data/model_cache:/app/model_cache
+
+networks:
+  internal_net:
+    driver: bridge
+  gateway:
+    name: ${TRAEFIK_NETWORK}
+    external: true
