@@ -5,7 +5,8 @@ import { AIKeysForm } from "@/features/settings/components/ai-keys-form"
 import { ProfileView } from "@/features/settings/components/profile-view"
 import { WebhookView } from "@/features/settings/components/webhook-view"
 import { GeneralSettingsForm } from "@/features/settings/components/general-settings-form"
-import { Key, Settings as SettingsIcon, User, Webhook } from "lucide-react"
+import { TeamView } from "@/features/settings/components/team-view"
+import { Key, Settings as SettingsIcon, User, Webhook, Users } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 
@@ -47,6 +48,13 @@ function SettingsContent() {
                         Perfil
                     </TabsTrigger>
                     <TabsTrigger 
+                        value="team" 
+                        className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    >
+                        <Users className="mr-2 h-4 w-4" />
+                        Equipo
+                    </TabsTrigger>
+                    <TabsTrigger 
                         value="ai-keys" 
                         className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
@@ -61,6 +69,9 @@ function SettingsContent() {
                 </TabsContent>
                 <TabsContent value="profile" className="space-y-6 mt-0">
                     <ProfileView />
+                </TabsContent>
+                <TabsContent value="team" className="space-y-6 mt-0">
+                    <TeamView />
                 </TabsContent>
                 <TabsContent value="general">
                     <div>General Settings (Próximamente)</div>

@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
+from typing import List
 from sqlalchemy.orm import Session
 from src.api.dependencies import get_current_user
 from src.services.database import get_db
 from src.services.db.models.user import User
 from src.services.db.models.tenant import Tenant
-from src.core.domain.schema import TenantSettingsUpdate, AISettings, GeneralSettings, GeneralSettingsUpdate, WebhookSettings, SystemUserProfile, TenantProfile
 from src.core.domain.brand_schema import BrandSettings
+from src.services.clerk import ClerkService
+from src.core.domain.schema import (
+    TenantSettingsUpdate, AISettings, GeneralSettings, GeneralSettingsUpdate, 
+    WebhookSettings, SystemUserProfile, TenantProfile, TeamMemberCreate, TeamMemberSchema
+)
 from src.config import settings as app_settings
 import secrets
 import string
@@ -254,3 +259,90 @@ async def update_brand_settings(
     db.refresh(tenant)
     
     return BrandSettings(**tenant.config_json.get("brand_settings", {}))
+
+@router.get("/team", response_model=List[TeamMemberSchema])
+async def get_team_members(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    List all team members for the current tenant.
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User is not associated with a tenant")
+        
+    users = db.query(User).filter(User.tenant_id == current_user.tenant_id).order_by(User.created_at).all()
+    return [
+        TeamMemberSchema(
+            id=str(u.id),
+            full_name=u.full_name,
+            email=u.email,
+            role=u.role,
+            is_active=u.is_active,
+            created_at=u.created_at
+        ) for u in users
+    ]
+
+@router.post("/team", response_model=TeamMemberSchema)
+async def create_team_member(
+    user_in: TeamMemberCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new user for the team (Max 3 users total).
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User is not associated with a tenant")
+        
+    # Check limit
+    # Max 3 users total (Admin + 2).
+    count = db.query(User).filter(User.tenant_id == current_user.tenant_id).count()
+    if count >= 3:
+        raise HTTPException(status_code=403, detail="Límite de usuarios alcanzado (Máximo 3 por plan).")
+        
+    # Check email usage locally
+    if db.query(User).filter(User.email == user_in.email).first():
+         raise HTTPException(status_code=400, detail="El email ya está registrado.")
+         
+    # Create in Clerk
+    clerk = ClerkService()
+    clerk_user_id = None
+    try:
+        # Create in Clerk
+        clerk_resp = clerk.create_user(user_in.email, user_in.password, user_in.full_name)
+        clerk_user_id = clerk_resp.get("id")
+        
+        if clerk_user_id:
+            clerk.update_user_metadata(clerk_user_id, {
+                "tenant_id": str(current_user.tenant_id),
+                "role": "member"
+            })
+            
+    except Exception as e:
+        if "ya existe" in str(e):
+             raise HTTPException(status_code=400, detail=f"El usuario ya existe en el sistema de identidad.")
+        else:
+             raise HTTPException(status_code=500, detail=f"Error creando usuario en Clerk: {str(e)}")
+
+    # Create DB User
+    new_user = User(
+        email=user_in.email,
+        full_name=user_in.full_name,
+        tenant_id=current_user.tenant_id,
+        clerk_id=clerk_user_id,
+        role="member",
+        is_active=True
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return TeamMemberSchema(
+        id=str(new_user.id),
+        full_name=new_user.full_name,
+        email=new_user.email,
+        role=new_user.role,
+        is_active=new_user.is_active,
+        created_at=new_user.created_at
+    )

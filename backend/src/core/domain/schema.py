@@ -166,6 +166,25 @@ class GeneralSettingsUpdate(BaseModel):
     default_currency: str
     timezone: str
 
+class TeamMemberCreate(BaseModel):
+    """
+    Request model for adding a new user to the team.
+    """
+    full_name: str
+    email: str
+    password: str = Field(..., min_length=8, description="Password for the new user")
+
+class TeamMemberSchema(BaseModel):
+    """
+    Response model for a team member.
+    """
+    id: str
+    full_name: Optional[str]
+    email: str
+    role: str
+    is_active: bool
+    created_at: Any # DateTime serialized
+
 class BrandIdentity(BaseModel):
     """
     Extracted visual identity of a brand.

@@ -83,5 +83,11 @@ temp/
 cloudflared.deb
 backend/cloudflare/cloudflared*
 
-# Miscellaneous
-scripts/temp/
+
+# Deployment (Local) - Ignore everything except READMEs and scripts
+despliegue/
+!despliegue/local/
+!despliegue/github_actions/
+!despliegue/**/README.md
+!despliegue/**/*.sh
+

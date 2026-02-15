@@ -51,7 +51,48 @@ export interface BrandSettings {
   strategy: BrandStrategy;
 }
 
+export interface TeamMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface TeamMemberCreate {
+  full_name: string;
+  email: string;
+  password: string;
+}
+
 export const settingsApi = {
+  getTeam: async (token: string): Promise<TeamMember[]> => {
+    const res = await fetch(`${API_URL}/api/v1/settings/team`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error("Failed to fetch team members");
+    return res.json();
+  },
+
+  createTeamMember: async (data: TeamMemberCreate, token: string): Promise<TeamMember> => {
+    const res = await fetch(`${API_URL}/api/v1/settings/team`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Failed to create team member");
+    }
+    return res.json();
+  },
+
   getGeneralSettings: async (token: string): Promise<GeneralSettings> => {
     const res = await fetch(`${API_URL}/api/v1/settings/general`, {
       headers: {

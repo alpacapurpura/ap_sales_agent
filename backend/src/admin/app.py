@@ -1072,12 +1072,31 @@ def render_tenant_manager():
 
                             # 1. Create in Clerk (Only if not exists locally, though email check handles most)
                             clerk = ClerkService()
+                            clerk_user_id = None
                             try:
-                                clerk.create_user(new_u_email, new_u_pass, new_u_name)
+                                clerk_resp = clerk.create_user(new_u_email, new_u_pass, new_u_name)
+                                clerk_user_id = clerk_resp.get("id")
                                 st.success("✅ Usuario creado en Clerk.")
+                                
+                                # Update Metadata
+                                if clerk_user_id:
+                                    clerk.update_user_metadata(clerk_user_id, {
+                                        "tenant_id": str(sel_t.id),
+                                        "role": "admin"
+                                    })
+                                    
                             except Exception as e:
                                 if "ya existe" in str(e):
                                     st.info("ℹ️ El usuario ya existía en Clerk. Creando referencia local...")
+                                    # Try to get ID
+                                    u_clerk = clerk.get_user_by_email(new_u_email)
+                                    if u_clerk:
+                                        clerk_user_id = u_clerk.get("id")
+                                        # Update metadata for existing user too
+                                        clerk.update_user_metadata(clerk_user_id, {
+                                            "tenant_id": str(sel_t.id),
+                                            "role": "admin"
+                                        })
                                 else:
                                     raise e
                             
@@ -1086,6 +1105,7 @@ def render_tenant_manager():
                                 email=new_u_email,
                                 full_name=new_u_name,
                                 tenant_id=sel_t.id,
+                                clerk_id=clerk_user_id,
                                 is_active=True,
                                 role="admin"
                             )

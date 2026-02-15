@@ -28,58 +28,57 @@ def init_db():
     Initialize DB tables and seed initial data.
     """
     # Create tables (SAFE: Only creates if not exists)
-    # Base.metadata.drop_all(bind=engine) # DISABLED: Prevent data loss on restart
+    # Note: In production, it's recommended to use Alembic migrations instead of create_all
+    # But this is a safety net for dev/first-run
     Base.metadata.create_all(bind=engine)
     
     # Seed Data (Check existence first to avoid duplicates)
     db = SessionLocal()
     try:
-        # Check if products already exist
-        if db.query(Product).first():
-            print("✨ Database already initialized. Skipping seed.")
-            return
+        # --- Seed logic handles idempotent inserts ---
+        # 1. Products
+        if not db.query(Product).first():
+            print("🌱 Seeding initial Products...")
+            ht_name = "Programa de propósito a progreso"
+            ht_product = Product(
+                name=ht_name,
+                type="program",
+                status="active",
+                pricing={
+                    "regular": 5925, 
+                    "offer": 4444, 
+                    "currency": "PEN"
+                },
+                dates={
+                    "start": "2026-02-10", 
+                    "offer_deadline": "2026-02-08"
+                },
+                metadata_info={
+                    "description": "Programa Intensivo de Emprendimiento Femenino de 8 semanas.",
+                    "guarantee": "Devolución completa en la primera semana."
+                }
+            )
+            db.add(ht_product)
 
-        # --- 1. Products ---
-        ht_name = "Programa de propósito a progreso"
-        ht_product = Product(
-            name=ht_name,
-            type="program",
-            # tier="high_ticket", # Removed as not in model
-            status="active",
-            pricing={
-                "regular": 5925, 
-                "offer": 4444, 
-                "currency": "PEN"
-            },
-            dates={
-                "start": "2026-02-10", 
-                "offer_deadline": "2026-02-08"
-            },
-            metadata_info={
-                "description": "Programa Intensivo de Emprendimiento Femenino de 8 semanas.",
-                "guarantee": "Devolución completa en la primera semana."
-            }
-        )
-        db.add(ht_product)
+            lm_name = "Webinar para mujeres que quieren emprender"
+            lm_product = Product(
+                name=lm_name,
+                type="webinar",
+                status="active",
+                pricing={"regular": 0, "currency": "PEN"},
+                dates={"start": "2026-01-20"},
+                metadata_info={
+                    "description": "Webinar gratuito de captación.",
+                    "funnel_role": "awareness_builder"
+                }
+            )
+            db.add(lm_product)
+            db.commit()
+        else:
+            print("✨ Products already seeded.")
 
-        # 2. Lead Magnet (Webinar)
-        lm_name = "Webinar para mujeres que quieren emprender"
-        lm_product = Product(
-            name=lm_name,
-            type="webinar",
-            # tier="lead_magnet", # Removed as not in model
-            status="active",
-            pricing={"regular": 0, "currency": "PEN"},
-            dates={"start": "2026-01-20"}, # Simulado
-            metadata_info={
-                "description": "Webinar gratuito de captación.",
-                "funnel_role": "awareness_builder"
-            }
-        )
-        db.add(lm_product)
-        
-        # --- 2. Prompts (Seed) ---
-        print("🌱 Seeding initial prompts...")
+        # --- 2. Prompts (Upsert Logic) ---
+        print("🌱 Checking/Seeding Prompts...")
         INITIAL_PROMPTS = [
             {
                 "key": "sales_system",
@@ -129,10 +128,14 @@ def init_db():
         
         base_path = os.getcwd()
         for p_config in INITIAL_PROMPTS:
-            # Try to find file, relative to CWD or absolute
+            # Check if prompt version exists
+            # We only seed if NO version exists for this key to avoid overwriting user changes
+            existing = db.query(PromptVersion).filter(PromptVersion.key == p_config["key"]).first()
+            if existing:
+                continue
+
             file_path = p_config["file"]
             if not os.path.exists(file_path):
-                 # Try absolute if CWD is not root
                  file_path = os.path.join(base_path, p_config["file"])
             
             if os.path.exists(file_path):
@@ -149,12 +152,12 @@ def init_db():
                     metadata_info=p_config["metadata_info"]
                 )
                 db.add(prompt)
-                print(f"   + Prompt: {p_config['key']}")
+                print(f"   + Seeding Prompt: {p_config['key']}")
             else:
                 print(f"   ⚠️ Prompt file not found: {file_path}")
 
         db.commit()
-        print("Seeded products and prompts successfully.")
+        print("✅ Database initialization complete.")
             
     except Exception as e:
         print(f"Error seeding database: {e}")

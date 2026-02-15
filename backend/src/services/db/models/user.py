@@ -18,6 +18,7 @@ class User(Base):
     phone = Column(String, nullable=True)
     
     # Auth / Role
+    clerk_id = Column(String, unique=True, nullable=True, index=True) # Linked Clerk User ID
     role = Column(String, default="admin") # admin, member, viewer
     is_active = Column(Boolean, default=True)
     

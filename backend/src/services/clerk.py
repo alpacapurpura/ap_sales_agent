@@ -84,3 +84,33 @@ class ClerkService:
         except Exception as e:
             logger.error("clerk_get_user_error", error=str(e))
             return None
+
+    def update_user_metadata(self, user_id: str, public_metadata: Dict[str, Any]) -> bool:
+        """
+        Updates the user's public metadata (e.g., tenant_id, role).
+        This metadata is accessible in the Frontend via Clerk Session.
+        """
+        if not self.secret_key:
+            return False
+
+        url = f"{self.api_url}/users/{user_id}/metadata"
+        headers = {
+            "Authorization": f"Bearer {self.secret_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "public_metadata": public_metadata
+        }
+
+        try:
+            response = httpx.patch(url, headers=headers, json=payload, timeout=5.0)
+            if response.status_code == 200:
+                logger.info("clerk_metadata_updated", user_id=user_id, metadata=public_metadata)
+                return True
+            else:
+                logger.error("clerk_metadata_update_failed", status=response.status_code, body=response.text)
+                return False
+        except Exception as e:
+            logger.error("clerk_metadata_update_exception", error=str(e))
+            return False
