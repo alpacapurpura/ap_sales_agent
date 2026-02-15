@@ -96,38 +96,38 @@ services:
       - "traefik.http.services.client.loadbalancer.server.port=3000"
 
   # --- WhatsApp Engine (Evolution API v2) ---
-  whatsapp:
-    image: atendai/evolution-api:v2.2.2
-    container_name: visionarias_whatsapp
-    restart: always
-    shm_size: '2gb'
-    environment:
-      - SERVER_URL=https://whatsapp.${DOMAIN_NAME}
-      - AUTHENTICATION_API_KEY=${WHATSAPP_API_TOKEN}
-      - DEL_INSTANCE=false
-      - CHROME_ARGS=--no-sandbox --disable-setuid-sandbox --disable-gpu --disable-dev-shm-usage
-      - DATABASE_ENABLED=true
-      - DATABASE_PROVIDER=postgresql
-      # - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution_prod
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange
-      - CACHE_REDIS_ENABLED=true
-      - CACHE_REDIS_URI=redis://redis:6379/2
-      - CACHE_REDIS_PREFIX=evolution_prod:
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - internal_net
-      - gateway
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK}"
-      # Assuming you want to expose WhatsApp API via Traefik too? 
-      # Adding basic router config just in case, similar to others.
-      - "traefik.http.routers.whatsapp.rule=Host(`whatsapp.${DOMAIN_NAME}`)"
-      - "traefik.http.routers.whatsapp.entrypoints=websecure"
-      - "traefik.http.routers.whatsapp.tls.certresolver=myresolver"
-      - "traefik.http.services.whatsapp.loadbalancer.server.port=8080"
+  # whatsapp:
+  #   image: atendai/evolution-api:v2.2.2
+  #   container_name: visionarias_whatsapp
+  #   restart: always
+  #   shm_size: '2gb'
+  #   environment:
+  #     - SERVER_URL=https://whatsapp.${DOMAIN_NAME}
+  #     - AUTHENTICATION_API_KEY=${WHATSAPP_API_TOKEN}
+  #     - DEL_INSTANCE=false
+  #     - CHROME_ARGS=--no-sandbox --disable-setuid-sandbox --disable-gpu --disable-dev-shm-usage
+  #     - DATABASE_ENABLED=true
+  #     - DATABASE_PROVIDER=postgresql
+  #     # - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution_prod
+  #     - DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange
+  #     - CACHE_REDIS_ENABLED=true
+  #     - CACHE_REDIS_URI=redis://redis:6379/2
+  #     - CACHE_REDIS_PREFIX=evolution_prod:
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   networks:
+  #     - internal_net
+  #     - gateway
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=${TRAEFIK_NETWORK}"
+  #     # Assuming you want to expose WhatsApp API via Traefik too? 
+  #     # Adding basic router config just in case, similar to others.
+  #     - "traefik.http.routers.whatsapp.rule=Host(`whatsapp.${DOMAIN_NAME}`)"
+  #     - "traefik.http.routers.whatsapp.entrypoints=websecure"
+  #     - "traefik.http.routers.whatsapp.tls.certresolver=myresolver"
+  #     - "traefik.http.services.whatsapp.loadbalancer.server.port=8080"
 
   # --- Infrastructure Services ---
   redis:
