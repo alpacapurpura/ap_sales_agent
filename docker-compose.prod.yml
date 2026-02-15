@@ -4,6 +4,9 @@ services:
   # --- Backend API (FastAPI) ---
   backend:
     # image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-backend:latest
+    build: 
+      context: ./backend
+      target: final
     container_name: visionarias_brain
     restart: always
     command: gunicorn -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:8000 --workers 4
@@ -66,7 +69,14 @@ services:
 
   # --- Frontend Client (Next.js) ---
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-frontend:latest
+    # image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-frontend:latest
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: visionarias_client
     restart: always
     env_file:
