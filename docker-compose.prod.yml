@@ -103,7 +103,7 @@ services:
     shm_size: '2gb'
     environment:
       - SERVER_URL=https://whatsapp.${DOMAIN_NAME} 
-      - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY}
+      - AUTHENTICATION_API_KEY=${WHATSAPP_API_TOKEN}
       - DEL_INSTANCE=false
       - CHROME_ARGS=--no-sandbox --disable-setuid-sandbox --disable-gpu --disable-dev-shm-usage
       - DATABASE_ENABLED=true
