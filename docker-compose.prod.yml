@@ -108,7 +108,7 @@ services:
   #     - CHROME_ARGS=--no-sandbox --disable-setuid-sandbox --disable-gpu --disable-dev-shm-usage
   #     - DATABASE_ENABLED=true
   #     - DATABASE_PROVIDER=postgresql
-  #     # - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution_prod
+  #     - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution_prod
   #     - DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange
   #     - CACHE_REDIS_ENABLED=true
   #     - CACHE_REDIS_URI=redis://redis:6379/2
