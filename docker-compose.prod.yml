@@ -39,6 +39,7 @@ services:
   # --- Admin Dashboard (Streamlit) ---
   admin:
     # image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-backend:latest
+    build: ./backend
     container_name: visionarias_admin
     restart: always
     command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
