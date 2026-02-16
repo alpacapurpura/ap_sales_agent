@@ -11,7 +11,7 @@ services:
     restart: always
     command: gunicorn -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:8000 --workers 4
     env_file:
-      - .env
+      - .env.prod
     volumes:
       - ./data/model_cache:/app/model_cache
       - ./data/static:/app/static
@@ -47,7 +47,7 @@ services:
     restart: always
     command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
     env_file:
-      - .env
+      - .env.prod
     environment:
       - API_URL=http://backend:8000
     depends_on:
@@ -80,7 +80,7 @@ services:
     container_name: visionarias_client
     restart: always
     env_file:
-      - .env
+      - .env.prod
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - INTERNAL_API_URL=${INTERNAL_API_URL}
