@@ -106,3 +106,46 @@ El sistema se orquesta mediante **Docker Compose**, definiendo un entorno de mic
 ### 5.2. Frontend
 *   **Composition Pattern:** Construcción de interfaces complejas componiendo componentes pequeños (`children` props) en lugar de herencia.
 *   **Custom Hooks (Facade):** Encapsulación de lógica compleja de API y estado en hooks personalizados (`useOffers`, `useBrand`).
+
+---
+
+## 6. Estándares de Migración de Base de Datos (Alembic)
+
+Para evitar inconsistencias entre entornos (Desarrollo vs. Producción), TODAS las migraciones deben ser **Defensivas e Idempotentes**.
+
+### 6.1. Reglas de Oro
+1.  **Nunca asumir el estado**: No asumas que una columna o constraint existe o no existe. Verifica siempre.
+2.  **Usar `inspector`**: Antes de añadir/borrar columnas o índices, inspecciona la tabla.
+3.  **Capturar Excepciones**: Envuelve las operaciones DDL riesgosas en bloques `try/except` específicos.
+
+### 6.2. Template de Migración Segura
+Usa este patrón al generar nuevas revisiones con `alembic revision`:
+
+```python
+from alembic import op
+import sqlalchemy as sa
+from sqlalchemy.engine.reflection import Inspector
+
+def upgrade() -> None:
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    
+    # 1. Verificar columnas antes de añadir
+    columns = [c['name'] for c in inspector.get_columns('my_table')]
+    if 'new_column' not in columns:
+        op.add_column('my_table', sa.Column('new_column', sa.String(), nullable=True))
+
+    # 2. Verificar constraints antes de crear
+    constraints = [c['name'] for c in inspector.get_unique_constraints('my_table')]
+    if 'uq_my_constraint' not in constraints:
+        op.create_unique_constraint('uq_my_constraint', 'my_table', ['col1', 'col2'])
+
+def downgrade() -> None:
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    
+    # Operaciones inversas también verificadas
+    columns = [c['name'] for c in inspector.get_columns('my_table')]
+    if 'new_column' in columns:
+        op.drop_column('my_table', 'new_column')
+```
