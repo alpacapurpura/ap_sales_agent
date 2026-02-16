@@ -11,6 +11,7 @@ class Tenant(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     slug = Column(String, unique=True, nullable=False, index=True) # For subdomain/lookup
+    clerk_org_id = Column(String, nullable=True, index=True)
     
     # Configuration for Prompts and Rules
     # e.g. { "company_name": "Visionarias", "currency": "USD" }

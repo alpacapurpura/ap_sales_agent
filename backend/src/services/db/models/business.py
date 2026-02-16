@@ -209,7 +209,6 @@ class MarketingAsset(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     product = relationship("Product")
-    documents = relationship("Document", back_populates="marketing_asset")
 
 class BookingLink(Base):
     """
@@ -265,30 +264,6 @@ class OfferLog(Base):
     
     lead = relationship("Lead")
     product = relationship("Product")
-
-class Document(Base):
-    __tablename__ = "documents"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
-    filename = Column(String, nullable=False)
-    collection_name = Column(String, nullable=False)
-    category = Column(String, default="general") # factural, style, objection, general
-    chunk_count = Column(Integer, default=0)
-    upload_date = Column(DateTime(timezone=True), server_default=func.now())
-    status = Column(String, default="indexed") # indexed, error
-    
-    # Metadata extra (e.g. description, author)
-    metadata_info = Column(JSONB, default={})
-
-    # Multi-scoped Context
-    scope = Column(String, default="GLOBAL") # GLOBAL, OFFER, ASSET
-    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True)
-    marketing_asset_id = Column(UUID(as_uuid=True), ForeignKey("marketing_assets.id"), nullable=True)
-
-    # Relationships
-    product = relationship("Product")
-    marketing_asset = relationship("MarketingAsset", back_populates="documents")
 
 class PromptVersion(Base):
     """

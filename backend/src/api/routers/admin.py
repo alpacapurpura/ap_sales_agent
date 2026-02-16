@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from src.services.db.repositories.user import UserRepository
 from src.services.db.repositories.audit import AuditRepository
-from src.services.knowledge_service import KnowledgeService
 from src.services.buffer_service import SmartBufferService
 from src.services.database import SessionLocal, get_db
 from sqlalchemy.orm import Session
@@ -12,7 +11,6 @@ from src.api.dependencies import get_current_user
 from src.core.domain.schema import TenantPermissionUpdate
 
 router = APIRouter()
-kb_service = KnowledgeService()
 buffer_service = SmartBufferService()
 
 def get_repos():
@@ -23,15 +21,6 @@ def get_repos():
         yield user_repo, audit_repo
     finally:
         user_repo.close()
-
-@router.post("/sync")
-async def sync_knowledge_base(user: User = Depends(get_current_user)):
-    try:
-        # TODO: Check if user is admin
-        stats = kb_service.sync_from_qdrant()
-        return stats
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 import logging
 

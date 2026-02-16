@@ -114,3 +114,106 @@ class ClerkService:
         except Exception as e:
             logger.error("clerk_metadata_update_exception", error=str(e))
             return False
+
+    def update_user_password(self, user_id: str, password: str) -> bool:
+        """
+        Updates the user's password.
+        """
+        if not self.secret_key:
+            return False
+
+        url = f"{self.api_url}/users/{user_id}"
+        headers = {
+            "Authorization": f"Bearer {self.secret_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "password": password
+        }
+
+        try:
+            response = httpx.patch(url, headers=headers, json=payload, timeout=5.0)
+            if response.status_code == 200:
+                logger.info("clerk_password_updated", user_id=user_id)
+                return True
+            else:
+                logger.error("clerk_password_update_failed", status=response.status_code, body=response.text)
+                return False
+        except Exception as e:
+            logger.error("clerk_password_update_exception", error=str(e))
+            return False
+
+    def ban_user(self, user_id: str) -> bool:
+        """
+        Bans the user.
+        """
+        if not self.secret_key:
+            return False
+
+        url = f"{self.api_url}/users/{user_id}/ban"
+        headers = {
+            "Authorization": f"Bearer {self.secret_key}",
+            "Content-Type": "application/json"
+        }
+
+        try:
+            response = httpx.post(url, headers=headers, timeout=5.0)
+            if response.status_code == 200:
+                logger.info("clerk_user_banned", user_id=user_id)
+                return True
+            else:
+                logger.error("clerk_user_ban_failed", status=response.status_code, body=response.text)
+                return False
+        except Exception as e:
+            logger.error("clerk_user_ban_exception", error=str(e))
+            return False
+
+    def unban_user(self, user_id: str) -> bool:
+        """
+        Unbans the user.
+        """
+        if not self.secret_key:
+            return False
+
+        url = f"{self.api_url}/users/{user_id}/unban"
+        headers = {
+            "Authorization": f"Bearer {self.secret_key}",
+            "Content-Type": "application/json"
+        }
+
+        try:
+            response = httpx.post(url, headers=headers, timeout=5.0)
+            if response.status_code == 200:
+                logger.info("clerk_user_unbanned", user_id=user_id)
+                return True
+            else:
+                logger.error("clerk_user_unban_failed", status=response.status_code, body=response.text)
+                return False
+        except Exception as e:
+            logger.error("clerk_user_unban_exception", error=str(e))
+            return False
+
+    def delete_user(self, user_id: str) -> bool:
+        """
+        Deletes the user.
+        """
+        if not self.secret_key:
+            return False
+
+        url = f"{self.api_url}/users/{user_id}"
+        headers = {
+            "Authorization": f"Bearer {self.secret_key}"
+        }
+
+        try:
+            response = httpx.delete(url, headers=headers, timeout=5.0)
+            if response.status_code == 200:
+                logger.info("clerk_user_deleted", user_id=user_id)
+                return True
+            else:
+                logger.error("clerk_user_delete_failed", status=response.status_code, body=response.text)
+                return False
+        except Exception as e:
+            logger.error("clerk_user_delete_exception", error=str(e))
+            return False

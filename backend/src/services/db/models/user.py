@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -11,10 +11,11 @@ class User(Base):
     Separated from 'Lead' (Chatbot User).
     """
     __tablename__ = "users"
+    __table_args__ = (UniqueConstraint('email', 'tenant_id', name='uq_user_email_tenant'),)
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     full_name = Column(String, nullable=True)
-    email = Column(String, unique=True, nullable=False) # Email is mandatory for system users
+    email = Column(String, nullable=False) # Email is mandatory for system users
     phone = Column(String, nullable=True)
     
     # Auth / Role

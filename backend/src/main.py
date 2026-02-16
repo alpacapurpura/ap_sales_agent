@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
 from src.api.routes import router as api_router
-from src.api.routers import knowledge, admin, products, avatars, onboarding, settings as user_settings, webhook, channels, calendar, public_links, event_types, gmail, whatsapp, definitions, leads, dashboard, tools, gallery, offer_gallery, offer_ai, landing_ai
+from src.api.routers import admin, products, avatars, onboarding, settings as user_settings, webhook, channels, calendar, public_links, event_types, gmail, whatsapp, definitions, leads, tools, gallery, offer_gallery, offer_ai, landing_ai
 from src.api.dependencies import get_tenant_context
 from src.services.database import init_db
 from src.core.logging_config import configure_logging
@@ -86,7 +86,6 @@ def on_startup():
 app.include_router(api_router, prefix="/api/v1")
 
 # New Routers (API-First Architecture)
-app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["Knowledge"], dependencies=[Depends(get_tenant_context)])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"], dependencies=[Depends(get_tenant_context)])
 app.include_router(products.router, prefix="/api/v1/products", tags=["Products"], dependencies=[Depends(get_tenant_context)])
 app.include_router(avatars.router, prefix="/api/v1/avatars", tags=["Avatars"], dependencies=[Depends(get_tenant_context)])
@@ -101,7 +100,6 @@ app.include_router(public_links.router, prefix="/api/v1/public", tags=["Public"]
 app.include_router(webhook.router, prefix="/api/v1/webhook", tags=["Webhook"]) # No Auth Dependency here (uses header secret)
 app.include_router(definitions.router, prefix="/api/v1", tags=["Definitions"]) # Public or Auth? Maybe Auth is better but for now keep it accessible
 app.include_router(leads.router, prefix="/api/v1", dependencies=[Depends(get_tenant_context)])
-app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"], dependencies=[Depends(get_tenant_context)])
 app.include_router(tools.router, prefix="/api/v1/tools", tags=["Tools"], dependencies=[Depends(get_tenant_context)])
 app.include_router(gallery.router, prefix="/api/v1/gallery", tags=["Gallery"], dependencies=[Depends(get_tenant_context)])
 app.include_router(offer_gallery.router, prefix="/api/v1/offers", tags=["Offer Gallery"], dependencies=[Depends(get_tenant_context)])

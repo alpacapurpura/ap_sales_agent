@@ -46,7 +46,7 @@ def get_optional_current_user(
     except Exception:
         return None
 
-def get_optional_tenant_context(
+async def get_optional_tenant_context(
     user: Optional[User] = Depends(get_optional_current_user),
     x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID")
 ) -> Optional[UUID]:
@@ -65,11 +65,13 @@ def get_optional_tenant_context(
 
 def get_current_user(
     db: Session = Depends(get_db),
-    token_payload: Dict[str, Any] = Depends(verify_clerk_token)
+    token_payload: Dict[str, Any] = Depends(verify_clerk_token),
+    x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID")
 ) -> User:
     """
     Resolves the DB User from the Clerk Token.
     Uses 'email' claim to match User.email.
+    Enforces Strict Tenant Isolation via X-Tenant-ID header.
     """
     # Clerk JWT structure varies. Checking standard claims.
     # 'sub' is the Clerk User ID.
@@ -122,9 +124,39 @@ def get_current_user(
             detail=f"Token missing email claim. Available claims: {available_keys}. Please configure Clerk JWT Template to include 'email'."
         )
 
-    user = db.query(User).filter(User.email == email).first()
+    # Resolve User with strict Tenant Context
+    query = db.query(User).filter(User.email == email)
+    
+    if x_tenant_id:
+        try:
+            # If header is present, we MUST match the tenant
+            target_tenant_uuid = UUID(x_tenant_id)
+            query = query.filter(User.tenant_id == target_tenant_uuid)
+        except ValueError:
+            logger.warning("invalid_tenant_header_format", header=x_tenant_id)
+            # Invalid UUID -> User won't be found if we filter by it, 
+            # or we ignore it. Safer to let the query fail to find a match.
+            # We'll just pass here and let query.first() return None if strictly filtering logic was applied
+            # But query.filter requires a valid UUID or expression.
+            # Let's force a "False" condition to ensure 403
+            # query = query.filter(text("1=0")) 
+            # Simpler: just raise 400
+            raise HTTPException(status_code=400, detail="Invalid X-Tenant-ID header format")
+
+    user = query.first()
     
     if not user:
+        # Enhanced Error Handling for Multi-Tenancy
+        if x_tenant_id:
+            # Check if user exists in ANY tenant to give specific error
+            user_any = db.query(User).filter(User.email == email).first()
+            if user_any:
+                logger.warning("access_denied_tenant_mismatch", email=email, target_tenant=x_tenant_id)
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Acceso Denegado. Su usuario no pertenece al tenant solicitado."
+                )
+        
         logger.warning("access_denied_user_not_in_db", email=email)
         # STRICT ALLOWLIST POLICY:
         # The user must be pre-registered in the DB by an Admin.
@@ -134,7 +166,13 @@ def get_current_user(
              detail="Acceso Denegado. Su usuario no está registrado en nuestra base de datos. Por favor contacte a su administrador para solicitar acceso."
         )
         
-    # Strict Tenant Validation
+    # Strict Tenant Validation (Double Check)
+    if x_tenant_id and str(user.tenant_id) != x_tenant_id:
+         # This should be caught by query filter, but safety net
+         logger.error("security_invariant_violation_tenant_mismatch", user_id=str(user.id), header=x_tenant_id)
+         raise HTTPException(status_code=403, detail="Security Violation: Tenant Mismatch")
+
+    # Legacy check: User must have a tenant
     if not user.tenant_id:
          logger.warning("access_denied_no_tenant", user_id=str(user.id))
          raise HTTPException(
@@ -144,7 +182,7 @@ def get_current_user(
          
     return user
 
-def get_tenant_context(
+async def get_tenant_context(
     user: User = Depends(get_current_user),
     x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID")
 ) -> Optional[UUID]:
