@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
@@ -178,7 +179,7 @@ export const offerApi = {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         try {
-            const res = await fetch(url, { 
+            const res = await fetchClient(url, { 
                 signal: controller.signal,
                 headers: { 
                     Authorization: `Bearer ${token}` 
@@ -242,7 +243,7 @@ export const offerApi = {
   },
 
   getOffer: async (id: string, token: string): Promise<Offer> => {
-    const res = await fetch(`${API_URL}/api/v1/products/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Failed to fetch offer");
@@ -284,7 +285,7 @@ export const offerApi = {
   // Keep legacy signatures for now but return dummy or updated types
   createOffer: async (data: any, token: string) => {
       // Implementation omitted for brevity, assuming existing usage handles it or we'll fix it later
-       const res = await fetch(`${API_URL}/api/v1/products/`, {
+       const res = await fetchClient(`${API_URL}/api/v1/products/`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
@@ -297,7 +298,7 @@ export const offerApi = {
   },
   
   saveOffer: async (id: string, data: any, token: string) => {
-      const res = await fetch(`${API_URL}/api/v1/products/${id}`, {
+      const res = await fetchClient(`${API_URL}/api/v1/products/${id}`, {
       method: "PATCH",
       headers: { 
         "Content-Type": "application/json",
@@ -321,7 +322,7 @@ export const offerApi = {
     current_pains: string[];
     current_desires: string[];
   }, token: string): Promise<{ pains: string[]; desires: string[] }> => {
-    const res = await fetch(`${API_URL}/api/v1/offers/ai/psychology`, {
+    const res = await fetchClient(`${API_URL}/api/v1/offers/ai/psychology`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -337,7 +338,7 @@ export const offerApi = {
   },
 
   getLandingConfig: async (offerId: string, token: string): Promise<any> => {
-      const res = await fetch(`${API_URL}/api/v1/offers/${offerId}/landing`, {
+      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing`, {
           headers: { Authorization: `Bearer ${token}` }
       });
       if (res.status === 404) return null;
@@ -346,7 +347,7 @@ export const offerApi = {
   },
 
   generateLandingPage: async (offerId: string, token: string): Promise<any> => {
-      const res = await fetch(`${API_URL}/api/v1/offers/${offerId}/landing/generate`, {
+      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing/generate`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }
       });
@@ -358,7 +359,7 @@ export const offerApi = {
   },
 
   updateLandingPage: async (offerId: string, config: any, token: string): Promise<any> => {
-      const res = await fetch(`${API_URL}/api/v1/offers/${offerId}/landing`, {
+      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing`, {
           method: "PUT",
           headers: { 
               "Content-Type": "application/json",
@@ -373,7 +374,7 @@ export const offerApi = {
   },
 
   regenerateBlock: async (offerId: string, blockType: string, currentContent: any, instruction: string, token: string): Promise<any> => {
-      const res = await fetch(`${API_URL}/api/v1/offers/${offerId}/landing/ai/regenerate-block`, {
+      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing/ai/regenerate-block`, {
           method: "POST",
           headers: { 
               "Content-Type": "application/json",

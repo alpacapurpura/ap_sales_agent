@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, 
-  Database, 
   Activity, 
   Settings,
   Menu,
@@ -30,11 +28,6 @@ import { useUserProfile } from "@/hooks/use-profile";
 
 const navItems = [
   {
-    title: "Resumen",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
     title: "Brand Studio",
     href: "/brand-settings",
     icon: Building2,
@@ -45,17 +38,12 @@ const navItems = [
     icon: Briefcase,
   },
   {
-    title: "Conocimiento",
-    href: "/knowledge",
-    icon: Database,
-  },
-  {
     title: "Auditoría",
     href: "/audit",
     icon: Activity,
   },
   {
-    title: "Ventas",
+    title: "Sales Studio",
     href: "/sales",
     icon: CalendarCheck,
   },

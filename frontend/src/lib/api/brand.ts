@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
@@ -164,7 +165,7 @@ export interface ExtractedVisuals {
 
 export const brandApi = {
     getBrandSettings: async (token: string): Promise<BrandSettings> => {
-        const res = await fetch(`${API_URL}/api/v1/settings/brand`, {
+        const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -174,7 +175,7 @@ export const brandApi = {
     },
 
     updateBrandSettings: async (data: BrandSettings, token: string): Promise<BrandSettings> => {
-        const res = await fetch(`${API_URL}/api/v1/settings/brand`, {
+        const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -187,7 +188,7 @@ export const brandApi = {
     },
 
     extractBrandVisuals: async (url: string, token: string): Promise<ExtractedVisuals> => {
-        const res = await fetch(`${API_URL}/api/v1/tools/extract`, {
+        const res = await fetchClient(`${API_URL}/api/v1/tools/extract`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

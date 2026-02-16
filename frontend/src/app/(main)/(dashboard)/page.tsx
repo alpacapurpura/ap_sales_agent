@@ -1,7 +1,5 @@
-"use client";
-
-import { DashboardLayout } from "@/features/dashboard/components/DashboardLayout";
+import { redirect } from "next/navigation";
 
 export default function DashboardPage() {
-  return <DashboardLayout />;
+  redirect("/brand-settings");
 }

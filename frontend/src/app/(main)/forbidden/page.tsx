@@ -1,9 +1,13 @@
-import Link from "next/link";
+"use client";
+
+import { useClerk } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, ArrowLeft } from "lucide-react";
+import { ShieldAlert, LogOut } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 
 export default function ForbiddenPage() {
+  const { signOut } = useClerk();
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
       <Card className="w-full max-w-md shadow-lg border-red-100">
@@ -28,11 +32,13 @@ export default function ForbiddenPage() {
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button asChild variant="outline" className="gap-2">
-            <Link href="/">
-              <ArrowLeft className="h-4 w-4" />
-              Volver al Inicio
-            </Link>
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => signOut({ redirectUrl: '/' })}
+          >
+            <LogOut className="h-4 w-4" />
+            Intentar con otra cuenta
           </Button>
         </CardFooter>
       </Card>

@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
@@ -58,7 +59,7 @@ export interface EventTypeResolveResponse {
 
 export const publicApi = {
     resolveLink: async (token: string): Promise<LinkResolveResponse> => {
-        const res = await fetch(`${API_URL}/api/v1/public/resolve/${token}`, {
+        const res = await fetchClient(`${API_URL}/api/v1/public/resolve/${token}`, {
             cache: 'no-store'
         });
         if (!res.ok) {
@@ -69,7 +70,7 @@ export const publicApi = {
     },
 
     resolveBookingLink: async (token: string): Promise<BookingLinkResolveResponse> => {
-        const res = await fetch(`${API_URL}/api/v1/public/booking-links/${token}`, {
+        const res = await fetchClient(`${API_URL}/api/v1/public/booking-links/${token}`, {
             cache: 'no-store'
         });
         if (!res.ok) {
@@ -81,7 +82,7 @@ export const publicApi = {
 
     getSlots: async (token: string, start: string, end: string): Promise<string[]> => {
         const params = new URLSearchParams({ start_date: start, end_date: end });
-        const res = await fetch(`${API_URL}/api/v1/public/${token}/slots?${params}`, {
+        const res = await fetchClient(`${API_URL}/api/v1/public/${token}/slots?${params}`, {
             cache: 'no-store'
         });
         if (!res.ok) throw new Error("Failed to fetch slots");
@@ -90,7 +91,7 @@ export const publicApi = {
     },
 
     bookMeeting: async (token: string, data: BookingRequest) => {
-        const res = await fetch(`${API_URL}/api/v1/public/${token}/book`, {
+        const res = await fetchClient(`${API_URL}/api/v1/public/${token}/book`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -108,7 +109,7 @@ export const publicApi = {
     // --- Event Type Public API ---
 
     resolveEventType: async (tenantSlug: string, eventSlug: string): Promise<EventTypeResolveResponse> => {
-        const res = await fetch(`${API_URL}/api/v1/public/event-types/${tenantSlug}/${eventSlug}`, {
+        const res = await fetchClient(`${API_URL}/api/v1/public/event-types/${tenantSlug}/${eventSlug}`, {
             cache: 'no-store'
         });
         if (!res.ok) {
@@ -120,7 +121,7 @@ export const publicApi = {
 
     getEventTypeSlots: async (tenantSlug: string, eventSlug: string, start: string, end: string): Promise<string[]> => {
         const params = new URLSearchParams({ start_date: start, end_date: end });
-        const res = await fetch(`${API_URL}/api/v1/public/event-types/${tenantSlug}/${eventSlug}/slots?${params}`, {
+        const res = await fetchClient(`${API_URL}/api/v1/public/event-types/${tenantSlug}/${eventSlug}/slots?${params}`, {
             cache: 'no-store'
         });
         if (!res.ok) throw new Error("Failed to fetch slots");
@@ -129,7 +130,7 @@ export const publicApi = {
     },
 
     bookEventType: async (tenantSlug: string, eventSlug: string, data: BookingRequest) => {
-        const res = await fetch(`${API_URL}/api/v1/public/event-types/${tenantSlug}/${eventSlug}/book`, {
+        const res = await fetchClient(`${API_URL}/api/v1/public/event-types/${tenantSlug}/${eventSlug}/book`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

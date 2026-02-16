@@ -5,8 +5,22 @@ import { config } from "./config";
  * Si la respuesta es 403 (Forbidden), redirige a la página /forbidden.
  */
 export async function fetchClient(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  // Ejecutar la petición original
-  const response = await fetch(input, init);
+  // Clone init to avoid mutation side effects, or create new if undefined
+  const config = { ...init };
+  const headers = new Headers(config.headers || {});
+
+  // Inject Tenant ID from LocalStorage for strict multi-tenancy
+  if (typeof window !== "undefined") {
+    const tenantId = localStorage.getItem('x-tenant-id');
+    if (tenantId) {
+      headers.set('X-Tenant-ID', tenantId);
+    }
+  }
+
+  config.headers = headers;
+
+  // Ejecutar la petición original con headers inyectados
+  const response = await fetch(input, config);
 
   // Interceptor de errores
   if (response.status === 403) {

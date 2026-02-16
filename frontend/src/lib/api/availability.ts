@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { fetchClient } from "@/lib/http-client";
 
 const API_URL = config.api.baseUrl;
 
@@ -34,7 +35,7 @@ export type ScheduleUpdate = Partial<AvailabilitySchedule>;
 
 export const availabilityApi = {
   listSchedules: async (token: string): Promise<AvailabilitySchedule[]> => {
-    const res = await fetch(`${API_URL}/api/v1/calendar/schedules`, {
+    const res = await fetchClient(`${API_URL}/api/v1/calendar/schedules`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error fetching schedules");
@@ -42,7 +43,7 @@ export const availabilityApi = {
   },
 
   createSchedule: async (schedule: Omit<AvailabilitySchedule, 'id'>, token: string): Promise<AvailabilitySchedule> => {
-    const res = await fetch(`${API_URL}/api/v1/calendar/schedules`, {
+    const res = await fetchClient(`${API_URL}/api/v1/calendar/schedules`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +56,7 @@ export const availabilityApi = {
   },
 
   updateSchedule: async (id: string, update: ScheduleUpdate, token: string): Promise<AvailabilitySchedule> => {
-    const res = await fetch(`${API_URL}/api/v1/calendar/schedules/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/calendar/schedules/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -68,7 +69,7 @@ export const availabilityApi = {
   },
 
   deleteSchedule: async (id: string, token: string): Promise<void> => {
-    const res = await fetch(`${API_URL}/api/v1/calendar/schedules/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/calendar/schedules/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
