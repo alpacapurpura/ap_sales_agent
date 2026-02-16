@@ -4,13 +4,14 @@ set -e
 echo "🚀 Iniciando despliegue en PRODUCCIÓN (VPS)..."
 echo "📂 Usando configuración: docker-compose.prod.yml + .env.prod"
 
-# 1. Pull Latest Code
-echo "📥 Actualizando repositorio..."
-# git pull origin main  <-- Descomentar si se ejecuta en el servidor y tiene git configurado
+# 1. Pull Latest Code (Redundancia de seguridad)
+echo "📥 Asegurando última versión del código..."
+git pull origin main
 
 # 2. Build and Start Services
 echo "🏗️ Construyendo y levantando servicios de producción..."
 # Use --build to force rebuild of images with new changes
+# --remove-orphans limpia contenedores viejos
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build --remove-orphans
 
 # 3. Database Migrations
@@ -46,4 +47,4 @@ fi
 
 echo "✅ Despliegue de producción completado."
 echo "🌐 Frontend: https://salesagent.alpacapurpura.lat"
-echo "🔧 Admin: https://admin.salesagent.alpacapurpura.lat"
+echo "🔧 Admin: https://admin.salesagent.alpacapurpura.lat (Acceso restringido)"

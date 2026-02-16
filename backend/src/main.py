@@ -26,7 +26,8 @@ default_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
-    "http://localhost:8501", # Streamlit
+    "http://localhost:8501", # Streamlit Prod (Tunnel)
+    "http://localhost:8502", # Streamlit Dev
     "http://127.0.0.1:3000",
 ]
 

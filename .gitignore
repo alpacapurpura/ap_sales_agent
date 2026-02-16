@@ -84,10 +84,10 @@ cloudflared.deb
 backend/cloudflare/cloudflared*
 
 
-# Deployment (Local) - Ignore everything except READMEs and scripts
-despliegue/
-!despliegue/local/
-!despliegue/github_actions/
-!despliegue/**/README.md
-!despliegue/**/*.sh
+# # Deployment (Local) - Ignore everything except READMEs and scripts
+# despliegue/
+# !despliegue/local/
+# !despliegue/github_actions/
+# !despliegue/**/README.md
+# !despliegue/**/*.sh
 

@@ -83,7 +83,7 @@ El sistema se orquesta mediante **Docker Compose**, definiendo un entorno de mic
 | :--- | :--- | :--- | :--- |
 | **API Gateway** | `visionarias_brain_dev` | 8000 | Core del Backend (FastAPI + LangGraph). |
 | **Client App** | `visionarias_client_dev` | 3000 | Frontend Next.js. |
-| **Admin Panel** | `visionarias_admin_dev` | 8501 | Panel interno Streamlit para gestión rápida y RAG. |
+| **Admin Panel** | `visionarias_admin_dev` | 8502 | Panel interno Streamlit para gestión rápida y RAG (Dev). Prod: 8501. |
 | **Vector DB** | `visionarias_qdrant` | 6333 | Base de datos vectorial para búsqueda semántica (RAG). |
 | **Relational DB** | `visionarias_postgres` | 5432 | Base de datos principal (PostgreSQL 15). |
 | **Cache** | `visionarias_redis` | 6379 | Cola de tareas y caché de sesiones. |

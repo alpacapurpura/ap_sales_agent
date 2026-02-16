@@ -1,71 +1,116 @@
-# Guía de Acceso a Producción y Gestión de Usuarios
+# Guía de Acceso al Admin de Producción (Windows -> VPS Ubuntu)
 
-Esta guía detalla los pasos para conectarse al servidor, encender los servicios necesarios y gestionar usuarios desde el panel administrativo.
+Esta guía explica cómo conectar tu máquina local (Windows) al panel administrativo de Streamlit en el VPS de producción para gestionar Tenants y Usuarios.
 
-## 1. Conexión al Servidor (SSH)
+## 1. Requisitos Previos
 
-Para acceder al panel administrativo (Streamlit) que corre en el puerto `8501` del servidor, recomendamos usar un **Túnel SSH**. Esto te permite ver el panel en tu navegador local (`localhost`) de forma segura.
+- **IP del VPS**: `161.132.41.191`
+- **Puerto SSH**: `22022`
+- **Usuario**: `root`
+- Tener la llave SSH configurada en tu máquina Windows.
+- Terminal recomendada: PowerShell o Git Bash.
 
-Ejecuta el siguiente comando en tu terminal local (PowerShell o Terminal):
+## 2. Establecer Túnel SSH
+
+El panel administrativo corre en el puerto `8501` del VPS pero **no está expuesto a internet** por seguridad. Debemos crear un "túnel" para acceder como si estuviera en tu PC.
+
+### Opción A: Desde WSL / Ubuntu (Recomendado)
+Si tienes tus llaves SSH en WSL (`/home/chris/.ssh/id_rsa`), **debes ejecutar este comando desde tu terminal de Ubuntu (WSL)**, no desde PowerShell.
 
 ```bash
-# Conexión directa a producción
-ssh -L 8501:localhost:8501 -p 22022 root@161.132.41.191
+# Ejecutar en tu terminal de WSL
+ssh -L 8501:127.0.0.1:8501 -p 22022 -i /home/chris/.ssh/id_rsa root@161.132.41.191
 ```
 
-Una vez conectado, navega a la carpeta del proyecto:
+### Opción B: Desde Windows (PowerShell)
+Si necesitas usar PowerShell, debes tener la llave privada en Windows (`C:\Users\TuUsuario\.ssh\id_rsa`). Si solo la tienes en WSL, usa la Opción A.
 
-```bash
-cd /opt/ap_sales_agent
+```powershell
+# Solo si la llave está configurada en Windows
+ssh -L 8501:127.0.0.1:8501 -p 22022 root@161.132.41.191
 ```
 
-## 2. Encender los Servicios
+> **Explicación**:
+> *   `-L 8501:127.0.0.1:8501`: "Todo lo que yo envíe a mi localhost:8501, mándalo al 127.0.0.1:8501 del servidor remoto".
+> *   Mantén esta terminal **abierta** mientras necesites usar el admin.
 
-Si los contenedores están apagados para ahorrar recursos, debes encenderlos. El panel administrativo depende de la Base de Datos y la API.
+## 3. Encender Servicios en el VPS
+
+Una vez dentro del servidor (en la terminal del paso anterior), navega a la carpeta y levanta los servicios usando la configuración de **PRODUCCIÓN**.
+
+1.  Ir al directorio:
+    ```bash
+    cd /opt/ap_sales_agent
+    ```
+
+2.  Ejecutar Docker Compose.
+    
+    ⚠️ **IMPORTANTE**: En producción siempre debemos especificar `-f docker-compose.prod.yml` y `--env-file .env.prod`.
+
+    **Opción A: Encender TODO el sistema** (Recomendado si el sitio público también debe estar online)
+    ```bash
+    docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+    ```
+
+    **Opción B: Encender SOLO Admin y Backend** (Modo mantenimiento/ahorro de recursos)
+    Si solo entras a configurar algo y no necesitas el frontend público (`frontend` service):
+    ```bash
+    # Levantamos: admin, backend (API) y sus dependencias (DBs)
+    docker compose -f docker-compose.prod.yml --env-file .env.prod up -d admin backend postgres qdrant redis
+    ```
+
+3.  Verificar estado:
+    ```bash
+    docker compose -f docker-compose.prod.yml ps
+    ```
+    Deberías ver los contenedores `visionarias_admin`, `visionarias_brain`, `visionarias_postgres`, etc., en estado **Up**.
+
+## 4. Acceder al Panel
+
+1.  Vuelve a tu navegador en Windows.
+2.  Ingresa a: **[http://localhost:8501](http://localhost:8501)**
+3.  Verás la interfaz de Streamlit cargando.
+
+## 5. Gestión de Tenants y Usuarios
+
+Una vez dentro del panel:
+
+1.  Ve al menú lateral **"🏢 Tenants (Clientes)"**.
+2.  **Crear Cliente**:
+    - Despliega "➕ Nuevo Cliente".
+    - Llena Nombre, Slug y Configuración.
+    - Click en "Crear Cliente".
+3.  **Crear Usuario Admin para el Cliente**:
+    - Selecciona el cliente en "Listado de Clientes".
+    - Baja a **"👥 Usuarios de [Nombre Cliente]"**.
+    - Despliega "➕ Crear Nuevo Usuario".
+    - Ingresa credenciales.
+    - El sistema lo registrará automáticamente en **Clerk** y en la base de datos local.
+
+## 6. Cerrar Sesión y Apagar
+
+1.  **En el VPS**:
+    Si solo encendiste los servicios para esta tarea y quieres apagarlos:
+    ```bash
+    docker compose -f docker-compose.prod.yml stop
+    ```
+    *(Si el sitio debe seguir online, no ejecutes esto).*
+
+2.  **En Windows**:
+    Escribe `exit` en la terminal para desconectarte del VPS y luego cierra la ventana de PowerShell.
+
+## 7. Solución de Problemas (Troubleshooting)
+
+### Error: `UndefinedColumn ... column tenants.clerk_org_id does not exist`
+Este error ocurre cuando el código está actualizado pero la base de datos no tiene las últimas columnas. Debes ejecutar las migraciones.
+
+**Solución**:
+Ejecuta esto en el VPS (dentro de `/opt/ap_sales_agent`):
 
 ```bash
-# Opción A: Encender todo el stack (Recomendado para asegurar que todo funcione)
-docker compose up -d
-
-# Opción B: Encender solo lo necesario para administración (Si tienes perfiles configurados)
-# docker compose up -d admin_dashboard_dev api_dev postgres redis
+docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
 ```
-
-Verifica que los contenedores estén corriendo:
-
+Luego reinicia el admin:
 ```bash
-docker ps
-```
-Deberías ver `visionarias_admin_dev`, `visionarias_brain_dev` y `visionarias_postgres` en estado "Up".
-
-## 3. Crear Tenants y Usuarios
-
-1. Abre tu navegador web e ingresa a: **[http://localhost:8501](http://localhost:8501)**
-2. En el menú lateral, selecciona **"🏢 Tenants (Clientes)"**.
-3. **Para crear un nuevo Tenant**:
-   - Despliega la sección "➕ Nuevo Cliente".
-   - Llena los datos (Nombre, Slug, Configuración del Agente).
-   - Haz clic en "Crear Cliente".
-4. **Para crear un Usuario Administrador**:
-   - En la misma página, baja a "Listado de Clientes".
-   - Selecciona el cliente recién creado en el desplegable "Seleccionar Cliente para Editar".
-   - Baja a la sección **"👥 Usuarios de [Nombre Cliente]"**.
-   - Despliega "➕ Crear Nuevo Usuario".
-   - Ingresa Nombre, Email y Contraseña.
-   - Haz clic en "Crear Usuario".
-   
-   > **Nota**: El sistema creará automáticamente el usuario en el proveedor de identidad (Clerk) y lo vinculará a este Tenant, configurando los permisos necesarios.
-
-## 4. Apagar los Servicios
-
-Una vez termines tus tareas administrativas, puedes apagar los contenedores para detener el consumo de recursos:
-
-```bash
-docker compose stop
-```
-
-O si deseas eliminar los contenedores (manteniendo los datos en volúmenes):
-
-```bash
-docker compose down
+docker compose -f docker-compose.prod.yml restart admin
 ```

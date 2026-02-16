@@ -93,7 +93,7 @@ services:
       - internal_net
       - gateway
     ports:
-      - "127.0.0.1:8501:8501" 
+      - "127.0.0.1:8502:8501" 
     profiles: ["development"]
     labels:
       - "traefik.enable=true"
