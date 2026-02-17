@@ -1,9 +1,10 @@
 "use client";
 
 import { useForm, useFieldArray } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { BrandVisuals } from "@/lib/api/brand";
+import type { BrandVisuals } from "@/lib/api/brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +54,21 @@ export function BrandVisualsForm({ initialData, onSave, isSaving }: BrandVisuals
       usage_guidelines: initialData.usage_guidelines || [],
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      logos: initialData.logos || {},
+      primary_color: initialData.primary_color || "#000000",
+      accent_color: initialData.accent_color || "#ffffff",
+      background_color: initialData.background_color || "#ffffff",
+      text_primary_color: initialData.text_primary_color || "#000000",
+      text_on_primary: initialData.text_on_primary || "#ffffff",
+      font_heading: initialData.font_heading || "",
+      font_body: initialData.font_body || "",
+      design_style: initialData.design_style || "",
+      usage_guidelines: initialData.usage_guidelines || [],
+    });
+  }, [initialData, form]);
 
   // Dynamic fields for guidelines
   const { fields, append, remove } = useFieldArray({

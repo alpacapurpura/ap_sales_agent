@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
+import uuid
 
 class BrandIdentity(BaseModel):
     """
@@ -29,7 +30,7 @@ class BrandStoryMilestone(BaseModel):
     """
     Hito en la historia de la marca.
     """
-    id: str = Field(..., description="Unique ID")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique ID")
     year: str = Field(..., description="Año o Fecha")
     title: str = Field(..., description="Título del Hito")
     description: Optional[str] = Field(None, description="Descripción corta")
@@ -45,7 +46,7 @@ class BrandCompetitor(BaseModel):
     """
     Competencia Directa/Indirecta.
     """
-    id: str = Field(..., description="Unique ID")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique ID")
     name: str = Field(..., description="Nombre del Competidor")
     differentiation: Optional[str] = Field(None, description="¿Por qué somos diferentes?")
 
@@ -62,7 +63,7 @@ class BrandMethodologyPillar(BaseModel):
     """
     Pilar de la Metodología.
     """
-    id: str = Field(..., description="Unique ID")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique ID")
     title: str = Field(..., description="Nombre del Pilar/Fase")
     description: Optional[str] = Field(None, description="Explicación")
 
@@ -80,7 +81,7 @@ class KeyFigure(BaseModel):
     """
     Persona clave en la empresa (The Authority Squad).
     """
-    id: str = Field(..., description="Unique ID for UI handling")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique ID for UI handling")
     name: str = Field(..., description="Nombre Completo")
     role: Optional[str] = Field(None, description="Rol / Título")
     is_primary_voice: bool = Field(False, description="¿Es la Voz Principal?")
@@ -102,7 +103,7 @@ class AuthorityItem(BaseModel):
     """
     Respaldo Institucional (Authority Vault).
     """
-    id: str = Field(..., description="Unique ID for UI handling")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique ID for UI handling")
     entity_name: str = Field(..., description="Nombre de Entidad (Forbes, etc.)")
     type: Optional[str] = Field(None, description="Tipo de Respaldo")
     context: Optional[str] = Field(None, description="Contexto del Logro")
@@ -152,7 +153,7 @@ class TestimonialItem(BaseModel):
     """
     Testimonio de Cliente (Social Proof).
     """
-    id: str = Field(..., description="Unique ID")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique ID")
     type: Literal["text", "video"] = Field("text", description="Tipo de testimonio")
     content: str = Field(..., description="Texto del testimonio o URL del video")
     author_name: str = Field(..., description="Nombre del autor")

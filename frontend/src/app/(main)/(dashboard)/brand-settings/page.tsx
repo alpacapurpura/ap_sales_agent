@@ -18,7 +18,8 @@ export default function BrandSettingsPage() {
     updateVisuals,
     updateStory,
     updateStrategy,
-    updateTestimonials
+    updateTestimonials,
+    updateAllSettings
   } = useBrandSettings();
 
   const [activeSection, setActiveSection] = useState("identity");
@@ -72,6 +73,7 @@ export default function BrandSettingsPage() {
                 onUpdateStory={updateStory}
                 onUpdateStrategy={updateStrategy}
                 onUpdateTestimonials={updateTestimonials}
+                onUpdateAll={updateAllSettings}
              />
          </div>
       </main>

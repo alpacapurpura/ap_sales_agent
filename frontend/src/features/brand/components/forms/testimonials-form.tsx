@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { TestimonialItem } from "@/lib/api/brand";
 import { Button } from "@/components/ui/button";

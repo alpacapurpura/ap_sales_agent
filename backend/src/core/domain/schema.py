@@ -206,3 +206,30 @@ class BrandIdentity(BaseModel):
     # --- Context & Rules ---
     design_style: str = Field(..., description="Brief style description (e.g., 'Minimalist, Clean, Corporate', 'Vibrant, Playful', 'Luxury, Dark Mode'). Infer from colors and font choices.")
     usage_guidelines: List[str] = Field(default_factory=list, description="Inferred rules for using the visual assets (e.g., 'Use primary color for buttons', 'Headers are dark', 'Cards have shadows').")
+
+class BrandStrategy(BaseModel):
+    """
+    Strategic positioning of the brand.
+    """
+    value_proposition: str = Field(..., description="The core promise or main benefit.")
+    target_audience: str = Field(..., description="Description of the ideal customer.")
+    differentiation: str = Field(..., description="What makes this brand unique.")
+    offerings: List[str] = Field(default_factory=list, description="Key products or services offered.")
+
+class BrandStory(BaseModel):
+    """
+    The narrative and history of the brand.
+    """
+    origin_story: str = Field(..., description="How and why the company started.")
+    mission: str = Field(..., description="The company's purpose or mission statement.")
+    vision: str = Field(..., description="The long-term vision.")
+    milestones: List[str] = Field(default_factory=list, description="Key historical events or achievements.")
+
+class BrandTeam(BaseModel):
+    """
+    Information about the people behind the brand.
+    """
+    key_leadership: List[str] = Field(default_factory=list, description="Names and roles of founders or executives.")
+    team_structure: str = Field(..., description="Description of departments or size.")
+    culture_vibe: str = Field(..., description="Description of the company culture (e.g. Remote-first, High-performance).")
+    locations: List[str] = Field(default_factory=list, description="Physical or operational locations.")

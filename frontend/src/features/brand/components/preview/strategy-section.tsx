@@ -42,7 +42,7 @@ export function StrategySection({ strategy, visuals, onEdit }: StrategySectionPr
                             <Trophy className="w-4 h-4 text-amber-500" />
                             Propuesta de Valor Única
                         </h4>
-                        <p className="text-xl md:text-2xl font-serif text-foreground leading-relaxed">
+                        <p className="text-base font-serif text-foreground leading-relaxed">
                             {strategy.unique_value_proposition || "No definida."}
                         </p>
                     </div>

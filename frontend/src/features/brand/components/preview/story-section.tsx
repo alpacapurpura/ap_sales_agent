@@ -38,7 +38,7 @@ export function StorySection({ story, visuals, onEdit }: StorySectionProps) {
                 <div className="pl-0 md:pl-14 grid md:grid-cols-[1fr_250px] gap-12">
                     {/* Origin Story Text */}
                     <div className="prose prose-muted dark:prose-invert max-w-none">
-                        <p className="text-lg leading-relaxed text-foreground whitespace-pre-line font-serif">
+                        <p className="text-sm leading-relaxed text-foreground whitespace-pre-line font-serif">
                             {story.origin_story}
                         </p>
                     </div>

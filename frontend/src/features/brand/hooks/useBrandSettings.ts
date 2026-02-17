@@ -204,6 +204,43 @@ export function useBrandSettings() {
     }
   };
 
+  const updateAllSettings = async (partialSettings: Partial<BrandSettings>) => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      
+      const newSettings = { 
+        ...settings, 
+        ...partialSettings,
+        // Deep merge nested objects if necessary
+        identity: { ...settings.identity, ...partialSettings.identity },
+        visuals: { 
+            ...settings.visuals, 
+            ...partialSettings.visuals,
+            logos: { ...settings.visuals?.logos, ...partialSettings.visuals?.logos }
+        },
+        story: { ...settings.story, ...partialSettings.story },
+        strategy: { ...settings.strategy, ...partialSettings.strategy },
+        contact: { ...settings.contact, ...partialSettings.contact },
+        // Arrays are replaced entirely
+        team: partialSettings.team || settings.team,
+        testimonials: partialSettings.testimonials || settings.testimonials,
+        authority_vault: partialSettings.authority_vault || settings.authority_vault,
+      };
+
+      const updated = await brandApi.updateBrandSettings(newSettings, token);
+      setSettings(updated);
+      toast.success("Configuración de marca actualizada correctamente.");
+    } catch (error) {
+        console.error("Error saving all settings:", error);
+      toast.error("No se pudo guardar la configuración.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return {
     settings,
     loading,
@@ -216,6 +253,7 @@ export function useBrandSettings() {
     updateStrategy,
     updateStory,
     updateTestimonials,
+    updateAllSettings,
     refetch: fetchSettings
   };
 }

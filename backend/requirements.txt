@@ -35,3 +35,6 @@ google-api-python-client>=2.118.0
 email-validator>=2.1.0
 alembic>=1.13.1
 beautifulsoup4>=4.12.3
+python-docx>=0.8.11
+python-docx>=0.8.11
+python-docx>=0.8.11

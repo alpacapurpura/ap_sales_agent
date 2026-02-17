@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { BrandStrategy, BrandMethodologyPillar } from "@/lib/api/brand";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ interface BrandMethodologyFormProps {
 export function BrandMethodologyForm({ initialData, onSave, isSaving = false }: BrandMethodologyFormProps) {
     // Methodology is part of the Strategy object in the API
     const [strategy, setStrategy] = useState<BrandStrategy>(initialData);
+
+    useEffect(() => {
+        setStrategy(initialData);
+    }, [initialData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

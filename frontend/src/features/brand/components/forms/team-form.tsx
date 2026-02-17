@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { KeyFigure } from "@/lib/api/brand";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,10 @@ interface TeamFormProps {
 
 export function TeamForm({ initialData, onSave, isSaving }: TeamFormProps) {
     const [team, setTeam] = useState<KeyFigure[]>(initialData);
+
+    useEffect(() => {
+        setTeam(initialData);
+    }, [initialData]);
 
     // Team Modal State
     const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);

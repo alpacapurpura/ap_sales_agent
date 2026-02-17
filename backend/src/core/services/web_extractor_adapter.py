@@ -4,13 +4,21 @@ from src.core.agents.web_extractor.graph import web_extractor_graph
 
 T = TypeVar("T", bound=BaseModel)
 
-async def extract_from_url(url: str, schema: Type[T]) -> Optional[T]:
+async def extract_from_url(
+    url: str, 
+    schema: Type[T], 
+    max_depth: int = 0,
+    prompt_template: Optional[str] = None
+) -> Optional[T]:
     """
     Extracts structured data from a URL using the Web Extractor Subgraph.
+    Supports Deep Crawling via max_depth.
     
     Args:
         url: The URL to scrape.
         schema: The Pydantic model class defining the expected data structure.
+        max_depth: How many levels deep to crawl (0 = only url, 1 = follow links from url).
+        prompt_template: Optional system prompt override.
         
     Returns:
         An instance of the Pydantic model populated with extracted data, or None if failed.
@@ -20,8 +28,20 @@ async def extract_from_url(url: str, schema: Type[T]) -> Optional[T]:
     
     # Initialize state
     initial_state = {
-        "url": url,
+        # Navigation
+        "base_url": url,
+        "current_url": None, # Will be set by scheduler
+        "queue": [url],      # Start with base url
+        "visited": [],
+        "depth": 0,
+        "max_depth": max_depth,
+        
+        # Data
         "target_schema": json_schema,
+        "prompt_template": prompt_template,
+        "aggregated_content": [],
+        
+        # Legacy/Result
         "retry_count": 0,
         "error": None,
         "raw_content": None,

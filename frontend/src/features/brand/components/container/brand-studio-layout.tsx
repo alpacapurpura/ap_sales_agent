@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStory, BrandStrategy, TestimonialItem } from "@/lib/api/brand";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Eye, X, Save } from "lucide-react";
 
 // Preview Components (The "Live Document")
 import { HeaderSection } from "../preview/header-section";
@@ -23,6 +25,7 @@ import { TestimonialsSection } from "../preview/testimonials-section";
 import { EditSheetManager } from "../forms/edit-sheet-manager";
 import { BrandVisualsWizard } from "../visuals/brand-visuals-wizard";
 import { ThemeInjector } from "../visuals/theme-injector";
+import { SmartFillCard } from "../smart-fill/smart-fill-card";
 
 interface BrandStudioLayoutProps {
   settings: BrandSettings;
@@ -36,6 +39,7 @@ interface BrandStudioLayoutProps {
   onUpdateTestimonials: (data: TestimonialItem[]) => Promise<void>;
   onUpdateStory?: (data: BrandStory) => Promise<void>;
   onUpdateStrategy?: (data: BrandStrategy) => Promise<void>;
+  onUpdateAll?: (data: Partial<BrandSettings>) => Promise<void>;
 }
 
 export type EditMode = "none" | "identity" | "voice" | "legal" | "authority" | "team" | "testimonials" | "contact" | "avatars" | "visuals" | "visuals-wizard" | "story" | "strategy" | "methodology";
@@ -51,10 +55,45 @@ export function BrandStudioLayout({
   onUpdateVisuals,
   onUpdateTestimonials,
   onUpdateStory,
-  onUpdateStrategy
+  onUpdateStrategy,
+  onUpdateAll
 }: BrandStudioLayoutProps) {
   const [editMode, setEditMode] = useState<EditMode>("none");
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [previewData, setPreviewData] = useState<Partial<BrandSettings> | null>(null);
+
+  const displaySettings = useMemo(() => {
+    if (!previewData) return settings;
+    
+    // Helper to merge objects safely
+    const mergeObjects = (original: any, preview: any) => {
+        return { ...(original || {}), ...(preview || {}) };
+    };
+
+    return {
+        ...settings,
+        ...previewData,
+        identity: mergeObjects(settings.identity, previewData.identity),
+        story: mergeObjects(settings.story, previewData.story),
+        strategy: mergeObjects(settings.strategy, previewData.strategy),
+        visuals: { 
+            ...settings.visuals, 
+            ...previewData.visuals,
+            logos: {
+                ...(settings.visuals?.logos || {}),
+                ...(previewData.visuals?.logos || {})
+            }
+        },
+        contact: mergeObjects(settings.contact, previewData.contact),
+        
+        // Arrays: Prefer previewData if it exists (even if empty, though unlikely from extraction)
+        // If previewData is partial and MISSING these keys, fallback to settings.
+        // We use !== undefined to catch empty arrays too (which are valid new data)
+        team: previewData.team !== undefined ? previewData.team : settings.team,
+        testimonials: previewData.testimonials !== undefined ? previewData.testimonials : settings.testimonials,
+        authority_vault: previewData.authority_vault !== undefined ? previewData.authority_vault : settings.authority_vault,
+    };
+  }, [settings, previewData]);
 
   const closeSheet = () => {
     setEditMode("none");
@@ -92,21 +131,131 @@ export function BrandStudioLayout({
     setEditMode("none");
   };
 
+  const handlePreview = (data: Partial<BrandSettings> | null) => {
+    console.log("BrandStudioLayout received preview data:", data);
+    setPreviewData(data);
+    if (data) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleApplyPreview = async () => {
+    if (!previewData) return;
+    await handleSmartFillSuccess(previewData);
+    setPreviewData(null);
+  };
+
+  const handleSmartFillSuccess = async (data: Partial<BrandSettings>) => {
+    // 0. Prefer atomic update if available (Prevents race conditions)
+    if (onUpdateAll) {
+        console.log("Updating All Settings via Atomic Operation:", data);
+        await onUpdateAll(data);
+        window.location.reload();
+        return;
+    }
+
+    // Fallback: Sequential Updates (May have race conditions)
+    // 1. Update Identity (Always)
+    if (data.identity) {
+        console.log("Updating Identity:", data.identity);
+        await onUpdateIdentity(data.identity);
+    }
+    
+    // 2. Update Story (If handler exists)
+    if (data.story && onUpdateStory) {
+        console.log("Updating Story:", data.story);
+        await onUpdateStory(data.story);
+    }
+    
+    // 3. Update Strategy (If handler exists)
+    if (data.strategy && onUpdateStrategy) {
+        console.log("Updating Strategy:", data.strategy);
+        await onUpdateStrategy(data.strategy);
+    }
+    
+    // 4. Update Visuals
+    if (data.visuals) {
+        console.log("Updating Visuals:", data.visuals);
+        await onUpdateVisuals(data.visuals);
+    }
+    
+    // 5. Update Team
+    if (data.team) {
+        console.log("Updating Team:", data.team);
+        await onUpdateTeam(data.team);
+    }
+    
+    // 6. Update Testimonials
+    if (data.testimonials) {
+        console.log("Updating Testimonials:", data.testimonials);
+        await onUpdateTestimonials(data.testimonials);
+    }
+    
+    // 7. Update Contact
+    if (data.contact) {
+        console.log("Updating Contact:", data.contact);
+        await onUpdateContact(data.contact);
+    }
+    
+    // 8. Update Vault
+    if (data.authority_vault) {
+        console.log("Updating Vault:", data.authority_vault);
+        await onUpdateVault(data.authority_vault);
+    }
+
+    // Force refresh or notify user
+    window.location.reload(); // Simple brute force refresh to ensure data is seen
+  };
+
+  const hasExistingData = !!settings.identity?.brand_name;
+  const mode = hasExistingData ? "update" : "initial";
+
   return (
     <div className="relative w-full h-full bg-background flex flex-col overflow-hidden">
-      <ThemeInjector visuals={settings.visuals} />
+      <ThemeInjector visuals={displaySettings.visuals} />
 
       {/* Main Content Area - "The Live Document" */}
       <ScrollArea className="flex-1 w-full">
+        {previewData && (
+             <div className="sticky top-0 z-50 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-primary/20 animate-in slide-in-from-top">
+                <Alert className="border-primary/50 bg-primary/5">
+                    <Eye className="h-4 w-4 text-primary" />
+                    <AlertTitle className="text-primary font-semibold flex items-center gap-2">
+                        Modo Previsualización
+                        <span className="text-xs font-normal text-muted-foreground ml-2 hidden sm:inline-block">
+                            Estás viendo datos extraídos no guardados.
+                        </span>
+                    </AlertTitle>
+                    <AlertDescription className="mt-2 flex items-center gap-4">
+                        <Button size="sm" onClick={handleApplyPreview} className="gap-2">
+                            <Save className="h-4 w-4" /> Aplicar Cambios
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setPreviewData(null)} className="gap-2 text-muted-foreground hover:text-destructive">
+                            <X className="h-4 w-4" /> Descartar
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )}
         <div className="max-w-5xl mx-auto pb-20">
             
             {/* HEADER - Visual Anchor (Full Brand Style) */}
             <div id="identity" className="mb-12 p-4 md:p-8">
                 <HeaderSection 
-                    identity={settings.identity} 
-                    visuals={settings.visuals}
+                    identity={displaySettings.identity} 
+                    visuals={displaySettings.visuals}
                     onEdit={() => openEdit("identity")} 
                     onEditVisuals={() => openEdit("visuals")}
+                />
+            </div>
+
+            {/* Smart Fill Section */}
+            <div className="mb-12 px-6 md:px-12">
+                <SmartFillCard 
+                    mode={mode} 
+                    onSuccess={handleSmartFillSuccess} 
+                    onPreview={handlePreview}
+                    currentUrl={settings.identity?.website}
                 />
             </div>
 
@@ -122,30 +271,30 @@ export function BrandStudioLayout({
 
                     <div id="strategy" className="grid grid-cols-1 md:grid-cols-2 gap-12">
                         <StrategySection 
-                            strategy={settings.strategy}
-                            visuals={settings.visuals}
+                            strategy={displaySettings.strategy}
+                            visuals={displaySettings.visuals}
                             onEdit={() => openEdit("strategy")}
                         />
                         <MethodologySection 
-                            strategy={settings.strategy}
-                            visuals={settings.visuals}
+                            strategy={displaySettings.strategy}
+                            visuals={displaySettings.visuals}
                             onEdit={() => openEdit("methodology")}
                         />
                     </div>
 
-                    <div id="story" className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div id="story" className="space-y-12">
                          <StorySection 
-                            story={settings.story} 
-                            visuals={settings.visuals}
+                            story={displaySettings.story} 
+                            visuals={displaySettings.visuals}
                             onEdit={() => openEdit("story")}
                         />
-                        <div className="space-y-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <VoiceSection 
-                                identity={settings.identity}
+                                identity={displaySettings.identity}
                                 onEdit={() => openEdit("voice")}
                             />
                             <AvatarsSection 
-                                visuals={settings.visuals}
+                                visuals={displaySettings.visuals}
                                 onEdit={(item) => openEdit("avatars", item)}
                             />
                         </div>
@@ -161,14 +310,14 @@ export function BrandStudioLayout({
 
                     <div id="visuals">
                         <VisualsSection 
-                            visuals={settings.visuals}
+                            visuals={displaySettings.visuals}
                             onEdit={() => openEdit("visuals")}
                             onExtract={() => openEdit("visuals-wizard")}
                         />
                     </div>
                     
                     <div id="gallery">
-                        <GallerySection visuals={settings.visuals} />
+                        <GallerySection visuals={displaySettings.visuals} />
                     </div>
                 </div>
 
@@ -181,21 +330,21 @@ export function BrandStudioLayout({
 
                     <div id="team" className="grid grid-cols-1 md:grid-cols-2 gap-12">
                         <TeamSection 
-                            team={settings.team}
-                            visuals={settings.visuals}
+                            team={displaySettings.team}
+                            visuals={displaySettings.visuals}
                             onEdit={(item) => openEdit("team", item)}
                         />
                         <TestimonialsSection 
-                            testimonials={settings.testimonials}
+                            testimonials={displaySettings.testimonials}
                             onEdit={(item) => openEdit("testimonials", item)}
                         />
                     </div>
 
                     <div id="authority">
                         <TrustSection 
-                            identity={settings.identity}
-                            authority={settings.authority_vault}
-                            visuals={settings.visuals}
+                            identity={displaySettings.identity}
+                            authority={displaySettings.authority_vault}
+                            visuals={displaySettings.visuals}
                             onEditIdentity={() => openEdit("identity")}
                             onEditAuthority={(item) => openEdit("authority", item)}
                         />
@@ -206,9 +355,9 @@ export function BrandStudioLayout({
             {/* FOOTER - Visual Anchor (Full Brand Style) */}
             <div id="contact" className="mt-20">
                 <FooterSection 
-                    contact={settings.contact}
-                    identity={settings.identity}
-                    visuals={settings.visuals}
+                    contact={displaySettings.contact}
+                    identity={displaySettings.identity}
+                    visuals={displaySettings.visuals}
                     onEditContact={() => setEditMode("contact")}
                     onEditLegal={() => setEditMode("legal")}
                 />
@@ -222,7 +371,7 @@ export function BrandStudioLayout({
         selectedItem={selectedItem}
         isOpen={editMode !== "none" && editMode !== "visuals-wizard"}
         onClose={closeSheet}
-        settings={settings}
+        settings={displaySettings}
         saving={saving}
         handlers={{
             onUpdateIdentity: handleUpdateIdentity,
@@ -240,9 +389,9 @@ export function BrandStudioLayout({
       <BrandVisualsWizard 
         isOpen={editMode === "visuals-wizard"}
         onOpenChange={(open) => !open && closeSheet()}
-        currentVisuals={settings.visuals}
-        logoUrl={settings.identity.logo_url}
-        websiteUrl={settings.identity.website}
+        currentVisuals={displaySettings.visuals}
+        logoUrl={displaySettings.identity.logo_url}
+        websiteUrl={displaySettings.identity.website}
         onSave={handleUpdateVisuals}
       />
     </div>

@@ -187,13 +187,13 @@ export function EditSheetManager({
               return <ContactDataForm initialData={settings.contact} onSave={handlers.onUpdateContact} isSaving={saving} />;
           
           case "story":
-              return <BrandStoryForm initialData={settings.story} onSave={handlers.onUpdateStory!} isSaving={saving} />;
+              return <BrandStoryForm key={JSON.stringify(settings.story)} initialData={settings.story} onSave={handlers.onUpdateStory!} isSaving={saving} />;
           
           case "strategy":
-              return <BrandStrategyForm initialData={settings.strategy} onSave={handlers.onUpdateStrategy!} isSaving={saving} />;
+              return <BrandStrategyForm key={JSON.stringify(settings.strategy)} initialData={settings.strategy} onSave={handlers.onUpdateStrategy!} isSaving={saving} />;
           
           case "methodology":
-              return <BrandMethodologyForm initialData={settings.strategy} onSave={handlers.onUpdateStrategy!} isSaving={saving} />;
+              return <BrandMethodologyForm key={JSON.stringify(settings.strategy)} initialData={settings.strategy} onSave={handlers.onUpdateStrategy!} isSaving={saving} />;
           
           case "voice":
               return <BrandVoiceForm />;

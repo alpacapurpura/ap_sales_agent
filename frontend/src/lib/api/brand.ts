@@ -163,6 +163,13 @@ export interface ExtractedVisuals {
     usage_guidelines: string[];
 }
 
+export interface FullBrandExtractionRequest {
+    url?: string;
+    text?: string;
+    mode: "initial" | "update";
+    update_instructions?: string;
+}
+
 export const brandApi = {
     getBrandSettings: async (token: string): Promise<BrandSettings> => {
         const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
@@ -201,5 +208,51 @@ export const brandApi = {
         });
         if (!res.ok) throw new Error("Failed to extract brand visuals");
         return res.json();
+    },
+
+    extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<BrandSettings> => {
+        const isFormData = data instanceof FormData;
+        
+        const headers: HeadersInit = {
+            Authorization: `Bearer ${token}`
+        };
+
+        if (!isFormData) {
+            headers["Content-Type"] = "application/json";
+        }
+
+        // Ensure API_URL has a protocol
+        let baseUrl = API_URL;
+        if (baseUrl && !baseUrl.startsWith("http")) {
+             // Fallback for relative URLs or missing protocol
+             console.warn("API_URL missing protocol, defaulting to https://");
+             baseUrl = `https://${baseUrl}`;
+        }
+        
+        // Remove trailing slash if present to avoid double slashes
+        if (baseUrl?.endsWith("/")) {
+            baseUrl = baseUrl.slice(0, -1);
+        }
+
+        const url = `${baseUrl}/api/v1/tools/extract-full-brand`;
+        console.log(`[BrandAPI] Extracting from: ${url}`);
+
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers,
+                body: isFormData ? data : JSON.stringify(data)
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error(`[BrandAPI] Error ${res.status}: ${errorText}`);
+                throw new Error(`Failed to extract full brand data: ${res.status} ${res.statusText}`);
+            }
+            return res.json();
+        } catch (error) {
+            console.error("[BrandAPI] Network or Fetch Error:", error);
+            throw error;
+        }
     }
 };

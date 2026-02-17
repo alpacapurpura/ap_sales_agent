@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { BrandIdentity } from "@/lib/api/brand";
@@ -37,6 +38,17 @@ export function LegalForm({ initialData, onSave, isSaving }: LegalFormProps) {
       privacy_url: initialData.privacy_url || "",
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      legal_name: initialData.legal_name || "",
+      tax_id: initialData.tax_id || "",
+      fiscal_address: initialData.fiscal_address || "",
+      legal_representative: initialData.legal_representative || "",
+      terms_url: initialData.terms_url || "",
+      privacy_url: initialData.privacy_url || "",
+    });
+  }, [initialData, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Merge with existing identity data to avoid data loss on other fields

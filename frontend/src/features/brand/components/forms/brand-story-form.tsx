@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { BrandStory, BrandStoryMilestone } from "@/lib/api/brand";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ interface BrandStoryFormProps {
 
 export function BrandStoryForm({ initialData, onSave, isSaving = false }: BrandStoryFormProps) {
     const [story, setStory] = useState<BrandStory>(initialData);
+
+    useEffect(() => {
+        setStory(initialData);
+    }, [initialData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

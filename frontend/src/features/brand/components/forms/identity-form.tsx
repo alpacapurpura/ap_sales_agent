@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { BrandIdentity } from "@/lib/api/brand";
@@ -45,6 +46,20 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
       language: initialData.language || "Español",
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      brand_name: initialData.brand_name || "",
+      tagline: initialData.tagline || "",
+      description: initialData.description || "",
+      founding_year: initialData.founding_year || "",
+      website: initialData.website || "",
+      industry: initialData.industry || "",
+      logo_url: initialData.logo_url || "",
+      timezone: initialData.timezone || "America/Lima",
+      language: initialData.language || "Español",
+    });
+  }, [initialData, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Preserve existing legal fields that are not in this form

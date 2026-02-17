@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { BrandStrategy, BrandCompetitor } from "@/lib/api/brand";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,10 @@ interface BrandStrategyFormProps {
 
 export function BrandStrategyForm({ initialData, onSave, isSaving = false }: BrandStrategyFormProps) {
     const [strategy, setStrategy] = useState<BrandStrategy>(initialData);
+
+    useEffect(() => {
+        setStrategy(initialData);
+    }, [initialData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

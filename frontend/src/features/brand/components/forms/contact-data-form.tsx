@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ContactData } from "@/lib/api/brand";
@@ -50,6 +51,23 @@ export function ContactDataForm({ initialData, onSave, isSaving }: ContactDataFo
       testimonials_url: initialData.testimonials_url || "",
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      support_email: initialData.support_email || "",
+      sales_email: initialData.sales_email || "",
+      phone: initialData.phone || "",
+      whatsapp: initialData.whatsapp || "",
+      address: initialData.address || "",
+      social_instagram: initialData.social_instagram || "",
+      social_linkedin: initialData.social_linkedin || "",
+      social_youtube: initialData.social_youtube || "",
+      social_tiktok: initialData.social_tiktok || "",
+      social_facebook: initialData.social_facebook || "",
+      social_twitter: initialData.social_twitter || "",
+      testimonials_url: initialData.testimonials_url || "",
+    });
+  }, [initialData, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     onSave(values);
