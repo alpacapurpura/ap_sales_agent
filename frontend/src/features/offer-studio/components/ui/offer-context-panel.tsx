@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { OfferFormValues, OfferType } from "../../types/schema";
+import { OfferFormValues } from "../../types/schema";
+import { OfferType } from "../../types";
 import { Avatar } from "@/lib/api/avatar";
 import { OFFER_TYPE_METADATA } from "../../types/offer-metadata";
 import { ArrowRight, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, CheckCircle, PlaneTakeoff, Zap, Book, ChevronDown, ChevronUp, ExternalLink, Edit, Maximize2 } from "lucide-react";

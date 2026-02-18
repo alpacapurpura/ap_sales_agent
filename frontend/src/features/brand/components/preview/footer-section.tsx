@@ -1,4 +1,4 @@
-import { ContactData, BrandVisuals, BrandIdentity } from "@/lib/api/brand";
+import { ContactData, BrandVisuals, BrandIdentity } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Edit2, Mail, Phone, MapPin, Instagram, Linkedin, Youtube, MessageCircle, Scale, Facebook, Twitter, Video } from "lucide-react";
 import { getContrastColor } from "@/lib/utils/colors";

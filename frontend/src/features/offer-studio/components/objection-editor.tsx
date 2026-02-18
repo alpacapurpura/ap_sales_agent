@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Objection } from "@/lib/api/offer";
+import { Objection } from "@/features/offer-studio/types";
 
 export function ObjectionEditor() {
   const [objections, setObjections] = useState<Objection[]>([

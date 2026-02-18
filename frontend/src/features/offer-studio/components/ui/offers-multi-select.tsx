@@ -6,20 +6,11 @@ import { useAuth } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+  Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
-import { offerApi } from "@/lib/api/offer"
+import { offerApi } from "@/features/offer-studio/api";
 
 interface OffersMultiSelectProps {
   value?: string[]

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuditLeads } from "@/lib/api/audit";
+import { useAuditLeads } from "@/features/audit/hooks/useAudit";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";

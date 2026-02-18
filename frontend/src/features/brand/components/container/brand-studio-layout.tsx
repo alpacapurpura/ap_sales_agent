@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStory, BrandStrategy, TestimonialItem } from "@/lib/api/brand";
+import { BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStory, BrandStrategy, TestimonialItem } from "@/features/brand/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -25,7 +25,8 @@ import { TestimonialsSection } from "../preview/testimonials-section";
 import { EditSheetManager } from "../forms/edit-sheet-manager";
 import { BrandVisualsWizard } from "../visuals/brand-visuals-wizard";
 import { ThemeInjector } from "../visuals/theme-injector";
-import { SmartFillCard } from "../smart-fill/smart-fill-card";
+import { BrandEmptyState } from "../empty-state/brand-empty-state";
+import { SmartFillDialog } from "../smart-fill/smart-fill-dialog";
 
 interface BrandStudioLayoutProps {
   settings: BrandSettings;
@@ -61,6 +62,11 @@ export function BrandStudioLayout({
   const [editMode, setEditMode] = useState<EditMode>("none");
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [previewData, setPreviewData] = useState<Partial<BrandSettings> | null>(null);
+  
+  // UX State
+  const [isSmartFillOpen, setIsSmartFillOpen] = useState(false);
+  const [smartFillMode, setSmartFillMode] = useState<"initial" | "update">("initial");
+  const [hasDismissedEmptyState, setHasDismissedEmptyState] = useState(false);
 
   const displaySettings = useMemo(() => {
     if (!previewData) return settings;
@@ -208,7 +214,34 @@ export function BrandStudioLayout({
   };
 
   const hasExistingData = !!settings.identity?.brand_name;
-  const mode = hasExistingData ? "update" : "initial";
+  const showEmptyState = !hasExistingData && !hasDismissedEmptyState;
+
+  if (showEmptyState) {
+    return (
+        <div className="relative w-full h-full bg-background flex flex-col overflow-hidden">
+             <BrandEmptyState 
+                onStartAI={() => {
+                    setSmartFillMode("initial");
+                    setIsSmartFillOpen(true);
+                }}
+                onStartManual={() => {
+                    setHasDismissedEmptyState(true);
+                }}
+            />
+             <SmartFillDialog
+                open={isSmartFillOpen}
+                onOpenChange={setIsSmartFillOpen}
+                mode={smartFillMode}
+                onSuccess={(data) => {
+                    handleSmartFillSuccess(data);
+                    setHasDismissedEmptyState(true);
+                }}
+                onPreview={handlePreview}
+                currentUrl={settings.identity?.website}
+            />
+        </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full bg-background flex flex-col overflow-hidden">
@@ -246,16 +279,10 @@ export function BrandStudioLayout({
                     visuals={displaySettings.visuals}
                     onEdit={() => openEdit("identity")} 
                     onEditVisuals={() => openEdit("visuals")}
-                />
-            </div>
-
-            {/* Smart Fill Section */}
-            <div className="mb-12 px-6 md:px-12">
-                <SmartFillCard 
-                    mode={mode} 
-                    onSuccess={handleSmartFillSuccess} 
-                    onPreview={handlePreview}
-                    currentUrl={settings.identity?.website}
+                    onRefine={() => {
+                        setSmartFillMode("update");
+                        setIsSmartFillOpen(true);
+                    }}
                 />
             </div>
 
@@ -393,6 +420,18 @@ export function BrandStudioLayout({
         logoUrl={displaySettings.identity.logo_url}
         websiteUrl={displaySettings.identity.website}
         onSave={handleUpdateVisuals}
+      />
+
+      <SmartFillDialog
+        open={isSmartFillOpen}
+        onOpenChange={setIsSmartFillOpen}
+        mode={smartFillMode}
+        onSuccess={(data) => {
+            handleSmartFillSuccess(data);
+            setHasDismissedEmptyState(true);
+        }}
+        onPreview={handlePreview}
+        currentUrl={settings.identity?.website}
       />
     </div>
   );

@@ -13,7 +13,7 @@ import {
     AccessDuration,
     GuaranteeType,
     DeliverableFormat
-  } from "./schema";
+  } from ".";
   
   // --- UTILS ---
   export interface EnumMetadata {

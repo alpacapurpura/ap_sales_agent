@@ -1,7 +1,7 @@
 "use client";
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { BrandSettings, KeyFigure, AuthorityItem, BrandVisuals } from "@/lib/api/brand";
+import { BrandSettings, KeyFigure, AuthorityItem, BrandVisuals } from "@/features/brand/types";
 import { useAuth } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { avatarApi, CreateAvatarDTO } from "@/lib/api/avatar";

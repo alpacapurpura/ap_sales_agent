@@ -1,6 +1,6 @@
 "use client";
 
-import { BrandLogos } from "@/lib/api/brand";
+import { BrandLogos } from "@/features/brand/types";
 import { SingleImagePicker } from "../shared/single-image-picker";
 import { Card } from "@/components/ui/card";
 import { Plus, Image as ImageIcon } from "lucide-react";

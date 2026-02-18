@@ -1,6 +1,6 @@
 "use client";
 
-import { Offer, OfferDeliveryModel, OfferStatus } from "@/lib/api/offer";
+import { Offer, OfferDeliveryModel, OfferStatus } from "@/features/offer-studio/types";
 import { OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
 import { HighlightedText } from "@/components/ui/highlighted-text";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 interface OfferCardProps {
   offer: Offer;
@@ -69,6 +69,8 @@ const DELIVERY_BADGES = {
 
 export function OfferCard({ offer, searchQuery = "", compact = false, className }: OfferCardProps) {
   const router = useRouter();
+  const params = useParams();
+  const tenantId = params?.tenantId as string;
   
   const borderColor = DELIVERY_COLORS[offer.delivery_model] || "border-gray-200";
   const badgeConfig = DELIVERY_BADGES[offer.delivery_model] || DELIVERY_BADGES[OfferDeliveryModel.DIY];
@@ -85,7 +87,7 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
     if ((e.target as HTMLElement).closest('[role="menuitem"]') || (e.target as HTMLElement).closest('button')) {
       return;
     }
-    router.push(`/offer-studio/offer/${offer.id}`);
+    router.push(`/${tenantId}/offer-studio/offer/${offer.id}`);
   };
 
   return (
@@ -118,7 +120,7 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push(`/offer-studio/offer/${offer.id}`)}>
+                <DropdownMenuItem onClick={() => router.push(`/${tenantId}/offer-studio/offer/${offer.id}`)}>
                   Editar
                 </DropdownMenuItem>
                 {offer.landing_page_config?.is_published && (

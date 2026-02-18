@@ -1,4 +1,4 @@
-import { BrandIdentity } from "@/lib/api/brand";
+import { BrandIdentity } from "@/features/brand/types";
 import { MessageSquare, Languages } from "lucide-react";
 
 interface VoiceSectionProps {

@@ -3,7 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { SessionScheduleBuilder } from '../session-schedule-builder';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
-import { OfferFormValues, ProgramStructure, OfferStatus, OfferType } from '../../../types/schema';
+import { OfferFormValues } from '../../../types/schema';
+import { ProgramStructure, OfferStatus, OfferType } from '../../../types';
 
 // Wrapper component to provide Form context
 function Wrapper() {

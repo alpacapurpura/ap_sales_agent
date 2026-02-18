@@ -4,7 +4,7 @@ import { UseFormReturn } from "react-hook-form";
 import { OfferFormValues } from "../../types/schema";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ServiceCategory } from "../../types/schema";
+import { ServiceCategory, InteractionMode, ServiceFrequency } from "../../types";
 import { RichSelect } from "@/components/ui/rich-select";
 import { 
   SERVICE_CATEGORY_METADATA, 

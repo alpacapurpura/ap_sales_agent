@@ -2,19 +2,12 @@ import { usePuck } from "@puckeditor/core";
 import { Button } from "@/components/ui/button";
 import { Wand2, Loader2 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { offerApi } from "@/lib/api/offer";
+import { offerApi } from "@/features/offer-studio/api";
 
 interface AiRemixButtonProps {
     offerId: string;

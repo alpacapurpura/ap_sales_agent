@@ -1,6 +1,6 @@
 "use client";
 
-import { OfferValueLevel } from "@/lib/api/offer";
+import { OfferValueLevel } from "@/features/offer-studio/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Plus, Rocket, Lightbulb, TrendingUp, Gem, Building } from "lucide-react";

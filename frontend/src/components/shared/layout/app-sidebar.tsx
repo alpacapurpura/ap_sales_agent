@@ -24,37 +24,38 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/s
 import { useSidebar } from "./sidebar-context";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ModeToggle } from "@/components/shared/mode-toggle";
-import { useUserProfile } from "@/hooks/use-profile";
+import { useUserProfile } from "@/features/settings/hooks/use-profile";
+import { TenantSwitcher } from "@/components/shared/layout/tenant-switcher";
 
-const navItems = [
+const getNavItems = (tenantId: string) => [
   {
     title: "Brand Studio",
-    href: "/brand-settings",
+    href: `/${tenantId}/brand-settings`,
     icon: Building2,
   },
   {
     title: "Offer Studio",
-    href: "/offer-studio",
+    href: `/${tenantId}/offer-studio`,
     icon: Briefcase,
   },
   {
     title: "Auditoría",
-    href: "/audit",
+    href: `/${tenantId}/audit`,
     icon: Activity,
   },
   {
     title: "Sales Studio",
-    href: "/sales",
+    href: `/${tenantId}/sales`,
     icon: CalendarCheck,
   },
   {
     title: "Conexiones",
-    href: "/connections",
+    href: `/${tenantId}/connections`,
     icon: LinkIcon,
   },
   {
     title: "Configuración",
-    href: "/settings",
+    href: `/${tenantId}/settings`,
     icon: Settings,
   },
 ];
@@ -71,23 +72,31 @@ interface NavContentProps {
 function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname }: NavContentProps) {
   const { user } = useUser();
   const { data: profile } = useUserProfile();
-  const tenantName = profile?.tenant?.name || "Visionarias AI";
+  
+  // Extract tenantId from pathname: /tenant-id/section -> tenant-id
+  // Fallback to profile tenant if not in URL (e.g. root)
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const currentTenantId = pathSegments[0] || profile?.tenant?.id || "";
+  
+  const navItems = getNavItems(currentTenantId);
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className={cn("flex h-16 items-center px-4 border-b", isCollapsed && !mobile ? "justify-center" : "justify-between")}>
-        {!isCollapsed || mobile ? (
-          <span className="text-lg font-bold tracking-tight text-primary truncate" title={tenantName}>{tenantName}</span>
-        ) : (
-          <span className="text-lg font-bold tracking-tight text-primary">{tenantName.charAt(0)}</span>
-        )}
+      <div className={cn("flex h-16 items-center px-4 border-b gap-2", isCollapsed && !mobile ? "justify-center" : "justify-between")}>
+        <div className={cn("flex items-center min-w-0", (!isCollapsed || mobile) && "flex-1")}>
+          <TenantSwitcher 
+            currentTenant={profile?.tenant ?? null} 
+            isCollapsed={isCollapsed && !mobile} 
+            activeTenantId={currentTenantId}
+          />
+        </div>
         
         {!mobile && (
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar} 
-            className="hidden md:flex h-8 w-8 text-muted-foreground"
+            className="hidden md:flex h-8 w-8 text-muted-foreground shrink-0"
           >
             {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           </Button>
@@ -142,7 +151,7 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
           <div className="flex items-center gap-3">
             <UserButton afterSignOutUrl="/sign-in" />
             {(!isCollapsed || mobile) && (
-              <Link href="/settings?tab=profile" className="flex flex-col overflow-hidden hover:underline text-left min-w-0">
+              <Link href={`/${currentTenantId}/settings?tab=profile`} className="flex flex-col overflow-hidden hover:underline text-left min-w-0">
                 <span className="text-sm font-medium truncate">{user?.fullName || "Usuario"}</span>
                 <span className="text-xs text-muted-foreground truncate">{user?.primaryEmailAddress?.emailAddress || "Gestión de perfil"}</span>
               </Link>

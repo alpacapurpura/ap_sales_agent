@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Globe, Upload, Palette, CheckCircle2, Loader2, Sparkles, RefreshCcw } from "lucide-react";
-import { BrandVisuals, brandApi } from "@/lib/api/brand";
+import { BrandVisuals } from "@/features/brand/types";
+import { brandApi } from "@/features/brand/api";
 import ColorThief from "colorthief";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";

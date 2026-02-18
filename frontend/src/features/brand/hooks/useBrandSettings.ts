@@ -2,17 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { 
-  BrandSettings, 
-  brandApi, 
-  BrandIdentity, 
-  KeyFigure, 
-  AuthorityItem, 
-  ContactData,
-  BrandVisuals,
-  BrandStrategy,
-  BrandStory,
-  TestimonialItem
-} from "@/lib/api/brand";
+  BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStrategy, BrandStory, TestimonialItem } from "@/features/brand/types";
+import { brandApi } from "@/features/brand/api";
 
 export function useBrandSettings() {
   const { getToken } = useAuth();

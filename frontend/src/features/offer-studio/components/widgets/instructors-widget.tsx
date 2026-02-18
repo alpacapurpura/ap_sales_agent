@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { KeyFigure, brandApi } from "@/lib/api/brand";
+import { KeyFigure } from "@/features/brand/types";
+import { brandApi } from "@/features/brand/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Users } from "lucide-react";

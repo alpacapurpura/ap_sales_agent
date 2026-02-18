@@ -2,15 +2,16 @@
 
 import { Puck, Data } from "@puckeditor/core";
 import "@puckeditor/core/dist/index.css";
-import { config, RootProps, Props } from "../../puck.config";
+import { config, RootProps, Props } from "../../utils/puck.config";
 import { LandingPageConfig } from "@/features/landing-builder/types/schema";
 import { transformConfigToPuckData } from "../../utils/adapter";
 import { useAuth } from "@clerk/nextjs";
-import { offerApi } from "@/lib/api/offer";
+import { offerApi } from "@/features/offer-studio/api";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AiRemixButton } from "./AiRemixButton";
 
@@ -21,6 +22,8 @@ interface PuckEditorProps {
 
 export function PuckEditor({ initialConfig, offerId }: PuckEditorProps) {
     const { getToken } = useAuth();
+    const params = useParams();
+    const tenantId = params?.tenantId as string;
     
     // Initialize Data
     const [data] = useState<Data<Props, RootProps>>(() => {
@@ -78,7 +81,7 @@ export function PuckEditor({ initialConfig, offerId }: PuckEditorProps) {
                         header: ({ actions, children }) => (
                             <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
                                 <div className="flex items-center gap-4">
-                                     <Link href={`/offer-studio/offer/${offerId}`}>
+                                     <Link href={`/${tenantId}/offer-studio/offer/${offerId}`}>
                                         <Button variant="ghost" size="sm">
                                             <ArrowLeft className="w-4 h-4 mr-2" /> Salir del modo Editor
                                         </Button>

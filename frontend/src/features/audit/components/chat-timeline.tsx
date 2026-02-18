@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useMemo, useState } from "react";
-import { useLeadTimeline, TimelineEvent, clearLeadHistory } from "@/lib/api/audit";
+import { TimelineEvent } from "@/features/audit/types";
+import { useLeadTimeline } from "@/features/audit/hooks/useAudit";
+import { clearLeadHistory } from "@/features/audit/api";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday } from "date-fns";

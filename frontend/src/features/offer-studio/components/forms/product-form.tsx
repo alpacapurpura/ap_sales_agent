@@ -5,7 +5,7 @@ import { OfferFormValues } from "../../types/schema";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { FulfillmentType } from "../../types/schema";
+import { FulfillmentType, DigitalFormat } from "../../types";
 import { RichSelect } from "@/components/ui/rich-select";
 import { 
   FULFILLMENT_TYPE_METADATA, 

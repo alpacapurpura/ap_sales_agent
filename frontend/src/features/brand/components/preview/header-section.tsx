@@ -1,6 +1,6 @@
-import { BrandIdentity, BrandVisuals } from "@/lib/api/brand";
+import { BrandIdentity, BrandVisuals } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
-import { Edit2, Globe, Building2, Palette } from "lucide-react";
+import { Edit2, Globe, Building2, Palette, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getContrastColor } from "@/lib/utils/colors";
@@ -11,9 +11,10 @@ interface BrandHeroSectionProps {
   visuals?: BrandVisuals;
   onEdit: () => void;
   onEditVisuals: () => void;
+  onRefine?: () => void;
 }
 
-export function HeaderSection({ identity, visuals, onEdit, onEditVisuals }: BrandHeroSectionProps) {
+export function HeaderSection({ identity, visuals, onEdit, onEditVisuals, onRefine }: BrandHeroSectionProps) {
   // Check if we have extracted brand colors (custom-web or custom-logo)
   const isCustomBrand = visuals?.style_preset?.startsWith("custom");
 
@@ -88,7 +89,13 @@ export function HeaderSection({ identity, visuals, onEdit, onEditVisuals }: Bran
       </div>
 
       {/* Edit Trigger */}
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+      <div className="absolute top-4 right-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+        {onRefine && (
+            <Button size="sm" variant="outline" onClick={onRefine} className="shadow-sm bg-background/50 backdrop-blur-sm hover:bg-background/80">
+              <Sparkles className="h-3.5 w-3.5 mr-2 text-primary" />
+              Refinar con IA
+            </Button>
+        )}
         <Button size="sm" variant="secondary" onClick={onEdit} className="shadow-sm bg-background/50 backdrop-blur-sm">
           <Edit2 className="h-3.5 w-3.5 mr-2" />
           Editar Identidad

@@ -1,4 +1,4 @@
-import { Offer, OfferValueLevel } from "@/lib/api/offer";
+import { Offer, OfferValueLevel } from "@/features/offer-studio/types";
 import { OfferCard } from "./offer-card";
 import { AddOfferCard } from "./add-offer-card";
 import { Button } from "@/components/ui/button";

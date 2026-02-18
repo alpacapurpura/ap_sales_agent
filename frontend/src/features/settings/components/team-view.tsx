@@ -106,7 +106,7 @@ export function TeamView() {
                 Gestión del Equipo
             </CardTitle>
             <CardDescription>
-            Administra los usuarios que tienen acceso a este Tenant (Máximo 3).
+            Administra los usuarios que tienen acceso a esta Organización (Máximo 3).
             </CardDescription>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>

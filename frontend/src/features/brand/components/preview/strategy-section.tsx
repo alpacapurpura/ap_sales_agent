@@ -1,4 +1,4 @@
-import { BrandStrategy, BrandVisuals } from "@/lib/api/brand";
+import { BrandStrategy, BrandVisuals } from "@/features/brand/types";
 import { cn } from "@/lib/utils";
 import { Target, Trophy, ShieldAlert, Swords } from "lucide-react";
 

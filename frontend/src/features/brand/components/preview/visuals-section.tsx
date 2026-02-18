@@ -1,4 +1,4 @@
-import { BrandVisuals } from "@/lib/api/brand";
+import { BrandVisuals } from "@/features/brand/types";
 import { Palette, Type, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

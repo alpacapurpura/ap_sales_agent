@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { TestimonialItem } from "@/lib/api/brand";
+import { TestimonialItem } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2, Edit2, MessageSquareQuote, Video, AlignLeft, User } from "lucide-react";

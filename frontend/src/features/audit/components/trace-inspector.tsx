@@ -1,6 +1,7 @@
 "use client";
 
-import { TimelineEvent, useTraceDetails } from "@/lib/api/audit";
+import { TimelineEvent } from "@/features/audit/types";
+import { useTraceDetails } from "@/features/audit/hooks/useAudit";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";

@@ -3,7 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { ProgramDetailsForm } from '../program-form';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
-import { OfferFormValues, ProgramStructure, OfferStatus, OfferType } from '../../../types/schema';
+import { OfferFormValues } from '../../../types/schema';
+import { ProgramStructure, OfferStatus, OfferType } from '../../../types';
 
 // Mock complex UI components to avoid JSDOM issues
 vi.mock('@/components/ui/smart-datetime-picker', () => ({

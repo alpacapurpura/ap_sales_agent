@@ -1,4 +1,4 @@
-import { Offer, OfferType, OfferStatus } from "@/lib/api/offer";
+import { Offer, OfferType, OfferStatus } from "@/features/offer-studio/types";
 import { OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 interface LeadMagnetStreamCardProps {
   offer: Offer;
@@ -45,6 +45,9 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardProps) {
   const router = useRouter();
+  const params = useParams();
+  const tenantId = params?.tenantId as string;
+
   const Icon = TYPE_ICONS[offer.type] || TYPE_ICONS.default;
   const colorClass = TYPE_COLORS[offer.type] || TYPE_COLORS.default;
   
@@ -55,7 +58,7 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
       return;
     }
     if (onClick) onClick();
-    else router.push(`/offer-studio/offer/${offer.id}`);
+    else router.push(`/${tenantId}/offer-studio/offer/${offer.id}`);
   };
 
   return (
@@ -104,7 +107,7 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/offer-studio/offer/${offer.id}`)}>
+              <DropdownMenuItem onClick={() => router.push(`/${tenantId}/offer-studio/offer/${offer.id}`)}>
                 Editar
               </DropdownMenuItem>
               {offer.landing_page_config?.is_published && (

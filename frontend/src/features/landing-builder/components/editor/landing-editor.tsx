@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { LandingPageConfig } from "@/features/landing-builder/types/schema";
 import { useAuth } from "@clerk/nextjs";
-import { offerApi } from "@/lib/api/offer";
+import { offerApi } from "@/features/offer-studio/api";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { PuckEditor } from "./PuckEditor";

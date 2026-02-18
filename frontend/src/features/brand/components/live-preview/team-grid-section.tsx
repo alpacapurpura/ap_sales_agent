@@ -1,4 +1,4 @@
-import { KeyFigure, BrandVisuals } from "@/lib/api/brand";
+import { KeyFigure, BrandVisuals } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Edit2, Users, Linkedin, Instagram, Phone } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

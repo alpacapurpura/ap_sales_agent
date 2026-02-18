@@ -2,7 +2,7 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useTraceDetails } from "@/lib/api/audit";
+import { useTraceDetails } from "@/features/audit/hooks/useAudit";
 import { Loader2, Clock, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getNodeIcon, getNodeColor } from "./node-icons";

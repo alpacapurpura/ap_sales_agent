@@ -1,6 +1,6 @@
 "use client";
 
-import { BrandSettings } from "@/lib/api/brand";
+import { BrandSettings } from "@/features/brand/types";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";

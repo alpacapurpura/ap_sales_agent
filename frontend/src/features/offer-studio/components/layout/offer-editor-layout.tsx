@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Offer, offerApi } from "@/lib/api/offer";
+import { Offer } from "@/features/offer-studio/types";
+import { offerApi } from "@/features/offer-studio/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   LayoutDashboard, 
@@ -22,6 +23,8 @@ interface SidebarProps {
 
 export function OfferEditorLayout({ children, offerId }: { children: React.ReactNode, offerId: string }) {
   const pathname = usePathname();
+  const params = useParams();
+  const tenantId = params?.tenantId as string;
   const { getToken } = useAuth();
   const [offer, setOffer] = useState<Offer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,23 +48,23 @@ export function OfferEditorLayout({ children, offerId }: { children: React.React
   const items = [
     {
       title: "Resumen",
-      href: `/offer-studio/offer/${offerId}`,
+      href: `/${tenantId}/offer-studio/offer/${offerId}`,
       icon: LayoutDashboard,
       exact: true
     },
     {
       title: "Avatar Objetivo",
-      href: `/offer-studio/offer/${offerId}/avatar`,
+      href: `/${tenantId}/offer-studio/offer/${offerId}/avatar`,
       icon: Users
     },
     {
       title: "Matriz de Objeciones",
-      href: `/offer-studio/offer/${offerId}/objections`,
+      href: `/${tenantId}/offer-studio/offer/${offerId}/objections`,
       icon: ShieldAlert
     },
     {
       title: "Base de Conocimiento",
-      href: `/offer-studio/offer/${offerId}/knowledge`,
+      href: `/${tenantId}/offer-studio/offer/${offerId}/knowledge`,
       icon: Library
     }
   ];
@@ -70,7 +73,7 @@ export function OfferEditorLayout({ children, offerId }: { children: React.React
     <div className="flex flex-col h-full">
        {/* Header de Navegación */}
        <div className="flex items-center gap-4 px-6 py-4 border-b bg-background">
-          <Link href="/offer-studio">
+          <Link href={`/${tenantId}/offer-studio`}>
             <Button variant="ghost" size="icon">
               <ChevronLeft className="h-5 w-5" />
             </Button>

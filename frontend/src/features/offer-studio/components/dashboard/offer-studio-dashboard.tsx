@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { offerApi, Offer, OfferValueLevel, OfferType } from "@/lib/api/offer";
+import { useRouter, useParams } from "next/navigation";
+import { offerApi } from "@/features/offer-studio/api";
+import { Offer, OfferValueLevel, OfferType } from "@/features/offer-studio/types";
 import { OfferCard } from "./offer-card";
 import { AddOfferCard } from "./add-offer-card";
 import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
@@ -124,6 +125,8 @@ export function OfferStudioDashboard({
 }: OfferStudioDashboardProps) {
   const { getToken } = useAuth();
   const router = useRouter();
+  const params = useParams();
+  const tenantId = params?.tenantId as string;
   
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,7 +256,7 @@ export function OfferStudioDashboard({
       
       if (newOffer.id) {
         setIsDialogOpen(false);
-        router.push(`/offer-studio/offer/${newOffer.id}`);
+        router.push(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
       }
     } catch (err) {
       console.error("Error creating offer:", err);
@@ -362,7 +365,7 @@ export function OfferStudioDashboard({
                <div className="grid grid-rows-2 grid-flow-col gap-3 w-max px-2 py-1">
                  {levelOffers.map((offer) => (
                    <div key={offer.id} className="w-[280px]">
-                     <LeadMagnetStreamCard offer={offer} onClick={() => router.push(`/offer-studio/offer/${offer.id}`)} />
+                     <LeadMagnetStreamCard offer={offer} onClick={() => router.push(`/${tenantId}/offer-studio/offer/${offer.id}`)} />
                    </div>
                  ))}
                  

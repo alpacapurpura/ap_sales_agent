@@ -1,4 +1,4 @@
-import { OfferType, OfferValueLevel, OfferDeliveryModel } from "@/lib/api/offer";
+import { OfferType, OfferValueLevel, OfferDeliveryModel } from ".";
 
 export interface OfferTypeDefinition {
   type: OfferType;

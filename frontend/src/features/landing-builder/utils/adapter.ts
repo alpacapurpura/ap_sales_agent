@@ -1,5 +1,5 @@
 import { Data } from "@puckeditor/core";
-import { RootProps, Props } from "../puck.config";
+import { RootProps, Props } from "./puck.config";
 import { 
     LandingPageConfig, 
     TransformerContent, 

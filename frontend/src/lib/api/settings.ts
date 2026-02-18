@@ -18,6 +18,13 @@ export interface AISettings {
   can_use_platform_keys: boolean;
 }
 
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  role: string;
+}
+
 export interface TenantProfile {
   id: string;
   name: string;
@@ -68,6 +75,16 @@ export interface TeamMemberCreate {
 }
 
 export const settingsApi = {
+  getTenants: async (token: string): Promise<Tenant[]> => {
+    const res = await fetchClient(`${API_URL}/api/v1/users/me/tenants`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error("Failed to fetch tenants");
+    return res.json();
+  },
+
   getTeam: async (token: string): Promise<TeamMember[]> => {
     const res = await fetchClient(`${API_URL}/api/v1/settings/team`, {
       headers: {
@@ -108,6 +125,8 @@ export const settingsApi = {
     const res = await fetchClient(`${API_URL}/api/v1/settings/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
       },
     });
     if (!res.ok) throw new Error("Failed to fetch user profile");

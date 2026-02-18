@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { AuthorityItem } from "@/lib/api/brand";
+import { AuthorityItem } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2, Edit2, Award, ExternalLink, User } from "lucide-react";

@@ -1,6 +1,6 @@
 "use client";
 
-import { TestimonialItem } from "@/lib/api/brand";
+import { TestimonialItem } from "@/features/brand/types";
 import { MessageSquareQuote, Plus, Video, Star, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

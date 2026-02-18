@@ -4,7 +4,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import type { BrandVisuals } from "@/lib/api/brand";
+import type { BrandVisuals } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

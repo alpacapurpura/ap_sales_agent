@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, FileText, Video, Trash2, Link as LinkIcon } from "lucide-react";
-import { MarketingAsset } from "@/lib/api/offer";
+import { MarketingAsset } from "@/features/offer-studio/types";
 
 export function AssetUploader() {
   const [assets, setAssets] = useState<MarketingAsset[]>([

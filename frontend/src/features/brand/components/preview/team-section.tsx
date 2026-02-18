@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyFigure, BrandVisuals } from "@/lib/api/brand";
+import { KeyFigure, BrandVisuals } from "@/features/brand/types";
 import { UserCheck, Star, Plus, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 

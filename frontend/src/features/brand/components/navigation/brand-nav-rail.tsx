@@ -3,23 +3,9 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { 
-  Building2, 
-  Target, 
-  BookOpen, 
-  Palette, 
-  Users, 
-  Award, 
-  MessageSquare, 
-  Contact,
-  CheckCircle2,
-  AlertCircle,
-  Circle,
-  ChevronRight,
-  Image as ImageIcon,
-  MessageSquareQuote,
-  Scale
+  Building2, Target, BookOpen, Palette, Users, Award, MessageSquare, Contact, CheckCircle2, AlertCircle, Circle, ChevronRight, Image as ImageIcon, MessageSquareQuote, Scale
 } from "lucide-react";
-import { BrandSettings } from "@/lib/api/brand";
+import { BrandSettings } from "@/features/brand/types";
 import { 
   validateIdentity, 
   validateStrategy, 

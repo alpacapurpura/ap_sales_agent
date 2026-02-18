@@ -1,7 +1,8 @@
 "use client";
 
 import { UseFormReturn } from "react-hook-form";
-import { OfferFormValues, ProgramStructure, LiveInteractionType } from "../../types/schema";
+import { OfferFormValues } from "../../types/schema";
+import { ProgramStructure, LiveInteractionType, CommunityPlatform } from "../../types";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ import {
 } from "../../types/enum-metadata";
 import { SessionScheduleBuilder } from "./session-schedule-builder";
 import { CurriculumBuilder } from "./curriculum-builder";
-import { ValueStackStep } from "../steps/value-stack-step";
+import { ValueStackSection } from "../sections/ValueStackSection";
 import { CalendarIcon, Clock, AlertCircle, Shield, ShieldCheck, Sparkles } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -444,7 +445,7 @@ export function ProgramDetailsForm({ form }: { form: UseFormReturn<OfferFormValu
 
       {/* 4. Stack de Valor (Entregables) */}
       <div className="pt-2">
-         <ValueStackStep form={form} />
+         <ValueStackSection form={form} />
       </div>
     </div>
   );

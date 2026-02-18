@@ -10,11 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@clerk/nextjs";
-import { offerApi } from "@/lib/api/offer";
+import { offerApi } from "@/features/offer-studio/api";
 import { settingsApi, BrandSettings } from "@/lib/api/settings";
 import { toast } from "sonner";
 import { Loader2, Sparkles, ArrowLeft, ExternalLink, Globe, Palette, Type, Lightbulb } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 // MOCK INITIAL STATE (Fallback)
 const INITIAL_CONFIG: LandingPageConfig = {
@@ -95,6 +96,8 @@ export function LegacyLandingPageEditor({
     offerId?: string 
 }) {
     const { getToken } = useAuth();
+    const params = useParams();
+    const tenantId = params?.tenantId as string;
     const [config, setConfig] = useState<LandingPageConfig>(initialConfig || INITIAL_CONFIG);
     const [brandSettings, setBrandSettings] = useState<BrandSettings | null>(null);
     const [isLoading, setIsLoading] = useState(!initialConfig && !!offerId);
@@ -297,7 +300,7 @@ export function LegacyLandingPageEditor({
                 {/* Header */}
                 <div className="p-4 border-b bg-background flex flex-col gap-4">
                      <div className="flex items-center gap-2">
-                        <Link href={`/offer-studio/offer/${offerId}`}>
+                        <Link href={`/${tenantId}/offer-studio/offer/${offerId}`}>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>

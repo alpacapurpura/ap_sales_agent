@@ -1,4 +1,4 @@
-import { AvatarDefinition } from "./offer";
+import { AvatarDefinition } from "@/features/offer-studio/types";
 import { config } from "../config";
 import { fetchClient } from "../http-client";
 

@@ -1,4 +1,4 @@
-import { BrandSettings, BrandIdentity, BrandStrategy, BrandStory, KeyFigure, ContactData, BrandVisuals, AuthorityItem } from "@/lib/api/brand";
+import { BrandSettings, BrandIdentity, BrandStrategy, BrandStory, KeyFigure, ContactData, BrandVisuals, AuthorityItem } from "@/features/brand/types";
 import { Avatar } from "@/lib/api/avatar";
 
 export type ValidationStatus = "complete" | "partial" | "empty";
