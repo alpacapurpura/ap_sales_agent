@@ -1,4 +1,4 @@
-import { TenantsClient } from "./tenants-client"
+import { TenantsClient } from "@/features/admin/components/tenants-list"
 
 export const dynamic = "force-dynamic"
 

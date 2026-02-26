@@ -1,6 +1,6 @@
 fastapi==0.109.2
 uvicorn==0.27.1
-pydantic==2.6.1
+pydantic>=2.10.0
 pydantic-settings==2.1.0
 langchain>=0.1.9
 langchain-openai>=0.0.8
@@ -36,5 +36,4 @@ email-validator>=2.1.0
 alembic>=1.13.1
 beautifulsoup4>=4.12.3
 python-docx>=0.8.11
-python-docx>=0.8.11
-python-docx>=0.8.11
+svix>=1.1.1

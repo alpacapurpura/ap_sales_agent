@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/nextjs";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { avatarApi, CreateAvatarDTO } from "@/lib/api/avatar";
-import { AvatarForm } from "@/features/brand/components/avatars/avatar-form";
+import { AvatarForm } from "@/features/brand/sections/avatars/avatar-form";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 

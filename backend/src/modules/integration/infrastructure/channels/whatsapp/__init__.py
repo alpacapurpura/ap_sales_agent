@@ -1,0 +1,44 @@
+from typing import Dict, Any, Optional
+from src.modules.integration.infrastructure.channels.base import BaseChannel
+from src.modules.communication.domain.message_models import IncomingMessage, OutgoingMessage
+from .factory import get_whatsapp_provider
+
+class WhatsAppChannel(BaseChannel):
+    """
+    Facade for WhatsApp Channel.
+    Delegates to the configured Evolution API Provider (V1/V2).
+    """
+    
+    def __init__(self, tenant_id: str):
+        self.tenant_id = tenant_id
+        self.provider = get_whatsapp_provider(tenant_id)
+
+    def normalize_payload(self, payload: Dict[str, Any]) -> Optional[IncomingMessage]:
+        return self.provider.normalize_payload(payload)
+
+    async def send_message(self, message: OutgoingMessage) -> Dict[str, Any]:
+        return await self.provider.send_message(message)
+
+    async def set_typing_status(self, user_id: str) -> None:
+        return await self.provider.set_typing_status(user_id)
+        
+    # Management Accessors
+    # The Router can access self.provider directly or via these wrappers
+    
+    async def create_instance(self, token: str) -> Dict[str, Any]:
+        return await self.provider.create_instance(token)
+        
+    async def delete_instance(self) -> Dict[str, Any]:
+        return await self.provider.delete_instance()
+        
+    async def check_status(self) -> Dict[str, Any]:
+        return await self.provider.check_status()
+        
+    async def get_qr(self) -> Dict[str, Any]:
+        return await self.provider.get_qr()
+        
+    async def configure_webhook(self, webhook_url: str) -> Dict[str, Any]:
+        return await self.provider.configure_webhook(webhook_url)
+        
+    async def logout(self) -> Dict[str, Any]:
+        return await self.provider.logout()

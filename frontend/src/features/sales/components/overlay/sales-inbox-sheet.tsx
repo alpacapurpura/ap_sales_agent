@@ -30,46 +30,44 @@ import {
 import { SalesConversation } from "../../types/sales-studio";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { cva } from "class-variance-authority";
 
-// Mock Data
-const MOCK_CONVERSATIONS: SalesConversation[] = [
-  {
-    id: "1",
-    leadName: "Ana García",
-    lastMessage: "Hola, me interesa el paquete premium.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 min ago
-    unreadCount: 2,
-    status: "active",
-    platform: "whatsapp"
-  },
-  {
-    id: "2",
-    leadName: "Carlos Ruiz",
-    lastMessage: "¿Aceptan pagos con Yape?",
-    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min ago
-    unreadCount: 0,
-    status: "active",
-    platform: "instagram"
-  },
-  {
-    id: "3",
-    leadName: "María López",
-    lastMessage: "Gracias, ya realicé el pago.",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-    unreadCount: 0,
-    status: "closed",
-    platform: "whatsapp"
-  }
-];
+// Mock Data removed
+
 
 interface SalesInboxSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+const messageVariants = cva(
+  "p-3 rounded-lg max-w-[80%] text-sm",
+  {
+    variants: {
+      variant: {
+        received: "bg-muted rounded-tl-none",
+        sent: "bg-primary text-primary-foreground rounded-tr-none"
+      }
+    },
+    defaultVariants: {
+      variant: "received"
+    }
+  }
+);
+
+const MessageBubble = ({ variant, children }: { variant: "received" | "sent", children: React.ReactNode }) => (
+  <div className={cn("flex", variant === "sent" ? "justify-end" : "justify-start")}>
+    <div className={cn(messageVariants({ variant }))}>
+      {children}
+    </div>
+  </div>
+);
+
 export function SalesInboxSheet({ open, onOpenChange }: SalesInboxSheetProps) {
   const [selectedConversation, setSelectedConversation] = useState<SalesConversation | null>(null);
   const [replyText, setReplyText] = useState("");
+  const conversations: SalesConversation[] = [];
 
   const handleSelect = (conversation: SalesConversation) => {
     setSelectedConversation(conversation);
@@ -81,8 +79,7 @@ export function SalesInboxSheet({ open, onOpenChange }: SalesInboxSheetProps) {
 
   const handleSend = () => {
     if (!replyText.trim()) return;
-    // Mock send logic
-    console.log("Sending:", replyText);
+    // Logic to send message would go here
     setReplyText("");
   };
 
@@ -117,13 +114,20 @@ export function SalesInboxSheet({ open, onOpenChange }: SalesInboxSheetProps) {
               <TabsContent value="active" className="flex-1 p-0 mt-2 h-full">
                 <ScrollArea className="h-[calc(100vh-200px)]">
                   <div className="flex flex-col">
-                    {MOCK_CONVERSATIONS.filter(c => c.status !== "closed").map((conversation) => (
-                      <ConversationItem 
-                        key={conversation.id} 
-                        conversation={conversation} 
-                        onClick={() => handleSelect(conversation)} 
-                      />
-                    ))}
+                    {conversations.filter(c => c.status !== "closed").length > 0 ? (
+                      conversations.filter(c => c.status !== "closed").map((conversation) => (
+                        <ConversationItem 
+                          key={conversation.id} 
+                          conversation={conversation} 
+                          onClick={() => handleSelect(conversation)} 
+                        />
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                        <MessageSquare className="h-8 w-8 mb-2 opacity-50" />
+                        <p className="text-sm">No hay conversaciones activas</p>
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               </TabsContent>
@@ -131,13 +135,20 @@ export function SalesInboxSheet({ open, onOpenChange }: SalesInboxSheetProps) {
               <TabsContent value="closed" className="flex-1 p-0 mt-2 h-full">
                 <ScrollArea className="h-[calc(100vh-200px)]">
                   <div className="flex flex-col">
-                    {MOCK_CONVERSATIONS.filter(c => c.status === "closed").map((conversation) => (
-                      <ConversationItem 
-                        key={conversation.id} 
-                        conversation={conversation} 
-                        onClick={() => handleSelect(conversation)} 
-                      />
-                    ))}
+                    {conversations.filter(c => c.status === "closed").length > 0 ? (
+                      conversations.filter(c => c.status === "closed").map((conversation) => (
+                        <ConversationItem 
+                          key={conversation.id} 
+                          conversation={conversation} 
+                          onClick={() => handleSelect(conversation)} 
+                        />
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                        <CheckCircle2 className="h-8 w-8 mb-2 opacity-50" />
+                        <p className="text-sm">No hay conversaciones cerradas</p>
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               </TabsContent>
@@ -168,22 +179,7 @@ export function SalesInboxSheet({ open, onOpenChange }: SalesInboxSheetProps) {
 
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {/* Mock Messages */}
-                <div className="flex justify-start">
-                  <div className="bg-muted p-3 rounded-lg rounded-tl-none max-w-[80%] text-sm">
-                    Hola, ¿qué precio tiene el servicio?
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <div className="bg-primary text-primary-foreground p-3 rounded-lg rounded-tr-none max-w-[80%] text-sm">
-                    Hola {selectedConversation.leadName}, el precio es de $99 USD.
-                  </div>
-                </div>
-                <div className="flex justify-start">
-                  <div className="bg-muted p-3 rounded-lg rounded-tl-none max-w-[80%] text-sm">
-                    {selectedConversation.lastMessage}
-                  </div>
-                </div>
+                {/* Messages would be mapped here */}
               </div>
             </ScrollArea>
 
@@ -234,7 +230,10 @@ function ConversationItem({ conversation, onClick }: { conversation: SalesConver
             {formatDistanceToNow(new Date(conversation.timestamp), { addSuffix: true, locale: es })}
           </span>
         </div>
-        <p className={`text-sm truncate ${conversation.unreadCount > 0 ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+        <p className={cn(
+          "text-sm truncate",
+          conversation.unreadCount > 0 ? "font-medium text-foreground" : "text-muted-foreground"
+        )}>
           {conversation.lastMessage}
         </p>
       </div>

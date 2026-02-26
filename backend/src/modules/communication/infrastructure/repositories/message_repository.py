@@ -1,0 +1,47 @@
+from typing import List, Optional
+from sqlalchemy.orm import Session
+from uuid import UUID
+from src.modules.communication.domain.message import Message, MessageSender
+from src.modules.communication.infrastructure.models.message_model import MessageModel
+
+class MessageRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def _to_domain(self, model: MessageModel) -> Message:
+        return Message(
+            id=model.id,
+            tenant_id=model.tenant_id,
+            lead_id=model.lead_id,
+            sender_type=MessageSender(model.sender_type),
+            content=model.content,
+            channel=model.channel,
+            external_id=model.external_id,
+            metadata_info=model.metadata_info or {},
+            created_at=model.created_at
+        )
+
+    def _to_model(self, message: Message) -> MessageModel:
+        return MessageModel(
+            id=message.id,
+            tenant_id=message.tenant_id,
+            lead_id=message.lead_id,
+            sender_type=message.sender_type.value,
+            content=message.content,
+            channel=message.channel,
+            external_id=message.external_id,
+            metadata_info=message.metadata_info
+        )
+
+    def create(self, message: Message) -> Message:
+        model = self._to_model(message)
+        self.db.add(model)
+        self.db.commit()
+        self.db.refresh(model)
+        return self._to_domain(model)
+
+    def get_history(self, lead_id: UUID, limit: int = 50) -> List[Message]:
+        models = self.db.query(MessageModel).filter(
+            MessageModel.lead_id == lead_id
+        ).order_by(MessageModel.created_at.asc()).limit(limit).all()
+        return [self._to_domain(m) for m in models]

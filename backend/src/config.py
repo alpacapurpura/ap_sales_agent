@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from src.core.domain.schema import PromptSource
+from src.shared.domain.ai_enums import PromptSource
 
 class Settings(BaseSettings):
     # API Config
@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     DASHBOARD_DOMAIN: str = ""
     API_URL: str = "http://visionarias_brain_dev:8000" # Internal URL for webhooks
     
+    # Clerk
+    CLERK_SECRET_KEY: str = ""
+    CLERK_WEBHOOK_SECRET: str = ""
+
     # CORS
     CORS_ORIGINS: list[str] = []
 

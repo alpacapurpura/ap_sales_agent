@@ -16,6 +16,7 @@ import { OfferFormValues } from "../types/schema";
 export interface BackendOffer {
   id: string;
   name: string;
+  public_name?: string;
   internal_sku?: string;
   type: string;
   offer_value_level?: string;
@@ -28,6 +29,7 @@ export interface BackendOffer {
   time_to_value?: string;
   
   pricing?: any[];
+  pricing_options?: any[];
   currency?: string;
   
   specific_details?: Record<string, any>;
@@ -73,7 +75,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     id: data.id,
     name: data.name,
     internal_sku: data.internal_sku,
-    type: (data.type as OfferType) || OfferType.FREE_RESOURCE,
+    type: (data.type?.toUpperCase() as OfferType) || OfferType.FREE_RESOURCE,
     
     value_level: (data.offer_value_level || data.value_level || "N0") as OfferValueLevel,
     delivery_model: (data.delivery_model || "DIY") as OfferDeliveryModel,
@@ -83,7 +85,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     primary_outcome: data.primary_outcome,
     time_to_value: data.time_to_value,
     
-    pricing: (data.pricing || []).map((p: any) => ({
+    pricing: (data.pricing_options || data.pricing || []).map((p: any) => ({
         label: p.label || "Standard",
         total_amount: Number(p.total_amount) || 0,
         plan_type: p.plan_type,
@@ -152,20 +154,25 @@ export const offerToFormValues = (offer: Offer): OfferFormValues => {
 export const frontendToBackend = (values: OfferFormValues | Partial<OfferFormValues>): Record<string, any> => {
     const payload: Record<string, any> = { ...values };
     
-    // 1. Mapear pricing_options (Frontend) -> pricing (Backend)
-    if ('pricing_options' in values) {
-        payload.pricing = values.pricing_options;
-        delete payload.pricing_options;
+    // 1. Mapear pricing_options (Frontend) -> pricing_options (Backend)
+    // El backend espera 'pricing_options', no 'pricing'
+    if (values.pricing_options) {
+        payload.pricing_options = values.pricing_options;
+    } else if (values.pricing) {
+        payload.pricing_options = values.pricing;
+        delete payload.pricing;
     }
     
     // 2. Eliminar metadata_info para evitar sobrescribir actualizaciones parciales
     // El backend maneja la fusión de campos específicos en metadata si es necesario.
     delete payload.metadata_info;
     
-    // 3. Mapear public_name a name
+    // 3. Mapear public_name
+    // Si existe public_name, se usa. Si no, y existe name, se usa name como public_name.
     if (values.public_name) {
-        payload.name = values.public_name;
-        delete payload.public_name;
+        payload.public_name = values.public_name;
+    } else if (values.name) {
+        payload.public_name = values.name;
     }
 
     return payload;

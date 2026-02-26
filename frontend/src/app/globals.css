@@ -111,3 +111,18 @@ html.dark {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .v-stack {
+    @apply flex flex-col;
+  }
+  .h-stack {
+    @apply flex flex-row items-center;
+  }
+  .center {
+    @apply flex items-center justify-center;
+  }
+  .spacer {
+    @apply grow;
+  }
+}

@@ -1,13 +1,12 @@
 import sys
 import os
-import re
 
 # Add project root to path
 sys.path.append(os.getcwd())
 
-from src.services.database import SessionLocal, engine
-from src.services.db.models import PromptVersion, Base
-from sqlalchemy import select, desc
+from src.services.database import SessionLocal
+from src.services.db.models import PromptVersion
+from sqlalchemy import select
 
 # 1. Definir los prompts iniciales y sus metadatos manuales
 # (Ya que inferir todo es difícil, mejor mapeamos la inteligencia aquí)

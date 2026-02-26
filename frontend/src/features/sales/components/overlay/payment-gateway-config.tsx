@@ -38,6 +38,7 @@ import {
   ShieldCheck,
   ShieldAlert
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PaymentGatewayConfig as ConfigType } from "../../types/sales-studio";
 
 interface PaymentGatewayConfigProps {
@@ -137,16 +138,16 @@ export function PaymentGatewayConfig({ open, onOpenChange }: PaymentGatewayConfi
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`text-xs font-medium ${mode === "sandbox" ? "text-yellow-600" : "text-muted-foreground"}`}>Sandbox</span>
+                <span className={cn("text-xs font-medium", mode === "sandbox" ? "text-yellow-600" : "text-muted-foreground")}>Sandbox</span>
                 <Switch 
                   checked={mode === "production"} 
                   onCheckedChange={handleModeChange}
                 />
-                <span className={`text-xs font-medium ${mode === "production" ? "text-green-600" : "text-muted-foreground"}`}>Producción</span>
+                <span className={cn("text-xs font-medium", mode === "production" ? "text-green-600" : "text-muted-foreground")}>Producción</span>
               </div>
             </div>
 
-            <Card className={mode === "sandbox" ? "border-yellow-200 bg-yellow-50/10" : "border-green-200 bg-green-50/10"}>
+            <Card className={cn(mode === "sandbox" ? "border-yellow-200 bg-yellow-50/10" : "border-green-200 bg-green-50/10")}>
               <CardHeader>
                 <CardTitle className="text-sm font-medium flex items-center justify-between">
                   Credenciales de {activeProvider === "culqi" ? "Culqi" : "Mercado Pago"} ({mode})

@@ -1,7 +1,5 @@
 import sys
 import os
-import uuid
-import json
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
@@ -10,7 +8,6 @@ sys.path.append(os.path.join(os.getcwd(), "backend"))
 
 from src.config import settings
 from src.services.db.models.tenant import Tenant
-from src.services.db.models.user import User
 
 def init_tenant_data():
     print("Starting Tenant Data Backfill...")

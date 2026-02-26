@@ -7,11 +7,22 @@ import {
 } from "../types";
 import { backendToFrontend, frontendToBackend, BackendOffer } from "./adapter";
 import { OfferFormValues } from "../types/schema";
+import { MOCK_OFFERS } from "./mock-data";
 
 const API_URL = config.api.baseUrl;
 
+// --- CONFIGURACIÓN DE MOCK ---
+// Cambiar a false para conectar con la API real
+export const USE_MOCK_DATA = false;
+
 export const offerApi = {
   listOffers: async (token: string): Promise<Offer[]> => {
+    if (USE_MOCK_DATA) {
+        console.log("🔸 Using Mock Data for listOffers");
+        await new Promise(resolve => setTimeout(resolve, 800));
+        return MOCK_OFFERS;
+    }
+
     try {
         const url = `${API_URL}/api/v1/products/`;
         
@@ -50,6 +61,16 @@ export const offerApi = {
   },
 
   getOffer: async (id: string, token: string): Promise<Offer> => {
+    if (USE_MOCK_DATA) {
+        console.log(`🔸 Using Mock Data for getOffer: ${id}`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const mockOffer = MOCK_OFFERS.find(o => o.id === id);
+        if (mockOffer) return mockOffer;
+        // Si no se encuentra en los mocks explícitos, devolver el primero como fallback o error
+        console.warn(`Mock offer ${id} not found, returning first mock offer`);
+        return MOCK_OFFERS[0];
+    }
+
     const res = await fetchClient(`${API_URL}/api/v1/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
     });
@@ -59,6 +80,17 @@ export const offerApi = {
   },
   
   createOffer: async (data: OfferFormValues, token: string) => {
+       if (USE_MOCK_DATA) {
+           console.log("🔸 Using Mock Data for createOffer", data);
+           await new Promise(resolve => setTimeout(resolve, 1000));
+           return {
+               id: `mock-new-${Date.now()}`,
+               ...data,
+               created_at: new Date().toISOString(),
+               updated_at: new Date().toISOString()
+           };
+       }
+
        const payload = frontendToBackend(data);
        const res = await fetchClient(`${API_URL}/api/v1/products/`, {
           method: "POST",
@@ -73,6 +105,12 @@ export const offerApi = {
   },
   
   saveOffer: async (id: string, data: Partial<OfferFormValues>, token: string) => {
+      if (USE_MOCK_DATA) {
+          console.log(`🔸 Using Mock Data for saveOffer: ${id}`, data);
+          await new Promise(resolve => setTimeout(resolve, 600));
+          return { id, ...data, success: true };
+      }
+
       const payload = frontendToBackend(data);
       const res = await fetchClient(`${API_URL}/api/v1/products/${id}`, {
       method: "PATCH",
@@ -83,6 +121,82 @@ export const offerApi = {
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error("Failed to save offer");
+    return res.json();
+  },
+
+  saveSection: async (id: string, sectionId: string, data: any, token: string) => {
+    if (USE_MOCK_DATA) {
+        console.log(`🔸 Using Mock Data for saveSection: ${sectionId}`, data);
+        await new Promise(resolve => setTimeout(resolve, 600));
+        return { success: true, section: sectionId, data };
+    }
+
+    let endpoint = "";
+    let payload = data;
+
+    switch (sectionId) {
+        case "identity":
+            endpoint = "/identity";
+            break;
+        case "strategy":
+            endpoint = "/strategy";
+            break;
+        case "promise":
+            endpoint = "/promise";
+            break;
+        case "psychology":
+            endpoint = "/psychology";
+            break;
+        case "pricing":
+            endpoint = "/pricing";
+            if (data.pricing_options) {
+                payload = { pricing_options: data.pricing_options };
+            } else if (data.pricing) {
+                payload = { pricing_options: data.pricing };
+            }
+            break;
+        case "closing":
+            endpoint = "/closing";
+            break;
+        case "instructors":
+            endpoint = "/instructors";
+            break;
+        case "value_stack":
+            endpoint = "/value_stack";
+            break;
+        case "resources":
+            endpoint = "/resources";
+            break;
+        case "gallery":
+            endpoint = "/visuals";
+            break;
+        case "program_details":
+        case "product_details":
+        case "service_details":
+        case "event_details":
+        case "subscription_details":
+            endpoint = "/details";
+            // Fix: Send data directly to avoid double nesting specific_details.
+            // data already contains { specific_details: {...}, access_duration: ... }
+            payload = data;
+            break;
+        default:
+            console.warn(`No specific endpoint for section ${sectionId}, falling back to generic patch`);
+            return offerApi.saveOffer(id, data, token);
+    }
+
+    const res = await fetchClient(`${API_URL}/api/v1/products/${id}${endpoint}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+        throw new Error(`Failed to save section ${sectionId}`);
+    }
     return res.json();
   },
 
@@ -98,6 +212,15 @@ export const offerApi = {
     current_pains: string[];
     current_desires: string[];
   }, token: string): Promise<{ pains: string[]; desires: string[] }> => {
+    if (USE_MOCK_DATA) {
+        console.log("🔸 Using Mock Data for generatePsychology");
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return {
+            pains: ["Miedo al fracaso", "Falta de tiempo", "Inseguridad tecnológica", "Presupuesto limitado"],
+            desires: ["Libertad financiera", "Reconocimiento", "Automatización total", "Impacto global"]
+        };
+    }
+
     const res = await fetchClient(`${API_URL}/api/v1/offers/ai/psychology`, {
         method: "POST",
         headers: { 
@@ -114,6 +237,9 @@ export const offerApi = {
   },
 
   getLandingConfig: async (offerId: string, token: string): Promise<any> => {
+      if (USE_MOCK_DATA) {
+          return null; // Return null to simulate no existing landing page, or return a mock config if needed
+      }
       const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing`, {
           headers: { Authorization: `Bearer ${token}` }
       });
@@ -123,6 +249,15 @@ export const offerApi = {
   },
 
   generateLandingPage: async (offerId: string, token: string): Promise<any> => {
+      if (USE_MOCK_DATA) {
+          console.log("🔸 Using Mock Data for generateLandingPage");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          return {
+              slug: `offer-${offerId}`,
+              is_published: false,
+              sections: []
+          };
+      }
       const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing/generate`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }
@@ -135,6 +270,11 @@ export const offerApi = {
   },
 
   updateLandingPage: async (offerId: string, config: any, token: string): Promise<any> => {
+      if (USE_MOCK_DATA) {
+          console.log("🔸 Using Mock Data for updateLandingPage");
+          await new Promise(resolve => setTimeout(resolve, 500));
+          return config;
+      }
       const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing`, {
           method: "PUT",
           headers: { 
@@ -150,6 +290,15 @@ export const offerApi = {
   },
 
   regenerateBlock: async (offerId: string, blockType: string, currentContent: any, instruction: string, token: string): Promise<any> => {
+      if (USE_MOCK_DATA) {
+          console.log("🔸 Using Mock Data for regenerateBlock");
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          return {
+              ...currentContent,
+              headline: "Título Regenerado por IA (Mock)",
+              subheadline: "Este es un texto simulado generado como respuesta a tu instrucción."
+          };
+      }
       const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing/ai/regenerate-block`, {
           method: "POST",
           headers: { 

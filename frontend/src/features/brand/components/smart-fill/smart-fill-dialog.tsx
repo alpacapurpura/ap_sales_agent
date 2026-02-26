@@ -124,8 +124,6 @@ export function SmartFillDialog({
             // API Call
             const data = await brandApi.extractFullBrand(formData, token);
             
-            console.log("📊 [SmartFill] Data received:", data);
-
             if (progressInterval) clearInterval(progressInterval);
             setProgress(100);
             setStage("¡Análisis completado!");
@@ -211,7 +209,7 @@ export function SmartFillDialog({
                                         <span className="font-medium">{extractedData.identity.brand_name}</span>
                                     </div>
                                 )}
-                                {extractedData.strategy?.unique_value_proposition && (
+                                {extractedData.strategy?.value_proposition && (
                                     <div className="p-3 bg-secondary/50 rounded-md text-sm border">
                                         <span className="text-muted-foreground block text-xs uppercase tracking-wider">Estrategia</span>
                                         <span className="font-medium truncate block">Propuesta de Valor detectada</span>

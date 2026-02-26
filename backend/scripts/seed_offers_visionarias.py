@@ -1,11 +1,8 @@
 import sys
 import os
-import uuid
 import logging
-from datetime import datetime
 
 # Add backend to path so imports work
-import sys
 sys.path.append("/app")
 sys.path.append(os.path.join(os.getcwd(), "backend"))
 
@@ -14,8 +11,7 @@ from src.services.db.models.business import Product
 from src.services.db.models.tenant import Tenant
 from src.core.domain.offer_enums import (
     OfferType, OfferValueLevel, OfferDeliveryModel, 
-    DeliverableFormat, PaymentPlanType, BillingFrequency,
-    EventLocationType, AccessDuration, GuaranteeType
+    DeliverableFormat, PaymentPlanType, EventLocationType, GuaranteeType
 )
 
 # Setup Logging

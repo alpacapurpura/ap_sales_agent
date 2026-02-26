@@ -1,7 +1,7 @@
 "use client";
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { BrandSettings, KeyFigure, AuthorityItem, BrandVisuals } from "@/features/brand/types";
+import { BrandSettings, KeyFigure, AuthorityItem } from "@/features/brand/types";
 import { useAuth } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { avatarApi, CreateAvatarDTO } from "@/lib/api/avatar";
@@ -10,20 +10,23 @@ import { toast } from "sonner";
 // Ideally types should be in a separate file, but for now we can replicate the string union or import type only.
 import type { EditMode } from "../container/brand-studio-layout";
 
-import { IdentityForm } from "./identity-form";
-import { LegalForm } from "./legal-form";
-import { TeamForm } from "./team-form";
-import { TeamMemberForm } from "./team-member-form";
-import { AuthorityVaultForm } from "./authority-vault-form";
-import { AuthorityItemForm } from "./authority-item-form";
-import { ContactDataForm } from "./contact-data-form";
-import { BrandStoryForm } from "./brand-story-form";
-import { BrandStrategyForm } from "./brand-strategy-form";
-import { BrandMethodologyForm } from "./brand-methodology-form";
-import { AvatarForm } from "../avatars/avatar-form";
-import { PersonalityCloneForm as BrandVoiceForm } from "./brand-voice-form";
-import { BrandVisualsForm } from "./brand-visuals-form";
-import { TestimonialsForm } from "./testimonials-form";
+// New Managers
+import { IdentityManager } from "../../sections/identity/identity-manager";
+import { LegalManager } from "../legal/legal-manager";
+import { ContactManager } from "../../sections/contact/contact-manager";
+import { StoryManager } from "../../sections/story/story-manager";
+import { StrategyManager } from "../../sections/strategy/strategy-manager";
+import { MethodologyManager } from "../../sections/methodology/methodology-manager";
+import { VoiceManager } from "../../sections/voice/voice-manager";
+import { VisualsManager } from "../../sections/visuals/visuals-manager";
+
+// Existing Components for Complex Types (Team, Authority, Avatars)
+import { TeamManager } from "../../sections/team/team-manager";
+import { TeamMemberForm } from "../../sections/team/team-member-form";
+import { AuthorityItemForm } from "../../sections/authority/authority-item-form";
+import { AuthorityManager } from "../../sections/authority/authority-manager";
+import { AvatarForm } from "../../sections/avatars/avatar-form";
+import { TestimonialsManager } from "../../sections/testimonials/testimonials-manager";
 
 interface EditSheetManagerProps {
   mode: EditMode;
@@ -90,18 +93,6 @@ export function EditSheetManager({
           if (!token) return;
           
           if (selectedItem?.id) {
-              // Update
-              // Note: avatarApi might not have update method exposed in types yet, assuming it does or using create for now if backend handles it?
-              // Looking at previous reads, avatarApi was imported.
-              // Assuming standard REST.
-              // If selectedItem exists, we are updating.
-              // We'll use a fetch manually if update not in lib, or use create if upsert.
-              // For safety/speed, I'll assume create for now creates new, so I need update.
-              // Let's assume create for now as fallback if no update ID in DTO.
-              // Actually, data is CreateAvatarDTO.
-              // I'll try to find an update method or just console log for now if missing.
-              // But user wants functionality.
-              // Let's use generic fetch.
               await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/avatars/${selectedItem.id}`, {
                   method: 'PATCH',
                   headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -156,22 +147,22 @@ export function EditSheetManager({
   const renderContent = () => {
       switch (mode) {
           case "identity":
-              return <IdentityForm initialData={settings.identity} onSave={handlers.onUpdateIdentity} isSaving={saving} />;
+              return <IdentityManager />;
           
           case "legal":
-              return <LegalForm initialData={settings.identity} onSave={handlers.onUpdateIdentity} isSaving={saving} />;
+              return <LegalManager />;
           
           case "team":
               if (selectedItem) {
                   return <TeamMemberForm initialData={selectedItem} onSave={handleTeamMemberSave} isSaving={saving} embedded />;
               }
-              return <TeamForm initialData={settings.team} onSave={handlers.onUpdateTeam} isSaving={saving} />;
+              return <TeamManager />;
           
           case "authority":
-              if (selectedItem) {
-                  return <AuthorityItemForm initialData={selectedItem} onSave={handleAuthorityItemSave} isSaving={saving} embedded />;
-              }
-              return <AuthorityVaultForm initialData={settings.authority_vault} onSave={handlers.onUpdateVault} isSaving={saving} />;
+            if (selectedItem) {
+                return <AuthorityItemForm initialData={selectedItem} onSave={handleAuthorityItemSave} isSaving={saving} />;
+            }
+            return <AuthorityManager />;
           
           case "avatars":
               return (
@@ -184,25 +175,25 @@ export function EditSheetManager({
               );
           
           case "contact":
-              return <ContactDataForm initialData={settings.contact} onSave={handlers.onUpdateContact} isSaving={saving} />;
+              return <ContactManager />;
           
           case "story":
-              return <BrandStoryForm key={JSON.stringify(settings.story)} initialData={settings.story} onSave={handlers.onUpdateStory!} isSaving={saving} />;
+              return <StoryManager />;
           
           case "strategy":
-              return <BrandStrategyForm key={JSON.stringify(settings.strategy)} initialData={settings.strategy} onSave={handlers.onUpdateStrategy!} isSaving={saving} />;
+              return <StrategyManager />;
           
           case "methodology":
-              return <BrandMethodologyForm key={JSON.stringify(settings.strategy)} initialData={settings.strategy} onSave={handlers.onUpdateStrategy!} isSaving={saving} />;
+              return <MethodologyManager />;
           
           case "voice":
-              return <BrandVoiceForm />;
+              return <VoiceManager />;
 
           case "visuals":
-               return <BrandVisualsForm initialData={settings.visuals} onSave={handlers.onUpdateVisuals} isSaving={saving} />;
+               return <VisualsManager />;
 
           case "testimonials":
-              return <TestimonialsForm initialData={settings.testimonials} onSave={handlers.onUpdateTestimonials} isSaving={saving} />;
+              return <TestimonialsManager />;
 
           default:
               return <PlaceholderForm name={mode} />;

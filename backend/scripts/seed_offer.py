@@ -1,7 +1,5 @@
 import sys
 import os
-import uuid
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Add backend directory to path so we can import modules

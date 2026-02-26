@@ -13,9 +13,9 @@ import {
   Users,
   MessageSquare,
   Lock,
-  Link as LinkIcon,
   Building2,
-  CalendarCheck
+  CalendarCheck,
+  Megaphone
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
@@ -38,20 +38,20 @@ const getNavItems = (tenantId: string) => [
     href: `/${tenantId}/offer-studio`,
     icon: Briefcase,
   },
+  // {
+  //   title: "Auditoría",
+  //   href: `/${tenantId}/audit`,
+  //   icon: Activity,
+  // },
   {
-    title: "Auditoría",
-    href: `/${tenantId}/audit`,
-    icon: Activity,
+    title: "Growth Studio",
+    href: `/${tenantId}/marketing-studio`,
+    icon: Megaphone,
   },
   {
-    title: "Sales Studio",
+    title: "Closer Studio",
     href: `/${tenantId}/sales`,
     icon: CalendarCheck,
-  },
-  {
-    title: "Conexiones",
-    href: `/${tenantId}/connections`,
-    icon: LinkIcon,
   },
   {
     title: "Configuración",
@@ -66,10 +66,11 @@ interface NavContentProps {
   toggleSidebar: () => void;
   setIsMobileOpen: (open: boolean) => void;
   pathname: string;
+  mounted: boolean;
 }
 
 // Extracted component to avoid re-creation on render and scope issues
-function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname }: NavContentProps) {
+function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname, mounted }: NavContentProps) {
   const { user } = useUser();
   const { data: profile } = useUserProfile();
   
@@ -123,7 +124,7 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
                   )}
                 >
                   <item.icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
-                  {(!isCollapsed || mobile) && <span>{item.title}</span>}
+                  {(!isCollapsed || mobile) && mounted && <span>{item.title}</span>}
                 </Link>
               );
 
@@ -149,12 +150,18 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
       <div className="border-t p-4">
         <div className={cn("flex items-center justify-between px-2", isCollapsed && !mobile && "flex-col justify-center gap-4 px-0")}>
           <div className="flex items-center gap-3">
-            <UserButton afterSignOutUrl="/sign-in" />
-            {(!isCollapsed || mobile) && (
-              <Link href={`/${currentTenantId}/settings?tab=profile`} className="flex flex-col overflow-hidden hover:underline text-left min-w-0">
-                <span className="text-sm font-medium truncate">{user?.fullName || "Usuario"}</span>
+            <UserButton />
+            {(!isCollapsed || mobile) && mounted && (
+              <div className="flex flex-col overflow-hidden text-left min-w-0">
+                <Link 
+                  href={`/${currentTenantId}/settings?tab=profile`} 
+                  className="hover:underline"
+                  onClick={() => mobile && setIsMobileOpen(false)}
+                >
+                    <span className="text-sm font-medium truncate block">{user?.fullName || "Usuario"}</span>
+                </Link>
                 <span className="text-xs text-muted-foreground truncate">{user?.primaryEmailAddress?.emailAddress || "Gestión de perfil"}</span>
-              </Link>
+              </div>
             )}
           </div>
           <ModeToggle />
@@ -189,6 +196,7 @@ export function AppSidebar() {
           toggleSidebar={toggleSidebar} 
           setIsMobileOpen={setIsMobileOpen}
           pathname={pathname}
+          mounted={isMounted}
         />
       </aside>
 
@@ -210,6 +218,7 @@ export function AppSidebar() {
                 toggleSidebar={toggleSidebar} 
                 setIsMobileOpen={setIsMobileOpen}
                 pathname={pathname}
+                mounted={isMounted}
               />
             </SheetContent>
           </Sheet>

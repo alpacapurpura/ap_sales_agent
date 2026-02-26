@@ -1,8 +1,8 @@
 "use client";
 
 import { use } from "react";
-import { OfferEditorLayout } from "@/features/offer-studio/components/layout/offer-editor-layout";
-import { AssetUploader } from "@/features/offer-studio/components/asset-uploader";
+import { OfferEditorLayout } from "@/features/offer-studio/components/editor/layout/offer-editor-layout";
+import { AssetUploader } from "@/features/offer-studio/components/editor/components/asset-uploader";
 
 export default function KnowledgePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

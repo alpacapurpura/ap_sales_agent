@@ -8,23 +8,23 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Eye, X, Save } from "lucide-react";
 
 // Preview Components (The "Live Document")
-import { HeaderSection } from "../preview/header-section";
-import { FooterSection } from "../preview/footer-section";
-import { StrategySection } from "../preview/strategy-section";
-import { VoiceSection } from "../preview/voice-section";
-import { TrustSection } from "../preview/trust-section";
-import { MethodologySection } from "../preview/methodology-section";
-import { StorySection } from "../preview/story-section";
-import { TeamSection } from "../preview/team-section";
-import { AvatarsSection } from "../preview/avatars-section";
-import { VisualsSection } from "../preview/visuals-section";
-import { GallerySection } from "../live-preview/gallery-section";
-import { TestimonialsSection } from "../preview/testimonials-section";
+import { HeaderSection } from "../../sections/identity/identity-header-preview";
+import { FooterSection } from "../../sections/contact/contact-footer-preview";
+import { StrategySection } from "../../sections/strategy/strategy-preview";
+import { VoiceSection } from "../../sections/voice/voice-preview";
+import { TrustSection } from "../../sections/authority/authority-preview";
+import { MethodologySection } from "../../sections/methodology/methodology-preview";
+import { StorySection } from "../../sections/story/story-preview";
+import { TeamSection } from "../../sections/team/team-preview";
+import { AvatarsSection } from "../../sections/avatars/avatars-preview";
+import { VisualsSection } from "../../sections/visuals/visuals-preview";
+import { GalleryManager } from "../../sections/gallery/gallery-manager";
+import { TestimonialsSection } from "../../sections/testimonials/testimonials-preview";
 
 // Forms & Managers
 import { EditSheetManager } from "../forms/edit-sheet-manager";
-import { BrandVisualsWizard } from "../visuals/brand-visuals-wizard";
-import { ThemeInjector } from "../visuals/theme-injector";
+import { BrandVisualsWizard } from "../../sections/visuals/brand-visuals-wizard";
+import { ThemeInjector } from "../../sections/visuals/theme-injector";
 import { BrandEmptyState } from "../empty-state/brand-empty-state";
 import { SmartFillDialog } from "../smart-fill/smart-fill-dialog";
 
@@ -138,7 +138,6 @@ export function BrandStudioLayout({
   };
 
   const handlePreview = (data: Partial<BrandSettings> | null) => {
-    console.log("BrandStudioLayout received preview data:", data);
     setPreviewData(data);
     if (data) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -154,7 +153,6 @@ export function BrandStudioLayout({
   const handleSmartFillSuccess = async (data: Partial<BrandSettings>) => {
     // 0. Prefer atomic update if available (Prevents race conditions)
     if (onUpdateAll) {
-        console.log("Updating All Settings via Atomic Operation:", data);
         await onUpdateAll(data);
         window.location.reload();
         return;
@@ -163,49 +161,41 @@ export function BrandStudioLayout({
     // Fallback: Sequential Updates (May have race conditions)
     // 1. Update Identity (Always)
     if (data.identity) {
-        console.log("Updating Identity:", data.identity);
         await onUpdateIdentity(data.identity);
     }
     
     // 2. Update Story (If handler exists)
     if (data.story && onUpdateStory) {
-        console.log("Updating Story:", data.story);
         await onUpdateStory(data.story);
     }
     
     // 3. Update Strategy (If handler exists)
     if (data.strategy && onUpdateStrategy) {
-        console.log("Updating Strategy:", data.strategy);
         await onUpdateStrategy(data.strategy);
     }
     
     // 4. Update Visuals
     if (data.visuals) {
-        console.log("Updating Visuals:", data.visuals);
         await onUpdateVisuals(data.visuals);
     }
     
     // 5. Update Team
     if (data.team) {
-        console.log("Updating Team:", data.team);
         await onUpdateTeam(data.team);
     }
     
     // 6. Update Testimonials
     if (data.testimonials) {
-        console.log("Updating Testimonials:", data.testimonials);
         await onUpdateTestimonials(data.testimonials);
     }
     
     // 7. Update Contact
     if (data.contact) {
-        console.log("Updating Contact:", data.contact);
         await onUpdateContact(data.contact);
     }
     
     // 8. Update Vault
     if (data.authority_vault) {
-        console.log("Updating Vault:", data.authority_vault);
         await onUpdateVault(data.authority_vault);
     }
 
@@ -237,7 +227,7 @@ export function BrandStudioLayout({
                     setHasDismissedEmptyState(true);
                 }}
                 onPreview={handlePreview}
-                currentUrl={settings.identity?.website}
+                currentUrl={settings.contact?.website}
             />
         </div>
     );
@@ -277,6 +267,7 @@ export function BrandStudioLayout({
                 <HeaderSection 
                     identity={displaySettings.identity} 
                     visuals={displaySettings.visuals}
+                    contact={displaySettings.contact}
                     onEdit={() => openEdit("identity")} 
                     onEditVisuals={() => openEdit("visuals")}
                     onRefine={() => {
@@ -344,7 +335,7 @@ export function BrandStudioLayout({
                     </div>
                     
                     <div id="gallery">
-                        <GallerySection visuals={displaySettings.visuals} />
+                        <GalleryManager visuals={displaySettings.visuals} />
                     </div>
                 </div>
 
@@ -417,8 +408,8 @@ export function BrandStudioLayout({
         isOpen={editMode === "visuals-wizard"}
         onOpenChange={(open) => !open && closeSheet()}
         currentVisuals={displaySettings.visuals}
-        logoUrl={displaySettings.identity.logo_url}
-        websiteUrl={displaySettings.identity.website}
+        logoUrl={displaySettings.visuals?.logo_url}
+        websiteUrl={displaySettings.contact?.website}
         onSave={handleUpdateVisuals}
       />
 
@@ -431,7 +422,7 @@ export function BrandStudioLayout({
             setHasDismissedEmptyState(true);
         }}
         onPreview={handlePreview}
-        currentUrl={settings.identity?.website}
+        currentUrl={settings.contact?.website}
       />
     </div>
   );

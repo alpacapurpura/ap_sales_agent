@@ -8,43 +8,9 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { CreditCard, CalendarCheck, UserPlus, AlertCircle } from "lucide-react";
 
-const ACTIVITIES = [
-  {
-    id: 1,
-    type: "payment",
-    title: "Pago Recibido",
-    description: "Ana García compró 'Paquete Premium'",
-    amount: "$99.00",
-    timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 mins ago
-    user: "Ana García"
-  },
-  {
-    id: 2,
-    type: "appointment",
-    title: "Cita Agendada",
-    description: "Reunión con Carlos Ruiz",
-    timestamp: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
-    user: "Carlos Ruiz"
-  },
-  {
-    id: 3,
-    type: "lead",
-    title: "Nuevo Lead",
-    description: "María López inició conversación",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    user: "María López"
-  },
-  {
-    id: 4,
-    type: "alert",
-    title: "Pago Fallido",
-    description: "Intento de compra rechazado",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    user: "Juan Pérez"
-  }
-];
-
 export function ActivityFeedWidget() {
+  const activities: any[] = [];
+
   const getIcon = (type: string) => {
     switch (type) {
       case "payment": return <CreditCard className="h-4 w-4 text-green-500" />;
@@ -63,29 +29,36 @@ export function ActivityFeedWidget() {
       <CardContent className="p-0 flex-1">
         <ScrollArea className="h-[300px] lg:h-full px-4 pb-4">
           <div className="space-y-4">
-            {ACTIVITIES.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0">
-                <div className="mt-1 bg-muted p-1.5 rounded-full">
-                  {getIcon(activity.type)}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium leading-none">{activity.title}</p>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(activity.timestamp, { addSuffix: true, locale: es })}
-                    </span>
+            {activities.length > 0 ? (
+              activities.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3 pb-3 border-b last:border-0 last:pb-0">
+                  <div className="mt-1 bg-muted p-1.5 rounded-full">
+                    {getIcon(activity.type)}
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-1">
-                    {activity.description}
-                  </p>
-                  {activity.amount && (
-                    <Badge variant="secondary" className="mt-1 text-xs font-normal text-green-700 bg-green-50 border-green-200">
-                      +{activity.amount}
-                    </Badge>
-                  )}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium leading-none">{activity.title}</p>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(activity.timestamp, { addSuffix: true, locale: es })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-1">
+                      {activity.description}
+                    </p>
+                    {activity.amount && (
+                      <Badge variant="secondary" className="mt-1 text-xs font-normal text-green-700 bg-green-50 border-green-200">
+                        +{activity.amount}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                <AlertCircle className="h-8 w-8 mb-2 opacity-50" />
+                <p className="text-sm">No hay actividad reciente</p>
               </div>
-            ))}
+            )}
           </div>
         </ScrollArea>
       </CardContent>

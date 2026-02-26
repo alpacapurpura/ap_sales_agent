@@ -6,7 +6,6 @@ from sqlalchemy import text, inspect
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from src.services.database import engine, Base
-from src.services.db.models.business import AvatarDefinition, Product
 
 def sync_schema():
     print("🔄 Starting Schema Synchronization...")

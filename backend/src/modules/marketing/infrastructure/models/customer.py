@@ -1,0 +1,89 @@
+from enum import Enum as PyEnum
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Float, Enum
+from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+import uuid
+from src.shared.infrastructure.db.declarative import Base
+
+class IdentityType(str, PyEnum):
+    EMAIL = "email"
+    PHONE = "phone"
+    COOKIE_ID = "cookie_id"
+    USER_ID = "user_id" # Internal User ID
+    EXTERNAL_ID = "external_id" # CRM, Shopify, etc.
+    WHATSAPP = "whatsapp"
+    TELEGRAM = "telegram"
+    INSTAGRAM = "instagram"
+    TIKTOK = "tiktok"
+
+class LifecycleStage(str, PyEnum):
+    SUBSCRIBER = "subscriber"
+    LEAD = "lead"
+    MQL = "mql"
+    SQL = "sql"
+    OPPORTUNITY = "opportunity"
+    CUSTOMER = "customer"
+    EVANGELIST = "evangelist"
+    CHURNED = "churned"
+
+class CustomerProfile(Base):
+    __tablename__ = "customer_profiles"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    
+    # Unified Identity
+    primary_email = Column(String, nullable=True, index=True)
+    primary_phone = Column(String, nullable=True)
+    full_name = Column(String, nullable=True)
+    
+    # Scoring & Segmentation
+    lifecycle_stage = Column(Enum(LifecycleStage), default=LifecycleStage.SUBSCRIBER)
+    lead_score = Column(Float, default=0.0)
+    rfm_segment = Column(String, nullable=True) # e.g. "Champions", "At Risk"
+    
+    # Metadata
+    traits = Column(JSONB, default=dict) # Demographics, etc.
+    computed_traits = Column(JSONB, default=dict) # LTV, Last Seen, etc.
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    identities = relationship("CustomerIdentity", back_populates="profile", cascade="all, delete-orphan")
+    journey_events = relationship("JourneyEvent", back_populates="profile", cascade="all, delete-orphan")
+
+class CustomerIdentity(Base):
+    __tablename__ = "customer_identities"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    profile_id = Column(UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    
+    type = Column(Enum(IdentityType), nullable=False)
+    value = Column(String, nullable=False, index=True) # The actual email, phone, or ID
+    
+    is_primary = Column(Boolean, default=False)
+    verification_status = Column(String, default="unverified")
+    
+    last_seen_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    profile = relationship("CustomerProfile", back_populates="identities")
+
+class JourneyEvent(Base):
+    __tablename__ = "journey_events"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    profile_id = Column(UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=False)
+    tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    
+    event_name = Column(String, nullable=False) # "page_view", "email_opened", "checkout_completed"
+    event_type = Column(String, nullable=False) # "track", "page", "screen"
+    
+    properties = Column(JSONB, default=dict)
+    context = Column(JSONB, default=dict)
+    
+    occurred_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    profile = relationship("CustomerProfile", back_populates="journey_events")

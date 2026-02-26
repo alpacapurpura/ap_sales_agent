@@ -1,34 +1,41 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from '@clerk/nextjs'
-import { currentUser } from '@clerk/nextjs/server';
-import ForbiddenPage from "./forbidden/page";
 import "../globals.css";
 import Providers from "../providers";
+import { Suspense } from "react";
+import { TenantGuard } from "@/components/auth/tenant-guard";
 
 export const metadata: Metadata = {
   title: "Client Dashboard",
   description: "Visionarias Client Dashboard",
 };
 
-export default async function RootLayout({
+function LoadingScreen() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground animate-pulse">Cargando dashboard...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await currentUser();
-  // Check if user is authenticated but has no tenant linked
-  // Note: Middleware ensures user is logged in for protected routes, 
-  // but we double check here to prevent rendering the app without context.
-  const isAuth = !!user;
-  const hasTenant = user?.publicMetadata?.tenant_id;
-  const showForbidden = isAuth && !hasTenant;
-
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className="font-sans antialiased">
             <Providers>
-            {showForbidden ? <ForbiddenPage /> : children}
+              <Suspense fallback={<LoadingScreen />}>
+                <TenantGuard>
+                  {children}
+                </TenantGuard>
+              </Suspense>
           </Providers>
         </body>
       </html>

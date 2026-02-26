@@ -26,6 +26,5 @@ export default async function RootPage() {
   // Since we don't have easy access to DB here without backend call, 
   // and we moved the dashboard to [tenantId], we can't show dashboard here.
   
-  // Let's redirect to '/onboarding' if no tenant, or assume the user needs to create one.
   redirect('/onboarding');
 }

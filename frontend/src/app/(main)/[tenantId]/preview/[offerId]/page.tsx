@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { SqueezeServerTpl } from '@/features/landing-builder/templates/server/SqueezeServerTpl';
-import { TransformerServerTpl } from '@/features/landing-builder/templates/server/TransformerServerTpl';
-import { LandingPageArchetype, LandingPageConfig, SqueezeContent, TransformerContent } from '@/features/landing-builder/types/schema';
+import { SqueezeServerTpl } from '@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl';
+import { TransformerServerTpl } from '@/features/offer-studio/components/landing/templates/server/TransformerServerTpl';
+import { LandingPageArchetype, LandingPageConfig, SqueezeContent, TransformerContent } from '@/features/offer-studio/components/landing/types/schema';
 
 // --- DATA FETCHING (Authenticated) ---
 async function getLandingPageConfig(offerId: string, tenantId: string): Promise<LandingPageConfig | null> {

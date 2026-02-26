@@ -1,80 +1,84 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { offerApi } from "../api";
 import { offerToFormValues } from "../api/adapter";
+import { getSectionData } from "../utils/section-helpers";
 import { Offer } from "../types";
 import { OfferFormValues } from "../types/schema";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 export function useOffer(offerId: string) {
   const { getToken } = useAuth();
-  const [offer, setOffer] = useState<Offer | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchOffer = useCallback(async () => {
-    if (!offerId || offerId === "undefined") {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
+  // REAL API IMPLEMENTATION
+  const { data: offer, isLoading: loading, error, refetch } = useQuery({
+    queryKey: ['offer', offerId],
+    queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error("No autenticado");
-
-      const data = await offerApi.getOffer(offerId, token);
-      setOffer(data);
-    } catch (err) {
-      console.error("Error fetching offer:", err);
-      setError("Error al cargar la oferta");
-      toast.error("Error al cargar la oferta");
-    } finally {
-      setLoading(false);
-    }
-  }, [offerId, getToken]);
-
-  useEffect(() => {
-    fetchOffer();
-  }, [fetchOffer]);
+      return offerApi.getOffer(offerId, token);
+    },
+    enabled: !!offerId && offerId !== "undefined",
+    retry: 1
+  });
 
   const formValues = useMemo(() => {
     return offer ? offerToFormValues(offer) : undefined;
   }, [offer]);
 
-  const saveOffer = async (data: Partial<OfferFormValues>) => {
-    if (!offerId) return;
-
-    try {
-      setSaving(true);
+  const saveOfferMutation = useMutation({
+    mutationFn: async (data: Partial<OfferFormValues>) => {
       const token = await getToken();
       if (!token) throw new Error("No autenticado");
-
       await offerApi.saveOffer(offerId, data, token);
-      
-      const updatedOffer = await offerApi.getOffer(offerId, token);
-      setOffer(updatedOffer);
-      
-      toast.success("Oferta guardada correctamente");
-      return updatedOffer;
-    } catch (err) {
+      return offerApi.getOffer(offerId, token);
+    },
+    onSuccess: (updatedOffer) => {
+      queryClient.setQueryData(['offer', offerId], updatedOffer);
+      toast.success("Oferta guardada");
+    },
+    onError: (err) => {
       console.error("Error saving offer:", err);
       toast.error("Error al guardar la oferta");
-      throw err;
-    } finally {
-      setSaving(false);
     }
+  });
+
+  const saveSectionMutation = useMutation({
+    mutationFn: async ({ sectionId, allValues }: { sectionId: string, allValues: OfferFormValues }) => {
+      const token = await getToken();
+      if (!token) throw new Error("No autenticado");
+      const data = getSectionData(sectionId, allValues);
+      await offerApi.saveSection(offerId, sectionId, data, token);
+      return offerApi.getOffer(offerId, token);
+    },
+    onSuccess: (updatedOffer) => {
+      queryClient.setQueryData(['offer', offerId], updatedOffer);
+      toast.success("Sección guardada");
+    },
+    onError: (err) => {
+      console.error(`Error saving section:`, err);
+      toast.error("Error al guardar la sección");
+    }
+  });
+
+  const saveOffer = async (data: Partial<OfferFormValues>) => {
+     return saveOfferMutation.mutateAsync(data);
+  };
+  
+  const saveSection = async (sectionId: string, allValues: OfferFormValues) => {
+     return saveSectionMutation.mutateAsync({ sectionId, allValues });
   };
 
   return {
-    offer,
+    offer: offer || null,
     formValues,
     loading,
-    error,
+    error: error ? (error as Error).message : null,
     saveOffer,
-    saving,
-    refetch: fetchOffer
+    saveSection,
+    saving: saveOfferMutation.isPending || saveSectionMutation.isPending,
+    refetch
   };
 }

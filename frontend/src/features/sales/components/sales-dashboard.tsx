@@ -38,8 +38,8 @@ export function SalesDashboard() {
       {/* Header / Quick Actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-           <h2 className="text-3xl font-bold tracking-tight">Sales Studio</h2>
-           <p className="text-muted-foreground">Centro de Comando Comercial</p>
+           <h2 className="text-3xl font-bold tracking-tight">Closer Studio</h2>
+           <p className="text-muted-foreground">Tu área Comercial y Ventas</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setIsPaymentConfigOpen(true)}>
@@ -61,8 +61,8 @@ export function SalesDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$1,234.00</div>
-            <p className="text-xs text-muted-foreground">+20.1% vs mes anterior</p>
+            <div className="text-2xl font-bold">$0.00</div>
+            <p className="text-xs text-muted-foreground">-- vs mes anterior</p>
           </CardContent>
         </Card>
         <Card>
@@ -71,8 +71,8 @@ export function SalesDashboard() {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+15</div>
-            <p className="text-xs text-muted-foreground">+4 nuevas hoy</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">-- nuevas hoy</p>
           </CardContent>
         </Card>
         <Card>
@@ -81,8 +81,8 @@ export function SalesDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12.5%</div>
-            <p className="text-xs text-muted-foreground">+2.1% esta semana</p>
+            <div className="text-2xl font-bold">0%</div>
+            <p className="text-xs text-muted-foreground">-- esta semana</p>
           </CardContent>
         </Card>
         <Card>
@@ -91,8 +91,8 @@ export function SalesDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">342</div>
-            <p className="text-xs text-muted-foreground">87 activos ahora</p>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">0 activos ahora</p>
           </CardContent>
         </Card>
       </div>

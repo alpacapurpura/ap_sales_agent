@@ -43,8 +43,10 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
     const newPath = `/${tenantId}/brand-settings`; // Defaulting to brand-settings or dashboard
     console.log("[TenantSwitcher] Navigating to:", newPath);
     
-    router.push(newPath);
-    setOpen(false);
+    // Force a hard reload to ensure all application state is cleared and 
+    // the new tenant context is loaded fresh. This prevents data leakage 
+    // and stale cache issues common in SPA transitions between tenants.
+    window.location.href = newPath;
   };
 
   const currentTenantName = tenants?.find(t => t.id === effectiveTenantId)?.name || currentTenant?.name || "Visionarias AI";

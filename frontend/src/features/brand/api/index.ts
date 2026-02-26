@@ -16,7 +16,7 @@ export const brandApi = {
             console.error(`[BrandAPI] Failed to fetch settings: ${res.status} ${res.statusText}`, errorText);
             throw new Error(`Failed to fetch brand settings: ${res.status} ${res.statusText}`);
         }
-        return res.json();
+        return res.json() as Promise<BrandSettings>;
     },
 
     updateBrandSettings: async (data: BrandSettings, token: string): Promise<BrandSettings> => {
@@ -29,7 +29,7 @@ export const brandApi = {
             body: JSON.stringify(data)
         });
         if (!res.ok) throw new Error("Failed to update brand settings");
-        return res.json();
+        return res.json() as Promise<BrandSettings>;
     },
 
     extractBrandVisuals: async (url: string, token: string): Promise<ExtractedVisuals> => {
@@ -45,7 +45,7 @@ export const brandApi = {
             })
         });
         if (!res.ok) throw new Error("Failed to extract brand visuals");
-        return res.json();
+        return res.json() as Promise<ExtractedVisuals>;
     },
 
     extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<BrandSettings> => {

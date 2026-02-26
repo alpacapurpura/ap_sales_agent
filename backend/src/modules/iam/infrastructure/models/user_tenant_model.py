@@ -1,0 +1,12 @@
+from sqlalchemy import Column, String, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
+from src.shared.infrastructure.db.base_model import Base
+
+class UserTenantModel(Base):
+    __tablename__ = 'user_tenants'
+
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), primary_key=True)
+    tenant_id = Column(UUID(as_uuid=True), ForeignKey('tenants.id'), primary_key=True)
+    role = Column(String, default="member") # admin, member, viewer
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

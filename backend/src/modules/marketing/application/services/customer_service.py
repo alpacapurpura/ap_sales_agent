@@ -1,0 +1,62 @@
+from sqlalchemy.orm import Session
+from uuid import UUID
+from typing import Dict, Any, Optional
+from src.modules.marketing.domain.customer import CustomerProfile, CustomerIdentity
+from src.modules.marketing.domain.enums import IdentityType
+from src.modules.marketing.infrastructure.repositories.customer_repository import CustomerRepository
+
+class CustomerService:
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = CustomerRepository(db)
+
+    def identify(self, tenant_id: UUID, traits: Dict[str, Any], identities: Dict[str, str]) -> CustomerProfile:
+        """
+        Identity Resolution: Find existing profile by ANY identity, or create new.
+        """
+        # 1. Try to find by identities
+        profile = None
+        
+        # Priority: UserID > Email > Phone
+        if "user_id" in identities:
+            profile = self.repository.find_by_identity(IdentityType.USER_ID, identities["user_id"], tenant_id)
+        
+        if not profile and "email" in traits:
+             profile = self.repository.find_by_identity(IdentityType.EMAIL, traits["email"], tenant_id)
+             
+        if not profile and "phone" in traits:
+             profile = self.repository.find_by_identity(IdentityType.PHONE, traits["phone"], tenant_id)
+
+        # 2. If found, update traits (merge)
+        # TODO: Implement update logic in repo
+        
+        # 3. If not found, create new
+        if not profile:
+            import uuid
+            profile_id = uuid.uuid4()
+            new_identities = []
+            
+            # Extract identities from traits/args
+            if "email" in traits:
+                new_identities.append(CustomerIdentity(
+                    id=uuid.uuid4(),
+                    profile_id=profile_id,
+                    tenant_id=tenant_id,
+                    type=IdentityType.EMAIL,
+                    value=traits["email"],
+                    is_primary=True
+                ))
+            
+            # Create profile object
+            profile = CustomerProfile(
+                id=profile_id,
+                tenant_id=tenant_id,
+                primary_email=traits.get("email"),
+                primary_phone=traits.get("phone"),
+                full_name=traits.get("name"),
+                traits=traits,
+                identities=new_identities
+            )
+            profile = self.repository.create(profile)
+            
+        return profile

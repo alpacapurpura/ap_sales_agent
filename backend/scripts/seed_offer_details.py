@@ -2,7 +2,6 @@ import sys
 import os
 import random
 from datetime import datetime, timedelta
-from uuid import uuid4
 
 # Add backend directory to path so we can import modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -11,10 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.services.db.models.business import Product
 from src.core.domain.offer_enums import (
-    OfferType, OfferDeliveryModel, OfferValueLevel, FulfillmentType, DigitalFormat,
-    ProgramStructure, LiveInteractionType, CommunityPlatform, ServiceCategory,
-    InteractionMode, ServiceFrequency, EventLocationType, AccommodationType,
-    BillingFrequency
+    OfferType
 )
 
 # Database Connection (Adjust URL if needed, assuming default dev container)

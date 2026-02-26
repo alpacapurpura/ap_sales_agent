@@ -1,20 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { 
   BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStrategy, BrandStory, TestimonialItem } from "@/features/brand/types";
 import { brandApi } from "@/features/brand/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useBrandSettings() {
   const { getToken } = useAuth();
-  const [settings, setSettings] = useState<BrandSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchSettings = useCallback(async () => {
-    try {
+  const { data: settings, isLoading: loading, error, refetch } = useQuery({
+    queryKey: ['brand-settings'],
+    queryFn: async () => {
       const token = await getToken();
-      if (!token) return;
+      if (!token) return null;
       const data = await brandApi.getBrandSettings(token);
       // Ensure visuals object exists if backend returns incomplete data (migration)
       if (!data.visuals) {
@@ -30,182 +29,122 @@ export function useBrandSettings() {
               usage_guidelines: []
           };
       }
-      setSettings(data);
-    } catch (error) {
-      console.error("Error fetching brand settings:", error);
-      toast.error("No se pudo cargar la configuración de marca.");
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
 
-  useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+      // Initialize other sections if missing to prevent null reference errors
+      if (!data.identity) data.identity = {};
+      
+      // Initialize strategy with safe defaults for arrays
+      if (!data.strategy) {
+        data.strategy = {
+            competitors: [],
+            methodology_pillars: []
+        };
+      } else {
+        if (!data.strategy.competitors) data.strategy.competitors = [];
+        if (!data.strategy.methodology_pillars) data.strategy.methodology_pillars = [];
+      }
+
+      if (!data.story) data.story = {};
+      if (!data.contact) data.contact = {};
+      if (!data.team) data.team = [];
+      
+      return data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (newSettings: BrandSettings) => {
+       const token = await getToken();
+       if (!token) throw new Error("No token");
+       return brandApi.updateBrandSettings(newSettings, token);
+    },
+    onSuccess: (updated) => {
+       queryClient.setQueryData(['brand-settings'], updated);
+    },
+    onError: (err) => {
+       console.error("Error saving settings:", err);
+       toast.error("No se pudo guardar.");
+    }
+  });
 
   const updateIdentity = async (identity: BrandIdentity) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, identity };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, identity };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Identidad corporativa actualizada.");
-    } catch (error) {
-        console.error("Error saving identity:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Identidad corporativa actualizada.");
+    } catch {}
   };
 
   const updateVisuals = async (visuals: BrandVisuals) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, visuals };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, visuals };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Identidad visual actualizada.");
-    } catch (error) {
-        console.error("Error saving visuals:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Identidad visual actualizada.");
+    } catch {}
   };
 
   const updateTeam = async (team: KeyFigure[]) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, team };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, team };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Equipo actualizado.");
-    } catch (error) {
-        console.error("Error saving team:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Equipo actualizado.");
+    } catch {}
   };
 
   const updateVault = async (vault: AuthorityItem[]) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, authority_vault: vault };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, authority_vault: vault };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Respaldo institucional actualizado.");
-    } catch (error) {
-        console.error("Error saving vault:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Respaldo institucional actualizado.");
+    } catch {}
   };
 
   const updateContact = async (contact: ContactData) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, contact };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, contact };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Datos de contacto actualizados.");
-    } catch (error) {
-        console.error("Error saving contact:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Datos de contacto actualizados.");
+    } catch {}
   };
 
   const updateStrategy = async (strategy: BrandStrategy) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, strategy };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, strategy };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Estrategia actualizada.");
-    } catch (error) {
-        console.error("Error saving strategy:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Estrategia actualizada.");
+    } catch {}
   };
 
   const updateStory = async (story: BrandStory) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, story };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, story };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Historia actualizada.");
-    } catch (error) {
-        console.error("Error saving story:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Historia actualizada.");
+    } catch {}
   };
 
   const updateTestimonials = async (testimonials: TestimonialItem[]) => {
     if (!settings) return;
-    setSaving(true);
+    const newSettings = { ...settings, testimonials };
     try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { ...settings, testimonials };
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Testimonios actualizados.");
-    } catch (error) {
-        console.error("Error saving testimonials:", error);
-      toast.error("No se pudo guardar.");
-    } finally {
-      setSaving(false);
-    }
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Testimonios actualizados.");
+    } catch {}
   };
 
   const updateAllSettings = async (partialSettings: Partial<BrandSettings>) => {
     if (!settings) return;
-    setSaving(true);
-    try {
-      const token = await getToken();
-      if (!token) return;
-      
-      const newSettings = { 
+    const newSettings = { 
         ...settings, 
         ...partialSettings,
-        // Deep merge nested objects if necessary
         identity: { ...settings.identity, ...partialSettings.identity },
         visuals: { 
             ...settings.visuals, 
@@ -215,27 +154,22 @@ export function useBrandSettings() {
         story: { ...settings.story, ...partialSettings.story },
         strategy: { ...settings.strategy, ...partialSettings.strategy },
         contact: { ...settings.contact, ...partialSettings.contact },
-        // Arrays are replaced entirely
         team: partialSettings.team || settings.team,
         testimonials: partialSettings.testimonials || settings.testimonials,
         authority_vault: partialSettings.authority_vault || settings.authority_vault,
-      };
+    };
 
-      const updated = await brandApi.updateBrandSettings(newSettings, token);
-      setSettings(updated);
-      toast.success("Configuración de marca actualizada correctamente.");
-    } catch (error) {
-        console.error("Error saving all settings:", error);
-      toast.error("No se pudo guardar la configuración.");
-    } finally {
-      setSaving(false);
-    }
+    try {
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Configuración de marca actualizada correctamente.");
+    } catch {}
   };
 
   return {
-    settings,
+    settings: settings || null,
     loading,
-    saving,
+    error,
+    saving: updateMutation.isPending,
     updateIdentity,
     updateTeam,
     updateVault,
@@ -245,6 +179,6 @@ export function useBrandSettings() {
     updateStory,
     updateTestimonials,
     updateAllSettings,
-    refetch: fetchSettings
+    refetch
   };
 }

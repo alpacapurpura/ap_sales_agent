@@ -13,9 +13,18 @@ sys.path.append(os.getcwd())
 
 # Import Settings (to get DB URL) and Base (to get Metadata)
 from src.config import settings
-from src.services.db.models._base import Base
+from src.shared.infrastructure.db.declarative import Base
 # Must import all models to ensure they are registered in metadata
-from src.services.db.models import user, business, observability, tenant
+from src.modules.gallery.domain import entity as gallery_entity
+from src.modules.gallery.infrastructure import models as gallery_models
+from src.modules.iam.infrastructure.models import user, tenant, user_tenant
+from src.modules.sales.infrastructure.models import lead_model
+from src.modules.communication.domain import channel_connection, link
+from src.modules.communication.infrastructure.models import appointment, message, booking_link
+from src.shared.infrastructure.db.models import audit, sensitive_data, prompt
+from src.modules.marketing.infrastructure.models import customer
+from src.modules.brand.infrastructure.models import avatar
+from src.modules.offer.infrastructure import models as offer_models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

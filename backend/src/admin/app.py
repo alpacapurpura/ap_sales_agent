@@ -5,6 +5,10 @@ import sys
 # Add project root to path to import src modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+# --- BOOTSTRAP MODELS (CRITICAL) ---
+# Import all models to ensure SQLAlchemy Registry is fully populated before any query
+import src.shared.infrastructure.db.models
+
 from src.admin.modules.tenants import render_tenants_view
 from src.admin.modules.users import render_users_view
 

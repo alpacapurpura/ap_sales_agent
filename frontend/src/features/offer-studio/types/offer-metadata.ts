@@ -139,6 +139,14 @@ export const OFFER_TYPE_METADATA: Record<OfferType, OfferTypeDefinition> = {
     hint: "Alcance fijo, precio fijo.",
     description: "Vendes un resultado específico (ej. 'Te monto el funnel')."
   },
+  [OfferType.ECOMMERCE_DEVELOPMENT]: {
+    type: OfferType.ECOMMERCE_DEVELOPMENT,
+    level: OfferValueLevel.N4,
+    delivery: OfferDeliveryModel.DFY,
+    label: "Desarrollo Ecommerce",
+    hint: "Creación de tienda online completa.",
+    description: "Servicio llave en mano para lanzar un comercio electrónico."
+  },
   [OfferType.MONTHLY_RETAINER]: {
     type: OfferType.MONTHLY_RETAINER,
     level: OfferValueLevel.N4,

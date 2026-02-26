@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useWhatsApp } from "../hooks/use-whatsapp";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,10 @@ import {
 
 export default function WhatsAppView() {
   const { loading, status, qrCode, isScanning, setIsScanning, generateQR, disconnect } = useWhatsApp();
+
+  useEffect(() => {
+    console.log("WhatsAppView: Component mounted (Tenant ID changed or initial load)");
+  }, []);
 
   if (loading && !status) {
     return (

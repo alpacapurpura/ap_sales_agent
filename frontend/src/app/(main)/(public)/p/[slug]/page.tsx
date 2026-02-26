@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { SqueezeServerTpl } from '@/features/landing-builder/templates/server/SqueezeServerTpl';
-import { LandingPageArchetype, LandingPageConfig, SqueezeContent } from '@/features/landing-builder/types/schema';
+import { SqueezeServerTpl } from '@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl';
+import { LandingPageArchetype, LandingPageConfig, SqueezeContent } from '@/features/offer-studio/components/landing/types/schema';
 
 // --- DATA FETCHING ---
 

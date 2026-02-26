@@ -6,9 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.services.db.models.business import Product, JourneyProgress
 from src.services.db.models.lead import Lead
-from src.core.domain.offer_enums import OfferType, DeliveryModel, GuaranteeType, OfferStatus
+from src.core.domain.offer_enums import OfferType, DeliveryModel, GuaranteeType
 from src.core.domain.lead_enums import FinancialCapacity, LeadTemperature, AvatarPersona
-import json
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/visionarias_logs")
 

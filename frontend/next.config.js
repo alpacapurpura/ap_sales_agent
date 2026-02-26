@@ -7,6 +7,38 @@ const nextConfig = {
   },
   // Whitelist local domains for development to prevent "Cross origin request detected" errors
   allowedDevOrigins: ["salesagent.local", "api.salesagent.local", "admin.salesagent.local", "laptopchris.alpacapurpura.lat"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'salesagent.alpacapurpura.lat',
+      },
+      {
+        protocol: 'https',
+        hostname: 'apisalesagent.alpacapurpura.lat', // Production API
+      },
+      {
+        protocol: 'https',
+        hostname: 'laptopchris.alpacapurpura.lat',
+      },
+      {
+        protocol: 'https',
+        hostname: 'laptopchris-api.alpacapurpura.lat', // Development API Tunnel
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: 'visionarias_brain_dev',
+      },
+      {
+        protocol: 'http',
+        hostname: 'backend',
+      }
+    ],
+  },
   experimental: {
     serverActions: {
       allowedOrigins: ['salesagent.local', 'localhost:3000', 'laptopchris.alpacapurpura.lat', 'salesagent.alpacapurpura.lat', 'clerk.alpacapurpura.lat']

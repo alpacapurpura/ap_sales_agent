@@ -1,65 +1,29 @@
 import streamlit as st
 import pandas as pd
-from sqlalchemy.exc import IntegrityError
-from src.services.database import SessionLocal
-from src.services.db.models.tenant import Tenant
-import json
+from src.shared.infrastructure.db.database import SessionLocal
+from src.modules.iam.application.services.tenant_service import TenantService
 
 def get_tenants():
     db = SessionLocal()
     try:
-        return db.query(Tenant).order_by(Tenant.created_at.desc()).all()
+        service = TenantService(db)
+        return service.get_all_tenants()
     finally:
         db.close()
 
 def create_tenant(name, slug, can_use_keys, company_name, agent_persona):
     db = SessionLocal()
     try:
-        config = {
-            "company_name": company_name,
-            "agent_persona": agent_persona
-        }
-        new_tenant = Tenant(
-            name=name,
-            slug=slug,
-            can_use_platform_keys=can_use_keys,
-            config_json=config,
-            is_active=True
-        )
-        db.add(new_tenant)
-        db.commit()
-        db.refresh(new_tenant)
-        return new_tenant, None
-    except IntegrityError:
-        db.rollback()
-        return None, "Error: El Slug ya existe."
-    except Exception as e:
-        db.rollback()
-        return None, str(e)
+        service = TenantService(db)
+        return service.create_tenant(name, slug, can_use_keys, company_name, agent_persona)
     finally:
         db.close()
 
 def update_tenant(tenant_id, name, slug, can_use_keys, is_active):
     db = SessionLocal()
     try:
-        tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
-        if not tenant:
-            return None, "Tenant no encontrado."
-        
-        tenant.name = name
-        tenant.slug = slug
-        tenant.can_use_platform_keys = can_use_keys
-        tenant.is_active = is_active
-        
-        db.commit()
-        db.refresh(tenant)
-        return tenant, None
-    except IntegrityError:
-        db.rollback()
-        return None, "Error: El Slug ya existe."
-    except Exception as e:
-        db.rollback()
-        return None, str(e)
+        service = TenantService(db)
+        return service.update_tenant(tenant_id, name, slug, can_use_keys, is_active)
     finally:
         db.close()
 
@@ -162,10 +126,9 @@ def render_tenants_view():
             selected_name = st.selectbox("Seleccionar Tenant", list(tenants_opts.keys()))
             selected_id = tenants_opts[selected_name]
             
-            # Buscamos el objeto tenant actual para pre-llenar (hacemos query fresca)
-            db = SessionLocal()
-            current_tenant = db.query(Tenant).filter(Tenant.id == selected_id).first()
-            db.close()
+            # Usamos la lista ya cargada en memoria en lugar de hacer query directa
+            # Esto mantiene la consistencia y evita consultas directas a DB desde la vista
+            current_tenant = next((t for t in tenants if t.id == selected_id), None)
             
             if current_tenant:
                 with st.form("edit_tenant_form"):
