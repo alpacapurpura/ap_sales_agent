@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import Dict, Any
 
-from src.modules.communication.domain.channel_connection import ChannelConnection, ChannelType
+from src.modules.communication.domain.channel import ChannelConnection
+from src.modules.communication.domain.enums import ChannelType
 from src.config import settings
 
 logger = structlog.get_logger()

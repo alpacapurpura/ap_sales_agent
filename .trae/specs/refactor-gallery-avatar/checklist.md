@@ -1,0 +1,6 @@
+- [x] Gallery module exists at `backend/src/modules/gallery`.
+- [x] Avatar logic exists at `backend/src/modules/brand` (avatars).
+- [x] Gallery API is functional (`/api/v1/gallery`).
+- [x] Avatar API is functional (`/api/v1/brand/avatars`).
+- [x] Content module no longer contains Gallery or Avatar code.
+- [x] Imports are updated system-wide.

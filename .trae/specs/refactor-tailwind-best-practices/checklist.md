@@ -1,0 +1,6 @@
+- [x] Función `cn()` existe y funciona correctamente en `frontend/src/lib/utils.ts`.
+- [x] Utilidades de layout (`v-stack`, `h-stack`, etc.) están definidas en CSS global o config y son reconocidas por Tailwind.
+- [x] `sales-inbox-sheet.tsx` usa `cva` para variantes de mensajes y no tiene estilos repetidos inline.
+- [x] `team-list.tsx` usa `cn()` para clases condicionales de estado.
+- [x] `PipelineView.tsx` maneja colores dinámicos mediante `cn()` o `style` (si son valores arbitrarios) de forma segura.
+- [x] No existen interpolaciones de string manuales (`${...}`) dentro de props `className` en los archivos refactorizados.

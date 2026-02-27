@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from src.modules.sales.application.services.web_extractor_adapter import extract_from_url
 from src.modules.brand.application.extraction_service import BrandExtractionService
 from src.shared.application.services.file_parsing_service import FileParsingService
-from src.modules.brand.domain.models import BrandIdentity, BrandSettings
+from src.modules.brand.domain.identity import BrandIdentity
+from src.modules.brand.domain.aggregates import BrandSettings
 from src.modules.iam.api.dependencies import get_current_user, get_db
 from src.modules.iam.domain.user import User
 from src.modules.brand.api.dto.extraction import ExtractRequest

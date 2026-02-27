@@ -1,0 +1,8 @@
+- [x] Backend structure `backend/src/modules/brand` exists.
+- [x] Backend structure `backend/src/modules/offer` exists.
+- [x] Brand logic is successfully moved and imports are updated.
+- [x] Offer logic is successfully moved and imports are updated.
+- [x] Brand API is accessible and functional at `/api/v1/settings/brand`.
+- [x] Offer API is accessible and functional at `/api/v1/products`.
+- [x] Frontend definitions (`/api/v1/definitions/offer-studio`) are updated with new Offer enums.
+- [x] "Nothing visible" issue is resolved (data is returned and models are aligned).

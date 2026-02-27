@@ -1,0 +1,8 @@
+- [x] `OfferBuilderSectionConfig` extended with icon, previewComponent, formComponent
+- [x] `SECTION_REGISTRY` updated with metadata for at least Strategy, Identity, and Pricing
+- [x] `OfferNavRail` renders dynamic list based on `OfferType`
+- [x] `OfferLivePreview` renders dynamic list of preview cards
+- [x] `StrategyFormWrapper` successfully saves partial data
+- [x] `OfferEditSheetManager` opens the correct form wrapper for a given section
+- [x] Offer Health calculation works dynamically based on configured sections
+- [x] Adding a new section to `OFFER_BUILDER_CONFIG` automatically adds it to Sidebar and Preview

@@ -8,12 +8,11 @@ import {
 import { backendToFrontend, frontendToBackend, BackendOffer } from "./adapter";
 import { OfferFormValues } from "../types/schema";
 import { MOCK_OFFERS } from "./mock-data";
+import { ENABLE_MOCKS as USE_MOCK_DATA } from "@/lib/mock-config";
 
 const API_URL = config.api.baseUrl;
 
-// --- CONFIGURACIÓN DE MOCK ---
-// Cambiar a false para conectar con la API real
-export const USE_MOCK_DATA = false;
+export { USE_MOCK_DATA }; // Re-export for potential consumers
 
 export const offerApi = {
   listOffers: async (token: string): Promise<Offer[]> => {
@@ -238,9 +237,10 @@ export const offerApi = {
 
   getLandingConfig: async (offerId: string, token: string): Promise<any> => {
       if (USE_MOCK_DATA) {
-          return null; // Return null to simulate no existing landing page, or return a mock config if needed
+          return null; 
       }
-      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing`, {
+      // Corregido: Endpoint específico de Landing Module
+      const res = await fetchClient(`${API_URL}/api/v1/landings/offer/${offerId}`, {
           headers: { Authorization: `Bearer ${token}` }
       });
       if (res.status === 404) return null;
@@ -258,9 +258,17 @@ export const offerApi = {
               sections: []
           };
       }
-      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing/generate`, {
+      // Corregido: POST a /api/v1/landings/ con offer_id en body
+      const res = await fetchClient(`${API_URL}/api/v1/landings/`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}` 
+            },
+          body: JSON.stringify({ 
+              offer_id: offerId,
+              slug: `offer-${offerId}-${Date.now()}` // Slug temporal
+          })
       });
       if (!res.ok) {
           const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -275,8 +283,9 @@ export const offerApi = {
           await new Promise(resolve => setTimeout(resolve, 500));
           return config;
       }
-      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing`, {
-          method: "PUT",
+      // Corregido: PATCH a /api/v1/landings/offer/{offerId}
+      const res = await fetchClient(`${API_URL}/api/v1/landings/offer/${offerId}`, {
+          method: "PATCH",
           headers: { 
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}` 

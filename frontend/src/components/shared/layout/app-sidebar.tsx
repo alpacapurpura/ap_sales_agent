@@ -150,7 +150,7 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
       <div className="border-t p-4">
         <div className={cn("flex items-center justify-between px-2", isCollapsed && !mobile && "flex-col justify-center gap-4 px-0")}>
           <div className="flex items-center gap-3">
-            <UserButton />
+            {mounted && <UserButton />}
             {(!isCollapsed || mobile) && mounted && (
               <div className="flex flex-col overflow-hidden text-left min-w-0">
                 <Link 

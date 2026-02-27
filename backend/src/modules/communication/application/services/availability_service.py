@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
-from src.modules.communication.domain.channel_connection import ChannelConnection
+from src.modules.communication.domain.channel import ChannelConnection
 from src.modules.iam.domain.tenant import Tenant
-from src.modules.communication.infrastructure.models.appointment import Appointment
+from src.modules.communication.infrastructure.models.appointment_model import AppointmentModel as Appointment
 from src.modules.sales.domain.lead import Lead
 from src.modules.integration.infrastructure.channels.google_calendar import GoogleCalendarAdapter
 from src.modules.integration.infrastructure.channels.gmail import GmailAdapter

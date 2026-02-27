@@ -1,0 +1,10 @@
+- [x] Backend: Prompts organizados en `backend/src/core/prompts/brand_extraction/`.
+- [x] Backend: Deep Crawling funciona (sigue links relevantes y extrae info de subpáginas).
+- [x] Backend: Endpoint maneja modo "initial" y "update" correctamente.
+- [x] Backend: Persistencia en DB verificada tras extracción.
+- [x] Frontend: UI muestra advertencias de sensibilidad y complementariedad Web/Docs.
+- [x] Frontend: UI de "Modo Actualización" permite ingresar instrucciones de refinamiento.
+- [x] Frontend: Barra de progreso/Pasos visible y precisa durante la extracción.
+- [x] Frontend: Interfaz bloqueada durante el proceso.
+- [x] Frontend: Resumen final muestra campos llenados y recomendaciones.
+- [x] Frontend: Diseño consistente (Bento/Card) y responsive.

@@ -7,8 +7,8 @@ from src.modules.offer.domain.enums import (
     OfferValueLevel, PaymentPlanType, AccessDuration, PrerequisiteType, OnboardingMechanism,
     OFFER_METADATA
 )
-from src.modules.sales.domain.lead_enums import FinancialCapacity, AvatarPersona
-from src.modules.landing.domain.landing_page.content_schemas import LandingPageConfig
+from src.modules.sales.domain.enums import FinancialCapacity, AvatarPersona
+from src.modules.landing.domain.content import LandingPageConfig
 from src.modules.offer.domain.details import (
     ProductDetails, ServiceDetails, ProgramDetails, SubscriptionDetails, EventDetails
 )
@@ -153,3 +153,58 @@ class Offer(BaseEntity):
                 pass
 
         return self
+
+class OfferIdentityUpdate(BaseEntity):
+    internal_sku: Optional[str] = None
+    public_name: Optional[str] = None
+    type: Optional[OfferType] = None
+
+class OfferStrategyUpdate(BaseEntity):
+    value_level: Optional[OfferValueLevel] = Field(None, validation_alias="offer_value_level")
+    delivery_model: Optional[OfferDeliveryModel] = None
+
+class OfferPromiseUpdate(BaseEntity):
+    headline_promise: Optional[str] = None
+    primary_outcome: Optional[str] = None
+    time_to_value: Optional[str] = None
+
+class OfferPsychologyUpdate(BaseEntity):
+    target_avatar_match: Optional[List[AvatarPersona]] = None
+    anti_avatar_keywords: Optional[List[str]] = None
+    marketing_pain_points: Optional[List[str]] = None
+    marketing_desires: Optional[List[str]] = None
+
+class OfferValueStackUpdate(BaseEntity):
+    deliverables: Optional[List[DeliverableItem]] = None
+    includes_offers: Optional[List[UUID]] = None
+
+class OfferPricingUpdate(BaseEntity):
+    pricing_options: Optional[List[PricingStructure]] = None
+    price_pay_in_full: Optional[float] = None
+    currency: Optional[str] = None
+
+class OfferDetailsUpdate(BaseEntity):
+    specific_details: Optional[Union[ProductDetails, ServiceDetails, ProgramDetails, SubscriptionDetails, EventDetails]] = None
+    access_duration: Optional[AccessDuration] = None
+    access_duration_text: Optional[str] = None
+    support_duration_days: Optional[int] = None
+
+class OfferVisualsUpdate(BaseEntity):
+    vsl_link: Optional[str] = None
+    metadata_info: Optional[Dict[str, Any]] = None
+
+class OfferClosingUpdate(BaseEntity):
+    guarantee_type: Optional[GuaranteeType] = None
+    guarantee_terms: Optional[str] = None
+    checkout_page_url: Optional[str] = None
+    calendar_type_id: Optional[str] = None
+    onboarding_action: Optional[OnboardingMechanism] = None
+    onboarding_url: Optional[str] = None
+    downsell_offer_id: Optional[UUID] = None
+    upsell_offer_id: Optional[UUID] = None
+
+class OfferResourcesUpdate(BaseEntity):
+    landing_page_config: Optional[LandingPageConfig] = None
+
+class OfferInstructorsUpdate(BaseEntity):
+    instructors: Optional[List[str]] = None

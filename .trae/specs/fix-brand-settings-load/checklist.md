@@ -1,0 +1,4 @@
+- [x] Backend robustness fix implemented (handles null brand_settings)
+- [x] Reproduction script passes
+- [x] Frontend displays specific error message on failure
+- [x] Brand Studio page loads successfully

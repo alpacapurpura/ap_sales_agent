@@ -1,0 +1,4 @@
+- [x] GitHub Actions workflow `.github/workflows/ci-cd.yml` is created and valid YAML
+- [x] Production Docker Compose `docker-compose.prod.yml` uses GHCR images and no host ports
+- [x] Deployment script `scripts/deploy.sh` handles secrets, migrations, and updates
+- [x] All specified requirements (Caching, Secrets, Zero-Downtime, Migrations) are addressed

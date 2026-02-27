@@ -1,0 +1,7 @@
+- [x] Agent user identified (Trae AI context)
+- [x] Permissions fixed (ownership set to agent user, no root-owned files)
+- [x] File creation verified
+- [x] File move verified
+- [x] File deletion verified
+- [x] Ruff execution verified
+- [x] NPX execution verified

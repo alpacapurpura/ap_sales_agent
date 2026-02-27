@@ -2,19 +2,20 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
-from src.modules.iam.api import admin, users, webhooks, settings as user_settings
+from src.modules.iam.api.routers import tenant_router as admin, auth_router as users
+from src.modules.iam.api import webhooks, settings as user_settings
 from src.modules.offer.api import products, offer_ai, definitions
-from src.modules.landing.api import landing_ai
+from src.modules.landing.api import landing as landing_ai
 from src.modules.gallery.api import router as gallery, offer_gallery
 from src.modules.onboarding.api import onboarding
-from src.modules.communication.api import webhooks_cdp, event_types, public_links
-from src.modules.integration.api import webhook, telegram, whatsapp, calendar, gmail
+from src.modules.communication.api import event_types, public_links
+from src.modules.integration.api import webhook, telegram, whatsapp, calendar, gmail, marketing_webhooks
 from src.modules.sales.api import leads
 from src.modules.marketing.api import cdp, metrics
 from src.modules.brand.api import router as brand_settings_router, extraction as brand_extraction_router, avatars
 from src.modules.iam.api.dependencies import get_tenant_context
 from src.shared.infrastructure.db.database import init_db
-from src.shared.utils.logging import configure_logging
+from src.shared.utils.logger import configure_logging
 import structlog
 import uuid
 import time
@@ -118,7 +119,7 @@ app.include_router(offer_ai.router, prefix="/api/v1/offers/ai", tags=["Offer AI"
 app.include_router(landing_ai.router, prefix="/api/v1/offers", tags=["Landing AI"]) # Dependencies defined per route to allow public/preview access
 app.include_router(cdp.router, prefix="/api/v1/cdp", tags=["Growth Studio"], dependencies=[Depends(get_tenant_context)])
 app.include_router(metrics.router, prefix="/api/v1/marketing", tags=["Marketing Metrics"], dependencies=[Depends(get_tenant_context)])
-app.include_router(webhooks_cdp.router, prefix="/api/v1/webhooks/cdp", tags=["Webhooks"])
+app.include_router(marketing_webhooks.router, prefix="/api/v1/webhooks/cdp", tags=["Webhooks"])
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["Webhooks"])
 
 @app.get("/health")

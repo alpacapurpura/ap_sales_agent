@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import desc, func
 from src.modules.sales.domain.lead import Lead
 from src.modules.sales.infrastructure.models.lead_model import LeadModel
-from src.modules.marketing.infrastructure.models.customer import CustomerProfile
+from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile
 from src.shared.infrastructure.db.base import BaseRepository
 import uuid
 

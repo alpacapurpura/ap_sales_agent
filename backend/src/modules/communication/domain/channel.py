@@ -1,5 +1,5 @@
 from typing import Dict, Any, Optional
-from pydantic import ConfigDict, Field
+from pydantic import Field
 from uuid import UUID
 from datetime import datetime
 from src.shared.domain.base_entity import BaseEntity

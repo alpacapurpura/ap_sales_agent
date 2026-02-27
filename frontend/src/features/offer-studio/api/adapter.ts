@@ -152,15 +152,15 @@ export const offerToFormValues = (offer: Offer): OfferFormValues => {
  * Convierte los valores del formulario al payload que espera el backend.
  */
 export const frontendToBackend = (values: OfferFormValues | Partial<OfferFormValues>): Record<string, any> => {
-    const payload: Record<string, any> = { ...values };
+    // 1. Mapear pricing_options (Frontend) -> pricing (Backend) y eliminar pricing_options
+    // El backend espera 'pricing', alineado con el DTO ProductUpdate
+    const { pricing_options, ...rest } = values;
+    const payload: Record<string, any> = { ...rest };
     
-    // 1. Mapear pricing_options (Frontend) -> pricing_options (Backend)
-    // El backend espera 'pricing_options', no 'pricing'
-    if (values.pricing_options) {
-        payload.pricing_options = values.pricing_options;
-    } else if (values.pricing) {
-        payload.pricing_options = values.pricing;
-        delete payload.pricing;
+    if (pricing_options) {
+        payload.pricing = pricing_options;
+    } else if ((values as any).pricing) {
+        payload.pricing = (values as any).pricing;
     }
     
     // 2. Eliminar metadata_info para evitar sobrescribir actualizaciones parciales

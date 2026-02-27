@@ -1,0 +1,4 @@
+- [x] `backend/src/api/dto` directory exists and contains extracted models.
+- [x] Routers in `backend/src/api/routers` do not define Pydantic models inline.
+- [x] `backend/src/core/domain` does not contain SQLAlchemy models.
+- [x] `ruff check backend/src` returns no errors.

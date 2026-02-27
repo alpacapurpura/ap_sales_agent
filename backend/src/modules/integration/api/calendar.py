@@ -8,8 +8,8 @@ import structlog
 from src.shared.infrastructure.db.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.communication.domain.channel_connection import ChannelConnection
-from src.modules.communication.domain.link import ShareableLink
+from src.modules.communication.domain.channel import ChannelConnection
+from src.modules.communication.infrastructure.models.link_model import ShareableLink
 from src.modules.communication.infrastructure.models.booking_link import BookingLink
 from src.modules.sales.domain.lead import Lead
 import secrets

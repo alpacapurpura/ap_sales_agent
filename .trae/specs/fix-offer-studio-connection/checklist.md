@@ -1,0 +1,6 @@
+- [x] Frontend adapter correctly maps `pricing_options` to `pricing`.
+- [x] Backend endpoint `GET /api/v1/offers/{offer_id}/landing` returns correct config.
+- [x] Backend endpoint `POST /api/v1/offers/{offer_id}/landing/generate` creates landing page.
+- [x] Backend endpoint `PUT /api/v1/offers/{offer_id}/landing` updates landing page.
+- [x] Backend endpoint `POST /api/v1/offers/{offer_id}/landing/ai/regenerate-block` works (mock or real).
+- [x] Offer creation and update works without 422 errors due to `pricing` field.

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Body, Query, Request
 from sqlalchemy.orm import Session
 from src.shared.infrastructure.db.database import get_db
-from src.modules.communication.domain.channel_connection import ChannelConnection, ChannelType
+from src.modules.communication.domain.channel import ChannelConnection
+from src.modules.communication.domain.enums import ChannelType
 from src.modules.iam.api.dependencies import get_current_tenant_id
 from src.modules.integration.infrastructure.channels.whatsapp import WhatsAppChannel
 from src.config import settings

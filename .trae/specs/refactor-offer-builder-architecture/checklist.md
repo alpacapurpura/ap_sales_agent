@@ -1,0 +1,7 @@
+- [x] Config file `offer-builder-config.ts` exists and types are defined.
+- [x] Atomic Section components (Strategy, Psychology, Promise, Sales, etc.) are created in `src/features/offer-studio/components/sections/`.
+- [x] `DynamicOfferEditor` renders sections based on the configuration of the selected `OfferType`.
+- [x] Sidebar navigation updates dynamically based on the active sections for the offer type.
+- [x] Form submission works correctly, gathering data from all dynamically rendered sections.
+- [x] `PolymorphicFactory` is removed and no longer used.
+- [x] All existing Offer Types render correctly with their specific fields.

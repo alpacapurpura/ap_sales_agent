@@ -1,33 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException, Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from typing import List
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from src.shared.infrastructure.db.database import get_db
-from src.modules.iam.application.auth import verify_clerk_token
-from src.modules.iam.infrastructure.repositories.user_repository import UserRepository
+from src.modules.iam.application.services.user_service import UserService
 from src.modules.iam.domain.user import User
+from src.modules.iam.api.dto.users import TenantSchema
+from src.modules.iam.api.dependencies import get_user_from_token
 
 router = APIRouter()
-security = HTTPBearer()
 
 @router.get("/me", response_model=User)
 async def get_current_user_profile(
-    credentials: HTTPAuthorizationCredentials = Security(security),
-    db: Session = Depends(get_db)
+    user: User = Depends(get_user_from_token)
 ):
     """
     Get current user profile based on Clerk Token.
     """
-    payload = verify_clerk_token(credentials)
-    clerk_id = payload.get("sub")
-    if not clerk_id:
-        raise HTTPException(status_code=401, detail="Invalid Token Payload")
-    
-    repo = UserRepository(db)
-    user = repo.get_by_clerk_id(clerk_id)
-    
-    if not user:
-        # Auto-provisioning could happen here if desired, 
-        # but for now we return 404 or 403
-        raise HTTPException(status_code=404, detail="User not found in system")
-        
     return user
+
+@router.get("/me/tenants", response_model=List[TenantSchema])
+async def get_my_tenants(
+    user: User = Depends(get_user_from_token),
+    db: Session = Depends(get_db)
+):
+    """
+    List all tenants the current user belongs to.
+    Used for the organization switcher in frontend.
+    """
+    service = UserService(db)
+    return service.get_user_tenants(user.id)

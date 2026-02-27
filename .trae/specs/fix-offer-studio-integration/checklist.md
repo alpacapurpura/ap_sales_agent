@@ -1,0 +1,6 @@
+- [x] Frontend mock data created and UI verified (Dashboard/List).
+- [x] `api/adapter.ts` correctly maps `pricing_options` and `public_name`.
+- [x] `api/index.ts` uses `PATCH` for section updates.
+- [x] `api/index.ts` constructs correct endpoint URLs (e.g., `/products/{id}/pricing`).
+- [x] Backend `PATCH` endpoints return 200 OK for valid payloads.
+- [x] Full integration: Frontend updates persist to Backend DB.

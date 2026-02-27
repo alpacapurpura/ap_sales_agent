@@ -1,0 +1,5 @@
+- [x] Backend `BrandIdentity` has `brand_name` and optional fields
+- [x] Frontend `BrandIdentity` type matches backend
+- [x] `BrandStudioLayout` correctly accesses `visuals.logo_url` and `contact.website`
+- [x] `useBrandSettings` hook returns valid structure even with empty backend data
+- [x] Brand Studio page loads without "Error al cargar configuración"

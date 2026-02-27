@@ -1,0 +1,5 @@
+- [x] Módulo `content` renombrado a `landing` exitosamente.
+- [x] Archivos de Ofertas movidos a `src/modules/offer`.
+- [x] Archivos de Enlaces Públicos movidos a `src/modules/communication`.
+- [x] No existen imports rotos apuntando a `src.modules.content`.
+- [x] La estructura de carpetas cumple con la arquitectura modular.

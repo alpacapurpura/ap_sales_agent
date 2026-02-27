@@ -1,0 +1,8 @@
+- [ ] SectionFormWrapper moved and working
+- [ ] OfferEditSheetManager moved and footer button removed
+- [ ] StrategyForm loads data correctly (no infinite load) and saves
+- [ ] PricingForm loads data correctly and saves
+- [ ] IdentityForm loads data correctly and saves
+- [ ] PlaceholderForm renders correctly
+- [ ] Directory `components/forms/wrappers` is deleted
+- [ ] Offer Editor main view updates after saving a section

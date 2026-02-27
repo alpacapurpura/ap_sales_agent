@@ -1,0 +1,4 @@
+- [x] `MOCK_OFFERS` contains at least one offer for every `OfferType`.
+- [ ] Offer Studio Dashboard loads without errors.
+- [ ] Clicking an offer opens the editor with correct data.
+- [x] `USE_MOCK_DATA` is set to `true`.

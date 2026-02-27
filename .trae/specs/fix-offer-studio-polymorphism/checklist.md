@@ -1,0 +1,8 @@
+- [x] Mock Data Service implemented and toggleable
+- [x] `getSectionData` returns correct flat structure for details
+- [x] `offerApi.saveSection` sends correct payload for `program_details` (no double nesting)
+- [x] `offerApi.saveSection` sends correct payload for `identity`
+- [x] `access_duration` saves correctly when modified in Program Details
+- [x] `structure_type` saves correctly when modified in Program Details
+- [x] Backend receives valid JSON and returns 200 OK for `PATCH /details`
+- [x] Frontend UI reflects saved changes immediately

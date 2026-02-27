@@ -26,6 +26,14 @@ const nextConfig = {
         hostname: 'laptopchris-api.alpacapurpura.lat', // Development API Tunnel
       },
       {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
       },

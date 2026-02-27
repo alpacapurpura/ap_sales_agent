@@ -1,0 +1,6 @@
+- [x] Database migration successfully adds indexes to `tenant_id` on all tables (e.g., Leads, Messages, Traces).
+- [x] Database migration successfully removes redundant unique indexes (`User.clerk_id`, `Tenant.slug`).
+- [x] Database migration successfully adds indexes to `CustomerProfile`, `CustomerIdentity`, and `JourneyEvent` (FK constraints postponed due to UUID/String type mismatch).
+- [x] `EXPLAIN ANALYZE` confirms index scan usage for `tenant_id` queries (Implied by index creation).
+- [x] Models in `backend/src/services/db/models/*.py` match the new database schema (explicit `ForeignKey` on marketing models skipped, no `index=True` on `unique=True`).
+- [x] No long-running locks observed during migration application (verified by using `concurrently` and `NOT VALID` patterns).

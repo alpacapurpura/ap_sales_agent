@@ -1,0 +1,9 @@
+- [x] `backend/src/domain` exists and contains pure entities.
+- [x] `backend/src/application` exists and contains business logic.
+- [x] `backend/src/infrastructure` exists and contains DB/Adapters.
+- [x] `backend/src/core` ONLY contains Agents, Prompts, and Semantic logic.
+- [x] `backend/src/common` contains shared utils.
+- [x] `backend/src/services` is DELETED (Renamed to Infrastructure).
+- [x] `backend/src/core/domain` is DELETED.
+- [x] `ruff check backend/src` passes with 0 errors.
+- [x] Application starts successfully (No ImportErrors).

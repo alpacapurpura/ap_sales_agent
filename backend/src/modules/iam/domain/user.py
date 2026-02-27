@@ -1,5 +1,5 @@
-from typing import List, Optional, Dict, Any
-from pydantic import ConfigDict, EmailStr
+from typing import Optional, Dict, Any
+from pydantic import EmailStr
 from datetime import datetime
 from uuid import UUID
 from src.shared.domain.base_entity import BaseEntity
@@ -28,7 +28,7 @@ class SystemUserProfile(BaseEntity):
     id: str
     full_name: Optional[str]
     email: str
-    tenant: Optional[Dict[str, Any]] = None # Simplified tenant info
+    tenant: Optional[Any] = None # Simplified tenant info (TenantProfile)
 
 class TeamMemberCreate(BaseEntity):
     """
@@ -37,3 +37,14 @@ class TeamMemberCreate(BaseEntity):
     full_name: str
     email: str
     password: str
+
+class TeamMemberSchema(BaseEntity):
+    """
+    Response model for team members listing.
+    """
+    id: str
+    full_name: Optional[str]
+    email: str
+    role: str
+    is_active: bool
+    created_at: Optional[datetime]

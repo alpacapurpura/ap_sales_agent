@@ -1,0 +1,7 @@
+- [x] `backend/src/modules/offer/infrastructure/repository.py` is deleted.
+- [x] `Offer` entity in `domain/offer.py` has `marketing_pain_points`, `marketing_desires`, `metadata_info`.
+- [x] `OfferRepository` in `infrastructure/repositories/offer_repository.py` maps all new fields in `_to_domain` and `_to_model`.
+- [x] `OfferRepository.update` uses dynamic assignment (no long list of `model.x = offer.x`).
+- [x] `OfferService` has `patch_offer` method.
+- [x] `api/products.py` uses `service.patch_offer` for all PATCH endpoints.
+- [x] `api/offer_ai.py` enforces `tenant_id` presence.

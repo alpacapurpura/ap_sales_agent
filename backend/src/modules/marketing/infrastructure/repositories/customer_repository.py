@@ -1,9 +1,10 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from uuid import UUID
 from src.modules.marketing.domain.customer import CustomerProfile, CustomerIdentity
 from src.modules.marketing.domain.enums import IdentityType
-from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel
+from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel, JourneyEventModel
+import uuid
 
 class CustomerRepository:
     def __init__(self, db: Session):
@@ -38,13 +39,13 @@ class CustomerRepository:
             identities=identities
         )
 
-    def find_by_identity(self, type: IdentityType, value: str, tenant_id: UUID) -> Optional[CustomerProfile]:
+    def find_by_identity(self, identity_value: str, identity_type: IdentityType, tenant_id: UUID) -> Optional[CustomerProfile]:
         """
         Find a profile by one of its identities.
         """
         identity = self.db.query(CustomerIdentityModel).filter(
-            CustomerIdentityModel.type == type,
-            CustomerIdentityModel.value == value,
+            CustomerIdentityModel.type == identity_type,
+            CustomerIdentityModel.value == identity_value,
             CustomerIdentityModel.tenant_id == tenant_id
         ).first()
         
@@ -84,3 +85,59 @@ class CustomerRepository:
         self.db.commit()
         self.db.refresh(model)
         return self._to_domain(model)
+
+    def create_with_identity(self, tenant_id: UUID, identity_type: IdentityType, identity_value: str, profile_data: Dict[str, Any]) -> CustomerProfile:
+        """
+        Creates a new customer profile with an initial identity.
+        """
+        profile_id = uuid.uuid4()
+        
+        # Extract basic info from profile_data
+        full_name = f"{profile_data.get('first_name', '')} {profile_data.get('last_name', '')}".strip() or None
+        
+        # Create Profile Model
+        profile_model = CustomerProfileModel(
+            id=profile_id,
+            tenant_id=tenant_id,
+            full_name=full_name,
+            traits=profile_data.get('traits', {})
+        )
+        self.db.add(profile_model)
+        
+        # Create Identity Model
+        identity_model = CustomerIdentityModel(
+            id=uuid.uuid4(),
+            profile_id=profile_id,
+            tenant_id=tenant_id,
+            type=identity_type,
+            value=identity_value,
+            is_primary=True
+        )
+        self.db.add(identity_model)
+        
+        self.db.commit()
+        self.db.refresh(profile_model)
+        
+        return self._to_domain(profile_model)
+
+    def count_by_stage(self, tenant_id: UUID, stage: Any) -> int:
+        return self.db.query(CustomerProfileModel).filter(
+            CustomerProfileModel.tenant_id == tenant_id,
+            CustomerProfileModel.lifecycle_stage == stage
+        ).count()
+
+class JourneyEventRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_unique_visitors(self, tenant_id: UUID) -> int:
+        # Placeholder implementation - assumes anonymous_id in context
+        # If context is JSONB, we can query it.
+        # But for now, returning 0 if table empty or no logic.
+        try:
+            return self.db.query(JourneyEventModel).filter(
+                JourneyEventModel.tenant_id == tenant_id,
+                JourneyEventModel.event_name == "page_view"
+            ).count() # Simplified: total page views as proxy if distinct not easy
+        except Exception:
+            return 0

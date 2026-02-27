@@ -50,6 +50,15 @@ class LandingRepository:
             return self._to_domain(model)
         return None
 
+    def get_by_offer(self, tenant_id: UUID, offer_id: UUID) -> Optional[LandingPage]:
+        model = self.db.query(LandingPageModel).filter(
+            LandingPageModel.tenant_id == tenant_id,
+            LandingPageModel.offer_id == offer_id
+        ).first()
+        if model:
+            return self._to_domain(model)
+        return None
+
     def list_by_tenant(self, tenant_id: UUID) -> List[LandingPage]:
         models = self.db.query(LandingPageModel).filter(LandingPageModel.tenant_id == tenant_id).all()
         return [self._to_domain(m) for m in models]

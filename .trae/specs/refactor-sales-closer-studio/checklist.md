@@ -1,0 +1,7 @@
+- [x] TypeScript interfaces accurately reflect the Unified Data Model (Lead + Customer).
+- [x] Mock Data covers all 5 required scenarios (Empty, Partial, Full, Extreme, Error).
+- [x] Atomic Design structure is followed in `frontend/src/features/sales/components`.
+- [x] `LeadModel` in Backend no longer stores `full_name`, `email`, `phone`.
+- [x] Database migration runs successfully without data loss (existing leads linked to customers). (Script ready at `backend/scripts/manual_migration_closer_studio.py`)
+- [x] Creating a new lead correctly reuses an existing `CustomerProfile` if match found. (Logic implemented in `LeadRepository`)
+- [x] Frontend correctly displays data from both `Lead` (Context) and `Customer` (Identity).

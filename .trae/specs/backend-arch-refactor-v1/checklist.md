@@ -1,0 +1,8 @@
+- [ ] `src/api` folder is removed.
+- [ ] `src/domain` folder is removed.
+- [ ] `src/application` folder is removed.
+- [ ] `src/shared/utils/utils/utils` structure is flattened.
+- [ ] All routers are imported from `src/modules/{module}/api` in `src/main.py`.
+- [ ] No circular imports exist (verified by running `python -m src.main` or linting).
+- [ ] `src/modules` contains only domain-specific logic.
+- [ ] `src/shared` contains only truly shared logic.

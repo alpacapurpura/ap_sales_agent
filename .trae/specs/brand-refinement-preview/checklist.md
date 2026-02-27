@@ -1,0 +1,8 @@
+- [x] Backend `BrandExtractionService.extract_all` supports `dry_run` parameter.
+- [x] Backend `extract-full-brand` endpoint supports `dry_run` parameter.
+- [x] Backend `_merge_and_save` does NOT commit to DB when `dry_run=True`.
+- [x] Frontend `BrandStudioLayout` has `previewData` state.
+- [x] Frontend `SmartFillCard` passes `dry_run=true` to API when refining.
+- [x] Frontend UI shows preview data (e.g. UVP changes) before clicking "Apply".
+- [x] Frontend "Apply Changes" button correctly saves data to DB.
+- [x] Frontend fields (UVP, Methodology, Story, etc.) are verified to be populated correctly from `displaySettings`.

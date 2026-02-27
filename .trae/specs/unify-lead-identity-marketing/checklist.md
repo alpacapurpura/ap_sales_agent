@@ -1,0 +1,5 @@
+- [x] Database Schema has `IdentityType` with all social channels
+- [x] `leads` table no longer stores primary social IDs (migrated to `customer_identities`)
+- [x] `ChatOrchestrator` successfully identifies an existing customer coming from a new channel (simulation)
+- [x] Marketing Metrics query returns valid structure for the 7 nodes
+- [x] `ARCHITECTURE_IA.md` created and detailed

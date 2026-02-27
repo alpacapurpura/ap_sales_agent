@@ -1,5 +1,4 @@
 from typing import Optional, Dict, Any
-from pydantic import ConfigDict
 from datetime import datetime
 from uuid import UUID
 from src.shared.domain.base_entity import BaseEntity
@@ -38,4 +37,27 @@ class GeneralSettings(BaseEntity):
     General Tenant Configuration (e.g. currency, timezone).
     """
     default_currency: str = "USD"
+    timezone: str = "UTC"
+
+class GeneralSettingsUpdate(BaseEntity):
+    """
+    Request model for updating General Tenant settings.
+    """
+    default_currency: Optional[str] = None
+    timezone: Optional[str] = None
+
+class WebhookSettings(BaseEntity):
+    """
+    Webhook Configuration.
+    """
+    webhook_url: str
+    webhook_secret: Optional[str] = None
+
+class TenantProfile(BaseEntity):
+    """
+    Public Tenant Profile.
+    """
+    id: str
+    name: str
+    slug: str
     timezone: str = "UTC"

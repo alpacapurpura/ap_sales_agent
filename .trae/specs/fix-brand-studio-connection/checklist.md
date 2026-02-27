@@ -1,0 +1,6 @@
+- [x] Backend Brand Settings API (`GET` & `PATCH`) is fully functional and tested with a script.
+- [x] Frontend `BrandSettings` interface matches backend `BrandSettings` Pydantic model.
+- [x] Frontend UI components compile without errors against the new types.
+- [x] Frontend can successfully fetch brand settings from the backend.
+- [x] Frontend can successfully update brand settings in the backend.
+- [x] Root cause of the connection issue is identified and resolved.

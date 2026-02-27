@@ -1,0 +1,3 @@
+- [x] `backend/src/modules/communication/README.md` existe y explica el propósito del módulo.
+- [x] `backend/src/modules/communication/__init__.py` tiene docstring explicativo.
+- [x] `backend/README.md` tiene una sección describiendo los módulos del sistema.

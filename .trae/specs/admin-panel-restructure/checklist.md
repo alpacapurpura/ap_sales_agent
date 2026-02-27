@@ -1,0 +1,8 @@
+- [x] ClerkService tiene método update_user_password funcionando
+- [x] ClerkService tiene método ban_user funcionando
+- [x] Panel Admin muestra lista de Tenants correctamente
+- [x] Panel Admin permite crear un nuevo Tenant con configuración de Platform Keys
+- [x] Panel Admin permite seleccionar un Tenant y ver sus usuarios
+- [x] Panel Admin permite crear un usuario (Email/Pass) y este aparece tanto en Clerk como en Postgres
+- [x] Panel Admin permite cambiar la contraseña de un usuario existente
+- [x] Panel Admin permite bloquear el acceso de un usuario

@@ -1,0 +1,5 @@
+- [x] `shared/domain/schema.py` is DELETED and content is distributed.
+- [x] No files named `schema.py` exist in `src/modules/*/domain/` (unless specific like `lead_schema.py` - but preference is `_models.py` or `_schemas.py`).
+- [x] `TenantService` exists in `src/modules/iam/application/services`.
+- [x] Admin Dashboard works correctly (imports valid).
+- [x] No circular imports introduced (verified by running app).

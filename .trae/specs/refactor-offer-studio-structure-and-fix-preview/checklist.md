@@ -1,0 +1,15 @@
+- [ ] Directories moved successfully
+- [ ] Preview works (updates in real-time)
+- [ ] StrategyForm works (Edit & Save)
+- [ ] IdentityForm works
+- [ ] PricingForm works
+- [ ] PsychologyForm works (AI generation preserved)
+- [ ] PromiseForm works
+- [ ] ClosingForm works
+- [ ] InstructorsForm works
+- [ ] ValueStackForm works
+- [ ] ResourcesForm works
+- [ ] GalleryForm works
+- [ ] Detail Forms (Program, Product, Service, Event, Subscription) work
+- [ ] `editor/sections` directory deleted
+- [ ] All sections in `offer-builder-config.ts` point to valid Forms

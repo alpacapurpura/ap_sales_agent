@@ -1,0 +1,7 @@
+- [x] Dead code (`BrandHealthSidebar`, `TeamGridSection`) is deleted
+- [x] `AvatarManager` resides in `components/avatars/`
+- [x] `GalleryManager` resides in `components/gallery/`
+- [ ] `live-preview` directory is removed
+- [ ] `brand-studio-layout.tsx` imports are correct
+- [ ] `brand-settings/page.tsx` imports are correct
+- [x] Application compiles without errors

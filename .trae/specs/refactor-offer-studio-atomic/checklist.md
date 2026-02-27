@@ -1,0 +1,6 @@
+- [ ] Backend: Esquemas Pydantic creados para todas las secciones (Identity, Strategy, Pricing, etc.).
+- [ ] Backend: Endpoints `PATCH` específicos implementados y funcionales.
+- [ ] Frontend: Estructura de carpetas reorganizada en `sections/{domain}`.
+- [ ] Frontend: Carpetas `forms/` y `preview/` eliminadas.
+- [ ] Frontend: `offer-builder-config.ts` actualizado y sin errores de importación.
+- [ ] Frontend: Los formularios guardan datos correctamente usando los nuevos endpoints atómicos.

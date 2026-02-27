@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from src.shared.infrastructure.db.models.audit import AgentTrace, LLMLog
+from src.shared.infrastructure.db.models import AgentTrace, LLMLog
 from src.modules.sales.infrastructure.models.lead_model import LeadModel
-from src.modules.communication.infrastructure.models.message import Message
+from src.modules.communication.infrastructure.models.message_model import MessageModel as Message
 
 class AuditRepository:
     def __init__(self, db: Session):

@@ -6,11 +6,11 @@ from src.shared.infrastructure.db.database import get_db
 from src.modules.iam.domain.user import User
 from src.modules.iam.infrastructure.models import UserModel, TenantModel, UserTenantModel
 from src.shared.infrastructure.external.clerk import ClerkService
-from src.modules.iam.domain.tenant_models import (
+from src.modules.iam.domain.tenant import (
     TenantSettingsUpdate, AISettings, GeneralSettings, GeneralSettingsUpdate, 
     WebhookSettings, TenantProfile
 )
-from src.modules.iam.domain.user_models import SystemUserProfile, TeamMemberCreate, TeamMemberSchema
+from src.modules.iam.domain.user import SystemUserProfile, TeamMemberCreate, TeamMemberSchema
 from src.config import settings as app_settings
 import secrets
 import string

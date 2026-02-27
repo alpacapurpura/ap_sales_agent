@@ -1,7 +1,8 @@
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 from src.modules.marketing.infrastructure.repositories.customer_repository import CustomerRepository
-from src.modules.marketing.infrastructure.models.customer import CustomerProfile, IdentityType
+from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile
+from src.modules.marketing.domain.enums import IdentityType
 
 class IdentityResolutionEngine:
     def __init__(self, db: Session):

@@ -1,7 +1,8 @@
 from typing import Dict, Any, Optional
 from uuid import UUID
 from src.modules.marketing.infrastructure.repositories.customer_repository import CustomerRepository
-from src.modules.marketing.infrastructure.models.customer import CustomerProfile, IdentityType
+from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile
+from src.modules.marketing.domain.enums import IdentityType
 
 class IdentityService:
     def __init__(self, customer_repository: CustomerRepository):

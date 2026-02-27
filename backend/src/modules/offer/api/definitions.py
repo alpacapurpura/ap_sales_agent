@@ -26,7 +26,7 @@ from src.modules.offer.domain.enums import (
     GUARANTEE_METADATA,
     get_enum_options,
 )
-from src.modules.sales.domain.lead_enums import FinancialCapacity, AvatarPersona, LeadTemperature
+from src.modules.sales.domain.enums import FinancialCapacity, AvatarPersona, LeadTemperature
 
 router = APIRouter(tags=["System Definitions"])
 

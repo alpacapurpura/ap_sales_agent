@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Any
+from typing import Dict, Any, List, Type
 
 class OfferType(str, Enum):
     # Level 0: Free & Lead Magnets
@@ -201,3 +201,20 @@ OFFER_METADATA: Dict[str, Dict[str, Any]] = {
     OfferType.BRAND_SPONSORSHIP.value: {"level": OfferValueLevel.LEVEL_6_CORPORATE, "default_delivery": OfferDeliveryModel.DFY},
     OfferType.KEYNOTE_SPEAKING.value: {"level": OfferValueLevel.LEVEL_6_CORPORATE, "default_delivery": OfferDeliveryModel.DWY},
 }
+
+GUARANTEE_METADATA: Dict[str, Dict[str, Any]] = {
+    GuaranteeType.NONE.value: {"risk_level": "High", "conversion_boost": "None"},
+    GuaranteeType.CONDITIONAL_ACTION_BASED.value: {"risk_level": "Medium", "conversion_boost": "High"},
+    GuaranteeType.UNCONDITIONAL_30_DAY.value: {"risk_level": "Low", "conversion_boost": "Very High"},
+    GuaranteeType.DOUBLE_MONEY_BACK.value: {"risk_level": "Very Low", "conversion_boost": "Extreme"},
+    GuaranteeType.SATISFACTION_OR_FREE_WORK.value: {"risk_level": "Medium", "conversion_boost": "High"},
+}
+
+def get_enum_options(enum_class: Type[Enum], metadata: Dict[str, Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    options = []
+    for e in enum_class:
+        item = {"value": e.value, "label": e.name.replace("_", " ").title()}
+        if metadata and e.value in metadata:
+            item.update(metadata[e.value])
+        options.append(item)
+    return options

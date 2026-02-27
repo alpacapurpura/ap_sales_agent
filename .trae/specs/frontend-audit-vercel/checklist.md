@@ -1,0 +1,3 @@
+- [x] Audit Report generated at `frontend/AUDIT_REPORT.md`
+- [x] Critical Waterfall issues fixed
+- [x] Critical Bundle Size issues fixed

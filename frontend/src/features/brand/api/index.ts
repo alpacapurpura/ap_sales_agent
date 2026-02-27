@@ -1,11 +1,18 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 import { BrandSettings, ExtractedVisuals, FullBrandExtractionRequest } from "../types";
+import { MOCK_BRAND_SETTINGS } from "./mock-data";
+import { ENABLE_MOCKS as USE_MOCK_API } from "@/lib/mock-config";
 
 const API_URL = config.api.baseUrl;
 
 export const brandApi = {
     getBrandSettings: async (token: string): Promise<BrandSettings> => {
+        if (USE_MOCK_API) {
+            console.log("[BrandAPI] Using MOCK data for getBrandSettings");
+            return new Promise((resolve) => setTimeout(() => resolve(MOCK_BRAND_SETTINGS), 800));
+        }
+
         const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -20,6 +27,12 @@ export const brandApi = {
     },
 
     updateBrandSettings: async (data: BrandSettings, token: string): Promise<BrandSettings> => {
+        if (USE_MOCK_API) {
+            console.log("[BrandAPI] Using MOCK data for updateBrandSettings", data);
+            // Simulate merging updates into the mock (in a real app this would persist in memory or local storage)
+            return new Promise((resolve) => setTimeout(() => resolve({ ...MOCK_BRAND_SETTINGS, ...data }), 600));
+        }
+
         const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
             method: "PATCH",
             headers: {
@@ -49,15 +62,23 @@ export const brandApi = {
     },
 
     extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<BrandSettings> => {
-        const isFormData = data instanceof FormData;
+        let body: FormData;
+        
+        if (data instanceof FormData) {
+            body = data;
+        } else {
+            // Convert plain object to FormData to satisfy FastAPI Form(...) dependency
+            body = new FormData();
+            if (data.url) body.append("url", data.url);
+            if (data.text) body.append("text", data.text);
+            if (data.mode) body.append("mode", data.mode);
+            if (data.update_instructions) body.append("update_instructions", data.update_instructions);
+        }
         
         const headers: HeadersInit = {
             Authorization: `Bearer ${token}`
         };
-
-        if (!isFormData) {
-            headers["Content-Type"] = "application/json";
-        }
+        // Do NOT set Content-Type for FormData, browser handles it
 
         // Ensure API_URL has a protocol
         let baseUrl = API_URL;
@@ -83,7 +104,7 @@ export const brandApi = {
             const res = await fetch(url, {
                 method: "POST",
                 headers,
-                body: isFormData ? data : JSON.stringify(data),
+                body: body,
                 signal: controller.signal
             });
 

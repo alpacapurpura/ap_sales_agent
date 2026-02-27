@@ -1,0 +1,6 @@
+- [x] Team forms refactored into `forms/team/`
+- [ ] Authority forms refactored into `forms/authority/`
+- [x] Testimonials forms refactored into `forms/testimonials/`
+- [ ] Simple forms standardized (Identity, Legal, Contact, etc.)
+- [x] `EditSheetManager` updated and working
+- [x] No regression in form functionality

@@ -1,6 +1,6 @@
 from typing import Optional
 from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models.user import UserModel
+from src.modules.iam.infrastructure.models import UserModel
 from src.shared.infrastructure.db.base import BaseRepository
 import uuid
 

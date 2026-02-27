@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from src.modules.marketing.infrastructure.repositories.customer_repository import JourneyEventRepository, CustomerRepository
 from src.modules.sales.infrastructure.lead import LeadRepository
-from src.modules.marketing.infrastructure.models.customer import LifecycleStage
+from src.modules.marketing.domain.enums import LifecycleStage
 
 class MetricsService:
     def __init__(self, db: Session):

@@ -35,3 +35,44 @@ class AvatarRepository:
         self.db.commit()
         self.db.refresh(db_avatar)
         return Avatar.model_validate(db_avatar)
+
+    def update(self, avatar_id: UUID, data: dict) -> Optional[Avatar]:
+        model = self.db.query(AvatarModel).filter(AvatarModel.id == avatar_id).first()
+        if not model:
+            return None
+        
+        for key, value in data.items():
+            # Only update if value is provided (not None) and field exists
+            if hasattr(model, key) and value is not None:
+                setattr(model, key, value)
+        
+        self.db.commit()
+        self.db.refresh(model)
+        return Avatar.model_validate(model)
+
+    def delete(self, avatar_id: UUID) -> bool:
+        model = self.db.query(AvatarModel).filter(AvatarModel.id == avatar_id).first()
+        if not model:
+            return False
+        
+        self.db.delete(model)
+        self.db.commit()
+        return True
+
+    def set_global_default(self, tenant_id: UUID, avatar_id: UUID) -> Optional[Avatar]:
+        # Unset all defaults for this tenant
+        self.db.query(AvatarModel).filter(
+            AvatarModel.tenant_id == tenant_id,
+            AvatarModel.is_default.is_(True)
+        ).update({"is_default": False})
+        
+        # Set the new default
+        model = self.db.query(AvatarModel).filter(AvatarModel.id == avatar_id).first()
+        if not model:
+            self.db.rollback()
+            return None
+            
+        model.is_default = True
+        self.db.commit()
+        self.db.refresh(model)
+        return Avatar.model_validate(model)

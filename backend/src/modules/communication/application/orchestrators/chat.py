@@ -12,7 +12,7 @@ from src.modules.communication.domain.message_models import IncomingMessage, Out
 from src.modules.sales.infrastructure.lead import LeadRepository
 from src.modules.marketing.application.services.identity_service import IdentityService
 from src.modules.marketing.infrastructure.repositories.customer_repository import CustomerRepository
-from src.modules.marketing.infrastructure.models.customer import IdentityType
+from src.modules.marketing.domain.enums import IdentityType
 from src.shared.infrastructure.monitoring.audit_repository import AuditRepository
 from src.shared.infrastructure.db.repositories.business_repository import BusinessRepository
 from src.shared.infrastructure.db.database import SessionLocal
@@ -22,7 +22,8 @@ from src.shared.core.semantic import check_is_complete
 from src.shared.application.orchestrator.state import create_initial_state
 from src.modules.integration.infrastructure.channels.telegram import TelegramChannel
 from src.shared.utils.context import set_tenant_id
-from src.modules.communication.domain.channel_connection import ChannelConnection, ChannelType
+from src.modules.communication.domain.channel import ChannelConnection
+from src.modules.communication.domain.enums import ChannelType
 from src.modules.iam.domain.tenant import Tenant
 
 logger = structlog.get_logger()

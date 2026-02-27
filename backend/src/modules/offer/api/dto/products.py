@@ -10,6 +10,8 @@ class ProductResponse(BaseModel):
     
     # Polymorphic fields
     delivery_model: Optional[str] = None
+    offer_value_level: Optional[str] = "N0"
+    value_level: Optional[str] = "N0"
     headline_promise: Optional[str] = None
     primary_outcome: Optional[str] = None
     time_to_value: Optional[str] = None
@@ -67,6 +69,7 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     internal_sku: Optional[str] = None
     type: Optional[str] = None
+    offer_value_level: Optional[str] = None
     delivery_model: Optional[str] = None
     status: Optional[str] = None
     

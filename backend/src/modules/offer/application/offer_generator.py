@@ -37,7 +37,7 @@ class OfferGeneratorService:
             
         if avatar.tenant_id and str(avatar.tenant_id) != str(tenant_id):
              # Simple security check if tenant_id is provided
-             raise ValueError(f"Avatar not found in this tenant")
+             raise ValueError("Avatar not found in this tenant")
 
         # 2. Prepare Context for Prompt
         avatar_context = {

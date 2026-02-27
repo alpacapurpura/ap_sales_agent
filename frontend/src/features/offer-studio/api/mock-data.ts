@@ -1,210 +1,82 @@
-import {
-  Offer,
-  OfferType,
-  OfferStatus,
-  OfferValueLevel,
-  OfferDeliveryModel,
-  GuaranteeType,
-  DeliverableFormat,
-  ProgramStructure,
-  LiveInteractionType,
-  CommunityPlatform,
-  AccessDuration,
-  FinancialCapacity,
-  FulfillmentType,
-  DigitalFormat,
-  ServiceCategory,
-  InteractionMode,
-  ServiceFrequency,
-  PaymentPlanType
-} from "../types";
+import { Offer, OfferType, OfferStatus, OfferValueLevel, OfferDeliveryModel, GuaranteeType } from "../types";
 
-export const MOCK_OFFERS: Offer[] = [
-  // 1. PROGRAMA: Coaching Grupal de Alto Ticket
-  {
-    id: "mock-program-001",
-    name: "Mastermind de Ventas B2B",
-    public_name: "Mastermind de Ventas B2B",
-    internal_sku: "MM-B2B-2024",
-    type: OfferType.GROUP_COACHING_PROGRAM,
-    value_level: OfferValueLevel.N4,
-    delivery_model: OfferDeliveryModel.DWY,
-    status: OfferStatus.ACTIVE,
-    
-    headline_promise: "Duplica tus cierres B2B en 90 días sin aumentar tu gasto publicitario",
-    primary_outcome: "Sistema de ventas predecible y escalable",
-    time_to_value: "30 días para primeras victorias",
-    
-    marketing_pain_points: [
-      "Ciclos de venta interminables",
-      "Leads cualificados que no convierten",
-      "Falta de un proceso de seguimiento estructurado"
-    ],
-    marketing_desires: [
-      "Autoridad en el mercado",
-      "Flujo de caja predecible",
-      "Equipo de ventas autónomo"
-    ],
-
-    pricing: [
-      {
-        label: "Pago Único",
-        plan_type: PaymentPlanType.PAY_IN_FULL,
-        total_amount: 5000,
-        currency: "USD",
-        savings_claim: "Ahorra $1000"
-      },
-      {
-        label: "Plan de Pagos",
-        plan_type: PaymentPlanType.INTERNAL_SPLIT_PAY,
-        total_amount: 6000,
-        currency: "USD",
-        number_of_installments: 3,
-        installment_amount: 2000
-      }
-    ],
-
-    deliverables: [
-      {
-        name: "Sesiones Semanales de Q&A",
-        format: DeliverableFormat.LIVE_GROUP_CALL,
-        quantity: "12",
-        value_stack_price: 3000
-      },
-      {
-        name: "Portal de Contenidos Exclusivo",
-        format: DeliverableFormat.RECORDED_CONTENT,
-        quantity: "1",
-        value_stack_price: 2000
-      },
-      {
-        name: "Auditoría de Pipeline",
-        format: DeliverableFormat.ONE_ON_ONE_CALL,
-        quantity: "1",
-        value_stack_price: 1000
-      }
-    ],
-
-    specific_details: {
-      program_details: {
-        structure_type: ProgramStructure.FIXED_DATE_COHORT,
-        start_date: "2024-03-01T00:00:00Z",
-        end_date: "2024-06-01T00:00:00Z",
-        duration_weeks: 12,
-        cohort_limit: 20,
-        interaction_type: LiveInteractionType.GROUP_Q_AND_A,
-        community_platform: CommunityPlatform.CIRCLE_SKOOL,
-        has_certification: true
-      }
-    },
-
-    guarantee_type: GuaranteeType.CONDITIONAL_ACTION_BASED,
-    guarantee_terms: "Si implementas todo y no recuperas tu inversión, te devolvemos el dinero + $1000.",
-    access_duration: AccessDuration.LIFETIME_CONTENT,
-    support_duration_days: 90,
-    instructors: ["Chris Sales", "Ana Marketing"],
-    min_financial_capacity: FinancialCapacity.HIGH
-  },
-
-  // 2. SERVICIO: Auditoría SEO (Productized Service)
-  {
-    id: "mock-service-001",
-    public_name: "Auditoría SEO Técnica Profunda",
-    internal_sku: "SEO-AUDIT-Q1",
-    type: OfferType.PRODUCTIZED_SERVICE,
-    value_level: OfferValueLevel.N3,
-    delivery_model: OfferDeliveryModel.DFY,
-    status: OfferStatus.DRAFT,
-    
-    headline_promise: "Identifica los errores técnicos que están matando tu tráfico orgánico",
-    primary_outcome: "Hoja de ruta clara para recuperar posicionamiento",
-    time_to_value: "7 días hábiles",
-
-    pricing: [
-      {
-        label: "Auditoría Estándar",
-        plan_type: PaymentPlanType.PAY_IN_FULL,
-        total_amount: 1500,
-        currency: "USD"
-      }
-    ],
-
-    specific_details: {
-      service_details: {
-        category: ServiceCategory.ADVISORY_CONSULTING,
-        interaction_mode: InteractionMode.ASYNC_DELIVERY,
-        frequency_type: ServiceFrequency.ONE_OFF_PROJECT,
-        turnaround_time_days: 7,
-        deliverables_list: [
-          "Informe PDF de 50+ páginas",
-          "Video Loom explicativo (30 min)",
-          "Plan de acción en Notion"
-        ]
-      }
-    },
-
-    deliverables: [
-      {
-        name: "Informe Técnico Completo",
-        format: DeliverableFormat.DFY_ASSET,
-        quantity: "1",
-        value_stack_price: 2000
-      }
-    ],
-    
-    guarantee_type: GuaranteeType.NO_REFUNDS
-  },
-
-  // 3. PRODUCTO: Curso Self-Paced
-  {
-    id: "mock-product-001",
-    name: "Kit de Plantillas de Email Marketing",
-    public_name: "Kit de Plantillas de Email Marketing",
-    internal_sku: "EMAIL-KIT-V1",
-    type: OfferType.SELF_PACED_COURSE,
+// Helper para generar ofertas consistentes
+const createMockOffer = (
+    id: string,
+    name: string,
+    type: OfferType,
+    price: number,
+    status: OfferStatus = OfferStatus.ACTIVE
+): Offer => ({
+    id,
+    name,
+    internal_sku: `MOCK-${type.substring(0, 4)}-${id}`,
+    type,
     value_level: OfferValueLevel.N1,
     delivery_model: OfferDeliveryModel.DIY,
-    status: OfferStatus.ACTIVE,
-    
-    headline_promise: "Escribe emails que venden en minutos, no horas",
-    primary_outcome: "Ahorro de tiempo y aumento de conversiones",
-    time_to_value: "Inmediato tras la descarga",
-
+    status,
+    headline_promise: `Promesa principal para ${name}`,
+    primary_outcome: `Resultado transformador de ${name}`,
+    time_to_value: "30 días",
     pricing: [
-      {
-        label: "Acceso Inmediato",
-        plan_type: PaymentPlanType.PAY_IN_FULL,
-        total_amount: 97,
-        currency: "USD"
-      }
+        {
+            label: "Pago Único",
+            total_amount: price,
+            plan_type: "one_time",
+            currency: "USD",
+            deposit_required: 0,
+            number_of_installments: 1,
+            installment_amount: 0
+        }
     ],
-
-    specific_details: {
-      product_details: {
-        fulfillment_type: FulfillmentType.DIRECT_DOWNLOAD,
-        format: DigitalFormat.ZIP_BUNDLE,
-        is_downloadable: true,
-        estimated_consumption_time_minutes: 120
-      }
-    },
-
-    deliverables: [
-      {
-        name: "50+ Plantillas de Email",
-        format: DeliverableFormat.RECORDED_CONTENT,
-        quantity: "1",
-        value_stack_price: 497
-      },
-      {
-        name: "Guía de Asuntos Irresistibles",
-        format: DeliverableFormat.RECORDED_CONTENT,
-        quantity: "1",
-        value_stack_price: 97
-      }
-    ],
-
+    currency: "USD",
+    specific_details: {},
+    metadata_info: {},
+    marketing_pain_points: ["Falta de claridad", "Estancamiento", "Bajos ingresos"],
+    marketing_desires: ["Libertad", "Impacto", "Crecimiento"],
+    deliverables: [],
+    target_avatar_match: [],
+    prerequisites: [],
+    includes_offers: [],
+    assets: [],
     guarantee_type: GuaranteeType.UNCONDITIONAL_X_DAY,
-    guarantee_terms: "30 días de garantía de satisfacción total.",
-    access_duration: AccessDuration.LIFETIME_CONTENT
-  }
+    guarantee_terms: "30 días de garantía",
+    landing_page_config: {
+        is_published: status === OfferStatus.ACTIVE,
+        slug: `offer-${id}`,
+        template: "sales-letter",
+        sections: {
+            hero: { title: name, subtitle: "La solución definitiva" }
+        }
+    }
+});
+
+export const MOCK_OFFERS: Offer[] = [
+    createMockOffer("1", "Guía Gratuita de Inicio", OfferType.FREE_RESOURCE, 0),
+    createMockOffer("2", "Comunidad Lite", OfferType.COMMUNITY_LITE, 27),
+    createMockOffer("3", "Podcast Premium", OfferType.CONTENT_ASSET_PODCAST, 0),
+    createMockOffer("4", "Reto de 5 Días", OfferType.FREE_WEBINAR_CHALLENGE, 0),
+    createMockOffer("5", "Oferta Tripwire", OfferType.TRIPWIRE_OFFER, 47),
+    createMockOffer("6", "Curso Grabado Completo", OfferType.SELF_PACED_COURSE, 497),
+    createMockOffer("7", "Newsletter de Pago", OfferType.PAID_NEWSLETTER_SUBSCRIPTION, 15),
+    createMockOffer("8", "Merch Exclusivo", OfferType.PHYSICAL_MERCH, 50),
+    createMockOffer("9", "Mentoría Híbrida", OfferType.HYBRID_MENTORSHIP, 2500),
+    createMockOffer("10", "Curso por Cohortes", OfferType.COHORT_BASED_COURSE, 1500),
+    createMockOffer("11", "Programa de Coaching Grupal", OfferType.GROUP_COACHING_PROGRAM, 3000),
+    createMockOffer("12", "Día VIP de Estrategia", OfferType.VIP_DAY_STRATEGY, 5000),
+    createMockOffer("13", "Mentoría 1 a 1", OfferType.ONE_ON_ONE_PRIVATE_MENTORING, 10000),
+    createMockOffer("14", "Auditoría Profunda", OfferType.DEEP_DIVE_AUDIT, 1500),
+    createMockOffer("15", "Servicio Productizado", OfferType.PRODUCTIZED_SERVICE, 2000),
+    createMockOffer("16", "Desarrollo E-commerce", OfferType.ECOMMERCE_DEVELOPMENT, 8000),
+    createMockOffer("17", "Retainer Mensual", OfferType.MONTHLY_RETAINER, 3000),
+    createMockOffer("18", "Rev Share Partnership", OfferType.PERFORMANCE_REV_SHARE, 0),
+    createMockOffer("19", "Mastermind Network", OfferType.MASTERMIND_NETWORK, 15000),
+    createMockOffer("20", "Retiro de Lujo", OfferType.LUXURY_RETREAT, 8000),
+    createMockOffer("21", "Entrenamiento Corporativo", OfferType.CORPORATE_TRAINING, 12000),
+    createMockOffer("22", "Patrocinio de Marca", OfferType.BRAND_SPONSORSHIP, 5000),
+    createMockOffer("23", "Keynote Speaking", OfferType.KEYNOTE_SPEAKING, 7500)
 ];
+
+// Exportaciones legacy para mantener compatibilidad
+export const MOCK_OFFER_FULL = MOCK_OFFERS.find(o => o.type === OfferType.SELF_PACED_COURSE) || MOCK_OFFERS[0];
+export const MOCK_OFFER_EMPTY = createMockOffer("new", "Nueva Oferta", OfferType.FREE_RESOURCE, 0, OfferStatus.DRAFT);

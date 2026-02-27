@@ -1,0 +1,5 @@
+- [ ] `fetchClient` appends `_t` query param to all GET requests
+- [ ] `TenantSwitcher` updates URL to include `?org=` on switch
+- [ ] Brand Settings page loads correct data for Tenant A
+- [ ] Brand Settings page loads correct data for Tenant B immediately after switching
+- [ ] Network requests show unique URLs for different tenants (e.g., `.../brand?_t=123` vs `.../brand?_t=456`)
