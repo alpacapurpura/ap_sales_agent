@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from src.shared.infrastructure.db.base_model import Base
+from src.shared.domain.base_entity import Base
 
 class UserTenantModel(Base):
     __tablename__ = 'user_tenants'

@@ -3,7 +3,7 @@ from typing import Dict, Any, Optional
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from src.config import settings
+from src.core.config import settings
 import json
 import os
 import base64

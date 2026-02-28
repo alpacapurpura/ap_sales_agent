@@ -3,15 +3,14 @@ from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any
 from uuid import UUID
 import structlog
-
 import httpx
 import os
 
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.application.auth import verify_clerk_token
 from src.modules.iam.domain.user import User
 from src.modules.iam.infrastructure.models import UserModel, UserTenantModel
-from src.shared.utils.context import set_tenant_id
+from src.core.context import set_tenant_id
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.modules.iam.application.auth import verify_token_payload
 

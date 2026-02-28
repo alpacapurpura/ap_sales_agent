@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 import uuid
-from src.shared.infrastructure.db.base_model import Base
+from src.shared.domain.base_entity import Base
 
 class AvatarModel(Base):
     __tablename__ = "avatars"

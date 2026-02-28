@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 import httpx
 import structlog
-from src.modules.communication.domain.message_models import IncomingMessage, OutgoingMessage
+from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 from .interface import WhatsAppProvider
 
 logger = structlog.get_logger()

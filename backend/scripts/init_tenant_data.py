@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 # Add backend to path to allow imports
 sys.path.append(os.path.join(os.getcwd(), "backend"))
 
-from src.config import settings
+from src.core.config import settings
 from src.services.db.models.tenant import Tenant
 
 def init_tenant_data():

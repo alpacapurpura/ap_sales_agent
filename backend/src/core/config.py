@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from src.shared.domain.ai_enums import PromptSource
+from src.core.enums import PromptSource
 
 class Settings(BaseSettings):
     # API Config

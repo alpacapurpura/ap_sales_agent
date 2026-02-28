@@ -12,7 +12,7 @@ from src.modules.communication.infrastructure.models.appointment_model import Ap
 from src.modules.sales.domain.lead import Lead
 from src.modules.integration.infrastructure.channels.google_calendar import GoogleCalendarAdapter
 from src.modules.integration.infrastructure.channels.gmail import GmailAdapter
-from src.config import settings
+from src.core.config import settings
 from src.modules.communication.domain.availability_schema import AvailabilitySchedule, WeeklySchedule, DaySchedule, TimeRange, ScheduleUpdate
 from src.modules.communication.domain.event_type_schema import EventType
 import uuid

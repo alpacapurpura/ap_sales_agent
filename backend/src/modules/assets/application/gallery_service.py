@@ -6,7 +6,7 @@ import shutil
 from typing import List, Optional
 from src.modules.gallery.domain.entity import GalleryImage
 from src.modules.gallery.infrastructure.repositories.gallery_repository import GalleryRepository
-from src.config import settings # Ensure this exists or use relative import
+from src.core.config import settings # Ensure this exists or use relative import
 
 class GalleryService:
     def __init__(self, db: Session):

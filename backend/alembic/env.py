@@ -12,15 +12,16 @@ from alembic import context
 sys.path.append(os.getcwd())
 
 # Import Settings (to get DB URL) and Base (to get Metadata)
-from src.config import settings
-from src.shared.infrastructure.db.declarative import Base
+from src.core.config import settings
+from src.shared.domain.base_entity import Base
 # Must import all models to ensure they are registered in metadata
 from src.modules.gallery.domain import entity as gallery_entity
 from src.modules.gallery.infrastructure import models as gallery_models
 from src.modules.iam.infrastructure.models import user, tenant, user_tenant
 from src.modules.sales.infrastructure.models import lead_model
-from src.modules.communication.domain import channel_connection, link
+from src.modules.communication.domain import channel_connection
 from src.modules.communication.infrastructure.models import appointment, message, booking_link
+from src.shared.links.models import ShareableLink
 from src.shared.infrastructure.db.models import audit, sensitive_data, prompt
 from src.modules.marketing.infrastructure.models import customer
 from src.modules.brand.infrastructure.models import avatar

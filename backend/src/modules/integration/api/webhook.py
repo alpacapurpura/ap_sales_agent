@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from src.shared.infrastructure.db.database import get_db
 from src.modules.iam.domain.tenant import Tenant
 from src.modules.communication.application.orchestrators.chat import ChatOrchestrator
-from src.modules.communication.domain.message_models import IncomingMessage
+from src.shared.domain.messages import IncomingMessage
 from src.modules.integration.infrastructure.channels.webhook import WebhookAdapter
 from src.shared.utils.context import set_tenant_id
 import structlog

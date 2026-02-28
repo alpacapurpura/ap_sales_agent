@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 import structlog
 
-from src.modules.communication.infrastructure.models.link_model import ShareableLink
+from src.shared.links.models import ShareableLink
 from src.modules.iam.domain.tenant import Tenant
 
 logger = structlog.get_logger()

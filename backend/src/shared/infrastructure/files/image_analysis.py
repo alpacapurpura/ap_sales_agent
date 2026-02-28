@@ -1,7 +1,7 @@
 import base64
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
-from src.config import settings
+from src.core.config import settings
 import structlog
 import json
 

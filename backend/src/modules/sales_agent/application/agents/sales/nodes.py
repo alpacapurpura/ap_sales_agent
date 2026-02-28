@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from src.modules.sales_agent.application.orchestrator.state import AgentState
-from src.modules.sales_agent.infrastructure.llm.factory import LLMFactory
+from src.shared.infrastructure.llm.factory import LLMFactory
 from src.modules.sales_agent.application.agents.sales.prompts import (
     SUPERVISOR_PROMPT, QUALIFIER_PROMPT, EXPERT_PROMPT, CLOSER_PROMPT
 )

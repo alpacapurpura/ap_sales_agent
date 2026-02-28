@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, DateTime, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 import uuid
-from src.shared.infrastructure.db.base_model import Base
+from src.shared.domain.base_entity import Base
 
 class SensitiveData(Base):
     __tablename__ = "sensitive_data_logs"

@@ -4,7 +4,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from src.shared.core.prompts.base import prompt_loader
 from src.modules.brand.infrastructure.repositories.avatar_repository import AvatarRepository
 from src.modules.offer.domain.offer_ai_schemas import PsychologyGenerationRequest, PsychologyGenerationResponse
-from src.config import settings
+from src.core.config import settings
 from uuid import UUID
 import json
 import logging

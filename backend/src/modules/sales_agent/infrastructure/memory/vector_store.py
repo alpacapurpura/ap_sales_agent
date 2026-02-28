@@ -1,7 +1,7 @@
 from typing import List, Dict, Optional, Any, Union
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-from src.config import settings
+from src.core.config import settings
 from src.shared.infrastructure.llm.factory import LLMFactory
 import logging
 from fastembed import SparseTextEmbedding

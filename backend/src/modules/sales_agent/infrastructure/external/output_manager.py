@@ -4,7 +4,7 @@ import random
 import re
 import structlog
 from typing import List
-from src.modules.communication.domain.message_models import OutgoingMessage
+from src.shared.domain.messages import OutgoingMessage
 
 logger = structlog.get_logger()
 

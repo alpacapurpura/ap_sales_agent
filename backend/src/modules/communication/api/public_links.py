@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import datetime
 
 from src.shared.infrastructure.db.database import get_db
-from src.modules.communication.application.services.link_service import LinkService
+from src.shared.links.service import LinkService
 from src.modules.communication.application.services.availability_service import AvailabilityService
 from src.modules.communication.application.services.event_type_service import EventTypeService
 from src.modules.iam.domain.tenant import Tenant

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
-from src.modules.communication.domain.message_models import IncomingMessage, OutgoingMessage
+from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 
 class WhatsAppProvider(ABC):
     """

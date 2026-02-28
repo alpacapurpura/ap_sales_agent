@@ -9,13 +9,13 @@ from src.shared.infrastructure.db.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.communication.domain.channel import ChannelConnection
-from src.modules.communication.infrastructure.models.link_model import ShareableLink
+from src.shared.links.models import ShareableLink
 from src.modules.communication.infrastructure.models.booking_link import BookingLink
 from src.modules.sales.domain.lead import Lead
 import secrets
 from src.modules.integration.infrastructure.channels.google_calendar import GoogleCalendarAdapter
 from src.modules.communication.application.services.availability_service import AvailabilityService
-from src.modules.communication.application.services.link_service import LinkService
+from src.shared.links.service import LinkService
 from src.modules.communication.domain.availability_schema import AvailabilitySchedule, ScheduleUpdate
 from src.modules.communication.api.dto.calendar import CalendarStatusResponse, BookMeetingRequest, CreateBookingLinkRequest
 

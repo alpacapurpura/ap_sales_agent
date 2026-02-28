@@ -2,13 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, Dict, Any
 import datetime
 from src.modules.communication.domain.event_type_schema import EventType
-
-class LinkResolveResponse(BaseModel):
-    valid: bool
-    type: str
-    tenant_name: str
-    tenant_avatar: Optional[str] = None
-    params: Dict[str, Any] = {}
+from src.shared.links.schemas import LinkResolveResponse
 
 class BookingRequest(BaseModel):
     slot_time: datetime.datetime

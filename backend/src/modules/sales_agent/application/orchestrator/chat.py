@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
-from src.modules.communication.domain.message_models import IncomingMessage, OutgoingMessage
+from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 from src.modules.sales.infrastructure.lead import LeadRepository
 from src.modules.marketing.application.services.identity_service import IdentityService
 from src.modules.marketing.infrastructure.repositories.customer_repository import CustomerRepository
@@ -21,7 +21,7 @@ from src.modules.sales_agent.infrastructure.external.output_manager import Outpu
 from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_complete
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
 from src.modules.integration.infrastructure.channels.telegram import TelegramChannel
-from src.modules.sales_agent.utils.context import set_tenant_id
+from src.core.context import set_tenant_id
 from src.modules.communication.domain.channel import ChannelConnection
 from src.modules.communication.domain.enums import ChannelType
 from src.modules.iam.domain.tenant import Tenant

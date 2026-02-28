@@ -4,8 +4,8 @@ import datetime
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from typing import Dict, Any, Optional, Tuple
 from uuid import UUID
-from src.config import settings
-from src.shared.domain.ai_enums import PromptSource
+from src.core.config import settings
+from src.core.enums import PromptSource
 from src.shared.infrastructure.db.database import SessionLocal
 from src.shared.infrastructure.db.models import PromptVersion
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel as Tenant

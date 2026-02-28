@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Boolean, Integer, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 import uuid
-from src.shared.infrastructure.db.base_model import Base
+from src.shared.domain.base_entity import Base
 
 class PromptVersion(Base):
     __tablename__ = "prompt_versions"

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from src.config import settings
+from src.core.config import settings
 from src.modules.iam.api.routers import tenant_router as admin, auth_router as users
 from src.modules.iam.api import webhooks, settings as user_settings
 from src.modules.offer.api import products, offer_ai, definitions
@@ -15,7 +15,7 @@ from src.modules.marketing.api import cdp, metrics
 from src.modules.brand.api import router as brand_settings_router, extraction as brand_extraction_router, avatars
 from src.modules.iam.api.dependencies import get_tenant_context
 from src.shared.infrastructure.db.database import init_db
-from src.shared.utils.logger import configure_logging
+from src.core.logger import configure_logging
 import structlog
 import uuid
 import time

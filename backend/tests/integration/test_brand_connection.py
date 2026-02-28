@@ -13,8 +13,8 @@ from fastapi.testclient import TestClient
 mock_deps = MagicMock()
 sys.modules["src.modules.iam.api.dependencies"] = mock_deps
 sys.modules["src.shared.infrastructure.db.database"] = mock_deps
-sys.modules["src.config"] = MagicMock()
-sys.modules["src.config"].settings = MagicMock()
+sys.modules["src.core.config"] = MagicMock()
+sys.modules["src.core.config"].settings = MagicMock()
 
 # --- DB SETUP ---
 Base = declarative_base()

@@ -11,7 +11,7 @@ from src.modules.iam.domain.tenant import (
     WebhookSettings, TenantProfile
 )
 from src.modules.iam.domain.user import SystemUserProfile, TeamMemberCreate, TeamMemberSchema
-from src.config import settings as app_settings
+from src.core.config import settings as app_settings
 import secrets
 import string
 import structlog

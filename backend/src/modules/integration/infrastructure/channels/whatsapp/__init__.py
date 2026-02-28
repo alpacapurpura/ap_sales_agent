@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional
-from src.modules.integration.infrastructure.channels.base import BaseChannel
-from src.modules.communication.domain.message_models import IncomingMessage, OutgoingMessage
+from src.shared.infrastructure.channels.base import BaseChannel
+from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 from .factory import get_whatsapp_provider
 
 class WhatsAppChannel(BaseChannel):

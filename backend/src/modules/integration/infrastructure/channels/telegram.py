@@ -1,8 +1,8 @@
 import httpx
 from typing import Dict, Any, Optional
-from src.modules.communication.domain.message_models import IncomingMessage, OutgoingMessage
-from src.modules.integration.infrastructure.channels.base import BaseChannel
-from src.config import settings
+from src.shared.domain.messages import IncomingMessage, OutgoingMessage
+from src.shared.infrastructure.channels.base import BaseChannel
+from src.core.config import settings
 import logging
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ from typing import Literal, Optional, List
 from sqlalchemy.orm import Session
 from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
 from src.modules.brand.application.extraction_service import BrandExtractionService
-from src.modules.copilot.application.services.file_parsing_service import FileParsingService
+from src.shared.infrastructure.files.file_parsing_service import FileParsingService
 from src.modules.brand.domain.identity import BrandIdentity
 from src.modules.brand.domain.aggregates import BrandSettings
 from src.modules.iam.api.dependencies import get_current_user, get_db

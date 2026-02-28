@@ -2,11 +2,9 @@ from typing import List, Dict, Any, Optional
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.shared.infrastructure.llm.base import BaseLLMService
-from src.config import settings
+from src.core.config import settings
 
 from src.shared.infrastructure.monitoring.tracing import current_trace_id
-from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
-from src.shared.infrastructure.db.database import SessionLocal
 
 class GeminiService(BaseLLMService):
     """
@@ -72,28 +70,9 @@ class GeminiService(BaseLLMService):
             tokens_in = 0
             tokens_out = 0
             raise e
-        finally:
-            # --- TRACING LOGIC ---
-            trace_id = current_trace_id.get()
-            if trace_id:
-                try:
-                    db = SessionLocal()
-                    repo = AuditRepository(db)
-                    full_prompt_str = f"System: {system_prompt}\nMessages: {messages}"
-                    
-                    repo.create_llm_log(
-                        trace_id=trace_id,
-                        model=self.model_name,
-                        prompt_template="unknown",
-                        prompt_rendered=full_prompt_str,
-                        response_text=response_text,
-                        tokens_input=tokens_in,
-                        tokens_output=tokens_out
-                    )
-                    repo.close()
-                except Exception as log_err:
-                    print(f"Failed to log Gemini LLM call: {log_err}")
-                    
+        
+        # Logging logic removed to decouple shared from sales_agent.
+
         return response_text
 
     def get_embedding_model(self) -> Any:

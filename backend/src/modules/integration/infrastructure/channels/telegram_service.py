@@ -6,7 +6,7 @@ from typing import Dict, Any
 
 from src.modules.communication.domain.channel import ChannelConnection
 from src.modules.communication.domain.enums import ChannelType
-from src.config import settings
+from src.core.config import settings
 
 logger = structlog.get_logger()
 

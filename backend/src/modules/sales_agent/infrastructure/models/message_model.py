@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
-from src.shared.infrastructure.db.base_model import Base
+from src.shared.domain.base_entity import Base
 
 class MessageModel(Base):
     __tablename__ = "messages"

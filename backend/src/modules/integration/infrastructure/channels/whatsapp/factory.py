@@ -1,4 +1,4 @@
-from src.config import settings
+from src.core.config import settings
 from .interface import WhatsAppProvider
 from .v1 import EvolutionApiV1
 from .v2 import EvolutionApiV2

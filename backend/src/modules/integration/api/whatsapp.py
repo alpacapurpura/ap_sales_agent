@@ -5,7 +5,7 @@ from src.modules.communication.domain.channel import ChannelConnection
 from src.modules.communication.domain.enums import ChannelType
 from src.modules.iam.api.dependencies import get_current_tenant_id
 from src.modules.integration.infrastructure.channels.whatsapp import WhatsAppChannel
-from src.config import settings
+from src.core.config import settings
 from src.modules.communication.application.orchestrators.chat import ChatOrchestrator
 import structlog
 import uuid

@@ -1,5 +1,5 @@
 from langchain_core.messages import HumanMessage, SystemMessage
-from src.modules.sales_agent.infrastructure.llm.providers.openai import OpenAIService
+from src.shared.infrastructure.llm.factory import LLMFactory
 import structlog
 
 logger = structlog.get_logger()
@@ -15,7 +15,7 @@ async def check_is_complete(text: str) -> bool:
     try:
         # Instantiate service (Adapter Pattern)
         # Note: In a cleaner DI setup, this would be injected.
-        llm_service = OpenAIService()
+        llm_service = LLMFactory.get_service()
         llm = llm_service.fast_chat_model
 
         sys_prompt = (

@@ -1,6 +1,6 @@
 from typing import Dict, Any, Optional
 import httpx
-from src.modules.communication.domain.message_models import IncomingMessage
+from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 from .base import BaseEvolutionApi
 
 class EvolutionApiV2(BaseEvolutionApi):

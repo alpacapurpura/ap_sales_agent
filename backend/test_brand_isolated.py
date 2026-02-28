@@ -57,7 +57,7 @@ sys.modules["src.shared.infrastructure.external.clerk"] = MagicMock()
 
 # Mock dependencies if they are imported from elsewhere
 # settings.py imports:
-# from src.modules.iam.api.dependencies import get_current_user
+# from src.shared.api.dependencies import get_current_user
 # from src.shared.infrastructure.db.database import get_db
 # We can let them be imported if the files exist and don't cause side effects,
 # or mock them. `dependencies.py` imports a lot. Better mock it.
@@ -66,7 +66,7 @@ def mock_get_current_user(): pass
 def mock_get_db(): pass
 mock_deps.get_current_user = mock_get_current_user
 mock_deps.get_db = mock_get_db
-sys.modules["src.modules.iam.api.dependencies"] = mock_deps
+sys.modules["src.shared.api.dependencies"] = mock_deps
 sys.modules["src.shared.infrastructure.db.database"] = mock_deps # Reusing mock for get_db
 
 # We need pydantic models to be real.
@@ -83,9 +83,9 @@ sys.modules["src.shared.infrastructure.db.database"] = mock_deps # Reusing mock 
 # The user asked to "Audit... Create test script... Run it and fix errors."
 # So catching the error is part of the process.
 
-# But there is a catch: settings.py imports `src.config`.
-sys.modules["src.config"] = MagicMock()
-sys.modules["src.config"].settings = MagicMock()
+# But there is a catch: settings.py imports `src.core.config`.
+sys.modules["src.core.config"] = MagicMock()
+sys.modules["src.core.config"].settings = MagicMock()
 
 # Now import
 try:
