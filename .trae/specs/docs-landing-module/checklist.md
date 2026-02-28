@@ -1,0 +1,5 @@
+- [x] `docs/domains/module_landing.md` follows the specified template.
+- [x] Business rules section includes strict validations (e.g., archetype constraints).
+- [x] Code map lists correct relative paths for key files, including `app/(landing)`.
+- [x] Edge cases section covers known anomalies (e.g., regeneration, validation errors).
+- [x] The distinction between Dashboard Layout and Editor Layout is clearly documented.

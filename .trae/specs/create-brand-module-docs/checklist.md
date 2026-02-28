@@ -1,0 +1,3 @@
+- [x] `docs/domains/module_brand.md` exists and contains the required sections.
+- [x] The "Business Rules" section accurately reflects the Pydantic/Zod validations (e.g., `brand_name` required, `Tenant.config_json` storage).
+- [x] The "Code Map" section points to the correct relative paths for Backend and Frontend files.

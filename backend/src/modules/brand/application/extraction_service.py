@@ -12,12 +12,12 @@ from src.modules.brand.domain import (
     BrandSettings, BrandIdentity, BrandStory, BrandStrategy, BrandVisuals, BrandTeamWrapper
 )
 from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
-from src.shared.core.prompts.brand_extraction.identity import BRAND_IDENTITY_PROMPT
-from src.shared.core.prompts.brand_extraction.story import BRAND_STORY_PROMPT
-from src.shared.core.prompts.brand_extraction.team import BRAND_TEAM_PROMPT
-from src.shared.core.prompts.brand_extraction.strategy import BRAND_STRATEGY_PROMPT
-from src.modules.sales.application.agents.web_extractor.graph import web_extractor_graph
-from src.modules.sales.application.services.web_extractor_adapter import extract_from_url
+from src.modules.copilot.infrastructure.prompts.brand_extraction.identity import BRAND_IDENTITY_PROMPT
+from src.modules.copilot.infrastructure.prompts.brand_extraction.story import BRAND_STORY_PROMPT
+from src.modules.copilot.infrastructure.prompts.brand_extraction.team import BRAND_TEAM_PROMPT
+from src.modules.copilot.infrastructure.prompts.brand_extraction.strategy import BRAND_STRATEGY_PROMPT
+from src.modules.copilot.application.agents.web_extractor.graph import web_extractor_graph
+from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
 
 logger = structlog.get_logger()
 
