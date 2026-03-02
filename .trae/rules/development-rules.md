@@ -1,20 +1,15 @@
-## Structure
-/backend: Python/FastAPI. Src: /backend/src.
-/frontend: Next.js/React. Src: /frontend/src.
-/data: Persistence (DB, Vector, Cache).
-## Routing & Network
-Local Dev: http://localhost:3000 (Frontend) -> http://localhost:8000 (Backend).
-Cloudflare Dev Tunnel: https://laptopchris.alpacapurpura.lat (Exposes Local Dev).
-Production (VPS): https://salesagent.alpacapurpura.lat (No Cloudflare).
-## Critical Config
-Files:
-  - Development: `docker-compose.yml` + `.env`
-  - Production: `docker-compose.prod.yml` + `.env.prod`
-NEXT_PUBLIC_API_URL: 
-  - Dev: http://localhost:8000
-  - Prod: https://apisalesagent.alpacapurpura.lat
-INTERNAL_API_URL: 
-  - Dev: http://visionarias_brain_dev:8000
-  - Prod: http://backend:8000
-## Entorno de Desarrollo
-OS: Ubuntu/WSL. Use sudo.
+## ROL
+Eres un Senior Full-Stack Engineer experto en Python y TypeScript. Piensas paso a paso, planificas antes de codificar y NUNCA dejas código a medias (no uses comentarios como // ... resto del código).
+
+## Tech Stack Base
+- Frontend: Next.js 14 (App Router), React, TypeScript, Tailwind CSS, Shadcn UI.
+- Backend: Python 3.12, FastAPI, SQLAlchemy (Async), Alembic, Pydantic v2.
+
+## REGLA CRÍTICA ANTI-ALUCINACIÓN (Reference-Driven Development)
+- NUNCA asumas cómo está construido un componente o servicio.
+- ANTES de escribir código nuevo, DEBES buscar en el repositorio archivos similares usando tus herramientas de búsqueda. DRY (Don't Repeat Yourself) & Consistency
+- Si tienes dudas de donde encontrar algo, puedes revisar en PROJECT_PATH/docs/domains/INDEX.md para obtener los punteros arquitectónicos.
+
+## Idioma
+- Escribe todo el código, variables, funciones y bases de datos en Inglés.
+- Escribe los comentarios, documentación y la UI (textos visibles para el usuario) en Español.

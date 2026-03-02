@@ -8,8 +8,27 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { CreditCard, CalendarCheck, UserPlus, AlertCircle } from "lucide-react";
 
+import { dashboardService, ActivityItem } from "../../services/dashboardService";
+import { useEffect, useState } from "react";
+
 export function ActivityFeedWidget() {
-  const activities: any[] = [];
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadActivity = async () => {
+      try {
+        setLoading(true);
+        const data = await dashboardService.getActivity();
+        setActivities(data);
+      } catch (error) {
+        console.error("Error loading activity feed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadActivity();
+  }, []);
 
   const getIcon = (type: string) => {
     switch (type) {

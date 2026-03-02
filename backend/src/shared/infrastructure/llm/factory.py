@@ -1,6 +1,6 @@
 from typing import Optional
 from src.core.config import settings
-from src.shared.domain.ai_enums import AIProvider
+from src.core.enums import AIProvider
 from src.shared.infrastructure.llm.base import BaseLLMService
 from src.shared.infrastructure.llm.providers.openai import OpenAIService
 

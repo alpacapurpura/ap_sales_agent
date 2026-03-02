@@ -1,38 +1,17 @@
 # Tasks
 
-- [ ] Task 1: Move and Refactor Shared Components
-  - [ ] Move `SectionFormWrapper.tsx` from `wrappers/` to `components/forms/SectionFormWrapper.tsx`.
-  - [ ] Move `OfferEditSheetManager.tsx` from `editor/` to `components/forms/OfferEditSheetManager.tsx`.
-  - [ ] Update `OfferEditSheetManager.tsx` to:
-    - Remove footer save button.
-    - Accept `form` (main form) prop but pass `defaultValues={form.getValues()}` to child.
-    - Pass `onSave` handler to child.
-    - Pass `sectionId` and `title` (if needed by Placeholder).
+- [x] Task 1: Diagnose the API Failure
+  - [x] SubTask 1.1: Verify backend logs to confirm if the request reaches the server and identify the error (500, 422, etc.).
+  - [x] SubTask 1.2: Check the database for the tenant "visionarias" to see existing offers and their structure.
+  - [x] SubTask 1.3: Run a script to attempt fetching/serializing offers using the `OfferService` locally to reproduce the error.
 
-- [ ] Task 2: Create Atomic Forms (Strategy)
-  - [ ] Create `components/forms/StrategyForm.tsx` (based on `StrategyFormWrapper`).
-  - [ ] Remove `useParams` and `useOffer`.
-  - [ ] Accept `{ defaultValues, onSave }` props.
-  - [ ] Use `SectionFormWrapper` with passed values.
-  - [ ] Ensure `StrategySection` receives the correct form context.
+- [x] Task 2: Fix Data or Code Issues
+  - [x] SubTask 2.1: If Pydantic validation fails, either fix the data in DB or adjust the Pydantic model to be more lenient/correct.
+  - [x] SubTask 2.2: If logic error in Service/Repository, apply code fix.
 
-- [ ] Task 3: Create Atomic Forms (Pricing)
-  - [ ] Create `components/forms/PricingForm.tsx`.
-  - [ ] Refactor similarly to StrategyForm (remove fetch, use props).
+- [x] Task 3: Verify Frontend-Backend Integration
+  - [x] SubTask 3.1: Verify that the frontend `Offer` interface matches the backend response.
+  - [x] SubTask 3.2: Confirm the error message is gone and offers are displayed in the dashboard.
 
-- [ ] Task 4: Create Atomic Forms (Identity)
-  - [ ] Create `components/forms/IdentityForm.tsx`.
-  - [ ] Refactor similarly to StrategyForm.
-
-- [ ] Task 5: Create Atomic Forms (Placeholder)
-  - [ ] Move `PlaceholderFormWrapper` to `components/forms/PlaceholderForm.tsx`.
-  - [ ] Update to accept generic props (ignore form/values if not needed, but handle interface).
-
-- [ ] Task 6: Cleanup and Integration
-  - [ ] Update `offer-builder-config.ts` to import new forms from `components/forms/`.
-  - [ ] Update `OfferEditor.tsx` to import `OfferEditSheetManager` from new location.
-  - [ ] Delete `components/forms/wrappers/` directory.
-
-# Task Dependencies
-- Task 2, 3, 4, 5 depend on Task 1 (structurally).
-- Task 6 depends on all others.
+- [x] Task 4: Documentation & Diagram
+  - [x] SubTask 4.1: Document the sequence flow (Frontend -> Backend -> DB) as requested.

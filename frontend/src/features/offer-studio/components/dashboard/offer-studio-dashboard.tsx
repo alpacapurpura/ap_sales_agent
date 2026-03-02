@@ -178,17 +178,19 @@ export function OfferStudioDashboard({
     offers.forEach(offer => {
       // 1. Filter logic
       if (lowerQuery) {
-        const matchesName = offer.name.toLowerCase().includes(lowerQuery);
-        const matchesType = offer.type.toLowerCase().includes(lowerQuery);
+        const name = (offer.name || "").toLowerCase();
+        const matchesName = name.includes(lowerQuery);
         
         // Advanced Filtering: Label & Delivery Model
-        const typeLabel = OFFER_TYPE_METADATA[offer.type]?.label?.toLowerCase() || "";
+        // Safe access to metadata with fallback
+        const metadata = OFFER_TYPE_METADATA[offer.type];
+        const typeLabel = metadata?.label?.toLowerCase() || "";
         const matchesLabel = typeLabel.includes(lowerQuery);
         
-        const delivery = offer.delivery_model?.toLowerCase() || "";
+        const delivery = (offer.delivery_model || "").toLowerCase();
         const matchesDelivery = delivery.includes(lowerQuery);
 
-        if (!matchesName && !matchesType && !matchesLabel && !matchesDelivery) {
+        if (!matchesName && !matchesLabel && !matchesDelivery) {
           return; // Skip this offer
         }
       }

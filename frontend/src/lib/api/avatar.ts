@@ -22,7 +22,7 @@ export interface CreateAvatarDTO {
 
 export const avatarApi = {
   listAvatars: async (token: string, scope: string = "GLOBAL"): Promise<Avatar[]> => {
-    const res = await fetchClient(`${API_URL}/api/v1/avatars/?scope=${scope}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/?scope=${scope}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to list avatars");
@@ -30,7 +30,7 @@ export const avatarApi = {
   },
 
   getAvatar: async (token: string, id: string): Promise<Avatar> => {
-    const res = await fetchClient(`${API_URL}/api/v1/avatars/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to get avatar");
@@ -38,7 +38,7 @@ export const avatarApi = {
   },
 
   createAvatar: async (token: string, data: CreateAvatarDTO): Promise<Avatar> => {
-    const res = await fetchClient(`${API_URL}/api/v1/avatars/`, {
+    const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
@@ -51,7 +51,7 @@ export const avatarApi = {
   },
 
   updateAvatar: async (token: string, id: string, data: Partial<CreateAvatarDTO>): Promise<Avatar> => {
-    const res = await fetchClient(`${API_URL}/api/v1/avatars/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/${id}`, {
       method: "PATCH",
       headers: { 
         "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export const avatarApi = {
   },
 
   deleteAvatar: async (token: string, id: string): Promise<void> => {
-    const res = await fetchClient(`${API_URL}/api/v1/avatars/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -72,7 +72,7 @@ export const avatarApi = {
   },
 
   setDefault: async (token: string, id: string): Promise<Avatar> => {
-    const res = await fetchClient(`${API_URL}/api/v1/avatars/${id}/set-default`, {
+    const res = await fetchClient(`${API_URL}/api/v1/brand/avatars/${id}/set-default`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });

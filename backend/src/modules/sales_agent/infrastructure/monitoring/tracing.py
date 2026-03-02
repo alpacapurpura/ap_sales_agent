@@ -4,8 +4,8 @@ import time
 import contextvars
 import inspect
 from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
-from src.shared.infrastructure.db.database import SessionLocal
-from src.shared.application.orchestrator.state import AgentState
+from src.modules.sales_agent.infrastructure.db.database import SessionLocal
+from src.modules.sales_agent.application.orchestrator.state import AgentState
 
 
 logger = logging.getLogger(__name__)

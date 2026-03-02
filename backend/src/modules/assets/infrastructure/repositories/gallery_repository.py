@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
-from src.modules.gallery.domain.entity import GalleryImage
-from src.modules.gallery.infrastructure.models.gallery_model import GalleryImageModel
+from src.modules.assets.domain.entity import GalleryImage
+from src.modules.assets.infrastructure.models.gallery_model import GalleryImageModel
 
 class GalleryRepository:
     def __init__(self, db: Session):

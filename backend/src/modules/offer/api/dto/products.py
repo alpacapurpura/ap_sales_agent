@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Optional, Dict, Any, List
 import uuid
+from src.modules.offer.domain.enums import OfferType, OfferStatus
 
 class ProductResponse(BaseModel):
     id: uuid.UUID
@@ -27,10 +28,10 @@ class ProductResponse(BaseModel):
     min_financial_capacity: Optional[str] = None
     prerequisites: Optional[List[str]] = []
     
-    pricing: Optional[List[Dict[str, Any]]] = [] # Changed from Dict to List to match DB
+    pricing_options: Optional[List[Dict[str, Any]]] = [] # Changed from Dict to List to match DB
     currency: Optional[str] = "USD"
     
-    @field_validator('pricing', mode='before')
+    @field_validator('pricing_options', mode='before')
     @classmethod
     def normalize_pricing(cls, v):
         if isinstance(v, dict):
@@ -62,13 +63,13 @@ class ProductResponse(BaseModel):
 
 class ProductCreate(BaseModel):
     name: str
-    type: str = "program"
-    status: str = "DRAFT"
+    type: OfferType
+    status: OfferStatus = OfferStatus.DRAFT
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     internal_sku: Optional[str] = None
-    type: Optional[str] = None
+    type: Optional[OfferType] = None
     offer_value_level: Optional[str] = None
     delivery_model: Optional[str] = None
     status: Optional[str] = None
@@ -88,7 +89,7 @@ class ProductUpdate(BaseModel):
     min_financial_capacity: Optional[str] = None
     prerequisites: Optional[List[str]] = None
     
-    pricing: Optional[List[Dict[str, Any]]] = None
+    pricing_options: Optional[List[Dict[str, Any]]] = None
     currency: Optional[str] = None
     
     guarantee_type: Optional[str] = None

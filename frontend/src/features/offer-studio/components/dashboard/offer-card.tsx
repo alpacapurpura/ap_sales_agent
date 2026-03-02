@@ -77,6 +77,10 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
   const statusConfig = STATUS_CONFIG[offer.status] || STATUS_CONFIG[OfferStatus.DRAFT];
   const Icon = LEVEL_ICONS[offer.value_level] || Package;
 
+  // Metadata lookup should be safe now due to Adapter normalization
+  const typeMetadata = OFFER_TYPE_METADATA[offer.type];
+  const typeLabel = typeMetadata?.label || offer.type;
+
   // Calculate Price Display
   const priceDisplay = offer.pricing && offer.pricing.length > 0 
     ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency || 'USD' }).format(offer.pricing[0].total_amount)
@@ -143,7 +147,7 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
               <HighlightedText text={badgeConfig.label} query={searchQuery} />
             </Badge>
             <Badge variant="secondary" className="text-[10px] h-5 px-1.5 py-0 font-medium bg-muted text-muted-foreground border-transparent">
-              <HighlightedText text={OFFER_TYPE_METADATA[offer.type]?.label || offer.type} query={searchQuery} />
+              <HighlightedText text={typeLabel} query={searchQuery} />
             </Badge>
           </div>
           <h3 className="font-semibold text-sm line-clamp-2 leading-tight" title={offer.name}>

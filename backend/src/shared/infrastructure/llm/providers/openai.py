@@ -4,7 +4,9 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.shared.infrastructure.llm.base import BaseLLMService
 from src.core.config import settings
 
-from src.shared.infrastructure.monitoring.tracing import current_trace_id
+from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
+from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
+from src.modules.sales_agent.infrastructure.db.database import SessionLocal
 
 class OpenAIService(BaseLLMService):
     """

@@ -13,9 +13,8 @@ class TenantService:
 
     def get_all_tenants(self) -> List[Tenant]:
         """Obtiene todos los tenants ordenados por fecha de creación descendente."""
-        # TODO: Move query logic to Repository
-        tenants_orm = self.db.query(TenantModel).order_by(TenantModel.created_at.desc()).all()
-        return [Tenant.model_validate(t) for t in tenants_orm]
+        return self.repository.get_all()
+
 
     def create_tenant(
         self, 

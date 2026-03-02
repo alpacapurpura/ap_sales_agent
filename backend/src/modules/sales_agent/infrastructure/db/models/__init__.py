@@ -3,12 +3,12 @@
 
 from src.modules.iam.infrastructure.models import UserModel, TenantModel, UserTenantModel
 
-from src.modules.sales.infrastructure.models.lead_model import LeadModel
-
-from src.modules.communication.infrastructure.models.message_model import MessageModel as Message
-from src.modules.communication.infrastructure.models.appointment_model import AppointmentModel as Appointment
-from src.modules.communication.infrastructure.models.channel_model import ChannelConnectionModel as ChannelConnection
-
+from src.modules.crm.infrastructure.models.lead_model import LeadModel
+ 
+from src.modules.sales_agent.infrastructure.models.message_model import MessageModel as Message
+from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel as Appointment
+from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel as ChannelConnection
+ 
 from src.shared.infrastructure.models.agent_trace_model import AgentTrace
 from src.shared.infrastructure.models.llm_log_model import LLMLog
 from src.shared.infrastructure.models.prompt_version_model import PromptVersion

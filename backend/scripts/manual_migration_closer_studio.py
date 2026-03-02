@@ -7,7 +7,7 @@ import logging
 # Add backend to path to import shared modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.shared.infrastructure.db.database import engine
+from src.core.database import engine
 from src.modules.marketing.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile, CustomerIdentityModel as CustomerIdentity
 from src.modules.marketing.domain.enums import IdentityType
 

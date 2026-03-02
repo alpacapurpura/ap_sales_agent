@@ -11,8 +11,9 @@ Cada módulo es responsable de un área específica del negocio.
 
 | Módulo | Responsabilidad Principal | Notas |
 | :--- | :--- | :--- |
-| **`communication`** | **Conexiones y Canales Externos**. Gestiona integraciones con WhatsApp, Telegram, Gmail, Calendar y Webhooks. Centraliza la mensajería y disponibilidad. | [Ver Documentación](./src/modules/communication/README.md) |
-| **`sales`** | **CRM y Ventas**. Gestión de Leads, Oportunidades, Pipelines y el Agente de Ventas IA. | |
+| **`connections`** | **Conexiones y Canales Externos**. Gestiona integraciones con WhatsApp, Telegram, Gmail y Webhooks. | |
+| **`scheduling`** | **Agenda y Disponibilidad**. Gestión de Calendarios, Citas, Links Públicos y Event Types. | |
+| **`sales_agent`** | **Agente de Ventas**. Lógica conversacional, orquestación de mensajes y manejo de Leads. | |
 | **`landing`** | **Generador de Landing Pages**. Lógica para crear y desplegar páginas de venta y captación. | |
 | **`offer`** | **Catálogo de Ofertas**. Gestión de productos, precios, galerías y la IA generadora de ofertas. | |
 | **`marketing`** | **CDP y Audiencias**. Segmentación de clientes, scoring (RFM) y campañas. | |
@@ -25,8 +26,9 @@ Cada módulo es responsable de un área específica del negocio.
 ```
 src/
 ├── modules/          # Dominios de negocio (ver tabla arriba)
-│   ├── communication/
-│   ├── sales/
+│   ├── connections/
+│   ├── scheduling/
+│   ├── sales_agent/
 │   └── ...
 ├── shared/           # Código compartido (Kernel)
 │   ├── core/         # Configuración y utilidades base

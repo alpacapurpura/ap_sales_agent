@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.application.services.tenant_service import TenantService
 from src.modules.iam.domain.tenant import Tenant
 

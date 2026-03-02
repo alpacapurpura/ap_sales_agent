@@ -1,8 +1,9 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
-from src.modules.communication.domain.channel import ChannelConnection, ChannelType
-from src.modules.communication.infrastructure.models.channel_model import ChannelConnectionModel
+from src.modules.connections.domain.channel import ChannelConnection
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel
 
 class ChannelRepository:
     def __init__(self, db: Session):

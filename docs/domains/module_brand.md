@@ -37,3 +37,5 @@ Centralizar y gestionar la identidad corporativa del usuario (misión, visión, 
 - **Timeouts en Extracción**: El proceso de scraping y análisis con IA puede exceder los tiempos de respuesta estándar; el frontend implementa un `AbortController` con límite de 8 minutos y feedback de progreso para evitar bloqueos.
 - **Datos Incompletos/Corruptos**: Si la migración falla o los datos JSON están corruptos, el frontend inyecta valores por defecto (fallbacks seguros) para evitar que la aplicación crashee (Pantalla Blanca).
 - **Sincronización Visual en Tiempo Real**: Los cambios en la paleta de colores (`BrandVisuals`) se inyectan dinámicamente como variables CSS en el DOM, permitiendo previsualización inmediata sin recargar la página.
+- Inconsistencia de Extracción: El extraction_service.py (IA analizando webs) puede alucinar tonos de voz si la web original está vacía o bloqueada por Cloudflare/Bot protection.
+- Fallbacks faltantes: Si un tenant nuevo no llena su "Voz de marca", el Agente de Ventas podría fallar al renderizar el prompt o usar un tono robótico por defecto.

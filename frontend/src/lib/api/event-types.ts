@@ -36,7 +36,7 @@ export type EventTypeUpdate = Partial<EventType>;
 
 export const eventTypesApi = {
   listEventTypes: async (token: string): Promise<EventType[]> => {
-    const res = await fetchClient(`${API_URL}/api/v1/event-types`, {
+    const res = await fetchClient(`${API_URL}/api/v1/scheduling/event-types`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error fetching event types");
@@ -44,7 +44,7 @@ export const eventTypesApi = {
   },
 
   createEventType: async (eventType: Omit<EventType, 'id'>, token: string): Promise<EventType> => {
-    const res = await fetchClient(`${API_URL}/api/v1/event-types`, {
+    const res = await fetchClient(`${API_URL}/api/v1/scheduling/event-types`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export const eventTypesApi = {
   },
 
   updateEventType: async (id: string, update: EventTypeUpdate, token: string): Promise<EventType> => {
-    const res = await fetchClient(`${API_URL}/api/v1/event-types/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/scheduling/event-types/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -70,7 +70,7 @@ export const eventTypesApi = {
   },
 
   deleteEventType: async (id: string, token: string): Promise<void> => {
-    const res = await fetchClient(`${API_URL}/api/v1/event-types/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/scheduling/event-types/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

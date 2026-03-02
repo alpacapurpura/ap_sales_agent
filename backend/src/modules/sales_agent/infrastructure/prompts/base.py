@@ -6,10 +6,10 @@ from typing import Dict, Any, Optional, Tuple
 from uuid import UUID
 from src.core.config import settings
 from src.core.enums import PromptSource
-from src.shared.infrastructure.db.database import SessionLocal
-from src.shared.infrastructure.db.models import PromptVersion
+from src.core.database import SessionLocal
+from src.modules.sales_agent.infrastructure.models.prompt_version_model import PromptVersion
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel as Tenant
-from src.shared.utils.context import get_tenant_id
+from src.core.context import get_tenant_id
 from sqlalchemy import select, desc
 
 logger = logging.getLogger(__name__)

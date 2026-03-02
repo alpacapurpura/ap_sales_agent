@@ -2,8 +2,8 @@ import re
 import structlog
 from typing import Tuple, List
 from sqlalchemy.orm import Session
-from src.shared.infrastructure.db.database import SessionLocal
-from src.shared.infrastructure.db.models.sensitive_data import SensitiveData
+from src.core.database import SessionLocal
+from src.modules.sales_agent.infrastructure.models.sensitive_data_model import SensitiveData
 from src.shared.infrastructure.llm.providers.openai import OpenAIService
 
 logger = structlog.get_logger()

@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import time
-from src.shared.infrastructure.db.database import SessionLocal
-from src.modules.iam.infrastructure.models.user import UserModel as User
-from src.modules.iam.infrastructure.models.user_tenant import UserTenantModel as UserTenant
-from src.modules.iam.infrastructure.models.tenant import TenantModel as Tenant
+from src.core.database import SessionLocal
+from src.modules.iam.infrastructure.models.user_model import UserModel as User
+from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel as UserTenant
+from src.modules.iam.infrastructure.models.tenant_model import TenantModel as Tenant
 from src.shared.infrastructure.external.clerk import ClerkService
 
 def get_tenants():

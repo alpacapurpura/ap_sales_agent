@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from sqlalchemy.orm import Session
 from src.modules.iam.api.dependencies import get_current_user
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.domain.user import User
 from src.modules.iam.infrastructure.models import UserModel, TenantModel, UserTenantModel
 from src.shared.infrastructure.external.clerk import ClerkService

@@ -1,5 +1,6 @@
 from langgraph.graph import StateGraph, END
 from src.modules.sales_agent.application.orchestrator.state import AgentState
+from src.modules.sales_agent.application.agents.sales.graph import sales_app
 
 # Nodes
 def supervisor_node(state: AgentState):
@@ -13,12 +14,9 @@ def sales_agent_node(state: AgentState):
     """
     Wraps the Sales Subgraph.
     """
-    # In a real scenario, we'd invoke the subgraph here
-    # result = sales_app.invoke(state)
-    # return result
-    
-    # Placeholder behavior for initialization
-    return {"messages": state["messages"]}
+    # Invoke the subgraph here
+    result = sales_app.invoke(state)
+    return result
 
 # Graph Construction
 workflow = StateGraph(AgentState)

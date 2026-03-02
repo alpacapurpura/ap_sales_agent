@@ -1,7 +1,7 @@
 # Docker Rules (Dev & Prod)
 CRITICAL: If the current environment (Development or Production) is unknown, ALWAYS ASK THE USER before running commands.
 
-## Development (docker-compose.yml)
+## Development (docker-compose.yml profile development)
 | Svc | Service | Container | Port |
 | API | api_dev | visionarias_brain_dev | 8000 |
 | Admin | admin_dashboard_dev | visionarias_admin_dev | 8501 |
@@ -9,9 +9,8 @@ CRITICAL: If the current environment (Development or Production) is unknown, ALW
 | WA | whatsapp_engine | visionarias_whatsapp | 8080 |
 | Infra | redis, qdrant, postgres | visionarias_* | Exposed |
 
-## Production (docker-compose.prod.yml)
-| Svc | Service | Container | Access |
-| API | backend | visionarias_brain | Traefik/Internal |
-| Admin | admin | visionarias_admin | SSH Tunnel (8501) |
-| Client | frontend | visionarias_client | Traefik/Public |
-| Infra | redis, qdrant, postgres | visionarias_* | Internal Only |
+## Networking & Variables
+- **INTERNAL_API_URL**: Used for Server-Side communication (SSR/Server Actions) within the Docker network.
+  - Value: `http://visionarias_brain_dev:8000` (Dev) or `http://backend:8000` (Prod).
+- **NEXT_PUBLIC_API_URL**: Used for Client-Side communication (Browser -> API).
+  - Value: `http://localhost:8000` (Local), Cloudflare URL (Tunnel), or Domain (Prod).|

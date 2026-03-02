@@ -1,7 +1,7 @@
 import time
 import json
 from typing import List, Optional
-from src.shared.infrastructure.db.database import redis_client
+from src.core.database import redis_client
 import structlog
 
 logger = structlog.get_logger()

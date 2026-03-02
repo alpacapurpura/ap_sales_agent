@@ -1,9 +1,10 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
-from src.modules.communication.domain.message import Message, MessageSender
-from src.modules.communication.infrastructure.models.message_model import MessageModel
-
+from src.modules.sales_agent.domain.message import Message
+from src.modules.sales_agent.domain.enums import MessageSender
+from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
+ 
 class MessageRepository:
     def __init__(self, db: Session):
         self.db = db

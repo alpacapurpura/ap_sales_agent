@@ -76,7 +76,7 @@ export interface TeamMemberCreate {
 
 export const settingsApi = {
   getTenants: async (token: string): Promise<Tenant[]> => {
-    const res = await fetchClient(`${API_URL}/api/v1/users/me/tenants`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/users/me/tenants`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -86,7 +86,7 @@ export const settingsApi = {
   },
 
   getTeam: async (token: string): Promise<TeamMember[]> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/team`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/team`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -96,7 +96,7 @@ export const settingsApi = {
   },
 
   createTeamMember: async (data: TeamMemberCreate, token: string): Promise<TeamMember> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/team`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/team`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -112,7 +112,7 @@ export const settingsApi = {
   },
 
   getGeneralSettings: async (token: string): Promise<GeneralSettings> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/general`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/general`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -122,7 +122,7 @@ export const settingsApi = {
   },
 
   getProfile: async (token: string): Promise<SystemUserProfile> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/profile`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Cache-Control": "no-cache",
@@ -134,7 +134,7 @@ export const settingsApi = {
   },
 
   getAISettings: async (token: string): Promise<AISettings> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/ai`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/ai`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -144,7 +144,7 @@ export const settingsApi = {
   },
 
   updateAISettings: async (data: Partial<AISettings>, token: string): Promise<AISettings> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/ai`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/ai`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -157,7 +157,7 @@ export const settingsApi = {
   },
 
   getWebhookSettings: async (token: string): Promise<WebhookSettings> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/webhook`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/webhook`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -167,7 +167,7 @@ export const settingsApi = {
   },
 
   getBrandSettings: async (token: string): Promise<BrandSettings> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
+    const res = await fetchClient(`${API_URL}/api/v1/brand/settings`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -177,7 +177,7 @@ export const settingsApi = {
   },
 
   regenerateWebhookSecret: async (token: string): Promise<WebhookSettings> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/webhook/regenerate`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/webhook/regenerate`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -191,7 +191,7 @@ export const settingsApi = {
     data: GeneralSettings,
     token: string
   ): Promise<GeneralSettings> => {
-    const res = await fetchClient(`${API_URL}/api/v1/settings/general`, {
+    const res = await fetchClient(`${API_URL}/api/v1/iam/settings/general`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

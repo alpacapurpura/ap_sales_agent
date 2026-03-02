@@ -7,7 +7,7 @@ from src.modules.offer.domain.enums import (
     OfferValueLevel, PaymentPlanType, AccessDuration, PrerequisiteType, OnboardingMechanism,
     OFFER_METADATA
 )
-from src.modules.sales.domain.enums import FinancialCapacity, AvatarPersona
+from src.modules.crm.domain.enums import FinancialCapacity, AvatarPersona
 from src.modules.landing.domain.content import LandingPageConfig
 from src.modules.offer.domain.details import (
     ProductDetails, ServiceDetails, ProgramDetails, SubscriptionDetails, EventDetails
@@ -149,8 +149,7 @@ class Offer(BaseEntity):
         if expected_detail_class and self.specific_details is not None:
             if not isinstance(self.specific_details, expected_detail_class):
                 # Pydantic v2 usually handles coercion if possible, but strict type check:
-                # raise ValueError(f"Polymorphism Error")
-                pass
+                raise ValueError(f"Polymorphism Error: Expected {expected_detail_class.__name__}, got {type(self.specific_details).__name__}")
 
         return self
 

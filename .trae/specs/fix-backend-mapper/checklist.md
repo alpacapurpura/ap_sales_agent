@@ -1,0 +1,4 @@
+- [x] `backend/src/modules/sales_agent/infrastructure/models/__init__.py` exists
+- [x] Backend container restarted
+- [x] Backend logs are clean of Mapper errors
+- [x] Endpoint `/api/v1/brand/settings` is reachable

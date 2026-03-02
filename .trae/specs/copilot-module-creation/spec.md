@@ -1,56 +1,36 @@
-# Landing Module Documentation Spec
+# Copilot Module Creation Spec
 
 ## Why
-
-The Landing module lacks comprehensive documentation, which is crucial for understanding its business logic, data structures, and integration points between frontend and backend. The user requested "Agent-First Docs" to clarify the architecture and rules, specifically including the full-screen editor layout.
+The system requires a clear separation between the "Sales Agent" (customer-facing) and the "Copilot" (user-facing assistant). Currently, internal tools like web extraction, file parsing, and brand analysis reside in `sales_agent`, violating the separation of concerns. The `copilot` module will house all logic related to assisting the user in configuring and using the system.
 
 ## What Changes
-
-* Update `docs/domains/module_landing.md` with detailed analysis of the `landing` module.
-
-* Follow the provided template for:
-
-  * Purpose
-
-  * Business Rules
-
-  * Code Map
-
-  * Edge Cases
-
-* Include frontend (`features/offer-studio/components/landing` AND `app/(landing)`) and backend components.
+- Create `backend/src/modules/copilot` with Agentic-DDD structure.
+- Move non-sales capabilities from `sales_agent` to `copilot`:
+    - **Agents**: `web_extractor`
+    - **Services**: `web_extractor_adapter.py`, `file_parsing_service.py`, `image_analysis.py`
+    - **Prompts**: `brand_extraction` folder
+- Update imports in `sales_agent` (if any) to reference the new locations in `copilot` or refactor as needed.
+- Ensure `copilot` has its own Orchestrator and Agent definitions for internal tasks.
 
 ## Impact
-
-* **Affected specs**: None (Documentation only).
-
-* **Affected code**: `docs/domains/module_landing.md`.
+- **Modules**: `sales_agent` (files removed), `copilot` (new module).
+- **Code**: Imports across the system referencing the moved services must be updated.
 
 ## ADDED Requirements
+### Requirement: Copilot Module Structure
+The `copilot` module SHALL follow the Agentic-DDD structure:
+- `api/`: Endpoints for user interaction.
+- `application/`: Orchestration and Agents (Web Extractor, Brand Analyst).
+- `domain/`: Entities for internal tasks (e.g., `ExtractionTask`, `AnalysisResult`).
+- `infrastructure/`: Implementations (LLM, Prompts).
 
-### Requirement: Detailed Documentation
+## MOVED Requirements
+### Requirement: Web Extraction & Analysis
+- **Source**: `sales_agent/application/agents/web_extractor`, `sales_agent/application/services/*`
+- **Destination**: `copilot/application/agents/web_extractor`, `copilot/application/services/*`
+- **Reason**: These are tools for the user to gather info, not strictly for the sales conversation loop.
 
-The documentation SHALL include:
-
-* A clear purpose statement.
-
-* Strict business rules derived from code analysis.
-
-* A map of key files in backend and frontend, including the `app/(landing)` route group.
-
-* Known edge cases.
-
-### Requirement: Editor Layout Analysis
-
-* Document the `app/(landing)` route group strategy.
-
-* Explain why it bypasses the standard Dashboard layout (full-screen, no sidebar).
-
-## MODIFIED Requirements
-
-### Requirement: Update Existing File
-
-* **Target**: `docs/domains/module_landing.md`
-
-* **Change**: Replace placeholder content with detailed analysis including the new scope.
-
+### Requirement: Brand Extraction Prompts
+- **Source**: `sales_agent/infrastructure/prompts/brand_extraction`
+- **Destination**: `copilot/infrastructure/prompts/brand_extraction`
+- **Reason**: Brand extraction is a setup/configuration task assisted by the Copilot.

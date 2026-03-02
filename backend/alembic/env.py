@@ -19,8 +19,9 @@ from src.modules.gallery.domain import entity as gallery_entity
 from src.modules.gallery.infrastructure import models as gallery_models
 from src.modules.iam.infrastructure.models import user, tenant, user_tenant
 from src.modules.sales.infrastructure.models import lead_model
-from src.modules.communication.domain import channel_connection
-from src.modules.communication.infrastructure.models import appointment, message, booking_link
+from src.modules.connections.domain import channel as channel_connection
+from src.modules.scheduling.infrastructure.models import appointment_model as appointment, booking_link
+from src.modules.sales_agent.infrastructure.models import message_model as message
 from src.shared.links.models import ShareableLink
 from src.shared.infrastructure.db.models import audit, sensitive_data, prompt
 from src.modules.marketing.infrastructure.models import customer

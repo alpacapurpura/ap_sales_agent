@@ -1,0 +1,7 @@
+- [x] Database table `assets` exists with `offer_id` nullable and new columns (`type`, `storage_provider`).
+- [x] Backend `AssetsService` successfully uploads an image without `offer_id`.
+- [x] Backend `AssetsService` correctly detects MIME type and assigns `AssetType`.
+- [x] `LocalStorageStrategy` saves files to the correct directory.
+- [x] API endpoint `/api/v1/assets/upload` accepts file and returns `AssetDto`.
+- [x] Frontend `assetsApi.upload` works with the new endpoint.
+- [x] Existing Offer Gallery functionality (list/upload by offer) still works.

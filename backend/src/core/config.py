@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from src.core.enums import PromptSource
+from src.core.enums import PromptSource, AIProvider
 
 class Settings(BaseSettings):
     # API Config
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-pro"
     
     # Provider Selection
-    AI_PROVIDER: str = "openai" # openai, gemini, etc.
+    AI_PROVIDER: AIProvider = AIProvider.OPENAI # openai, gemini, etc.
     PROMPT_SOURCE: PromptSource = PromptSource.HYBRID # hybrid, file, db
     
     # Redis
@@ -66,6 +66,7 @@ class Settings(BaseSettings):
     API_DOMAIN: str = ""
     DASHBOARD_DOMAIN: str = ""
     API_URL: str = "http://visionarias_brain_dev:8000" # Internal URL for webhooks
+    UPLOAD_DIR: str = "static/uploads"
     
     # Clerk
     CLERK_SECRET_KEY: str = ""

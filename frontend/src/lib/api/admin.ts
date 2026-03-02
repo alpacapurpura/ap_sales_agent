@@ -12,7 +12,7 @@ export interface Tenant {
 
 export const adminApi = {
   getTenants: async (token: string): Promise<Tenant[]> => {
-    const res = await fetchClient(`${config.api.baseUrl}/api/v1/admin/tenants`, {
+    const res = await fetchClient(`${config.api.baseUrl}/api/v1/iam/tenants`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Failed to fetch tenants");
@@ -20,7 +20,7 @@ export const adminApi = {
   },
 
   updateTenantPermissions: async (token: string, tenantId: string, canUsePlatformKeys: boolean) => {
-    const res = await fetchClient(`${config.api.baseUrl}/api/v1/admin/tenants/${tenantId}/permissions`, {
+    const res = await fetchClient(`${config.api.baseUrl}/api/v1/iam/tenants/${tenantId}/permissions`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

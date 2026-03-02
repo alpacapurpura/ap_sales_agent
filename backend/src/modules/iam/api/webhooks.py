@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Depends, status
 from svix.webhooks import Webhook, WebhookVerificationError
 from src.core.config import settings
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.infrastructure.user import UserRepository
 from src.modules.iam.domain.user import User
 import structlog

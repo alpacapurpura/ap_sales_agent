@@ -23,7 +23,7 @@ export const offerApi = {
     }
 
     try {
-        const url = `${API_URL}/api/v1/products/`;
+        const url = `${API_URL}/api/v1/offer/products/`;
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -70,7 +70,7 @@ export const offerApi = {
         return MOCK_OFFERS[0];
     }
 
-    const res = await fetchClient(`${API_URL}/api/v1/products/${id}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error("Failed to fetch offer");
@@ -91,7 +91,7 @@ export const offerApi = {
        }
 
        const payload = frontendToBackend(data);
-       const res = await fetchClient(`${API_URL}/api/v1/products/`, {
+       const res = await fetchClient(`${API_URL}/api/v1/offer/products/`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
@@ -111,7 +111,7 @@ export const offerApi = {
       }
 
       const payload = frontendToBackend(data);
-      const res = await fetchClient(`${API_URL}/api/v1/products/${id}`, {
+      const res = await fetchClient(`${API_URL}/api/v1/offer/products/${id}`, {
       method: "PATCH",
       headers: { 
         "Content-Type": "application/json",
@@ -184,7 +184,7 @@ export const offerApi = {
             return offerApi.saveOffer(id, data, token);
     }
 
-    const res = await fetchClient(`${API_URL}/api/v1/products/${id}${endpoint}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/products/${id}${endpoint}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",

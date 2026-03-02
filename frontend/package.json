@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
-    "test": "vitest",
+    "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "prepare": "husky"
@@ -70,6 +70,7 @@
     "autoprefixer": "^10.4.23",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.11",
+    "happy-dom": "^20.7.0",
     "husky": "^9.1.7",
     "jsdom": "^27.4.0",
     "lint-staged": "^16.2.7",

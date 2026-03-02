@@ -28,6 +28,11 @@ class TenantRepository:
             return Tenant.model_validate(model)
         return None
 
+    def get_all(self) -> List[Tenant]:
+        models = self.db.query(TenantModel).order_by(TenantModel.created_at.desc()).all()
+        return [Tenant.model_validate(m) for m in models]
+
+
     def create(self, tenant: Tenant) -> Tenant:
         db_tenant = TenantModel(
             id=tenant.id,

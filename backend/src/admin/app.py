@@ -7,6 +7,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 # --- BOOTSTRAP MODELS (CRITICAL) ---
 # Import all models to ensure SQLAlchemy Registry is fully populated before any query
+from src.modules.iam.infrastructure.models.user_model import UserModel
+from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
+from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
 from src.admin.modules.tenants import render_tenants_view
 from src.admin.modules.users import render_users_view

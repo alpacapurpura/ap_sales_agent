@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
-from src.shared.core.prompts.base import prompt_loader
+from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.modules.brand.infrastructure.repositories.avatar_repository import AvatarRepository
 from src.modules.offer.domain.offer_ai_schemas import PsychologyGenerationRequest, PsychologyGenerationResponse
 from src.core.config import settings

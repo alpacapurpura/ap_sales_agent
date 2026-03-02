@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 from sqlalchemy.orm import Session
-from src.shared.infrastructure.db.database import SessionLocal
+from src.core.database import SessionLocal
 from src.modules.gallery.domain.entity import GalleryImage
 from src.modules.offer.domain.offer_gallery import OfferGalleryImage
 import structlog

@@ -21,4 +21,4 @@ class MessageModel(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    lead = relationship("src.modules.sales.infrastructure.models.lead_model.LeadModel", back_populates="messages")
+    lead = relationship("src.modules.crm.infrastructure.models.lead_model.LeadModel", back_populates="messages")

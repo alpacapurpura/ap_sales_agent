@@ -13,7 +13,7 @@ export const brandApi = {
             return new Promise((resolve) => setTimeout(() => resolve(MOCK_BRAND_SETTINGS), 800));
         }
 
-        const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
+        const res = await fetchClient(`${API_URL}/api/v1/brand/settings`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -33,7 +33,7 @@ export const brandApi = {
             return new Promise((resolve) => setTimeout(() => resolve({ ...MOCK_BRAND_SETTINGS, ...data }), 600));
         }
 
-        const res = await fetchClient(`${API_URL}/api/v1/settings/brand`, {
+        const res = await fetchClient(`${API_URL}/api/v1/brand/settings`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",

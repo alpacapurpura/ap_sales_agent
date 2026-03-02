@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any, List
 from uuid import UUID
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from sqlalchemy.orm import Session
 from src.modules.iam.domain.user import User
 from src.modules.iam.api.dependencies import get_current_user

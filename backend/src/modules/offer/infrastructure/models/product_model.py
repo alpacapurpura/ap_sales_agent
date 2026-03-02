@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Integer, Text, DateTime
+from sqlalchemy import Column, String, Boolean, Integer, Text, DateTime, Float
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 import uuid
@@ -19,20 +19,24 @@ class ProductModel(Base):
     type = Column(String, nullable=False)
     status = Column(String, default="DRAFT")
     internal_sku = Column(String, nullable=True)
+    value_level = Column("offer_value_level", String, nullable=True) # Added for OfferValueLevel
     
     # Polymorphic Content Fields
     pricing = Column(JSONB, default=list) # List of PricingStructure
+    # price_pay_in_full = Column(Float, nullable=True) # REMOVED: Not in DB
+    currency = Column(String, default="USD") # Added
     dates = Column(JSONB, default=dict) # Legacy dates, kept for migration safety
     metadata_info = Column(JSONB, default=dict) # Generic metadata
     specific_details = Column(JSONB, default=dict) # The BIG JSONB for polymorphic details
     deliverables = Column(JSONB, default=list) # List of DeliverableItem
+    # instructors = Column(JSONB, default=list) # REMOVED: Not in DB
     
     # Marketing & Copy
     headline_promise = Column(String, nullable=True)
     primary_outcome = Column(String, nullable=True)
     time_to_value = Column(String, nullable=True)
-    marketing_pain_points = Column(JSONB, default=list) # Legacy? Not in main Domain Offer
-    marketing_desires = Column(JSONB, default=list) # Legacy?
+    marketing_pain_points = Column(JSONB, default=list)
+    marketing_desires = Column(JSONB, default=list)
     target_avatar_match = Column(JSONB, default=list)
     
     # Access & Duration

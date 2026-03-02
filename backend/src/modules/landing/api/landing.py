@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.landing.application.landing_service import LandingService

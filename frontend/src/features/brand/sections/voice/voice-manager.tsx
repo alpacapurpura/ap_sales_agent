@@ -26,7 +26,7 @@ export function VoiceManager() {
       if (text) formData.append("text_input", text);
       if (file) formData.append("file", file);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/onboarding/analyze-style`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/brand/style/analyze-style`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

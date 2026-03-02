@@ -1,0 +1,5 @@
+- [x] `backend/src/main.py` imports `src.modules.connections` correctly
+- [x] `backend/src/modules/connections/api/whatsapp.py` imports `WhatsAppChannel` correctly
+- [x] `backend/src/modules/connections/api/telegram.py` imports `TelegramService` correctly
+- [x] `backend/src/modules/scheduling/application/services/availability_service.py` imports adapters correctly
+- [x] No `src.modules.integration` strings remain in active code files

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session, Query
-from src.shared.infrastructure.db.database import SessionLocal
-from src.shared.utils.context import get_tenant_id
+from src.core.database import SessionLocal
+from src.core.context import get_tenant_id
 from typing import Type
 
 class BaseRepository:

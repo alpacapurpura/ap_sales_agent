@@ -24,4 +24,4 @@ class ChannelConnectionModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    tenant = relationship("src.modules.iam.infrastructure.models.tenant_model.TenantModel", back_populates="connections")
+    # tenant = relationship("src.modules.iam.infrastructure.models.tenant_model.TenantModel", back_populates="connections")

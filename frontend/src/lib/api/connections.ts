@@ -22,7 +22,7 @@ export interface TestResponse {
 
 export const connectionsApi = {
   getTelegramStatus: async (token: string): Promise<ChannelStatusResponse> => {
-    const res = await fetchClient(`${API_URL}/api/v1/channels/telegram`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/telegram/status`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -32,7 +32,7 @@ export const connectionsApi = {
   },
 
   connectTelegram: async (data: TelegramConnectRequest, token: string): Promise<any> => {
-    const res = await fetchClient(`${API_URL}/api/v1/channels/telegram/connect`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/telegram/connect`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export const connectionsApi = {
   },
 
   testTelegram: async (token: string): Promise<TestResponse> => {
-    const res = await fetchClient(`${API_URL}/api/v1/channels/telegram/test`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/telegram/test`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -62,7 +62,7 @@ export const connectionsApi = {
   },
 
   disconnectTelegram: async (token: string): Promise<void> => {
-    const res = await fetchClient(`${API_URL}/api/v1/channels/telegram`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/telegram/disconnect`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -73,7 +73,7 @@ export const connectionsApi = {
 
   // Google Calendar
   getCalendarStatus: async (token: string): Promise<any> => {
-    const res = await fetchClient(`${API_URL}/api/v1/calendar/status`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Calendario");
@@ -81,7 +81,7 @@ export const connectionsApi = {
   },
   
   getGoogleAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
-    let url = `${API_URL}/api/v1/calendar/auth-url`;
+    let url = `${API_URL}/api/v1/connections/calendar/auth-url`;
     if (redirectUri) {
         url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
@@ -93,7 +93,7 @@ export const connectionsApi = {
   },
 
   connectGoogle: async (code: string, token: string, redirectUri?: string): Promise<any> => {
-     const res = await fetchClient(`${API_URL}/api/v1/calendar/callback`, {
+     const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/callback`, {
       method: "POST",
       headers: { 
           "Content-Type": "application/json",
@@ -109,7 +109,7 @@ export const connectionsApi = {
   },
 
   disconnectCalendar: async (token: string): Promise<void> => {
-    const res = await fetchClient(`${API_URL}/api/v1/calendar/disconnect`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/disconnect`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -117,7 +117,7 @@ export const connectionsApi = {
   },
 
   testCalendar: async (token: string): Promise<TestResponse> => {
-    const res = await fetchClient(`${API_URL}/api/v1/calendar/test`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/test`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -131,7 +131,7 @@ export const connectionsApi = {
   },
 
   listAppointments: async (start: string, end: string, token: string): Promise<any[]> => {
-      const res = await fetchClient(`${API_URL}/api/v1/calendar/appointments?start_date=${start}&end_date=${end}`, {
+      const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/appointments?start_date=${start}&end_date=${end}`, {
           headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Error obteniendo citas");
@@ -139,7 +139,7 @@ export const connectionsApi = {
   },
 
   generateBookingLink: async (token: string): Promise<{ token: string; url: string }> => {
-    const res = await fetchClient(`${API_URL}/api/v1/calendar/link`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/calendar/link`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -149,7 +149,7 @@ export const connectionsApi = {
 
   // Gmail
   getGmailStatus: async (token: string): Promise<any> => {
-    const res = await fetchClient(`${API_URL}/api/v1/gmail/status`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error obteniendo estado de Gmail");
@@ -157,7 +157,7 @@ export const connectionsApi = {
   },
 
   getGmailAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
-    let url = `${API_URL}/api/v1/gmail/auth-url`;
+    let url = `${API_URL}/api/v1/connections/gmail/auth-url`;
     if (redirectUri) {
         url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
@@ -169,7 +169,7 @@ export const connectionsApi = {
   },
 
   connectGmail: async (code: string, token: string, redirectUri?: string): Promise<any> => {
-     const res = await fetchClient(`${API_URL}/api/v1/gmail/callback`, {
+     const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/callback`, {
       method: "POST",
       headers: { 
           "Content-Type": "application/json",
@@ -185,7 +185,7 @@ export const connectionsApi = {
   },
 
   disconnectGmail: async (token: string): Promise<void> => {
-    const res = await fetchClient(`${API_URL}/api/v1/gmail/disconnect`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/disconnect`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -193,7 +193,7 @@ export const connectionsApi = {
   },
 
   testGmail: async (token: string): Promise<TestResponse> => {
-    const res = await fetchClient(`${API_URL}/api/v1/gmail/test`, {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/gmail/test`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

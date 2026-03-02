@@ -9,8 +9,11 @@ class AvatarRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_by_tenant(self, tenant_id: UUID) -> List[Avatar]:
-        models = self.db.query(AvatarModel).filter(AvatarModel.tenant_id == tenant_id).all()
+    def get_by_tenant(self, tenant_id: UUID, scope: Optional[str] = None) -> List[Avatar]:
+        query = self.db.query(AvatarModel).filter(AvatarModel.tenant_id == tenant_id)
+        if scope:
+            query = query.filter(AvatarModel.scope == scope)
+        models = query.all()
         return [Avatar.model_validate(m) for m in models]
 
     def get_by_id(self, avatar_id: UUID) -> Optional[Avatar]:

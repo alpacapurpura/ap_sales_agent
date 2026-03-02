@@ -15,7 +15,7 @@ import { OfferFormValues } from "../types/schema";
 // Tipo para la respuesta cruda del backend
 export interface BackendOffer {
   id: string;
-  name: string;
+  name?: string; // Puede no venir si el backend usa solo public_name
   public_name?: string;
   internal_sku?: string;
   type: string;
@@ -64,6 +64,27 @@ export interface BackendOffer {
   [key: string]: any;
 }
 
+// Helper to normalize enum values
+const normalizeEnum = <T>(value: any, enumObj: any, defaultValue: T): T => {
+  if (!value) return defaultValue;
+  
+  // 1. Direct match
+  if (Object.values(enumObj).includes(value)) {
+    return value as T;
+  }
+
+  // 2. Case-insensitive match
+  const stringValue = String(value).toUpperCase();
+  const match = Object.values(enumObj).find(
+    (v) => String(v).toUpperCase() === stringValue
+  );
+
+  if (match) return match as T;
+
+  console.warn(`[Adapter] Unknown enum value: ${value}. Defaulting to ${defaultValue}`);
+  return defaultValue;
+};
+
 /**
  * Convierte la respuesta del backend al modelo de dominio Offer del frontend.
  * Maneja la normalización de campos, valores por defecto y extracción de metadata.
@@ -73,13 +94,14 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
 
   return {
     id: data.id,
-    name: data.name,
+    name: data.name || data.public_name || "Oferta sin nombre",
     internal_sku: data.internal_sku,
-    type: (data.type?.toUpperCase() as OfferType) || OfferType.FREE_RESOURCE,
     
-    value_level: (data.offer_value_level || data.value_level || "N0") as OfferValueLevel,
-    delivery_model: (data.delivery_model || "DIY") as OfferDeliveryModel,
-    status: (data.status?.toUpperCase() || "DRAFT") as OfferStatus,
+    // Strict Enum Normalization
+    type: normalizeEnum(data.type, OfferType, OfferType.FREE_RESOURCE),
+    value_level: normalizeEnum(data.offer_value_level || data.value_level, OfferValueLevel, OfferValueLevel.N0),
+    delivery_model: normalizeEnum(data.delivery_model, OfferDeliveryModel, OfferDeliveryModel.DIY),
+    status: normalizeEnum(data.status, OfferStatus, OfferStatus.DRAFT),
     
     headline_promise: data.headline_promise,
     primary_outcome: data.primary_outcome,

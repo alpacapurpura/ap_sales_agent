@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_tenant_context
 from src.modules.offer.domain.offer_ai_schemas import PsychologyGenerationRequest, PsychologyGenerationResponse
 from src.modules.offer.application.offer_generator import OfferGeneratorService

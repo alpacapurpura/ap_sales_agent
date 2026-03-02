@@ -1,9 +1,10 @@
 from typing import List, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from src.shared.infrastructure.db.models import AgentTrace, LLMLog
-from src.modules.sales.infrastructure.models.lead_model import LeadModel
-from src.modules.communication.infrastructure.models.message_model import MessageModel as Message
+from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
+from src.modules.sales_agent.infrastructure.models.llm_log_model import LLMLog
+from src.modules.crm.infrastructure.models.lead_model import LeadModel
+from src.modules.sales_agent.infrastructure.models.message_model import MessageModel as Message
 from src.modules.sales_agent.domain.memory.repository import EpisodicMemoryStore
 
 class AuditRepository(EpisodicMemoryStore):

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { galleryApi, GalleryImage } from "@/lib/api/gallery";
+import { assetsApi, Asset } from "@/lib/api/assets";
 import { BrandVisuals } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,18 +23,18 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
     const { getToken } = useAuth();
     const queryClient = useQueryClient();
     const [isUploadOpen, setIsUploadOpen] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+    const [selectedImage, setSelectedImage] = useState<Asset | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [description, setDescription] = useState("");
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     const { data: images, isLoading } = useQuery({
-        queryKey: ["gallery"],
+        queryKey: ["assets"],
         queryFn: async () => {
             const token = await getToken();
             if (!token) return [];
             try {
-                return await galleryApi.list(token);
+                return await assetsApi.list(token);
             } catch (e) {
                 console.error(e);
                 return [];
@@ -46,10 +46,10 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
         mutationFn: async () => {
             const token = await getToken();
             if (!token || !file) return;
-            return galleryApi.upload(token, file, description);
+            return assetsApi.upload(token, file, description);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["gallery"] });
+            queryClient.invalidateQueries({ queryKey: ["assets"] });
             setIsUploadOpen(false);
             setFile(null);
             setDescription("");
@@ -62,10 +62,10 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
         mutationFn: async (id: string) => {
             const token = await getToken();
             if (!token) return;
-            return galleryApi.delete(token, id);
+            return assetsApi.delete(token, id);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["gallery"] });
+            queryClient.invalidateQueries({ queryKey: ["assets"] });
             toast.success("Imagen eliminada");
         }
     });

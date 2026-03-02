@@ -1,0 +1,3 @@
+- [ ] Backend endpoint `GET /api/v1/brand/settings` is accessible (no 404)
+- [ ] Frontend `brandApi` points to `/api/v1/brand/settings`
+- [ ] Backend endpoint `GET /api/v1/iam/users/me/tenants` is accessible

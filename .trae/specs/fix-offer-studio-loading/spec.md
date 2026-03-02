@@ -1,40 +1,26 @@
-# Fix Offer Studio Form Loading & Architecture Spec
+# Fix Offer Studio Loading Spec
 
 ## Why
-The Offer Studio editor currently fails to load form data because the form wrappers independently fetch data using an incorrect route parameter (`offerId` instead of `id`). Additionally, the architecture relies on mixed form state management (global vs isolated) and an unclear file structure. The goal is to align with the "Brand Studio" pattern: atomic, isolated forms for each section that can be saved independently, with a clean directory structure.
+Users are experiencing an error "No se pudieron cargar las ofertas" when accessing the Offer Studio. This prevents them from managing their offers. The issue seems to be related to the data fetching flow or backend processing for specific tenants (e.g., "visionarias").
 
 ## What Changes
-- **Refactor Form Architecture**: 
-  - Adopt the "Brand Studio" pattern where each section is an independent form with its own "Save" button.
-  - Remove the global "Save" button from the `OfferEditSheetManager` footer.
-  - Initialize section forms with data passed from the main `OfferEditor` (via `defaultValues`), eliminating redundant API calls.
-- **Clean Up File Structure**:
-  - Delete `frontend/src/features/offer-studio/components/forms/wrappers/`.
-  - Create/Move atomic form components directly to `frontend/src/features/offer-studio/components/forms/` (e.g., `StrategyForm.tsx`, `PricingForm.tsx`).
-  - Move `OfferEditSheetManager` to `frontend/src/features/offer-studio/components/forms/`.
-  - Move `SectionFormWrapper` to `frontend/src/features/offer-studio/components/forms/`.
-- **Update Configuration**:
-  - Update `offer-builder-config.ts` to use the new form components.
+- **Backend Debugging**: Identify and fix the root cause of the API failure at `GET /api/v1/offer/products/`.
+- **Data Validation**: Ensure the `Offer` data in the database complies with the Pydantic schemas, specifically regarding polymorphic fields like `specific_details`.
+- **Frontend Error Handling**: Improve error reporting if necessary to provide more detail than a generic message.
 
 ## Impact
-- **Affected Specs**: Offer Studio Editor
-- **Affected Code**: 
-  - `frontend/src/features/offer-studio/components/editor/OfferEditor.tsx`
-  - `frontend/src/features/offer-studio/components/editor/OfferEditSheetManager.tsx` (Move & Refactor)
-  - `frontend/src/features/offer-studio/components/forms/wrappers/*.tsx` (Delete/Move)
-  - `frontend/src/features/offer-studio/config/offer-builder-config.ts`
+- **Affected specs**: Offer Studio (Listing).
+- **Affected code**: 
+  - `backend/src/modules/offer/api/products.py`
+  - `backend/src/modules/offer/domain/offer.py`
+  - `frontend/src/features/offer-studio/components/dashboard/offer-studio-dashboard.tsx`
 
 ## ADDED Requirements
-### Requirement: Atomic Forms
-Each section (Strategy, Pricing, etc.) SHALL be implemented as an independent form component that:
-1. Accepts `initialValues` (or `defaultValues`) and `onSave` callback.
-2. Manages its own validation using `SectionFormWrapper`.
-3. Contains its own "Save" button.
-4. Updates the backend via `saveSection` and triggers a refresh of the main offer state.
+### Requirement: Robust Data Loading
+The system SHALL gracefully handle invalid data in the database without crashing the entire list endpoint.
+- **WHEN** one offer has invalid data
+- **THEN** log the error and skip the invalid offer OR return a partial list (if feasible), or fix the data structure to match schema.
 
-### Requirement: Clean Directory Structure
-All form-related components SHALL be located in `frontend/src/features/offer-studio/components/forms/`, replacing the nested `wrappers` directory.
-
-## REMOVED Requirements
-### Requirement: Footer Save Button
-The `OfferEditSheetManager` SHALL NOT display a generic "Guardar Cambios" button in the footer, delegating this responsibility to the individual form components.
+## MODIFIED Requirements
+### Requirement: Offer List API
+**Fix**: Ensure `list_products` correctly serializes all offers, handling potential `null` or mismatching types in `specific_details` or enums.

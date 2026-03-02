@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.application.services.user_service import UserService
 from src.modules.iam.domain.user import User
 from src.modules.iam.api.dto.users import TenantSchema

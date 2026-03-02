@@ -1,0 +1,11 @@
+- [ ] `src/core/config.py` existe y es la única fuente de configuración.
+- [ ] `src/core/database.py` inicializa la DB correctamente y es usado por todos.
+- [ ] `src/core` contiene Logger, Security, Exceptions, Context.
+- [ ] `src/shared/domain/base_entity.py` contiene la clase `Base` y es usada por todos los modelos.
+- [ ] `src/shared/links` centraliza la lógica de URLs cortas.
+- [ ] Revisión de `sales_agent` completada: utilidades movidas a `core`.
+- [ ] Revisión de `iam` completada: dependencias comunes movidas.
+- [ ] Revisión de `integration` completada: bases de canales movidas a `shared`.
+- [ ] No existen importaciones de `src.shared` o `src.modules` dentro de `src/core`.
+- [ ] No existen importaciones de `src.modules` dentro de `src/shared`.
+- [ ] `alembic/env.py` actualizado.

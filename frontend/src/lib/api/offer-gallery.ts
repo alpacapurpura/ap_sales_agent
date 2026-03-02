@@ -20,7 +20,7 @@ export const offerGalleryApi = {
     formData.append("file", file);
     formData.append("description", description);
 
-    const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/gallery/upload`, {
+    const res = await fetchClient(`${API_URL}/api/v1/assets/offers/${offerId}/gallery/upload`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -33,7 +33,7 @@ export const offerGalleryApi = {
   },
 
   list: async (token: string, offerId: string): Promise<OfferGalleryImage[]> => {
-    const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/gallery`, {
+    const res = await fetchClient(`${API_URL}/api/v1/assets/offers/${offerId}/gallery`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -44,7 +44,7 @@ export const offerGalleryApi = {
   },
 
   delete: async (token: string, offerId: string, imageId: string): Promise<void> => {
-    const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/gallery/${imageId}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/assets/offers/${offerId}/gallery/${imageId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from sqlalchemy.orm import Session
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.domain.user import User
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.brand.api.dto.avatars import AvatarCreate, AvatarResponse, AvatarUpdate
@@ -18,10 +18,8 @@ async def list_avatars(
     user: User = Depends(get_current_user)
 ):
     repo = AvatarRepository(db)
-    # TODO: Add scope filtering in Repo
-    avatars = repo.get_by_tenant(user.tenant_id)
-    # Filter by scope in memory for now if not in repo
-    return [a for a in avatars if a.scope == scope]
+    # Scope filtering moved to Repo
+    return repo.get_by_tenant(user.tenant_id, scope=scope)
 
 @router.post("/", response_model=AvatarResponse)
 async def create_avatar(

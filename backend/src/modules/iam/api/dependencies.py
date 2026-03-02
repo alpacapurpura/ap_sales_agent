@@ -9,7 +9,7 @@ import os
 from src.core.database import get_db
 from src.modules.iam.application.auth import verify_clerk_token
 from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models import UserModel, UserTenantModel
+from src.modules.iam.infrastructure.models import UserModel, UserTenantModel, TenantModel
 from src.core.context import set_tenant_id
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.modules.iam.application.auth import verify_token_payload
@@ -73,7 +73,15 @@ async def get_optional_tenant_context(
             if link:
                 tenant_id = target_uuid
         except ValueError:
-            pass
+            # Try to resolve by slug
+            tenant = db.query(TenantModel).filter(TenantModel.slug == x_tenant_id).first()
+            if tenant:
+                 link = db.query(UserTenantModel).filter(
+                     UserTenantModel.user_id == user.id,
+                     UserTenantModel.tenant_id == tenant.id
+                 ).first()
+                 if link:
+                     tenant_id = tenant.id
             
     # Fallback to default
     if not tenant_id:
@@ -104,6 +112,8 @@ def get_user_from_token(
     # If not found, we might need to handle it.
     
     email = token_payload.get("email")
+    clerk_user_data = None
+
     if not email:
         # Fallback: Fetch from Clerk API using 'sub' (Clerk User ID)
         # This is slower but handles cases where JWT template is not configured.
@@ -121,6 +131,7 @@ def get_user_from_token(
                 )
                 if resp.status_code == 200:
                     clerk_user = resp.json()
+                    clerk_user_data = clerk_user
                     # Try to find primary email
                     email_addresses = clerk_user.get("email_addresses", [])
                     primary_id = clerk_user.get("primary_email_address_id")
@@ -157,6 +168,45 @@ def get_user_from_token(
              status_code=403, 
              detail="Acceso Denegado. Su usuario no está registrado en nuestra base de datos. Por favor contacte a su administrador para solicitar acceso."
         )
+
+    # Sync Clerk ID and Full Name if needed
+    clerk_id_from_token = token_payload.get("sub")
+    
+    # Try to get name from token
+    name_from_token = token_payload.get("name")
+    if not name_from_token:
+        # Construct from given/family name
+        given = token_payload.get("given_name", "")
+        family = token_payload.get("family_name", "")
+        if given or family:
+            name_from_token = f"{given} {family}".strip()
+    
+    # If not in token, try fallback data
+    if not name_from_token and clerk_user_data:
+        first = clerk_user_data.get("first_name", "")
+        last = clerk_user_data.get("last_name", "")
+        if first or last:
+            name_from_token = f"{first} {last}".strip()
+
+    if clerk_id_from_token:
+        should_update = False
+        
+        # Check Clerk ID mismatch
+        if user_orm.clerk_id != clerk_id_from_token:
+            logger.info("updating_user_clerk_id", email=email, old_id=user_orm.clerk_id, new_id=clerk_id_from_token)
+            user_orm.clerk_id = clerk_id_from_token
+            should_update = True
+            
+        # Check Full Name
+        if name_from_token and user_orm.full_name != name_from_token:
+             logger.info("updating_user_full_name", email=email, old_name=user_orm.full_name, new_name=name_from_token)
+             user_orm.full_name = name_from_token
+             should_update = True
+             
+        if should_update:
+            db.add(user_orm)
+            db.commit()
+            db.refresh(user_orm)
         
     return User.model_validate(user_orm)
 
@@ -192,7 +242,11 @@ def get_current_user(
         try:
             target_tenant_id = UUID(x_tenant_id)
         except ValueError:
-             raise HTTPException(status_code=400, detail="Invalid X-Tenant-ID header format")
+             # Try to resolve by slug
+             tenant = db.query(TenantModel).filter(TenantModel.slug == x_tenant_id).first()
+             if not tenant:
+                  raise HTTPException(status_code=400, detail="Invalid X-Tenant-ID header format (UUID or Slug)")
+             target_tenant_id = tenant.id
              
         # Verify user has access to this tenant
         user_tenant = db.query(UserTenantModel).filter(

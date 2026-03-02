@@ -18,12 +18,32 @@ import { AppointmentSheet } from "./overlay/appointment-sheet";
 import { AvailabilityModal } from "./overlay/availability-modal";
 import { CalendarWidget } from "./dashboard/calendar-widget";
 import { ActivityFeedWidget } from "./dashboard/activity-feed-widget";
+import { dashboardService, DashboardStats } from "../services/dashboardService";
+import { useEffect } from "react";
 
 export function SalesDashboard() {
   const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [isPaymentConfigOpen, setIsPaymentConfigOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats>({
+    total_sales: 0,
+    appointments_today: 0,
+    conversion_rate: 0,
+    active_leads: 0
+  });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await dashboardService.getStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Error loading dashboard stats:", error);
+      }
+    };
+    loadStats();
+  }, []);
 
   const handleAppointmentClick = (appointment: any) => {
     setSelectedAppointment(appointment);
@@ -61,7 +81,7 @@ export function SalesDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$0.00</div>
+            <div className="text-2xl font-bold">${stats.total_sales.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">-- vs mes anterior</p>
           </CardContent>
         </Card>
@@ -71,7 +91,7 @@ export function SalesDashboard() {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{stats.appointments_today}</div>
             <p className="text-xs text-muted-foreground">-- nuevas hoy</p>
           </CardContent>
         </Card>
@@ -81,7 +101,7 @@ export function SalesDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0%</div>
+            <div className="text-2xl font-bold">{stats.conversion_rate}%</div>
             <p className="text-xs text-muted-foreground">-- esta semana</p>
           </CardContent>
         </Card>
@@ -91,8 +111,8 @@ export function SalesDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">0 activos ahora</p>
+            <div className="text-2xl font-bold">{stats.active_leads}</div>
+            <p className="text-xs text-muted-foreground">activos ahora</p>
           </CardContent>
         </Card>
       </div>

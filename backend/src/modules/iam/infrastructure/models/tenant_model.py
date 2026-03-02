@@ -29,8 +29,8 @@ class TenantModel(Base):
 
     # Relationships
     users = relationship("UserModel", secondary="user_tenants", back_populates="tenants")
-    leads = relationship("src.modules.sales.infrastructure.models.lead_model.LeadModel", back_populates="tenant")
-    connections = relationship("src.modules.communication.infrastructure.models.channel_model.ChannelConnectionModel", back_populates="tenant")
+    leads = relationship("LeadModel", back_populates="tenant")
+    # connections = relationship("src.modules.sales_agent.infrastructure.models.channel_model.ChannelConnectionModel", back_populates="tenant")
     
     # Loosely coupled relationships (Strings to avoid import cycles)
     # These will need to be resolved at runtime or by importing the models where needed in application layer

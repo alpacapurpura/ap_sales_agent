@@ -9,21 +9,21 @@ from sqlalchemy.orm import Session
 
 from src.modules.sales_agent.application.orchestrator.graph import agent_app
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
-from src.modules.sales.infrastructure.lead import LeadRepository
-from src.modules.marketing.application.services.identity_service import IdentityService
-from src.modules.marketing.infrastructure.repositories.customer_repository import CustomerRepository
-from src.modules.marketing.domain.enums import IdentityType
+from src.modules.crm.infrastructure.repositories.lead_metrics_repository import LeadRepository
+from src.modules.crm.application.services.identity_service import IdentityService
+from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
+from src.modules.crm.domain.enums import IdentityType
 from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
 from src.modules.sales_agent.infrastructure.db.repositories.business_repository import BusinessRepository
-from src.shared.infrastructure.db.database import SessionLocal
+from src.core.database import SessionLocal
 from src.modules.sales_agent.infrastructure.external.buffer_service import SmartBufferService
 from src.modules.sales_agent.infrastructure.external.output_manager import OutputManager
 from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_complete
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
-from src.modules.integration.infrastructure.channels.telegram import TelegramChannel
+from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
 from src.core.context import set_tenant_id
-from src.modules.communication.domain.channel import ChannelConnection
-from src.modules.communication.domain.enums import ChannelType
+from src.modules.connections.domain.channel import ChannelConnection
+from src.modules.connections.domain.enums import ChannelType
 from src.modules.iam.domain.tenant import Tenant
 
 logger = structlog.get_logger()

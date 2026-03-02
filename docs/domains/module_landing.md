@@ -39,3 +39,5 @@ Este módulo permite a los usuarios transformar sus Ofertas estructuradas en Lan
 - **Transformación de Datos (Adapter Pattern):** El editor visual (Puck) espera una estructura JSON plana, mientras que el backend usa modelos anidados estrictos. El archivo `adapter.ts` maneja esta traducción compleja; errores aquí causan que el editor cargue en blanco.
 - **Regeneración Parcial con IA:** El endpoint `regenerate-block` permite reescribir solo una sección (ej. "Hero") sin alterar el resto de la página. El frontend debe manejar el estado de "loading" por bloque para evitar conflictos de edición.
 - **Sincronización de Tema Global:** Los estilos globales (colores, fuentes) definidos en el Tenant deben inyectarse en el iframe del editor mediante `LandingThemeProvider` para que la previsualización sea fidedigna ("What You See Is What You Get").
+- Desfase de Estado: Modificar el título de la Oferta en el offer-studio pero que el JSON de la landing siga mostrando el título viejo estático.
+- Renderizado SSR: Problemas de hidratación (Hydration Mismatch) al renderizar bloques complejos de Puck en Next.js App Router.

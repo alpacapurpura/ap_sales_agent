@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.modules.iam.api.dependencies import get_current_user
-from src.shared.infrastructure.db.database import get_db
+from src.core.database import get_db
 from src.modules.iam.domain.user import User
 from src.modules.brand.domain import BrandSettings
 from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
@@ -11,7 +11,7 @@ logger = structlog.get_logger()
 
 router = APIRouter()
 
-@router.get("/brand", response_model=BrandSettings)
+@router.get("", response_model=BrandSettings)
 async def get_brand_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -29,7 +29,7 @@ async def get_brand_settings(
     # Validation/Defaulting handled by Pydantic
     return settings
 
-@router.patch("/brand", response_model=BrandSettings)
+@router.patch("", response_model=BrandSettings)
 async def update_brand_settings(
     settings: BrandSettings,
     current_user: User = Depends(get_current_user),

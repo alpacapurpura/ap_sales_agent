@@ -3,7 +3,7 @@ from pydantic import Field
 from uuid import UUID
 from datetime import datetime
 from src.shared.domain.base_entity import BaseEntity
-from src.modules.communication.domain.enums import MessageSender
+from src.modules.sales_agent.domain.enums import MessageSender
 
 class Message(BaseEntity):
     id: UUID

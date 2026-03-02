@@ -136,21 +136,10 @@ export function AvailabilityView() {
 
   return (
     <>
-    <Card className="w-full min-h-[600px]">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
-        <div className="space-y-1">
-           <CardTitle className="flex items-center gap-2">
-              <Clock className="h-6 w-6" />
-              Disponibilidad
-           </CardTitle>
-           <CardDescription>Configure los horarios en los que está disponible para realizar reservas.</CardDescription>
-        </div>
+    Configure los horarios en los que está disponible para realizar reservas.
         <Button onClick={handleCreate} className="gap-2">
             <Plus className="h-4 w-4" /> Nuevo
         </Button>
-      </CardHeader>
-
-      <CardContent>
       {loading ? (
         <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
       ) : (
@@ -182,8 +171,6 @@ export function AvailabilityView() {
           )}
         </div>
       )}
-      </CardContent>
-    </Card>
 
       <Sheet open={isSheetOpen} onOpenChange={(open) => {
           setIsSheetOpen(open);

@@ -4,16 +4,15 @@ from uuid import UUID
 import os
 import shutil
 from typing import List, Optional
-from src.modules.gallery.domain.entity import GalleryImage
-from src.modules.gallery.infrastructure.repositories.gallery_repository import GalleryRepository
+from src.modules.assets.domain.entity import GalleryImage
+from src.modules.assets.infrastructure.repositories.gallery_repository import GalleryRepository
 from src.core.config import settings # Ensure this exists or use relative import
 
 class GalleryService:
     def __init__(self, db: Session):
         self.db = db
         self.repository = GalleryRepository(db)
-        # TODO: Move to config
-        self.upload_dir = "static/uploads" 
+        self.upload_dir = settings.UPLOAD_DIR
         os.makedirs(self.upload_dir, exist_ok=True)
 
     def upload_image(
@@ -70,9 +69,12 @@ class GalleryService:
     def list_images(self, tenant_id: UUID) -> List[GalleryImage]:
         return self.repository.list_by_tenant(tenant_id)
 
-    def delete_image(self, tenant_id: UUID, image_id: UUID) -> bool:
+    def delete_image(self, tenant_id: UUID, image_id: UUID, offer_id: Optional[UUID] = None) -> bool:
         image = self.repository.get_by_id(image_id)
         if not image or str(image.tenant_id) != str(tenant_id):
+            return False
+        
+        if offer_id and str(image.offer_id) != str(offer_id):
             return False
             
         # Delete file

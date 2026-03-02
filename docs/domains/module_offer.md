@@ -41,3 +41,5 @@ Este módulo permite a los usuarios diseñar, configurar y gestionar sus "Oferta
 - **Persistencia de Datos Parciales:** El "Studio" permite guardar borradores incompletos. Las validaciones estrictas de "Publicación" son distintas a las de "Guardado de Borrador".
 - **Manejo de Imágenes Relativas:** Las URLs de imágenes almacenadas en el backend son relativas y requieren que el frontend las procese con el helper `getFullUrl` para su visualización.
 - **Concurrencia en Edición:** No hay bloqueo optimista; la última escritura gana. El frontend mitiga esto guardando por secciones aisladas.
+- Mutación de Ofertas Activas: Si el Tenant cambia el precio de una oferta a $500 mientras el sales_agent está negociando por WhatsApp y ya ofreció $300 a un Lead.
+- Colisión de Contexto RAG: Si la oferta tiene demasiados entregables o PDFs vinculados, superará el límite de tokens (Max Tokens) del LLM al inyectarse en el sales_agent.

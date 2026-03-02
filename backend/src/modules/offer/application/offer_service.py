@@ -2,7 +2,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
-from src.modules.offer.domain.offer import Offer, OfferType
+from src.modules.offer.domain.offer import Offer, OfferType, OFFER_TYPE_TO_DETAILS_MAPPING
+from src.modules.offer.domain.enums import OfferStatus, GuaranteeType
+from src.modules.crm.domain.enums import FinancialCapacity
 
 class OfferService:
     def __init__(self, db: Session):
@@ -27,11 +29,11 @@ class OfferService:
             time_to_value="",
             target_avatar_match=[],
             requires_application=False,
-            min_financial_capacity="low", # Default enum value? Needs import or string. String "low" matches default in many schemas
+            min_financial_capacity=FinancialCapacity.LOW_INCOME,
             pricing_options=[],
-            guarantee_type="none",
+            guarantee_type=GuaranteeType.NONE,
             guarantee_terms="",
-            status="draft"
+            status=OfferStatus.DRAFT
         )
         return self.repository.create(new_offer)
 
@@ -46,11 +48,29 @@ class OfferService:
         if offer.tenant_id != tenant_id:
             raise ValueError("Access denied: Offer belongs to another tenant")
 
-        # Merge updates using model_copy as requested.
-        # Note: If update_data contains raw dictionaries for nested Pydantic models,
-        # model_copy might assign them as dicts. The repository expects Pydantic models.
-        # If specific_details or similar complex fields are updated, ensure update_data
-        # contains properly instantiated models or that the repository can handle dicts.
-        updated_offer = offer.model_copy(update=update_data)
+        # Merge updates using model_dump and model_validate for full validation
+        current_data = offer.model_dump()
+        
+        # Helper: Ensure specific_details is correctly typed before validation to avoid Union ambiguity
+        if "specific_details" in update_data and isinstance(update_data["specific_details"], dict):
+            detail_class = OFFER_TYPE_TO_DETAILS_MAPPING.get(offer.type)
+            if detail_class:
+                try:
+                    # Manually instantiate to force the correct type
+                    update_data["specific_details"] = detail_class(**update_data["specific_details"])
+                except Exception as e:
+                    raise ValueError(f"Invalid specific_details structure for type {offer.type}: {str(e)}")
+
+        # Deep merge for specific_details if needed, but for now we assume replacement or top-level merge
+        # If update_data has 'specific_details', it replaces the old one.
+        current_data.update(update_data)
+        
+        # Re-validate the entire object. This ensures:
+        # 1. specific_details dict is converted back to the correct Pydantic model (Polymorphism)
+        # 2. Consistency rules in Offer.validate_consistency are checked
+        try:
+            updated_offer = Offer.model_validate(current_data)
+        except Exception as e:
+            raise ValueError(f"Invalid update data: {str(e)}")
         
         return self.repository.update(updated_offer)

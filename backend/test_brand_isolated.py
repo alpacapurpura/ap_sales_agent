@@ -58,7 +58,7 @@ sys.modules["src.shared.infrastructure.external.clerk"] = MagicMock()
 # Mock dependencies if they are imported from elsewhere
 # settings.py imports:
 # from src.shared.api.dependencies import get_current_user
-# from src.shared.infrastructure.db.database import get_db
+# from src.core.database import get_db
 # We can let them be imported if the files exist and don't cause side effects,
 # or mock them. `dependencies.py` imports a lot. Better mock it.
 mock_deps = MagicMock()
@@ -67,7 +67,7 @@ def mock_get_db(): pass
 mock_deps.get_current_user = mock_get_current_user
 mock_deps.get_db = mock_get_db
 sys.modules["src.shared.api.dependencies"] = mock_deps
-sys.modules["src.shared.infrastructure.db.database"] = mock_deps # Reusing mock for get_db
+sys.modules["src.core.database"] = mock_deps # Reusing mock for get_db
 
 # We need pydantic models to be real.
 # Ensure they are not mocked if we want validation.

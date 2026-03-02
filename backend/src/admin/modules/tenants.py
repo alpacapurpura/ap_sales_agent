@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from src.shared.infrastructure.db.database import SessionLocal
+from src.core.database import SessionLocal
 from src.modules.iam.application.services.tenant_service import TenantService
 
 def get_tenants():

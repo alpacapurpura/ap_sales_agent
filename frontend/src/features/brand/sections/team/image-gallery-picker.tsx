@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
-import { galleryApi, GalleryImage } from "@/lib/api/gallery";
+import { assetsApi } from "@/lib/api/assets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,12 +43,12 @@ export function ImageGalleryPicker({
     const [tempSelected, setTempSelected] = useState<string[]>([]);
 
     const { data: galleryImages, isLoading } = useQuery({
-        queryKey: ["gallery"],
+        queryKey: ["assets"],
         queryFn: async () => {
             const token = await getToken();
             if (!token) return [];
             try {
-                return await galleryApi.list(token);
+                return await assetsApi.list(token);
             } catch (e) {
                 console.error(e);
                 return [];
@@ -61,10 +61,10 @@ export function ImageGalleryPicker({
         mutationFn: async () => {
             const token = await getToken();
             if (!token || !uploadFile) return;
-            return galleryApi.upload(token, uploadFile, uploadDesc);
+            return assetsApi.upload(token, uploadFile, uploadDesc);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["gallery"] });
+            queryClient.invalidateQueries({ queryKey: ["assets"] });
             setUploadFile(null);
             setUploadDesc("");
             toast.success("Imagen subida a la galería");

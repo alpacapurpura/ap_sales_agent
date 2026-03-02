@@ -1,0 +1,17 @@
+- [x] Backend router `calendar.py` prefix is empty
+- [x] Backend router `gmail.py` prefix is empty
+- [x] Backend router `leads.py` prefix is empty
+- [x] Backend router `event_types.py` prefix is empty
+- [x] Backend router `telegram.py` endpoints are clean (no `/channels/telegram` prefix)
+- [x] Frontend `assets.ts` points to `/api/v1/assets/gallery`
+- [x] Frontend `avatar.ts` points to `/api/v1/brand/avatars`
+- [x] Frontend `settings.ts` points to `/api/v1/iam` and `/api/v1/brand`
+- [x] Frontend `whatsapp.ts` points to `/api/v1/connections/whatsapp`
+- [x] Frontend `public.ts` points to `/api/v1/scheduling/public`
+- [x] Frontend `leads.ts` points to `/api/v1/crm/leads`
+- [x] Frontend `event-types.ts` points to `/api/v1/scheduling/event-types`
+- [x] Frontend `connections.ts` points to `/api/v1/connections/*`
+- [x] Frontend `booking-links.ts` points to `/api/v1/connections/calendar`
+- [x] Frontend `availability.ts` points to `/api/v1/connections/calendar/schedules`
+- [x] Frontend `offer-gallery.ts` points to `/api/v1/assets/offers`
+- [x] Frontend `admin.ts` points to `/api/v1/iam/tenants`
