@@ -39,10 +39,9 @@ async def get_general_settings(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
         
-    config = tenant.config_json or {}
     return GeneralSettings(
-        default_currency=config.get("default_currency", "USD"),
-        timezone=config.get("timezone", "UTC")
+        default_currency=tenant.default_currency or "USD",
+        timezone=tenant.timezone or "UTC"
     )
 
 @router.patch("/general", response_model=GeneralSettings)
@@ -61,20 +60,18 @@ async def update_general_settings(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     
-    # Update config_json
-    current_config = dict(tenant.config_json) if tenant.config_json else {}
-    current_config["default_currency"] = settings.default_currency
-    current_config["timezone"] = settings.timezone
+    if settings.default_currency is not None:
+        tenant.default_currency = settings.default_currency
     
-    # Reassign to trigger SQLAlchemy detection (if using MutableDict it's auto, but safer this way)
-    tenant.config_json = current_config
+    if settings.timezone is not None:
+        tenant.timezone = settings.timezone
         
     db.commit()
     db.refresh(tenant)
     
     return GeneralSettings(
-        default_currency=tenant.config_json.get("default_currency", "USD"),
-        timezone=tenant.config_json.get("timezone", "UTC")
+        default_currency=tenant.default_currency or "USD",
+        timezone=tenant.timezone or "UTC"
     )
 
 @router.get("/ai", response_model=AISettings)
@@ -115,12 +112,11 @@ async def get_user_profile(
         tenant = db.query(TenantModel).filter(TenantModel.id == current_user.tenant_id).first()
         if tenant:
             logger.info("tenant_resolved_for_profile", tenant_name=tenant.name, tenant_id=str(tenant.id))
-            config = tenant.config_json or {}
             tenant_profile = TenantProfile(
                 id=str(tenant.id),
                 name=tenant.name,
                 slug=tenant.slug,
-                timezone=config.get("timezone", "UTC")
+                timezone=tenant.timezone or "UTC"
             )
         else:
              logger.warning("tenant_not_found_for_profile", tenant_id=str(current_user.tenant_id))

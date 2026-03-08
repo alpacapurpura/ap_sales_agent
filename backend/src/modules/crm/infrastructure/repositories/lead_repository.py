@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from uuid import UUID
+from sqlalchemy import desc
 from src.modules.crm.domain.lead import Lead, UserProfile
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
@@ -86,6 +87,14 @@ class LeadRepository:
         if model:
             return self._to_domain(model)
         return None
+
+    def get_high_intent_leads(self, tenant_id: UUID, min_score: int = 50, limit: int = 20) -> List[Lead]:
+        models = self.db.query(LeadModel).filter(
+            LeadModel.tenant_id == tenant_id,
+            LeadModel.intent_score >= min_score,
+            LeadModel.is_blacklisted == False
+        ).order_by(desc(LeadModel.intent_score)).limit(limit).all()
+        return [self._to_domain(m) for m in models]
 
     def create(self, lead: Lead) -> Lead:
         model = self._to_model(lead)

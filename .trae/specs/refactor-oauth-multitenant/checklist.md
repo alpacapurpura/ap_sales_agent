@@ -1,0 +1,8 @@
+- [x] Google Analytics: Allows saving Client ID/Secret.
+- [x] Google Analytics: OAuth flow uses stored Client ID.
+- [x] Meta Business Suite: Allows saving App ID/Secret.
+- [x] Meta Business Suite: OAuth flow uses stored App ID.
+- [x] YouTube: Allows saving Client ID/Secret.
+- [x] YouTube: OAuth flow uses stored Client ID.
+- [x] Shopify/MailerLite/ManyChat: Confirmed working as multitenant.
+- [x] No global OAuth credentials in use.

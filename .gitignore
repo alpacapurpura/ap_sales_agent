@@ -33,9 +33,9 @@ yarn-error.log*
 pnpm-debug.log*
 
 # --- Backend (Python/FastAPI) ---
-backend/__pycache__/
-backend/*.py[cod]
-backend/*$py.class
+**/__pycache__/
+*.py[cod]
+*$py.class
 backend/.Python
 backend/build/
 backend/dist/
@@ -75,6 +75,7 @@ frontend/*.tsbuildinfo
 # --- Infrastructure & Data ---
 # Docker Volumes & Persistence
 data/
+postgres_data/
 tmp/
 temp/
 
@@ -89,4 +90,3 @@ backend/cloudflare/cloudflared*
 # !despliegue/github_actions/
 # !despliegue/**/README.md
 # !despliegue/**/*.sh
-

@@ -2,6 +2,8 @@ from passlib.context import CryptContext
 from cryptography.fernet import Fernet
 import os
 import base64
+import hashlib
+from src.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -24,3 +26,8 @@ def decrypt_string(token: str, key: str) -> str:
     """Decrypt a string using Fernet."""
     f = Fernet(key.encode())
     return f.decrypt(token.encode()).decode()
+
+def get_encryption_key() -> str:
+    """Derives a URL-safe base64 32-byte key from settings.API_SECRET_KEY."""
+    digest = hashlib.sha256(settings.API_SECRET_KEY.encode()).digest()
+    return base64.urlsafe_b64encode(digest).decode()

@@ -1,0 +1,4 @@
+- [x] OAuth URL generation requests Offline Token (no `grant_options`)
+- [x] Backend Redirect URI matches Shopify App Config
+- [x] Database stores `access_token` in `credentials` column
+- [x] User informed about Public App vs Custom App distinction

@@ -1,0 +1,27 @@
+{
+  "name": "aisalesht",
+  "version": "1.0.0",
+  "description": "Sistema de agente de ventas basado en Inteligencia Artificial, diseñado con una arquitectura \"Code-First\" utilizando Python, FastAPI y LangGraph.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alpacapurpura/ap_sales_agent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alpacapurpura/ap_sales_agent/issues"
+  },
+  "homepage": "https://github.com/alpacapurpura/ap_sales_agent#readme",
+  "devDependencies": {
+    "@shopify/app": "^3.50.0",
+    "@shopify/cli": "^3.84.1"
+  }
+}

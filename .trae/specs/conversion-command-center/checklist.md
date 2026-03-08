@@ -1,0 +1,8 @@
+- [ ] Backend: `Sale` model includes `offer_id`, `stage`, `transaction_id`, `payment_method`
+- [ ] Backend: `SaleService` correctly assigns CONVERSION vs EXPANSION based on customer history
+- [ ] Backend: `GET /api/v1/crm/dashboard/agenda` supports `?range=week`
+- [ ] Backend: `GET /api/v1/crm/dashboard/ticker` supports `?range=30d`
+- [ ] Frontend: Dashboard shows 3 lanes with correct time controls
+- [ ] Frontend: Lane 2 toggles between Today/Week
+- [ ] Frontend: Lane 3 shows last 30 days of sales by default
+- [ ] E2E: User can view the full funnel flow on the dashboard

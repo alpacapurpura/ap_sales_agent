@@ -1,0 +1,6 @@
+- [x] `shopify.app.toml` is updated with Frontend URLs
+- [x] Backend `generate_auth_url` produces Frontend-based `redirect_uri`
+- [x] Backend `POST /exchange` endpoint is implemented and tested
+- [x] Frontend `/api/auth/shopify/callback` route is created and proxies correctly
+- [x] `shopify app config push` has been executed to update Shopify Partners
+- [ ] OAuth flow completes successfully without "Host Mismatch" error

@@ -1,0 +1,2 @@
+- [x] `redirect_uri` is logged in backend logs.
+- [x] `SHOPIFY_APP_URL` in `.env` matches the active tunnel URL.

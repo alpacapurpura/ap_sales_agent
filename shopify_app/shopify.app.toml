@@ -1,0 +1,27 @@
+# This file is used by Shopify CLI to manage your app's configuration.
+# To push this configuration to Shopify, run: `shopify app config push`
+
+client_id = "fb6041afe486ea03525111600e441424"
+name = "alpacapurpura"
+application_url = "https://laptopchris.alpacapurpura.lat"
+embedded = true
+
+[webhooks]
+api_version = "2024-01"
+
+[webhooks.privacy_compliance]
+customer_data_request_url = "https://laptopchris-api.alpacapurpura.lat/api/v1/connections/shopify/compliance/customers/data_request"
+customer_redaction_url = "https://laptopchris-api.alpacapurpura.lat/api/v1/connections/shopify/compliance/customers/redact"
+shop_redaction_url = "https://laptopchris-api.alpacapurpura.lat/api/v1/connections/shopify/compliance/shop/redact"
+
+[auth]
+redirect_urls = [
+  "https://laptopchris.alpacapurpura.lat/api/v1/connections/shopify/auth/callback"
+]
+
+[access_scopes]
+# Scopes requested by the backend
+scopes = "read_customers,write_customers,read_orders,write_orders,read_products"
+
+[pos]
+embedded = false

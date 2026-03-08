@@ -20,18 +20,17 @@ export interface ActivityItem {
 
 export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
-    const res = await fetchClient(`${BASE_URL}/api/v1/sales-agent/dashboard/stats`);
-    if (!res.ok) {
-        throw new Error("Failed to fetch dashboard stats");
-    }
-    return res.json();
+    // TODO: implement when endpoints are ready
+    return {
+      total_sales: 0,
+      appointments_today: 0,
+      conversion_rate: 0,
+      active_leads: 0
+    };
   },
 
   getActivity: async (): Promise<ActivityItem[]> => {
-    const res = await fetchClient(`${BASE_URL}/api/v1/sales-agent/dashboard/activity`);
-    if (!res.ok) {
-        throw new Error("Failed to fetch dashboard activity");
-    }
-    return res.json();
+    // TODO: implement when endpoints are ready
+    return [];
   }
 };

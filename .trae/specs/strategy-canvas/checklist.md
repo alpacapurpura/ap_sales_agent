@@ -1,0 +1,11 @@
+- [x] `@visx` packages are installed.
+- [x] Directory structure is created in `marketing-studio`.
+- [x] Mock data correctly represents the 8 nodes and various edge cases.
+- [x] Sankey diagram renders 8 nodes horizontally.
+- [x] Edges are rendered with correct thickness (volume).
+- [x] Edges have correct visual styles (Dotted for Potential, Red/Pulse for Bottleneck, Colored for Healthy).
+- [x] Nodes display Title, Volume, and Efficiency.
+- [x] Clicking an edge opens the details drawer.
+- [x] Drawer displays correct metadata for the clicked action.
+- [x] Adapter pattern is used to transform data.
+- [x] Component Factory is used for node rendering.

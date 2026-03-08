@@ -19,7 +19,7 @@ export async function fetchClient(input: RequestInfo | URL, init?: RequestInit):
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
         const firstSegment = pathSegments[0];
         // Exclude known global routes
-        const globals = ['sign-in', 'sign-up', 'forbidden', 'visit', 'api', 'p', 'onboarding'];
+        const globals = ['sign-in', 'sign-up', 'forbidden', 'visit', 'api', 'p', 'onboarding', 'settings', 'admin', 'dashboard', '_next'];
         if (firstSegment && !globals.includes(firstSegment)) {
             tenantId = firstSegment;
             // Sync strictly to avoid drift

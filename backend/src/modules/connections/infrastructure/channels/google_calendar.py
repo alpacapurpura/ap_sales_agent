@@ -4,6 +4,7 @@ from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from src.core.config import settings
+from src.modules.connections.infrastructure.marketing_connectors.base import BaseConnector
 import json
 import datetime
 import os
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 SCOPES = ['https://www.googleapis.com/auth/calendar', 'https://www.googleapis.com/auth/calendar.events']
 
-class GoogleCalendarAdapter:
+class GoogleCalendarAdapter(BaseConnector):
     """
     Adapter for Google Calendar API.
     Handles OAuth2 flow and wraps calendar operations.
@@ -25,6 +26,20 @@ class GoogleCalendarAdapter:
         self.creds = None
         if credentials_data:
             self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
+
+    def sync_contacts(self, tenant_id: str) -> List[Dict[str, Any]]:
+        """
+        Sync contacts implementation (Placeholder).
+        """
+        return []
+
+    def sync_events(self, tenant_id: str) -> List[Dict[str, Any]]:
+        """
+        Sync events implementation (Next 30 days).
+        """
+        now = datetime.datetime.utcnow()
+        end = now + datetime.timedelta(days=30)
+        return self.list_events(now, end)
 
     @staticmethod
     def get_client_config() -> Dict[str, Any]:

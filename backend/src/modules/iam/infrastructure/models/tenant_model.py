@@ -14,8 +14,11 @@ class TenantModel(Base):
     clerk_org_id = Column(String, nullable=True, index=True)
     
     # Configuration for Prompts and Rules
-    # e.g. { "company_name": "Visionarias", "currency": "USD" }
+    # Configuration for Prompts and Rules
+    # e.g. { "company_name": "Visionarias" }
     config_json = Column(JSONB, default={}) 
+    default_currency = Column(String, server_default="USD")
+    timezone = Column(String, server_default="UTC")
     
     # AI Provider Configuration (Multitenant)
     openai_api_key = Column(String, nullable=True)

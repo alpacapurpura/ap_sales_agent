@@ -5,12 +5,18 @@ from src.core.database import get_db
 # In a real scenario, we would use MessageService here to log the event or trigger a workflow
 # For now keeping it simple but cleaner structure
 
+from src.modules.connections.api.dependencies.webhook_security import verify_shopify_signature
+
 logger = structlog.get_logger()
 
 router = APIRouter()
 
 @router.post("/shopify", status_code=status.HTTP_200_OK)
-async def shopify_webhook(request: Request, db: Session = Depends(get_db)):
+async def shopify_webhook(
+    request: Request, 
+    verified: bool = Depends(verify_shopify_signature),
+    db: Session = Depends(get_db)
+):
     """
     Recibe un webhook de Shopify.
     """

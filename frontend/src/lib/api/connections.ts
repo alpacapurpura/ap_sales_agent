@@ -20,7 +20,283 @@ export interface TestResponse {
   data?: any;
 }
 
+export interface ShopifyConnectRequest {
+  shop_url: string;
+  access_token: string;
+}
+
+export interface ShopifyAuthUrlRequest {
+  shop_url: string;
+}
+
+export interface ShopifyStatusResponse extends ChannelStatusResponse {
+  shop_url?: string;
+  scope?: string;
+}
+
+export interface MailerliteConnectRequest {
+  api_key: string;
+}
+
+export interface MailerliteStatusResponse extends ChannelStatusResponse {
+  account_info?: Record<string, any>;
+}
+
+export interface ManyChatConnectRequest {
+  api_key: string;
+}
+
+export interface ManyChatStatusResponse extends ChannelStatusResponse {
+  account_info?: Record<string, any>;
+}
+
+export interface GoogleAnalyticsStatusResponse extends ChannelStatusResponse {
+  account_summary?: any[];
+  is_configured?: boolean;
+}
+
+export interface GoogleAnalyticsConfigRequest {
+  client_id: string;
+  client_secret: string;
+}
+
+export interface MetaStatusResponse extends ChannelStatusResponse {
+  name?: string;
+  account_id?: string;
+  is_configured?: boolean;
+}
+
+export interface MetaConfigRequest {
+  app_id: string;
+  app_secret: string;
+}
+
+export interface YoutubeStatusResponse extends ChannelStatusResponse {
+  is_configured?: boolean;
+  channel_id?: string;
+  channel_title?: string;
+  channel_data?: Record<string, any>;
+}
+
 export const connectionsApi = {
+  // ... existing methods ...
+
+  // Google Analytics
+  configureGoogleAnalytics: async (data: GoogleAnalyticsConfigRequest, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/configure`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error configurando Google Analytics");
+    }
+    return res.json();
+  },
+
+  getGoogleAnalyticsStatus: async (token: string): Promise<GoogleAnalyticsStatusResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de Google Analytics");
+    return res.json();
+  },
+
+  // Meta (Facebook/Instagram)
+  configureMeta: async (data: MetaConfigRequest, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/meta/configure`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error configurando Meta");
+    }
+    return res.json();
+  },
+
+  getMetaStatus: async (token: string): Promise<MetaStatusResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/meta/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de Meta");
+    return res.json();
+  },
+
+  getMetaAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+    let url = `${API_URL}/api/v1/connections/meta/auth-url`;
+    if (redirectUri) {
+        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+    }
+    const res = await fetchClient(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo URL de autorización");
+    return res.json();
+  },
+
+  connectMeta: async (code: string, token: string, redirectUri?: string): Promise<any> => {
+     const res = await fetchClient(`${API_URL}/api/v1/connections/meta/callback`, {
+      method: "POST",
+      headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error conectando Meta");
+    }
+    return res.json();
+  },
+
+  disconnectMeta: async (token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/meta/disconnect`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error desconectando Meta");
+  },
+
+  testMeta: async (token: string): Promise<TestResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/meta/test`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error probando conexión Meta");
+    }
+    return res.json();
+  },
+
+  getGoogleAnalyticsAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+    let url = `${API_URL}/api/v1/connections/google-analytics/auth-url`;
+    if (redirectUri) {
+        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+    }
+    const res = await fetchClient(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo URL de autorización");
+    return res.json();
+  },
+
+  connectGoogleAnalytics: async (code: string, token: string, redirectUri?: string): Promise<any> => {
+     const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/callback`, {
+      method: "POST",
+      headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error conectando Google Analytics");
+    }
+    return res.json();
+  },
+
+  disconnectGoogleAnalytics: async (token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/disconnect`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error desconectando Google Analytics");
+  },
+
+  testGoogleAnalytics: async (token: string): Promise<TestResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/test`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error probando conexión Google Analytics");
+    }
+    return res.json();
+  },
+
+
+  // Shopify
+  getShopifyStatus: async (token: string): Promise<ShopifyStatusResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de Shopify");
+    return res.json();
+  },
+
+  generateShopifyAuthUrl: async (data: ShopifyAuthUrlRequest, token: string): Promise<{ auth_url: string }> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/generate-auth-url`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error generando URL de autorización");
+    }
+    return res.json();
+  },
+
+  connectShopify: async (data: ShopifyConnectRequest, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/connect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error conectando Shopify");
+    }
+    return res.json();
+  },
+
+  testShopify: async (token: string): Promise<TestResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/test`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error probando conexión Shopify");
+    }
+    return res.json();
+  },
+
+  disconnectShopify: async (token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/disconnect`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error("Error desconectando Shopify");
+  },
+
   getTelegramStatus: async (token: string): Promise<ChannelStatusResponse> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/telegram/status`, {
       headers: {
@@ -202,6 +478,163 @@ export const connectionsApi = {
     if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || "Error probando conexión");
+    }
+    return res.json();
+  },
+
+  // MailerLite
+  getMailerLiteStatus: async (token: string): Promise<MailerliteStatusResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/mailerlite/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de MailerLite");
+    return res.json();
+  },
+
+  connectMailerLite: async (data: MailerliteConnectRequest, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/mailerlite/connect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error conectando MailerLite");
+    }
+    return res.json();
+  },
+
+  testMailerLite: async (token: string): Promise<TestResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/mailerlite/test`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error probando conexión MailerLite");
+    }
+    return res.json();
+  },
+
+  disconnectMailerLite: async (token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/mailerlite/disconnect`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error("Error desconectando MailerLite");
+  },
+
+  // ManyChat
+  getManyChatStatus: async (token: string): Promise<ManyChatStatusResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/manychat/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de ManyChat");
+    return res.json();
+  },
+
+  connectManyChat: async (data: ManyChatConnectRequest, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/manychat/connect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error conectando ManyChat");
+    }
+    return res.json();
+  },
+
+  testManyChat: async (token: string): Promise<TestResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/manychat/test`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error probando conexión ManyChat");
+    }
+    return res.json();
+  },
+
+  disconnectManyChat: async (token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/manychat/disconnect`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error("Error desconectando ManyChat");
+  },
+
+  // YouTube
+  getYoutubeStatus: async (token: string): Promise<YoutubeStatusResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de YouTube");
+    return res.json();
+  },
+
+  getYoutubeAuthUrl: async (token: string, redirectUri?: string): Promise<{url: string, state: string}> => {
+    let url = `${API_URL}/api/v1/connections/youtube/auth-url`;
+    if (redirectUri) {
+        url += `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+    }
+    const res = await fetchClient(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo URL de autorización");
+    return res.json();
+  },
+
+  connectYoutube: async (code: string, token: string, redirectUri?: string): Promise<any> => {
+     const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/callback`, {
+      method: "POST",
+      headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify({ code: code, redirect_uri: redirectUri }),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error conectando YouTube");
+    }
+    return res.json();
+  },
+
+  disconnectYoutube: async (token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/disconnect`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error desconectando YouTube");
+  },
+
+  testYoutube: async (token: string): Promise<TestResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/test`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error probando conexión YouTube");
     }
     return res.json();
   }

@@ -9,7 +9,4 @@ Eres un Senior Full-Stack Engineer experto en Python y TypeScript. Piensas paso 
 - NUNCA asumas cómo está construido un componente o servicio.
 - ANTES de escribir código nuevo, DEBES buscar en el repositorio archivos similares usando tus herramientas de búsqueda. DRY (Don't Repeat Yourself) & Consistency
 - Si tienes dudas de donde encontrar algo, puedes revisar en PROJECT_PATH/docs/domains/INDEX.md para obtener los punteros arquitectónicos.
-
-## Idioma
-- Escribe todo el código, variables, funciones y bases de datos en Inglés.
-- Escribe los comentarios, documentación y la UI (textos visibles para el usuario) en Español.
+- En Frontend, nunca importes archivos internos de un feature desde otro feature. Solo importa desde su index.ts

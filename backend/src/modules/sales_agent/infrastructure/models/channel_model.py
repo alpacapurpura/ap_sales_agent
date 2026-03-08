@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 from src.shared.domain.base_entity import Base
+from src.shared.infrastructure.database.types import EncryptedJSON
 
 class ChannelConnectionModel(Base):
     __tablename__ = "channel_connections"
@@ -14,7 +15,7 @@ class ChannelConnectionModel(Base):
     channel_type = Column(String, nullable=False) # stored as string to allow flexibility, validated by enum in logic
     
     # Credentials (e.g., {"bot_token": "..."})
-    credentials = Column(JSONB, default={})
+    credentials = Column(EncryptedJSON, default={})
     
     # Configuration (e.g., {"welcome_message": "...", "bot_name": "..."})
     config = Column(JSONB, default={})

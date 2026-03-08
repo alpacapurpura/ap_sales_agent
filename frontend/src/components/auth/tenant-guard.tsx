@@ -4,7 +4,14 @@ import { ReactNode } from 'react';
 import { headers } from 'next/headers';
 
 export async function TenantGuard({ children }: { children: ReactNode }) {
-  const user = await currentUser();
+  let user;
+  try {
+    user = await currentUser();
+  } catch (err) {
+    console.error("TenantGuard: currentUser() failed", err);
+    // Fallback: If auth fails here, we proceed as unauthenticated (user = undefined).
+    // Middleware should have protected the route if configured correctly.
+  }
   const headersList = await headers();
   // x-url is often not available directly in Server Components unless middleware passes it, 
   // but we can infer context or just check if the user is in a state that requires redirection.

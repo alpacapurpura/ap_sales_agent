@@ -9,6 +9,12 @@ import { TeamView } from "@/features/settings/components/team-view"
 import { TelegramView } from "@/features/connections/components/telegram-view"
 import { GoogleCalendarView } from "@/features/connections/components/google-calendar-view"
 import { GmailView } from "@/features/connections/components/gmail-view"
+import { ShopifyView } from "@/features/connections/components/shopify-view"
+import { MailerLiteView } from "@/features/connections/components/mailerlite-view"
+import { ManyChatView } from "@/features/connections/components/manychat-view"
+import { GoogleAnalyticsView } from "@/features/connections/components/google-analytics-view"
+import { YoutubeView } from "@/features/connections/components/youtube-view"
+import { MetaView } from "@/features/connections/components/meta-view"
 import WhatsAppView from "@/features/connections/components/whatsapp-view"
 import { 
   Key, 
@@ -19,12 +25,17 @@ import {
   MessageCircle, 
   Video, 
   Instagram, 
+  Facebook,
   MessageSquare, 
   Send, 
   MessageSquareCode, 
   Calendar, 
   CreditCard, 
-  Mail
+  Mail,
+  ShoppingBag,
+  Bot,
+  BarChart,
+  Youtube
 } from "lucide-react"
 import { useSearchParams, useRouter, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
@@ -127,6 +138,27 @@ function SettingsContent() {
                       WhatsApp
                     </TabsTrigger>
                     <TabsTrigger 
+                      value="meta" 
+                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    >
+                      <Facebook className="mr-2 h-4 w-4" />
+                      Meta Business Suite
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="manychat" 
+                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    >
+                      <Bot className="mr-2 h-4 w-4" />
+                      ManyChat
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="shopify" 
+                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    >
+                      <ShoppingBag className="mr-2 h-4 w-4" />
+                      Shopify
+                    </TabsTrigger>
+                    <TabsTrigger 
                       value="email" 
                       className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
@@ -167,6 +199,35 @@ function SettingsContent() {
                     >
                       <MessageSquareCode className="mr-2 h-4 w-4" />
                       Web Widget
+                    </TabsTrigger>
+
+                    {/* Grupo: Marketing */}
+                    <div className="w-full px-4 mb-2 mt-6">
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Marketing
+                      </h3>
+                    </div>
+
+                    <TabsTrigger 
+                      value="mailerlite" 
+                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      MailerLite
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="google-analytics" 
+                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    >
+                      <BarChart className="mr-2 h-4 w-4" />
+                      Google Analytics
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="youtube" 
+                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    >
+                      <Youtube className="mr-2 h-4 w-4" />
+                      YouTube
                     </TabsTrigger>
 
                     {/* Grupo: Cierre de ventas */}
@@ -234,6 +295,15 @@ function SettingsContent() {
                 <TabsContent value="whatsapp" className="mt-0">
                   <WhatsAppView key={tenantId} />
                 </TabsContent>
+                <TabsContent value="meta" className="mt-0">
+                  <MetaView key={tenantId} />
+                </TabsContent>
+                <TabsContent value="manychat" className="mt-0">
+                  <ManyChatView key={tenantId} />
+                </TabsContent>
+                <TabsContent value="shopify" className="mt-0">
+                  <ShopifyView key={tenantId} />
+                </TabsContent>
                 <TabsContent value="email" className="mt-0">
                    <GmailView key={tenantId} />
                 </TabsContent>
@@ -251,6 +321,17 @@ function SettingsContent() {
                 </TabsContent>
                 <TabsContent value="webwidget" className="mt-0">
                    <PlaceholderContent key={tenantId} title="Web Widget" icon={MessageSquareCode} />
+                </TabsContent>
+
+                {/* Marketing */}
+                <TabsContent value="mailerlite" className="mt-0">
+                   <MailerLiteView key={tenantId} />
+                </TabsContent>
+                <TabsContent value="google-analytics" className="mt-0">
+                   <GoogleAnalyticsView key={tenantId} />
+                </TabsContent>
+                <TabsContent value="youtube" className="mt-0">
+                   <YoutubeView key={tenantId} />
                 </TabsContent>
 
                 {/* Cierre de ventas */}
@@ -279,16 +360,25 @@ function SettingsViewInner() {
   const [isPopupCallback, setIsPopupCallback] = useState(false)
 
   useEffect(() => {
-    // Check if we are in a popup and have a code/error from Google
+    // Check if we are in a popup and have a code/error from Google or Meta
     if (window.opener && (searchParams.get("code") || searchParams.get("error"))) {
         setIsPopupCallback(true);
         const code = searchParams.get("code");
         const error = searchParams.get("error");
+        const state = searchParams.get("state");
 
         if (code) {
-            window.opener.postMessage({ type: "GOOGLE_OAUTH_SUCCESS", code }, window.location.origin);
+            if (state && state.startsWith("meta")) {
+                window.opener.postMessage({ type: "META_OAUTH_SUCCESS", code }, window.location.origin);
+            } else {
+                window.opener.postMessage({ type: "GOOGLE_OAUTH_SUCCESS", code }, window.location.origin);
+            }
         } else if (error) {
-            window.opener.postMessage({ type: "GOOGLE_OAUTH_ERROR", error }, window.location.origin);
+            if (state && state.startsWith("meta")) {
+                window.opener.postMessage({ type: "META_OAUTH_ERROR", error }, window.location.origin);
+            } else {
+                window.opener.postMessage({ type: "GOOGLE_OAUTH_ERROR", error }, window.location.origin);
+            }
         }
 
         // Close after a brief delay

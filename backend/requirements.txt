@@ -37,3 +37,5 @@ alembic>=1.13.1
 beautifulsoup4>=4.12.3
 python-docx>=0.8.11
 svix>=1.1.1
+passlib[bcrypt]>=1.7.4
+facebook-business

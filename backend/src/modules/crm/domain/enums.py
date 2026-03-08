@@ -84,3 +84,21 @@ class BusinessStage(str, Enum):
     ACTIVE = "Negocio Activo"
     IDEA = "Idea Clara"
     NONE = "Sin Idea"
+
+class SaleStatus(str, Enum):
+    COMPLETED = "COMPLETED"
+    REFUNDED = "REFUNDED"
+    PENDING = "PENDING"
+    FAILED = "FAILED"
+
+class SaleStage(str, Enum):
+    CONVERSION = "CONVERSION"
+    EXPANSION = "EXPANSION"
+
+class PaymentMethod(str, Enum):
+    CREDIT_CARD = "CREDIT_CARD"
+    WIRE = "WIRE"
+    CASH = "CASH"
+    STRIPE = "STRIPE"
+    PAYPAL = "PAYPAL"
+    MANUAL = "MANUAL"

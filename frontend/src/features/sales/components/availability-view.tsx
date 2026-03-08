@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { 
-  AvailabilitySchedule, 
-  WeeklySchedule, 
-  DaySchedule, 
-  TimeRange, 
-  availabilityApi 
+import {
+  AvailabilitySchedule,
+  WeeklySchedule,
+  DaySchedule,
+  TimeRange,
+  availabilityApi
 } from "@/lib/api/availability";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -136,19 +136,19 @@ export function AvailabilityView() {
 
   return (
     <>
-    Configure los horarios en los que está disponible para realizar reservas.
-        <Button onClick={handleCreate} className="gap-2">
-            <Plus className="h-4 w-4" /> Nuevo
-        </Button>
+      Configure los horarios en los que está disponible para realizar reservas.
+      <Button onClick={handleCreate} className="gap-2">
+        <Plus className="h-4 w-4" /> Nuevo
+      </Button>
       {loading ? (
         <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
       ) : (
         <div className="grid gap-4">
           {schedules.map((schedule) => (
-            <Card 
-                key={schedule.id} 
-                className="cursor-pointer border hover:border-primary transition-all bg-background shadow-sm hover:shadow-md"
-                onClick={() => handleEdit(schedule)}
+            <Card
+              key={schedule.id}
+              className="cursor-pointer border hover:border-primary transition-all shadow-sm hover:shadow-md"
+              onClick={() => handleEdit(schedule)}
             >
               <CardContent className="p-6 flex items-center justify-between">
                 <div className="space-y-1">
@@ -165,34 +165,34 @@ export function AvailabilityView() {
             </Card>
           ))}
           {schedules.length === 0 && (
-              <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
-                  No hay horarios configurados. Crea uno para empezar.
-              </div>
+            <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
+              No hay horarios configurados. Crea uno para empezar.
+            </div>
           )}
         </div>
       )}
 
       <Sheet open={isSheetOpen} onOpenChange={(open) => {
-          setIsSheetOpen(open);
-          if (!open) {
-              fetchSchedules(); // Refresh on close to ensure sync
-              setSelectedSchedule(null);
-          }
+        setIsSheetOpen(open);
+        if (!open) {
+          fetchSchedules(); // Refresh on close to ensure sync
+          setSelectedSchedule(null);
+        }
       }}>
         <SheetContent className="sm:max-w-xl w-full overflow-y-auto">
-            <SheetHeader>
-                <SheetTitle>Editar Disponibilidad</SheetTitle>
-                <SheetDescription>Configure los días y horas disponibles.</SheetDescription>
-            </SheetHeader>
-            {selectedSchedule && (
-                <ScheduleEditor 
-                    initialSchedule={selectedSchedule} 
-                    onSave={() => {
-                        setIsSheetOpen(false);
-                        fetchSchedules();
-                    }}
-                />
-            )}
+          <SheetHeader>
+            <SheetTitle>Editar Disponibilidad</SheetTitle>
+            <SheetDescription>Configure los días y horas disponibles.</SheetDescription>
+          </SheetHeader>
+          {selectedSchedule && (
+            <ScheduleEditor
+              initialSchedule={selectedSchedule}
+              onSave={() => {
+                setIsSheetOpen(false);
+                fetchSchedules();
+              }}
+            />
+          )}
         </SheetContent>
       </Sheet>
     </>
@@ -200,187 +200,187 @@ export function AvailabilityView() {
 }
 
 function ScheduleEditor({ initialSchedule, onSave }: { initialSchedule: AvailabilitySchedule, onSave: () => void }) {
-    const { getToken } = useAuth();
-    const [schedule, setSchedule] = useState<AvailabilitySchedule>(initialSchedule);
-    const [saving, setSaving] = useState(false);
-    const [deleting, setDeleting] = useState(false);
+  const { getToken } = useAuth();
+  const [schedule, setSchedule] = useState<AvailabilitySchedule>(initialSchedule);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-    const updateDay = (day: keyof WeeklySchedule, updates: Partial<DaySchedule>) => {
-        setSchedule(prev => ({
-            ...prev,
-            schedule: {
-                ...prev.schedule,
-                [day]: { ...prev.schedule[day], ...updates }
-            }
-        }));
-    };
+  const updateDay = (day: keyof WeeklySchedule, updates: Partial<DaySchedule>) => {
+    setSchedule(prev => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        [day]: { ...prev.schedule[day], ...updates }
+      }
+    }));
+  };
 
-    const addRange = (day: keyof WeeklySchedule) => {
-        const currentRanges = schedule.schedule[day].ranges;
-        const lastRange = currentRanges[currentRanges.length - 1];
-        let newStart = "09:00";
-        let newEnd = "17:00";
-        
-        // Try to be smart about next slot
-        if (lastRange) {
-             // Logic to find next slot could go here, keeping simple for now
-        }
+  const addRange = (day: keyof WeeklySchedule) => {
+    const currentRanges = schedule.schedule[day].ranges;
+    const lastRange = currentRanges[currentRanges.length - 1];
+    let newStart = "09:00";
+    let newEnd = "17:00";
 
-        updateDay(day, {
-            ranges: [...currentRanges, { start: newStart, end: newEnd }]
-        });
-    };
+    // Try to be smart about next slot
+    if (lastRange) {
+      // Logic to find next slot could go here, keeping simple for now
+    }
 
-    const removeRange = (day: keyof WeeklySchedule, index: number) => {
-        const newRanges = [...schedule.schedule[day].ranges];
-        newRanges.splice(index, 1);
-        updateDay(day, { ranges: newRanges });
-    };
+    updateDay(day, {
+      ranges: [...currentRanges, { start: newStart, end: newEnd }]
+    });
+  };
 
-    const updateRange = (day: keyof WeeklySchedule, index: number, field: 'start' | 'end', value: string) => {
-        const newRanges = [...schedule.schedule[day].ranges];
-        newRanges[index] = { ...newRanges[index], [field]: value };
-        updateDay(day, { ranges: newRanges });
-    };
+  const removeRange = (day: keyof WeeklySchedule, index: number) => {
+    const newRanges = [...schedule.schedule[day].ranges];
+    newRanges.splice(index, 1);
+    updateDay(day, { ranges: newRanges });
+  };
 
-    const handleSave = async () => {
-        try {
-            setSaving(true);
-            const token = await getToken();
-            if (!token) return;
-            await availabilityApi.updateSchedule(schedule.id!, schedule, token);
-            toast.success("Guardado correctamente");
-            onSave();
-        } catch (error) {
-            toast.error("Error al guardar");
-        } finally {
-            setSaving(false);
-        }
-    };
+  const updateRange = (day: keyof WeeklySchedule, index: number, field: 'start' | 'end', value: string) => {
+    const newRanges = [...schedule.schedule[day].ranges];
+    newRanges[index] = { ...newRanges[index], [field]: value };
+    updateDay(day, { ranges: newRanges });
+  };
 
-    const handleDelete = async () => {
-        if (!confirm("¿Estás seguro de borrar este horario?")) return;
-        try {
-            setDeleting(true);
-            const token = await getToken();
-            if (!token) return;
-            await availabilityApi.deleteSchedule(schedule.id!, token);
-            toast.success("Horario eliminado");
-            onSave();
-        } catch (error) {
-            toast.error("No se puede eliminar (quizás es el último o único)");
-        } finally {
-            setDeleting(false);
-        }
-    };
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const token = await getToken();
+      if (!token) return;
+      await availabilityApi.updateSchedule(schedule.id!, schedule, token);
+      toast.success("Guardado correctamente");
+      onSave();
+    } catch (error) {
+      toast.error("Error al guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
 
-    return (
-        <div className="mt-6 space-y-6 pb-10">
-            {/* Header Settings */}
-            <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
-                <div className="grid gap-2">
-                    <label className="text-sm font-medium">Nombre</label>
-                    <Input 
-                        value={schedule.name} 
-                        onChange={(e) => setSchedule({...schedule, name: e.target.value})} 
-                    />
-                </div>
-                <div className="grid gap-2">
-                    <label className="text-sm font-medium">Zona Horaria</label>
-                    <Select 
-                        value={schedule.timezone} 
-                        onValueChange={(v) => setSchedule({...schedule, timezone: v})}
-                    >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            {TIMEZONES.map(tz => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Establecer como predeterminado</label>
-                    <Switch 
-                        checked={schedule.is_default} 
-                        onCheckedChange={(c) => setSchedule({...schedule, is_default: c})} 
-                    />
-                </div>
-            </div>
+  const handleDelete = async () => {
+    if (!confirm("¿Estás seguro de borrar este horario?")) return;
+    try {
+      setDeleting(true);
+      const token = await getToken();
+      if (!token) return;
+      await availabilityApi.deleteSchedule(schedule.id!, token);
+      toast.success("Horario eliminado");
+      onSave();
+    } catch (error) {
+      toast.error("No se puede eliminar (quizás es el último o único)");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
-            {/* Weekly Schedule */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                     <h4 className="font-medium">Horario Semanal</h4>
-                </div>
-                
-                <div className="space-y-4">
-                    {DAYS.map(({ key, label }) => {
-                        const daySchedule = schedule.schedule[key];
-                        return (
-                            <div key={key} className="flex flex-col gap-3 p-3 border rounded-md">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Switch 
-                                            checked={daySchedule.active} 
-                                            onCheckedChange={(c) => updateDay(key, { active: c })}
-                                        />
-                                        <span className="font-medium w-24">{label}</span>
-                                    </div>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        className="h-8 w-8"
-                                        disabled={!daySchedule.active}
-                                        onClick={() => addRange(key)}
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                                
-                                {daySchedule.active && (
-                                    <div className="pl-12 space-y-2">
-                                        {daySchedule.ranges.length === 0 ? (
-                                            <div className="text-xs text-muted-foreground italic">No disponible</div>
-                                        ) : (
-                                            daySchedule.ranges.map((range, idx) => (
-                                                <div key={idx} className="flex items-center gap-2">
-                                                    <TimeSelect 
-                                                        value={range.start} 
-                                                        onChange={(v) => updateRange(key, idx, 'start', v)} 
-                                                    />
-                                                    <span className="text-muted-foreground">-</span>
-                                                    <TimeSelect 
-                                                        value={range.end} 
-                                                        onChange={(v) => updateRange(key, idx, 'end', v)} 
-                                                    />
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                                        onClick={() => removeRange(key, idx)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t">
-                <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
-                    Eliminar
-                </Button>
-                <Button onClick={handleSave} disabled={saving}>
-                    {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                    Guardar Cambios
-                </Button>
-            </div>
+  return (
+    <div className="mt-6 space-y-6 pb-10">
+      {/* Header Settings */}
+      <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Nombre</label>
+          <Input
+            value={schedule.name}
+            onChange={(e) => setSchedule({ ...schedule, name: e.target.value })}
+          />
         </div>
-    );
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Zona Horaria</label>
+          <Select
+            value={schedule.timezone}
+            onValueChange={(v) => setSchedule({ ...schedule, timezone: v })}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {TIMEZONES.map(tz => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Establecer como predeterminado</label>
+          <Switch
+            checked={schedule.is_default}
+            onCheckedChange={(c) => setSchedule({ ...schedule, is_default: c })}
+          />
+        </div>
+      </div>
+
+      {/* Weekly Schedule */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="font-medium">Horario Semanal</h4>
+        </div>
+
+        <div className="space-y-4">
+          {DAYS.map(({ key, label }) => {
+            const daySchedule = schedule.schedule[key];
+            return (
+              <div key={key} className="flex flex-col gap-3 p-3 border rounded-md">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={daySchedule.active}
+                      onCheckedChange={(c) => updateDay(key, { active: c })}
+                    />
+                    <span className="font-medium w-24">{label}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8"
+                    disabled={!daySchedule.active}
+                    onClick={() => addRange(key)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {daySchedule.active && (
+                  <div className="pl-12 space-y-2">
+                    {daySchedule.ranges.length === 0 ? (
+                      <div className="text-xs text-muted-foreground italic">No disponible</div>
+                    ) : (
+                      daySchedule.ranges.map((range, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <TimeSelect
+                            value={range.start}
+                            onChange={(v) => updateRange(key, idx, 'start', v)}
+                          />
+                          <span className="text-muted-foreground">-</span>
+                          <TimeSelect
+                            value={range.end}
+                            onChange={(v) => updateRange(key, idx, 'end', v)}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeRange(key, idx)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-4 border-t">
+        <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+          {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+          Eliminar
+        </Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          Guardar Cambios
+        </Button>
+      </div>
+    </div>
+  );
 }

@@ -44,8 +44,9 @@ export function GeneralSettingsForm() {
         const token = await getToken()
         if (!token) return
         const data = await settingsApi.getGeneralSettings(token)
+        // Ensure values are not null/undefined to prevent controlled/uncontrolled warning or errors
         form.reset({
-          default_currency: data.default_currency || DEFAULT_CURRENCY.code,
+          default_currency: data?.default_currency || DEFAULT_CURRENCY.code,
         })
       } catch (error) {
         console.error(error)

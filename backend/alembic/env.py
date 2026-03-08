@@ -15,17 +15,16 @@ sys.path.append(os.getcwd())
 from src.core.config import settings
 from src.shared.domain.base_entity import Base
 # Must import all models to ensure they are registered in metadata
-from src.modules.gallery.domain import entity as gallery_entity
-from src.modules.gallery.infrastructure import models as gallery_models
-from src.modules.iam.infrastructure.models import user, tenant, user_tenant
-from src.modules.sales.infrastructure.models import lead_model
+from src.modules.assets.infrastructure import models as assets_models
+from src.modules.iam.infrastructure.models import UserModel, TenantModel, UserTenantModel
+from src.modules.crm.infrastructure.models import lead_model
 from src.modules.connections.domain import channel as channel_connection
 from src.modules.scheduling.infrastructure.models import appointment_model as appointment, booking_link
 from src.modules.sales_agent.infrastructure.models import message_model as message
 from src.shared.links.models import ShareableLink
-from src.shared.infrastructure.db.models import audit, sensitive_data, prompt
-from src.modules.marketing.infrastructure.models import customer
-from src.modules.brand.infrastructure.models import avatar
+from src.modules.crm.infrastructure.models import customer_model
+
+from src.modules.brand.infrastructure.models import avatar_model
 from src.modules.offer.infrastructure import models as offer_models
 
 # this is the Alembic Config object, which provides

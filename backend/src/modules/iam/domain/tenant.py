@@ -60,4 +60,4 @@ class TenantProfile(BaseEntity):
     id: str
     name: str
     slug: str
-    timezone: str = "UTC"
+    timezone: Optional[str] = "UTC"

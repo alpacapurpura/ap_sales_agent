@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "https://laptopchris.alpacapurpura.lat/connections"
+
+    # Meta (Facebook/Instagram)
+    META_APP_ID: str = ""
+    META_APP_SECRET: str = ""
+    META_REDIRECT_URI: str = "https://laptopchris.alpacapurpura.lat/connections"
+
+    # Shopify
+    SHOPIFY_API_KEY: str = ""
+    SHOPIFY_API_SECRET: str = ""
+    SHOPIFY_APP_URL: str = "" # The URL where the app is hosted (e.g. https://api.visionarias.ai)
     
     # OpenAI
     OPENAI_API_KEY: str

@@ -1,0 +1,4 @@
+- [x] Shopify OAuth Callback endpoint is accessible without authentication (Public).
+- [x] Shopify OAuth Callback correctly processes `state` (tenant_id) and connects the shop.
+- [x] `docs/guides/shopify_setup.md` exists and contains correct URL patterns.
+- [x] `main.py` mounts the public router correctly.

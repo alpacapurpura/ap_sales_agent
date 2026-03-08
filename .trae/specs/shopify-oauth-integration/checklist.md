@@ -1,0 +1,9 @@
+- [x] Backend: OAuth configuration (Key/Secret/Scopes) is loaded correctly.
+- [x] Backend: `POST /generate-auth-url` returns a valid Shopify OAuth URL with state.
+- [x] Backend: `/auth/callback` verifies HMAC correctly.
+- [x] Backend: `/auth/callback` exchanges code for token successfully.
+- [x] Backend: Token is saved in `ChannelConnectionModel.credentials` and is encrypted (verify `_encrypted` key exists in DB).
+- [x] Backend: Decryption works correctly when retrieving the connection status.
+- [x] Backend: Manual `POST /connect` endpoint is removed.
+- [x] Frontend: Manual "Access Token" input field is removed.
+- [x] Frontend: UI handles the return redirect (success/error query params) gracefully.
