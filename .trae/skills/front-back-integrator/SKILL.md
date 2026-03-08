@@ -14,6 +14,23 @@ This skill specializes in auditing and verifying the integration between the Fro
 3.  **Endpoint Connectivity**: Validate URL paths, HTTP methods, and parameter types.
 4.  **Error Handling**: Ensure 401/403/404/500 errors are handled gracefully in the UI.
 
+## Directiva Cero: Contexto antes de Auditar
+
+**[INSTRUCCIÓN CRÍTICA]**: Antes de auditar o implementar cualquier integración, DEBES:
+
+1. Leer `docs/domains/INDEX.md` para ubicar el módulo de negocio afectado.
+2. Leer el `.md` del módulo para entender las reglas de negocio y edge cases.
+3. Listar los directorios reales de ambos lados y leer los archivos involucrados:
+   - Backend: `ls backend/src/modules/{nombre}/api/` (router, DTOs)
+   - Frontend: `ls frontend/src/features/{nombre}/` o `ls frontend/src/lib/api/`
+4. **[GUARDRAIL ANTI-ALUCINACIÓN]**: Nunca asumas que un endpoint, tipo o campo existe basándote en los docs de módulo. Verifica siempre en el código real. Los docs describen el negocio, no la implementación actual.
+
+### 🔀 Protocolo de Fallback
+
+- **No encuentras el endpoint**: Busca en `backend/src/modules/*/api/` con grep por el path del recurso.
+- **No encuentras el tipo TypeScript**: Busca en `frontend/src/features/*/types/` o `frontend/src/lib/api/`.
+- **El contrato front↔back no coincide**: Reporta la discrepancia exacta al usuario antes de aplicar cualquier fix. No "arregles" el contrato en un solo lado sin confirmar cuál es la fuente de verdad.
+
 ## Integration Patterns
 
 ### 1. Frontend Client (Next.js)
@@ -48,7 +65,7 @@ When given a frontend component or backend endpoint:
 
 ### Step 3: Verify Backend Implementation
 
--   [ ] Does the endpoint declare `tenant_context: TenantContext = Depends(get_tenant_context)`?
+-   [ ] Does the endpoint use `Depends(get_current_user)` (returns `User` with `tenant_id` populated) or `Depends(get_tenant_context)` (returns `Optional[UUID]`)?
 -   [ ] Is the `tenant_id` used to filter database queries?
 -   [ ] Does the Pydantic model match the JSON expected by the frontend?
 

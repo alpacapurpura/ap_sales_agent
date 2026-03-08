@@ -1,41 +1,64 @@
----
-module: "Módulo de Marca (Brand Studio)"
-status: "active"
-core_files:
-  # BACKEND
-  - "backend/src/modules/brand/domain/aggregates.py"
-  - "backend/src/modules/brand/infrastructure/repositories/brand_repository.py"
-  - "backend/src/modules/brand/api/router.py"
-  # FRONTEND
-  - "frontend/src/features/brand/hooks/useBrandSettings.ts"
-  - "frontend/src/features/brand/utils/brand-validation.ts"
-  - "frontend/src/features/brand/types/index.ts"
-api_routes:
-  - "GET /api/v1/brand"
-  - "PATCH /api/v1/brand"
-  - "POST /api/v1/brand/extract"
----
+# Módulo de Marca (Brand Studio) - Documentación para Agentes
 
-## 1. Propósito del Negocio (El "Por Qué")
-Centralizar y gestionar la identidad corporativa del usuario (misión, visión, colores, tono de voz) para alimentar a los agentes de IA. Este módulo actúa como la fuente de verdad para la personalidad de la marca, asegurando que todos los contenidos generados (emails, posts, mensajes) sean coherentes y alineados con la estrategia de negocio definida.
+> **CONTEXTO DEL AGENTE**: Este documento es la FUENTE DE VERDAD para entender cómo funciona la identidad de marca en el sistema. Úsalo para razonar sobre problemas de "personalidad del bot", "estilos visuales" o "configuración de empresa".
 
-## 2. Reglas de Negocio Estrictas (Business Rules)
-- **Persistencia Embebida**: La configuración global de marca NO tiene su propia tabla SQL; se almacena como un documento JSON estructurado dentro de la columna `config_json` de la tabla `tenants`.
-- **Identidad Obligatoria**: El campo `brand_name` es mandatorio para considerar válida la identidad base. Sin él, el sistema no puede operar correctamente.
-- **Validación de Salud (Health Score)**: El sistema calcula un puntaje de completitud (0-100%). Secciones críticas vacías pueden bloquear la generación de contenido por parte de los agentes.
-- **Migración Automática**: Los modelos de Pydantic implementan validadores `before` para transformar datos legacy automáticamente al leerlos, evitando errores por cambios de esquema.
-- **Avatares Separados**: Los "Buyer Personas" (Avatares) son entidades independientes con su propia tabla SQL (`avatars`) para permitir búsquedas complejas, a diferencia del resto de la configuración que es un documento único.
+## 1. Mapa de Código (The "Where")
 
-## 3. Mapa de Código (The "Where")
-- **Backend (Dominio):** `backend/src/modules/brand/domain/aggregates.py` (Modelo Raíz BrandSettings)
-- **Backend (API):** `backend/src/modules/brand/api/router.py` (Endpoints CRUD y Extracción)
-- **Frontend (Estado/Hooks):** `frontend/src/features/brand/hooks/useBrandSettings.ts` (Gestión global con React Query)
-- **Frontend (UI Principal):** `frontend/src/features/brand/components/container/brand-studio-layout.tsx` (Layout y Navegación)
-- **Base de Datos (Modelos):** `backend/src/modules/brand/infrastructure/repositories/brand_repository.py` (Lógica de acceso a JSON en Tenant)
+> ⚠️ **Explorar el código directamente** — no confíes en inventarios de archivos que pueden estar desactualizados.
 
-## 4. Casos Borde Conocidos (Edge Cases)
-- **Timeouts en Extracción**: El proceso de scraping y análisis con IA puede exceder los tiempos de respuesta estándar; el frontend implementa un `AbortController` con límite de 8 minutos y feedback de progreso para evitar bloqueos.
-- **Datos Incompletos/Corruptos**: Si la migración falla o los datos JSON están corruptos, el frontend inyecta valores por defecto (fallbacks seguros) para evitar que la aplicación crashee (Pantalla Blanca).
-- **Sincronización Visual en Tiempo Real**: Los cambios en la paleta de colores (`BrandVisuals`) se inyectan dinámicamente como variables CSS en el DOM, permitiendo previsualización inmediata sin recargar la página.
-- Inconsistencia de Extracción: El extraction_service.py (IA analizando webs) puede alucinar tonos de voz si la web original está vacía o bloqueada por Cloudflare/Bot protection.
-- Fallbacks faltantes: Si un tenant nuevo no llena su "Voz de marca", el Agente de Ventas podría fallar al renderizar el prompt o usar un tono robótico por defecto.
+- **Backend**: `backend/src/modules/brand/`
+  - Agregados y value objects de dominio: `domain/`
+  - Repositorio (lee/escribe JSONB en tabla `tenants`): `infrastructure/repositories/`
+  - API (GET, PATCH con deep-merge, POST /extract): `api/`
+- **Frontend**: `frontend/src/features/brand/`
+  - Hook de estado global: `hooks/`
+  - Tipos TypeScript (espejo de Pydantic): `types/`
+  - Componentes del studio: `components/`
+
+## 2. Lógica de Negocio (The "Why" & "How")
+
+### Almacenamiento (Persistence Strategy)
+- **Híbrido**:
+  - La configuración general (`BrandSettings`) vive en un campo **JSONB** (`config_json`) en la tabla `tenants`. NO tiene tabla propia.
+  - Los **Avatares** (Buyer Personas) SÍ tienen tabla propia (`avatars`) por necesidad de relaciones y búsquedas complejas.
+- **Por qué**: Permite iterar rápido en la estructura de la marca sin migraciones de base de datos.
+
+### Reglas Críticas (Business Rules)
+1.  **Identidad Mínima**: `brand_name` es obligatorio. Sin él, el sistema considera la marca "no configurada".
+2.  **Health Score**: El sistema calcula un porcentaje de completitud. Si es bajo, los agentes de ventas pueden negarse a operar o funcionar con personalidad genérica.
+3.  **Inmutabilidad Parcial**: Al actualizar, el backend hace un "merge" inteligente. No se sobrescribe todo el JSON, solo las claves enviadas.
+
+### Flujo de Extracción (Extraction Agent)
+1.  Usuario provee URL.
+2.  Backend lanza `BrowserService` (Headless Chrome) para scrapear texto e imágenes.
+3.  LLM analiza el contenido y estructura un objeto `BrandSettings` preliminar.
+4.  Frontend recibe el objeto y pre-llena los formularios para validación humana.
+5.  **Timeout**: El proceso tiene un hard-limit de 8 minutos debido a la latencia de scraping + análisis profundo.
+
+## 3. Casos Borde y Gotchas (Edge Cases)
+
+- **Alucinación de Estilos**: El extractor a veces inventa códigos hexadecimales si no encuentra estilos CSS claros. El usuario siempre debe confirmar los colores.
+- **Imágenes Relativas vs Absolutas**: Las URLs de logos guardadas deben ser absolutas o manejarse con el helper `getFullUrl` en frontend.
+- **Migración de Esquema**: Si cambiamos `BrandSettings` en Python, los JSONs antiguos en DB pueden romper Pydantic.
+  - **Solución**: Usar `root_validator(pre=True)` en Pydantic para transformar datos legacy al vuelo.
+
+## 4. Snippets para Agentes (Common Tasks)
+
+### Cómo obtener la marca en Backend
+```python
+# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
+# En un servicio o caso de uso
+tenant = await tenant_repo.get_by_id(tenant_id)
+brand_settings = BrandSettings(**tenant.config_json.get("brand_settings", {}))
+print(brand_settings.identity.brand_name)
+```
+
+### Cómo actualizar un campo parcial
+```python
+# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
+# El repositorio se encarga del merge, pero conceptualmente:
+current_settings = tenant.config_json.get("brand_settings", {})
+current_settings.update(new_data)
+tenant.config_json["brand_settings"] = current_settings
+flag_modified(tenant, "config_json") # Crucial para SQLAlchemy
+```

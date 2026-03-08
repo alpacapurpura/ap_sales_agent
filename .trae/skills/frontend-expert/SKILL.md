@@ -14,17 +14,40 @@ Eres un Senior Frontend Developer experto en Next.js (App Router), React 18+, Ta
 **[OBLIGATORIO] Antes de proponer o escribir cualquier código, debes:**
 
 1. Leer `docs/domains/INDEX.md` en la raíz del proyecto para ubicar a qué módulo de negocio pertenece la petición.
-2. Leer el documento del módulo específico (ej. `docs/domains/module_offer.md`).
-3. Revisar los esquemas y tipos base mencionados en dicho documento.
+2. Leer el documento del módulo específico (ej. `docs/domains/module_offer.md`). Usar solo las secciones de reglas de negocio, restricciones y edge cases — **no** el inventario de archivos.
+3. Listar el directorio real del slice y leer los archivos relevantes directamente del código:
+   - Frontend: `ls frontend/src/features/{nombre}/`
+   - Shared: `ls frontend/src/components/`
+4. **[GUARDRAIL ANTI-ALUCINACIÓN]**: Si un componente, hook, tipo o archivo no aparece en el código real al explorarlo, **no existe**. Los docs son orientación de negocio, nunca un inventario técnico actualizado. Nunca asumas que algo existe porque está mencionado en un doc.
+
+### 🔀 Protocolo de Fallback (cuando el módulo no está claro en el INDEX)
+
+Aplica este árbol de decisión **antes de escribir código**:
+
+- **El módulo existe pero no reconociste el nombre:** Compara la columna "Propósito del Negocio" del INDEX con la petición del usuario. Elige el dominio más cercano por función (no por nombre). Ejemplo: una pantalla de "métricas de campaña" pertenece a **Analytics**, no a Advertising.
+
+- **El componente es genérico/reutilizable (no pertenece a ningún dominio):** Ubícalo en `src/components/shared/` (layouts globales) o `src/components/ui/` (primitivos Shadcn). No leas ningún module doc; consulta directamente el código existente en esas carpetas para reutilizar.
+
+- **La UI cruza varios módulos:** Identifica el módulo "dueño" de los datos principales que muestra la pantalla. Crea el componente en ese slice de `features/`. Los datos secundarios de otros módulos se obtienen vía sus Public APIs (`import { X } from "@/features/other-module"`).
+
+- **Es una feature genuinamente nueva (no existe en el INDEX):**
+  1. **Detente** y comunica al usuario que el módulo no está documentado.
+  2. Propón el nombre del slice FSD y su propósito en una sola oración.
+  3. Espera confirmación antes de ejecutar el scaffold.
+  4. Al finalizar, pide al usuario que actualice `docs/domains/INDEX.md` con el nuevo dominio.
 
 ## 1. Flujo de Trabajo Operativo (SOP)
 
 Cuando el usuario solicite la creación o modificación de una funcionalidad en el frontend, DEBES seguir exactamente este orden:
 
-1. **Análisis y Ubicación:** Comprende el requerimiento y decide en qué duración debe implementarse (lee `/docs/domains/INDEX.md`).
+1. **Análisis y Ubicación:** Comprende el requerimiento y decide en qué capa FSD debe implementarse (lee `/docs/domains/INDEX.md`).
 2. **Scaffolding de Nueva Funcionalidad (¡ACCIÓN REQUERIDA!):**
    - Si la solicitud implica una NUEVA feature o entidad, DEBES ejecutar en la terminal el script de scaffolding antes de escribir código.
-   - Comando: `python scripts/scaffold_feature.py <nombre-en-kebab-case> --layer <features|entities|widgets> --path frontend/src/<capa>`
+   - Comando (ejecutar desde la raíz del proyecto `AISALESHT/`):
+     ```bash
+     python .trae/skills/frontend-expert/scripts/scaffold_feature.py <nombre-en-kebab-case> --layer <features|entities|widgets|pages> --path frontend/src
+     ```
+   - El script crea automáticamente la subcarpeta de la capa (`frontend/src/<layer>/<nombre>`). No repitas la capa en `--path`.
    - Espera a que el comando termine para continuar.
 3. **Creación de Componentes:**
    - Utiliza estrictamente la estructura base definida en [component.tsx](frontend-expert/assets/templates/component.tsx).
@@ -47,6 +70,8 @@ Lee estos documentos ÚNICAMENTE si necesitas contexto específico para la tarea
 - **Para reglas de Server Components vs Client Components:** Lee [component-rules.md](frontend-expert/references/component-rules.md)
 - **Para mutaciones y llamadas a DB/API:** Lee [api-standards.md](frontend-expert/references/api-standards.md)
 - **Para decisiones de arquitectura y patrones (Server vs Client, Estado, Performance):** Lee [frontend-patterns.md](frontend-expert/references/frontend-patterns.md)
+- **Para documentar componentes y hooks exportados (TSDoc, [AI Context], AI-STOP):** Lee [ai-documentation.md](frontend-expert/references/ai-documentation.md)
+- **Para consulta rápida del stack tecnológico:** Lee [tech-stack.md](frontend-expert/references/tech-stack.md) — si hay discrepancia con el código real, el código manda.
 
 ## Ejemplos (Examples)
 
@@ -54,7 +79,7 @@ Lee estos documentos ÚNICAMENTE si necesitas contexto específico para la tarea
 
 Acción que debes hacer:
 - Determina que esto es una entidad de negocio y pertenece a entities/lead.
-- Ejecuta: `python scripts/scaffold_feature.py lead-profile --layer entities --path frontend/src/entities`
+- Ejecuta: `python .trae/skills/frontend-expert/scripts/scaffold_feature.py lead-profile --layer entities --path frontend/src`
 - Lee el Public API de shared/ui para usar las tarjetas y avatares existentes.
 - Escribe el código del Server Component en `frontend/src/entities/lead/ui/lead-profile.tsx` y lo exporta en su `index.ts`.
 

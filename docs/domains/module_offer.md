@@ -1,45 +1,87 @@
----
-module: "Módulo de Ofertas (Offer Studio)"
-status: "active"
-core_files:
-  # BACKEND
-  - "backend/src/modules/offer/domain/offer.py"
-  - "backend/src/modules/offer/domain/details.py"
-  - "backend/src/modules/offer/api/products.py"
-  - "backend/src/modules/offer/api/dto/products.py"
-  # FRONTEND
-  - "frontend/src/features/offer-studio/types/schema.ts"
-  - "frontend/src/features/offer-studio/hooks/use-offer.ts"
-  - "frontend/src/features/offer-studio/config/offer-builder-config.ts"
-api_routes:
-  - "GET /api/v1/products/{id}"
-  - "POST /api/v1/products"
-  - "PATCH /api/v1/products/{id}/identity"
-  - "PATCH /api/v1/products/{id}/strategy"
-  - "GET /api/v1/products/metadata/hints"
----
+# Módulo de Ofertas (Offer Studio) - Documentación para Agentes
 
-## 1. Propósito del Negocio (El "Por Qué")
-Este módulo permite a los usuarios diseñar, configurar y gestionar sus "Ofertas Irresistibles" (Productos, Servicios, Programas, etc.) a través de un editor visual paso a paso ("Offer Studio"). Centraliza la definición de la propuesta de valor, precios, entregables y promesas de transformación, actuando como la fuente de verdad para generar funnels de venta y contenido de marketing automatizado.
+> **CONTEXTO DEL AGENTE**: Este documento es la FUENTE DE VERDAD para entender cómo se estructuran los productos y servicios en el sistema. Úsalo para razonar sobre "tipos de oferta", "precios", "entregables" y la lógica polimórfica que permite vender desde Ebooks hasta Consultorías High-Ticket.
 
-## 2. Reglas de Negocio Estrictas (Business Rules)
-- **Polimorfismo Obligatorio:** Toda oferta debe tener un `offer_type` válido (product, service, program, subscription, event) y sus `specific_details` deben coincidir estrictamente con la estructura definida para ese tipo.
-- **Validación de Identidad:** El nombre de la oferta es obligatorio. El slug se genera automáticamente pero debe ser único por tenant.
-- **Niveles de Consciencia:** La estrategia de la oferta debe definir a qué nivel de consciencia del cliente se dirige (Problem Aware, Solution Aware, etc.), lo cual condiciona los hooks de marketing generados.
-- **Precios y Garantías:** Una oferta puede tener múltiples opciones de precio (pago único, plazos) y tipos de garantía (incondicional, condicional), pero la estructura de datos para estos debe seguir el esquema estricto de `PricingModel` y `Guarantee`.
-- **Integridad de Datos en Actualizaciones:** Las actualizaciones parciales (PATCH) a secciones específicas (ej. `strategy`) no deben eliminar datos de otras secciones (ej. `identity`).
+## 1. Mapa de Código (The "Where")
 
-## 3. Mapa de Código (The "Where")
-- **Backend (Dominio):** `backend/src/modules/offer/domain/offer.py` (Entidad Raíz), `backend/src/modules/offer/domain/details.py` (Polimorfismo).
-- **Backend (API):** `backend/src/modules/offer/api/products.py` (Endpoints), `backend/src/modules/offer/api/dto/products.py` (DTOs).
-- **Frontend (Estado/Hooks):** `frontend/src/features/offer-studio/hooks/use-offer.ts` (Lógica de carga y guardado), `frontend/src/features/offer-studio/utils/offer-health.ts` (Cálculo de completitud).
-- **Frontend (UI Principal):** `frontend/src/features/offer-studio/components/offer-builder-layout.tsx` (Layout del editor), `frontend/src/features/offer-studio/config/offer-builder-config.ts` (Configuración de secciones).
-- **Base de Datos (Modelos):** `backend/src/infrastructure/models/offer.py` (Tabla SQLAlchemy).
+> ⚠️ **Explorar el código directamente** — no confíes en inventarios de archivos que pueden estar desactualizados.
 
-## 4. Casos Borde Conocidos (Edge Cases)
-- **Cambio de Tipo de Oferta:** El sistema no permite cambiar el `offer_type` de una oferta ya creada debido a la incompatibilidad de `specific_details`. Se debe crear una nueva.
-- **Persistencia de Datos Parciales:** El "Studio" permite guardar borradores incompletos. Las validaciones estrictas de "Publicación" son distintas a las de "Guardado de Borrador".
-- **Manejo de Imágenes Relativas:** Las URLs de imágenes almacenadas en el backend son relativas y requieren que el frontend las procese con el helper `getFullUrl` para su visualización.
-- **Concurrencia en Edición:** No hay bloqueo optimista; la última escritura gana. El frontend mitiga esto guardando por secciones aisladas.
-- Mutación de Ofertas Activas: Si el Tenant cambia el precio de una oferta a $500 mientras el sales_agent está negociando por WhatsApp y ya ofreció $300 a un Lead.
-- Colisión de Contexto RAG: Si la oferta tiene demasiados entregables o PDFs vinculados, superará el límite de tokens (Max Tokens) del LLM al inyectarse en el sales_agent.
+- **Backend**: `backend/src/modules/offer/`
+  - Capa de dominio: `domain/` (entidad `Offer`, polimorfismo de detalles)
+  - Capa de infraestructura: `infrastructure/models/` y `infrastructure/repositories/`
+  - API: `api/`
+- **Frontend**: `frontend/src/features/offer-studio/`
+  - Estado y hooks: `hooks/`
+  - Tipos y validación Zod: `types/`
+  - Componentes del editor: `components/`
+
+## 2. Lógica de Negocio (The "Why" & "How")
+
+### Polimorfismo Híbrido (Core Architecture)
+El sistema debe soportar estructuras de datos radicalmente distintas (un curso tiene "módulos", un servicio tiene "sesiones", un producto físico tiene "envío").
+- **Solución**: Usamos un patrón de **Discriminador + JSONB**.
+  - **Discriminador**: Columna `type` (Enum: `course`, `service`, `product`, etc.).
+  - **Payload**: Columna `specific_details` (JSONB) en la tabla `products`.
+- **Funcionamiento**: Al leer de la DB, el `OfferRepository` mira el `type` y usa `OFFER_TYPE_TO_DETAILS_MAPPING` para instanciar la subclase correcta de Pydantic (ej. `ProgramDetails`) dentro del campo `specific_details` de la entidad `Offer`.
+
+### Dualidad Offer vs Product
+- **Dominio**: Hablamos de **Offer** (la propuesta de valor completa, incluyendo bonus, garantías y precios).
+- **Infraestructura**: La tabla se llama **products** por razones históricas.
+- **Regla**: En código de negocio (Python), usa siempre `Offer`. Si tocas SQL o migraciones, busca la tabla `products`.
+
+### Precios y Entregables (Complex JSONs)
+- **Pricing**: No es un simple valor escalar. Es una lista de objetos `PricingModel` (Pago único, 3 cuotas, Suscripción) almacenada en una columna JSONB `pricing`. Esto permite ofertas con múltiples opciones de pago.
+- **Deliverables**: Lista de objetos que componen la oferta ("Entregables"), también en JSONB. Esto permite que una oferta tenga 1 o 50 componentes sin necesidad de tablas relacionales extra (`offer_deliverables`).
+
+## 3. Casos Borde y Gotchas (Edge Cases)
+
+- **Mutación de Ofertas Activas**: Si editas el precio o la promesa de una oferta que un Agente de Ventas está ofreciendo activamente en una conversación, puedes causar inconsistencias graves (el bot ofrece $300, el link de pago cobra $500).
+  - *Recomendación*: Para cambios drásticos, archivar la oferta y crear una versión v2.
+- **Validación en Runtime**: Al usar JSONB, la base de datos NO valida la estructura interna. Pydantic es la única barrera de defensa. Si inyectas datos corruptos en `specific_details` vía SQL directo, la API fallará con `ValidationError` al intentar leer.
+- **Contexto RAG**: Los `deliverables` y `pain_points` se inyectan en el prompt del sistema del vendedor. Si hay demasiados elementos (>20), pueden saturar la ventana de contexto del LLM o diluir la atención del modelo.
+
+## 4. Snippets para Agentes (Common Tasks)
+
+### Cómo instanciar una Oferta Polimórfica (Backend Pattern)
+```python
+# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
+# offer_repository.py pattern
+from backend.src.modules.offer.domain.offer import Offer, OFFER_TYPE_TO_DETAILS_MAPPING
+
+def map_model_to_entity(model: ProductModel) -> Offer:
+    # 1. Detectar tipo para elegir la clase de detalles correcta
+    details_cls = OFFER_TYPE_TO_DETAILS_MAPPING.get(model.type)
+    
+    # 2. Parsear JSON específico usando Pydantic
+    specific_details = details_cls(**model.specific_details) if model.specific_details else None
+    
+    # 3. Construir entidad completa
+    return Offer(
+        id=model.id,
+        type=model.type,
+        specific_details=specific_details,
+        pricing=[PricingModel(**p) for p in model.pricing], # Lista de precios
+        ...
+    )
+```
+
+### Cómo renderizar condicionalmente en Frontend
+```typescript
+// ⚠️ Verificar nombres exactos de componentes/hooks en el código real antes de usar
+// offer-editor.tsx pattern
+const { offer } = useOffer();
+
+return (
+  <div className="space-y-4">
+    <GeneralInfo offer={offer} />
+    
+    {/* Renderizado condicional según el discriminador de tipo */}
+    {offer.type === 'course' && (
+        <CurriculumEditor details={offer.specific_details as ProgramDetails} />
+    )}
+    {offer.type === 'service' && (
+        <ServiceScheduleEditor details={offer.specific_details as ServiceDetails} />
+    )}
+  </div>
+);
+```

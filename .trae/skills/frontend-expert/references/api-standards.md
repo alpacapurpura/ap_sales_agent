@@ -8,14 +8,51 @@ We use **Clerk** for authentication, but we handle token injection **manually** 
 2.  **Explicit Injection**: Pass the `token` as an argument to API functions.
 3.  **Client-Side Fetching**: Use `useAuth().getToken()` in components/hooks and pass it down.
 
-## 2. HTTP Client
+## 2. Multi-Tenancy: X-Tenant-ID Header
+
+Every request to the backend **must** include the `X-Tenant-ID` header. The backend uses it to enforce strict data isolation between tenants. It accepts the tenant's **UUID or slug**.
+
+### How it is injected (by context)
+
+| Context | Mechanism | Action required |
+|---|---|---|
+| **Client Component / Hook** | `fetchClient` lo inyecta **automáticamente** leyendo el primer segmento de la URL (`/[tenantId]/...`) con fallback a `localStorage('x-tenant-id')`. | Ninguna. Solo usar `fetchClient`. |
+| **Server Component** | `fetchClient` es browser-only y no aplica. Debes inyectar el header **manualmente**. | Leer `params.tenantId` de la ruta y pasarlo en headers. |
+
+> **⚠️ NUNCA** pases `X-Tenant-ID` manualmente en Client Components que usan `fetchClient` — ya está inyectado. Hacerlo doble puede causar conflictos.
+
+### Server Component — patrón correcto
+
+```typescript
+// src/app/(main)/[tenantId]/my-page/page.tsx
+export default async function Page({ params }: { params: { tenantId: string } }) {
+  const { getToken } = auth();
+  const token = await getToken();
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/resource`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-Tenant-ID': params.tenantId, // Inyección manual obligatoria
+    },
+    cache: 'no-store',
+  });
+  // ...
+}
+```
+
+### Cache Partitioning (comportamiento interno de fetchClient)
+
+`fetchClient` agrega automáticamente `?_t=<tenantId>` a todas las peticiones GET para forzar aislamiento de caché del navegador entre tenants. No interfieras con este parámetro.
+
+## 3. HTTP Client
 Always use `@/lib/http-client` (`fetchClient`) instead of raw `fetch`.
 This wrapper handles:
+- `X-Tenant-ID` injection (automatic, from URL or localStorage)
+- Cache partitioning for GET requests (`?_t=<tenantId>`)
 - 401 Unauthorized (Redirects to login)
 - 403 Forbidden (Redirects to /forbidden)
-- Base URL configuration
 
-## 3. Implementation Guide
+## 4. Implementation Guide
 
 ### A. The API Definition (`src/lib/api/`)
 
@@ -68,15 +105,5 @@ export function useMyData() {
 ```
 
 ### C. Server Components
-For Server Components, use Clerk's `auth()` helper.
-
-```typescript
-// src/app/dashboard/page.tsx
-import { auth } from "@clerk/nextjs/server";
-
-export default async function Page() {
-  const { getToken } = auth();
-  const token = await getToken();
-  // ... call API
-}
-```
+For Server Components, use Clerk's `auth()` helper and inject `X-Tenant-ID` manually from route params.
+See the full pattern in **Section 2 (Multi-Tenancy)** above — it covers both `Authorization` and `X-Tenant-ID` injection.
