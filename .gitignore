@@ -90,3 +90,8 @@ backend/cloudflare/cloudflared*
 # !despliegue/github_actions/
 # !despliegue/**/README.md
 # !despliegue/**/*.sh
+
+# --- IDE & AI Tool Caches (not project-specific) ---
+.agents/
+.trae/
+skills-lock.json
