@@ -8,8 +8,8 @@ function GoogleOAuthCallbackContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const code = searchParams.get("code");
-    const error = searchParams.get("error");
+    const code = searchParams?.get("code");
+    const error = searchParams?.get("error");
 
     if (!window.opener) return;
 

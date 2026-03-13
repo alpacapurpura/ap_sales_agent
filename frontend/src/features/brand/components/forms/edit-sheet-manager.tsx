@@ -115,7 +115,7 @@ export function EditSheetManager({
 
   // Team Member Handler (Single Item Update)
   const handleTeamMemberSave = async (member: KeyFigure) => {
-      let newTeam = [...settings.team];
+      let newTeam = [...(settings.team ?? [])];
       const index = newTeam.findIndex(m => m.id === member.id);
       
       if (member.is_primary_voice) {
@@ -133,7 +133,7 @@ export function EditSheetManager({
 
   // Authority Item Handler
   const handleAuthorityItemSave = async (item: AuthorityItem) => {
-      let newVault = [...settings.authority_vault];
+      let newVault = [...(settings.authority_vault ?? [])];
       const index = newVault.findIndex(i => i.id === item.id);
       
       if (index >= 0) {

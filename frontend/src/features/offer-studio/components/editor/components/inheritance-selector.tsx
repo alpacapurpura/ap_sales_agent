@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, GitBranch } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface InheritanceSelectorProps {
   currentMode: "GLOBAL" | "CUSTOM";

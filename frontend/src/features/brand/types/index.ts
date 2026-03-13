@@ -2,7 +2,7 @@ export interface BrandIdentity {
     // Core Identity
     brand_name?: string;
     industry?: string;
-    
+
     // Extended Identity (Matching Form & Validation)
     website?: string;
     logo_url?: string;
@@ -12,8 +12,26 @@ export interface BrandIdentity {
     timezone?: string;
     language?: string;
 
+    // Legal Fields
+    legal_name?: string;
+    tax_id?: string;
+    fiscal_address?: string;
+    legal_representative?: string;
+    terms_url?: string;
+    privacy_url?: string;
+
     // NOTE: Visual fields (colors, fonts, styles) have been moved to BrandVisuals
     // to align with Backend Domain Models. Use BrandVisuals for all aesthetic properties.
+    // These are kept here for legacy/backward compatibility with wizard extraction flow.
+    primary_color?: string;
+    accent_color?: string;
+    font_heading?: string;
+    font_body?: string;
+    background_color?: string;
+    text_primary_color?: string;
+    text_on_primary?: string;
+    design_style?: string;
+    usage_guidelines?: string[];
 }
 
 export interface BrandMethodologyPillar {
@@ -43,11 +61,18 @@ export interface BrandStrategy {
     methodology_pillars: BrandMethodologyPillar[];
 }
 
+export interface BrandStoryMilestone {
+    id: string;
+    year: string;
+    title: string;
+    description?: string;
+}
+
 export interface BrandStory {
     origin_story?: string;
     mission?: string;
     vision?: string;
-    milestones?: string[];
+    milestones?: BrandStoryMilestone[];
 }
 
 export interface BrandTeam {
@@ -77,6 +102,17 @@ export interface KeyFigure {
     gallery?: string[];
 }
 
+export interface BrandLogos {
+    primary?: string;
+    secondary?: string; // Icon
+    dark_mode?: string;
+    light_mode?: string;
+    // Legacy support
+    main?: string;
+    inverted?: string;
+    favicon?: string;
+}
+
 export interface BrandVisuals {
     // Colors
     primary_color?: string;
@@ -97,16 +133,7 @@ export interface BrandVisuals {
     // Assets
     logo_url?: string;
     images?: string[]; // Made optional to be safe
-    logos?: {
-        primary?: string;
-        secondary?: string; // Icon
-        dark_mode?: string;
-        light_mode?: string;
-        // Legacy support
-        main?: string;
-        inverted?: string;
-        favicon?: string;
-    };
+    logos?: BrandLogos;
 }
 
 export interface ContactData {
@@ -115,6 +142,7 @@ export interface ContactData {
     phone?: string;
     whatsapp?: string;
     address?: string;
+    website?: string;
     social_instagram?: string;
     social_linkedin?: string;
     social_youtube?: string;

@@ -26,12 +26,13 @@ async function getLandingPage(slug: string): Promise<LandingPageConfig | null> {
 }
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 // 1. GENERATE METADATA (SEO)
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const landing = await getLandingPage(params.slug);
+  const { slug } = await params;
+  const landing = await getLandingPage(slug);
   
   if (!landing) {
     return { title: 'Página no encontrada' };
@@ -60,7 +61,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // 3. PAGE COMPONENT (SERVER SIDE)
 export default async function LandingPage({ params }: PageProps) {
-  const landing = await getLandingPage(params.slug);
+  const { slug } = await params;
+  const landing = await getLandingPage(slug);
 
   if (!landing || !landing.is_published) {
     notFound();

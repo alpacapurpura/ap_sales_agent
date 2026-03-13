@@ -670,5 +670,21 @@ export const connectionsApi = {
         throw new Error(err.detail || "Error probando conexión YouTube");
     }
     return res.json();
+  },
+
+  configureYoutube: async (token: string, clientId: string, clientSecret: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/youtube/configure`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error configurando YouTube");
+    }
+    return res.json();
   }
 };

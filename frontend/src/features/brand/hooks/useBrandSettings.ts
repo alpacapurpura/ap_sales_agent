@@ -152,7 +152,7 @@ export function useBrandSettings() {
             logos: { ...settings.visuals?.logos, ...partialSettings.visuals?.logos }
         },
         story: { ...settings.story, ...partialSettings.story },
-        strategy: { ...settings.strategy, ...partialSettings.strategy },
+        strategy: { competitors: [], methodology_pillars: [], ...settings.strategy, ...partialSettings.strategy },
         contact: { ...settings.contact, ...partialSettings.contact },
         team: partialSettings.team || settings.team,
         testimonials: partialSettings.testimonials || settings.testimonials,

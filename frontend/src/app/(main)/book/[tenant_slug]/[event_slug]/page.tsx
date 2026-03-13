@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 export default function BookingPage({ params }: { params: Promise<{ tenant_slug: string, event_slug: string }> }) {
   const { tenant_slug, event_slug } = use(params);
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams?.get("token");
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

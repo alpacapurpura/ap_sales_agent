@@ -6,9 +6,9 @@ RUN apk add --no-cache libc6-compat
 FROM base AS deps
 WORKDIR /app
 COPY package*.json ./
-# Using npm ci for reproducible builds and cache mount for speed
+# Using npm install to allow package.json changes without strict lock file sync
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --legacy-peer-deps
+    npm install --legacy-peer-deps
 
 # Development image, copy all the files and run next
 FROM base AS dev
@@ -32,6 +32,7 @@ ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NODE_ENV=production
 
 RUN npm run build
 

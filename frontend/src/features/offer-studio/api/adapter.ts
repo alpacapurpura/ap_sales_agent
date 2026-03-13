@@ -201,8 +201,6 @@ export const frontendToBackend = (values: OfferFormValues | Partial<OfferFormVal
     // Si existe public_name, se usa. Si no, y existe name, se usa name como public_name.
     if (values.public_name) {
         payload.public_name = values.public_name;
-    } else if (values.name) {
-        payload.public_name = values.name;
     }
 
     return payload;

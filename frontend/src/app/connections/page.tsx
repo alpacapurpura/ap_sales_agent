@@ -20,9 +20,9 @@ function OAuthCallbackContent() {
   const [status, setStatus] = useState<"processing" | "success" | "error">("processing");
 
   useEffect(() => {
-    const code = searchParams.get("code");
-    const error = searchParams.get("error");
-    const state = searchParams.get("state");
+    const code = searchParams?.get("code");
+    const error = searchParams?.get("error");
+    const state = searchParams?.get("state");
 
     if (!window.opener) {
       // Not a popup — nothing to do, just show a blank page or redirect home

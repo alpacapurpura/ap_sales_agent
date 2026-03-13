@@ -22,7 +22,7 @@ interface SidebarProps {
 }
 
 export function OfferEditorLayout({ children, offerId }: { children: React.ReactNode, offerId: string }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   const params = useParams();
   const tenantId = params?.tenantId as string;
   const { getToken } = useAuth();

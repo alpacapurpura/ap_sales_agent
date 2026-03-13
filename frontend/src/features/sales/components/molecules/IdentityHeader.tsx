@@ -21,7 +21,8 @@ interface IdentityHeaderProps {
 }
 
 export function IdentityHeader({ lead, onBack }: IdentityHeaderProps) {
-  const { customer } = lead;
+  const customer = lead.customer;
+  const fullName = customer?.full_name ?? lead.name ?? "Cliente";
 
   return (
     <div className="w-full bg-background border-b p-6">
@@ -32,26 +33,26 @@ export function IdentityHeader({ lead, onBack }: IdentityHeaderProps) {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <LeadAvatar 
-            src={customer.avatar_url} 
-            initials={customer.full_name.slice(0, 2).toUpperCase()} 
+          <LeadAvatar
+            src={customer?.avatar_url}
+            initials={fullName.slice(0, 2).toUpperCase()}
             className="h-20 w-20 border-4 border-muted"
           />
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold tracking-tight">{customer.full_name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{fullName}</h1>
               <TemperatureBadge temperature={lead.temperature} />
             </div>
             <p className="text-muted-foreground text-lg flex items-center gap-2">
-              {customer.social_handle || "Cliente Potencial"}
+              {customer?.social_handle || "Cliente Potencial"}
             </p>
             <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-              {customer.email && (
+              {customer?.email && (
                 <div className="flex items-center gap-1">
                   <span className="text-foreground/80">{customer.email}</span>
                 </div>
               )}
-              {customer.phone && (
+              {customer?.phone && (
                 <div className="flex items-center gap-1">
                   <span className="text-foreground/80">{customer.phone}</span>
                 </div>

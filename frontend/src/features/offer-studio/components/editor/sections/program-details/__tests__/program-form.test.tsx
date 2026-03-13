@@ -34,7 +34,11 @@ function Wrapper() {
 
   return (
     <Form {...form}>
-      <ProgramDetailsForm form={form} />
+      <ProgramDetailsForm
+        form={form}
+        defaultValues={{}}
+        onSave={async () => {}}
+      />
     </Form>
   );
 }

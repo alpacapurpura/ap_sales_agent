@@ -172,7 +172,7 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
 }
 
 export function AppSidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { isCollapsed, toggleSidebar } = useSidebar();
   const [isMounted, setIsMounted] = useState(false);

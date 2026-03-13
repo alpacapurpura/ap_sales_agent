@@ -243,7 +243,7 @@ export function LegacyLandingPageEditor({
             const token = await getToken();
             if (!token) return;
 
-            await offerApi.saveOffer(offerId, { landing_page_config: config }, token);
+            await offerApi.saveOffer(offerId, { landing_page_config: config } as Parameters<typeof offerApi.saveOffer>[1], token);
             toast.success("¡Landing Page guardada y publicada!");
         } catch (error) {
             console.error(error);

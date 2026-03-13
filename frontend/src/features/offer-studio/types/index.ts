@@ -214,12 +214,23 @@ export interface MarketingAsset {
   url?: string;
 }
 
+export interface OfferAsset {
+  id?: string;
+  type: AssetType;
+  name: string;
+  url: string;
+  size?: string;
+  trigger_context?: string;
+  is_knowledge_base?: boolean;
+}
+
 export interface Offer {
   id: string;
   name: string;
+  public_name?: string;
   internal_sku?: string;
   type: OfferType;
-  
+
   value_level: OfferValueLevel;
   delivery_model: OfferDeliveryModel;
   status: OfferStatus; // Mapped from backend string to Enum if possible, or just string
@@ -227,19 +238,19 @@ export interface Offer {
   headline_promise?: string;
   primary_outcome?: string;
   time_to_value?: string;
-  
+
   pricing?: PricingStructure[];
   currency?: string;
 
   // Polymorphic details
   specific_details?: Record<string, any>;
-  
+
   // Stats & Metadata
   active_clients?: number; // From specific_details or computed
   metadata_info?: Record<string, any>;
-  
+
   avatar_id?: string;
-  
+
   // Marketing Psychology
   marketing_pain_points?: string[];
   marketing_desires?: string[];
@@ -247,12 +258,15 @@ export interface Offer {
 
   // Deliverables
   deliverables?: DeliverableItem[];
-  
+
+  // Assets (Media/Docs for AI agent)
+  assets?: OfferAsset[];
+
   // Additional Fields
   target_avatar_match?: string[];
   prerequisites?: any[]; // Using any[] for now to match schema flexibility
   includes_offers?: string[];
-  
+
   guarantee_type?: GuaranteeType;
   guarantee_terms?: string;
   access_duration?: string;
@@ -265,7 +279,7 @@ export interface Offer {
   calendar_type_id?: string;
   checkout_page_url?: string;
   vsl_link?: string;
-  
+
   landing_page_config?: {
       is_published: boolean;
       slug: string;

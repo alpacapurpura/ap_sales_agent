@@ -35,30 +35,30 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
     {
       title: "I. ADN de Marca",
       items: [
-        { id: "identity", label: "Identidad", icon: Building2, status: validateIdentity(settings.identity) },
-        { id: "strategy", label: "Estrategia", icon: Target, status: validateStrategy(settings.strategy) },
-        { id: "story", label: "Historia", icon: BookOpen, status: validateStory(settings.story) },
+        { id: "identity", label: "Identidad", icon: Building2, status: validateIdentity(settings.identity ?? {}) },
+        { id: "strategy", label: "Estrategia", icon: Target, status: validateStrategy(settings.strategy ?? { competitors: [], methodology_pillars: [] }) },
+        { id: "story", label: "Historia", icon: BookOpen, status: validateStory(settings.story ?? {}) },
       ]
     },
     {
       title: "II. Universo Visual",
       items: [
-        { id: "visuals", label: "Visuales", icon: Palette, status: validateVisuals(settings.visuals) },
+        { id: "visuals", label: "Visuales", icon: Palette, status: validateVisuals(settings.visuals ?? {}) },
         { id: "gallery", label: "Galería", icon: ImageIcon, status: { status: "optional", message: "Opcional" } as any }, // TODO: Add validator
       ]
     },
     {
       title: "III. Validación Social",
       items: [
-        { id: "team", label: "Equipo", icon: Users, status: validateTeam(settings.team) },
+        { id: "team", label: "Equipo", icon: Users, status: validateTeam(settings.team ?? []) },
         { id: "testimonials", label: "Testimonios", icon: MessageSquareQuote, status: { status: "optional", message: "Opcional" } as any }, // TODO: Add validator
-        { id: "authority", label: "Autoridad", icon: Award, status: validateAuthority(settings.authority_vault) },
+        { id: "authority", label: "Autoridad", icon: Award, status: validateAuthority(settings.authority_vault ?? []) },
       ]
     },
     {
       title: "Operaciones",
       items: [
-        { id: "contact", label: "Contacto", icon: Contact, status: validateContact(settings.contact) },
+        { id: "contact", label: "Contacto", icon: Contact, status: validateContact(settings.contact ?? {}) },
         { id: "legal", label: "Legales", icon: Scale, status: { status: "optional", message: "Revisar" } as any }
       ]
     }

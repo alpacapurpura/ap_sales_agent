@@ -146,13 +146,13 @@ export const validateAvatar = (avatar: Avatar): StatusResult => {
 
 export const getBrandHealth = (settings: BrandSettings): number => {
   const scores = [
-    validateIdentity(settings.identity).score,
-    validateStrategy(settings.strategy).score,
-    validateStory(settings.story).score,
-    validateVisuals(settings.visuals).score,
-    validateTeam(settings.team).score,
-    validateContact(settings.contact).score,
-    validateAuthority(settings.authority_vault).score
+    validateIdentity(settings.identity ?? {}).score,
+    validateStrategy(settings.strategy ?? { competitors: [], methodology_pillars: [] }).score,
+    validateStory(settings.story ?? {}).score,
+    validateVisuals(settings.visuals ?? {}).score,
+    validateTeam(settings.team ?? []).score,
+    validateContact(settings.contact ?? {}).score,
+    validateAuthority(settings.authority_vault ?? []).score
   ];
   
   return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);

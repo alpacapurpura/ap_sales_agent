@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Sankey } from '@visx/sankey';
+import { Sankey, SankeyGraph } from '@visx/sankey';
 import { ParentSize } from '@visx/responsive';
 import { sankeyJustify } from 'd3-sankey';
-import { StrategyCanvasConfig, MarketingActionLink } from './config/types';
+import { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from './config/types';
 import { adaptStrategyToVisx } from './utils/adapter';
 import NodeFactory from './nodes/NodeFactory';
 import BaseLink from './links/BaseLink';
@@ -43,7 +43,7 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
 
               return (
                 <Sankey
-                  root={data}
+                  root={data as unknown as SankeyGraph<MarketingNode, MarketingActionLink>}
                   nodeWidth={24}
                   nodePadding={20}
                   extent={[[0, 0], [width, height]]}

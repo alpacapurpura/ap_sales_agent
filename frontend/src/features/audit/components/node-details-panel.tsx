@@ -16,10 +16,11 @@ interface NodeDetailsPanelProps {
 }
 
 function StateKeyValue({ label, value }: { label: string; value: unknown }) {
+  const [expanded, setExpanded] = useState(false);
+
   if (value === null || value === undefined) return null;
 
   const isObject = typeof value === "object";
-  const [expanded, setExpanded] = useState(false);
 
   if (isObject) {
     return (

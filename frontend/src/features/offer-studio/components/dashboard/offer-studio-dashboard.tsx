@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter, useParams } from "next/navigation";
 import { offerApi } from "@/features/offer-studio/api";
-import { Offer, OfferValueLevel, OfferType } from "@/features/offer-studio/types";
+import { Offer, OfferValueLevel, OfferType, OfferStatus } from "@/features/offer-studio/types";
 import { OfferCard } from "./offer-card";
 import { AddOfferCard } from "./add-offer-card";
 import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
@@ -249,12 +249,11 @@ export function OfferStudioDashboard({
       const typeToUse = selectedType || DEFAULT_TYPES[selectedLevel] || OfferType.FREE_RESOURCE;
 
       const newOffer = await offerApi.createOffer({
-        name: newOfferName,
-        type: typeToUse, 
-        value_level: selectedLevel,
-        status: "DRAFT",
-        requires_application: true // Default to true for new offers
-      }, token);
+        public_name: newOfferName,
+        type: typeToUse,
+        status: OfferStatus.DRAFT,
+        requires_application: true,
+      } as Parameters<typeof offerApi.createOffer>[0], token);
       
       if (newOffer.id) {
         setIsDialogOpen(false);

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from '@clerk/nextjs'
-import "../globals.css";
+import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -15,13 +14,11 @@ export default function EditorLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        {/* Editor Layout: Clean, no Sidebar, minimal styles */}
-        <body className="font-sans antialiased bg-white text-slate-900 overflow-hidden">
-            {children}
-            <Toaster />
-        </body>
-      </html>
+      {/* Editor Layout: Clean, no Sidebar, minimal styles */}
+      <div className="bg-white text-slate-900 overflow-hidden min-h-screen">
+        {children}
+        <Toaster />
+      </div>
     </ClerkProvider>
   );
 }

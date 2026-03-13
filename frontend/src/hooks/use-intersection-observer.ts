@@ -15,10 +15,10 @@ export function useIntersectionObserver({
   root = null,
   rootMargin = '0%',
   freezeOnceVisible = false,
-}: UseIntersectionObserverProps = {}): [RefObject<Element>, boolean] {
+}: UseIntersectionObserverProps = {}): [RefObject<Element | null>, boolean] {
   const [entry, setEntry] = useState<IntersectionObserverEntry>();
   const [frozen, setFrozen] = useState(false);
-  const node = useRef<Element>(null);
+  const node = useRef<Element | null>(null);
 
   const frozenState = frozen && freezeOnceVisible;
 

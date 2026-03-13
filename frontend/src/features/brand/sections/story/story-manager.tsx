@@ -19,7 +19,7 @@ export function StoryManager() {
 
   return (
     <StoryForm
-      initialData={settings.story}
+      initialData={settings.story ?? {}}
       onSave={updateStory}
       isSaving={saving}
     />

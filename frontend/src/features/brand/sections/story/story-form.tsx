@@ -31,14 +31,14 @@ export function StoryForm({ initialData, onSave, isSaving = false }: StoryFormPr
         setStory({
             ...story,
             milestones: [
-                ...story.milestones,
+                ...(story.milestones ?? []),
                 { id: uuidv4(), year: new Date().getFullYear().toString(), title: "", description: "" }
             ]
         });
     };
 
     const updateMilestone = (id: string, field: keyof BrandStoryMilestone, value: string) => {
-        const updatedMilestones = story.milestones.map(m => 
+        const updatedMilestones = (story.milestones ?? []).map(m =>
             m.id === id ? { ...m, [field]: value } : m
         );
         setStory({
@@ -50,7 +50,7 @@ export function StoryForm({ initialData, onSave, isSaving = false }: StoryFormPr
     const removeMilestone = (id: string) => {
         setStory({
             ...story,
-            milestones: story.milestones.filter(m => m.id !== id)
+            milestones: (story.milestones ?? []).filter(m => m.id !== id)
         });
     };
 
@@ -82,7 +82,7 @@ export function StoryForm({ initialData, onSave, isSaving = false }: StoryFormPr
                     </div>
 
                     <div className="space-y-3">
-                        {story.milestones.map((milestone) => (
+                        {(story.milestones ?? []).map((milestone) => (
                             <div key={milestone.id} className="flex gap-3 items-start p-3 bg-muted/20 rounded-lg border">
                                 <div className="space-y-2 flex-1">
                                     <div className="flex gap-2">
@@ -117,7 +117,7 @@ export function StoryForm({ initialData, onSave, isSaving = false }: StoryFormPr
                                 </Button>
                             </div>
                         ))}
-                        {story.milestones.length === 0 && (
+                        {(story.milestones ?? []).length === 0 && (
                             <p className="text-sm text-muted-foreground text-center py-4 italic">
                                 No hay hitos registrados. Agrega momentos clave de tu historia.
                             </p>

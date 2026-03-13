@@ -235,7 +235,7 @@ export function BrandStudioLayout({
 
   return (
     <div className="relative w-full h-full bg-background flex flex-col overflow-hidden">
-      <ThemeInjector visuals={displaySettings.visuals} />
+      <ThemeInjector visuals={displaySettings.visuals ?? {}} />
 
       {/* Main Content Area - "The Live Document" */}
       <ScrollArea className="flex-1 w-full">
@@ -264,11 +264,11 @@ export function BrandStudioLayout({
             
             {/* HEADER - Visual Anchor (Full Brand Style) */}
             <div id="identity" className="mb-12 p-4 md:p-8">
-                <HeaderSection 
-                    identity={displaySettings.identity} 
-                    visuals={displaySettings.visuals}
-                    contact={displaySettings.contact}
-                    onEdit={() => openEdit("identity")} 
+                <HeaderSection
+                    identity={displaySettings.identity ?? {}}
+                    visuals={displaySettings.visuals ?? {}}
+                    contact={displaySettings.contact ?? {}}
+                    onEdit={() => openEdit("identity")}
                     onEditVisuals={() => openEdit("visuals")}
                     onRefine={() => {
                         setSmartFillMode("update");
@@ -288,31 +288,31 @@ export function BrandStudioLayout({
                     </div>
 
                     <div id="strategy" className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <StrategySection 
+                        <StrategySection
                             strategy={displaySettings.strategy}
-                            visuals={displaySettings.visuals}
+                            visuals={displaySettings.visuals ?? {}}
                             onEdit={() => openEdit("strategy")}
                         />
-                        <MethodologySection 
+                        <MethodologySection
                             strategy={displaySettings.strategy}
-                            visuals={displaySettings.visuals}
+                            visuals={displaySettings.visuals ?? {}}
                             onEdit={() => openEdit("methodology")}
                         />
                     </div>
 
                     <div id="story" className="space-y-12">
-                         <StorySection 
-                            story={displaySettings.story} 
-                            visuals={displaySettings.visuals}
+                         <StorySection
+                            story={displaySettings.story ?? {}}
+                            visuals={displaySettings.visuals ?? {}}
                             onEdit={() => openEdit("story")}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <VoiceSection 
-                                identity={displaySettings.identity}
+                            <VoiceSection
+                                identity={displaySettings.identity ?? {}}
                                 onEdit={() => openEdit("voice")}
                             />
-                            <AvatarsSection 
-                                visuals={displaySettings.visuals}
+                            <AvatarsSection
+                                visuals={displaySettings.visuals ?? {}}
                                 onEdit={(item) => openEdit("avatars", item)}
                             />
                         </div>
@@ -327,15 +327,15 @@ export function BrandStudioLayout({
                     </div>
 
                     <div id="visuals">
-                        <VisualsSection 
-                            visuals={displaySettings.visuals}
+                        <VisualsSection
+                            visuals={displaySettings.visuals ?? {}}
                             onEdit={() => openEdit("visuals")}
                             onExtract={() => openEdit("visuals-wizard")}
                         />
                     </div>
-                    
+
                     <div id="gallery">
-                        <GalleryManager visuals={displaySettings.visuals} />
+                        <GalleryManager visuals={displaySettings.visuals ?? {}} />
                     </div>
                 </div>
 
@@ -347,22 +347,22 @@ export function BrandStudioLayout({
                     </div>
 
                     <div id="team" className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <TeamSection 
-                            team={displaySettings.team}
-                            visuals={displaySettings.visuals}
+                        <TeamSection
+                            team={displaySettings.team ?? []}
+                            visuals={displaySettings.visuals ?? {}}
                             onEdit={(item) => openEdit("team", item)}
                         />
-                        <TestimonialsSection 
-                            testimonials={displaySettings.testimonials}
+                        <TestimonialsSection
+                            testimonials={displaySettings.testimonials ?? []}
                             onEdit={(item) => openEdit("testimonials", item)}
                         />
                     </div>
 
                     <div id="authority">
-                        <TrustSection 
-                            identity={displaySettings.identity}
-                            authority={displaySettings.authority_vault}
-                            visuals={displaySettings.visuals}
+                        <TrustSection
+                            identity={displaySettings.identity ?? {}}
+                            authority={displaySettings.authority_vault ?? []}
+                            visuals={displaySettings.visuals ?? {}}
                             onEditIdentity={() => openEdit("identity")}
                             onEditAuthority={(item) => openEdit("authority", item)}
                         />
@@ -372,10 +372,10 @@ export function BrandStudioLayout({
 
             {/* FOOTER - Visual Anchor (Full Brand Style) */}
             <div id="contact" className="mt-20">
-                <FooterSection 
-                    contact={displaySettings.contact}
-                    identity={displaySettings.identity}
-                    visuals={displaySettings.visuals}
+                <FooterSection
+                    contact={displaySettings.contact ?? {}}
+                    identity={displaySettings.identity ?? {}}
+                    visuals={displaySettings.visuals ?? {}}
                     onEditContact={() => setEditMode("contact")}
                     onEditLegal={() => setEditMode("legal")}
                 />
@@ -404,10 +404,10 @@ export function BrandStudioLayout({
       />
 
       {/* Special Wizard for Visuals (Dialog, not Sheet) */}
-      <BrandVisualsWizard 
+      <BrandVisualsWizard
         isOpen={editMode === "visuals-wizard"}
         onOpenChange={(open) => !open && closeSheet()}
-        currentVisuals={displaySettings.visuals}
+        currentVisuals={displaySettings.visuals ?? {}}
         logoUrl={displaySettings.visuals?.logo_url}
         websiteUrl={displaySettings.contact?.website}
         onSave={handleUpdateVisuals}

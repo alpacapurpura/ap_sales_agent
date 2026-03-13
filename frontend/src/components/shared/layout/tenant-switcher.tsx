@@ -26,7 +26,7 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
   const { data: tenants } = useTenants();
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   
   // Use prop or fallback to local storage/profile
   const effectiveTenantId = activeTenantId || currentTenant?.id;

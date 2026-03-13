@@ -32,7 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { InstructorsWidget } from "../widgets/instructors-widget";
+import { InstructorsWidget } from "../components/widgets/instructors-widget";
 
 export type OfferPhase = 'context' | 'solution' | 'deal';
 

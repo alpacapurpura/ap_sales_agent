@@ -175,8 +175,8 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-4">Paleta Cromática</h4>
                     <div className="grid grid-cols-3 gap-4">
-                        <ColorSwatch color={visuals.primary_color} label="Primario" />
-                        <ColorSwatch color={visuals.accent_color} label="Acento" />
+                        <ColorSwatch color={visuals.primary_color ?? "#000000"} label="Primario" />
+                        <ColorSwatch color={visuals.accent_color ?? "#000000"} label="Acento" />
                         <ColorSwatch color={visuals.background_color || "#ffffff"} label="Fondo" />
                     </div>
                 </div>

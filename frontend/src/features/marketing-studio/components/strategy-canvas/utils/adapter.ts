@@ -2,11 +2,13 @@ import { SankeyLink, SankeyNode } from '@visx/sankey';
 import { StrategyCanvasConfig, MarketingNode, MarketingActionLink } from '../config/types';
 
 // Extended types for Visx compatibility
-export interface VisxNode extends MarketingNode, SankeyNode {
+export interface VisxNode extends MarketingNode, SankeyNode<MarketingNode, MarketingActionLink> {
   index?: number;
 }
 
-export interface VisxLink extends Omit<MarketingActionLink, 'source' | 'target'>, SankeyLink<MarketingNode, MarketingActionLink> {
+// VisxLink represents links in their pre-d3 form (source/target as numeric indices)
+// We omit conflicting fields from both base types and add them back explicitly
+export interface VisxLink extends Omit<MarketingActionLink, 'source' | 'target'>, Omit<SankeyLink<MarketingNode, MarketingActionLink>, 'source' | 'target'> {
   source: number;
   target: number;
   originalSource: string;

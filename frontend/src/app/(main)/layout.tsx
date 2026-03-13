@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from '@clerk/nextjs'
-import "../globals.css";
+import { ClerkProvider } from '@clerk/nextjs';
+
+export const dynamic = 'force-dynamic';
 import Providers from "../providers";
 import { Suspense } from "react";
 import { TenantGuard } from "@/components/auth/tenant-guard";
@@ -21,24 +22,20 @@ function LoadingScreen() {
   );
 }
 
-export default function RootLayout({
+export default function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className="font-sans antialiased">
-            <Providers>
-              <Suspense fallback={<LoadingScreen />}>
-                <TenantGuard>
-                  {children}
-                </TenantGuard>
-              </Suspense>
-          </Providers>
-        </body>
-      </html>
+      <Providers>
+        <Suspense fallback={<LoadingScreen />}>
+          <TenantGuard>
+            {children}
+          </TenantGuard>
+        </Suspense>
+      </Providers>
     </ClerkProvider>
   );
 }

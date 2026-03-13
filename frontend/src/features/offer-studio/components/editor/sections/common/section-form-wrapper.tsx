@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useForm, UseFormReturn, FieldValues, DefaultValues, SubmitHandler } from "react-hook-form";
-import { ZodSchema } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
 interface SectionFormWrapperProps<T extends FieldValues> {
-  schema: ZodSchema<T>;
+  schema: any;
   defaultValues: DefaultValues<T>;
   onSubmit: SubmitHandler<T>;
   children: (form: UseFormReturn<T>) => React.ReactNode;

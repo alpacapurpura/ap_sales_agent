@@ -56,9 +56,9 @@ function PlaceholderContent({ title, icon: Icon }: { title: string, icon: any })
 function SettingsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const params = useParams()
+  const params = useParams() ?? {}
   const tenantId = params.tenantId as string
-  const tabParam = searchParams.get("tab")
+  const tabParam = searchParams?.get("tab")
   
   const [activeTab, setActiveTab] = useState(tabParam || "general")
 
@@ -301,11 +301,11 @@ function SettingsViewInner() {
 
   useEffect(() => {
     // Check if we are in a popup and have a code/error from Google or Meta
-    if (window.opener && (searchParams.get("code") || searchParams.get("error"))) {
+    if (window.opener && (searchParams?.get("code") || searchParams?.get("error"))) {
         setIsPopupCallback(true);
-        const code = searchParams.get("code");
-        const error = searchParams.get("error");
-        const state = searchParams.get("state");
+        const code = searchParams?.get("code");
+        const error = searchParams?.get("error");
+        const state = searchParams?.get("state");
 
         if (code) {
             if (state && state.startsWith("meta")) {

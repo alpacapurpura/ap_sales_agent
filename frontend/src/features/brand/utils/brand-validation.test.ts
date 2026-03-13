@@ -190,7 +190,7 @@ describe('Brand Validation Utils', () => {
         },
         story: {
           origin_story: 'Story',
-          milestones: ['Milestone 1']
+          milestones: [{ id: '1', year: '2024', title: 'Milestone 1' }]
         },
         visuals: {
           primary_color: '#000',

@@ -19,7 +19,7 @@ export function VisualsManager() {
 
   return (
     <VisualsForm
-      initialData={settings.visuals}
+      initialData={settings.visuals ?? {}}
       onSave={updateVisuals}
       isSaving={saving}
     />

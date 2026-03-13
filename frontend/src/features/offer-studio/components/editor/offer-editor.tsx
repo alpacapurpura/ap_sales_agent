@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OfferSchema, OfferFormValues } from "../../types/schema";
 import { OfferStatus } from "../../types";
@@ -24,7 +24,7 @@ export function OfferEditor({ offerId }: { offerId: string }) {
   const [editingSection, setEditingSection] = useState<string | null>(null);
 
   const form = useForm<OfferFormValues>({
-    resolver: zodResolver(OfferSchema),
+    resolver: zodResolver(OfferSchema) as Resolver<OfferFormValues>,
     defaultValues: {
       status: OfferStatus.DRAFT,
       requires_application: false,

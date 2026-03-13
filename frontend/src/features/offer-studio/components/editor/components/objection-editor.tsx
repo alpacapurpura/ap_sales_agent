@@ -7,10 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Objection } from "@/features/offer-studio/types";
+
+// Local simplified objection type for this standalone UI component
+interface SimpleObjection {
+  id: string;
+  trigger: string;
+  strategy: string;
+  script: string;
+}
 
 export function ObjectionEditor() {
-  const [objections, setObjections] = useState<Objection[]>([
+  const [objections, setObjections] = useState<SimpleObjection[]>([
     { id: "1", trigger: "Es muy caro", strategy: "Value Stack", script: "Entiendo, pero considera el costo de..." }
   ]);
 
@@ -22,7 +29,7 @@ export function ObjectionEditor() {
     setObjections(objections.filter(o => o.id !== id));
   };
 
-  const updateObjection = (id: string, field: keyof Objection, value: string) => {
+  const updateObjection = (id: string, field: keyof SimpleObjection, value: string) => {
     setObjections(objections.map(o => o.id === id ? { ...o, [field]: value } : o));
   };
 

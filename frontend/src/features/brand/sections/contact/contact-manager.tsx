@@ -19,7 +19,7 @@ export function ContactManager() {
 
   return (
     <ContactForm
-      initialData={settings.contact}
+      initialData={settings.contact ?? {}}
       onSave={updateContact}
       isSaving={saving}
     />

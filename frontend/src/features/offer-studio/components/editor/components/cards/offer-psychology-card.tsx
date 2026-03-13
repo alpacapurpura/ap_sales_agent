@@ -1,6 +1,6 @@
 
 import { useFieldArray, Control } from "react-hook-form";
-import { OfferFormValues } from "../../types/schema";
+import { OfferFormValues } from "@/features/offer-studio/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";

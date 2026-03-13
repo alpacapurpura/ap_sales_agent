@@ -55,9 +55,9 @@ export function ShopifyView() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const statusParam = searchParams.get("status");
-    const channel = searchParams.get("channel");
-    const message = searchParams.get("message");
+    const statusParam = searchParams?.get("status");
+    const channel = searchParams?.get("channel");
+    const message = searchParams?.get("message");
     if (statusParam === "success" && channel === "shopify") {
         toast.success("Shopify conectado exitosamente");
         router.replace("/marketing-studio/connections");

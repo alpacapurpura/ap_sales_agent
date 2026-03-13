@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ServiceKey = "gmail" | "calendar" | "analytics" | "youtube";
+type ServiceKey = "gmail" | "calendar" | "analytics" | "youtube" | "youtube_analytics";
 
 interface ServiceStatus {
   is_active: boolean;

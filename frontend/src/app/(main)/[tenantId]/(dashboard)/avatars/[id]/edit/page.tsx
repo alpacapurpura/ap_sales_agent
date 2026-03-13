@@ -15,10 +15,10 @@ export default function EditAvatarPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl = searchParams?.get("callbackUrl");
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
-  const avatarId = params.id as string;
+  const avatarId = params?.id as string;
 
   const { data: avatar, isLoading, isError } = useQuery({
     queryKey: ["avatar", avatarId],
