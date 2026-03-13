@@ -2,14 +2,14 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { SqueezeServerTpl } from '@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl';
 import { LandingPageArchetype, LandingPageConfig, SqueezeContent } from '@/features/offer-studio/components/landing/types/schema';
+import { config } from '@/lib/config';
 
 // --- DATA FETCHING ---
 
 async function getLandingPage(slug: string): Promise<LandingPageConfig | null> {
   try {
-    // Internal Docker URL if running in container, else localhost
-    // For now using localhost/env for standard fetch
-    const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8000';
+    // Use centralized config for consistent URL resolution
+    const apiUrl = config.api.baseUrl;
     
     // Fetch from Backend Public API
     // Revalidate every 60 seconds (ISR)

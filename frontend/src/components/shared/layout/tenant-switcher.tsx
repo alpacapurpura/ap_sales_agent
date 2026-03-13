@@ -56,7 +56,7 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
     return (
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9">
+          <Button variant="ghost" size="icon" className="h-9 w-9" suppressHydrationWarning>
              <span className="text-lg font-bold tracking-tight text-primary">
                 {currentTenantInitial}
              </span>
@@ -95,6 +95,7 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
           aria-expanded={open}
           aria-label="Seleccionar organización"
           className="w-full justify-between hover:bg-background/50 px-2 h-auto py-1"
+          suppressHydrationWarning
         >
           <div className="flex flex-col items-start overflow-hidden">
               <span className="text-lg font-bold tracking-tight text-primary truncate text-left" title={currentTenantName}>

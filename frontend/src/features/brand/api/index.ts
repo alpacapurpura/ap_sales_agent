@@ -18,7 +18,15 @@ export const brandApi = {
                 Authorization: `Bearer ${token}`
             }
         });
+        
         if (!res.ok) {
+            // Log error but attempt to return empty/default settings if 404
+            // This prevents the entire UI from crashing for new users
+            if (res.status === 404) {
+                console.warn("[BrandAPI] Settings not found (404), returning empty object");
+                return {} as BrandSettings;
+            }
+            
             const errorText = await res.text().catch(() => "Unknown error");
             console.error(`[BrandAPI] Failed to fetch settings: ${res.status} ${res.statusText}`, errorText);
             throw new Error(`Failed to fetch brand settings: ${res.status} ${res.statusText}`);

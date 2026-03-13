@@ -25,8 +25,9 @@ export const offerApi = {
     try {
         const url = `${API_URL}/api/v1/offer/products/`;
         
+        // Extended timeout to 20s for Docker/Slow environments
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
         
         try {
             const res = await fetchClient(url, { 
@@ -237,15 +238,16 @@ export const offerApi = {
 
   getLandingConfig: async (offerId: string, token: string): Promise<any> => {
       if (USE_MOCK_DATA) {
-          return null; 
+          return null;
       }
-      // Corregido: Endpoint específico de Landing Module
       const res = await fetchClient(`${API_URL}/api/v1/landings/offer/${offerId}`, {
           headers: { Authorization: `Bearer ${token}` }
       });
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("Failed to fetch landing config");
-      return res.json();
+      const landingPage = await res.json();
+      // Backend returns full LandingPage object; extract the config
+      return landingPage.config || landingPage;
   },
 
   generateLandingPage: async (offerId: string, token: string): Promise<any> => {
@@ -308,7 +310,7 @@ export const offerApi = {
               subheadline: "Este es un texto simulado generado como respuesta a tu instrucción."
           };
       }
-      const res = await fetchClient(`${API_URL}/api/v1/offers/${offerId}/landing/ai/regenerate-block`, {
+      const res = await fetchClient(`${API_URL}/api/v1/landings/${offerId}/landing/ai/regenerate-block`, {
           method: "POST",
           headers: { 
               "Content-Type": "application/json",

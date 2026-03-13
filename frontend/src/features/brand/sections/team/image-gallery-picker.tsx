@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { assetsApi } from "@/lib/api/assets";
+import { config } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +37,7 @@ export function ImageGalleryPicker({
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const [uploadFile, setUploadFile] = useState<File | null>(null);
     const [uploadDesc, setUploadDesc] = useState("");
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiUrl = config.api.baseUrl;
 
     // Ensure local state tracks props, but for selection inside dialog we might need temp state
     // For simplicity, we'll select directly into the props when confirming.

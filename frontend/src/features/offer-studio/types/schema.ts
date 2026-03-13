@@ -156,6 +156,14 @@ export const DeliverableItemSchema = z.object({
   value_stack_price: z.number()
 });
 
+export const ObjectionItemSchema = z.object({
+  id: z.string().optional(),
+  type: z.string().min(1, "Tipo es obligatorio"),
+  trigger_phrases: z.array(z.string()).default([]),
+  strategy: z.string().default(""),
+  rebuttal: z.string().default("")
+});
+
 export const OfferAssetSchema = z.object({
   id: z.string().optional(),
   type: z.nativeEnum(AssetType),
@@ -182,6 +190,7 @@ export const OfferSchema = z.object({
   target_avatar_match: z.array(z.nativeEnum(AvatarPersona)).default([]),
   marketing_pain_points: z.array(z.string()).default([]),
   marketing_desires: z.array(z.string()).default([]),
+  objections: z.array(ObjectionItemSchema).default([]),
   primary_outcome: z.string().optional(),
   time_to_value: z.string().optional(),
   

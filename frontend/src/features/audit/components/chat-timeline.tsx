@@ -310,6 +310,11 @@ export function ChatTimeline({ leadId, onSelectEvent, selectedEventId }: ChatTim
                                         <div className="font-mono text-[10px]">
                                             {event.llm_summary.total_tokens} tokens
                                         </div>
+                                        {event.llm_summary.prompt_template && (
+                                          <div className="font-mono text-[10px] text-muted-foreground/80">
+                                            {event.llm_summary.prompt_template}
+                                          </div>
+                                        )}
                                       </div>
                                     )}
                                     <p className="text-[10px] text-muted-foreground mt-1">Click para ver detalles</p>

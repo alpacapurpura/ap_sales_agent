@@ -7,17 +7,19 @@ import { toast } from "sonner";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
 import { OfferPsychologyCard } from "../../components/cards/offer-psychology-card";
+import { OfferObjectionsCard } from "../../components/cards/offer-objections-card";
 import { offerApi } from "@/features/offer-studio/api";
 
 const PsychologySchema = OfferSchema.pick({
   marketing_pain_points: true,
   marketing_desires: true,
+  objections: true,
   avatar_id: true, // Needed for generation logic context
   public_name: true, // Needed for generation logic context
   headline_promise: true // Needed for generation logic context
 });
 
-type PsychologyFormValues = Pick<OfferFormValues, "marketing_pain_points" | "marketing_desires" | "avatar_id" | "public_name" | "headline_promise">;
+type PsychologyFormValues = Pick<OfferFormValues, "marketing_pain_points" | "marketing_desires" | "objections" | "avatar_id" | "public_name" | "headline_promise">;
 
 export interface PsychologyFormProps {
   defaultValues: Partial<OfferFormValues>;
@@ -65,12 +67,15 @@ function PsychologyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   };
 
   return (
-    <OfferPsychologyCard 
-        control={form.control}
-        onGenerate={handleGeneratePsychology}
-        avatarSelected={!!form.watch("avatar_id")}
-        isGenerating={generatingPsychology}
-    />
+    <div className="space-y-6">
+      <OfferPsychologyCard
+          control={form.control}
+          onGenerate={handleGeneratePsychology}
+          avatarSelected={!!form.watch("avatar_id")}
+          isGenerating={generatingPsychology}
+      />
+      <OfferObjectionsCard control={form.control} />
+    </div>
   );
 }
 
@@ -78,6 +83,7 @@ export function PsychologyForm({ defaultValues: propValues, onSave }: Psychology
   const defaultValues: PsychologyFormValues = {
     marketing_pain_points: propValues?.marketing_pain_points || [],
     marketing_desires: propValues?.marketing_desires || [],
+    objections: propValues?.objections || [],
     avatar_id: propValues?.avatar_id || "",
     public_name: propValues?.public_name || "",
     headline_promise: propValues?.headline_promise || ""

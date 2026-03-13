@@ -24,7 +24,7 @@ const SECTION_METADATA: Record<string, { quote: string; action: string }> = {
     action: "Definir Estrategia"
   },
   psychology: {
-    quote: "Conecta con las emociones profundas de tu cliente ideal.",
+    quote: "Conecta con las emociones profundas de tu cliente ideal y anticipa sus objeciones.",
     action: "Configurar Psicología"
   },
   promise: {
@@ -95,7 +95,8 @@ export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
                (!formValues.marketing_pain_points || formValues.marketing_pain_points.length === 0);
       case "psychology":
         return (!formValues.marketing_pain_points || formValues.marketing_pain_points.length === 0) &&
-               (!formValues.marketing_desires || formValues.marketing_desires.length === 0);
+               (!formValues.marketing_desires || formValues.marketing_desires.length === 0) &&
+               (!formValues.objections || formValues.objections.length === 0);
       case "promise":
         return !formValues.headline_promise;
       case "pricing":

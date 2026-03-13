@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Offer } from "@/features/offer-studio/types";
 import { OfferNavRail } from "../navigation/OfferNavRail";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit3, Save, ExternalLink } from "lucide-react";
+import { Eye, Edit3, Save, ExternalLink, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useParams } from "next/navigation";
 
 interface OfferStudioLayoutProps {
   offer: Offer;
@@ -24,6 +25,12 @@ export function OfferStudioLayout({
   isSaving = false
 }: OfferStudioLayoutProps) {
   const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const params = useParams();
+  const tenantId = params?.tenantId as string;
+
+  const handleOpenLanding = () => {
+    window.open(`/${tenantId}/editor/${offer.id}`, "_blank", "noopener");
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
@@ -50,9 +57,9 @@ export function OfferStudioLayout({
                   <Edit3 className="h-3.5 w-3.5 mr-1.5" />
                   Editor
                </Button>
-               <Button 
-                  variant={mode === "preview" ? "secondary" : "ghost"} 
-                  size="sm" 
+               <Button
+                  variant={mode === "preview" ? "secondary" : "ghost"}
+                  size="sm"
                   className="h-8 text-xs font-medium"
                   onClick={() => setMode("preview")}
                >
@@ -60,7 +67,17 @@ export function OfferStudioLayout({
                   Vista Previa
                </Button>
             </div>
-            
+
+            <Button
+               variant="outline"
+               size="sm"
+               className="h-8 text-xs font-medium gap-1.5"
+               onClick={handleOpenLanding}
+            >
+               <Globe className="h-3.5 w-3.5" />
+               Landing Page
+            </Button>
+
             <div className="h-6 w-px bg-border mx-1" />
 
             <Button 

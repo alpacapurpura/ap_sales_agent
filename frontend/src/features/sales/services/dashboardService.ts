@@ -1,6 +1,7 @@
 import { fetchClient } from "@/lib/http-client";
+import { config } from "@/lib/config";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const BASE_URL = config.api.baseUrl;
 
 export interface DashboardStats {
   total_sales: number;

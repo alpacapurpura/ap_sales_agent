@@ -31,6 +31,7 @@ export function OfferEditor({ offerId }: { offerId: string }) {
       pricing_options: [],
       marketing_pain_points: [],
       marketing_desires: [],
+      objections: [],
       prerequisites: [],
       includes_offers: [],
       deliverables: [],

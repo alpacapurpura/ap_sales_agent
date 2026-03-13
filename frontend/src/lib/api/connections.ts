@@ -66,11 +66,6 @@ export interface MetaStatusResponse extends ChannelStatusResponse {
   is_configured?: boolean;
 }
 
-export interface MetaConfigRequest {
-  app_id: string;
-  app_secret: string;
-}
-
 export interface YoutubeStatusResponse extends ChannelStatusResponse {
   is_configured?: boolean;
   channel_id?: string;
@@ -107,22 +102,6 @@ export const connectionsApi = {
   },
 
   // Meta (Facebook/Instagram)
-  configureMeta: async (data: MetaConfigRequest, token: string): Promise<any> => {
-    const res = await fetchClient(`${API_URL}/api/v1/connections/meta/configure`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error configurando Meta");
-    }
-    return res.json();
-  },
-
   getMetaStatus: async (token: string): Promise<MetaStatusResponse> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/meta/status`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -578,6 +557,60 @@ export const connectionsApi = {
       },
     });
     if (!res.ok) throw new Error("Error desconectando ManyChat");
+  },
+
+  // Google Workspace (Unified OAuth)
+  getGoogleWorkspaceAuthUrl: async (token: string): Promise<{ url: string; state: string }> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/auth-url`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo URL de autorización de Google");
+    return res.json();
+  },
+
+  connectGoogleWorkspace: async (code: string, token: string): Promise<{ status: string; email: string }> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/callback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ code }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Error conectando Google Workspace");
+    }
+    return res.json();
+  },
+
+  getGoogleWorkspaceStatus: async (token: string): Promise<{
+    is_connected: boolean;
+    email?: string;
+    services: Record<string, { is_active: boolean; has_credentials: boolean }>;
+  }> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de Google Workspace");
+    return res.json();
+  },
+
+  toggleGoogleWorkspaceService: async (service: string, isActive: boolean, token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/services/${service}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ is_active: isActive }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Error actualizando servicio");
+    }
+  },
+
+  disconnectGoogleWorkspace: async (token: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error desconectando Google Workspace");
   },
 
   // YouTube

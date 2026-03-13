@@ -75,7 +75,7 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
       onMouseLeave={() => setIsHovered(false)}
     >
         {/* HEADER: Health Ring */}
-        <div className="h-20 flex items-center justify-center border-b relative shrink-0">
+        <div className="h-20 flex items-center justify-start pl-3 border-b relative shrink-0">
             {/* ... same SVG code ... */}
             <div className="relative flex items-center justify-center w-10 h-10">
             {/* SVG Circle Progress */}
@@ -167,12 +167,27 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
                       </button>
                     </TooltipTrigger>
                     {!isHovered && (
-                        <TooltipContent side="right" className="flex items-center gap-2">
-                            {item.label}
-                            {isComplete ? (
-                                 <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full">Listo</span>
-                            ) : (
-                                 <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 rounded-full">Falta</span>
+                        <TooltipContent side="right" className="flex flex-col items-start gap-1 p-2 max-w-[200px]">
+                            <div className="flex items-center gap-2 w-full justify-between">
+                                <span className="font-semibold">{item.label}</span>
+                                {isComplete ? (
+                                     <span className="text-[10px] bg-green-100 text-green-700 px-1.5 rounded-full shrink-0">Listo</span>
+                                ) : (
+                                     <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 rounded-full shrink-0">Falta</span>
+                                )}
+                            </div>
+                            
+                            {!isComplete && item.status.missingFields && item.status.missingFields.length > 0 && (
+                                <ul className="text-[10px] text-muted-foreground list-disc pl-3 space-y-0.5 mt-1 w-full">
+                                    {item.status.missingFields.slice(0, 3).map((field: string, i: number) => (
+                                        <li key={i} className="truncate">{field}</li>
+                                    ))}
+                                    {item.status.missingFields.length > 3 && (
+                                        <li className="list-none pt-0.5 text-[9px] opacity-70">
+                                            +{item.status.missingFields.length - 3} más...
+                                        </li>
+                                    )}
+                                </ul>
                             )}
                         </TooltipContent>
                     )}

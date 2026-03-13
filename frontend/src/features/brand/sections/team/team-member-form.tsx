@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { KeyFigure } from "@/features/brand/types";
+import { config } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +29,7 @@ export function TeamMemberForm({
     embedded = false 
 }: TeamMemberFormProps) {
     const [currentMember, setCurrentMember] = useState<KeyFigure>(initialData);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiUrl = config.api.baseUrl;
 
     // Actualizar estado si cambia initialData (útil para resets)
     useEffect(() => {

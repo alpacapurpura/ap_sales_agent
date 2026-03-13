@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { offerGalleryApi } from "@/lib/api/offer-gallery";
+import { getAssetUrl } from "@/lib/utils/assets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +24,7 @@ export function OfferGallerySection({ offerId }: OfferGallerySectionProps) {
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [description, setDescription] = useState("");
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 
     const { data: images, isLoading } = useQuery({
         queryKey: ["offer-gallery", offerId],
@@ -154,7 +155,7 @@ export function OfferGallerySection({ offerId }: OfferGallerySectionProps) {
                         <div key={img.id} className="group relative bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all">
                             <div className="relative aspect-video w-full bg-muted">
                                 <img 
-                                    src={`${apiUrl}${img.public_url}`} 
+                                    src={getAssetUrl(img.public_url)}
                                     alt="Offer Gallery Image" 
                                     className="object-cover w-full h-full"
                                 />

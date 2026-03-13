@@ -43,18 +43,34 @@ export const crmDashboardApi = {
     },
 
     getAgenda: async (token: string, range: "today" | "week" = "today"): Promise<AgendaItem[]> => {
-        const res = await fetchClient(`${API_URL}/api/v1/scheduling/agenda/?range=${range}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Error fetching agenda");
-        return res.json();
+        try {
+            const res = await fetchClient(`${API_URL}/api/v1/scheduling/agenda/?range=${range}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                console.warn("Agenda fetch failed (likely no data or 404), returning empty list.");
+                return [];
+            }
+            return res.json();
+        } catch (error) {
+            console.error("Error fetching agenda, returning empty list:", error);
+            return [];
+        }
     },
 
     getTicker: async (token: string, range: "today" | "week" | "30d" | "all" = "30d"): Promise<TickerItem[]> => {
-        const res = await fetchClient(`${API_URL}/api/v1/crm/sales/ticker?range=${range}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Error fetching ticker");
-        return res.json();
+        try {
+            const res = await fetchClient(`${API_URL}/api/v1/crm/sales/ticker?range=${range}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                console.warn("Ticker fetch failed, returning empty list.");
+                return [];
+            }
+            return res.json();
+        } catch (error) {
+            console.error("Error fetching ticker, returning empty list:", error);
+            return [];
+        }
     }
 };

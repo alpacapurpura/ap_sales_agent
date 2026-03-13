@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { assetsApi, Asset } from "@/lib/api/assets";
+import { getAssetUrl } from "@/lib/utils/assets";
 import { BrandVisuals } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
     const [selectedImage, setSelectedImage] = useState<Asset | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [description, setDescription] = useState("");
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 
     const { data: images, isLoading } = useQuery({
         queryKey: ["assets"],
@@ -173,7 +174,7 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
                                     onClick={() => setSelectedImage(img)}
                                 >
                                     <img 
-                                        src={`${apiUrl}${img.public_url}`} 
+                                        src={getAssetUrl(img.public_url)}
                                         alt="Gallery Image" 
                                         className="object-cover w-full h-full"
                                     />
@@ -260,7 +261,7 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
                         <div className="relative">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
-                                src={`${apiUrl}${selectedImage.public_url}`} 
+                                src={getAssetUrl(selectedImage.public_url)}
                                 alt="Full size preview" 
                                 className="w-full h-auto max-h-[85vh] rounded-md object-contain shadow-2xl"
                             />

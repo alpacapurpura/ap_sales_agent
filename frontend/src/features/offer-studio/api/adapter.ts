@@ -38,7 +38,8 @@ export interface BackendOffer {
   avatar_id?: string;
   marketing_pain_points?: string[];
   marketing_desires?: string[];
-  
+  objections?: any[];
+
   deliverables?: any[];
   target_avatar_match?: string[];
   prerequisites?: any[];
@@ -124,6 +125,13 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
 
     marketing_pain_points: data.marketing_pain_points || [],
     marketing_desires: data.marketing_desires || [],
+    objections: (data.objections || []).map((o: any) => ({
+        id: o.id,
+        type: o.type || "custom",
+        trigger_phrases: o.trigger_phrases || [],
+        strategy: o.strategy || "",
+        rebuttal: o.rebuttal || "",
+    })),
     deliverables: (data.deliverables || []).map((d: any) => ({
         name: d.name,
         format: d.format || DeliverableFormat.RECORDED_CONTENT,

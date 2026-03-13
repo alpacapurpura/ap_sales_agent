@@ -21,7 +21,7 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
     name: initialData?.name || "",
     icp_description: initialData?.icp_description || "",
     anti_avatar: initialData?.anti_avatar || "",
-    scope: "GLOBAL"
+    scope: initialData?.scope || "GLOBAL"
   });
 
   const handleChange = (field: keyof CreateAvatarDTO, value: string) => {

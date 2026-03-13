@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 
 function CallbackContent() {
   const searchParams = useSearchParams();
@@ -32,7 +34,7 @@ function CallbackContent() {
         }
 
         const redirect_uri = `${window.location.origin}/connections/meta/callback`;
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/connections/meta/callback`, {
+        const response = await fetchClient(`${config.api.baseUrl}/api/v1/connections/meta/callback`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -47,21 +49,15 @@ function CallbackContent() {
         }
 
         toast.success("Meta conectado exitosamente");
-        
         const tenantId = sessionStorage.getItem("meta_oauth_tenant_id");
-        if (tenantId) {
-          sessionStorage.removeItem("meta_oauth_tenant_id");
-          // Redirigir al dashboard específico del tenant y a la pestaña de conexiones si es posible
-          // Como MarketingStudio usa Tabs, podemos intentar pasar un query param si lo soporta,
-          // o simplemente ir a la página. Asumimos que la URL es /[tenantId]/marketing-studio
-          router.push(`/${tenantId}/marketing-studio`);
-        } else {
-          router.push("/marketing-studio");
-        }
+        sessionStorage.removeItem("meta_oauth_tenant_id");
+        router.push(tenantId ? `/${tenantId}/settings?tab=meta` : "/");
       } catch (error: any) {
         console.error(error);
         toast.error(error.message || "Falló la conexión con Meta");
-        router.push("/marketing-studio");
+        const tenantId = sessionStorage.getItem("meta_oauth_tenant_id");
+        sessionStorage.removeItem("meta_oauth_tenant_id");
+        router.push(tenantId ? `/${tenantId}/settings?tab=meta` : "/");
       }
     };
 

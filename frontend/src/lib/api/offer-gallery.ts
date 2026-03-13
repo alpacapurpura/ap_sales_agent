@@ -1,4 +1,5 @@
 import { fetchClient } from "../http-client";
+import { config } from "../config";
 
 export interface OfferGalleryImage {
   id: string;
@@ -12,7 +13,7 @@ export interface OfferGalleryImage {
   created_at: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = config.api.baseUrl;
 
 export const offerGalleryApi = {
   upload: async (token: string, offerId: string, file: File, description: string): Promise<OfferGalleryImage> => {

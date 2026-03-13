@@ -228,9 +228,9 @@ export function YoutubeView() {
                                 <br />
                                 4. Crea credenciales OAuth 2.0.
                                 <br />
-                                5. Agrega esta URL a "Orígenes de JavaScript autorizados": <code className="bg-amber-100 px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : ''}</code>
+                                5. Agrega esta URL a Orígenes de JavaScript autorizados: <code className="bg-amber-100 px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : ''}</code>
                                 <br />
-                                6. Agrega esta URL a "URI de redireccionamiento autorizados": <code className="bg-amber-100 px-1 rounded">{typeof window !== 'undefined' ? window.location.origin + "/connections" : ''}</code>
+                                6. Agrega esta URL a URI de redireccionamiento autorizados: <code className="bg-amber-100 px-1 rounded">{typeof window !== 'undefined' ? window.location.origin + "/connections" : ''}</code>
                             </AlertDescription>
                         </Alert>
 

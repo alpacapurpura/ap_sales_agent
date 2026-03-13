@@ -3,11 +3,12 @@ import { cookies } from 'next/headers';
 import { SqueezeServerTpl } from '@/features/offer-studio/components/landing/templates/server/SqueezeServerTpl';
 import { TransformerServerTpl } from '@/features/offer-studio/components/landing/templates/server/TransformerServerTpl';
 import { LandingPageArchetype, LandingPageConfig, SqueezeContent, TransformerContent } from '@/features/offer-studio/components/landing/types/schema';
+import { config } from '@/lib/config';
 
 // --- DATA FETCHING (Authenticated) ---
 async function getLandingPageConfig(offerId: string, tenantId: string): Promise<LandingPageConfig | null> {
   try {
-    const apiUrl = process.env.INTERNAL_API_URL || 'http://localhost:8000';
+    const apiUrl = config.api.baseUrl;
     const cookieStore = await cookies();
     // Use Clerk session token logic if available, or custom auth_token
     // In Clerk, usually '__session' or verify token via auth() helper

@@ -30,9 +30,15 @@ export function AvatarsSection({ visuals, onEdit }: AvatarsSectionProps) {
           return await avatarApi.listAvatars(token, "GLOBAL"); 
       } catch (e) {
           console.error(e);
+          // Return empty array instead of throwing to prevent component crash
           return [];
       }
     },
+    // Prevent retry on 404 or auth errors to avoid spamming console
+    retry: (failureCount, error: any) => {
+        if (error.message.includes("404") || error.message.includes("401")) return false;
+        return failureCount < 2;
+    }
   });
 
   if (isLoading) {

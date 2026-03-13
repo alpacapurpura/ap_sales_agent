@@ -38,11 +38,11 @@ const getNavItems = (tenantId: string) => [
     href: `/${tenantId}/offer-studio`,
     icon: Briefcase,
   },
-  // {
-  //   title: "Auditoría",
-  //   href: `/${tenantId}/audit`,
-  //   icon: Activity,
-  // },
+  {
+    title: "Auditoría",
+    href: `/${tenantId}/audit`,
+    icon: Activity,
+  },
   {
     title: "Growth Studio",
     href: `/${tenantId}/marketing-studio`,

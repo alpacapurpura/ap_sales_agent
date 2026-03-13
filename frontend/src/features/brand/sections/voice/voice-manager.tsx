@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { config } from "@/lib/config";
+import { fetchClient } from "@/lib/http-client";
 import { VoiceForm } from "./voice-form";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
 
@@ -26,7 +28,7 @@ export function VoiceManager() {
       if (text) formData.append("text_input", text);
       if (file) formData.append("file", file);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/brand/style/analyze-style`, {
+      const res = await fetchClient(`${config.api.baseUrl}/api/v1/brand/style/analyze-style`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

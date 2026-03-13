@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { KeyFigure } from "@/features/brand/types";
+import { config } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { User, Edit2, Trash2 } from "lucide-react";
@@ -26,7 +27,7 @@ export const TeamList = memo(function TeamList({ team, onEdit, onDelete }: TeamL
         );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const apiUrl = config.api.baseUrl;
 
     return (
         <div className="grid gap-4">

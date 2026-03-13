@@ -7,35 +7,27 @@ import { WebhookView } from "@/features/settings/components/webhook-view"
 import { GeneralSettingsForm } from "@/features/settings/components/general-settings-form"
 import { TeamView } from "@/features/settings/components/team-view"
 import { TelegramView } from "@/features/connections/components/telegram-view"
-import { GoogleCalendarView } from "@/features/connections/components/google-calendar-view"
-import { GmailView } from "@/features/connections/components/gmail-view"
+import { GoogleWorkspaceView } from "@/features/connections/components/google-workspace-view"
 import { ShopifyView } from "@/features/connections/components/shopify-view"
 import { MailerLiteView } from "@/features/connections/components/mailerlite-view"
 import { ManyChatView } from "@/features/connections/components/manychat-view"
-import { GoogleAnalyticsView } from "@/features/connections/components/google-analytics-view"
-import { YoutubeView } from "@/features/connections/components/youtube-view"
 import { MetaView } from "@/features/connections/components/meta-view"
 import WhatsAppView from "@/features/connections/components/whatsapp-view"
-import { 
-  Key, 
-  Settings as SettingsIcon, 
-  User, 
-  Webhook, 
+import {
+  Key,
+  Settings as SettingsIcon,
+  User,
+  Webhook,
   Users,
-  MessageCircle, 
-  Video, 
-  Instagram, 
+  MessageCircle,
+  Video,
   Facebook,
-  MessageSquare, 
-  Send, 
-  MessageSquareCode, 
-  Calendar, 
-  CreditCard, 
+  Send,
+  MessageSquareCode,
+  CreditCard,
   Mail,
   ShoppingBag,
   Bot,
-  BarChart,
-  Youtube
 } from "lucide-react"
 import { useSearchParams, useRouter, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
@@ -158,12 +150,12 @@ function SettingsContent() {
                       <ShoppingBag className="mr-2 h-4 w-4" />
                       Shopify
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="email" 
+                    <TabsTrigger
+                      value="google-workspace"
                       className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
                       <Mail className="mr-2 h-4 w-4" />
-                      Email
+                      Google Workspace
                     </TabsTrigger>
                     <TabsTrigger 
                       value="tiktok" 
@@ -172,21 +164,7 @@ function SettingsContent() {
                       <Video className="mr-2 h-4 w-4" />
                       TikTok
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="instagram" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Instagram className="mr-2 h-4 w-4" />
-                      Instagram
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="messenger" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Messenger
-                    </TabsTrigger>
-                    <TabsTrigger 
+                    <TabsTrigger
                       value="telegram" 
                       className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
@@ -215,20 +193,6 @@ function SettingsContent() {
                       <Mail className="mr-2 h-4 w-4" />
                       MailerLite
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="google-analytics" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <BarChart className="mr-2 h-4 w-4" />
-                      Google Analytics
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="youtube" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Youtube className="mr-2 h-4 w-4" />
-                      YouTube
-                    </TabsTrigger>
 
                     {/* Grupo: Cierre de ventas */}
                     <div className="w-full px-4 mb-2 mt-6">
@@ -237,13 +201,6 @@ function SettingsContent() {
                       </h3>
                     </div>
 
-                    <TabsTrigger 
-                      value="calendar" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Calendar
-                    </TabsTrigger>
                     <TabsTrigger 
                       value="crm" 
                       className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
@@ -304,19 +261,13 @@ function SettingsContent() {
                 <TabsContent value="shopify" className="mt-0">
                   <ShopifyView key={tenantId} />
                 </TabsContent>
-                <TabsContent value="email" className="mt-0">
-                   <GmailView key={tenantId} />
+                <TabsContent value="google-workspace" className="mt-0">
+                  <GoogleWorkspaceView key={tenantId} />
                 </TabsContent>
                 <TabsContent value="tiktok" className="mt-0">
                    <PlaceholderContent key={tenantId} title="TikTok" icon={Video} />
                 </TabsContent>
-                <TabsContent value="instagram" className="mt-0">
-                   <PlaceholderContent key={tenantId} title="Instagram" icon={Instagram} />
-                </TabsContent>
-                <TabsContent value="messenger" className="mt-0">
-                   <PlaceholderContent key={tenantId} title="Messenger" icon={MessageSquare} />
-                </TabsContent>
-                <TabsContent value="telegram" className="mt-0">
+<TabsContent value="telegram" className="mt-0">
                    <TelegramView key={tenantId} />
                 </TabsContent>
                 <TabsContent value="webwidget" className="mt-0">
@@ -326,17 +277,6 @@ function SettingsContent() {
                 {/* Marketing */}
                 <TabsContent value="mailerlite" className="mt-0">
                    <MailerLiteView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="google-analytics" className="mt-0">
-                   <GoogleAnalyticsView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="youtube" className="mt-0">
-                   <YoutubeView key={tenantId} />
-                </TabsContent>
-
-                {/* Cierre de ventas */}
-                <TabsContent value="calendar" className="mt-0">
-                   <GoogleCalendarView key={tenantId} />
                 </TabsContent>
                 <TabsContent value="crm" className="mt-0">
                    <PlaceholderContent key={tenantId} title="CRM" icon={Users} />

@@ -243,6 +243,7 @@ export interface Offer {
   // Marketing Psychology
   marketing_pain_points?: string[];
   marketing_desires?: string[];
+  objections?: ObjectionItem[];
 
   // Deliverables
   deliverables?: DeliverableItem[];
@@ -289,9 +290,13 @@ export interface AvatarDefinition {
     sophistication_level?: string;
 }
 
-export interface Objection {
-  id: string;
-  trigger: string;
+export interface ObjectionItem {
+  id?: string;
+  type: string;  // "price" | "time" | "trust" | "partner" | "custom"
+  trigger_phrases: string[];
   strategy: string;
-  script: string;
+  rebuttal: string;
 }
+
+/** @deprecated Use ObjectionItem instead */
+export type Objection = ObjectionItem;

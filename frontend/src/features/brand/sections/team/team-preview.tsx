@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyFigure, BrandVisuals } from "@/features/brand/types";
+import { config } from "@/lib/config";
 import { UserCheck, Star, Plus, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -12,7 +13,7 @@ interface TeamSectionProps {
 
 export function TeamSection({ team, visuals, onEdit }: TeamSectionProps) {
   const hasContent = team && team.length > 0;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = config.api.baseUrl;
 
   return (
     <section 

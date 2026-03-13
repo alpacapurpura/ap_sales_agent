@@ -6,24 +6,24 @@ const nextConfig = {
     buildActivityPosition: 'bottom-left',
   },
   // Whitelist local domains for development to prevent "Cross origin request detected" errors
-  allowedDevOrigins: ["salesagent.local", "api.salesagent.local", "admin.salesagent.local", "laptopchris.alpacapurpura.lat"],
+  allowedDevOrigins: ["dev-app.nicolify.com", "dev-api.nicolify.com"],
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'salesagent.alpacapurpura.lat',
+        hostname: 'app.nicolify.com',
       },
       {
         protocol: 'https',
-        hostname: 'apisalesagent.alpacapurpura.lat', // Production API
+        hostname: 'api.nicolify.com', // Production API
       },
       {
         protocol: 'https',
-        hostname: 'laptopchris.alpacapurpura.lat',
+        hostname: 'dev-app.nicolify.com',
       },
       {
         protocol: 'https',
-        hostname: 'laptopchris-api.alpacapurpura.lat', // Development API Tunnel
+        hostname: 'dev-api.nicolify.com',
       },
       {
         protocol: 'https',
@@ -49,7 +49,7 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['salesagent.local', 'localhost:3000', 'laptopchris.alpacapurpura.lat', 'salesagent.alpacapurpura.lat', 'clerk.alpacapurpura.lat']
+      allowedOrigins: ['localhost:3000', 'clerk.nicolify.com', 'dev-app.nicolify.com', 'dev-api.nicolify.com', 'app.nicolify.com', 'api.nicolify.com']
     }
   },
   async rewrites() {

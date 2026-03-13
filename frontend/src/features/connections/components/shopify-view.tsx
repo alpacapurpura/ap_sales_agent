@@ -25,6 +25,8 @@ export function ShopifyView() {
   const { getToken } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const externalStudioBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://dev-app.nicolify.com").replace(/\/$/, "");
+  const nicolifyStudioUrl = `${externalStudioBaseUrl}/marketing-studio`;
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<ShopifyStatusResponse | null>(null);
   const [shopUrl, setShopUrl] = useState("");
@@ -55,11 +57,15 @@ export function ShopifyView() {
   useEffect(() => {
     const statusParam = searchParams.get("status");
     const channel = searchParams.get("channel");
+    const message = searchParams.get("message");
     if (statusParam === "success" && channel === "shopify") {
         toast.success("Shopify conectado exitosamente");
-        // Limpiar URL para no mostrar el toast de nuevo al recargar
         router.replace("/marketing-studio/connections");
         fetchStatus();
+    }
+    if (statusParam === "error" && message) {
+      toast.error(message);
+      router.replace("/marketing-studio/connections");
     }
   }, [searchParams, router]);
 
@@ -161,7 +167,7 @@ export function ShopifyView() {
                     <h3 className="font-medium text-sm">Instrucciones:</h3>
                     <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-2">
                         <li>Ingresa la URL de tu tienda Shopify (ej: mi-tienda.myshopify.com).</li>
-                        <li>Haz clic en "Conectar Tienda" para ser redirigido a Shopify.</li>
+                        <li>Haz clic en Conectar Tienda para ser redirigido a Shopify.</li>
                         <li>Aprueba la instalación de la aplicación en tu panel de Shopify.</li>
                     </ol>
                 </div>
@@ -247,6 +253,12 @@ export function ShopifyView() {
                 <Button variant="outline" onClick={handleTest} disabled={testing}>
                     {testing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}
                     Probar Conexión
+                </Button>
+                <Button asChild variant="secondary">
+                    <a href={nicolifyStudioUrl} target="_blank" rel="noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Abrir Nicolify Studio
+                    </a>
                 </Button>
 
                 <Dialog>

@@ -5,6 +5,7 @@ import { BrandSettings, KeyFigure, AuthorityItem } from "@/features/brand/types"
 import { useAuth } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { avatarApi, CreateAvatarDTO } from "@/lib/api/avatar";
+import { config } from "@/lib/config";
 import { toast } from "sonner";
 
 // Ideally types should be in a separate file, but for now we can replicate the string union or import type only.
@@ -93,7 +94,7 @@ export function EditSheetManager({
           if (!token) return;
           
           if (selectedItem?.id) {
-              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/avatars/${selectedItem.id}`, {
+              await fetch(`${config.api.baseUrl}/api/v1/avatars/${selectedItem.id}`, {
                   method: 'PATCH',
                   headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                   body: JSON.stringify(data)

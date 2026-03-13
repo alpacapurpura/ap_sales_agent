@@ -1,4 +1,5 @@
 import { fetchClient } from "../http-client";
+import { config } from "../config";
 
 export interface Asset {
   id: string;
@@ -16,7 +17,7 @@ export interface Asset {
   created_at: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = config.api.baseUrl;
 
 export const assetsApi = {
   upload: async (token: string, file: File, description?: string, offer_id?: string): Promise<Asset> => {
@@ -38,10 +39,17 @@ export const assetsApi = {
   },
 
   list: async (token: string, type?: string): Promise<Asset[]> => {
-    const url = new URL(`${API_URL}/api/v1/assets/gallery/`);
+    // Ensure valid URL construction even if API_URL is relative
+    const base = API_URL.startsWith("http") ? undefined : "http://localhost";
+    const url = new URL(`${API_URL}/api/v1/assets/gallery/`, base);
+    
     if (type) url.searchParams.append("type", type);
 
-    const res = await fetchClient(url.toString(), {
+    // If we used a dummy base, we might want to return relative path, 
+    // but fetchClient handles absolute URLs fine.
+    const urlString = base ? url.pathname + url.search : url.toString();
+
+    const res = await fetchClient(urlString, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -23,7 +23,8 @@ export interface TimelineEvent {
   llm_summary?: {
     model: string;
     total_tokens: number;
-  };
+    prompt_template?: string;
+  } | null;
 }
 
 export interface TraceDetail {

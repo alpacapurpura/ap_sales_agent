@@ -3,6 +3,15 @@ export interface BrandIdentity {
     brand_name?: string;
     industry?: string;
     
+    // Extended Identity (Matching Form & Validation)
+    website?: string;
+    logo_url?: string;
+    tagline?: string;
+    description?: string;
+    founding_year?: string;
+    timezone?: string;
+    language?: string;
+
     // NOTE: Visual fields (colors, fonts, styles) have been moved to BrandVisuals
     // to align with Backend Domain Models. Use BrandVisuals for all aesthetic properties.
 }
