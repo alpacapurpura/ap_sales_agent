@@ -72,17 +72,17 @@ class Lead(BaseEntity):
     profile_data: UserProfile = Field(default_factory=UserProfile)
     
     # Dynamic Scoring & System Flags
-    fit_score: int = 0
-    intent_score: int = 0
-    temperature: str = "COLD"
-    is_blacklisted: bool = False
-    
+    fit_score: Optional[int] = 0
+    intent_score: Optional[int] = 0
+    temperature: Optional[str] = "COLD"
+    is_blacklisted: Optional[bool] = False
+
     last_interaction_date: Optional[datetime] = None
     next_scheduled_action: Optional[datetime] = None
-    
+
     # Deep Memory
     conversation_summary: Optional[str] = None
-    key_objections_history: List[Any] = Field(default_factory=list)
+    key_objections_history: Optional[List[Any]] = Field(default_factory=list)
 
     # Style / Persona Data
     style_profile: Optional[Dict[str, Any]] = None

@@ -106,6 +106,7 @@ class OfferRepository:
             "landing_page_config": model.landing_page_config if model.landing_page_config else None,
             "marketing_pain_points": model.marketing_pain_points or [],
             "marketing_desires": model.marketing_desires or [],
+            "objections": model.objections or [],
             "metadata_info": model.metadata_info or {},
             "price_pay_in_full": None, # model.price_pay_in_full (Removed from DB)
             "currency": model.currency or "USD"
@@ -238,6 +239,7 @@ class OfferRepository:
             landing_page_config=landing_config_data,
             marketing_pain_points=offer.marketing_pain_points,
             marketing_desires=offer.marketing_desires,
+            objections=[o.model_dump(mode='json') for o in offer.objections],
             metadata_info=offer.metadata_info
         )
 

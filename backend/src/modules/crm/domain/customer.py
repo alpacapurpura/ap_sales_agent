@@ -28,7 +28,7 @@ class CustomerProfile(BaseEntity):
     full_name: Optional[str] = None
     
     # Scoring & Segmentation
-    lifecycle_stage: LifecycleStage = LifecycleStage.SUBSCRIBER
+    lifecycle_stage: Optional[LifecycleStage] = LifecycleStage.SUBSCRIBER
     lead_score: float = 0.0
     rfm_segment: Optional[str] = None # e.g. "Champions", "At Risk"
     

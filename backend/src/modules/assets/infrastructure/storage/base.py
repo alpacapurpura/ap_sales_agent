@@ -3,6 +3,19 @@ from typing import BinaryIO, Tuple
 
 class StorageStrategy(ABC):
     @abstractmethod
+    def get_file_bytes(self, storage_path: str) -> bytes:
+        """
+        Read file bytes from storage.
+
+        Args:
+            storage_path: The internal path/key returned by save().
+
+        Returns:
+            bytes: Raw file content.
+        """
+        pass
+
+    @abstractmethod
     def save(self, file_obj: BinaryIO, filename: str, path_prefix: str = "") -> Tuple[str, str]:
         """
         Save a file to storage.

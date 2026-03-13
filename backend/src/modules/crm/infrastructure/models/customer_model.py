@@ -8,7 +8,7 @@ from src.modules.crm.domain.enums import LifecycleStage, IdentityType
 
 class CustomerProfileModel(Base):
     __tablename__ = "customer_profiles"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     
@@ -35,7 +35,7 @@ class CustomerProfileModel(Base):
 
 class CustomerIdentityModel(Base):
     __tablename__ = "customer_identities"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     profile_id = Column(UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=False)
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)

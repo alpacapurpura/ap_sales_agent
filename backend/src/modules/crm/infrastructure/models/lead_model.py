@@ -11,9 +11,8 @@ class LeadModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
     # Customer Link
-    customer_id = Column(UUID(as_uuid=True), nullable=True) # Loose coupling, FK removed for modularity or kept in same DB? Kept as ID.
-    # If Marketing module is in same DB, we can keep FK but import model lazily or use string.
-    # customer_id = Column(UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=True)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=True)
+    customer = relationship("CustomerProfileModel", foreign_keys=[customer_id])
     
     # Channel specific IDs
     telegram_id = Column(String, unique=True, nullable=True)

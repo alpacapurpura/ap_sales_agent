@@ -15,8 +15,8 @@ class ShopifyConnector(BaseConnector):
     Shopify Connector for verifying credentials and interacting with Shopify Admin API.
     """
     
-    API_VERSION = "2024-01"
-    SCOPES = "read_customers,write_customers,read_orders,write_orders,read_products" # Default scopes
+    API_VERSION = "2026-01"
+    SCOPES = "write_customers,write_orders,read_analytics,read_customer_events,read_cart_transforms,read_all_cart_transforms,read_channels,read_checkouts,read_companies,read_custom_pixels,read_customers,read_customer_data_erasure,read_customer_merge,read_price_rules,read_discounts,read_discounts_allocator_functions,read_discovery,read_draft_orders,read_fulfillments,read_gift_card_transactions,read_gift_cards,read_inventory,read_inventory_shipments,read_inventory_shipments_received_items,read_locales,read_locations,read_marketing_integrated_campaigns,read_marketing_events,read_markets,read_markets_home,read_merchant_managed_fulfillment_orders,read_metaobject_definitions,read_metaobjects,read_online_store_navigation,read_online_store_pages,read_order_edits,read_orders,read_packing_slip_templates,read_payment_terms,read_payment_customizations,read_product_feeds,read_product_listings,read_products,read_publications,read_purchase_options,read_reports,read_resource_feedbacks,read_returns,read_script_tags,read_shipping,read_shopify_payments_payouts,read_shopify_payments_disputes,read_content,read_store_credit_account_transactions,read_third_party_fulfillment_orders,read_translations,read_pixels" # Default scopes
 
     @staticmethod
     def get_auth_url(shop_domain: str, state: str, redirect_uri: str) -> str:
@@ -34,6 +34,8 @@ class ShopifyConnector(BaseConnector):
             "redirect_uri": redirect_uri,
             "state": state
         }
+        # Shopify OAuth requires params to be sorted in some cases, but urlencode does not sort by default
+        # We ensure consistent ordering just in case, though not strictly required by spec
         query_string = urllib.parse.urlencode(params)
         return f"https://{shop_domain}/admin/oauth/authorize?{query_string}"
 

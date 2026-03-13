@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime, timedelta, timezone
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
@@ -12,7 +12,7 @@ from src.modules.iam.domain.user import User
 from src.modules.scheduling.infrastructure.repositories.appointment_repository import AppointmentRepository
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
-router = APIRouter(prefix="/agenda", tags=["Scheduling - Agenda"])
+router = APIRouter(tags=["Scheduling - Agenda"])
 
 class AgendaItem(BaseModel):
     id: UUID
@@ -45,10 +45,17 @@ async def get_agenda(
     lead_ids = [a.lead_id for a in appointments if a.lead_id]
     lead_map = {}
     if lead_ids:
-        leads = db.query(LeadModel).filter(LeadModel.id.in_(lead_ids)).all()
-        # LeadModel profile_data is a dict
+        # Use joinedload to fetch Customer Profile efficiently
+        leads = db.query(LeadModel).options(
+            joinedload(LeadModel.customer)
+        ).filter(LeadModel.id.in_(lead_ids)).all()
+        
         for l in leads:
-            name = l.profile_data.get('full_name') or l.profile_data.get('name') or "Unknown Lead"
+            # Try to get name from Customer (SSOT), then fallback to Lead profile_data
+            customer_name = l.customer.full_name if l.customer else None
+            profile = l.profile_data or {}
+            
+            name = customer_name or profile.get('full_name') or profile.get('name') or "Unknown Lead"
             lead_map[l.id] = name
             
     return [

@@ -9,6 +9,7 @@ class AssetType(str, Enum):
 class StorageProvider(str, Enum):
     LOCAL = "LOCAL"
     S3 = "S3"
+    R2 = "R2"
 
 class AssetStatus(str, Enum):
     PROCESSING = "processing"

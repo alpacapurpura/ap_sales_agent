@@ -37,6 +37,7 @@ class ProductModel(Base):
     time_to_value = Column(String, nullable=True)
     marketing_pain_points = Column(JSONB, default=list)
     marketing_desires = Column(JSONB, default=list)
+    objections = Column(JSONB, default=list)
     target_avatar_match = Column(JSONB, default=list)
     
     # Access & Duration

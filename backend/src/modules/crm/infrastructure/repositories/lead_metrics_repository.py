@@ -90,15 +90,28 @@ class LeadRepository(BaseRepository):
     def create_lead(self, full_name: Optional[str] = None, channel: Optional[str] = None, channel_user_id: Optional[str] = None, customer_id: Optional[uuid.UUID] = None) -> Lead:
         """
         Create a new Lead from a channel interaction.
+        If a lead already exists for this channel_user_id, returns it (linking customer if needed).
         If customer_id is provided, creates a Lead linked to that customer.
         Otherwise creates a new CustomerProfile first.
         """
-        
+
+        # First, check if a lead already exists for this channel ID
+        if channel and channel_user_id:
+            existing = self.get_by_channel_id(channel, channel_user_id)
+            if existing:
+                # If customer changed, update the link
+                if customer_id and str(existing.customer_id) != str(customer_id):
+                    lead_orm = self.db.query(LeadModel).filter(LeadModel.id == existing.id).first()
+                    if lead_orm:
+                        lead_orm.customer_id = customer_id
+                        self.db.commit()
+                        self.db.refresh(lead_orm)
+                        return Lead.model_validate(lead_orm)
+                return existing
+
         if customer_id:
-             # Link to existing customer
              lead_orm = LeadModel(customer_id=customer_id)
-             
-             # Set channel ID if provided, otherwise keep them null as requested
+
              if channel and channel_user_id:
                 if channel == "telegram":
                     lead_orm.telegram_id = channel_user_id
@@ -110,7 +123,7 @@ class LeadRepository(BaseRepository):
                     lead_orm.tiktok_id = channel_user_id
                 elif channel in ["api", "manychat", "web"]:
                     lead_orm.api_id = channel_user_id
-             
+
              self._set_tenant(lead_orm)
              self.db.add(lead_orm)
              self.db.commit()

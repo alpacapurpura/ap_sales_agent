@@ -69,6 +69,14 @@ class DeliverableItem(BaseEntity):
     quantity: str
     value_stack_price: float
 
+class ObjectionItem(BaseEntity):
+    """An anticipated objection with a rebuttal strategy for the Sales Agent."""
+    id: Optional[str] = None
+    type: str  # e.g. "price", "time", "trust", "partner", "custom"
+    trigger_phrases: List[str] = []  # semantic anchors for SemanticRouter
+    strategy: str = ""  # e.g. "ROI Reframing", "Paradox", "Risk Reversal"
+    rebuttal: str = ""  # the actual script/response
+
 class Offer(BaseEntity):
     """
     La Entidad Oferta Maestra con Detalles Polimórficos.
@@ -118,6 +126,7 @@ class Offer(BaseEntity):
     
     marketing_pain_points: List[str] = []
     marketing_desires: List[str] = []
+    objections: List[ObjectionItem] = []
     metadata_info: Dict[str, Any] = {}
 
     status: OfferStatus
@@ -172,6 +181,7 @@ class OfferPsychologyUpdate(BaseEntity):
     anti_avatar_keywords: Optional[List[str]] = None
     marketing_pain_points: Optional[List[str]] = None
     marketing_desires: Optional[List[str]] = None
+    objections: Optional[List[ObjectionItem]] = None
 
 class OfferValueStackUpdate(BaseEntity):
     deliverables: Optional[List[DeliverableItem]] = None

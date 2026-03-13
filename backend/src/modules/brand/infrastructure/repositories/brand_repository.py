@@ -14,7 +14,13 @@ class BrandRepository:
             return BrandSettings()
         
         config = tenant.config_json or {}
-        return BrandSettings(**config.get("brand_settings", {}))
+        brand_settings_data = config.get("brand_settings", {})
+        
+        # Ensure we return a Pydantic model
+        if not brand_settings_data:
+            return BrandSettings()
+            
+        return BrandSettings.model_validate(brand_settings_data)
 
     def save_settings(self, tenant_id: UUID, settings: BrandSettings) -> BrandSettings:
         tenant = self.db.query(TenantModel).filter(TenantModel.id == tenant_id).first()

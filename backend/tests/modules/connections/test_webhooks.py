@@ -72,6 +72,97 @@ def test_shopify_signature_invalid(mock_settings, mock_db):
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid Shopify signature"
 
+def test_shopify_compliance_data_request_valid(mock_settings, mock_db):
+    payload = {
+        "shop_id": 954889,
+        "shop_domain": "johns-apparel.myshopify.com",
+        "orders_requested": [299938, 280263, 220458],
+        "customer": {"id": 191167, "email": "john@example.com", "phone": "+1-234-567-8910"}
+    }
+    body = json.dumps(payload).encode('utf-8')
+    signature = generate_shopify_signature(mock_settings.SHOPIFY_API_SECRET, body)
+
+    headers = {
+        "X-Shopify-Hmac-Sha256": signature,
+        "Content-Type": "application/json"
+    }
+
+    response = client.post(
+        "/api/v1/connections/shopify/compliance/customers/data_request",
+        content=body,
+        headers=headers
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "received"
+
+def test_shopify_compliance_customers_redact_valid(mock_settings, mock_db):
+    payload = {
+        "shop_id": 954889,
+        "shop_domain": "johns-apparel.myshopify.com",
+        "customer": {"id": 191167, "email": "john@example.com", "phone": "+1-234-567-8910"},
+        "orders_to_redact": [299938, 280263, 220458]
+    }
+    body = json.dumps(payload).encode('utf-8')
+    signature = generate_shopify_signature(mock_settings.SHOPIFY_API_SECRET, body)
+
+    headers = {
+        "X-Shopify-Hmac-Sha256": signature,
+        "Content-Type": "application/json"
+    }
+
+    response = client.post(
+        "/api/v1/connections/shopify/compliance/customers/redact",
+        content=body,
+        headers=headers
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "received"
+
+def test_shopify_compliance_shop_redact_valid(mock_settings, mock_db):
+    payload = {
+        "shop_id": 954889,
+        "shop_domain": "johns-apparel.myshopify.com"
+    }
+    body = json.dumps(payload).encode('utf-8')
+    signature = generate_shopify_signature(mock_settings.SHOPIFY_API_SECRET, body)
+
+    headers = {
+        "X-Shopify-Hmac-Sha256": signature,
+        "Content-Type": "application/json"
+    }
+
+    response = client.post(
+        "/api/v1/connections/shopify/compliance/shop/redact",
+        content=body,
+        headers=headers
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "received"
+
+def test_shopify_compliance_invalid_hmac_returns_401(mock_settings, mock_db):
+    payload = {
+        "shop_id": 954889,
+        "shop_domain": "johns-apparel.myshopify.com"
+    }
+    body = json.dumps(payload).encode('utf-8')
+
+    headers = {
+        "X-Shopify-Hmac-Sha256": "invalid_signature",
+        "Content-Type": "application/json"
+    }
+
+    response = client.post(
+        "/api/v1/connections/shopify/compliance/shop/redact",
+        content=body,
+        headers=headers
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid Shopify signature"
+
 # --- Meta Tests ---
 
 def test_meta_signature_valid(mock_settings, mock_db):

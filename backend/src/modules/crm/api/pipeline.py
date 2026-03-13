@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime, timedelta, timezone
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
@@ -39,8 +39,9 @@ async def get_pipeline(
     # leads = repo.get_high_intent_leads(user.tenant_id, min_score, limit)
     
     # Fallback to simple query until repo method is robust
-    from src.modules.crm.infrastructure.models.lead_model import LeadModel
-    leads_orm = db.query(LeadModel).filter(
+    leads_orm = db.query(LeadModel).options(
+        joinedload(LeadModel.customer)
+    ).filter(
         LeadModel.tenant_id == user.tenant_id,
         LeadModel.is_blacklisted == False
     ).limit(limit).all()
@@ -48,8 +49,12 @@ async def get_pipeline(
     # Manual mapping to avoid repository complexity for now
     results = []
     for l in leads_orm:
+        # Try to resolve name from Customer Profile (SSOT), then fallback to Lead profile_data
+        customer_name = l.customer.full_name if l.customer else None
+        
         profile = l.profile_data or {}
-        name = profile.get('full_name') or profile.get('name') or "Unknown Lead"
+        name = customer_name or profile.get('full_name') or profile.get('name') or "Unknown Lead"
+        
         results.append(PipelineItem(
             id=l.id,
             full_name=name,

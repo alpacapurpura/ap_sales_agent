@@ -10,9 +10,13 @@ class ChannelType(str, Enum):
     SHOPIFY = "shopify"
     MAILERLITE = "mailerlite"
     GOOGLE_ANALYTICS = "google_analytics"
-    META = "meta" # Meta Ads / Facebook
+    META = "meta" # Meta Ads / Facebook — master credential (user token)
+    FACEBOOK_PAGE = "facebook_page"      # Per-page asset (has its own page_access_token)
+    INSTAGRAM_ACCOUNT = "instagram_account"  # IG Business Account linked to a Page
+    META_ADS_ACCOUNT = "meta_ads_account"    # Ad Account (uses user token for reads)
     YOUTUBE = "youtube"
-    
+    YOUTUBE_ANALYTICS = "youtube_analytics"
+
     # Calendar & Email
     GOOGLE_CALENDAR = "google_calendar"
     GMAIL = "gmail"

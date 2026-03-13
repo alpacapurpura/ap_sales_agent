@@ -43,6 +43,10 @@ class LocalStorageStrategy(StorageStrategy):
             
         return full_path, url_path
 
+    def get_file_bytes(self, storage_path: str) -> bytes:
+        with open(storage_path, "rb") as f:
+            return f.read()
+
     def delete(self, storage_path: str) -> bool:
         try:
             if os.path.exists(storage_path):

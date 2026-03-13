@@ -11,6 +11,13 @@ class AppointmentRepository:
         self.db = db
 
     def _to_domain(self, model: AppointmentModel) -> Appointment:
+        status = AppointmentStatus.SCHEDULED
+        if model.status:
+            try:
+                status = AppointmentStatus(model.status)
+            except ValueError:
+                status = AppointmentStatus.SCHEDULED
+
         return Appointment(
             id=model.id,
             tenant_id=model.tenant_id,
@@ -18,7 +25,7 @@ class AppointmentRepository:
             summary=model.summary,
             start_time=model.start_time,
             end_time=model.end_time,
-            status=AppointmentStatus(model.status) if model.status else AppointmentStatus.SCHEDULED,
+            status=status,
             meeting_link=model.meeting_link,
             external_event_id=model.external_event_id,
             metadata_info=model.metadata_info or {},

@@ -13,7 +13,7 @@ from src.modules.offer.infrastructure.models.product_model import ProductModel
 from src.modules.crm.domain.enums import SaleStatus, PaymentMethod, SaleStage
 from pydantic import BaseModel, Field, ConfigDict
 
-router = APIRouter(prefix="/sales", tags=["Sales"])
+router = APIRouter(tags=["Sales"])
 
 class TickerItem(BaseModel):
     id: UUID

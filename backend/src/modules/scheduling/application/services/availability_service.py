@@ -26,8 +26,7 @@ class AvailabilityService:
         self.adapter = self._get_adapter()
 
     def _get_adapter(self) -> Optional[GoogleCalendarAdapter]:
-        # Only use ChannelConnectionModel here
-        from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel
+        from src.modules.connections.infrastructure.models import ChannelConnectionModel
         
         stmt = select(ChannelConnectionModel).where(
             ChannelConnectionModel.tenant_id == self.tenant_id,
@@ -42,8 +41,8 @@ class AvailabilityService:
         return GoogleCalendarAdapter(credentials_data=connection.credentials)
 
     def _get_gmail_adapter(self) -> Optional[GmailAdapter]:
-        from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel
-        
+        from src.modules.connections.infrastructure.models import ChannelConnectionModel
+
         stmt = select(ChannelConnectionModel).where(
             ChannelConnectionModel.tenant_id == self.tenant_id,
             ChannelConnectionModel.channel_type == 'gmail',
