@@ -29,21 +29,32 @@ def trace_node(node_name: str):
             
             # --- USER ID RESOLUTION ---
             user_uuid = state.get("user_id")
+            tenant_uuid = state.get("tenant_id")
             
             if not user_uuid:
                  logger.warning(f"TRACING: Missing user_id in state for node {node_name}")
             
             session_id = f"sess_{user_uuid}_{int(start_time/3600)}" 
             
+            messages = state.get("messages", [])
             input_snapshot = {
                 "current_state": state.get("current_state"),
-                "router_outcome": state.get("router_outcome"),
-                "last_message": state.get("messages", [])[-1] if state.get("messages") else None
+                "detected_intent": state.get("detected_intent"),
+                "lead_score": state.get("lead_score"),
+                "next_node": state.get("next_node"),
+                "last_message": messages[-1] if messages else None,
+                "message_count": len(messages),
+                "has_agent_identity": bool(state.get("agent_identity")),
+                "lead_data": state.get("lead_data"),
+                "user_profile": state.get("user_profile"),
+                "session_active": state.get("session_active"),
+                "launch_stage": state.get("launch_stage"),
             }
 
             # 1. Create Initial Trace
             trace = repo.create_trace(
                 user_id=user_uuid, 
+                tenant_id=tenant_uuid,
                 session_id=session_id,
                 node_name=node_name,
                 input_state=input_snapshot,
@@ -65,10 +76,16 @@ def trace_node(node_name: str):
                 
                 output_snapshot = {}
                 if isinstance(result_state, dict):
+                    result_messages = result_state.get("messages", [])
                     output_snapshot = {
-                        "router_outcome": result_state.get("router_outcome"),
-                        "new_messages": result_state.get("messages", [])[-1] if result_state.get("messages") else None,
-                        "next_state_update": result_state.get("current_state")
+                        "next_node": result_state.get("next_node"),
+                        "current_state": result_state.get("current_state"),
+                        "detected_intent": result_state.get("detected_intent"),
+                        "lead_score": result_state.get("lead_score"),
+                        "new_message": result_messages[-1] if result_messages else None,
+                        "message_count": len(result_messages),
+                        "lead_data": result_state.get("lead_data"),
+                        "error": result_state.get("error"),
                     }
                 
                 if trace:

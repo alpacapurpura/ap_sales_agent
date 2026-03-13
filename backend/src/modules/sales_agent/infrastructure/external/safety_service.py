@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from src.core.database import SessionLocal
 from src.modules.sales_agent.infrastructure.models.sensitive_data_model import SensitiveData
 from src.shared.infrastructure.llm.providers.openai import OpenAIService
+from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 
 logger = structlog.get_logger()
 
@@ -83,11 +84,11 @@ class SafetyLayerService:
         Returns True if it SHOULD be replaced.
         """
         try:
-            prompt = (
-                f"Analiza el siguiente texto y determina si el fragmento '{match_text}' debe ser censurado/reemplazado.\n"
-                f"Instrucción de Seguridad: {instruction}\n"
-                f"Texto Completo: \"{full_context}\"\n\n"
-                f"Responde SOLO con 'YES' si debe censurarse, o 'NO' si es seguro/falso positivo."
+            prompt = prompt_loader.render(
+                "safety_context_check",
+                match_text=match_text,
+                security_instruction=instruction,
+                full_context=full_context,
             )
             
             # Use fast model (gpt-3.5/flash)

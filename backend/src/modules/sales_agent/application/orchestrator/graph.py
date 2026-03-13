@@ -1,8 +1,10 @@
 from langgraph.graph import StateGraph, END
 from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.modules.sales_agent.application.agents.sales.graph import sales_app
+from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
 
 # Nodes
+@trace_node("main_supervisor")
 def supervisor_node(state: AgentState):
     """
     Main entry point. Routes to sub-agents.
@@ -10,6 +12,7 @@ def supervisor_node(state: AgentState):
     # For now, simple pass-through to Sales Agent
     return {"next_node": "sales_agent"}
 
+@trace_node("sales_agent_subgraph_wrapper")
 def sales_agent_node(state: AgentState):
     """
     Wraps the Sales Subgraph.

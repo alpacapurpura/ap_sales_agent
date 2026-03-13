@@ -1,5 +1,5 @@
 from typing import List, Any
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
 from src.modules.sales_agent.infrastructure.models.llm_log_model import LLMLog
@@ -15,13 +15,14 @@ class AuditRepository(EpisodicMemoryStore):
 
     def get_chat_history(self, user_id: str, limit: int = 10) -> List[Any]:
         # Return last N messages in ascending order (oldest to newest) for context
-        msgs = self.db.query(Message).filter(Message.lead_id == user_id).order_by(Message.created_at.desc()).limit(limit).all()
+        msgs = self.db.query(Message).filter(Message.user_id == user_id).order_by(Message.created_at.desc()).limit(limit).all()
         return list(reversed(msgs))
 
-    def log_message(self, user_id: str, role: str, content: str, channel: str) -> Any:
+    def log_message(self, user_id: str, role: str, content: str, channel: str, tenant_id: str = None) -> Any:
         msg = Message(
-            lead_id=user_id,
-            sender_type=role,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            role=role,
             content=content,
             channel=channel
         )
@@ -30,13 +31,14 @@ class AuditRepository(EpisodicMemoryStore):
         return msg
 
     def get_last_message(self, user_id: str) -> Any:
-        return self.db.query(Message).filter(Message.lead_id == user_id).order_by(Message.created_at.desc()).first()
+        return self.db.query(Message).filter(Message.user_id == user_id).order_by(Message.created_at.desc()).first()
 
     # --- Audit / Monitoring Specific Methods ---
 
-    def create_trace(self, user_id, session_id, node_name, input_state, output_state, execution_time_ms):
+    def create_trace(self, user_id, session_id, node_name, input_state, output_state, execution_time_ms, tenant_id=None):
         trace = AgentTrace(
             user_id=user_id,
+            tenant_id=tenant_id,
             session_id=session_id,
             node_name=node_name,
             input_state=input_state,
@@ -97,28 +99,41 @@ class AuditRepository(EpisodicMemoryStore):
 
     def get_full_timeline(self, lead_id, tenant_id, limit=50):
         # Fetch Messages
-        messages = self.db.query(Message).filter(Message.lead_id == lead_id).order_by(Message.created_at.desc()).limit(limit).all()
+        messages = self.db.query(Message).filter(Message.user_id == lead_id).order_by(Message.created_at.desc()).limit(limit).all()
         
-        # Fetch Traces
-        traces = self.db.query(AgentTrace).filter(AgentTrace.user_id == lead_id).order_by(AgentTrace.created_at.desc()).limit(limit).all()
+        # Fetch Traces (eager load llm_logs to avoid N+1)
+        traces = self.db.query(AgentTrace).options(joinedload(AgentTrace.llm_logs)).filter(AgentTrace.user_id == lead_id).order_by(AgentTrace.created_at.desc()).limit(limit).all()
         
         timeline = []
         for m in messages:
             timeline.append({
                 "type": "message",
                 "id": str(m.id),
-                "role": m.sender_type,
+                "role": m.role,
                 "content": m.content,
                 "created_at": m.created_at
             })
             
         for t in traces:
+            # Build LLM summary for timeline preview (avoid N+1 with lazy join)
+            llm_summary = None
+            if t.llm_logs:
+                total_tokens = sum((l.tokens_input or 0) + (l.tokens_output or 0) for l in t.llm_logs)
+                first_log = t.llm_logs[0]
+                llm_summary = {
+                    "model": first_log.model,
+                    "total_tokens": total_tokens,
+                    "prompt_template": first_log.prompt_template,
+                }
+
             timeline.append({
                 "type": "trace",
                 "id": str(t.id),
                 "node": t.node_name,
                 "input": t.input_state,
                 "output": t.output_state,
+                "execution_time": t.execution_time_ms,
+                "llm_summary": llm_summary,
                 "created_at": t.created_at
             })
             
@@ -144,7 +159,9 @@ class AuditRepository(EpisodicMemoryStore):
             },
             "llm_logs": [
                 {
+                    "id": str(l.id),
                     "model": l.model,
+                    "prompt_template": l.prompt_template or "unknown",
                     "prompt": l.prompt_rendered,
                     "response": l.response_text,
                     "tokens": {"in": l.tokens_input, "out": l.tokens_output},

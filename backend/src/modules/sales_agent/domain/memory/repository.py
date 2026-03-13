@@ -47,7 +47,7 @@ class EpisodicMemoryStore(ABC):
         pass
 
     @abstractmethod
-    def log_message(self, user_id: str, role: str, content: str, channel: str) -> Any:
+    def log_message(self, user_id: str, role: str, content: str, channel: str, tenant_id: Optional[str] = None) -> Any:
         """
         Store a new message in the episode.
         """

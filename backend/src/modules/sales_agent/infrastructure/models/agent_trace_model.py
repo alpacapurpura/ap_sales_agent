@@ -11,8 +11,7 @@ class AgentTrace(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
     # Links (Loose coupling - No Foreign Keys to other modules)
-    user_id = Column(UUID(as_uuid=True), nullable=True, index=True) # Generic User ID
-    lead_id = Column(UUID(as_uuid=True), nullable=True, index=True) # Specific Lead Link (Loose)
+    user_id = Column(UUID(as_uuid=True), nullable=True, index=True) # Generic User ID (maps to Lead ID)
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     
     session_id = Column(String, nullable=True, index=True)

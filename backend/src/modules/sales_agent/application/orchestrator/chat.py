@@ -20,11 +20,13 @@ from src.modules.sales_agent.infrastructure.external.buffer_service import Smart
 from src.modules.sales_agent.infrastructure.external.output_manager import OutputManager
 from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_complete
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
+from src.modules.sales_agent.application.services.knowledge_builder import TenantKnowledgeBuilder
+from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
 from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
 from src.core.context import set_tenant_id
-from src.modules.connections.domain.channel import ChannelConnection
+from src.modules.connections.infrastructure.models.channel_connection_model import ChannelConnectionModel
 from src.modules.connections.domain.enums import ChannelType
-from src.modules.iam.domain.tenant import Tenant
+from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
 logger = structlog.get_logger()
 
@@ -53,10 +55,10 @@ class ChatOrchestrator:
         if tenant_id and db:
             try:
                 # Resolve tenant connection
-                conn = db.query(ChannelConnection).filter(
-                    ChannelConnection.tenant_id == UUID(tenant_id),
-                    ChannelConnection.channel_type == ChannelType.TELEGRAM,
-                    ChannelConnection.is_active.is_(True)
+                conn = db.query(ChannelConnectionModel).filter(
+                    ChannelConnectionModel.tenant_id == UUID(tenant_id),
+                    ChannelConnectionModel.channel_type == ChannelType.TELEGRAM.value,
+                    ChannelConnectionModel.is_active.is_(True)
                 ).first()
                 
                 if conn and conn.credentials:
@@ -120,18 +122,31 @@ class ChatOrchestrator:
             # 3. Typing Indicator
             await channel_adapter.set_typing_status(real_user_id)
 
+            # 3.5. Fetch tenant object for LLM service resolution
+            tenant_obj = None
+            if tenant_id:
+                db_tmp = None
+                try:
+                    db_tmp = SessionLocal()
+                    tenant_obj = db_tmp.query(TenantModel).filter(TenantModel.id == UUID(tenant_id)).first()
+                except Exception as e:
+                    logger.warning(f"Could not fetch tenant for semantic check: {e}")
+                finally:
+                    if db_tmp:
+                        db_tmp.close()
+
             # 4. Semantic Check (LLM)
             # Peek buffer to check completeness
             messages = self.buffer_service.peek_buffer(buffer_key)
             if not messages:
                 return
-                
+
             full_text = " ".join(messages)
-            
+
             # Only check semantic if it's substantial enough
             is_complete = False
             if len(full_text) > 5:
-                is_complete = await check_is_complete(full_text)
+                is_complete = await check_is_complete(full_text, tenant=tenant_obj)
             
             # 5. Dynamic Wait
             if is_complete:
@@ -214,7 +229,7 @@ class ChatOrchestrator:
             if tenant_id:
                 try:
                     tenant_uuid = UUID(tenant_id)
-                    tenant_obj = db.query(Tenant).filter(Tenant.id == tenant_uuid).first()
+                    tenant_obj = db.query(TenantModel).filter(TenantModel.id == tenant_uuid).first()
                     if tenant_obj:
                         tenant_config = tenant_obj.config_json or {}
                 except Exception as e:
@@ -258,14 +273,15 @@ class ChatOrchestrator:
                         needs_update = True
                 
                 if needs_update:
-                    customer.traits = current_traits
-                    # Also update basic fields if provided
-                    if "first_name" in incoming.metadata:
-                        customer.full_name = f"{incoming.metadata.get('first_name', '')} {incoming.metadata.get('last_name', '')}".strip()
-                    
-                    db.add(customer)
-                    db.commit()
-                    db.refresh(customer)
+                    from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
+                    profile_model = db.query(CustomerProfileModel).filter(
+                        CustomerProfileModel.id == customer.id
+                    ).first()
+                    if profile_model:
+                        profile_model.traits = current_traits
+                        if "first_name" in incoming.metadata:
+                            profile_model.full_name = f"{incoming.metadata.get('first_name', '')} {incoming.metadata.get('last_name', '')}".strip()
+                        db.commit()
 
             # Get or Create Active Lead linked to Customer
             user = lead_repo.get_active_lead(customer.id)
@@ -281,8 +297,11 @@ class ChatOrchestrator:
             session_active = True
             last_intent = None
             
-            if last_msg:
-                time_diff = datetime.now(timezone.utc) - last_msg.created_at
+            if last_msg and last_msg.created_at:
+                msg_time = last_msg.created_at
+                if msg_time.tzinfo is None:
+                    msg_time = msg_time.replace(tzinfo=timezone.utc)
+                time_diff = datetime.now(timezone.utc) - msg_time
                 if time_diff > timedelta(hours=6):
                     session_active = False
                 
@@ -294,21 +313,52 @@ class ChatOrchestrator:
                 user_id=user.id,
                 role="user",
                 content=incoming.text,
-                channel=channel_type
+                channel=channel_type,
+                tenant_id=tenant_uuid
             )
+
+            # 2.5 Build Agent Identity (AKS)
+            agent_identity = None
+            if tenant_uuid:
+                try:
+                    knowledge_builder = TenantKnowledgeBuilder(db)
+                    agent_identity = knowledge_builder.build_identity(tenant_uuid)
+                except Exception as e:
+                    logger.warning(f"Could not build agent identity: {e}")
+                    # Rollback to clear any failed transaction state on shared db session
+                    try:
+                        db.rollback()
+                    except Exception:
+                        pass
 
             # 3. Prepare Initial State
             active_product, launch_stage = biz_repo.get_current_launch_product()
             active_enrollment = None
-            
+
+            # Convert ORM product to dict for serialization
+            active_product_dict = None
             if active_product:
                 active_enrollment = biz_repo.get_enrollment(user.id, active_product.id)
+                active_product_dict = {
+                    "id": str(active_product.id),
+                    "name": getattr(active_product, "name", None),
+                    "status": getattr(active_product, "status", None),
+                    "price": getattr(active_product, "price", None),
+                }
 
-            history = audit_repo.get_chat_history(user.id, limit=10)
+            # Convert ORM history to dicts
+            raw_history = audit_repo.get_chat_history(user.id, limit=10)
+            history = [
+                {"role": msg.role, "content": msg.content}
+                for msg in raw_history if msg.content
+            ]
 
-            # Prepare Profile + Style Data
-            base_profile = user.profile_data if user and user.profile_data else {}
-            
+            # Prepare Profile + Style Data (ensure dict, not Pydantic model)
+            if user and user.profile_data:
+                base_profile = user.profile_data.model_dump() if hasattr(user.profile_data, 'model_dump') else dict(user.profile_data)
+            else:
+                base_profile = {}
+
             # Inject Onboarding Style Data
             if getattr(user, "custom_system_instruction", None):
                 base_profile["custom_instruction"] = user.custom_system_instruction
@@ -317,22 +367,49 @@ class ChatOrchestrator:
 
             initial_state = create_initial_state(
                 user_id=str(user.id),
-                tenant_id=str(tenant_id) if tenant_id else str(uuid.uuid4()), # Fallback if None, though should be handled
+                tenant_id=str(tenant_id) if tenant_id else str(uuid.uuid4()),
                 tenant_config=tenant_config,
                 history=history,
                 user_profile={**base_profile, **incoming.metadata},
                 session_active=session_active,
                 active_enrollment=active_enrollment,
-                active_product=active_product,
-                last_intent=last_intent
+                active_product=active_product_dict,
+                last_intent=last_intent,
+                agent_identity=agent_identity
             )
-            
+
             if launch_stage:
                 initial_state["launch_stage"] = launch_stage
-            
-            # Invoke Agent
-            result = await agent_app.ainvoke(initial_state)
-            
+
+            # Add the current user message to state["messages"] so LLM nodes can read it
+            initial_state["messages"] = [{"role": "user", "content": incoming.text}]
+
+            # 3.5 Semantic Intent Detection (pre-routing hint for the supervisor)
+            try:
+                detected_intent, intent_score = SemanticRouter.detect_intent(
+                    incoming.text, tenant_id=tenant_uuid
+                )
+                if detected_intent:
+                    initial_state["detected_intent"] = detected_intent
+                    logger.debug(f"Semantic intent: {detected_intent} (score={intent_score:.2f})")
+            except Exception as e:
+                logger.warning(f"Semantic router failed, continuing without intent: {e}")
+
+            # Invoke Agent (with typing polling every 3s)
+            async def _keep_typing():
+                while True:
+                    await asyncio.sleep(3)
+                    try:
+                        await channel_adapter.set_typing_status(incoming.user_id)
+                    except Exception:
+                        pass
+
+            typing_task = asyncio.create_task(_keep_typing())
+            try:
+                result = await agent_app.ainvoke(initial_state)
+            finally:
+                typing_task.cancel()
+
             # 4. Extract Response
             last_msg = result["messages"][-1]
             bot_text = last_msg.get("content", "") if isinstance(last_msg, dict) else str(last_msg)
@@ -342,7 +419,8 @@ class ChatOrchestrator:
                 user_id=user.id,
                 role="assistant",
                 content=bot_text,
-                channel=channel_type
+                channel=channel_type,
+                tenant_id=tenant_uuid
             )
             
             # 5. Send using OutputManager (Chunks + Human Typing)

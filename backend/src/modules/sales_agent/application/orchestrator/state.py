@@ -37,13 +37,16 @@ class AgentState(TypedDict):
     last_intent: Optional[str]
     launch_stage: Optional[str]
     
+    # Agent Knowledge System (AKS)
+    agent_identity: Optional[str]  # Rendered tenant-specific identity prompt
+
     # Errors
     error: Optional[str]
 
 def create_initial_state(
-    user_id: str, 
-    tenant_id: str, 
-    session_id: str = None, 
+    user_id: str,
+    tenant_id: str,
+    session_id: str = None,
     lead_data: Dict = None,
     tenant_config: Dict = None,
     history: List[Dict[str, Any]] = None,
@@ -52,7 +55,8 @@ def create_initial_state(
     active_enrollment: Dict = None,
     active_product: Dict = None,
     last_intent: str = None,
-    launch_stage: str = None
+    launch_stage: str = None,
+    agent_identity: str = None
 ) -> AgentState:
     """
     Factory for creating a clean AgentState.
@@ -87,5 +91,6 @@ def create_initial_state(
         "active_product": active_product,
         "last_intent": last_intent,
         "launch_stage": launch_stage,
+        "agent_identity": agent_identity,
         "error": None
     }

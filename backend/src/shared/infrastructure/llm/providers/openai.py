@@ -145,7 +145,7 @@ class OpenAIService(BaseLLMService):
                     repo.create_llm_log(
                         trace_id=trace_id,
                         model=model_name,
-                        prompt_template="unknown", # We'd need to pass this arg to support it
+                        prompt_template=meta_log.get("prompt_template", "unknown"),
                         prompt_rendered=full_prompt_str,
                         response_text=response_text,
                         tokens_input=tokens_in, 

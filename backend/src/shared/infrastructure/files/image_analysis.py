@@ -1,4 +1,5 @@
 import base64
+from typing import Union
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from src.core.config import settings
@@ -7,6 +8,7 @@ import json
 
 logger = structlog.get_logger()
 
+
 class ImageAnalysisService:
     def __init__(self):
         self.llm = ChatOpenAI(
@@ -14,23 +16,26 @@ class ImageAnalysisService:
             api_key=settings.OPENAI_API_KEY,
             temperature=0.2,
             max_tokens=500,
-            model_kwargs={"response_format": {"type": "json_object"}}
+            model_kwargs={"response_format": {"type": "json_object"}},
         )
 
-    def encode_image(self, image_path: str):
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
+    def encode_image(self, image_data: Union[bytes, str]) -> str:
+        """Accept raw bytes (from cloud storage) or a local file path."""
+        if isinstance(image_data, bytes):
+            return base64.b64encode(image_data).decode("utf-8")
+        with open(image_data, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
 
-    async def analyze(self, image_path: str, user_context: str = "") -> dict:
+    async def analyze(self, image_data: Union[bytes, str], user_context: str = "") -> dict:
         try:
-            base64_image = self.encode_image(image_path)
-            
+            base64_image = self.encode_image(image_data)
+
             prompt = """
-            Analyze this image for a brand gallery. 
+            Analyze this image for a brand gallery.
             Provide a JSON output with two keys:
             1. "description": A concise, engaging description suitable for finding this image later for a landing page (e.g., "Diverse team collaborating in a modern office").
             2. "colors": An array of up to 5 dominant hex color codes found in the image.
-            
+
             """
             if user_context:
                 prompt += f"\nContext provided by user: {user_context}"
@@ -41,7 +46,7 @@ class ImageAnalysisService:
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}"
+                            "url": f"data:image/jpeg;base64,{base64_image}",
                         },
                     },
                 ]
@@ -50,7 +55,7 @@ class ImageAnalysisService:
             response = await self.llm.ainvoke([message])
             content = response.content
             return json.loads(content)
-            
+
         except Exception as e:
             logger.error("image_analysis_failed", error=str(e))
             return {"description": "Analysis failed", "colors": []}

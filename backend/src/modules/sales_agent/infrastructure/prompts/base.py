@@ -20,7 +20,7 @@ class PromptLoader:
     Controlado por settings.PROMPT_SOURCE (Hybrid, File, DB).
     """
     
-    def __init__(self, templates_dir: str = "src/core/prompts/templates"):
+    def __init__(self, templates_dir: str = "src/modules/sales_agent/infrastructure/prompts/templates"):
         # 1. Configurar File System Loader (Fallback)
         base_path = os.getcwd()
         self.templates_dir = templates_dir

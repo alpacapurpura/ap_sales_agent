@@ -1,10 +1,11 @@
 from langchain_core.messages import HumanMessage, SystemMessage
 from src.shared.infrastructure.llm.factory import LLMFactory
+from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 import structlog
 
 logger = structlog.get_logger()
 
-async def check_is_complete(text: str) -> bool:
+async def check_is_complete(text: str, tenant=None) -> bool:
     """
     Uses a fast LLM to check if the text is a complete thought/sentence.
     Returns True if complete (reduce buffer), False if incomplete (wait more).
@@ -13,17 +14,14 @@ async def check_is_complete(text: str) -> bool:
         return False # Too short, assume incomplete
 
     try:
-        # Instantiate service (Adapter Pattern)
-        # Note: In a cleaner DI setup, this would be injected.
-        llm_service = LLMFactory.get_service()
+        # Use tenant-specific LLM service if available, otherwise fall back to global
+        if tenant:
+            llm_service = LLMFactory.get_service_for_tenant(tenant)
+        else:
+            llm_service = LLMFactory.get_service()
         llm = llm_service.fast_chat_model
 
-        sys_prompt = (
-            "Eres un clasificador binario de intención de escritura. "
-            "Determina si el mensaje del usuario está 'COMPLETO' (tiene sentido semántico completo, es una pregunta cerrada o una afirmación final) "
-            "o 'INCOMPLETO' (parece que el usuario va a añadir más detalles en un siguiente mensaje inmediatamente). "
-            "Responde SOLO con una palabra: 'COMPLETO' o 'INCOMPLETO'."
-        )
+        sys_prompt = prompt_loader.render("message_completeness")
 
         response = await llm.ainvoke([
             SystemMessage(content=sys_prompt),
