@@ -42,7 +42,7 @@ export default function AvatarPage({ params }: { params: Promise<{ id: string }>
     mutationFn: async (avatarId: string) => {
         const token = await getToken();
         if (!token) throw new Error("No token");
-        return offerApi.saveOffer(id, { ...offer!, name: offer!.name, avatar_id: avatarId }, token);
+        return offerApi.saveOffer(id, { ...offer!, avatar_id: avatarId }, token);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offer", id] });
