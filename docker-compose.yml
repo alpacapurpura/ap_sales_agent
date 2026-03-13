@@ -1,7 +1,7 @@
 services:
   # --- Application Service (API - Development) ---
   api_dev:
-    build: 
+    build:
       context: ./backend
       target: final
     container_name: visionarias_brain_dev
@@ -9,6 +9,10 @@ services:
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
+    environment:
+      - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
+      - SHOPIFY_API_SECRET=${SHOPIFY_API_SECRET}
+      - SHOPIFY_APP_URL=${SHOPIFY_APP_URL}
     volumes:
       - ./backend:/app
       - ./data/model_cache:/app/model_cache
@@ -19,7 +23,6 @@ services:
     networks:
       - internal_net
       - gateway
-    profiles: ["development"]
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -36,45 +39,9 @@ services:
     ports:
       - "8000:8000"
 
-  # --- Application Service (API - Production) ---
-  api_prod:
-    build: 
-      context: ./backend
-      target: final
-    container_name: visionarias_brain
-    restart: unless-stopped
-    # Use Gunicorn for production: 4 workers, binding to 0.0.0.0:8000
-    command: gunicorn -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:8000 --workers 4
-    env_file:
-      - .env
-    volumes:
-      # Mount cache and static files for persistence
-      - ./data/model_cache:/app/model_cache
-      - ./data/static:/app/static
-    depends_on:
-      - redis
-      - qdrant
-      - postgres
-    networks:
-      - internal_net
-      - gateway
-    profiles: ["production"]
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK}"
-      # Router for HTTPS (API)
-      - "traefik.http.routers.visionarias.rule=Host(`${API_DOMAIN}`)"
-      - "traefik.http.routers.visionarias.entrypoints=websecure"
-      - "traefik.http.routers.visionarias.tls.certresolver=myresolver"
-      - "traefik.http.routers.visionarias.service=visionarias_api"
-      # Service definition
-      - "traefik.http.services.visionarias_api.loadbalancer.server.port=8000"
-    ports:
-      - "8000:8000"
-
   # --- Admin Interface (Streamlit - Development) ---
   admin_dashboard_dev:
-    image: visionarias_brain_dev:latest 
+    image: visionarias_brain_dev:latest
     build: ./backend
     container_name: visionarias_admin_dev
     restart: unless-stopped
@@ -84,7 +51,7 @@ services:
     env_file:
       - .env
     environment:
-      - API_URL=http://api_dev:8000 
+      - API_URL=http://api_dev:8000
     depends_on:
       - api_dev
       - qdrant
@@ -93,8 +60,7 @@ services:
       - internal_net
       - gateway
     ports:
-      - "127.0.0.1:8502:8501" 
-    profiles: ["development"]
+      - "127.0.0.1:8502:8501"
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -104,39 +70,16 @@ services:
       - "traefik.http.routers.admin_http.service=admin_dev"
       - "traefik.http.services.admin_dev.loadbalancer.server.port=8501"
 
-  # --- Admin Interface (Streamlit - Production) ---
-  admin_dashboard_prod:
-    image: visionarias_brain:latest 
-    build: ./backend
-    container_name: visionarias_admin
-    restart: unless-stopped
-    command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
-    # No code volume mount
-    env_file:
-      - .env
-    environment:
-      - API_URL=http://api_prod:8000 
-    depends_on:
-      - api_prod
-      - qdrant
-      - postgres
-    networks:
-      - internal_net
-      - gateway
-    ports:
-      - "127.0.0.1:8501:8501" # Secure binding: Only accessible via localhost (SSH Tunnel)
-    profiles: ["admin-debug"]
-
-
   # --- Client Dashboard (Next.js - Development) ---
   client_dashboard_dev:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
       target: dev
       args:
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     container_name: visionarias_client_dev
     restart: unless-stopped
     env_file:
@@ -149,7 +92,9 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
       - INTERNAL_API_URL=${INTERNAL_API_URL}
+      - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
       - CHOKIDAR_USEPOLLING=true # Essential for Windows/WSL hot reload
       - WATCHPACK_POLLING=true
     extra_hosts:
@@ -161,7 +106,6 @@ services:
     networks:
       - internal_net
       - gateway
-    profiles: ["development"]
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -169,49 +113,11 @@ services:
       - "traefik.http.routers.client_dev.entrypoints=web"
       - "traefik.http.services.client_dev.loadbalancer.server.port=3000"
 
-  # --- Client Dashboard (Next.js - Production) ---
-  client_dashboard_prod:
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: runner
-      args:
-        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    container_name: visionarias_client
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - INTERNAL_API_URL=${INTERNAL_API_URL}
-      - PORT=3000
-    extra_hosts:
-      - "api.salesagent.local:host-gateway"
-      - "salesagent.local:host-gateway"
-      - "admin.salesagent.local:host-gateway"
-    depends_on:
-      - api_prod
-    networks:
-      - internal_net
-      - gateway
-    profiles: ["production"]
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK}"
-      - "traefik.http.routers.client.rule=Host(`${DOMAIN_NAME}`)"
-      - "traefik.http.routers.client.entrypoints=websecure"
-      - "traefik.http.routers.client.tls.certresolver=myresolver"
-      - "traefik.http.services.client.loadbalancer.server.port=3000"
-
   init_cache:
     image: alpine:latest
     command: sh -c "mkdir -p /app/model_cache && chmod 777 /app/model_cache"
     volumes:
       - ./data/model_cache:/app/model_cache
-    profiles: ["development", "production"]
 
   # --- WhatsApp Engine (Evolution API - Development v1.8.2) ---
   whatsapp_engine:
@@ -236,36 +142,8 @@ services:
       - "CACHE_REDIS_PREFIX=evolution:"
     networks:
       - internal_net
-    profiles: ["development"]
     ports:
       - "127.0.0.1:8080:8080" # Secure binding for debugging
-
-  # --- WhatsApp Engine (Evolution API - Production v2.2.2) ---
-  whatsapp_engine_prod:
-    image: atendai/evolution-api:v2.2.2
-    container_name: visionarias_whatsapp_prod
-    restart: always
-    shm_size: '2gb'
-    environment:
-      - SERVER_URL=http://visionarias_whatsapp_prod:8080
-      - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY:-evolution-api-secret-key}
-      - DEL_INSTANCE=false
-      # Chrome Stability
-      - CHROME_ARGS=--no-sandbox --disable-setuid-sandbox --disable-gpu --disable-dev-shm-usage
-      # Database Config (Enabled for Production)
-      - "DATABASE_ENABLED=true"
-      - "DATABASE_PROVIDER=postgresql"
-      - "DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution_prod"
-      - "DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange"
-      # Cache Config
-      - "CACHE_REDIS_ENABLED=true"
-      - "CACHE_REDIS_URI=redis://redis:6379/2"
-      - "CACHE_REDIS_PREFIX=evolution_prod:"
-    networks:
-      - internal_net
-    profiles: ["production"]
-    ports:
-      - "127.0.0.1:8081:8080"
 
   # --- Infrastructure Services ---
   redis:
@@ -277,7 +155,6 @@ services:
       - ./data/redis_data:/data
     networks:
       - internal_net
-    profiles: ["development", "production"]
     ports:
       - "127.0.0.1:6379:6379" # Secure binding
 
@@ -289,7 +166,6 @@ services:
       - ./data/qdrant_data:/qdrant/storage
     networks:
       - internal_net
-    profiles: ["development", "production"]
     ports:
       - "127.0.0.1:6333:6333" # Secure binding
       - "127.0.0.1:6334:6334"
@@ -306,7 +182,6 @@ services:
       - ./data/postgres_data:/var/lib/postgresql/data
     networks:
       - internal_net
-    profiles: ["development", "production"]
     ports:
       - "127.0.0.1:5432:5432" # Secure binding
 
@@ -315,13 +190,9 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: cloudflare-tunnel
     restart: unless-stopped
-    command: tunnel run
-    volumes:
-      - /home/chris/.cloudflared/cert.json:/etc/cloudflared/cert.json:ro
-      - ./backend/cloudflare/config.yml:/etc/cloudflared/config.yml:ro
+    command: tunnel --no-autoupdate run --token eyJhIjoiOGJmNDFlMzViYjY1MDQ0YjJjZjVlNDcxYmQ0NTZmYzAiLCJ0IjoiMTNmMDZhYmMtZDEwOC00Y2ZhLTkzODYtZWJhYTBjYjk1NDU5IiwicyI6IlpXWXpZalV3TW1NdFlUaGpNUzAwT1RabUxUazBaVFV0TlRRM05EQTNZVGRoT0RRMiJ9
     networks:
       - gateway
-    profiles: ["development"]
 
 networks:
   internal_net:

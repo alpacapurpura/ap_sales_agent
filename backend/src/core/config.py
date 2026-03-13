@@ -33,7 +33,9 @@ class Settings(BaseSettings):
     # Meta (Facebook/Instagram)
     META_APP_ID: str = ""
     META_APP_SECRET: str = ""
-    META_REDIRECT_URI: str = "https://laptopchris.alpacapurpura.lat/connections"
+    META_VERIFY_TOKEN: str = ""
+    META_REDIRECT_URI: str = ""  # Set in .env per environment
+    META_CONFIG_ID: str = ""  # Facebook Login for Business configuration ID
 
     # Shopify
     SHOPIFY_API_KEY: str = ""
@@ -77,6 +79,17 @@ class Settings(BaseSettings):
     DASHBOARD_DOMAIN: str = ""
     API_URL: str = "http://visionarias_brain_dev:8000" # Internal URL for webhooks
     UPLOAD_DIR: str = "static/uploads"
+
+    # Storage Provider: "LOCAL" or "R2"
+    STORAGE_PROVIDER: str = "LOCAL"
+
+    # Cloudflare R2
+    CLOUDFLARE_ACCOUNT_ID: str = ""
+    R2_BUCKET_NAME: str = ""
+    R2_ENDPOINT_URL: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_PUBLIC_URL: str = ""  # Public base URL, e.g. https://assets-dev.nicolify.com
     
     # Clerk
     CLERK_SECRET_KEY: str = ""

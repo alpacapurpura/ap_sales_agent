@@ -1,13 +1,13 @@
-tunnel: b5410096-1567-4795-b081-68b1cf5cbf74
+tunnel: e96b45fc-fb1e-4dd8-a9db-36d61ab17e28
 credentials-file: /etc/cloudflared/cert.json
 
 ingress:
   # Traffic to the tunnel domain is forwarded to the Traefik container
   # which then routes it to the correct service based on Host labels.
-  - hostname: laptopchris-api.alpacapurpura.lat
-    service: http://visionarias_brain_dev:8000
-  - hostname: laptopchris.alpacapurpura.lat
+  - hostname: dev-app.nicolify.com
     service: http://visionarias_client_dev:3000
+  - hostname: dev-api.nicolify.com
+    service: http://visionarias_brain_dev:8000
     
   # Default rule
   - service: http_status:404

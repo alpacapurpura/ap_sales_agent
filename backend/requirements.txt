@@ -39,3 +39,4 @@ python-docx>=0.8.11
 svix>=1.1.1
 passlib[bcrypt]>=1.7.4
 facebook-business
+boto3>=1.34.0

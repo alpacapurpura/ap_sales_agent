@@ -26,7 +26,7 @@ from src.modules.offer.api import products as offer_products, offer_ai, definiti
 from src.modules.landing.api import landing as landing_ai
 
 # 5. Sales Agent
-# from src.modules.sales_agent.api import dashboard as sales_dashboard
+from src.modules.sales_agent.api import audit as sales_audit
 
 # 6. Copilot (No API Router exposed yet)
 
@@ -45,7 +45,7 @@ from src.modules.analytics.api import metrics as analytics_metrics
 
 # 12. Connections
 from src.modules.connections.api import webhook as conn_webhook, telegram as conn_telegram, whatsapp as conn_whatsapp
-from src.modules.connections.api import calendar as conn_calendar, gmail as conn_gmail, marketing_webhooks as conn_marketing, shopify as conn_shopify, mailerlite as conn_mailerlite, manychat as conn_manychat, google_analytics as conn_google_analytics, meta as conn_meta, youtube as conn_youtube
+from src.modules.connections.api import calendar as conn_calendar, gmail as conn_gmail, marketing_webhooks as conn_marketing, shopify as conn_shopify, mailerlite as conn_mailerlite, manychat as conn_manychat, google_analytics as conn_google_analytics, meta as conn_meta, youtube as conn_youtube, youtube_analytics as conn_youtube_analytics, google_workspace as conn_google_workspace
 
 # 13. Assets
 from src.modules.assets.api import router as assets_gallery, offer_gallery as assets_offers
@@ -88,8 +88,13 @@ async def logging_middleware(request: Request, call_next):
     structlog.contextvars.bind_contextvars(request_id=request_id)
     
     start_time = time.perf_counter()
-    logger.info("http_request_started", method=request.method, path=request.url.path)
+    logger.info("http_request_started", method=request.method, path=request.url.path, origin=request.headers.get("origin"))
     
+    if request.method == "OPTIONS":
+        response = await call_next(request)
+        logger.info("cors_preflight", origin=request.headers.get("origin"), allow_origin=response.headers.get("access-control-allow-origin"))
+        return response
+
     try:
         response = await call_next(request)
         process_time = time.perf_counter() - start_time
@@ -128,7 +133,10 @@ app.include_router(offer_ai.router, prefix="/api/v1/offer/ai", tags=["Offer - AI
 app.include_router(offer_definitions.router, prefix="/api/v1/offer/definitions", tags=["Offer - Definitions"])
 
 # 4. Landing
-app.include_router(landing_ai.router, prefix="/api/v1/landing", tags=["Landing"], dependencies=[Depends(get_tenant_context)])
+app.include_router(landing_ai.router, prefix="/api/v1/landings", tags=["Landing"], dependencies=[Depends(get_tenant_context)])
+
+# 5. Sales Agent - Audit
+app.include_router(sales_audit.router, prefix="/api/v1/admin/audit", tags=["Sales Agent - Audit"], dependencies=[Depends(get_tenant_context)])
 
 # 7. CRM
 app.include_router(crm_leads.router, prefix="/api/v1/crm/leads", tags=["CRM - Leads"], dependencies=[Depends(get_tenant_context)])
@@ -160,6 +168,8 @@ app.include_router(conn_google_analytics.router, prefix="/api/v1/connections/goo
 app.include_router(conn_meta.router, prefix="/api/v1/connections/meta", tags=["Connections - Meta"])
 app.include_router(conn_manychat.router, prefix="/api/v1/connections/manychat", tags=["Connections - ManyChat"], dependencies=[Depends(get_tenant_context)])
 app.include_router(conn_youtube.router, prefix="/api/v1/connections/youtube", tags=["Connections - YouTube"], dependencies=[Depends(get_tenant_context)])
+app.include_router(conn_youtube_analytics.router, prefix="/api/v1/connections/youtube-analytics", tags=["Connections - YouTube Analytics"], dependencies=[Depends(get_tenant_context)])
+app.include_router(conn_google_workspace.router, prefix="/api/v1/connections/google/workspace", tags=["Connections - Google Workspace"], dependencies=[Depends(get_tenant_context)])
 
 # 13. Assets
 app.include_router(assets_gallery.router, prefix="/api/v1/assets/gallery", tags=["Assets - Gallery"], dependencies=[Depends(get_tenant_context)])

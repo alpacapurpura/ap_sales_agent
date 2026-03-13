@@ -1,7 +1,9 @@
-.PHONY: all dev prod stop logs setup fix-permissions install-front fix-front
+.PHONY: all dev prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front shopify-config-dev shopify-config-prod shopify-config-status
 
 # Variables
 DOCKER_COMPOSE = docker compose
+DOCKER_COMPOSE_DEV = $(DOCKER_COMPOSE) -f docker-compose.yml --env-file .env
+DOCKER_COMPOSE_PROD = $(DOCKER_COMPOSE) -f docker-compose.prod.yml --env-file .env.prod
 USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
 
@@ -9,19 +11,32 @@ GROUP_ID := $(shell id -g)
 
 # Iniciar entorno de Desarrollo
 dev:
-	$(DOCKER_COMPOSE) --profile development up -d --build
+	$(DOCKER_COMPOSE_DEV) up -d --build
 
 # Iniciar entorno de Producción (Usa .env.prod)
 prod:
-	$(DOCKER_COMPOSE) --env-file .env --profile production up -d --build
+	$(DOCKER_COMPOSE_PROD) up -d --build
 
 # Detener todos los contenedores
 stop:
-	$(DOCKER_COMPOSE) --profile development --profile production down
+	$(DOCKER_COMPOSE_DEV) down
+	$(DOCKER_COMPOSE_PROD) down
+
+stop-dev:
+	$(DOCKER_COMPOSE_DEV) down
+
+stop-prod:
+	$(DOCKER_COMPOSE_PROD) down
 
 # Ver logs (sigue el log)
 logs:
-	$(DOCKER_COMPOSE) logs -f
+	$(DOCKER_COMPOSE_DEV) logs -f
+
+logs-dev:
+	$(DOCKER_COMPOSE_DEV) logs -f
+
+logs-prod:
+	$(DOCKER_COMPOSE_PROD) logs -f
 
 # --- Setup & Maintenance ---
 
@@ -41,9 +56,9 @@ setup:
 fix-permissions:
 	@echo "🔐 Corrigiendo permisos de archivos (Docker -> Host)..."
 	# Fix Frontend (node_modules, .next) - Usamos la imagen de dev
-	$(DOCKER_COMPOSE) run --rm --entrypoint "chown -R $(USER_ID):$(GROUP_ID) /app" client_dashboard_dev
+	$(DOCKER_COMPOSE_DEV) run --rm --entrypoint "chown -R $(USER_ID):$(GROUP_ID) /app" client_dashboard_dev
 	# Fix Backend (pycache, logs) - Usamos la imagen de dev
-	$(DOCKER_COMPOSE) run --rm --entrypoint "chown -R $(USER_ID):$(GROUP_ID) /app" api_dev
+	$(DOCKER_COMPOSE_DEV) run --rm --entrypoint "chown -R $(USER_ID):$(GROUP_ID) /app" api_dev
 	@echo "✅ Permisos corregidos. Ahora eres dueño de tus archivos."
 
 # --- Frontend Helpers ---
@@ -54,7 +69,7 @@ install-front:
 	@echo "📦 Instalando $(p) en Host..."
 	cd frontend && npm install $(p)
 	@echo "🐳 Sincronizando $(p) en Docker..."
-	$(DOCKER_COMPOSE) exec client_dashboard_dev npm install $(p)
+	$(DOCKER_COMPOSE_DEV) exec client_dashboard_dev npm install $(p)
 	@echo "✅ Listo! Dependencia sincronizada."
 
 # Sincronizar node_modules (si alguien más cambió package.json)
@@ -62,5 +77,14 @@ fix-front:
 	@echo "🔧 Reparando dependencias en Host..."
 	cd frontend && npm install
 	@echo "🐳 Reparando dependencias en Docker..."
-	$(DOCKER_COMPOSE) exec client_dashboard_dev npm install
+	$(DOCKER_COMPOSE_DEV) exec client_dashboard_dev npm install
 	@echo "✅ Entorno Frontend sincronizado correctamente."
+
+shopify-config-dev:
+	cd shopify_app && npx shopify app config use shopify.app.dev.toml
+
+shopify-config-prod:
+	cd shopify_app && npx shopify app config use shopify.app.prod.toml
+
+shopify-config-status:
+	cd shopify_app && grep -E "^(name|application_url|client_id)" shopify.app.toml
