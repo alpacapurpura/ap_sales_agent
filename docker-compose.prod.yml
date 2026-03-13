@@ -3,10 +3,7 @@ version: '3.8'
 services:
   # --- Backend API (FastAPI) ---
   backend:
-    # image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-backend:latest
-    build: 
-      context: ./backend
-      target: final
+    image: ghcr.io/alpacapurpura/visionarias-backend:latest
     container_name: visionarias_brain
     restart: always
     command: gunicorn -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:8000 --workers 4
@@ -45,8 +42,7 @@ services:
 
   # --- Admin Dashboard (Streamlit) ---
   admin:
-    # image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-backend:latest
-    build: ./backend
+    image: ghcr.io/alpacapurpura/visionarias-backend:latest
     container_name: visionarias_admin
     restart: always
     command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
@@ -67,15 +63,7 @@ services:
 
   # --- Frontend Client (Next.js) ---
   frontend:
-    # image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-alpacapurpura}/visionarias-frontend:latest
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: runner
-      args:
-        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    image: ghcr.io/alpacapurpura/visionarias-frontend:latest
     container_name: visionarias_client
     restart: always
     env_file:
