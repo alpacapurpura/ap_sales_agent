@@ -19,10 +19,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('tenants', sa.Column('default_currency', sa.String(), server_default='USD', nullable=True))
-    op.add_column('tenants', sa.Column('timezone', sa.String(), server_default='UTC', nullable=True))
+    op.execute("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS default_currency VARCHAR DEFAULT 'USD'")
+    op.execute("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS timezone VARCHAR DEFAULT 'UTC'")
 
 
 def downgrade() -> None:
-    op.drop_column('tenants', 'timezone')
-    op.drop_column('tenants', 'default_currency')
+    op.execute('ALTER TABLE tenants DROP COLUMN IF EXISTS timezone')
+    op.execute('ALTER TABLE tenants DROP COLUMN IF EXISTS default_currency')

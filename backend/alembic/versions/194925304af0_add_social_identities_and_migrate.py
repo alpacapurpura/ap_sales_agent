@@ -205,11 +205,12 @@ def upgrade() -> None:
         $$;
     """)
 
-    # 8. Make old columns nullable
-    op.alter_column('leads', 'telegram_id', nullable=True)
-    op.alter_column('leads', 'whatsapp_id', nullable=True)
-    op.alter_column('leads', 'instagram_id', nullable=True)
-    op.alter_column('leads', 'tiktok_id', nullable=True)
+    # 8. Make old columns nullable (only if they exist)
+    bind = op.get_bind()
+    existing_leads_cols = [c['name'] for c in sa.inspect(bind).get_columns('leads')]
+    for col in ['telegram_id', 'whatsapp_id', 'instagram_id', 'tiktok_id']:
+        if col in existing_leads_cols:
+            op.alter_column('leads', col, nullable=True)
 
 
 def downgrade() -> None:

@@ -44,7 +44,7 @@ def upgrade() -> None:
     op.execute('ALTER TABLE users DROP CONSTRAINT IF EXISTS uq_users_email_tenant')
     op.create_unique_constraint(None, 'users', ['email'])
     op.execute('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_tenant_id_fkey1')
-    op.drop_column('users', 'tenant_id')
+    op.execute('ALTER TABLE users DROP COLUMN IF EXISTS tenant_id')
     # ### end Alembic commands ###
 
 

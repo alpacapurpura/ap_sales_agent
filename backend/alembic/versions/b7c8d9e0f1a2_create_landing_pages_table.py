@@ -10,6 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.engine.reflection import Inspector
 
 # revision identifiers, used by Alembic.
 revision: str = 'b7c8d9e0f1a2'
@@ -19,11 +20,23 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Table already exists (created before migration tracking),
-    # so we only migrate data from products.landing_page_config
     conn = op.get_bind()
+    inspector = Inspector.from_engine(conn)
+    existing_tables = inspector.get_table_names()
 
-    # Migrate data using pure SQL - insert from products into landing_pages
+    if 'landing_pages' not in existing_tables:
+        print("Skipping data migration: landing_pages table does not exist")
+        return
+
+    if 'products' not in existing_tables:
+        print("Skipping data migration: products table does not exist")
+        return
+
+    products_cols = [c['name'] for c in inspector.get_columns('products')]
+    if 'landing_page_config' not in products_cols:
+        print("Skipping data migration: products.landing_page_config column does not exist")
+        return
+
     conn.execute(sa.text("""
         INSERT INTO landing_pages (id, tenant_id, offer_id, slug, config, is_published, created_at)
         SELECT

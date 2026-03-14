@@ -19,8 +19,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('products', sa.Column('objections', JSONB, server_default='[]'))
+    op.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS objections JSONB DEFAULT '[]'")
 
 
 def downgrade() -> None:
-    op.drop_column('products', 'objections')
+    op.execute('ALTER TABLE products DROP COLUMN IF EXISTS objections')

@@ -53,7 +53,12 @@ def upgrade() -> None:
             if table not in existing_tables:
                 print(f"Skipping index for non-existent table: {table}")
                 continue
-                
+
+            columns = [c['name'] for c in inspector.get_columns(table)]
+            if 'tenant_id' not in columns:
+                print(f"Skipping index for {table} - tenant_id column missing")
+                continue
+
             index_name = f'ix_{table}_tenant_id'
             # Postgres supports IF NOT EXISTS for indexes
             op.execute(
