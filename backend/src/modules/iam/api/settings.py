@@ -143,10 +143,11 @@ async def get_webhook_settings(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
-    # Construct URL
-    # Use API_DOMAIN if configured, otherwise fall back to localhost for dev
-    domain = app_settings.API_DOMAIN or "localhost:8000"
-    protocol = "https" if app_settings.API_DOMAIN else "http"
+    # Construct URL from API_DOMAIN (required in .env)
+    domain = app_settings.API_DOMAIN
+    if not domain:
+        raise HTTPException(status_code=500, detail="API_DOMAIN not configured on server")
+    protocol = "https" if not domain.startswith("localhost") else "http"
     webhook_url = f"{protocol}://{domain}/api/v1/webhook/chat"
     
     return WebhookSettings(
@@ -176,8 +177,10 @@ async def regenerate_webhook_secret(
     db.commit()
     db.refresh(tenant)
     
-    domain = app_settings.API_DOMAIN or "localhost:8000"
-    protocol = "https" if app_settings.API_DOMAIN else "http"
+    domain = app_settings.API_DOMAIN
+    if not domain:
+        raise HTTPException(status_code=500, detail="API_DOMAIN not configured on server")
+    protocol = "https" if not domain.startswith("localhost") else "http"
     webhook_url = f"{protocol}://{domain}/api/v1/webhook/chat"
     
     return WebhookSettings(

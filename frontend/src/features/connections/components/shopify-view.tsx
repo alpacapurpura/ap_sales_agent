@@ -25,7 +25,7 @@ export function ShopifyView() {
   const { getToken } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const externalStudioBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://dev-app.nicolify.com").replace(/\/$/, "");
+  const externalStudioBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
   const nicolifyStudioUrl = `${externalStudioBaseUrl}/marketing-studio`;
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<ShopifyStatusResponse | null>(null);

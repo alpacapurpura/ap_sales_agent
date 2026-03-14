@@ -190,7 +190,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: cloudflare-tunnel
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token eyJhIjoiOGJmNDFlMzViYjY1MDQ0YjJjZjVlNDcxYmQ0NTZmYzAiLCJ0IjoiMTNmMDZhYmMtZDEwOC00Y2ZhLTkzODYtZWJhYTBjYjk1NDU5IiwicyI6IlpXWXpZalV3TW1NdFlUaGpNUzAwT1RabUxUazBaVFV0TlRRM05EQTNZVGRoT0RRMiJ9
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - gateway
 

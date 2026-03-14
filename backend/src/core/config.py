@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     WHATSAPP_VERIFY_TOKEN: str
     
     # Evolution API (Self-Hosted)
-    EVOLUTION_API_URL: str = "http://visionarias_whatsapp:8080"
-    EVOLUTION_API_KEY: str = "evolution-api-secret-key"
+    EVOLUTION_API_URL: str = ""
+    EVOLUTION_API_KEY: str = ""
     EVOLUTION_API_VERSION: str = "v1" # Options: "v1", "v2"
     
     # Telegram
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     # Google Calendar
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "https://laptopchris.alpacapurpura.lat/connections"
+    GOOGLE_REDIRECT_URI: str = ""  # Set in .env per environment
 
     # Meta (Facebook/Instagram)
     META_APP_ID: str = ""
@@ -57,10 +57,10 @@ class Settings(BaseSettings):
     PROMPT_SOURCE: PromptSource = PromptSource.HYBRID # hybrid, file, db
     
     # Redis
-    REDIS_URL: str = "redis://redis:6379/0"
-    
+    REDIS_URL: str  # Must be set in .env (e.g. redis://redis:6379/0)
+
     # Qdrant
-    QDRANT_URL: str = "http://qdrant:6333"
+    QDRANT_URL: str  # Must be set in .env (e.g. http://qdrant:6333)
     QDRANT_API_KEY: str = "" # Optional if running locally without auth, but required for prod
     QDRANT_COLLECTION: str = "visionarias_knowledge"
     QDRANT_COLLECTION_HYBRID: str = "visionarias_hybrid"
@@ -71,13 +71,13 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    POSTGRES_HOST: str = "postgres"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_HOST: str  # Must be set in .env (e.g. postgres)
+    POSTGRES_PORT: int  # Must be set in .env (e.g. 5432)
 
     # Production Domains
     API_DOMAIN: str = ""
     DASHBOARD_DOMAIN: str = ""
-    API_URL: str = "http://visionarias_brain_dev:8000" # Internal URL for webhooks
+    API_URL: str  # Internal URL for webhooks — set in .env per environment
     UPLOAD_DIR: str = "static/uploads"
 
     # Storage Provider: "LOCAL" or "R2"

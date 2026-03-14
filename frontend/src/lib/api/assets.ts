@@ -39,15 +39,12 @@ export const assetsApi = {
   },
 
   list: async (token: string, type?: string): Promise<Asset[]> => {
-    // Ensure valid URL construction even if API_URL is relative
-    const base = API_URL.startsWith("http") ? undefined : "http://localhost";
-    const url = new URL(`${API_URL}/api/v1/assets/gallery/`, base);
-    
-    if (type) url.searchParams.append("type", type);
-
-    // If we used a dummy base, we might want to return relative path, 
-    // but fetchClient handles absolute URLs fine.
-    const urlString = base ? url.pathname + url.search : url.toString();
+    // Build URL — supports both absolute (http://...) and relative (/api/...) API_URL
+    let urlString = `${API_URL}/api/v1/assets/gallery/`;
+    if (type) {
+      const separator = urlString.includes("?") ? "&" : "?";
+      urlString = `${urlString}${separator}type=${encodeURIComponent(type)}`;
+    }
 
     const res = await fetchClient(urlString, {
       headers: {

@@ -61,16 +61,8 @@ app = FastAPI(title=settings.PROJECT_NAME)
 # Mount Static Files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# CORS Configuration
-default_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://localhost:8501",
-    "http://localhost:8502",
-    "http://127.0.0.1:3000",
-]
-origins = default_origins + settings.CORS_ORIGINS
+# CORS Configuration — fully driven by CORS_ORIGINS env var
+origins = settings.CORS_ORIGINS
 logger.info("cors_origins_configured", origins=origins)
 
 app.add_middleware(

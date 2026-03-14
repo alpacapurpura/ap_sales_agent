@@ -183,7 +183,9 @@ async def auth_callback(
         config={"shop_url": f"https://{shop}", "shop_info": shop_details},
     )
 
-    dashboard_url = settings.DASHBOARD_DOMAIN or "http://localhost:3000"
+    dashboard_url = settings.DASHBOARD_DOMAIN
+    if not dashboard_url:
+        raise HTTPException(status_code=500, detail="DASHBOARD_DOMAIN not configured on server")
     return RedirectResponse(url=f"{dashboard_url}/marketing-studio/connections?status=success&channel=shopify")
 
 

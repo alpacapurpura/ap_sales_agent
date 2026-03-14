@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Body, Query, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 import structlog
-import os
 import secrets
 
 from src.core.database import get_db
@@ -46,7 +45,9 @@ async def verify_webhook(
     token: str = Query(..., alias="hub.verify_token"),
     challenge: str = Query(..., alias="hub.challenge"),
 ):
-    verify_token = settings.META_VERIFY_TOKEN if hasattr(settings, "META_VERIFY_TOKEN") else os.getenv("META_VERIFY_TOKEN", "visionarias_secret_token")
+    verify_token = settings.META_VERIFY_TOKEN
+    if not verify_token:
+        raise HTTPException(status_code=500, detail="META_VERIFY_TOKEN not configured on server")
     if mode == "subscribe" and token == verify_token:
         return int(challenge)
     raise HTTPException(status_code=403, detail="Verification failed")
