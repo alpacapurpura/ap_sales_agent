@@ -75,7 +75,8 @@ jobs:
   deploy:
     name: 🚢 Deploy to VPS
     runs-on: ubuntu-latest
-    needs: build  # waits for images to be ready
+    needs: build
+    environment: production   # ← nombre exacto del environment donde pusiste los secrets
 
     steps:
       - name: Deploy via SSH
