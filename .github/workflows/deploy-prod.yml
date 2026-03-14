@@ -107,6 +107,9 @@ jobs:
 
             cd ${{ secrets.VPS_APP_PATH }}
 
+            echo "🔧 Patching .env.prod with any missing required variables..."
+            grep -q "^API_URL=" .env.prod || echo "API_URL=http://backend:8000" >> .env.prod
+
             echo "🔐 Logging into GHCR..."
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u alpacapurpura --password-stdin
 
