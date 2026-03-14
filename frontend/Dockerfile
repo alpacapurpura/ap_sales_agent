@@ -38,6 +38,11 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
+# Verify middleware was compiled into standalone output
+RUN test -f .next/standalone/.next/server/middleware.js \
+    && echo "✅ middleware.js found in standalone output" \
+    || (echo "❌ middleware.js NOT found — listing .next/server/:" && ls -la .next/server/ && ls -la .next/standalone/.next/server/ 2>/dev/null; exit 1)
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
@@ -56,9 +61,6 @@ RUN chown nextjs:nodejs .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# CRITICAL: Copy middleware explicitly (not included in output file tracing)
-COPY --chown=nextjs:nodejs /app/src/middleware.ts ./src/middleware.ts
 
 USER nextjs
 
