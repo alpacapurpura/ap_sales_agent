@@ -17,6 +17,7 @@ jobs:
   build:
     name: 🔨 Build & Push Images
     runs-on: ubuntu-latest
+    environment: ap_sales_agent
     permissions:
       contents: read
       packages: write  # required to push to GHCR
