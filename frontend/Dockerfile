@@ -57,6 +57,9 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# CRITICAL: Copy middleware explicitly (not included in output file tracing)
+COPY --chown=nextjs:nodejs /app/src/middleware.ts ./src/middleware.ts
+
 USER nextjs
 
 EXPOSE 3000
