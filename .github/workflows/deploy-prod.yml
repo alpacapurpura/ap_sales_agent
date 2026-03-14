@@ -131,6 +131,7 @@ jobs:
     name: 🏥 Health Check
     runs-on: ubuntu-latest
     needs: deploy
+    environment: ap_sales_agent
 
     steps:
       - name: Wait for services to stabilize
