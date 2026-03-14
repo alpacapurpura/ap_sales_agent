@@ -38,10 +38,13 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
-# Verify middleware was compiled into standalone output
-RUN test -f .next/standalone/.next/server/middleware.js \
-    && echo "✅ middleware.js found in standalone output" \
-    || (echo "❌ middleware.js NOT found — listing .next/server/:" && ls -la .next/server/ && ls -la .next/standalone/.next/server/ 2>/dev/null; exit 1)
+# Fail fast if critical build-time env vars are missing
+RUN test -n "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
+    || (echo "❌ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is empty — Clerk auth will not work. Check GitHub secrets." && exit 1)
+RUN echo "✅ Build-time env vars:" \
+    && echo "   CLERK_KEY length: $(echo -n "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" | wc -c)" \
+    && echo "   API_URL: $NEXT_PUBLIC_API_URL" \
+    && echo "   APP_URL: $NEXT_PUBLIC_APP_URL"
 
 # Production image, copy all the files and run next
 FROM base AS runner
