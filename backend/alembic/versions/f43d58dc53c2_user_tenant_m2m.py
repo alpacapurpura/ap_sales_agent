@@ -39,9 +39,11 @@ def upgrade() -> None:
         WHERE tenant_id IS NOT NULL
     """))
 
-    op.drop_constraint(op.f('uq_user_email_tenant'), 'users', type_='unique')
+    # Use IF EXISTS to handle production DBs where constraints may have different names
+    op.execute('ALTER TABLE users DROP CONSTRAINT IF EXISTS uq_user_email_tenant')
+    op.execute('ALTER TABLE users DROP CONSTRAINT IF EXISTS uq_users_email_tenant')
     op.create_unique_constraint(None, 'users', ['email'])
-    op.drop_constraint(op.f('users_tenant_id_fkey1'), 'users', type_='foreignkey')
+    op.execute('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_tenant_id_fkey1')
     op.drop_column('users', 'tenant_id')
     # ### end Alembic commands ###
 
