@@ -76,7 +76,7 @@ jobs:
     name: 🚢 Deploy to VPS
     runs-on: ubuntu-latest
     needs: build
-    environment: production   # ← nombre exacto del environment donde pusiste los secrets
+    environment: ap_sales_agent
 
     steps:
       - name: Deploy via SSH

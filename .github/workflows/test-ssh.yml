@@ -7,7 +7,7 @@ jobs:
   test-ssh:
     name: Test VPS Connectivity
     runs-on: ubuntu-latest
-    environment: production   # ← nombre exacto del environment donde pusiste los secrets
+    environment: ap_sales_agent
     steps:
       - name: Check secrets are present (no values exposed)
         run: |
