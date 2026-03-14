@@ -134,23 +134,32 @@ jobs:
     environment: ap_sales_agent
 
     steps:
-      - name: Wait for services to stabilize
-        run: sleep 20
-
       - name: Check API health
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ secrets.API_DOMAIN }}/health)
-          if [ "$STATUS" != "200" ]; then
-            echo "❌ Health check failed: HTTP $STATUS"
-            exit 1
-          fi
-          echo "✅ API health check passed (HTTP $STATUS)"
+          echo "⏳ Waiting for API to be ready..."
+          for i in {1..8}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ secrets.API_DOMAIN }}/health)
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ API health check passed (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "  Attempt $i/8: HTTP $STATUS — retrying in 15s..."
+            sleep 15
+          done
+          echo "❌ API health check failed after 2 minutes: HTTP $STATUS"
+          exit 1
 
       - name: Check Frontend health
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ secrets.APP_DOMAIN }}/sign-in)
-          if [ "$STATUS" != "200" ]; then
-            echo "❌ Frontend health check failed: HTTP $STATUS"
-            exit 1
-          fi
-          echo "✅ Frontend health check passed (HTTP $STATUS)"
+          echo "⏳ Waiting for Frontend to be ready..."
+          for i in {1..8}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ secrets.APP_DOMAIN }}/sign-in)
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Frontend health check passed (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "  Attempt $i/8: HTTP $STATUS — retrying in 15s..."
+            sleep 15
+          done
+          echo "❌ Frontend health check failed after 2 minutes: HTTP $STATUS"
+          exit 1
