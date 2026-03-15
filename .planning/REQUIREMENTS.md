@@ -23,13 +23,13 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### CRM Lifecycle Automation
 
-- [ ] **CRM-01**: Implement `move_stage()` with automated rules — lead scoring thresholds trigger SUBSCRIBER→LEAD→MQL→SQL transitions
+- [ ] **CRM-01**: Implement `move_stage()` with automated rules — lead scoring thresholds trigger SUBSCRIBER->LEAD->MQL->SQL transitions
 - [ ] **CRM-02**: Sales module writes `lifecycle_stage = CUSTOMER` on `customer_profiles` when a CONVERSION sale completes
 - [ ] **CRM-03**: Sales module writes `lifecycle_stage = EVANGELIST` (or updates `stage_repeat_customer`) on EXPANSION sale events and increments `lifetime_value`
 - [ ] **CRM-04**: Inactivity detection — mark customers as inactive after N days without `journey_events` (configurable threshold)
 - [ ] **CRM-05**: Churn detection — `lifecycle_stage = CHURNED` triggered by subscription cancellation events (Shopify/Stripe webhooks)
 
-### Stage 0 — Atracción (Fix & Validate)
+### Stage 0 — Atraccion (Fix & Validate)
 
 - [ ] **ATR-01**: Validate attraction data against real API responses from connected providers (Meta, Google, TikTok) for tenant "Visionarias"
 - [ ] **ATR-02**: Implement GA4 `runReport()` for organic search channels: google-organic (clicks from Search Console), direct traffic, AI-search (referrers from perplexity.ai, chatgpt.com, claude.ai)
@@ -45,13 +45,13 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **CAP-04**: Cost tracking per capture channel — Manychat licensing, LLM token consumption, WhatsApp API costs, Mailerlite subscription
 - [ ] **CAP-05**: Cost of Acquisition per Lead calculated as: Total Stage 0 investment / Total Stage 1 leads
 
-### Stage 2 — Nutrición
+### Stage 2 — Nutricion
 
 - [ ] **NUT-01**: Detail panel showing two groups: Retargeting Omnichannel (Meta/Google/TikTok retargeting campaigns) and Automation (newsletters via Mailerlite, AI SDR engagement)
 - [ ] **NUT-02**: Backend endpoint `/metrics/nurturing` tracking MQL conversion — profiles crossing lead_score threshold (e.g., >75 pts)
 - [ ] **NUT-03**: Retargeting metrics from Meta/Google/TikTok APIs filtered to MOFU campaigns (Custom Audiences, remarketing audiences)
 - [ ] **NUT-04**: Mailerlite API integration for newsletter engagement (open_rate, click_rate) contributing to lead scoring
-- [ ] **NUT-05**: Conversion rate: Leads → MQLs with cost of nurturing per MQL
+- [ ] **NUT-05**: Conversion rate: Leads -> MQLs with cost of nurturing per MQL
 
 ### Stage 3 — Oportunidad
 
@@ -69,32 +69,32 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **VEN-04**: Cross-module read of Offer Studio `type_offers` via shared service or read-only projection (not direct ORM join)
 - [ ] **VEN-05**: CAC (Customer Acquisition Cost) calculated as: Total investment (Stages 0-3) / Total new customers (Stage 4 CONVERSION)
 
-### Stage 5 — Adopción
+### Stage 5 — Adopcion
 
 - [ ] **ADO-01**: Detail panel showing customer health cohort per service sold: active users vs inactive users
 - [ ] **ADO-02**: Backend endpoint `/metrics/adoption` tracking product usage via `journey_events` post-purchase
 - [ ] **ADO-03**: Time-to-Value indicator — days from purchase to first meaningful engagement event
 - [ ] **ADO-04**: Inactivity as bottleneck — high inactive ratio predicts churn in next 30 days, flagged visually
 
-### Stage 6 — Expansión
+### Stage 6 — Expansion
 
 - [ ] **EXP-01**: Detail panel showing: renewal events (MRR retained), upsell events (revenue expansion), and churn (MRR lost)
 - [ ] **EXP-02**: Backend endpoint `/metrics/expansion` tracking MRR retained vs lost, and upsell revenue
 - [ ] **EXP-03**: `lifetime_value` updated on `customer_profiles` for each EXPANSION event
 - [ ] **EXP-04**: Churn rate calculated — subscription cancellations / total active subscriptions; >5% flagged as critical bottleneck
 
-### Stage 7 — Evangelización
+### Stage 7 — Evangelizacion
 
 - [ ] **EVA-01**: Detail panel showing: referral conversions (purchases with `utm_source=referral` or assigned coupon), UGC count, and K-Factor
 - [ ] **EVA-02**: Backend endpoint `/metrics/evangelization` tracking referral-attributed sales and evangelist profiles
-- [ ] **EVA-03**: K-Factor calculation: (referrals sent per customer) × (conversion rate of referrals)
+- [ ] **EVA-03**: K-Factor calculation: (referrals sent per customer) x (conversion rate of referrals)
 - [ ] **EVA-04**: NPS integration via Mailerlite surveys — identify promoters (score 9-10) as potential evangelists
 
 ### Frontend — Detail Panel UX
 
 - [ ] **UI-01**: Consistent detail panel pattern across all 8 stages following ChannelGroup + ChannelRow + ConnectionBadge from AttractionDetail
 - [ ] **UI-02**: Each stage card in StageSummaryRow shows real KPI values (main + secondary) from backend, not hardcoded mock data
-- [ ] **UI-03**: Conversion rate between adjacent stages displayed on each stage card (Stage N→N+1 ratio)
+- [ ] **UI-03**: Conversion rate between adjacent stages displayed on each stage card (Stage N->N+1 ratio)
 - [ ] **UI-04**: Provider-specific channel icons and labels matching the channel definitions from the product spec
 
 ## v2 Requirements
@@ -138,13 +138,66 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| BUGFIX-01 | Phase 1: Critical Bug Fixes | Pending |
+| BUGFIX-02 | Phase 1: Critical Bug Fixes | Pending |
+| BUGFIX-03 | Phase 1: Critical Bug Fixes | Pending |
+| INFRA-01 | Phase 2: Provider Adapter Infrastructure | Pending |
+| INFRA-02 | Phase 2: Provider Adapter Infrastructure | Pending |
+| INFRA-03 | Phase 2: Provider Adapter Infrastructure | Pending |
+| INFRA-04 | Phase 2: Provider Adapter Infrastructure | Pending |
+| INFRA-05 | Phase 2: Provider Adapter Infrastructure | Pending |
+| CRM-01 | Phase 3: CRM Lifecycle Automation | Pending |
+| CRM-02 | Phase 3: CRM Lifecycle Automation | Pending |
+| CRM-03 | Phase 3: CRM Lifecycle Automation | Pending |
+| CRM-04 | Phase 3: CRM Lifecycle Automation | Pending |
+| CRM-05 | Phase 3: CRM Lifecycle Automation | Pending |
+| ATR-01 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
+| ATR-02 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
+| ATR-03 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
+| ATR-04 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
+| ATR-05 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
+| CAP-01 | Phase 5: Stage 1 Captura | Pending |
+| CAP-02 | Phase 5: Stage 1 Captura | Pending |
+| CAP-03 | Phase 5: Stage 1 Captura | Pending |
+| CAP-04 | Phase 5: Stage 1 Captura | Pending |
+| CAP-05 | Phase 5: Stage 1 Captura | Pending |
+| NUT-01 | Phase 6: Stage 2 Nutricion | Pending |
+| NUT-02 | Phase 6: Stage 2 Nutricion | Pending |
+| NUT-03 | Phase 6: Stage 2 Nutricion | Pending |
+| NUT-04 | Phase 6: Stage 2 Nutricion | Pending |
+| NUT-05 | Phase 6: Stage 2 Nutricion | Pending |
+| OPO-01 | Phase 7: Stage 3 Oportunidad | Pending |
+| OPO-02 | Phase 7: Stage 3 Oportunidad | Pending |
+| OPO-03 | Phase 7: Stage 3 Oportunidad | Pending |
+| OPO-04 | Phase 7: Stage 3 Oportunidad | Pending |
+| OPO-05 | Phase 7: Stage 3 Oportunidad | Pending |
+| VEN-01 | Phase 8: Stage 4 Ventas | Pending |
+| VEN-02 | Phase 8: Stage 4 Ventas | Pending |
+| VEN-03 | Phase 8: Stage 4 Ventas | Pending |
+| VEN-04 | Phase 8: Stage 4 Ventas | Pending |
+| VEN-05 | Phase 8: Stage 4 Ventas | Pending |
+| ADO-01 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| ADO-02 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| ADO-03 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| ADO-04 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| EXP-01 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| EXP-02 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| EXP-03 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| EXP-04 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| EVA-01 | Phase 10: Stage 7 Evangelizacion | Pending |
+| EVA-02 | Phase 10: Stage 7 Evangelizacion | Pending |
+| EVA-03 | Phase 10: Stage 7 Evangelizacion | Pending |
+| EVA-04 | Phase 10: Stage 7 Evangelizacion | Pending |
+| UI-01 | Phase 11: Frontend Unification & Dashboard Polish | Pending |
+| UI-02 | Phase 11: Frontend Unification & Dashboard Polish | Pending |
+| UI-03 | Phase 11: Frontend Unification & Dashboard Polish | Pending |
+| UI-04 | Phase 11: Frontend Unification & Dashboard Polish | Pending |
 
 **Coverage:**
-- v1 requirements: 47 total
-- Mapped to phases: 0
-- Unmapped: 47 ⚠️
+- v1 requirements: 54 total
+- Mapped to phases: 54
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-15*
-*Last updated: 2026-03-15 after initial definition*
+*Last updated: 2026-03-15 after roadmap creation*
