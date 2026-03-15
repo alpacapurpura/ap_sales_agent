@@ -24,7 +24,13 @@ class TrafficGroupDTO(BaseModel):
     channels: list[ChannelMetricDTO]
 
 
+class AvailableChannelsDTO(BaseModel):
+    channels: list[ChannelMetricDTO]
+
+
 class AttractionDetailDTO(BaseModel):
     organic: TrafficGroupDTO
     paid: TrafficGroupDTO
+    available: Optional[AvailableChannelsDTO] = None
     period: str = "last_30_days"
+    last_updated: Optional[str] = None
