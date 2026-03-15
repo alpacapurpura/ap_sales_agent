@@ -37,12 +37,27 @@ def handle_sale_completed_event(event: DomainEvent) -> None:
 
 
 def handle_churn_event(event: DomainEvent) -> None:
-    """Placeholder for churn_detected events. Implementation in Plan 03."""
-    logger.info(
-        "Churn event received for tenant %s, profile %s (handler not yet implemented)",
-        event.tenant_id,
-        event.payload.get("profile_id"),
-    )
+    """Handle churn_detected events by setting lifecycle_stage=CHURNED."""
+    try:
+        from src.core.database import SessionLocal
+        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+
+        db = SessionLocal()
+        try:
+            svc = LifecycleService(db)
+            svc.handle_churn_event(event)
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+    except Exception:
+        logger.exception(
+            "Failed to handle churn_detected event for tenant %s, profile %s",
+            event.tenant_id,
+            event.payload.get("profile_id"),
+        )
 
 
 def register_event_handlers() -> None:

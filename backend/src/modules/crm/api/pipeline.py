@@ -1,9 +1,15 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session, joinedload
-from datetime import datetime, timedelta, timezone
-from typing import List, Literal, Optional
-from pydantic import BaseModel, Field
+"""
+CRM Pipeline API: lead pipeline view, manual stage override, and transition audit trail.
+
+All endpoints require X-Tenant-ID header for multitenant isolation.
+"""
+from datetime import datetime
+from typing import List, Optional
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session, joinedload
 
 from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
@@ -14,7 +20,10 @@ from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
 router = APIRouter(tags=["CRM - Pipeline"])
 
-# --- Response Models ---
+
+# --- Response / Request Models ---
+
+
 class PipelineItem(BaseModel):
     id: UUID
     full_name: Optional[str]
@@ -24,43 +33,171 @@ class PipelineItem(BaseModel):
     channel: Optional[str]
     avatar_url: Optional[str] = None
 
+
+class StageOverrideRequest(BaseModel):
+    """Request body for manual stage override."""
+    new_stage: str = Field(..., description="Target lifecycle stage (e.g. 'customer', 'mql')")
+    note: str = Field("", description="Optional note explaining the override")
+
+
+class TransitionResponse(BaseModel):
+    """Single lifecycle transition audit record."""
+    id: UUID
+    from_stage: Optional[str]
+    to_stage: str
+    reason: str
+    triggered_by: str
+    score_at_transition: Optional[float]
+    metadata: Optional[dict] = None
+    occurred_at: Optional[datetime]
+
+
+class StageOverrideResponse(BaseModel):
+    """Response for successful stage override."""
+    profile_id: UUID
+    previous_stage: str
+    new_stage: str
+    note: str
+
+
 # --- Endpoints ---
+
 
 @router.get("/pipeline", response_model=List[PipelineItem])
 async def get_pipeline(
     min_score: int = 50,
     limit: int = 20,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_user),
 ):
+    """Get high-intent leads for the pipeline view."""
     repo = LeadRepository(db)
-    # TODO: Implement proper get_high_intent_leads with filters
-    # For now, we will return all leads for the tenant to unblock the frontend
-    # leads = repo.get_high_intent_leads(user.tenant_id, min_score, limit)
-    
     # Fallback to simple query until repo method is robust
-    leads_orm = db.query(LeadModel).options(
-        joinedload(LeadModel.customer)
-    ).filter(
-        LeadModel.tenant_id == user.tenant_id,
-        LeadModel.is_blacklisted == False
-    ).limit(limit).all()
-    
-    # Manual mapping to avoid repository complexity for now
+    leads_orm = (
+        db.query(LeadModel)
+        .options(joinedload(LeadModel.customer))
+        .filter(
+            LeadModel.tenant_id == user.tenant_id,
+            LeadModel.is_blacklisted == False,
+        )
+        .limit(limit)
+        .all()
+    )
+
     results = []
-    for l in leads_orm:
-        # Try to resolve name from Customer Profile (SSOT), then fallback to Lead profile_data
-        customer_name = l.customer.full_name if l.customer else None
-        
-        profile = l.profile_data or {}
-        name = customer_name or profile.get('full_name') or profile.get('name') or "Unknown Lead"
-        
-        results.append(PipelineItem(
-            id=l.id,
-            full_name=name,
-            intent_score=l.intent_score or 0,
-            temperature=l.temperature or "COLD",
-            last_interaction=l.last_interaction_date,
-            channel="Unknown"
-        ))
+    for lead in leads_orm:
+        customer_name = lead.customer.full_name if lead.customer else None
+        profile = lead.profile_data or {}
+        name = (
+            customer_name
+            or profile.get("full_name")
+            or profile.get("name")
+            or "Unknown Lead"
+        )
+        results.append(
+            PipelineItem(
+                id=lead.id,
+                full_name=name,
+                intent_score=lead.intent_score or 0,
+                temperature=lead.temperature or "COLD",
+                last_interaction=lead.last_interaction_date,
+                channel="Unknown",
+            )
+        )
     return results
+
+
+@router.put("/pipeline/{profile_id}/stage", response_model=StageOverrideResponse)
+async def override_stage(
+    profile_id: UUID,
+    body: StageOverrideRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Manual override of a profile's lifecycle stage.
+
+    Requires X-Tenant-ID header. Creates audit trail with triggered_by='manual'.
+    """
+    from src.modules.crm.domain.enums import LifecycleStage
+    from src.modules.crm.application.services.lifecycle_service import LifecycleService
+
+    # Validate stage value
+    try:
+        new_stage = LifecycleStage(body.new_stage.lower())
+    except ValueError:
+        valid = [s.value for s in LifecycleStage]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid stage '{body.new_stage}'. Valid stages: {valid}",
+        )
+
+    svc = LifecycleService(db)
+
+    # Get current stage for response
+    from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
+    from sqlalchemy import select
+
+    profile = db.execute(
+        select(CustomerProfileModel).where(
+            CustomerProfileModel.id == profile_id,
+            CustomerProfileModel.tenant_id == user.tenant_id,
+        )
+    ).scalars().first()
+
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    previous_stage = profile.lifecycle_stage.value if profile.lifecycle_stage else "unknown"
+
+    svc.force_stage(
+        profile_id=profile_id,
+        tenant_id=user.tenant_id,
+        new_stage=new_stage,
+        admin_user_id=str(user.id),
+        note=body.note,
+    )
+    db.commit()
+
+    return StageOverrideResponse(
+        profile_id=profile_id,
+        previous_stage=previous_stage,
+        new_stage=new_stage.value,
+        note=body.note,
+    )
+
+
+@router.get("/pipeline/{profile_id}/transitions", response_model=List[TransitionResponse])
+async def get_transitions(
+    profile_id: UUID,
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get lifecycle transition audit trail for a profile.
+
+    Returns most recent transitions first. Requires X-Tenant-ID header.
+    """
+    from src.modules.crm.infrastructure.repositories.lifecycle_repository import (
+        LifecycleRepository,
+    )
+
+    repo = LifecycleRepository(db)
+    transitions = repo.get_transitions_by_profile(
+        profile_id=profile_id,
+        tenant_id=user.tenant_id,
+        limit=limit,
+    )
+
+    return [
+        TransitionResponse(
+            id=t.id,
+            from_stage=t.from_stage.value if t.from_stage else None,
+            to_stage=t.to_stage.value,
+            reason=t.reason,
+            triggered_by=t.triggered_by,
+            score_at_transition=t.score_at_transition,
+            metadata=t.transition_metadata,
+            occurred_at=t.occurred_at,
+        )
+        for t in transitions
+    ]

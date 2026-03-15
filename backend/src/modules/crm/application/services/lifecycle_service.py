@@ -151,6 +151,49 @@ class LifecycleService:
 
         self.db.flush()
 
+    def handle_churn_event(self, event: DomainEvent) -> None:
+        """Handle churn_detected event: set lifecycle_stage=CHURNED.
+
+        - Idempotent: if already CHURNED, skip (no duplicate transition).
+        - Works from any stage (CUSTOMER, SQL, MQL, etc.)
+        - Creates audit record with triggered_by="churn_event".
+        """
+        payload = event.payload
+        profile_id = UUID(payload["profile_id"])
+        source = payload.get("source", "unknown")
+        subscription_id = payload.get("subscription_id", "")
+        cancellation_reason = payload.get("cancellation_reason", "")
+
+        profile = self._load_profile_for_update(profile_id, event.tenant_id)
+        if profile is None:
+            logger.warning(
+                "handle_churn_event: profile %s not found for tenant %s",
+                profile_id,
+                event.tenant_id,
+            )
+            return
+
+        # Idempotent: already churned
+        if profile.lifecycle_stage == LifecycleStage.CHURNED:
+            logger.info(
+                "handle_churn_event: profile %s already CHURNED, skipping",
+                profile_id,
+            )
+            return
+
+        self._transition(
+            profile,
+            LifecycleStage.CHURNED,
+            reason=f"Subscription cancelled via {source}",
+            triggered_by="churn_event",
+            metadata={
+                "source": source,
+                "subscription_id": subscription_id,
+                "cancellation_reason": cancellation_reason,
+            },
+        )
+        self.db.flush()
+
     def force_stage(
         self,
         profile_id: UUID,
