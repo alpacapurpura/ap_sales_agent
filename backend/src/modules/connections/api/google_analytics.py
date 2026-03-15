@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -108,7 +110,7 @@ async def oauth_callback(
 
     try:
         adapter = GoogleAnalyticsAdapter(client_config=client_config)
-        token_data = adapter.exchange_code(code, redirect_uri)
+        token_data = await asyncio.to_thread(adapter.exchange_code, code, redirect_uri)
     except Exception as e:
         logger.error("google_analytics_oauth_exchange_failed", error=str(e))
         raise HTTPException(status_code=400, detail="Error de autenticacion con Google")
@@ -118,7 +120,7 @@ async def oauth_callback(
 
     try:
         adapter = GoogleAnalyticsAdapter(client_config=client_config, credentials_data=full_creds)
-        summaries = adapter.get_account_summaries()
+        summaries = await asyncio.to_thread(adapter.get_account_summaries)
     except Exception as e:
         logger.error("failed_to_get_google_analytics_summaries", error=str(e))
         raise HTTPException(
@@ -178,7 +180,7 @@ async def test_connection(
 
     try:
         adapter = GoogleAnalyticsAdapter(client_config=client_config, credentials_data=connection.credentials)
-        summaries = adapter.get_account_summaries()
+        summaries = await asyncio.to_thread(adapter.get_account_summaries)
         return {"status": "ok", "message": "Conexion exitosa", "data": summaries}
     except Exception as e:
         logger.error("google_analytics_test_failed", error=str(e))
@@ -205,7 +207,7 @@ async def get_properties(
 
     try:
         adapter = GoogleAnalyticsAdapter(client_config=client_config, credentials_data=connection.credentials)
-        summaries = adapter.get_account_summaries()
+        summaries = await asyncio.to_thread(adapter.get_account_summaries)
         return summaries
     except Exception as e:
         logger.error("google_analytics_properties_failed", error=str(e))
