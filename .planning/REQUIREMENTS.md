@@ -17,8 +17,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Infrastructure — Critical Bug Fixes
 
-- [ ] **BUGFIX-01**: Update Meta API version from deprecated `v19.0` to `v22.0+` (Meta stopped accepting v19.0 requests Sept 2025)
-- [ ] **BUGFIX-02**: Fix Meta SDK singleton pattern (`FacebookAdsApi.init()`) — must be per-request/per-tenant, not process-global, to prevent multi-tenant data leaks
+- [x] **BUGFIX-01**: Update Meta API version from deprecated `v19.0` to `v22.0+` (Meta stopped accepting v19.0 requests Sept 2025)
+- [x] **BUGFIX-02**: Fix Meta SDK singleton pattern (`FacebookAdsApi.init()`) — must be per-request/per-tenant, not process-global, to prevent multi-tenant data leaks
 - [ ] **BUGFIX-03**: Implement GA4 Data API client (`google-analytics-data` package, `BetaAnalyticsDataClient.runReport()`) — current code only has Admin API for property discovery
 
 ### CRM Lifecycle Automation
@@ -138,8 +138,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUGFIX-01 | Phase 1: Critical Bug Fixes | Pending |
-| BUGFIX-02 | Phase 1: Critical Bug Fixes | Pending |
+| BUGFIX-01 | Phase 1: Critical Bug Fixes | Complete |
+| BUGFIX-02 | Phase 1: Critical Bug Fixes | Complete |
 | BUGFIX-03 | Phase 1: Critical Bug Fixes | Pending |
 | INFRA-01 | Phase 2: Provider Adapter Infrastructure | Pending |
 | INFRA-02 | Phase 2: Provider Adapter Infrastructure | Pending |
