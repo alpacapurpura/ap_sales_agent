@@ -21,7 +21,7 @@ PROVIDER_TO_CHANNEL_TYPES: Dict[str, Set[str]] = {
     "google_analytics": {"google_analytics"},
     "google_ads": {"google_analytics"},  # Google Ads uses the same Google OAuth connection
     "youtube": {"youtube", "youtube_analytics"},
-    "tiktok": set(),          # No ChannelType yet — will be added when TikTok connection lands
+    "tiktok": {"tiktok", "tiktok_ads"},
     "linkedin": set(),        # No ChannelType yet
     "mailerlite": {"mailerlite"},
     "manychat": {"manychat"},
@@ -35,19 +35,23 @@ PROVIDER_TO_CHANNEL_TYPES: Dict[str, Set[str]] = {
 # needed by both backend (ETL routing) and frontend (rendering).
 STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "attraction": [
-        {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta"},
-        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube"},
-        {"slug": "fb-organic", "name": "Facebook Organic", "channel_type": "social", "source_label": "Facebook", "provider_name": "meta"},
-        {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok"},
-        {"slug": "linkedin-organic", "name": "LinkedIn Organic", "channel_type": "social", "source_label": "LinkedIn", "provider_name": "linkedin"},
-        {"slug": "google-organic", "name": "Google Organic", "channel_type": "search", "source_label": "Google Search", "provider_name": "google_analytics"},
-        {"slug": "direct", "name": "Direct Traffic", "channel_type": "direct", "source_label": "Direct", "provider_name": "google_analytics"},
-        {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics"},
-        {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta"},
-        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads"},
-        {"slug": "tiktok-ads", "name": "TikTok Ads", "channel_type": "paid", "source_label": "TikTok Ads", "provider_name": "tiktok"},
-        {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads"},
-        {"slug": "cold-contact", "name": "Cold Contact", "channel_type": "outbound", "source_label": "Cold Outreach", "provider_name": "manual"},
+        # Organic social: reach + engagement
+        {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
+        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": ["reach", "engagement"]},
+        {"slug": "fb-organic", "name": "Facebook Organic", "channel_type": "social", "source_label": "Facebook", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
+        {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["reach", "engagement"]},
+        {"slug": "linkedin-organic", "name": "LinkedIn Organic", "channel_type": "social", "source_label": "LinkedIn", "provider_name": "linkedin", "metric_names": ["reach", "engagement"]},
+        # GA4 search: sessions + users
+        {"slug": "google-organic", "name": "Google Organic", "channel_type": "search", "source_label": "Google Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
+        {"slug": "direct", "name": "Direct Traffic", "channel_type": "direct", "source_label": "Direct", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
+        {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
+        # Paid: reach + clicks + conversions + spend
+        {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "clicks", "conversions", "spend"]},
+        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend"]},
+        {"slug": "tiktok-ads", "name": "TikTok Ads", "channel_type": "paid", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "conversions", "spend"]},
+        {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend"]},
+        # Outbound: contacts + responses
+        {"slug": "cold-contact", "name": "Cold Contact", "channel_type": "outbound", "source_label": "Cold Outreach", "provider_name": "manual", "metric_names": ["contacts", "responses"]},
     ],
     "capture": [
         {"slug": "landing-form", "name": "Landing Page Form", "channel_type": "form", "source_label": "Landing Page", "provider_name": "internal"},
