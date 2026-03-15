@@ -6,6 +6,7 @@ import urllib.parse
 import asyncio
 from facebook_business.api import FacebookAdsApi
 from facebook_business.adobjects.user import User
+from facebook_business.session import FacebookSession
 
 from src.core.config import settings
 
@@ -20,7 +21,7 @@ class MetaAdapter:
     Per-tenant overrides can be provided via constructor params.
     """
 
-    API_VERSION = "v19.0"
+    API_VERSION = "v24.0"
     BASE_URL = "https://graph.facebook.com"
 
     def __init__(
@@ -32,6 +33,7 @@ class MetaAdapter:
         self.app_id = app_id or settings.META_APP_ID
         self.app_secret = app_secret or settings.META_APP_SECRET
         self.access_token = access_token
+        self._api_instance = None
 
         if not self.app_id or not self.app_secret:
             logger.warning("META_APP_ID or META_APP_SECRET not configured")
@@ -40,13 +42,14 @@ class MetaAdapter:
             self._init_api()
 
     def _init_api(self):
+        """Create a per-instance API object. Never call FacebookAdsApi.init()."""
         try:
-            FacebookAdsApi.init(
+            session = FacebookSession(
                 app_id=self.app_id,
                 app_secret=self.app_secret,
                 access_token=self.access_token,
-                api_version=self.API_VERSION,
             )
+            self._api_instance = FacebookAdsApi(session, api_version=self.API_VERSION)
         except Exception as e:
             logger.error(f"Failed to initialize FacebookAdsApi: {e}")
             raise
@@ -132,11 +135,13 @@ class MetaAdapter:
 
     async def get_user_profile(self) -> Dict[str, Any]:
         """Gets the user's profile (id, name) via the facebook_business SDK."""
-        if not self.access_token:
+        if not self._api_instance:
             raise ValueError("Access token not initialized")
 
+        api = self._api_instance  # Capture for closure — ensures tenant isolation
+
         def _get_profile():
-            me = User(fbid="me")
+            me = User(fbid="me", api=api)
             return me.api_get(fields=["id", "name", "email"])
 
         profile = await asyncio.to_thread(_get_profile)
