@@ -1,4 +1,4 @@
-"""MetricsService — dashboard data for marketing funnel visualization.
+"""MetricsService -- dashboard data for marketing funnel visualization.
 
 get_attraction_metrics() reads from ETL official tables via:
 - MetricsCache (5-min Redis TTL)
@@ -8,6 +8,7 @@ get_attraction_metrics() reads from ETL official tables via:
 get_marketing_sankey_metrics() still reads from journey_events (separate migration).
 """
 
+from collections import defaultdict
 from uuid import UUID
 from typing import Dict, Any, List, Optional
 
@@ -30,6 +31,7 @@ from src.modules.analytics.application.dto.attraction_dto import (
     AvailableChannelsDTO,
     TrafficGroupDTO,
     ChannelMetricDTO,
+    MetricValueDTO,
 )
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
@@ -50,15 +52,33 @@ _CHANNEL_CONNECTION_MAP: Dict[str, ChannelType] = {
     "yt-ads": ChannelType.YOUTUBE,
 }
 
-# Channel types classified as paid (for grouping into TrafficGroupDTOs)
-_PAID_CHANNEL_TYPES = {"paid", "outbound"}
+# Channel types -> group mapping for the 4-group structure
+_GROUP_MAP: Dict[str, str] = {
+    "social": "organic_social",
+    "search": "ga4_search",
+    "direct": "ga4_search",
+    "paid": "paid",
+    "outbound": "outbound",
+}
+
+# Error message mapping from extraction run errors to user-facing messages
+_ERROR_MESSAGES: Dict[str, str] = {
+    "token_expired": "Token expirado",
+    "token_refresh_failed": "Token expirado",
+    "connection_revoked": "Token expirado",
+    "rate_limited": "Reintentando...",
+    "rate_limit": "Reintentando...",
+    "provider_error": "Servicio no disponible",
+    "timeout": "Servicio no disponible",
+    "http_5xx": "Servicio no disponible",
+}
 
 
 class MetricsService:
     """Provides dashboard metrics for marketing funnel stages.
 
     Constructor accepts optional cache and connection_port for backward
-    compatibility — the sankey endpoint doesn't need them.
+    compatibility -- the sankey endpoint doesn't need them.
     """
 
     def __init__(
@@ -164,6 +184,16 @@ class MetricsService:
         conn = self.connection_repo.get_active(tenant_id, channel_type)
         return conn is not None
 
+    def _classify_error(self, error_text: Optional[str]) -> Optional[str]:
+        """Map extraction error to a user-facing message."""
+        if not error_text:
+            return None
+        error_lower = error_text.lower()
+        for key, msg in _ERROR_MESSAGES.items():
+            if key in error_lower:
+                return msg
+        return "Servicio no disponible"
+
     async def get_attraction_metrics(
         self, tenant_id: UUID
     ) -> AttractionDetailDTO:
@@ -172,10 +202,9 @@ class MetricsService:
         Flow:
         1. Check MetricsCache (5-min TTL)
         2. On miss: ChannelRegistry -> OfficialMetricsRepository -> build DTOs
-        3. Cache result before returning
-
-        Channels with no data return value=0.
-        Unconnected channels go to the 'available' section.
+        3. Build multi-metric ChannelMetricDTO objects per channel
+        4. Group into 4 sections: organic_social, ga4_search, paid, outbound
+        5. Cache result before returning
         """
         # 1. Check cache
         if self.cache is not None:
@@ -197,49 +226,91 @@ class MetricsService:
             tenant_id, "attraction", "last_30_days"
         )
 
-        # Build lookup: channel_slug -> aggregation row
-        agg_by_slug: Dict[str, Any] = {}
+        # Build lookup: channel_slug -> list of aggregation rows (multi-metric)
+        agg_by_slug: Dict[str, List[Any]] = defaultdict(list)
         for agg in aggregations:
-            agg_by_slug[agg.channel_slug] = agg
+            agg_by_slug[agg.channel_slug].append(agg)
 
-        # 4. Build ChannelMetricDTO lists
-        organic_channels: List[ChannelMetricDTO] = []
-        paid_channels: List[ChannelMetricDTO] = []
+        # 4. Get extraction run status for stale detection
+        from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+            ExtractionRunRepository,
+        )
+        run_repo = ExtractionRunRepository(self.db)
+
+        # Build provider -> latest run lookup (deduplicate per provider)
+        provider_runs: Dict[str, Any] = {}
+
+        # 5. Build ChannelMetricDTO lists grouped by section
+        groups: Dict[str, List[ChannelMetricDTO]] = {
+            "organic_social": [],
+            "ga4_search": [],
+            "paid": [],
+            "outbound": [],
+        }
         available_channels: List[ChannelMetricDTO] = []
-
         latest_updated: Optional[str] = None
 
         # Connected channels
         for ch in channel_split.get("connected", []):
-            agg = agg_by_slug.get(ch["slug"])
-            value = agg.value if agg else 0.0
-            cost_type = agg.cost_type if agg else None
-            unit = agg.unit if agg else "count"
-            currency = agg.currency if agg else None
-            last_updated = None
-            if agg and hasattr(agg, "computed_at") and agg.computed_at:
-                last_updated = agg.computed_at.isoformat()
-                if latest_updated is None or last_updated > latest_updated:
-                    latest_updated = last_updated
+            slug = ch["slug"]
+            channel_type = ch["channel_type"]
+            group_key = _GROUP_MAP.get(channel_type, "organic_social")
+
+            # Build MetricValueDTO list from aggregation rows
+            agg_rows = agg_by_slug.get(slug, [])
+            metrics: List[MetricValueDTO] = []
+            last_updated: Optional[str] = None
+
+            for agg in agg_rows:
+                extra_data = getattr(agg, "extra", None) or {}
+                breakdown = extra_data if isinstance(extra_data, dict) and extra_data else None
+
+                metrics.append(MetricValueDTO(
+                    name=agg.metric_name,
+                    value=agg.value,
+                    unit=agg.unit or "count",
+                    currency=getattr(agg, "currency", None),
+                    breakdown=breakdown,
+                ))
+
+                # Track latest computed_at for this channel
+                if hasattr(agg, "computed_at") and agg.computed_at:
+                    ts = agg.computed_at.isoformat()
+                    if last_updated is None or ts > last_updated:
+                        last_updated = ts
+                    if latest_updated is None or ts > latest_updated:
+                        latest_updated = ts
+
+            # Stale detection: check extraction run for provider
+            provider_name = ch.get("provider_name", "")
+            stale = False
+            error_message = None
+
+            if provider_name and provider_name not in ("internal", "manual"):
+                if provider_name not in provider_runs:
+                    provider_runs[provider_name] = run_repo.get_latest(
+                        tenant_id, provider_name
+                    )
+                latest_run = provider_runs[provider_name]
+                if latest_run:
+                    if latest_run.status in ("failed", "retrying"):
+                        stale = True
+                        error_message = self._classify_error(latest_run.error)
 
             dto = ChannelMetricDTO(
-                slug=ch["slug"],
+                slug=slug,
                 name=ch["name"],
-                channel_type=ch["channel_type"],
-                value=value,
-                cost=agg.value if agg and ch["channel_type"] in _PAID_CHANNEL_TYPES else None,
+                channel_type=channel_type,
+                metrics=metrics,
                 source_label=ch["source_label"],
                 connected=True,
-                cost_type=cost_type,
-                unit=unit,
-                currency=currency,
+                cost_type=getattr(agg_rows[0], "cost_type", None) if agg_rows else None,
                 last_updated=last_updated,
+                stale=stale,
+                error_message=error_message,
             )
 
-            if ch["channel_type"] in _PAID_CHANNEL_TYPES:
-                paid_channels.append(dto)
-            else:
-                organic_channels.append(dto)
+            groups[group_key].append(dto)
 
         # Available (unconnected) channels
         for ch in channel_split.get("available", []):
@@ -247,18 +318,19 @@ class MetricsService:
                 slug=ch["slug"],
                 name=ch["name"],
                 channel_type=ch["channel_type"],
-                value=0.0,
+                metrics=[],
                 source_label=ch["source_label"],
                 connected=False,
-                cost_type=None,
-                unit="count",
             )
             available_channels.append(dto)
 
-        # 5. Build result
-        organic_total = sum(ch.value for ch in organic_channels)
-        paid_total = sum(ch.value for ch in paid_channels)
-        paid_cost_total = sum(ch.cost or 0 for ch in paid_channels)
+        # 6. Compute group totals
+        def _compute_totals(channels: List[ChannelMetricDTO]) -> Dict[str, float]:
+            totals: Dict[str, float] = defaultdict(float)
+            for ch in channels:
+                for m in ch.metrics:
+                    totals[m.name] += m.value
+            return dict(totals)
 
         available_dto = (
             AvailableChannelsDTO(channels=available_channels)
@@ -267,21 +339,28 @@ class MetricsService:
         )
 
         result = AttractionDetailDTO(
-            organic=TrafficGroupDTO(
-                total_value=organic_total,
-                channels=organic_channels,
+            organic_social=TrafficGroupDTO(
+                totals=_compute_totals(groups["organic_social"]),
+                channels=groups["organic_social"],
+            ),
+            ga4_search=TrafficGroupDTO(
+                totals=_compute_totals(groups["ga4_search"]),
+                channels=groups["ga4_search"],
             ),
             paid=TrafficGroupDTO(
-                total_value=paid_total,
-                total_cost=paid_cost_total,
-                channels=paid_channels,
+                totals=_compute_totals(groups["paid"]),
+                channels=groups["paid"],
+            ),
+            outbound=TrafficGroupDTO(
+                totals=_compute_totals(groups["outbound"]),
+                channels=groups["outbound"],
             ),
             available=available_dto,
             period="last_30_days",
             last_updated=latest_updated,
         )
 
-        # 6. Set cache
+        # 7. Set cache
         if self.cache is not None:
             await self.cache.set(
                 str(tenant_id),
