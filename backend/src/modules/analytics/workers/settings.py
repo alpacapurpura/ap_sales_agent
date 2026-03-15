@@ -1,21 +1,26 @@
-"""ARQ worker and scheduler settings for the ETL pipeline.
+"""ARQ worker and scheduler settings for the ETL pipeline and CRM batch jobs.
 
-WorkerSettings processes individual extraction jobs.
-SchedulerSettings runs a cron tick every minute to evaluate which tenants
-are due for extraction (3am local time).
+WorkerSettings processes individual extraction jobs and CRM batch tasks.
+SchedulerSettings runs cron jobs:
+  - Every minute: evaluate which tenants are due for extraction (3am local time)
+  - Daily at 4am UTC: inactivity detection and score decay
 """
 
 from arq import cron
 from arq.connections import RedisSettings
 
 from src.core.config import settings
-from src.modules.analytics.workers.tasks import run_initial_load, run_tenant_extraction
+from src.modules.analytics.workers.tasks import (
+    run_initial_load,
+    run_inactivity_detection,
+    run_tenant_extraction,
+)
 
 
 class WorkerSettings:
-    """ARQ worker that processes ETL extraction jobs."""
+    """ARQ worker that processes ETL extraction jobs and CRM batch tasks."""
 
-    functions = [run_tenant_extraction, run_initial_load]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -43,7 +48,7 @@ class WorkerSettings:
 
 
 class SchedulerSettings(WorkerSettings):
-    """ARQ scheduler that ticks every minute to enqueue tenant extractions."""
+    """ARQ scheduler with cron jobs for ETL and CRM batch processing."""
 
     from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
@@ -51,5 +56,10 @@ class SchedulerSettings(WorkerSettings):
         cron(
             run_tick_scheduler,
             minute=set(range(60)),  # Every minute
-        )
+        ),
+        cron(
+            run_inactivity_detection,
+            hour=4,
+            minute=0,  # Daily at 4am UTC
+        ),
     ]

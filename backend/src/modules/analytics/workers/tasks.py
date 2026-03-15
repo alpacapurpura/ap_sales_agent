@@ -1,7 +1,7 @@
-"""ARQ task functions for ETL extraction jobs.
+"""ARQ task functions for ETL extraction jobs and CRM batch processing.
 
 All service imports are done lazily inside function bodies (late binding)
-to avoid import-time issues when Plan 02's ETLService hasn't been executed yet.
+to avoid import-time issues when dependent modules haven't been executed yet.
 """
 
 import logging
@@ -139,6 +139,39 @@ async def run_initial_load(
             str(exc),
         )
         raise Retry(defer=defer_seconds) from exc
+
+    finally:
+        db.close()
+
+
+async def run_inactivity_detection(ctx: dict) -> dict:
+    """Batch job: flag inactive profiles and apply score decay.
+
+    Runs daily via ARQ cron (4am UTC). Processes all tenants.
+    Late-binding imports to avoid circular dependencies.
+    """
+    db_factory = ctx["db_factory"]
+    db = db_factory()
+
+    try:
+        from src.modules.crm.application.services.inactivity_service import (
+            InactivityService,
+        )
+
+        service = InactivityService(db)
+        result = service.run_batch()
+        db.commit()
+
+        logger.info(
+            "Inactivity detection completed: %s",
+            result,
+        )
+        return result
+
+    except Exception:
+        db.rollback()
+        logger.exception("Inactivity detection batch job failed")
+        raise
 
     finally:
         db.close()

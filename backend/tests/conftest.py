@@ -2,10 +2,17 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from src.shared.domain.base_entity import Base
 import sys
 from unittest.mock import MagicMock
 import uuid
+
+# --- Mock missing optional dependencies for test environment ---
+# passlib is only used at runtime for password hashing in IAM; not needed for tests.
+for mod_name in ("passlib", "passlib.context", "passlib.hash"):
+    if mod_name not in sys.modules:
+        sys.modules[mod_name] = MagicMock()
+
+from src.shared.domain.base_entity import Base
 
 # --- Monkeypatch PostgreSQL Types for SQLite ---
 from sqlalchemy.dialects import postgresql
