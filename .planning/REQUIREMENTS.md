@@ -32,10 +32,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Stage 0 — Atraccion (Fix & Validate)
 
 - [ ] **ATR-01**: Validate attraction data against real API responses from connected providers (Meta, Google, TikTok) for tenant "Visionarias"
-- [ ] **ATR-02**: Implement GA4 `runReport()` for organic search channels: google-organic (clicks from Search Console), direct traffic, AI-search (referrers from perplexity.ai, chatgpt.com, claude.ai)
-- [ ] **ATR-03**: Pull real reach/impressions from Instagram Graph API, YouTube Analytics API, Facebook Graph API, TikTok for Business API for organic social channels
-- [ ] **ATR-04**: Pull real clicks and spend from Meta Marketing API, Google Ads API, TikTok Ads API for paid channels
-- [ ] **ATR-05**: Cold Contact channel (outbound) shows response rate from CRM data (placeholder until outbound tools are integrated)
+- [x] **ATR-02**: Implement GA4 `runReport()` for organic search channels: google-organic (clicks from Search Console), direct traffic, AI-search (referrers from perplexity.ai, chatgpt.com, claude.ai)
+- [x] **ATR-03**: Pull real reach/impressions from Instagram Graph API, YouTube Analytics API, Facebook Graph API, TikTok for Business API for organic social channels
+- [x] **ATR-04**: Pull real clicks and spend from Meta Marketing API, Google Ads API, TikTok Ads API for paid channels
+- [x] **ATR-05**: Cold Contact channel (outbound) shows response rate from CRM data (placeholder until outbound tools are integrated)
 
 ### Stage 1 — Captura
 
@@ -152,10 +152,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRM-04 | Phase 3: CRM Lifecycle Automation | Complete |
 | CRM-05 | Phase 3: CRM Lifecycle Automation | Complete |
 | ATR-01 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
-| ATR-02 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
-| ATR-03 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
-| ATR-04 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
-| ATR-05 | Phase 4: Stage 0 Attraction Fix & Validate | Pending |
+| ATR-02 | Phase 4: Stage 0 Attraction Fix & Validate | Complete |
+| ATR-03 | Phase 4: Stage 0 Attraction Fix & Validate | Complete |
+| ATR-04 | Phase 4: Stage 0 Attraction Fix & Validate | Complete |
+| ATR-05 | Phase 4: Stage 0 Attraction Fix & Validate | Complete |
 | CAP-01 | Phase 5: Stage 1 Captura | Pending |
 | CAP-02 | Phase 5: Stage 1 Captura | Pending |
 | CAP-03 | Phase 5: Stage 1 Captura | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-15T19:59:30.160Z"
-last_activity: 2026-03-15 — Completed plan 03-03 (Inactivity detection, churn handling, manual override API)
+status: in_progress
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-15T20:33:00.000Z"
+last_activity: 2026-03-15 — Completed plan 04-01 (Provider adapters & multi-metric DTO)
 progress:
   total_phases: 11
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_plans: 13
+  completed_plans: 11
+  percent: 84
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
-**Current focus:** Phase 3 — CRM Lifecycle Automation
+**Current focus:** Phase 4 — Stage 0 Attraction Fix & Validate
 
 ## Current Position
 
-Phase: 3 of 11 (CRM Lifecycle Automation) -- COMPLETE
-Plan: 3 of 3 in current phase (03-03 complete)
-Status: Phase 3 complete
-Last activity: 2026-03-15 — Completed plan 03-03 (Inactivity detection, churn handling, manual override API)
+Phase: 4 of 11 (Stage 0 Attraction Fix & Validate)
+Plan: 1 of 3 in current phase (04-01 complete)
+Status: In progress
+Last activity: 2026-03-15 — Completed plan 04-01 (Provider adapters & multi-metric DTO)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██████████] 100%
 
 *Updated after each plan completion*
 | Phase 03 P03 | 5 min | 2 tasks | 9 files |
+| Phase 04 P01 | 9 min | 2 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,11 @@ Recent decisions affecting current work:
 - [Phase 03]: Score decay clamps to 0.0 when below 0.01 (exponential decay asymptote)
 - [Phase 03]: Churn handler uses churn_detected event_name (matching ChurnEvent.create factory)
 - [Phase 03]: Pipeline manual override and audit trail endpoints added to existing pipeline.py router
+- 04-01: ChannelMetricDTO.value is computed @property for backward compat (returns first metric or 0.0)
+- 04-01: AttractionDetailDTO groups: organic_social/ga4_search/paid/outbound (matching CONTEXT.md)
+- 04-01: AI_REFERRER_DOMAINS configurable set for GA4 AI-search segmentation
+- 04-01: Instagram shares/saves set to 0 in engagement breakdown (deprecated in Graph API v21+)
+- 04-01: GoogleAdsAdapter lazy-imports google-ads package for graceful degradation
 
 ### Pending Todos
 
@@ -115,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T19:59:30.159Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-stage-0-attraction-fix-validate/04-CONTEXT.md
+Last session: 2026-03-15T20:33:00.000Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: .planning/phases/04-stage-0-attraction-fix-validate/04-02-PLAN.md
