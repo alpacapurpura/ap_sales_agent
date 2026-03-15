@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-15T20:33:00.000Z"
-last_activity: 2026-03-15 — Completed plan 04-01 (Provider adapters & multi-metric DTO)
+status: executing
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-03-15T20:42:14.474Z"
+last_activity: 2026-03-15 — Completed plan 04-02 (Multi-metric service aggregation and frontend redesign)
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
-  percent: 84
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 4 of 11 (Stage 0 Attraction Fix & Validate)
-Plan: 1 of 3 in current phase (04-01 complete)
+Plan: 2 of 3 in current phase (04-02 complete)
 Status: In progress
-Last activity: 2026-03-15 — Completed plan 04-01 (Provider adapters & multi-metric DTO)
+Last activity: 2026-03-15 — Completed plan 04-02 (Multi-metric service aggregation and frontend redesign)
 
-Progress: [████████░░] 84%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [████████░░] 84%
 *Updated after each plan completion*
 | Phase 03 P03 | 5 min | 2 tasks | 9 files |
 | Phase 04 P01 | 9 min | 2 tasks | 18 files |
+| Phase 04 P02 | 4min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,9 @@ Recent decisions affecting current work:
 - 04-01: AI_REFERRER_DOMAINS configurable set for GA4 AI-search segmentation
 - 04-01: Instagram shares/saves set to 0 in engagement breakdown (deprecated in Graph API v21+)
 - 04-01: GoogleAdsAdapter lazy-imports google-ads package for graceful degradation
+- [Phase 04]: Channel grouping via _GROUP_MAP: social->organic_social, search/direct->ga4_search, paid->paid, outbound->outbound
+- [Phase 04]: Stale detection reads ExtractionRunRepository.get_latest() per provider with result caching
+- [Phase 04]: Error messages mapped from extraction error keywords to Spanish user-facing strings
 
 ### Pending Todos
 
@@ -121,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T20:33:00.000Z
-Stopped at: Completed 04-01-PLAN.md
-Resume file: .planning/phases/04-stage-0-attraction-fix-validate/04-02-PLAN.md
+Last session: 2026-03-15T20:42:14.472Z
+Stopped at: Completed 04-02-PLAN.md
+Resume file: None
