@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-15T16:39:47.739Z"
-last_activity: 2026-03-15 — Completed plan 02-03 (worker infrastructure, channel registry, ETL admin)
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-15T16:44:31Z"
+last_activity: 2026-03-15 — Completed plan 02-04 (ETL-to-dashboard integration, dynamic channels)
 progress:
   total_phases: 11
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 67
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -25,19 +25,19 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 
 ## Current Position
 
-Phase: 2 of 11 (Provider Adapter Infrastructure)
-Plan: 3 of 4 in current phase (02-03 complete)
-Status: Executing
-Last activity: 2026-03-15 — Completed plan 02-03 (worker infrastructure, channel registry, ETL admin)
+Phase: 2 of 11 (Provider Adapter Infrastructure) -- COMPLETE
+Plan: 4 of 4 in current phase (02-04 complete)
+Status: Phase 2 complete
+Last activity: 2026-03-15 — Completed plan 02-04 (ETL-to-dashboard integration, dynamic channels)
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 6
 - Average duration: 5 min
-- Total execution time: 0.3 hours
+- Total execution time: 0.4 hours
 
 **By Phase:**
 
@@ -45,10 +45,10 @@ Progress: [███████░░░] 67%
 |-------|-------|-------|----------|
 | 01-critical-bug-fixes | 1 | 2 min | 2 min |
 
-| 02-provider-adapter-infrastructure | 3 | 20 min | 7 min |
+| 02-provider-adapter-infrastructure | 4 | 23 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min), 01-02 (4 min), 02-01 (6 min), 02-02 (7 min), 02-03 (7 min)
+- Last 5 plans: 01-02 (4 min), 02-01 (6 min), 02-02 (7 min), 02-03 (7 min), 02-04 (3 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -81,6 +81,10 @@ Recent decisions affecting current work:
 - 02-03: Health endpoint public (no tenant context); retry/status require X-Tenant-ID
 - 02-03: ChannelRegistry uses ConnectionPort for connected/available split (DDD boundary)
 - 02-03: Fibonacci backoff [1,1,2,3,5,8,13] min; permanent stop on ConnectionRevokedException
+- 02-04: MetricsService constructor backward-compatible: cache and connection_port optional for sankey
+- 02-04: AvailableChannelsDTO wraps unconnected channels as separate section in API response
+- 02-04: Frontend ChannelSlug changed from union to string for fully dynamic channel rendering
+- 02-04: Cache-first read pattern: MetricsCache checked before OfficialMetricsRepository
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:39:47.738Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-03-15T16:44:31Z
+Stopped at: Completed 02-04-PLAN.md (Phase 2 complete)
 Resume file: None
