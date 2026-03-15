@@ -50,12 +50,13 @@ Plans:
   3. Repeated metric requests within TTL window return cached results from Redis (no duplicate API calls)
   4. Every channel metric DTO carries a cost_type field (NEUTRAL, EXPENSE, or REVENUE)
   5. Disconnected providers show "Configurar" badge in the UI instead of errors or broken layouts
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Domain contracts, DB models, cost type system, and Alembic migration
-- [ ] 02-02-PLAN.md — ConnectionPort implementation, provider registry, Redis cache, and ETL pipeline
-- [ ] 02-03-PLAN.md — ARQ workers, seed script, channel registry, and ETL health endpoints
+- [ ] 02-01-PLAN.md — Domain contracts, DB models, tenant priority field, cost type system, and Alembic migration
+- [ ] 02-02-PLAN.md — ConnectionPort implementation (with token refresh), provider registry, Redis cache, and ETL pipeline
+- [ ] 02-03-PLAN.md — ARQ workers, seed script, channel registry, ETL health endpoints, and router registration
+- [ ] 02-04-PLAN.md — MetricsService refactor (ETL tables) and frontend dynamic channel rendering
 
 ### Phase 3: CRM Lifecycle Automation
 **Goal**: Customer profiles automatically progress through lifecycle stages based on scoring rules and business events
@@ -208,7 +209,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Critical Bug Fixes | 2/2 | Complete   | 2026-03-15 |
-| 2. Provider Adapter Infrastructure | 0/3 | Not started | - |
+| 2. Provider Adapter Infrastructure | 0/4 | Not started | - |
 | 3. CRM Lifecycle Automation | 0/2 | Not started | - |
 | 4. Stage 0 Attraction Fix & Validate | 0/3 | Not started | - |
 | 5. Stage 1 Captura | 0/2 | Not started | - |
