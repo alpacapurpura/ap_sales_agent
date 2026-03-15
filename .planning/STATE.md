@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-15T16:44:31Z"
-last_activity: 2026-03-15 — Completed plan 02-04 (ETL-to-dashboard integration, dynamic channels)
+status: completed
+stopped_at: Completed 02-05-PLAN.md (Phase 2 gap closure complete)
+last_updated: "2026-03-15T17:21:00Z"
+last_activity: 2026-03-15 — Completed plan 02-05 (gap closure: provider matching, cache TTL, aggregation persistence)
 progress:
   total_phases: 11
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 7
+  completed_plans: 7
   percent: 100
 ---
 
@@ -26,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 2 of 11 (Provider Adapter Infrastructure) -- COMPLETE
-Plan: 4 of 4 in current phase (02-04 complete)
-Status: Phase 2 complete
-Last activity: 2026-03-15 — Completed plan 02-04 (ETL-to-dashboard integration, dynamic channels)
+Plan: 5 of 5 in current phase (02-05 complete)
+Status: Phase 2 complete (including gap closure)
+Last activity: 2026-03-15 — Completed plan 02-05 (gap closure: provider matching, cache TTL, aggregation persistence)
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 5 min
+- Total plans completed: 7
+- Average duration: 4 min
 - Total execution time: 0.4 hours
 
 **By Phase:**
@@ -45,10 +45,10 @@ Progress: [██████████] 100%
 |-------|-------|-------|----------|
 | 01-critical-bug-fixes | 1 | 2 min | 2 min |
 
-| 02-provider-adapter-infrastructure | 4 | 23 min | 6 min |
+| 02-provider-adapter-infrastructure | 5 | 25 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (4 min), 02-01 (6 min), 02-02 (7 min), 02-03 (7 min), 02-04 (3 min)
+- Last 5 plans: 02-01 (6 min), 02-02 (7 min), 02-03 (7 min), 02-04 (3 min), 02-05 (2 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -85,6 +85,9 @@ Recent decisions affecting current work:
 - 02-04: AvailableChannelsDTO wraps unconnected channels as separate section in API response
 - 02-04: Frontend ChannelSlug changed from union to string for fully dynamic channel rendering
 - 02-04: Cache-first read pattern: MetricsCache checked before OfficialMetricsRepository
+- 02-05: PROVIDER_TO_CHANNEL_TYPES uses plain strings to preserve DDD boundary (no connections import)
+- 02-05: Internal/manual providers always classified as connected without ConnectionPort check
+- 02-05: Attraction stage gets 3600s cache TTL; all other stages default to 300s
 
 ### Pending Todos
 
@@ -101,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:44:31Z
-Stopped at: Completed 02-04-PLAN.md (Phase 2 complete)
+Last session: 2026-03-15T17:21:00Z
+Stopped at: Completed 02-05-PLAN.md (Phase 2 gap closure complete)
 Resume file: None
