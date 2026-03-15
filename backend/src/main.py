@@ -42,6 +42,7 @@ from src.modules.scheduling.api import event_types as sched_types, public_links 
 
 # 11. Analytics
 from src.modules.analytics.api import metrics as analytics_metrics
+from src.modules.analytics.api import etl_admin as analytics_etl_admin
 
 # 12. Connections
 from src.modules.connections.api import webhook as conn_webhook, telegram as conn_telegram, whatsapp as conn_whatsapp
@@ -143,6 +144,8 @@ app.include_router(sched_public.router, prefix="/api/v1/scheduling/public", tags
 
 # 11. Analytics
 app.include_router(analytics_metrics.router, prefix="/api/v1/analytics", tags=["Analytics"], dependencies=[Depends(get_tenant_context)])
+app.include_router(analytics_etl_admin.health_router, prefix="/api/v1/analytics", tags=["Analytics ETL"])
+app.include_router(analytics_etl_admin.tenant_router, prefix="/api/v1/analytics", tags=["Analytics ETL"], dependencies=[Depends(get_tenant_context)])
 
 # 12. Connections
 app.include_router(conn_calendar.router, prefix="/api/v1/connections/calendar", tags=["Connections - Calendar"], dependencies=[Depends(get_tenant_context)])
