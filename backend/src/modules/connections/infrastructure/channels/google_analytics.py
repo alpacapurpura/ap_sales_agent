@@ -1,11 +1,18 @@
+import asyncio
+import json
 import logging
+import os
 from typing import Dict, Any, Optional, List
+
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from google.analytics.data_v1beta import BetaAnalyticsDataClient
+from google.analytics.data_v1beta.types import (
+    DateRange, Dimension, Metric, RunReportRequest,
+)
+
 from src.core.config import settings
-import json
-import os
 
 # Allow OAuth scope to change
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
@@ -93,3 +100,57 @@ class GoogleAnalyticsAdapter:
         except Exception as e:
             logger.error(f"Error fetching account summaries: {e}")
             raise
+
+    def _get_data_client(self) -> BetaAnalyticsDataClient:
+        """Returns a GA4 Data API client using current credentials."""
+        if not self.creds:
+            raise ValueError("Credentials not initialized")
+        return BetaAnalyticsDataClient(credentials=self.creds)
+
+    async def run_report(
+        self,
+        property_id: str,
+        dimensions: list[str],
+        metrics: list[str],
+        start_date: str = "30daysAgo",
+        end_date: str = "today",
+    ) -> dict:
+        """
+        Run a GA4 report with arbitrary dimensions and metrics.
+
+        Wraps the synchronous BetaAnalyticsDataClient.run_report() call
+        in asyncio.to_thread() to avoid blocking the FastAPI event loop.
+
+        Returns a normalized dict:
+            {
+                "row_count": int,
+                "rows": [{"dimensions": [...], "metrics": [...]}, ...],
+                "metadata": {"dimensions": [...], "metrics": [...]},
+            }
+        """
+        client = self._get_data_client()
+        request = RunReportRequest(
+            property=f"properties/{property_id}",
+            dimensions=[Dimension(name=d) for d in dimensions],
+            metrics=[Metric(name=m) for m in metrics],
+            date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
+        )
+        response = await asyncio.to_thread(client.run_report, request)
+        return self._normalize_report_response(response)
+
+    def _normalize_report_response(self, response) -> dict:
+        """Convert GA4 RunReportResponse to a plain dict."""
+        rows = []
+        for row in response.rows:
+            rows.append({
+                "dimensions": [dv.value for dv in row.dimension_values],
+                "metrics": [mv.value for mv in row.metric_values],
+            })
+        return {
+            "row_count": response.row_count,
+            "rows": rows,
+            "metadata": {
+                "dimensions": [h.name for h in response.dimension_headers],
+                "metrics": [h.name for h in response.metric_headers],
+            },
+        }
