@@ -50,13 +50,14 @@ Plans:
   3. Repeated metric requests within TTL window return cached results from Redis (no duplicate API calls)
   4. Every channel metric DTO carries a cost_type field (NEUTRAL, EXPENSE, or REVENUE)
   5. Disconnected providers show "Configurar" badge in the UI instead of errors or broken layouts
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
 - [ ] 02-01-PLAN.md — Domain contracts, DB models, tenant priority field, cost type system, and Alembic migration
 - [ ] 02-02-PLAN.md — ConnectionPort implementation (with token refresh), provider registry, Redis cache, and ETL pipeline
 - [ ] 02-03-PLAN.md — ARQ workers, seed script, channel registry, ETL health endpoints, and router registration
 - [ ] 02-04-PLAN.md — MetricsService refactor (ETL tables) and frontend dynamic channel rendering
+- [ ] 02-05-PLAN.md — Gap closure: ChannelRegistry provider matching fix, per-stage cache TTL, ETL aggregation persistence
 
 ### Phase 3: CRM Lifecycle Automation
 **Goal**: Customer profiles automatically progress through lifecycle stages based on scoring rules and business events
