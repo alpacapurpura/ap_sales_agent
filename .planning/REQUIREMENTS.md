@@ -11,9 +11,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **INFRA-01**: Provider adapter base class (ABC) in `analytics/infrastructure/providers/` with normalized metric output, so all providers conform to one interface
 - [x] **INFRA-02**: `ConnectionPort` service that retrieves decrypted OAuth credentials from `connections` module without violating DDD boundaries
-- [ ] **INFRA-03**: Redis-based metrics cache in `analytics` with per-provider TTL (paid ads = 1h, CRM = 5min) to respect API rate limits
+- [x] **INFRA-03**: Redis-based metrics cache in `analytics` with per-provider TTL (paid ads = 1h, CRM = 5min) to respect API rate limits
 - [x] **INFRA-04**: Cost type system (NEUTRAL, EXPENSE, REVENUE) applied as a field on every channel metric DTO across all 8 stages
-- [ ] **INFRA-05**: Mock/fallback mechanism consistent across all 8 stages — disconnected providers show "Configurar" badge, not broken UI
+- [x] **INFRA-05**: Mock/fallback mechanism consistent across all 8 stages — disconnected providers show "Configurar" badge, not broken UI
 
 ### Infrastructure — Critical Bug Fixes
 
@@ -143,9 +143,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUGFIX-03 | Phase 1: Critical Bug Fixes | Complete |
 | INFRA-01 | Phase 2: Provider Adapter Infrastructure | Complete |
 | INFRA-02 | Phase 2: Provider Adapter Infrastructure | Complete |
-| INFRA-03 | Phase 2: Provider Adapter Infrastructure | Pending |
+| INFRA-03 | Phase 2: Provider Adapter Infrastructure | Complete |
 | INFRA-04 | Phase 2: Provider Adapter Infrastructure | Complete |
-| INFRA-05 | Phase 2: Provider Adapter Infrastructure | Pending |
+| INFRA-05 | Phase 2: Provider Adapter Infrastructure | Complete |
 | CRM-01 | Phase 3: CRM Lifecycle Automation | Pending |
 | CRM-02 | Phase 3: CRM Lifecycle Automation | Pending |
 | CRM-03 | Phase 3: CRM Lifecycle Automation | Pending |
