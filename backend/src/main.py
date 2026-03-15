@@ -102,6 +102,10 @@ async def logging_middleware(request: Request, call_next):
 def on_startup():
     init_db()
 
+    # Register CRM domain event handlers (EventBus wiring)
+    from src.modules.crm.application.event_handlers import register_event_handlers
+    register_event_handlers()
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "version": "1.0.0"}

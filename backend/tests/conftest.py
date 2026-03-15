@@ -86,7 +86,8 @@ def db_engine():
         from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel
         from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
         from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel
-        # Add other models if needed
+        from src.modules.crm.infrastructure.models.sale_model import SaleModel
+        from src.modules.offer.infrastructure.models.product_model import ProductModel
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")
     
