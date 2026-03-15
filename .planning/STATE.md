@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-15T15:32:58.318Z"
-last_activity: 2026-03-15 — Completed plan 01-01 (Meta API v24.0 + tenant isolation fix)
+stopped_at: "Completed 02-01-PLAN.md"
+last_updated: "2026-03-15T16:26:31Z"
+last_activity: 2026-03-15 — Completed plan 02-01 (domain contracts + ETL infrastructure)
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 6
+  completed_plans: 3
   percent: 50
 ---
 
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
-**Current focus:** Phase 1 — Critical Bug Fixes
+**Current focus:** Phase 2 — Provider Adapter Infrastructure
 
 ## Current Position
 
-Phase: 1 of 11 (Critical Bug Fixes)
-Plan: 1 of 2 in current phase
+Phase: 2 of 11 (Provider Adapter Infrastructure)
+Plan: 1 of 4 in current phase (02-01 complete)
 Status: Executing
-Last activity: 2026-03-15 — Completed plan 01-01 (Meta API v24.0 + tenant isolation fix)
+Last activity: 2026-03-15 — Completed plan 02-01 (domain contracts + ETL infrastructure)
 
 Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 2 min
-- Total execution time: 0.03 hours
+- Total plans completed: 3
+- Average duration: 4 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
@@ -45,12 +45,13 @@ Progress: [█████░░░░░] 50%
 |-------|-------|-------|----------|
 | 01-critical-bug-fixes | 1 | 2 min | 2 min |
 
+| 02-provider-adapter-infrastructure | 1 | 6 min | 6 min |
+
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min)
-- Trend: N/A
+- Last 5 plans: 01-01 (2 min), 01-02 (4 min), 02-01 (6 min)
+- Trend: Stable
 
 *Updated after each plan completion*
-| Phase 01 P02 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,10 @@ Recent decisions affecting current work:
 - 01-01: Per-instance FacebookAdsApi via FacebookSession replaces singleton init()
 - 01-01: facebook-business pinned to >=22.0,<26.0
 - [Phase 01]: asyncio.to_thread() used for all sync Google SDK calls in GA4 adapter and API routes
+- 02-01: ChannelMetricDTO value/cost changed from int to float for ETL precision (backward compatible)
+- 02-01: EncryptedJSON used for spend/revenue columns in ETL tables
+- 02-01: Provider ABC pattern: new providers implement BaseMetricsProvider without modifying service/API layers
+- 02-01: ConnectionPort ABC bridges analytics and connections bounded contexts
 
 ### Pending Todos
 
@@ -83,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T15:32:58.315Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-provider-adapter-infrastructure/02-CONTEXT.md
+Last session: 2026-03-15T16:26:31Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-provider-adapter-infrastructure/02-01-SUMMARY.md
