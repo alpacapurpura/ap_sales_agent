@@ -12,27 +12,37 @@ export interface StageSummary {
   hasDetail: boolean;
 }
 
-/** Dynamic — accepts any channel slug from the backend. */
+/** Dynamic -- accepts any channel slug from the backend. */
 export type ChannelSlug = string;
+
+/** Single named metric within a channel (e.g., reach, engagement, spend). */
+export interface MetricValue {
+  name: string;
+  value: number;
+  unit?: string;
+  currency?: string;
+  breakdown?: Record<string, number>;
+}
+
+export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'available';
 
 export interface ChannelMetric {
   slug: string;
   name: string;
   channelType: string;
-  value: number;
-  cost?: number;
+  metrics: MetricValue[];
   sourceLabel: string;
   connected: boolean;
   costType?: string;
-  unit?: string;
-  currency?: string;
   lastUpdated?: string;
-  badgeType?: string;
+  stale?: boolean;
+  errorMessage?: string;
+  /** @deprecated use metrics array instead */
+  value?: number;
 }
 
 export interface TrafficGroup {
-  totalValue: number;
-  totalCost?: number;
+  totals: Record<string, number>;
   channels: ChannelMetric[];
 }
 
@@ -41,8 +51,10 @@ export interface AvailableChannels {
 }
 
 export interface AttractionDetail {
-  organic: TrafficGroup;
-  paid: TrafficGroup & { totalCost: number };
+  organicSocial: TrafficGroup;
+  ga4Search: TrafficGroup;
+  paid: TrafficGroup;
+  outbound: TrafficGroup;
   available?: AvailableChannels;
   period: string;
   lastUpdated?: string;
