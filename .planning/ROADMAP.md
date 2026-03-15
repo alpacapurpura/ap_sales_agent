@@ -37,8 +37,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Meta API version update and SDK per-tenant fix
-- [ ] 01-02: GA4 Data API client implementation
+- [x] 01-01: Meta API version update and SDK per-tenant fix
+- [x] 01-02: GA4 Data API client implementation
 
 ### Phase 2: Provider Adapter Infrastructure
 **Goal**: A uniform, cached, fault-tolerant data pipeline exists that all 8 stages can plug into
@@ -50,12 +50,12 @@ Plans:
   3. Repeated metric requests within TTL window return cached results from Redis (no duplicate API calls)
   4. Every channel metric DTO carries a cost_type field (NEUTRAL, EXPENSE, or REVENUE)
   5. Disconnected providers show "Configurar" badge in the UI instead of errors or broken layouts
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Provider adapter base class and connection port
-- [ ] 02-02: Redis metrics cache and cost type system
-- [ ] 02-03: Mock/fallback mechanism for disconnected providers
+- [ ] 02-01-PLAN.md — Domain contracts, DB models, cost type system, and Alembic migration
+- [ ] 02-02-PLAN.md — ConnectionPort implementation, provider registry, Redis cache, and ETL pipeline
+- [ ] 02-03-PLAN.md — ARQ workers, seed script, channel registry, and ETL health endpoints
 
 ### Phase 3: CRM Lifecycle Automation
 **Goal**: Customer profiles automatically progress through lifecycle stages based on scoring rules and business events
