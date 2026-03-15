@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Meta API calls use v22.0+ and return valid responses instead of HTTP 400 errors
   2. Two concurrent requests for different tenants never receive each other's Meta data (per-request SDK instantiation verified)
   3. GA4 Data API client can execute a `runReport()` call and return real session data for a connected property
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 01-01: Meta API version update and SDK per-tenant fix
