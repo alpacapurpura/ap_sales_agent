@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: in-progress
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-15T18:55:10.000Z"
-last_activity: "2026-03-15 — Completed plan 03-01 (EventBus, scoring config, lifecycle schema)"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-15T19:05:00.000Z"
+last_activity: "2026-03-15 — Completed plan 03-02 (Scoring engine, sale-triggered lifecycle transitions)"
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -26,18 +26,18 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 3 of 11 (CRM Lifecycle Automation)
-Plan: 1 of 3 in current phase (03-01 complete)
+Plan: 2 of 3 in current phase (03-02 complete)
 Status: In progress
-Last activity: 2026-03-15 — Completed plan 03-01 (EventBus, scoring config, lifecycle schema)
+Last activity: 2026-03-15 — Completed plan 03-02 (Scoring engine, sale-triggered lifecycle transitions)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 4 min
-- Total execution time: 0.5 hours
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
@@ -45,10 +45,10 @@ Progress: [████████░░] 80%
 |-------|-------|-------|----------|
 | 01-critical-bug-fixes | 1 | 2 min | 2 min |
 | 02-provider-adapter-infrastructure | 5 | 25 min | 5 min |
-| 03-crm-lifecycle-automation | 1 | 5 min | 5 min |
+| 03-crm-lifecycle-automation | 2 | 11 min | 5.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (7 min), 02-03 (7 min), 02-04 (3 min), 02-05 (2 min), 03-01 (5 min)
+- Last 5 plans: 02-03 (7 min), 02-04 (3 min), 02-05 (2 min), 03-01 (5 min), 03-02 (6 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -91,6 +91,10 @@ Recent decisions affecting current work:
 - 03-01: EventBus uses class-level _handlers dict (singleton pattern) -- no DI container needed
 - 03-01: triggered_by uses String not PG Enum to avoid ALTER TYPE migration issues
 - 03-01: LifecycleStage enum reused in lifecycle_transitions via create_type=False
+- 03-02: Service-layer orchestration for scoring: CustomerService.track_event calls repo + LifecycleService
+- 03-02: Fit score applied once via computed_traits flag (prevents re-adding on recalculation)
+- 03-02: LifecycleTransitionModel.metadata renamed to transition_metadata (SQLAlchemy reserved attr)
+- 03-02: SaleService decoupled from CRM -- imports only shared EventBus + domain events
 
 ### Pending Todos
 
@@ -100,13 +104,13 @@ None yet.
 
 - ~~Meta API v19.0 is completely broken in production (HTTP 400).~~ FIXED in 01-01: updated to v24.0
 - ~~Meta SDK singleton causes cross-tenant data leaks.~~ FIXED in 01-01: per-instance API pattern
-- CRM move_stage() is a pass placeholder. All stages 1-7 will return zero until Phase 3 completes.
+- ~~CRM move_stage() is a pass placeholder.~~ FIXED in 03-02: PipelineService.move_stage delegates to LifecycleService.force_stage
 - ~~CRM scoring thresholds (e.g., lead_score > 70 = MQL) need product input before Phase 3 implementation.~~ RESOLVED in 03-01: thresholds set at 10/40/70 per research recommendations
 - TikTok token 24h expiry needs refresh job that differs from Google/Meta patterns.
 - Stage 7 K-Factor depends on whether referral codes exist in CRM schema — verify before Phase 10.
 
 ## Session Continuity
 
-Last session: 2026-03-15T18:55:10.000Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: .planning/phases/03-crm-lifecycle-automation/03-01-SUMMARY.md
+Last session: 2026-03-15T19:05:00.000Z
+Stopped at: Completed 03-02-PLAN.md
+Resume file: .planning/phases/03-crm-lifecycle-automation/03-02-SUMMARY.md
