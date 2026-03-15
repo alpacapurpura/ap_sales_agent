@@ -23,7 +23,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### CRM Lifecycle Automation
 
-- [ ] **CRM-01**: Implement `move_stage()` with automated rules — lead scoring thresholds trigger SUBSCRIBER->LEAD->MQL->SQL transitions
+- [x] **CRM-01**: Implement `move_stage()` with automated rules — lead scoring thresholds trigger SUBSCRIBER->LEAD->MQL->SQL transitions
 - [ ] **CRM-02**: Sales module writes `lifecycle_stage = CUSTOMER` on `customer_profiles` when a CONVERSION sale completes
 - [ ] **CRM-03**: Sales module writes `lifecycle_stage = EVANGELIST` (or updates `stage_repeat_customer`) on EXPANSION sale events and increments `lifetime_value`
 - [ ] **CRM-04**: Inactivity detection — mark customers as inactive after N days without `journey_events` (configurable threshold)
@@ -146,7 +146,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-03 | Phase 2: Provider Adapter Infrastructure | Complete |
 | INFRA-04 | Phase 2: Provider Adapter Infrastructure | Complete |
 | INFRA-05 | Phase 2: Provider Adapter Infrastructure | Complete |
-| CRM-01 | Phase 3: CRM Lifecycle Automation | Pending |
+| CRM-01 | Phase 3: CRM Lifecycle Automation | Complete |
 | CRM-02 | Phase 3: CRM Lifecycle Automation | Pending |
 | CRM-03 | Phase 3: CRM Lifecycle Automation | Pending |
 | CRM-04 | Phase 3: CRM Lifecycle Automation | Pending |

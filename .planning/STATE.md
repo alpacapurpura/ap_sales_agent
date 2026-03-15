@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-15T18:00:51.453Z"
-last_activity: "2026-03-15 — Completed plan 02-05 (gap closure: provider matching, cache TTL, aggregation persistence)"
+status: in-progress
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-15T18:55:10.000Z"
+last_activity: "2026-03-15 — Completed plan 03-01 (EventBus, scoring config, lifecycle schema)"
 progress:
   total_phases: 11
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_plans: 10
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -21,34 +21,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
-**Current focus:** Phase 2 — Provider Adapter Infrastructure
+**Current focus:** Phase 3 — CRM Lifecycle Automation
 
 ## Current Position
 
-Phase: 2 of 11 (Provider Adapter Infrastructure) -- COMPLETE
-Plan: 5 of 5 in current phase (02-05 complete)
-Status: Phase 2 complete (including gap closure)
-Last activity: 2026-03-15 — Completed plan 02-05 (gap closure: provider matching, cache TTL, aggregation persistence)
+Phase: 3 of 11 (CRM Lifecycle Automation)
+Plan: 1 of 3 in current phase (03-01 complete)
+Status: In progress
+Last activity: 2026-03-15 — Completed plan 03-01 (EventBus, scoring config, lifecycle schema)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 4 min
-- Total execution time: 0.4 hours
+- Total execution time: 0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-critical-bug-fixes | 1 | 2 min | 2 min |
-
 | 02-provider-adapter-infrastructure | 5 | 25 min | 5 min |
+| 03-crm-lifecycle-automation | 1 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (6 min), 02-02 (7 min), 02-03 (7 min), 02-04 (3 min), 02-05 (2 min)
+- Last 5 plans: 02-02 (7 min), 02-03 (7 min), 02-04 (3 min), 02-05 (2 min), 03-01 (5 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -88,6 +88,9 @@ Recent decisions affecting current work:
 - 02-05: PROVIDER_TO_CHANNEL_TYPES uses plain strings to preserve DDD boundary (no connections import)
 - 02-05: Internal/manual providers always classified as connected without ConnectionPort check
 - 02-05: Attraction stage gets 3600s cache TTL; all other stages default to 300s
+- 03-01: EventBus uses class-level _handlers dict (singleton pattern) -- no DI container needed
+- 03-01: triggered_by uses String not PG Enum to avoid ALTER TYPE migration issues
+- 03-01: LifecycleStage enum reused in lifecycle_transitions via create_type=False
 
 ### Pending Todos
 
@@ -98,12 +101,12 @@ None yet.
 - ~~Meta API v19.0 is completely broken in production (HTTP 400).~~ FIXED in 01-01: updated to v24.0
 - ~~Meta SDK singleton causes cross-tenant data leaks.~~ FIXED in 01-01: per-instance API pattern
 - CRM move_stage() is a pass placeholder. All stages 1-7 will return zero until Phase 3 completes.
-- CRM scoring thresholds (e.g., lead_score > 70 = MQL) need product input before Phase 3 implementation.
+- ~~CRM scoring thresholds (e.g., lead_score > 70 = MQL) need product input before Phase 3 implementation.~~ RESOLVED in 03-01: thresholds set at 10/40/70 per research recommendations
 - TikTok token 24h expiry needs refresh job that differs from Google/Meta patterns.
 - Stage 7 K-Factor depends on whether referral codes exist in CRM schema — verify before Phase 10.
 
 ## Session Continuity
 
-Last session: 2026-03-15T18:00:51.452Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-crm-lifecycle-automation/03-CONTEXT.md
+Last session: 2026-03-15T18:55:10.000Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: .planning/phases/03-crm-lifecycle-automation/03-01-SUMMARY.md
