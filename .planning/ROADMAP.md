@@ -12,7 +12,7 @@ This roadmap takes the Growth Studio dashboard from ~10% (partial Stage 0 only) 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Critical Bug Fixes** - Fix broken Meta API v19.0, Meta SDK multi-tenant data leak, and missing GA4 Data API client
+- [x] **Phase 1: Critical Bug Fixes** - Fix broken Meta API v19.0, Meta SDK multi-tenant data leak, and missing GA4 Data API client (completed 2026-03-15)
 - [ ] **Phase 2: Provider Adapter Infrastructure** - Build the adapter base class, connection port, Redis cache, cost type system, and mock/fallback mechanism
 - [ ] **Phase 3: CRM Lifecycle Automation** - Implement move_stage() with automated rules, sale-triggered transitions, inactivity and churn detection
 - [ ] **Phase 4: Stage 0 Attraction Fix & Validate** - Wire real API data into the existing Attraction panel and prove the infrastructure works end-to-end
@@ -207,7 +207,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Critical Bug Fixes | 0/2 | Not started | - |
+| 1. Critical Bug Fixes | 2/2 | Complete   | 2026-03-15 |
 | 2. Provider Adapter Infrastructure | 0/3 | Not started | - |
 | 3. CRM Lifecycle Automation | 0/2 | Not started | - |
 | 4. Stage 0 Attraction Fix & Validate | 0/3 | Not started | - |
