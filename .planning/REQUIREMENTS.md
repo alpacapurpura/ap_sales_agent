@@ -1,0 +1,150 @@
+# Requirements: Nicolify Growth Studio — 8-Stage Metrics Dashboard
+
+**Defined:** 2026-03-15
+**Core Value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
+
+## v1 Requirements
+
+Requirements for this milestone. Each maps to roadmap phases.
+
+### Infrastructure — Data Foundation
+
+- [ ] **INFRA-01**: Provider adapter base class (ABC) in `analytics/infrastructure/providers/` with normalized metric output, so all providers conform to one interface
+- [ ] **INFRA-02**: `ConnectionPort` service that retrieves decrypted OAuth credentials from `connections` module without violating DDD boundaries
+- [ ] **INFRA-03**: Redis-based metrics cache in `analytics` with per-provider TTL (paid ads = 1h, CRM = 5min) to respect API rate limits
+- [ ] **INFRA-04**: Cost type system (NEUTRAL, EXPENSE, REVENUE) applied as a field on every channel metric DTO across all 8 stages
+- [ ] **INFRA-05**: Mock/fallback mechanism consistent across all 8 stages — disconnected providers show "Configurar" badge, not broken UI
+
+### Infrastructure — Critical Bug Fixes
+
+- [ ] **BUGFIX-01**: Update Meta API version from deprecated `v19.0` to `v22.0+` (Meta stopped accepting v19.0 requests Sept 2025)
+- [ ] **BUGFIX-02**: Fix Meta SDK singleton pattern (`FacebookAdsApi.init()`) — must be per-request/per-tenant, not process-global, to prevent multi-tenant data leaks
+- [ ] **BUGFIX-03**: Implement GA4 Data API client (`google-analytics-data` package, `BetaAnalyticsDataClient.runReport()`) — current code only has Admin API for property discovery
+
+### CRM Lifecycle Automation
+
+- [ ] **CRM-01**: Implement `move_stage()` with automated rules — lead scoring thresholds trigger SUBSCRIBER→LEAD→MQL→SQL transitions
+- [ ] **CRM-02**: Sales module writes `lifecycle_stage = CUSTOMER` on `customer_profiles` when a CONVERSION sale completes
+- [ ] **CRM-03**: Sales module writes `lifecycle_stage = EVANGELIST` (or updates `stage_repeat_customer`) on EXPANSION sale events and increments `lifetime_value`
+- [ ] **CRM-04**: Inactivity detection — mark customers as inactive after N days without `journey_events` (configurable threshold)
+- [ ] **CRM-05**: Churn detection — `lifecycle_stage = CHURNED` triggered by subscription cancellation events (Shopify/Stripe webhooks)
+
+### Stage 0 — Atracción (Fix & Validate)
+
+- [ ] **ATR-01**: Validate attraction data against real API responses from connected providers (Meta, Google, TikTok) for tenant "Visionarias"
+- [ ] **ATR-02**: Implement GA4 `runReport()` for organic search channels: google-organic (clicks from Search Console), direct traffic, AI-search (referrers from perplexity.ai, chatgpt.com, claude.ai)
+- [ ] **ATR-03**: Pull real reach/impressions from Instagram Graph API, YouTube Analytics API, Facebook Graph API, TikTok for Business API for organic social channels
+- [ ] **ATR-04**: Pull real clicks and spend from Meta Marketing API, Google Ads API, TikTok Ads API for paid channels
+- [ ] **ATR-05**: Cold Contact channel (outbound) shows response rate from CRM data (placeholder until outbound tools are integrated)
+
+### Stage 1 — Captura
+
+- [ ] **CAP-01**: Detail panel showing two groups: Web Infrastructure leads (forms, Mailerlite) and AI Agent conversational leads (IG DMs, FB Messenger, TikTok DMs, WhatsApp inbound)
+- [ ] **CAP-02**: Backend endpoint `/metrics/capture` aggregating new `customer_profiles` by source channel with lead count and conversion rate from Stage 0
+- [ ] **CAP-03**: AI Agent leads tracked by extraction events where the agent successfully obtained email/phone from each messaging channel
+- [ ] **CAP-04**: Cost tracking per capture channel — Manychat licensing, LLM token consumption, WhatsApp API costs, Mailerlite subscription
+- [ ] **CAP-05**: Cost of Acquisition per Lead calculated as: Total Stage 0 investment / Total Stage 1 leads
+
+### Stage 2 — Nutrición
+
+- [ ] **NUT-01**: Detail panel showing two groups: Retargeting Omnichannel (Meta/Google/TikTok retargeting campaigns) and Automation (newsletters via Mailerlite, AI SDR engagement)
+- [ ] **NUT-02**: Backend endpoint `/metrics/nurturing` tracking MQL conversion — profiles crossing lead_score threshold (e.g., >75 pts)
+- [ ] **NUT-03**: Retargeting metrics from Meta/Google/TikTok APIs filtered to MOFU campaigns (Custom Audiences, remarketing audiences)
+- [ ] **NUT-04**: Mailerlite API integration for newsletter engagement (open_rate, click_rate) contributing to lead scoring
+- [ ] **NUT-05**: Conversion rate: Leads → MQLs with cost of nurturing per MQL
+
+### Stage 3 — Oportunidad
+
+- [ ] **OPO-01**: Detail panel showing two groups: Web Transactional Friction (Shopify checkout-init, abandoned-cart) and High-Ticket Qualification (meetings booked via scheduling module)
+- [ ] **OPO-02**: Backend endpoint `/metrics/opportunity` tracking SQL pipeline — checkout initiations + meeting bookings
+- [ ] **OPO-03**: Shopify webhook integration for checkout events (use test data given known Shopify connection issues)
+- [ ] **OPO-04**: Meeting booked count from internal scheduling module (CRM leads with `meeting_booked` events)
+- [ ] **OPO-05**: Abandoned cart as bottleneck indicator — high abandoned-cart vs checkout-init ratio flagged visually
+
+### Stage 4 — Ventas
+
+- [ ] **VEN-01**: Detail panel showing sales broken down by Offer Ladder position (core offer, subscription, upsell/expansion) using `type_offers` from Offer Studio
+- [ ] **VEN-02**: Backend endpoint `/metrics/sales` with revenue tracking — new money (CONVERSION) vs recurring (EXPANSION) split
+- [ ] **VEN-03**: Subscription revenue separated into: new subscriptions (`subscription_create`) vs renewals (`subscription_cycle`)
+- [ ] **VEN-04**: Cross-module read of Offer Studio `type_offers` via shared service or read-only projection (not direct ORM join)
+- [ ] **VEN-05**: CAC (Customer Acquisition Cost) calculated as: Total investment (Stages 0-3) / Total new customers (Stage 4 CONVERSION)
+
+### Stage 5 — Adopción
+
+- [ ] **ADO-01**: Detail panel showing customer health cohort per service sold: active users vs inactive users
+- [ ] **ADO-02**: Backend endpoint `/metrics/adoption` tracking product usage via `journey_events` post-purchase
+- [ ] **ADO-03**: Time-to-Value indicator — days from purchase to first meaningful engagement event
+- [ ] **ADO-04**: Inactivity as bottleneck — high inactive ratio predicts churn in next 30 days, flagged visually
+
+### Stage 6 — Expansión
+
+- [ ] **EXP-01**: Detail panel showing: renewal events (MRR retained), upsell events (revenue expansion), and churn (MRR lost)
+- [ ] **EXP-02**: Backend endpoint `/metrics/expansion` tracking MRR retained vs lost, and upsell revenue
+- [ ] **EXP-03**: `lifetime_value` updated on `customer_profiles` for each EXPANSION event
+- [ ] **EXP-04**: Churn rate calculated — subscription cancellations / total active subscriptions; >5% flagged as critical bottleneck
+
+### Stage 7 — Evangelización
+
+- [ ] **EVA-01**: Detail panel showing: referral conversions (purchases with `utm_source=referral` or assigned coupon), UGC count, and K-Factor
+- [ ] **EVA-02**: Backend endpoint `/metrics/evangelization` tracking referral-attributed sales and evangelist profiles
+- [ ] **EVA-03**: K-Factor calculation: (referrals sent per customer) × (conversion rate of referrals)
+- [ ] **EVA-04**: NPS integration via Mailerlite surveys — identify promoters (score 9-10) as potential evangelists
+
+### Frontend — Detail Panel UX
+
+- [ ] **UI-01**: Consistent detail panel pattern across all 8 stages following ChannelGroup + ChannelRow + ConnectionBadge from AttractionDetail
+- [ ] **UI-02**: Each stage card in StageSummaryRow shows real KPI values (main + secondary) from backend, not hardcoded mock data
+- [ ] **UI-03**: Conversion rate between adjacent stages displayed on each stage card (Stage N→N+1 ratio)
+- [ ] **UI-04**: Provider-specific channel icons and labels matching the channel definitions from the product spec
+
+## v2 Requirements
+
+Deferred to future releases. Tracked but not in current roadmap.
+
+### UX Enhancements
+
+- **UX-01**: Date range picker / time period selection across all stages
+- **UX-02**: Action Triggers — click-to-act slider on funnel nodes to launch campaigns, adjust copy
+- **UX-03**: Custom KPI goal/target setting per metric with red/green status
+- **UX-04**: Export/download metrics data as CSV
+
+### Advanced Analytics
+
+- **ADV-01**: Multi-attribution model selection (first-touch, last-touch, linear)
+- **ADV-02**: Cross-tenant benchmarking (anonymized industry comparisons)
+- **ADV-03**: Real-time WebSocket updates for live data streams
+- **ADV-04**: Strategy Canvas (Sankey diagram) integrated with metrics dashboard
+
+### Integrations
+
+- **INT-01**: Google Search Console API for detailed SEO keyword data
+- **INT-02**: Meta Conversion API (server-side events) for landing pages
+- **INT-03**: Outbound tool integrations (Apollo.io, Instantly) for Cold Contact metrics
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Sales Agent completion | Separate milestone; current AI SDR is in construction |
+| Landing page generation from Offer Studio | Separate milestone; will feed analytics once built |
+| Shopify connection repair | Known issues; use test data for Shopify-dependent metrics |
+| New external connection OAuth flows | Reuse existing connections module; don't build new integrations |
+| Sankey/flow diagram visualization | Already decided: columnar metrics are clearer for actionable insights |
+| Multi-attribution model UI | Last-touch normalized across providers; exposing model selection adds complexity without value for target users |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| (Populated during roadmap creation) | | |
+
+**Coverage:**
+- v1 requirements: 47 total
+- Mapped to phases: 0
+- Unmapped: 47 ⚠️
+
+---
+*Requirements defined: 2026-03-15*
+*Last updated: 2026-03-15 after initial definition*
