@@ -12,19 +12,22 @@ export interface StageSummary {
   hasDetail: boolean;
 }
 
-export type ChannelSlug =
-  | 'ig-organic' | 'yt-organic' | 'fb-organic' | 'tiktok-organic'
-  | 'linkedin-organic' | 'google-organic' | 'direct' | 'ai-search-organic'
-  | 'meta-ads' | 'tiktok-ads' | 'google-ads' | 'yt-ads' | 'cold-contact';
+/** Dynamic — accepts any channel slug from the backend. */
+export type ChannelSlug = string;
 
 export interface ChannelMetric {
-  slug: ChannelSlug;
+  slug: string;
   name: string;
-  channelType: 'ORGANIC_SOCIAL' | 'ORGANIC_SEARCH' | 'PAID_MEDIA';
+  channelType: string;
   value: number;
   cost?: number;
   sourceLabel: string;
   connected: boolean;
+  costType?: string;
+  unit?: string;
+  currency?: string;
+  lastUpdated?: string;
+  badgeType?: string;
 }
 
 export interface TrafficGroup {
@@ -33,8 +36,14 @@ export interface TrafficGroup {
   channels: ChannelMetric[];
 }
 
+export interface AvailableChannels {
+  channels: ChannelMetric[];
+}
+
 export interface AttractionDetail {
   organic: TrafficGroup;
   paid: TrafficGroup & { totalCost: number };
+  available?: AvailableChannels;
   period: string;
+  lastUpdated?: string;
 }

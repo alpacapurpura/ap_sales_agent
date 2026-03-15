@@ -21,7 +21,7 @@ export function AttractionDetail() {
   if (error || !data) {
     return (
       <div className="p-4 text-sm text-muted-foreground">
-        No se pudieron cargar los datos de atracción.
+        No se pudieron cargar los datos de atraccion.
       </div>
     );
   }
@@ -29,18 +29,31 @@ export function AttractionDetail() {
   return (
     <div className="space-y-2">
       <ChannelGroup
-        title="Tráfico Orgánico"
+        title="Trafico Organico"
         totalValue={data.organic.totalValue}
         channels={data.organic.channels}
         defaultOpen
       />
       <ChannelGroup
-        title="Tráfico Pagado"
+        title="Trafico Pagado"
         totalValue={data.paid.totalValue}
         totalCost={data.paid.totalCost}
         channels={data.paid.channels}
         defaultOpen
       />
+      {data.available && data.available.channels.length > 0 && (
+        <ChannelGroup
+          title="Canales disponibles"
+          totalValue={0}
+          channels={data.available.channels}
+          defaultOpen={false}
+        />
+      )}
+      {data.lastUpdated && (
+        <p className="text-xs text-muted-foreground text-right mt-2">
+          Ultima actualizacion: {new Date(data.lastUpdated).toLocaleString()}
+        </p>
+      )}
     </div>
   );
 }
