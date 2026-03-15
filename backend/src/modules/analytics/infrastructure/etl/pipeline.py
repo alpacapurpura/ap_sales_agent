@@ -24,6 +24,9 @@ from src.modules.analytics.infrastructure.etl.aggregations import (
 from src.modules.analytics.infrastructure.etl.transformers import (
     transform_staging_to_official,
 )
+from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+    MetricAggregationModel,
+)
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
@@ -153,9 +156,25 @@ class ETLPipeline:
                 tenant_id=tenant_id,
                 extraction_run_id=run_id,
             )
-            # Note: Aggregation bulk insert would go here when
-            # MetricAggregationRepository is available. For now,
-            # aggregations are computed but stored via direct model insert.
+            if agg_dicts:
+                agg_models = [
+                    MetricAggregationModel(
+                        id=uuid.uuid4(),
+                        tenant_id=agg["tenant_id"],
+                        channel_slug=agg["channel_slug"],
+                        metric_name=agg["metric_name"],
+                        period_type=agg["period_type"],
+                        period_start=agg["period_start"],
+                        period_end=agg["period_end"],
+                        value=agg["value"],
+                        unit=agg["unit"],
+                        currency=agg.get("currency"),
+                        cost_type=agg.get("cost_type"),
+                        extraction_run_id=agg.get("extraction_run_id"),
+                    )
+                    for agg in agg_dicts
+                ]
+                self.db.add_all(agg_models)
 
             # Step 8: Mark SUCCESS
             duration = time.monotonic() - start_time
