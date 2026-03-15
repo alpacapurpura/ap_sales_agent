@@ -48,9 +48,10 @@ class TestYouTubeOrganic:
             adapter_instance.get_channel_overview = MagicMock(return_value=mock_overview)
             MockAdapter.return_value = adapter_instance
 
-            with patch("asyncio.to_thread", new_callable=lambda: AsyncMock) as mock_thread:
-                mock_thread.return_value = mock_overview
-
+            with patch(
+                "src.modules.analytics.infrastructure.providers.youtube_provider.asyncio.to_thread",
+                new=AsyncMock(return_value=mock_overview),
+            ):
                 provider = YouTubeProvider()
                 metrics = await provider.extract_metrics(
                     TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)

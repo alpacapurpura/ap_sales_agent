@@ -42,3 +42,27 @@ def get_provider(provider_name: str) -> BaseMetricsProvider:
             f"Registered providers: {registered}"
         )
     return cls()
+
+
+def _register_all() -> None:
+    """Register all concrete provider adapters.
+
+    Uses late-binding imports to avoid circular imports and ensure
+    providers are registered at module import time.
+    """
+    from src.modules.analytics.infrastructure.providers.meta_provider import MetaProvider
+    from src.modules.analytics.infrastructure.providers.google_analytics_provider import GoogleAnalyticsProvider
+    from src.modules.analytics.infrastructure.providers.google_ads_provider import GoogleAdsProvider
+    from src.modules.analytics.infrastructure.providers.tiktok_provider import TikTokProvider
+    from src.modules.analytics.infrastructure.providers.youtube_provider import YouTubeProvider
+    from src.modules.analytics.infrastructure.providers.crm_internal_provider import CRMInternalProvider
+
+    register_provider("meta", MetaProvider)
+    register_provider("google_analytics", GoogleAnalyticsProvider)
+    register_provider("google_ads", GoogleAdsProvider)
+    register_provider("tiktok", TikTokProvider)
+    register_provider("youtube", YouTubeProvider)
+    register_provider("crm_internal", CRMInternalProvider)
+
+
+_register_all()
