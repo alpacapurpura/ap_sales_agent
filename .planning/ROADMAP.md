@@ -69,11 +69,12 @@ Plans:
   3. When an EXPANSION sale completes, the customer profile's lifetime_value is incremented and stage reflects repeat purchase
   4. Customers with no journey_events for N configurable days are detected as inactive
   5. Subscription cancellation events trigger lifecycle_stage = CHURNED on the corresponding profile
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: move_stage() scoring rules and event-triggered transitions
-- [ ] 03-02: Inactivity detection and churn lifecycle handling
+- [ ] 03-01-PLAN.md — EventBus infrastructure, scoring config, DB migration (new columns + lifecycle_transitions table), lifecycle repository
+- [ ] 03-02-PLAN.md — Scoring engine (LifecycleService), threshold transitions, sale-triggered lifecycle changes via EventBus
+- [ ] 03-03-PLAN.md — Batch inactivity detection with score decay, churn event handler, manual override API
 
 ### Phase 4: Stage 0 Attraction Fix & Validate
 **Goal**: The existing Attraction panel shows real, validated metrics from connected providers instead of mock/zero data
@@ -211,7 +212,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 |-------|----------------|--------|-----------|
 | 1. Critical Bug Fixes | 2/2 | Complete   | 2026-03-15 |
 | 2. Provider Adapter Infrastructure | 0/4 | Not started | - |
-| 3. CRM Lifecycle Automation | 0/2 | Not started | - |
+| 3. CRM Lifecycle Automation | 0/3 | Not started | - |
 | 4. Stage 0 Attraction Fix & Validate | 0/3 | Not started | - |
 | 5. Stage 1 Captura | 0/2 | Not started | - |
 | 6. Stage 2 Nutricion | 0/2 | Not started | - |
