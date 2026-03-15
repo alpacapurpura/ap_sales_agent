@@ -86,12 +86,12 @@ Plans:
   3. Organic social channels (Instagram, YouTube, Facebook, TikTok) display real reach/impressions from their respective APIs
   4. Paid channels (Meta Ads, Google Ads, TikTok Ads) display real clicks and spend from their marketing APIs
   5. Cold Contact channel shows a response rate placeholder sourced from CRM data
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: GA4 organic search and provider adapter wiring for Stage 0
-- [ ] 04-02: Social and paid channel adapters for Stage 0
-- [ ] 04-03: Validation against real provider dashboards
+- [ ] 04-01-PLAN.md — Multi-metric DTO contracts, 6 provider adapters (Meta, GA4, Google Ads, TikTok, YouTube, CRM), connection clients, and unit tests
+- [ ] 04-02-PLAN.md — MetricsService multi-metric aggregation, API update, and frontend ChannelRow/ChannelGroup/AttractionDetail redesign with error UX
+- [ ] 04-03-PLAN.md — Validation script (ETL vs live API comparison with 5% tolerance) and end-to-end human verification
 
 ### Phase 5: Stage 1 Captura
 **Goal**: Business owner sees exactly how many leads each channel captures and what each lead costs
