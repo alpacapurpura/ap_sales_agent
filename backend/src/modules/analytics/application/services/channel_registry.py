@@ -5,10 +5,31 @@ channels a tenant has connected vs. available (showing "Configurar" badge).
 Replaces the hardcoded 13-channel list in MetricsService.get_attraction_metrics().
 """
 
-from typing import Dict, List, Optional
+import logging
+from typing import Dict, List, Optional, Set
 from uuid import UUID
 
 from src.modules.analytics.domain.ports import ConnectionPort
+
+logger = logging.getLogger(__name__)
+
+# Maps provider_name (as used in STAGE_CHANNEL_MAP) to the set of ChannelType
+# string values from the connections module that satisfy that provider.
+# Plain strings — no import from connections module (DDD boundary).
+PROVIDER_TO_CHANNEL_TYPES: Dict[str, Set[str]] = {
+    "meta": {"meta", "facebook_page", "instagram_account", "meta_ads_account"},
+    "google_analytics": {"google_analytics"},
+    "google_ads": {"google_analytics"},  # Google Ads uses the same Google OAuth connection
+    "youtube": {"youtube", "youtube_analytics"},
+    "tiktok": set(),          # No ChannelType yet — will be added when TikTok connection lands
+    "linkedin": set(),        # No ChannelType yet
+    "mailerlite": {"mailerlite"},
+    "manychat": {"manychat"},
+    "whatsapp": {"whatsapp", "whatsapp_cloud"},
+    "shopify": {"shopify"},
+    "internal": set(),        # Internal sources (CRM, landing) — always "connected"
+    "manual": set(),          # Manual sources — always "connected"
+}
 
 # Stage-to-channel mapping. Each channel definition includes metadata
 # needed by both backend (ETL routing) and frontend (rendering).
@@ -97,13 +118,34 @@ class ChannelRegistry:
         )
 
         # Build a set of connected channel_types for fast lookup
-        connected_types = {conn.channel_type for conn in active_connections}
+        connected_channel_types = {conn.channel_type for conn in active_connections}
 
         connected = []
         available = []
 
         for ch in channels:
-            if ch["slug"] in connected_types:
+            provider_name = ch.get("provider_name", "")
+
+            # Internal and manual providers are always connected
+            if provider_name in ("internal", "manual"):
+                connected.append({**ch, "connected": True})
+                continue
+
+            # Look up which ChannelType values satisfy this provider
+            provider_types = PROVIDER_TO_CHANNEL_TYPES.get(provider_name)
+            if provider_types is None:
+                logger.warning(
+                    "Unknown provider_name '%s' for channel slug '%s' — classifying as available",
+                    provider_name,
+                    ch.get("slug"),
+                )
+                available.append(
+                    {**ch, "connected": False, "badge_type": "configurar"}
+                )
+                continue
+
+            # Check if any of the provider's channel types are connected
+            if provider_types & connected_channel_types:
                 connected.append({**ch, "connected": True})
             else:
                 available.append(

@@ -10,12 +10,22 @@ Key format: metrics:{tenant_id}:{stage}:{period}
 
 import json
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Cache TTL in seconds (5 minutes per user decision)
-TTL = 300
+# Per-stage TTL overrides. Paid ad data changes less frequently (extracted nightly).
+# CRM/general dashboard queries use shorter TTL for fresher data.
+STAGE_TTL: Dict[str, int] = {
+    "attraction": 3600,    # 1 hour — paid ads data is nightly ETL
+    "capture": 300,        # 5 min — CRM-driven
+    "nurture": 300,
+    "sales": 300,
+    "delivery": 300,
+    "retention": 300,
+    "referral": 300,
+}
+DEFAULT_TTL = 300
 
 
 class MetricsCache:
@@ -64,7 +74,8 @@ class MetricsCache:
         """
         try:
             key = self._key(tenant_id, stage, period)
-            self._redis.setex(key, TTL, json.dumps(data))
+            ttl = STAGE_TTL.get(stage, DEFAULT_TTL)
+            self._redis.setex(key, ttl, json.dumps(data))
         except Exception:
             logger.debug(
                 "Redis cache set failed for tenant=%s stage=%s period=%s",
