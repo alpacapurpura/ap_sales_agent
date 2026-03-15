@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -19,7 +19,10 @@ class TenantModel(Base):
     config_json = Column(JSONB, default={}) 
     default_currency = Column(String, server_default="USD")
     timezone = Column(String, server_default="UTC")
-    
+
+    # ETL extraction priority: higher value = extracted first (premium tenants)
+    extraction_priority = Column(Integer, server_default="0", nullable=False)
+
     # AI Provider Configuration (Multitenant)
     openai_api_key = Column(String, nullable=True)
     gemini_api_key = Column(String, nullable=True)

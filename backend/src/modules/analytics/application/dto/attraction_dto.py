@@ -6,15 +6,21 @@ class ChannelMetricDTO(BaseModel):
     slug: str
     name: str
     channel_type: str  # ORGANIC_SOCIAL, ORGANIC_SEARCH, PAID_MEDIA
-    value: int
-    cost: Optional[int] = None
+    value: float
+    cost: Optional[float] = None
     source_label: str
     connected: bool
 
+    # ETL-enriched fields (backward-compatible defaults)
+    cost_type: Optional[str] = None  # maps to CostType enum value
+    unit: str = "count"  # maps to MetricUnit enum value
+    currency: Optional[str] = None
+    last_updated: Optional[str] = None  # ISO timestamp of last ETL extraction
+
 
 class TrafficGroupDTO(BaseModel):
-    total_value: int
-    total_cost: Optional[int] = None
+    total_value: float
+    total_cost: Optional[float] = None
     channels: list[ChannelMetricDTO]
 
 

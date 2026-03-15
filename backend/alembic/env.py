@@ -27,6 +27,12 @@ from src.modules.crm.infrastructure.models import customer_model
 from src.modules.brand.infrastructure.models import avatar_model
 from src.modules.offer.infrastructure import models as offer_models
 from src.modules.landing.infrastructure.models import landing_model
+from src.modules.analytics.infrastructure.models import (  # noqa: F401 — ETL tables
+    StagingMetricModel,
+    OfficialMetricModel,
+    ExtractionRunModel,
+    MetricAggregationModel,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
