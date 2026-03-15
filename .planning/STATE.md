@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-15T16:36:03Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-15T16:39:47.739Z"
 last_activity: 2026-03-15 — Completed plan 02-03 (worker infrastructure, channel registry, ETL admin)
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
-  percent: 50
+  completed_plans: 5
+  percent: 67
 ---
 
 # Project State
@@ -45,10 +45,10 @@ Progress: [███████░░░] 67%
 |-------|-------|-------|----------|
 | 01-critical-bug-fixes | 1 | 2 min | 2 min |
 
-| 02-provider-adapter-infrastructure | 2 | 13 min | 7 min |
+| 02-provider-adapter-infrastructure | 3 | 20 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min), 01-02 (4 min), 02-01 (6 min), 02-03 (7 min)
+- Last 5 plans: 01-01 (2 min), 01-02 (4 min), 02-01 (6 min), 02-02 (7 min), 02-03 (7 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -72,6 +72,11 @@ Recent decisions affecting current work:
 - 02-01: EncryptedJSON used for spend/revenue columns in ETL tables
 - 02-01: Provider ABC pattern: new providers implement BaseMetricsProvider without modifying service/API layers
 - 02-01: ConnectionPort ABC bridges analytics and connections bounded contexts
+- 02-02: ConnectionPortImpl lives in connections module (not analytics) to keep repository access within bounded context
+- 02-02: 5-minute proactive token refresh buffer prevents mid-extraction token expiry
+- 02-02: Redis cache uses synchronous redis-py wrapped in async for interface consistency
+- 02-02: ETLPipeline two-phase error handling: rollback on failure, then commit FAILED status
+- 02-02: Official metrics upsert on (tenant_id, provider, channel_slug, metric_name, metric_date)
 - 02-03: Late binding imports in ARQ tasks to decouple parallel plan execution
 - 02-03: Health endpoint public (no tenant context); retry/status require X-Tenant-ID
 - 02-03: ChannelRegistry uses ConnectionPort for connected/available split (DDD boundary)
@@ -92,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:36:03Z
-Stopped at: Completed 02-03-PLAN.md
-Resume file: .planning/phases/02-provider-adapter-infrastructure/02-03-SUMMARY.md
+Last session: 2026-03-15T16:39:47.738Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: None
