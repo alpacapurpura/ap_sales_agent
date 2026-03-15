@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Float, Enum
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Float, Enum, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -22,10 +22,19 @@ class CustomerProfileModel(Base):
     lead_score = Column(Float, default=0.0)
     rfm_segment = Column(String, nullable=True) # e.g. "Champions", "At Risk"
     
+    # Lifecycle & Activity
+    lifetime_value = Column(Float, default=0.0, server_default="0")
+    last_activity_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    is_inactive = Column(Boolean, default=False, server_default="false")
+    first_conversion_at = Column(DateTime(timezone=True), nullable=True)
+    first_seen_at = Column(DateTime(timezone=True), nullable=True)
+    lead_source = Column(String, nullable=True, index=True)
+    lead_source_detail = Column(String, nullable=True)
+
     # Metadata
     traits = Column(JSONB, default=dict) # Demographics, etc.
     computed_traits = Column(JSONB, default=dict) # LTV, Last Seen, etc.
-    
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

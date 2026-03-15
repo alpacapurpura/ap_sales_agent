@@ -82,6 +82,7 @@ def db_engine():
     try:
         from src.modules.iam.infrastructure.models.tenant_model import TenantModel
         from src.modules.crm.infrastructure.models.lead_model import LeadModel
+        from src.modules.crm.infrastructure.models.lifecycle_transition_model import LifecycleTransitionModel
         from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel
         from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
         from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel

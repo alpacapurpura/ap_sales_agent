@@ -31,12 +31,21 @@ class CustomerProfile(BaseEntity):
     lifecycle_stage: Optional[LifecycleStage] = LifecycleStage.SUBSCRIBER
     lead_score: float = 0.0
     rfm_segment: Optional[str] = None # e.g. "Champions", "At Risk"
-    
+
+    # Lifecycle & Activity
+    lifetime_value: float = 0.0
+    last_activity_at: Optional[datetime] = None
+    is_inactive: bool = False
+    first_conversion_at: Optional[datetime] = None
+    first_seen_at: Optional[datetime] = None
+    lead_source: Optional[str] = None
+    lead_source_detail: Optional[str] = None
+
     # Metadata
     traits: Dict[str, Any] = Field(default_factory=dict) # Demographics, etc.
     computed_traits: Dict[str, Any] = Field(default_factory=dict) # LTV, Last Seen, etc.
-    
+
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     identities: List[CustomerIdentity] = []
