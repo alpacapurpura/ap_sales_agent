@@ -95,6 +95,10 @@ class Settings(BaseSettings):
     CLERK_SECRET_KEY: str = ""
     CLERK_WEBHOOK_SECRET: str = ""
 
+    # Sentry / Environment
+    SENTRY_DSN: str = ""
+    ENVIRONMENT: str = "dev"
+
     # CORS
     CORS_ORIGINS: list[str] = []
 

@@ -185,6 +185,40 @@ services:
     ports:
       - "127.0.0.1:5432:5432" # Secure binding
 
+  # --- ETL Scheduler ---
+  scheduler:
+    image: visionarias_brain_dev:latest
+    build: ./backend
+    container_name: visionarias_scheduler
+    restart: unless-stopped
+    command: arq src.modules.analytics.workers.settings.SchedulerSettings
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - internal_net
+
+  # --- ETL Worker ---
+  worker:
+    image: visionarias_brain_dev:latest
+    build: ./backend
+    container_name: visionarias_worker
+    restart: unless-stopped
+    command: arq src.modules.analytics.workers.settings.WorkerSettings
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - internal_net
+
   # --- Cloudflare Tunnel ---
   tunnel:
     image: cloudflare/cloudflared:latest
