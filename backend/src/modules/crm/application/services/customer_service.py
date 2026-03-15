@@ -1,14 +1,17 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import Dict, Any, Optional
 from src.modules.crm.domain.customer import CustomerProfile, CustomerIdentity
 from src.modules.crm.domain.enums import IdentityType
-from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
+from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository, JourneyEventRepository
+from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
 
 class CustomerService:
     def __init__(self, db: Session):
         self.db = db
         self.repository = CustomerRepository(db)
+        self.event_repo = JourneyEventRepository(db)
 
     def identify(self, tenant_id: UUID, traits: Dict[str, Any], identities: Dict[str, str]) -> CustomerProfile:
         """
@@ -60,3 +63,34 @@ class CustomerService:
             profile = self.repository.create(profile)
             
         return profile
+
+    def track_event(
+        self,
+        profile_id: UUID,
+        tenant_id: UUID,
+        event_name: str,
+        event_type: str,
+        properties: dict | None = None,
+        occurred_at: datetime | None = None,
+    ) -> JourneyEventModel:
+        """Write a journey event and trigger score recalculation.
+
+        This is the canonical entry point for journey event creation.
+        Service layer orchestrates: persist event -> recalculate score.
+        """
+        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+
+        event = self.event_repo.track_event(
+            profile_id=profile_id,
+            tenant_id=tenant_id,
+            event_name=event_name,
+            event_type=event_type,
+            properties=properties,
+            occurred_at=occurred_at,
+        )
+
+        # Trigger scoring after event write (per locked decision)
+        lifecycle_svc = LifecycleService(self.db)
+        lifecycle_svc.recalculate_score(profile_id, tenant_id)
+
+        return event

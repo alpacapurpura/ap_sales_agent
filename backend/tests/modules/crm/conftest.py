@@ -148,7 +148,7 @@ def sample_transition(
         reason="Score crossed LEAD threshold (12.0 >= 10)",
         triggered_by="scoring_rule",
         score_at_transition=12.0,
-        metadata={"score": 12.0, "threshold": 10.0, "threshold_name": "lead"},
+        transition_metadata={"score": 12.0, "threshold": 10.0, "threshold_name": "lead"},
     )
     db.add(transition)
     db.flush()

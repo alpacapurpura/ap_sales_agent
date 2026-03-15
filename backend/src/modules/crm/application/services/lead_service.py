@@ -36,7 +36,20 @@ class PipelineService:
         self.db = db
         self.lead_repo = LeadRepository(db)
 
-    def move_stage(self, lead_id: UUID, new_stage: str):
-        # Placeholder for Pipeline Logic
-        # e.g. update lead.pipeline_stage
-        pass
+    def move_stage(self, profile_id: UUID, new_stage: str, admin_user_id: Optional[str] = None, note: str = ""):
+        """Move a profile to a new lifecycle stage via manual override.
+
+        Delegates to LifecycleService.force_stage for audit trail and validation.
+        """
+        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.domain.enums import LifecycleStage
+
+        stage = LifecycleStage(new_stage)
+        svc = LifecycleService(self.db)
+        svc.force_stage(
+            profile_id=profile_id,
+            tenant_id=self.db.info.get("tenant_id") if hasattr(self.db, "info") else None,
+            new_stage=stage,
+            admin_user_id=admin_user_id,
+            note=note,
+        )

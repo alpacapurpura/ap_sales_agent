@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import func, cast, String
@@ -127,6 +128,48 @@ class CustomerRepository:
 class JourneyEventRepository:
     def __init__(self, db: Session):
         self.db = db
+
+    def track_event(
+        self,
+        profile_id: UUID,
+        tenant_id: UUID,
+        event_name: str,
+        event_type: str,
+        properties: dict | None = None,
+        occurred_at: datetime | None = None,
+    ) -> JourneyEventModel:
+        """Create and persist a new journey event.
+
+        Also updates the profile's last_activity_at timestamp.
+        This is the canonical write path for journey events.
+        """
+        from sqlalchemy import select as sa_select
+
+        now = occurred_at or datetime.now(timezone.utc)
+
+        event = JourneyEventModel(
+            id=uuid.uuid4(),
+            profile_id=profile_id,
+            tenant_id=tenant_id,
+            event_name=event_name,
+            event_type=event_type,
+            properties=properties or {},
+            occurred_at=now,
+        )
+        self.db.add(event)
+
+        # Update profile last_activity_at
+        profile = self.db.execute(
+            sa_select(CustomerProfileModel).where(
+                CustomerProfileModel.id == profile_id,
+                CustomerProfileModel.tenant_id == tenant_id,
+            )
+        ).scalars().first()
+        if profile:
+            profile.last_activity_at = now
+
+        self.db.flush()
+        return event
 
     def get_unique_visitors(self, tenant_id: UUID) -> int:
         try:

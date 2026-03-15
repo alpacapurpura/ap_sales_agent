@@ -42,7 +42,7 @@ class LifecycleRepository:
             reason=reason,
             triggered_by=triggered_by,
             score_at_transition=score_at_transition,
-            metadata=metadata or {},
+            transition_metadata=metadata or {},
         )
         self.db.add(transition)
         self.db.flush()

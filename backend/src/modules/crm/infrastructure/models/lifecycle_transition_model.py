@@ -37,5 +37,5 @@ class LifecycleTransitionModel(Base):
 
     score_at_transition = Column(Float, nullable=True)
 
-    metadata = Column(JSONB, default=dict)  # Flexible context per trigger type
+    transition_metadata = Column("metadata", JSONB, default=dict)  # Flexible context per trigger type
     occurred_at = Column(DateTime(timezone=True), server_default=func.now())
