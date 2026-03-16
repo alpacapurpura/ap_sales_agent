@@ -2,14 +2,64 @@ export type StageId =
   | 'ATRACCION' | 'CAPTURA' | 'NUTRICION' | 'OPORTUNIDAD'
   | 'VENTAS' | 'ADOPCION' | 'EXPANSION' | 'EVANGELIZACION';
 
+/**
+ * Single KPI header entry used in the 3-KPI header row of every detail panel.
+ * value can be numeric or a pre-formatted string (e.g., dual-currency like "$4,200 (~$220 USD)").
+ */
+export interface HeaderKpiData {
+  label: string;
+  value: number | string;
+  unit?: string;
+  /** Plain-Spanish tooltip hint shown on hover (see KpiTooltip component) */
+  tooltip?: string;
+  /** When true, renders skeleton shimmer instead of the value */
+  isLoading?: boolean;
+}
+
+/**
+ * Data passed when a metric in a detail panel is clicked to open the action sidebar.
+ * Created in Plan 11-01 Task 3 (MetricSidebar framework); content adapters added in Plan 11-02.
+ */
+export interface MetricClickData {
+  stageId: StageId;
+  channelSlug: string;
+  /** Human-readable metric name, e.g. "visitors", "leads", "impressions" */
+  metricName: string;
+  currentValue: number;
+  /** ISO 4217 currency code when the metric is a monetary value */
+  currency?: string;
+  lastUpdated?: Date;
+}
+
 export interface StageSummary {
   id: StageId;
   order: number;
   label: string;
   description: string;
-  mainKpi: { label: string; value: number; unit?: string };
-  secondaryKpi: { label: string; value: number; unit?: string };
+  /**
+   * Primary KPI shown large in the StageCard (top row).
+   * Maps to the most important metric per stage:
+   *   ATRACCION=visitors, CAPTURA=leads, NUTRICION=MQLs, OPORTUNIDAD=SQLs,
+   *   VENTAS=revenue, ADOPCION=healthPct, EXPANSION=netMrr, EVANGELIZACION=kFactor
+   */
+  mainKpi: { label: string; value: number | string; unit?: string };
+  /**
+   * Secondary KPI shown below mainKpi as small muted text.
+   * For stages 1-7: conversion rate from previous stage ("X.X% conversion").
+   * For stage 0 (ATRACCION): total spend or channels active count (no conversion rate).
+   */
+  secondaryKpi: { label: string; value: number | string; unit?: string };
   hasDetail: boolean;
+  /**
+   * Optional array of 3 primary KPIs for detail panel header (from API response headerKpis).
+   * When undefined, detail panels derive their own KPIs from the stage-specific API shape.
+   */
+  headerKpis?: HeaderKpiData[];
+  /**
+   * Mini-funnel conversion rate from previous stage to this one (percentage 0-100).
+   * Used as secondaryKpi when available.
+   */
+  miniFunnelConversionRate?: number;
 }
 
 /** Dynamic -- accepts any channel slug from the backend. */
