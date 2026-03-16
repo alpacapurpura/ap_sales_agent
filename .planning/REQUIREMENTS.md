@@ -55,7 +55,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Stage 3 — Oportunidad
 
-- [ ] **OPO-01**: Detail panel showing two groups: Web Transactional Friction (Shopify checkout-init, abandoned-cart) and High-Ticket Qualification (meetings booked via scheduling module)
+- [x] **OPO-01**: Detail panel showing two groups: Web Transactional Friction (Shopify checkout-init, abandoned-cart) and High-Ticket Qualification (meetings booked via scheduling module)
 - [x] **OPO-02**: Backend endpoint `/metrics/opportunity` tracking SQL pipeline — checkout initiations + meeting bookings
 - [x] **OPO-03**: Shopify webhook integration for checkout events (use test data given known Shopify connection issues)
 - [x] **OPO-04**: Meeting booked count from internal scheduling module (CRM leads with `meeting_booked` events)
@@ -166,7 +166,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NUT-03 | Phase 6: Stage 2 Nutricion | Complete |
 | NUT-04 | Phase 6: Stage 2 Nutricion | Complete |
 | NUT-05 | Phase 6: Stage 2 Nutricion | Complete |
-| OPO-01 | Phase 7: Stage 3 Oportunidad | Pending |
+| OPO-01 | Phase 7: Stage 3 Oportunidad | Complete |
 | OPO-02 | Phase 7: Stage 3 Oportunidad | Complete |
 | OPO-03 | Phase 7: Stage 3 Oportunidad | Complete |
 | OPO-04 | Phase 7: Stage 3 Oportunidad | Complete |
