@@ -84,6 +84,13 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "sales-agent", "name": "Sales Agent", "channel_type": "ai", "source_label": "AI SDR", "provider_name": "internal"},
         {"slug": "shopify", "name": "Shopify", "channel_type": "ecommerce", "source_label": "Shopify", "provider_name": "shopify"},
     ],
+    "adoption": [
+        {"slug": "product-usage", "name": "Uso del Producto", "channel_type": "engagement", "source_label": "CRM", "provider_name": "internal"},
+    ],
+    "expansion": [
+        {"slug": "renewals", "name": "Renovaciones", "channel_type": "recurring", "source_label": "CRM", "provider_name": "internal"},
+        {"slug": "upsell", "name": "Ventas Adicionales", "channel_type": "growth", "source_label": "CRM", "provider_name": "internal"},
+    ],
     "delivery": [
         {"slug": "email-delivery", "name": "Email Delivery", "channel_type": "email", "source_label": "Email", "provider_name": "mailerlite"},
     ],

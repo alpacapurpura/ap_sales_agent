@@ -12,6 +12,8 @@ from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
 from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
 from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
+from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
+from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 from src.modules.offer.application.services.offer_read_port_impl import OfferReadPortImpl
@@ -136,6 +138,28 @@ async def get_sales_metrics(
     now = datetime.now(timezone.utc)
     start_date = now - timedelta(days=30)
     return await service.get_sales_metrics(user.tenant_id, start_date, now)
+
+
+@router.get("/expansion", response_model=ExpansionDetailDTO)
+async def get_expansion_metrics(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get Expansion (Stage 6) detail panel metrics.
+
+    Returns Net MRR, Avg LTV, Churn Rate, and three offer-grouped
+    revenue categories (Retencion, Crecimiento, Cancelaciones)
+    with bottleneck detection for high churn rates.
+    """
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    offer_port = OfferReadPortImpl(db)
+    service = MetricsService(
+        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+    )
+    now = datetime.now(timezone.utc)
+    start_date = now - timedelta(days=30)
+    return await service.get_expansion_metrics(user.tenant_id, start_date, now)
 
 
 @router.post("/attraction/refresh/{channel_slug}")

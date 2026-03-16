@@ -47,6 +47,11 @@ from src.modules.analytics.application.dto.opportunity_dto import (
     OpportunityHeaderKpisDTO,
     BottleneckDTO,
 )
+from src.modules.analytics.application.dto.adoption_dto import (
+    AdoptionDetailDTO,
+    AdoptionHeaderKpisDTO,
+    OfferHealthDTO,
+)
 from src.modules.analytics.application.dto.sales_dto import (
     SalesDetailDTO,
     SalesHeaderKpisDTO,
@@ -61,6 +66,12 @@ from src.modules.analytics.application.dto.sales_dto import (
     LOW_CONVERSION_THRESHOLDS,
     HIGH_CAC_WARNING_RATIO,
     HIGH_CAC_CRITICAL_RATIO,
+)
+from src.modules.analytics.application.dto.expansion_dto import (
+    ExpansionDetailDTO,
+    ExpansionHeaderKpisDTO,
+    ExpansionGroupDTO,
+    ExpansionOfferDTO,
 )
 from src.modules.analytics.infrastructure.repositories.nurture_repository import (
     NurtureMetricsRepository,
@@ -1379,6 +1390,426 @@ class MetricsService:
             await self.cache.set(
                 str(tenant_id),
                 "sales",
+                "last_30_days",
+                result.model_dump(),
+            )
+
+        return result
+
+    async def get_adoption_metrics(
+        self,
+        tenant_id: UUID,
+        start_date: "datetime",
+        end_date: "datetime",
+    ) -> AdoptionDetailDTO:
+        """Return adoption-stage (Stage 5) metrics.
+
+        Flow:
+        1. Check MetricsCache
+        2. On miss: query AdoptionMetricsRepository for health, TTV, refunds
+        3. Query OfferReadPort for offer name enrichment
+        4. Build per-offer OfferHealthDTOs
+        5. Calculate header KPIs (distinct customer counts, not per-offer sums)
+        6. Build mini funnel (Ventas -> Activos)
+        7. Detect bottlenecks (overall health < 70%, per-offer health < 60%)
+        8. Cache result and return AdoptionDetailDTO
+        """
+        from datetime import datetime as dt_cls, timezone as tz
+        from src.modules.analytics.infrastructure.repositories.adoption_repository import (
+            AdoptionMetricsRepository,
+        )
+
+        # 1. Check cache
+        if self.cache is not None:
+            cached = await self.cache.get(
+                str(tenant_id), "adoption", "last_30_days"
+            )
+            if cached is not None:
+                return AdoptionDetailDTO(**cached)
+
+        # 2. Query repository
+        repo = AdoptionMetricsRepository(self.db)
+        health_rows = repo.get_customer_health_by_offer(
+            tenant_id, start_date, end_date
+        )
+        ttv_map = repo.get_avg_ttv_by_offer(tenant_id, start_date, end_date)
+        total_customers, total_sales = repo.get_total_customers_and_sales(
+            tenant_id, start_date, end_date
+        )
+        refund_count, refund_amount, refund_currency = repo.get_refunds(
+            tenant_id, start_date, end_date
+        )
+
+        # 3. Get offer names via OfferReadPort
+        offer_name_map: Dict[str, str] = {}
+        if self.offer_port is not None:
+            offers = await self.offer_port.get_offers_by_tenant(tenant_id)
+            offer_name_map = {str(o.id): o.public_name for o in offers}
+
+        # 4. Build per-offer OfferHealthDTOs
+        offer_list: List[OfferHealthDTO] = []
+        for row in health_rows:
+            offer_id_str = str(row[0])
+            total = int(row[1])
+            active = int(row[2])
+            inactive = int(row[3])
+            health = round(active / total * 100, 1) if total > 0 else 0.0
+            public_name = offer_name_map.get(offer_id_str, "Oferta")
+
+            offer_list.append(
+                OfferHealthDTO(
+                    offer_id=offer_id_str,
+                    public_name=public_name,
+                    total_customers=total,
+                    active_count=active,
+                    inactive_count=inactive,
+                    health_pct=health,
+                    ttv_days=ttv_map.get(offer_id_str),
+                )
+            )
+
+        # 5. Header KPIs -- use distinct total counts (avoid double-counting)
+        total_active_per_offer = sum(int(row[2]) for row in health_rows)
+        total_inactive_per_offer = sum(int(row[3]) for row in health_rows)
+
+        # If per-offer sums exceed distinct total, customer bought multiple offers
+        if total_active_per_offer + total_inactive_per_offer > total_customers and total_customers > 0:
+            active_customers = total_customers - total_inactive_per_offer
+            if active_customers < 0:
+                active_customers = 0
+            inactive_customers = total_customers - active_customers
+        else:
+            active_customers = total_active_per_offer
+            inactive_customers = total_inactive_per_offer
+
+        health_pct = (
+            round(active_customers / total_customers * 100, 1)
+            if total_customers > 0
+            else 0.0
+        )
+
+        # Global avg TTV
+        all_ttvs = list(ttv_map.values())
+        avg_ttv = (
+            round(sum(all_ttvs) / len(all_ttvs), 1) if all_ttvs else None
+        )
+
+        refund_amount_usd = convert_to_usd(refund_amount, refund_currency)
+
+        header_kpis = AdoptionHeaderKpisDTO(
+            active_customers=active_customers,
+            inactive_customers=inactive_customers,
+            health_pct=health_pct,
+            avg_ttv_days=avg_ttv,
+            refund_count=refund_count,
+            refund_amount=refund_amount,
+            refund_currency=refund_currency,
+            refund_amount_usd=refund_amount_usd,
+        )
+
+        # 6. Mini funnel: Ventas -> Activos
+        conv_rate = (
+            round(active_customers / total_sales * 100, 1)
+            if total_sales > 0
+            else 0.0
+        )
+        mini_funnel = MiniFunnelDTO(
+            source_label="Ventas",
+            source_value=total_sales,
+            target_label="Activos",
+            target_value=active_customers,
+            conversion_rate=conv_rate,
+        )
+
+        # 7. Bottleneck detection
+        bottlenecks: list[BottleneckDTO] = []
+
+        # Overall health bottleneck
+        if health_pct < 70.0:
+            if avg_ttv is not None and avg_ttv > 7:
+                tip = (
+                    "Mejora tu proceso de bienvenida -- tus clientes tardan "
+                    "mucho en empezar a usar tu producto"
+                )
+            else:
+                tip = (
+                    "Contacta a tus clientes inactivos con un mensaje "
+                    "personalizado o una oferta especial para reactivarlos"
+                )
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="low_adoption_health",
+                    metric_label="Salud del cliente",
+                    current_rate=health_pct,
+                    severity="warning",
+                    threshold=70.0,
+                    tip=tip,
+                )
+            )
+
+        # Per-offer bottleneck
+        for offer in offer_list:
+            if offer.health_pct < 60.0:
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="offer_low_health",
+                        metric_label=f"Salud: {offer.public_name}",
+                        current_rate=offer.health_pct,
+                        severity="warning",
+                        threshold=60.0,
+                        tip=(
+                            "Revisa el engagement de este producto -- mas de "
+                            "la mitad de sus clientes estan inactivos"
+                        ),
+                    )
+                )
+
+        now = dt_cls.now(tz.utc)
+
+        result = AdoptionDetailDTO(
+            header_kpis=header_kpis,
+            mini_funnel=mini_funnel,
+            offers=offer_list,
+            bottlenecks=bottlenecks,
+            period="last_30_days",
+            last_updated=now.isoformat(),
+        )
+
+        # 8. Set cache
+        if self.cache is not None:
+            await self.cache.set(
+                str(tenant_id),
+                "adoption",
+                "last_30_days",
+                result.model_dump(),
+            )
+
+        return result
+
+    async def get_expansion_metrics(
+        self,
+        tenant_id: UUID,
+        start_date: "datetime",
+        end_date: "datetime",
+    ) -> ExpansionDetailDTO:
+        """Return expansion-stage (Stage 6) metrics.
+
+        Flow:
+        1. Check MetricsCache (300s TTL for expansion stage)
+        2. On miss: query ExpansionMetricsRepository for renewal/upsell/churn data
+        3. Query OfferReadPort for offer name enrichment
+        4. Build three ExpansionGroupDTOs: retencion, crecimiento, cancelaciones
+        5. Calculate header KPIs (Net MRR, Avg LTV, Churn Rate)
+        6. Build mini funnel (Activos -> Expansion)
+        7. Detect bottlenecks (churn rate > 3% warning, > 5% critical)
+        8. Cache result and return ExpansionDetailDTO
+        """
+        from datetime import datetime as dt_cls, timezone as tz
+        from src.modules.analytics.infrastructure.repositories.expansion_repository import (
+            ExpansionMetricsRepository,
+        )
+
+        # 1. Check cache
+        if self.cache is not None:
+            cached = await self.cache.get(
+                str(tenant_id), "expansion", "last_30_days"
+            )
+            if cached is not None:
+                return ExpansionDetailDTO(**cached)
+
+        # 2. Query expansion data
+        exp_repo = ExpansionMetricsRepository(self.db)
+        sales_grouped = exp_repo.get_expansion_sales_grouped(
+            tenant_id, start_date, end_date
+        )
+        churn_by_offer = exp_repo.get_churn_data_by_offer(
+            tenant_id, start_date, end_date
+        )
+        total_churn_count = exp_repo.get_total_churn_count(
+            tenant_id, start_date, end_date
+        )
+        active_customer_count = exp_repo.get_active_customer_count(tenant_id)
+        avg_ltv, ltv_currency = exp_repo.get_avg_ltv(tenant_id)
+        upsell_customer_count = exp_repo.get_expansion_customer_count(
+            tenant_id, start_date, end_date
+        )
+
+        # 3. Get offers for enrichment
+        offer_map = {}
+        if self.offer_port is not None:
+            offers = await self.offer_port.get_offers_by_tenant(tenant_id)
+            offer_map = {str(o.id): o for o in offers}
+
+        # Determine display currency from first sale found
+        display_currency = "MXN"
+        renewals = sales_grouped.get("renewals", [])
+        upsells = sales_grouped.get("upsells", [])
+        if renewals:
+            display_currency = renewals[0][3]
+        elif upsells:
+            display_currency = upsells[0][3]
+
+        # 4. Build ExpansionGroupDTOs
+
+        def _build_offers(
+            raw_items: List[tuple], is_churn: bool = False
+        ) -> List[ExpansionOfferDTO]:
+            result_offers = []
+            for item in raw_items:
+                offer_id_str = str(item[0])
+                count = item[1]
+                revenue = item[2]
+                currency = item[3] if len(item) > 3 else display_currency
+                offer = offer_map.get(offer_id_str)
+                name = offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
+                usd_rev = convert_to_usd(revenue, currency)
+                result_offers.append(ExpansionOfferDTO(
+                    offer_id=offer_id_str,
+                    public_name=name,
+                    count=count,
+                    revenue=revenue,
+                    currency=currency,
+                    usd_revenue=usd_rev,
+                ))
+            return result_offers
+
+        # Retencion group (renewals)
+        renewal_offers = _build_offers(renewals)
+        renewal_total_count = sum(o.count for o in renewal_offers)
+        renewal_total_revenue = sum(o.revenue for o in renewal_offers)
+        retention_rate = (
+            round((active_customer_count - total_churn_count) / active_customer_count * 100, 1)
+            if active_customer_count > 0
+            else 100.0
+        )
+
+        retencion = ExpansionGroupDTO(
+            group_key="retencion",
+            group_label="Retencion",
+            group_subtitle="Renovaciones de suscripciones activas",
+            total_count=renewal_total_count,
+            total_revenue=renewal_total_revenue,
+            total_revenue_usd=convert_to_usd(renewal_total_revenue, display_currency),
+            currency=display_currency,
+            rate_pct=retention_rate,
+            offers=renewal_offers,
+        )
+
+        # Crecimiento group (upsells)
+        upsell_offers = _build_offers(upsells)
+        upsell_total_count = sum(o.count for o in upsell_offers)
+        upsell_total_revenue = sum(o.revenue for o in upsell_offers)
+        expansion_rate = (
+            round(upsell_customer_count / active_customer_count * 100, 1)
+            if active_customer_count > 0
+            else 0.0
+        )
+
+        crecimiento = ExpansionGroupDTO(
+            group_key="crecimiento",
+            group_label="Crecimiento",
+            group_subtitle="Ventas adicionales y upgrades a clientes existentes",
+            total_count=upsell_total_count,
+            total_revenue=upsell_total_revenue,
+            total_revenue_usd=convert_to_usd(upsell_total_revenue, display_currency),
+            currency=display_currency,
+            rate_pct=expansion_rate,
+            offers=upsell_offers,
+        )
+
+        # Cancelaciones group (churn)
+        churn_offers = _build_offers(churn_by_offer, is_churn=True)
+        churn_total_count = total_churn_count
+        churn_total_revenue = sum(o.revenue for o in churn_offers)
+        churn_rate_pct = (
+            round(total_churn_count / active_customer_count * 100, 1)
+            if active_customer_count > 0
+            else 0.0
+        )
+
+        cancelaciones = ExpansionGroupDTO(
+            group_key="cancelaciones",
+            group_label="Cancelaciones",
+            group_subtitle="Suscripciones perdidas y ingreso afectado",
+            total_count=churn_total_count,
+            total_revenue=churn_total_revenue,
+            total_revenue_usd=convert_to_usd(churn_total_revenue, display_currency),
+            currency=display_currency,
+            rate_pct=churn_rate_pct,
+            offers=churn_offers,
+        )
+
+        # 5. Header KPIs
+        net_mrr = renewal_total_revenue + upsell_total_revenue - churn_total_revenue
+        net_mrr_usd = convert_to_usd(net_mrr, display_currency)
+        avg_ltv_usd = convert_to_usd(avg_ltv, ltv_currency)
+
+        header_kpis = ExpansionHeaderKpisDTO(
+            net_mrr=net_mrr,
+            net_mrr_usd=net_mrr_usd,
+            currency=display_currency,
+            avg_ltv=avg_ltv,
+            avg_ltv_usd=avg_ltv_usd,
+            churn_rate_pct=churn_rate_pct,
+        )
+
+        # 6. Mini funnel: Activos -> Expansion
+        total_expansion_count = renewal_total_count + upsell_total_count
+        expansion_conv_rate = (
+            round(total_expansion_count / active_customer_count * 100, 1)
+            if active_customer_count > 0
+            else 0.0
+        )
+
+        mini_funnel = MiniFunnelDTO(
+            source_label="Activos",
+            source_value=active_customer_count,
+            target_label="Expansion",
+            target_value=total_expansion_count,
+            conversion_rate=expansion_conv_rate,
+        )
+
+        # 7. Bottleneck detection
+        bottlenecks: list[BottleneckDTO] = []
+
+        if churn_rate_pct > 5.0:
+            tip = "Revisa la calidad y satisfaccion de tu producto o servicio"
+            bottlenecks.append(BottleneckDTO(
+                type="high_churn_rate",
+                metric_label="Tasa de Cancelacion",
+                current_rate=churn_rate_pct,
+                severity="critical",
+                threshold=5.0,
+                tip=tip,
+            ))
+        elif churn_rate_pct > 3.0:
+            bottlenecks.append(BottleneckDTO(
+                type="high_churn_rate",
+                metric_label="Tasa de Cancelacion",
+                current_rate=churn_rate_pct,
+                severity="warning",
+                threshold=3.0,
+                tip="Revisa la calidad y satisfaccion de tu producto o servicio",
+            ))
+
+        now = dt_cls.now(tz.utc)
+
+        result = ExpansionDetailDTO(
+            header_kpis=header_kpis,
+            mini_funnel=mini_funnel,
+            retencion=retencion,
+            crecimiento=crecimiento,
+            cancelaciones=cancelaciones,
+            bottlenecks=bottlenecks,
+            period="last_30_days",
+            last_updated=now.isoformat(),
+        )
+
+        # 8. Set cache
+        if self.cache is not None:
+            await self.cache.set(
+                str(tenant_id),
+                "expansion",
                 "last_30_days",
                 result.model_dump(),
             )
