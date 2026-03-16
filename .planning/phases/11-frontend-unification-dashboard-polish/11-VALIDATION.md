@@ -3,7 +3,7 @@ phase: 11
 slug: frontend-unification-dashboard-polish
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 wave_0_plan_created: true
 created: 2026-03-16
 ---
@@ -60,10 +60,10 @@ created: 2026-03-16
 Wave 0 scaffolding tasks will create these test files:
 
 - [x] **PLAN**: `11-00-PLAN.md` created with 4 scaffolding tasks
-- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/detail-panels/__tests__/DetailSkeleton.test.tsx` — covers UI-01 loading pattern consistency
-- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/__tests__/StageCard.test.tsx` — covers UI-02 real data display from API hooks
-- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/sidebar/__tests__/MetricSidebar.test.tsx` — covers sidebar interaction and drill-down
-- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/hooks/__tests__/useAttractionDetail.test.ts` — covers API hook pattern with parallel calls
+- [x] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/detail-panels/__tests__/DetailSkeleton.test.tsx` — covers UI-01 loading pattern consistency
+- [x] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/__tests__/StageCard.test.tsx` — covers UI-02 real data display from API hooks
+- [x] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/sidebar/__tests__/MetricSidebar.test.tsx` — covers sidebar interaction and drill-down
+- [x] **EXECUTE**: `frontend/src/features/marketing-studio/hooks/__tests__/useAttractionDetail.test.ts` — covers API hook pattern with parallel calls
 - [ ] Framework: Vitest already in place (vitest.config.mts exists). No changes needed.
 
 **Execution order:**
@@ -88,16 +88,18 @@ Wave 0 scaffolding tasks will create these test files:
 ## Validation Sign-Off
 
 - [x] Wave 0 plan created (11-00-PLAN.md) with 4 test scaffolding tasks
-- [ ] All 4 Wave 0 test files exist (after execution)
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] All 4 Wave 0 test files exist (after execution)
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references (all 4 test files in .test.tsx files)
 - [ ] No watch-mode flags in production commands
 - [ ] Feedback latency < 30s (unit tests quick run)
 - [ ] `nyquist_compliant: true` set in frontmatter after full phase execution
-- [ ] `wave_0_complete: true` set in frontmatter after Wave 0 execution
+- [x] `wave_0_complete: true` set in frontmatter after Wave 0 execution
 
 **Approval:** Wave 0 plan created; pending execution
+
+Wave 0 test scaffolding complete, ready for Wave 1 execution
 
 ---
 
