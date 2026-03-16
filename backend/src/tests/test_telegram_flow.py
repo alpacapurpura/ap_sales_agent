@@ -94,7 +94,7 @@ class TestStep2_CustomerProfileCreation:
         customer_repo = CustomerRepository(db)
         identity_service = IdentityService(customer_repo)
 
-        customer = identity_service.get_or_create_customer(
+        customer, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
@@ -126,7 +126,7 @@ class TestStep2_CustomerProfileCreation:
         identity_service = IdentityService(customer_repo)
 
         # First call creates
-        customer1 = identity_service.get_or_create_customer(
+        customer1, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
@@ -134,7 +134,7 @@ class TestStep2_CustomerProfileCreation:
         )
 
         # Second call should find existing
-        customer2 = identity_service.get_or_create_customer(
+        customer2, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
@@ -151,7 +151,7 @@ class TestStep2_CustomerProfileCreation:
         customer_repo = CustomerRepository(db)
         identity_service = IdentityService(customer_repo)
 
-        customer = identity_service.get_or_create_customer(
+        customer, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
@@ -178,7 +178,7 @@ class TestStep3_LeadCreation:
         identity_service = IdentityService(customer_repo)
         lead_repo = LeadRepository(db)
 
-        customer = identity_service.get_or_create_customer(
+        customer, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
@@ -208,7 +208,7 @@ class TestStep3_LeadCreation:
         identity_service = IdentityService(customer_repo)
         lead_repo = LeadRepository(db)
 
-        customer = identity_service.get_or_create_customer(
+        customer, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
@@ -245,7 +245,7 @@ class TestStep4_AuditLogging:
         lead_repo = LeadRepository(db)
         audit_repo = AuditRepository(db)
 
-        customer = identity_service.get_or_create_customer(
+        customer, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
@@ -309,7 +309,7 @@ class TestStep5_FullFlowIntegration:
         customer_repo = CustomerRepository(db)
         identity_service = IdentityService(customer_repo)
 
-        customer = identity_service.get_or_create_customer(
+        customer, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=identity_type,
             identity_value=test_user_id,
@@ -351,7 +351,7 @@ class TestStep5_FullFlowIntegration:
         assert len(history) >= 1
 
         # Step 6: Simulate second message (idempotency)
-        customer2 = identity_service.get_or_create_customer(
+        customer2, _ = identity_service.get_or_create_customer(
             tenant_id=TENANT_ID,
             identity_type=identity_type,
             identity_value=test_user_id,

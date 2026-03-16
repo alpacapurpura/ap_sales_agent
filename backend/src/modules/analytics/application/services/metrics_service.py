@@ -33,6 +33,17 @@ from src.modules.analytics.application.dto.attraction_dto import (
     ChannelMetricDTO,
     MetricValueDTO,
 )
+from src.modules.analytics.application.dto.capture_dto import (
+    CaptureDetailDTO,
+    CaptureHeaderKpisDTO,
+    MiniFunnelDTO,
+)
+from src.modules.analytics.infrastructure.repositories.capture_repository import (
+    CaptureMetricsRepository,
+)
+from src.modules.analytics.application.services.capture_cost_service import (
+    CaptureCostService,
+)
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
@@ -59,6 +70,13 @@ _GROUP_MAP: Dict[str, str] = {
     "direct": "ga4_search",
     "paid": "paid",
     "outbound": "outbound",
+}
+
+# Channel types -> capture group mapping (Stage 1)
+_CAPTURE_GROUP_MAP: Dict[str, str] = {
+    "form": "web_infrastructure",
+    "email": "web_infrastructure",
+    "messaging": "ai_agent",
 }
 
 # Error message mapping from extraction run errors to user-facing messages
@@ -365,6 +383,202 @@ class MetricsService:
             await self.cache.set(
                 str(tenant_id),
                 "attraction",
+                "last_30_days",
+                result.model_dump(),
+            )
+
+        return result
+
+    async def get_capture_metrics(
+        self, tenant_id: UUID
+    ) -> CaptureDetailDTO:
+        """Return capture-stage (Stage 1) metrics.
+
+        Flow:
+        1. Check MetricsCache (300s TTL for capture stage)
+        2. On miss: query CaptureMetricsRepository for lead counts by lead_source
+        3. Query CaptureCostService for per-channel costs
+        4. Get Stage 0 visitor total from MetricAggregationModel
+        5. Map channels from STAGE_CHANNEL_MAP["capture"] via ChannelRegistry
+        6. Group into web_infrastructure and ai_agent
+        7. Calculate header KPIs and mini funnel
+        8. Cache result and return CaptureDetailDTO
+        """
+        # 1. Check cache
+        if self.cache is not None:
+            cached = await self.cache.get(
+                str(tenant_id), "capture", "last_30_days"
+            )
+            if cached is not None:
+                return CaptureDetailDTO(**cached)
+
+        # 2. Get dynamic channel list from ChannelRegistry
+        registry = ChannelRegistry(self.connection_port)
+        channel_split = await registry.get_available_channels(
+            tenant_id, "capture"
+        )
+
+        # 3. Query CRM for lead counts by lead_source
+        from datetime import datetime, timedelta, timezone as tz
+
+        now = datetime.now(tz.utc)
+        start_date = now - timedelta(days=30)
+        end_date = now
+
+        capture_repo = CaptureMetricsRepository(self.db)
+        lead_counts = capture_repo.count_leads_by_source(
+            tenant_id, start_date, end_date
+        )
+        conversation_counts = capture_repo.count_conversations_by_channel(
+            tenant_id, start_date, end_date
+        )
+
+        # 4. Get costs
+        cost_service = CaptureCostService(self.db)
+        channel_costs = cost_service.get_channel_costs(tenant_id)
+
+        # Get prorated agency costs
+        connected_slugs = [ch["slug"] for ch in channel_split.get("connected", [])]
+        prorated_costs = cost_service.get_prorated_agency_costs(
+            tenant_id, connected_slugs
+        )
+
+        # Merge costs
+        all_costs: Dict[str, float] = {}
+        for slug, amount in channel_costs.items():
+            all_costs[slug] = all_costs.get(slug, 0.0) + amount
+        for slug, amount in prorated_costs.items():
+            all_costs[slug] = all_costs.get(slug, 0.0) + amount
+
+        # 5. Get Stage 0 visitor total from aggregations
+        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+            MetricAggregationModel,
+        )
+        from sqlalchemy import select, func as sa_func
+
+        visitor_stmt = (
+            select(sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0))
+            .where(
+                MetricAggregationModel.tenant_id == tenant_id,
+                MetricAggregationModel.metric_name.in_(("reach", "sessions")),
+                MetricAggregationModel.period_type == "last_30_days",
+            )
+        )
+        stage0_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
+
+        # 6. Build ChannelMetricDTO lists grouped by section
+        groups: Dict[str, List[ChannelMetricDTO]] = {
+            "web_infrastructure": [],
+            "ai_agent": [],
+        }
+        available_channels: List[ChannelMetricDTO] = []
+
+        for ch in channel_split.get("connected", []):
+            slug = ch["slug"]
+            channel_type = ch["channel_type"]
+            group_key = _CAPTURE_GROUP_MAP.get(channel_type, "web_infrastructure")
+
+            lead_count = lead_counts.get(slug, 0)
+            channel_cost = all_costs.get(slug, 0.0)
+            conv_count = conversation_counts.get(slug, 0)
+
+            # Conversion rate: leads / stage0_visitors * 100
+            conv_rate = round(lead_count / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
+
+            metrics: List[MetricValueDTO] = [
+                MetricValueDTO(name="leads", value=float(lead_count)),
+                MetricValueDTO(
+                    name="cost",
+                    value=channel_cost,
+                    unit="currency",
+                    currency="USD",
+                ),
+                MetricValueDTO(
+                    name="conversion_rate",
+                    value=conv_rate,
+                    unit="percentage",
+                ),
+            ]
+
+            # AI Agent channels: add conversation volume
+            if channel_type == "messaging":
+                metrics.append(
+                    MetricValueDTO(name="conversations", value=float(conv_count))
+                )
+
+            dto = ChannelMetricDTO(
+                slug=slug,
+                name=ch["name"],
+                channel_type=channel_type,
+                metrics=metrics,
+                source_label=ch["source_label"],
+                connected=True,
+                cost_type="EXPENSE",
+            )
+            groups[group_key].append(dto)
+
+        # Available (unconnected) channels
+        for ch in channel_split.get("available", []):
+            dto = ChannelMetricDTO(
+                slug=ch["slug"],
+                name=ch["name"],
+                channel_type=ch["channel_type"],
+                metrics=[],
+                source_label=ch["source_label"],
+                connected=False,
+            )
+            available_channels.append(dto)
+
+        # 7. Compute group totals
+        def _compute_totals(channels: List[ChannelMetricDTO]) -> Dict[str, float]:
+            totals: Dict[str, float] = defaultdict(float)
+            for ch_dto in channels:
+                for m in ch_dto.metrics:
+                    totals[m.name] += m.value
+            return dict(totals)
+
+        total_leads = sum(lead_counts.values())
+        total_costs = sum(all_costs.values())
+        overall_conv_rate = round(total_leads / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
+        cal = cost_service.calculate_cal(total_costs, total_leads)
+
+        available_dto = (
+            AvailableChannelsDTO(channels=available_channels)
+            if available_channels
+            else None
+        )
+
+        result = CaptureDetailDTO(
+            header_kpis=CaptureHeaderKpisDTO(
+                total_leads=total_leads,
+                conversion_rate=overall_conv_rate,
+                cost_per_lead=cal,
+            ),
+            mini_funnel=MiniFunnelDTO(
+                source_label="Visitantes",
+                source_value=stage0_visitors,
+                target_label="Leads",
+                target_value=total_leads,
+                conversion_rate=overall_conv_rate,
+            ),
+            web_infrastructure=TrafficGroupDTO(
+                totals=_compute_totals(groups["web_infrastructure"]),
+                channels=groups["web_infrastructure"],
+            ),
+            ai_agent=TrafficGroupDTO(
+                totals=_compute_totals(groups["ai_agent"]),
+                channels=groups["ai_agent"],
+            ),
+            available=available_dto,
+            period="last_30_days",
+            last_updated=now.isoformat(),
+        )
+
+        # 8. Set cache
+        if self.cache is not None:
+            await self.cache.set(
+                str(tenant_id),
+                "capture",
                 "last_30_days",
                 result.model_dump(),
             )

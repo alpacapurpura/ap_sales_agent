@@ -60,8 +60,26 @@ def handle_churn_event(event: DomainEvent) -> None:
         )
 
 
+def handle_lead_captured_event(event: DomainEvent) -> None:
+    """Handle LeadCapturedEvent -- currently analytics-only (no CRM side effect needed).
+
+    The LeadCapturedEvent is emitted by ChatOrchestrator AFTER CustomerService.identify()
+    has already created the profile with lead_source set. This handler exists for:
+    1. Logging/auditing lead capture events
+    2. Future: triggering welcome sequences, lead scoring recalculation, etc.
+    """
+    logger.info(
+        "Lead captured: profile=%s channel=%s field=%s tenant=%s",
+        event.payload.get("profile_id"),
+        event.payload.get("channel_slug"),
+        event.payload.get("extracted_field"),
+        event.tenant_id,
+    )
+
+
 def register_event_handlers() -> None:
     """Register all CRM event handlers. Call once at app startup."""
     EventBus.subscribe("sale_completed", handle_sale_completed_event)
     EventBus.subscribe("churn_detected", handle_churn_event)
-    logger.info("CRM event handlers registered: sale_completed, churn_detected")
+    EventBus.subscribe("lead_captured", handle_lead_captured_event)
+    logger.info("CRM event handlers registered: sale_completed, churn_detected, lead_captured")

@@ -88,9 +88,18 @@ class CustomerRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def create_with_identity(self, tenant_id: UUID, identity_type: IdentityType, identity_value: str, profile_data: Dict[str, Any]) -> CustomerProfile:
+    def create_with_identity(
+        self,
+        tenant_id: UUID,
+        identity_type: IdentityType,
+        identity_value: str,
+        profile_data: Dict[str, Any],
+        lead_source: Optional[str] = None,
+        lead_source_detail: Optional[str] = None,
+    ) -> CustomerProfile:
         """
         Creates a new customer profile with an initial identity.
+        Optionally sets lead_source and lead_source_detail for capture tracking.
         """
         profile_id = uuid.uuid4()
 
@@ -100,7 +109,10 @@ class CustomerRepository:
             id=profile_id,
             tenant_id=tenant_id,
             full_name=full_name,
-            traits=profile_data.get('traits', {})
+            traits=profile_data.get('traits', {}),
+            lead_source=lead_source,
+            lead_source_detail=lead_source_detail,
+            first_seen_at=datetime.now(timezone.utc),
         )
         self.db.add(profile_model)
 

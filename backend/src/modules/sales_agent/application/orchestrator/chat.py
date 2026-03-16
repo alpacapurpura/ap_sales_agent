@@ -27,6 +27,8 @@ from src.core.context import set_tenant_id
 from src.modules.connections.infrastructure.models.channel_connection_model import ChannelConnectionModel
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+from src.modules.crm.domain.events import LeadCapturedEvent, CHANNEL_TYPE_TO_CAPTURE_SLUG
+from src.shared.domain.events import EventBus
 
 logger = structlog.get_logger()
 
@@ -252,13 +254,29 @@ class ChatOrchestrator:
                 "traits": incoming.metadata
             }
 
-            # Get or Create Customer
-            customer = identity_service.get_or_create_customer(
+            # Get or Create Customer (with lead_source for capture tracking)
+            capture_slug = CHANNEL_TYPE_TO_CAPTURE_SLUG.get(channel_type, channel_type)
+            customer, was_created = identity_service.get_or_create_customer(
                 tenant_id=tenant_uuid,
                 identity_type=identity_type,
                 identity_value=user_id_str,
-                profile_data=profile_data
+                profile_data=profile_data,
+                lead_source=capture_slug,
+                lead_source_detail=channel_type,
             )
+
+            # Emit LeadCapturedEvent only for NEW profiles (not returning visitors)
+            if was_created and tenant_uuid:
+                EventBus.publish(
+                    LeadCapturedEvent.create(
+                        tenant_id=tenant_uuid,
+                        profile_id=customer.id,
+                        channel_slug=capture_slug,
+                        extracted_field="external_id",
+                        source_channel_type=channel_type,
+                    ),
+                    session=db,
+                )
 
             # Update Customer Profile Traits if needed (Metadata Update)
             if incoming.metadata:
