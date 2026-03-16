@@ -2,8 +2,8 @@
 phase: 10
 slug: stage-7-evangelizacion
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-16
 ---
 
@@ -38,11 +38,12 @@ created: 2026-03-16
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 10-01-01 | 01 | 1 | EVA-02 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/analytics/test_evangelization_metrics.py -x` | -- Wave 0 | ⬜ pending |
-| 10-01-02 | 01 | 1 | EVA-03 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/analytics/test_k_factor.py -x` | -- Wave 0 | ⬜ pending |
-| 10-01-03 | 01 | 1 | EVA-04 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/crm/test_nps_service.py -x` | -- Wave 0 | ⬜ pending |
-| 10-01-04 | 01 | 1 | EVA-02 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/crm/test_referral_service.py -x` | -- Wave 0 | ⬜ pending |
-| 10-02-01 | 02 | 2 | EVA-01 | integration | Frontend manual verification (component renders) | -- Wave 0 | ⬜ pending |
+| 10-01-00 | 01 | 1 | EVA-02,03,04 | stub | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/analytics/test_evangelization_metrics.py backend/tests/modules/analytics/test_k_factor.py backend/tests/modules/crm/test_nps_service.py backend/tests/modules/crm/test_referral_service.py -x -q` | Wave 0 task creates them | ⬜ pending |
+| 10-01-01 | 01 | 1 | EVA-02 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/crm/test_referral_service.py -x` | Created by 10-01-00 | ⬜ pending |
+| 10-01-02 | 01 | 1 | EVA-03 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/analytics/test_k_factor.py -x` | Created by 10-01-00 | ⬜ pending |
+| 10-01-03 | 01 | 1 | EVA-04 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/crm/test_nps_service.py -x` | Created by 10-01-00 | ⬜ pending |
+| 10-02-01 | 02 | 2 | EVA-01 | unit | `docker exec -t visionarias_brain_dev pytest backend/tests/modules/analytics/test_evangelization_metrics.py -x` | Created by 10-01-00 | ⬜ pending |
+| 10-03-01 | 03 | 3 | EVA-01 | integration | Frontend manual verification (component renders) | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,10 +51,10 @@ created: 2026-03-16
 
 ## Wave 0 Requirements
 
-- [ ] `backend/tests/modules/analytics/test_evangelization_metrics.py` — stubs for EVA-02, EVA-03
-- [ ] `backend/tests/modules/analytics/test_k_factor.py` — stubs for EVA-03
-- [ ] `backend/tests/modules/crm/test_nps_service.py` — stubs for EVA-04
-- [ ] `backend/tests/modules/crm/test_referral_service.py` — stubs for referral code generation and Shopify extraction
+- [x] `backend/tests/modules/analytics/test_evangelization_metrics.py` — created by Plan 10-01 Task 0
+- [x] `backend/tests/modules/analytics/test_k_factor.py` — created by Plan 10-01 Task 0
+- [x] `backend/tests/modules/crm/test_nps_service.py` — created by Plan 10-01 Task 0
+- [x] `backend/tests/modules/crm/test_referral_service.py` — created by Plan 10-01 Task 0
 
 ---
 
@@ -67,11 +68,11 @@ created: 2026-03-16
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
