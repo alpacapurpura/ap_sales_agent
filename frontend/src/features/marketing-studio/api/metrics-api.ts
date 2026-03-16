@@ -1,8 +1,8 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, ChannelMetric, MetricValue } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL } from './metrics-mock-data';
+import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, ChannelMetric, MetricValue } from '../types/metrics';
+import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL } from './metrics-mock-data';
 
 const API_URL = config.api.baseUrl;
 
@@ -123,6 +123,70 @@ function mapOpportunityResponse(raw: any): OpportunityDetail {
     lastUpdated: raw.last_updated,
   };
 }
+function mapSalesResponse(raw: any): SalesDetail {
+  const mapOffer = (o: any) => ({
+    offerId: o.offer_id,
+    publicName: o.public_name,
+    offerType: o.offer_type,
+    pricingType: o.pricing_type,
+    totalRevenue: o.total_revenue,
+    salesCount: o.sales_count,
+    currency: o.currency,
+    usdRevenue: o.usd_revenue ?? null,
+    sourceBreakdown: o.source_breakdown ?? {},
+    newSubscriptions: o.new_subscriptions ?? null,
+    newSubscriptionRevenue: o.new_subscription_revenue ?? null,
+    renewals: o.renewals ?? null,
+    renewalRevenue: o.renewal_revenue ?? null,
+    subscriptionNewLabel: o.subscription_new_label ?? null,
+    subscriptionRenewalLabel: o.subscription_renewal_label ?? null,
+  });
+
+  const mapTier = (t: any) => ({
+    tierKey: t.tier_key,
+    tierLabel: t.tier_label,
+    offers: (t.offers ?? []).map(mapOffer),
+  });
+
+  const mapRevenueGroup = (g: any) => ({
+    groupKey: g.group_key,
+    groupLabel: g.group_label,
+    totalRevenue: g.total_revenue,
+    totalRevenueUsd: g.total_revenue_usd ?? null,
+    customerCount: g.customer_count,
+    revenuePercentage: g.revenue_percentage,
+    currency: g.currency,
+    tiers: (g.tiers ?? []).map(mapTier),
+  });
+
+  return {
+    headerKpis: {
+      totalRevenue: raw.header_kpis?.total_revenue ?? 0,
+      totalRevenueUsd: raw.header_kpis?.total_revenue_usd ?? null,
+      currency: raw.header_kpis?.currency ?? 'MXN',
+      newCustomers: raw.header_kpis?.new_customers ?? 0,
+      cac: raw.header_kpis?.cac ?? null,
+      cacIncomplete: raw.header_kpis?.cac_incomplete ?? false,
+    },
+    miniFunnel: {
+      sourceLabel: raw.mini_funnel?.source_label ?? 'Oportunidades',
+      sourceValue: raw.mini_funnel?.source_count ?? 0,
+      targetLabel: raw.mini_funnel?.target_label ?? 'Ventas',
+      targetValue: raw.mini_funnel?.target_count ?? 0,
+      conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
+    },
+    adquisicion: mapRevenueGroup(raw.adquisicion),
+    expansion: mapRevenueGroup(raw.expansion),
+    bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
+      type: b.type,
+      severity: b.severity,
+      message: b.message,
+      tip: b.tip,
+    })),
+    period: raw.period ?? 'last_30_days',
+    lastUpdated: raw.last_updated,
+  };
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const metricsApi = {
@@ -215,6 +279,29 @@ export const metricsApi = {
     } catch (error) {
       console.warn('Opportunity API error -- using mock data:', error);
       return MOCK_OPPORTUNITY_DETAIL;
+    }
+  },
+
+  getSalesDetail: async (token: string): Promise<SalesDetail> => {
+    if (ENABLE_MOCKS) {
+      return MOCK_SALES_DETAIL;
+    }
+
+    try {
+      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/sales`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        console.warn('Sales API returned', res.status, '-- using mock data');
+        return MOCK_SALES_DETAIL;
+      }
+
+      const data = await res.json();
+      return mapSalesResponse(data);
+    } catch (error) {
+      console.warn('Sales API error -- using mock data:', error);
+      return MOCK_SALES_DETAIL;
     }
   },
 };

@@ -24,7 +24,7 @@ export interface MetricValue {
   breakdown?: Record<string, number>;
 }
 
-export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'checkout' | 'payment_links' | 'qualification' | 'available';
+export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'checkout' | 'payment_links' | 'qualification' | 'adquisicion' | 'expansion' | 'available';
 
 export interface ChannelMetric {
   slug: string;
@@ -141,6 +141,69 @@ export interface OpportunityDetail {
   qualification: TrafficGroup;
   bottlenecks: BottleneckData[];
   available?: AvailableChannels;
+  period: string;
+  lastUpdated?: string;
+}
+
+// === Stage 4: Ventas (Sales) ===
+
+export interface OfferSaleData {
+  offerId: string;
+  publicName: string;
+  offerType: string;
+  pricingType: 'one_time' | 'subscription' | 'payment_plan';
+  totalRevenue: number;
+  salesCount: number;
+  currency: string;
+  usdRevenue: number | null;
+  sourceBreakdown: Record<string, number>;
+  newSubscriptions: number | null;
+  newSubscriptionRevenue: number | null;
+  renewals: number | null;
+  renewalRevenue: number | null;
+  subscriptionNewLabel: string | null;
+  subscriptionRenewalLabel: string | null;
+}
+
+export interface TierGroupData {
+  tierKey: string;
+  tierLabel: string;
+  offers: OfferSaleData[];
+}
+
+export interface RevenueGroupData {
+  groupKey: 'adquisicion' | 'expansion';
+  groupLabel: string;
+  totalRevenue: number;
+  totalRevenueUsd: number | null;
+  customerCount: number;
+  revenuePercentage: number;
+  currency: string;
+  tiers: TierGroupData[];
+}
+
+export interface SalesHeaderKpis {
+  totalRevenue: number;
+  totalRevenueUsd: number | null;
+  currency: string;
+  newCustomers: number;
+  cac: number | null;
+  cacIncomplete: boolean;
+}
+
+export interface SalesBottleneck {
+  type: string;
+  severity: 'warning' | 'critical';
+  message: string;
+  tip: string;
+}
+
+export interface SalesDetail {
+  headerKpis: SalesHeaderKpis;
+  miniFunnel: MiniFunnelData;
+  adquisicion: RevenueGroupData;
+  expansion: RevenueGroupData;
+  bottlenecks: SalesBottleneck[];
   period: string;
   lastUpdated?: string;
 }
