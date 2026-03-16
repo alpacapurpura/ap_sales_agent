@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 11 context gathered
-last_updated: "2026-03-16T21:35:11.242Z"
+stopped_at: Completed 11-01-PLAN.md (UI Infrastructure and Real Data Wiring)
+last_updated: "2026-03-16T22:21:12.452Z"
 last_activity: "2026-03-16 -- Completed plan 09-01 (Adoption backend + frontend: health tracking per offer, CSS health bar, TTV, bottleneck detection)"
 progress:
   total_phases: 11
   completed_phases: 10
-  total_plans: 28
-  completed_plans: 28
+  total_plans: 31
+  completed_plans: 29
   percent: 97
 ---
 
@@ -71,6 +71,7 @@ Progress: [█████████▊] 97%
 | Phase 10 P01 | 6min | 3 tasks | 13 files |
 | Phase 10 P02 | 3min | 2 tasks | 5 files |
 | Phase 10 P03 | 4min | 2 tasks | 10 files |
+| Phase 11 P01 | 6 | 6 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,8 @@ Recent decisions affecting current work:
 - [Phase 10]: K-Factor bottleneck: < 0.5 critical, < 1.0 warning; NPS response rate: < 15% critical, < 30% warning
 - [Phase 10]: NPS proportional bar uses same CSS technique as HealthBar (min 1% visual width for non-zero segments)
 - [Phase 10]: All 8 bowtie funnel stages now have dedicated detail panels (PlaceholderDetail only for future stages)
+- [Phase 11]: mergeStageData() maps heterogeneous per-stage API shapes to unified StageSummary via switch/case per StageId
+- [Phase 11]: StageSummary.mainKpi.value widened to number|string for dual-currency pre-formatted strings
 
 ### Pending Todos
 
@@ -187,6 +190,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:35:11.238Z
-Stopped at: Phase 11 context gathered
-Resume file: .planning/phases/11-frontend-unification-dashboard-polish/11-CONTEXT.md
+Last session: 2026-03-16T22:21:12.450Z
+Stopped at: Completed 11-01-PLAN.md (UI Infrastructure and Real Data Wiring)
+Resume file: None
