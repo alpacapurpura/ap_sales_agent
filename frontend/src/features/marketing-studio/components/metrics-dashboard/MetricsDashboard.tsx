@@ -8,6 +8,7 @@ import { StageSummaryRow } from './StageSummaryRow';
 import { AttractionDetail } from './detail-panels/AttractionDetail';
 import { CaptureDetail } from './detail-panels/CaptureDetail';
 import { NurtureDetail } from './detail-panels/NurtureDetail';
+import { OpportunityDetail } from './detail-panels/OpportunityDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 
 export function MetricsDashboard() {
@@ -43,6 +44,8 @@ export function MetricsDashboard() {
               <CaptureDetail />
             ) : activeStage === 'NUTRICION' ? (
               <NurtureDetail />
+            ) : activeStage === 'OPORTUNIDAD' ? (
+              <OpportunityDetail />
             ) : (
               <PlaceholderDetail stage={activeStageData} />
             )}
