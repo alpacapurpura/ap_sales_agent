@@ -1,8 +1,8 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, ChannelMetric, MetricValue } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL } from './metrics-mock-data';
+import type { AttractionDetail, CaptureDetail, NurtureDetail, ChannelMetric, MetricValue } from '../types/metrics';
+import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL } from './metrics-mock-data';
 
 const API_URL = config.api.baseUrl;
 
@@ -72,6 +72,27 @@ function mapCaptureResponse(raw: any): CaptureDetail {
     lastUpdated: raw.last_updated ?? undefined,
   };
 }
+function mapNurtureResponse(raw: any): NurtureDetail {
+  return {
+    headerKpis: {
+      totalMqls: raw.header_kpis.total_mqls,
+      conversionRate: raw.header_kpis.conversion_rate,
+      costPerMql: raw.header_kpis.cost_per_mql ?? null,
+    },
+    miniFunnel: {
+      sourceLabel: raw.mini_funnel.source_label,
+      sourceValue: raw.mini_funnel.source_value,
+      targetLabel: raw.mini_funnel.target_label,
+      targetValue: raw.mini_funnel.target_value,
+      conversionRate: raw.mini_funnel.conversion_rate,
+    },
+    retargeting: mapGroup(raw.retargeting),
+    automation: mapGroup(raw.automation),
+    available: raw.available ? { channels: raw.available.channels.map(mapChannel) } : undefined,
+    period: raw.period,
+    lastUpdated: raw.last_updated ?? undefined,
+  };
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const metricsApi = {
@@ -118,6 +139,29 @@ export const metricsApi = {
     } catch (error) {
       console.warn('Capture API error -- using mock data:', error);
       return MOCK_CAPTURE_DETAIL;
+    }
+  },
+
+  getNurtureDetail: async (token: string): Promise<NurtureDetail> => {
+    if (ENABLE_MOCKS) {
+      return MOCK_NURTURE_DETAIL;
+    }
+
+    try {
+      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/nurturing`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        console.warn('Nurture API returned', res.status, '-- using mock data');
+        return MOCK_NURTURE_DETAIL;
+      }
+
+      const data = await res.json();
+      return mapNurtureResponse(data);
+    } catch (error) {
+      console.warn('Nurture API error -- using mock data:', error);
+      return MOCK_NURTURE_DETAIL;
     }
   },
 };

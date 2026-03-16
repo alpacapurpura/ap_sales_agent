@@ -28,6 +28,10 @@ const CHANNEL_ICONS: Record<string, string> = {
   'fb-messenger': '\uD83D\uDCAC',
   'tiktok-dm': '\uD83C\uDFB5',
   'whatsapp-inbound': '\uD83D\uDCF1',
+  'meta-retargeting': '\uD83D\uDCE2',
+  'google-retargeting': '\uD83C\uDFAF',
+  'tiktok-retargeting': '\uD83C\uDFB5',
+  'ai-sdr': '\uD83E\uDD16',
 };
 
 /** Metric name -> Spanish label mapping. */
@@ -45,6 +49,12 @@ const METRIC_LABELS: Record<string, string> = {
   cost: 'Costo',
   conversion_rate: 'Conversion',
   conversations: 'Conversaciones',
+  emails_sent: 'Enviados',
+  open_rate: 'Apertura',
+  click_rate: 'Clicks',
+  followups: 'Follow-ups',
+  response_rate: 'Respuestas',
+  campaigns: 'Campanas',
 };
 
 /** Breakdown key -> Spanish label. */
@@ -129,6 +139,19 @@ export function ChannelRow({ channel }: ChannelRowProps) {
           <p className="text-sm font-medium truncate">{channel.name}</p>
         </div>
         <ConnectionBadge connected={false} />
+      </div>
+    );
+  }
+
+  // AI SDR with no data: show "Proximamente" badge
+  if (channel.slug === 'ai-sdr' && (channel.metrics.length === 0 || channel.metrics.every(m => m.value === 0))) {
+    return (
+      <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-lg shrink-0">{CHANNEL_ICONS[channel.slug] ?? '\uD83D\uDCCA'}</span>
+          <p className="text-sm font-medium truncate">{channel.name}</p>
+        </div>
+        <Badge variant="secondary">Proximamente</Badge>
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import type { StageSummary, AttractionDetail, CaptureDetail } from '../types/metrics';
+import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail } from '../types/metrics';
 
 export const STAGE_SUMMARIES: StageSummary[] = [
   {
@@ -26,7 +26,7 @@ export const STAGE_SUMMARIES: StageSummary[] = [
     description: 'Leads que interactuan con tu contenido y avanzan en el embudo',
     mainKpi: { label: 'MQLs', value: 3200 },
     secondaryKpi: { label: 'engagement rate', value: 37.6, unit: '%' },
-    hasDetail: false,
+    hasDetail: true,
   },
   {
     id: 'OPORTUNIDAD',
@@ -350,4 +350,83 @@ export const MOCK_CAPTURE_DETAIL: CaptureDetail = {
   },
   period: 'last_30_days',
   lastUpdated: '2026-03-15T10:30:00Z',
+};
+
+export const MOCK_NURTURE_DETAIL: NurtureDetail = {
+  headerKpis: { totalMqls: 2100, conversionRate: 24.7, costPerMql: 12.50 },
+  miniFunnel: {
+    sourceLabel: 'Leads',
+    sourceValue: 8500,
+    targetLabel: 'MQLs',
+    targetValue: 2100,
+    conversionRate: 24.7,
+  },
+  retargeting: {
+    totals: { reach: 45200, clicks: 3100, spend: 1250, cost_per_mql: 8.75 },
+    channels: [
+      {
+        slug: 'meta-retargeting',
+        name: 'Meta Retargeting',
+        channelType: 'retargeting',
+        metrics: [
+          { name: 'reach', value: 25000 },
+          { name: 'clicks', value: 1800 },
+          { name: 'spend', value: 650, unit: 'currency', currency: 'USD' },
+        ],
+        sourceLabel: 'Meta Ads',
+        connected: true,
+      },
+      {
+        slug: 'google-retargeting',
+        name: 'Google Retargeting',
+        channelType: 'retargeting',
+        metrics: [
+          { name: 'reach', value: 15000 },
+          { name: 'clicks', value: 900 },
+          { name: 'spend', value: 400, unit: 'currency', currency: 'USD' },
+        ],
+        sourceLabel: 'Google Ads',
+        connected: true,
+      },
+      {
+        slug: 'tiktok-retargeting',
+        name: 'TikTok Retargeting',
+        channelType: 'retargeting',
+        metrics: [
+          { name: 'reach', value: 5200 },
+          { name: 'clicks', value: 400 },
+          { name: 'spend', value: 200, unit: 'currency', currency: 'USD' },
+        ],
+        sourceLabel: 'TikTok Ads',
+        connected: true,
+      },
+    ],
+  },
+  automation: {
+    totals: { emails_sent: 12500, open_rate: 42.3, click_rate: 8.1, cost_per_mql: 3.75 },
+    channels: [
+      {
+        slug: 'mailerlite',
+        name: 'Mailerlite',
+        channelType: 'email',
+        metrics: [
+          { name: 'emails_sent', value: 12500 },
+          { name: 'open_rate', value: 42.3, unit: 'percentage' },
+          { name: 'click_rate', value: 8.1, unit: 'percentage' },
+        ],
+        sourceLabel: 'MailerLite',
+        connected: true,
+      },
+      {
+        slug: 'ai-sdr',
+        name: 'AI SDR',
+        channelType: 'automation',
+        metrics: [],
+        sourceLabel: 'AI SDR',
+        connected: true,
+      },
+    ],
+  },
+  period: 'last_30_days',
+  lastUpdated: new Date().toISOString(),
 };

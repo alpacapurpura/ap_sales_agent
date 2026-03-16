@@ -46,6 +46,16 @@ function buildSummary(groupType: GroupType, totals: Record<string, number>, chan
       const conv = totals.conversion_rate?.toFixed(1) ?? '0';
       return `Leads: ${leads} | Costo por Lead: ${cpl} | Conversion: ${conv}%`;
     }
+    case 'retargeting': {
+      const costPerMql = totals.cost_per_mql;
+      const costStr = costPerMql != null ? ` | Costo/MQL: $${costPerMql.toFixed(2)}` : '';
+      return `Alcance: ${formatNumber(totals.reach ?? 0)} | Clicks: ${formatNumber(totals.clicks ?? 0)} | Gasto: ${formatCurrency(totals.spend ?? 0)}${costStr}`;
+    }
+    case 'automation': {
+      const costPerMql = totals.cost_per_mql;
+      const costStr = costPerMql != null ? ` | Costo/MQL: $${costPerMql.toFixed(2)}` : '';
+      return `Emails: ${formatNumber(totals.emails_sent ?? 0)} | Apertura: ${(totals.open_rate ?? 0).toFixed(1)}% | Click Rate: ${(totals.click_rate ?? 0).toFixed(1)}%${costStr}`;
+    }
     case 'available':
       return `${channelCount} canales por configurar`;
     default:

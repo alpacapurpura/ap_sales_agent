@@ -24,7 +24,7 @@ export interface MetricValue {
   breakdown?: Record<string, number>;
 }
 
-export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'available';
+export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'available';
 
 export interface ChannelMetric {
   slug: string;
@@ -83,6 +83,32 @@ export interface CaptureDetail {
   miniFunnel: MiniFunnelData;
   webInfrastructure: TrafficGroup;
   aiAgent: TrafficGroup;
+  available?: AvailableChannels;
+  period: string;
+  lastUpdated?: string;
+}
+
+// === Nurture (Stage 2) Types ===
+
+export type NurtureGroupType = 'retargeting' | 'automation' | 'available';
+
+export interface NurtureHeaderKpis {
+  totalMqls: number;
+  conversionRate: number; // percentage 0-100
+  costPerMql: number | null; // null = unconfigured
+}
+
+export interface CampaignMetric {
+  campaignName: string;
+  campaignId?: string;
+  metrics: MetricValue[];
+}
+
+export interface NurtureDetail {
+  headerKpis: NurtureHeaderKpis;
+  miniFunnel: MiniFunnelData;
+  retargeting: TrafficGroup;
+  automation: TrafficGroup;
   available?: AvailableChannels;
   period: string;
   lastUpdated?: string;
