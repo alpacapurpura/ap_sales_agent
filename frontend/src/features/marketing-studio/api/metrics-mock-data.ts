@@ -1,4 +1,4 @@
-import type { StageSummary, AttractionDetail } from '../types/metrics';
+import type { StageSummary, AttractionDetail, CaptureDetail } from '../types/metrics';
 
 export const STAGE_SUMMARIES: StageSummary[] = [
   {
@@ -17,7 +17,7 @@ export const STAGE_SUMMARIES: StageSummary[] = [
     description: 'Visitantes que dejan sus datos y se convierten en leads',
     mainKpi: { label: 'leads', value: 8500 },
     secondaryKpi: { label: 'tasa conversion', value: 18.9, unit: '%' },
-    hasDetail: false,
+    hasDetail: true,
   },
   {
     id: 'NUTRICION',
@@ -245,4 +245,109 @@ export const MOCK_ATTRACTION_DETAIL: AttractionDetail = {
       },
     ],
   },
+};
+
+export const MOCK_CAPTURE_DETAIL: CaptureDetail = {
+  headerKpis: { totalLeads: 8500, conversionRate: 18.9, costPerLead: 2.35 },
+  miniFunnel: {
+    sourceLabel: 'Visitantes',
+    sourceValue: 45000,
+    targetLabel: 'Leads',
+    targetValue: 8500,
+    conversionRate: 18.9,
+  },
+  webInfrastructure: {
+    totals: { leads: 3200, cost: 500.0, conversion_rate: 7.1 },
+    channels: [
+      {
+        slug: 'landing-form',
+        name: 'Landing Page Form',
+        channelType: 'form',
+        metrics: [
+          { name: 'leads', value: 2800 },
+          { name: 'cost', value: 0, unit: 'currency', currency: 'USD' },
+          { name: 'conversion_rate', value: 6.2 },
+        ],
+        sourceLabel: 'Landing Page',
+        connected: true,
+        costType: 'EXPENSE',
+      },
+      {
+        slug: 'mailerlite',
+        name: 'MailerLite',
+        channelType: 'email',
+        metrics: [
+          { name: 'leads', value: 400 },
+          { name: 'cost', value: 29.0, unit: 'currency', currency: 'USD' },
+          { name: 'conversion_rate', value: 0.9 },
+        ],
+        sourceLabel: 'MailerLite',
+        connected: true,
+        costType: 'EXPENSE',
+      },
+    ],
+  },
+  aiAgent: {
+    totals: { leads: 5300, cost: 800.0, conversion_rate: 11.8 },
+    channels: [
+      {
+        slug: 'ig-dm',
+        name: 'Instagram DM',
+        channelType: 'messaging',
+        metrics: [
+          { name: 'leads', value: 2100 },
+          { name: 'cost', value: 250.0, unit: 'currency', currency: 'USD' },
+          { name: 'conversion_rate', value: 4.7 },
+          { name: 'conversations', value: 4800 },
+        ],
+        sourceLabel: 'Instagram DM',
+        connected: true,
+        costType: 'EXPENSE',
+      },
+      {
+        slug: 'fb-messenger',
+        name: 'Facebook Messenger',
+        channelType: 'messaging',
+        metrics: [
+          { name: 'leads', value: 1500 },
+          { name: 'cost', value: 200.0, unit: 'currency', currency: 'USD' },
+          { name: 'conversion_rate', value: 3.3 },
+          { name: 'conversations', value: 3200 },
+        ],
+        sourceLabel: 'Messenger',
+        connected: true,
+        costType: 'EXPENSE',
+      },
+      {
+        slug: 'tiktok-dm',
+        name: 'TikTok DM',
+        channelType: 'messaging',
+        metrics: [
+          { name: 'leads', value: 900 },
+          { name: 'cost', value: 180.0, unit: 'currency', currency: 'USD' },
+          { name: 'conversion_rate', value: 2.0 },
+          { name: 'conversations', value: 2100 },
+        ],
+        sourceLabel: 'TikTok DM',
+        connected: true,
+        costType: 'EXPENSE',
+      },
+      {
+        slug: 'whatsapp-inbound',
+        name: 'WhatsApp Inbound',
+        channelType: 'messaging',
+        metrics: [
+          { name: 'leads', value: 800 },
+          { name: 'cost', value: 170.0, unit: 'currency', currency: 'USD' },
+          { name: 'conversion_rate', value: 1.8 },
+          { name: 'conversations', value: 1900 },
+        ],
+        sourceLabel: 'WhatsApp',
+        connected: true,
+        costType: 'EXPENSE',
+      },
+    ],
+  },
+  period: 'last_30_days',
+  lastUpdated: '2026-03-15T10:30:00Z',
 };

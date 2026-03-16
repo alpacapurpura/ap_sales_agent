@@ -1,8 +1,8 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, ChannelMetric, MetricValue } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL } from './metrics-mock-data';
+import type { AttractionDetail, CaptureDetail, ChannelMetric, MetricValue } from '../types/metrics';
+import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL } from './metrics-mock-data';
 
 const API_URL = config.api.baseUrl;
 
@@ -51,6 +51,27 @@ function mapResponse(raw: any): AttractionDetail {
     available: raw.available ? { channels: raw.available.channels.map(mapChannel) } : undefined,
   };
 }
+function mapCaptureResponse(raw: any): CaptureDetail {
+  return {
+    headerKpis: {
+      totalLeads: raw.header_kpis.total_leads,
+      conversionRate: raw.header_kpis.conversion_rate,
+      costPerLead: raw.header_kpis.cost_per_lead ?? null,
+    },
+    miniFunnel: {
+      sourceLabel: raw.mini_funnel.source_label,
+      sourceValue: raw.mini_funnel.source_value,
+      targetLabel: raw.mini_funnel.target_label,
+      targetValue: raw.mini_funnel.target_value,
+      conversionRate: raw.mini_funnel.conversion_rate,
+    },
+    webInfrastructure: mapGroup(raw.web_infrastructure),
+    aiAgent: mapGroup(raw.ai_agent),
+    available: raw.available ? { channels: raw.available.channels.map(mapChannel) } : undefined,
+    period: raw.period,
+    lastUpdated: raw.last_updated ?? undefined,
+  };
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const metricsApi = {
@@ -74,6 +95,29 @@ export const metricsApi = {
     } catch (error) {
       console.warn('Attraction API error -- using mock data:', error);
       return MOCK_ATTRACTION_DETAIL;
+    }
+  },
+
+  getCaptureDetail: async (token: string): Promise<CaptureDetail> => {
+    if (ENABLE_MOCKS) {
+      return MOCK_CAPTURE_DETAIL;
+    }
+
+    try {
+      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/capture`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        console.warn('Capture API returned', res.status, '-- using mock data');
+        return MOCK_CAPTURE_DETAIL;
+      }
+
+      const data = await res.json();
+      return mapCaptureResponse(data);
+    } catch (error) {
+      console.warn('Capture API error -- using mock data:', error);
+      return MOCK_CAPTURE_DETAIL;
     }
   },
 };

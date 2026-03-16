@@ -24,7 +24,7 @@ export interface MetricValue {
   breakdown?: Record<string, number>;
 }
 
-export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'available';
+export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'available';
 
 export interface ChannelMetric {
   slug: string;
@@ -55,6 +55,34 @@ export interface AttractionDetail {
   ga4Search: TrafficGroup;
   paid: TrafficGroup;
   outbound: TrafficGroup;
+  available?: AvailableChannels;
+  period: string;
+  lastUpdated?: string;
+}
+
+// === Capture (Stage 1) Types ===
+
+export type CaptureGroupType = 'web_infrastructure' | 'ai_agent' | 'available';
+
+export interface CaptureHeaderKpis {
+  totalLeads: number;
+  conversionRate: number; // percentage 0-100
+  costPerLead: number | null; // null = unconfigured
+}
+
+export interface MiniFunnelData {
+  sourceLabel: string;  // "Visitantes"
+  sourceValue: number;
+  targetLabel: string;  // "Leads"
+  targetValue: number;
+  conversionRate: number; // percentage
+}
+
+export interface CaptureDetail {
+  headerKpis: CaptureHeaderKpis;
+  miniFunnel: MiniFunnelData;
+  webInfrastructure: TrafficGroup;
+  aiAgent: TrafficGroup;
   available?: AvailableChannels;
   period: string;
   lastUpdated?: string;
