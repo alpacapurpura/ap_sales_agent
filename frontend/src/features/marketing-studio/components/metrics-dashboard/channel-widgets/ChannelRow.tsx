@@ -4,9 +4,10 @@ import { useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { ChannelMetric, MetricValue } from '../../../types/metrics';
+import type { ChannelMetric, CampaignMetric, MetricValue } from '../../../types/metrics';
 import { ConnectionBadge } from './ConnectionBadge';
 import { CostLink } from './CostLink';
+import { CampaignDrillDown } from './CampaignDrillDown';
 
 const CHANNEL_ICONS: Record<string, string> = {
   'ig-organic': '\uD83D\uDCF8',
@@ -167,7 +168,12 @@ export function ChannelRow({ channel }: ChannelRowProps) {
   // Render metrics, excluding conversations (shown as secondary line) and handling CostLink
   const displayMetrics = channel.metrics.filter(m => m.name !== 'conversations');
 
-  return (
+  // Determine if this channel should be wrapped with CampaignDrillDown
+  const shouldWrapWithDrillDown = channel.channelType === 'retargeting' || channel.channelType === 'email';
+  // campaigns would come from channel data when available; empty array for now
+  const campaigns: CampaignMetric[] = (channel as unknown as Record<string, unknown>).campaigns as CampaignMetric[] ?? [];
+
+  const rowContent = (
     <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-3 min-w-0">
         <span className="text-lg shrink-0">{CHANNEL_ICONS[channel.slug] ?? '\uD83D\uDCCA'}</span>
@@ -240,4 +246,14 @@ export function ChannelRow({ channel }: ChannelRowProps) {
       </div>
     </div>
   );
+
+  if (shouldWrapWithDrillDown) {
+    return (
+      <CampaignDrillDown campaigns={campaigns}>
+        {rowContent}
+      </CampaignDrillDown>
+    );
+  }
+
+  return rowContent;
 }

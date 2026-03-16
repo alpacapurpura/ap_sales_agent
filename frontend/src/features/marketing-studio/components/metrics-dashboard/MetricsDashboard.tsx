@@ -7,6 +7,7 @@ import { STAGE_SUMMARIES } from '../../api/metrics-mock-data';
 import { StageSummaryRow } from './StageSummaryRow';
 import { AttractionDetail } from './detail-panels/AttractionDetail';
 import { CaptureDetail } from './detail-panels/CaptureDetail';
+import { NurtureDetail } from './detail-panels/NurtureDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 
 export function MetricsDashboard() {
@@ -40,6 +41,8 @@ export function MetricsDashboard() {
               <AttractionDetail />
             ) : activeStage === 'CAPTURA' ? (
               <CaptureDetail />
+            ) : activeStage === 'NUTRICION' ? (
+              <NurtureDetail />
             ) : (
               <PlaceholderDetail stage={activeStageData} />
             )}
