@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-16T08:18:38.400Z"
-last_activity: 2026-03-16 — Completed plan 06-03 (ETL backup sync gap closure - MailerLiteConnector.get_recent_campaign_activity)
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-16T09:29:48.904Z"
+last_activity: 2026-03-16 — Completed plan 07-01 (Stage 3 Opportunity Backend)
 progress:
   total_phases: 11
   completed_phases: 6
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 20
+  completed_plans: 19
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
-**Current focus:** Phase 6 — Stage 2 Nutricion
+**Current focus:** Phase 7 — Stage 3 Oportunidad
 
 ## Current Position
 
-Phase: 6 of 11 (Stage 2 Nutricion)
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: Phase complete
-Last activity: 2026-03-16 — Completed plan 06-03 (ETL backup sync gap closure - MailerLiteConnector.get_recent_campaign_activity)
+Phase: 7 of 11 (Stage 3 Oportunidad)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-16 — Completed plan 07-01 (Stage 3 Opportunity Backend - Shopify webhook, EventBus bridge, OpportunityMetricsRepository)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100%
 | Phase 06 P01 | 9min | 3 tasks | 16 files |
 | Phase 06 P02 | 5min | 2 tasks | 10 files |
 | Phase 06 P03 | 1min | 1 tasks | 1 files |
+| Phase 07 P01 | 11min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,10 @@ Recent decisions affecting current work:
 - 06-02: AI SDR shows Proximamente badge when metrics array empty or all zeroes
 - 06-02: Per-group cost/MQL displayed in ChannelGroup summary when cost_per_mql in totals
 - [Phase 06]: Added MailerLiteConnector alias to fix CamelCase import mismatch in tasks.py without modifying consumer code
+- [Phase 07]: jsonb_extract_path_text used for JSONB property queries instead of getitem operator (SQLAlchemy JSONB operator compatibility)
+- [Phase 07]: Appointment event handlers create own SessionLocal (follows existing sale_completed handler pattern)
+- [Phase 07]: PATCH /agenda/{id}/status added for appointment status updates (no existing status-change endpoint)
+- [Phase 07]: Abandoned cart detection deferred to background task (1h detection window requires periodic check, not synchronous webhook)
 
 ### Pending Todos
 
@@ -149,6 +154,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T08:18:38.398Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-stage-3-oportunidad/07-CONTEXT.md
+Last session: 2026-03-16T09:29:48.902Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None
