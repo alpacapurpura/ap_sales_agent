@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 8 of 11 (Stage 4 Ventas)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-16 — Completed plan 08-00 (Wave 0 test stubs for Stage 4 Ventas)
+Last activity: 2026-03-16 — Completed plan 08-01 (Sales backend: OfferReadPort, SalesMetricsRepo, GET /metrics/sales)
 
 Progress: [█████████░] 91%
 
@@ -63,6 +63,7 @@ Progress: [█████████░] 91%
 | Phase 06 P03 | 1min | 1 tasks | 1 files |
 | Phase 07 P01 | 11min | 3 tasks | 12 files |
 | Phase 07 P02 | 4min | 2 tasks | 9 files |
+| Phase 08 P01 | 6min | 2 tasks | 11 files |
 | Phase 08 P00 | 2min | 1 tasks | 6 files |
 
 ## Accumulated Context
@@ -143,6 +144,10 @@ Recent decisions affecting current work:
 - [Phase 07]: OpportunityDetail panel matches NurtureDetail layout exactly (flex gap-6 KPIs, space-y-2 panel rhythm)
 - [Phase 07]: Inline bottleneck badges computed from metric values in ChannelRow (no prop drilling)
 - [Phase 07]: Proximamente badge extended to checkout-lp and link-enviado with sourceLabel context
+- [Phase 08]: OfferReadPort follows ConnectionPort ABC pattern exactly: defined in analytics.domain.ports, implemented in offer module
+- [Phase 08]: SaleStatus.COMPLETED and SaleStage enum members used directly for PG enum column filtering
+- [Phase 08]: LifecycleTransitionModel.profile_id used for SQL count (not customer_id)
+- [Phase 08]: VALUE_LEVEL_TO_TIER maps 7 OfferValueLevel values to 4 display tiers (backend only)
 - [Phase 08]: Lazy imports inside test functions for RED-state stubs that fail individually per-test
 
 ### Pending Todos
@@ -160,6 +165,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:05:32Z
-Stopped at: Completed 08-00 Wave 0 test stubs
-Resume file: .planning/phases/08-stage-4-ventas/08-00-SUMMARY.md
+Last session: 2026-03-16T15:10:08Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-stage-4-ventas/08-01-SUMMARY.md
