@@ -300,3 +300,68 @@ export interface ExpansionDetailData {
   period: string;
   lastUpdated?: string;
 }
+
+// === Stage 7: Evangelizacion ===
+
+export interface EvangelizationHeaderKpis {
+  kFactor: number;           // X.XX
+  referralConversions: number;
+  npsScore: number | null;   // 0-10 scale, null if no data
+  referralRevenue: number;
+  referralRevenueUsd: number | null;
+  currency: string;
+  activeEvangelists: number;
+}
+
+export interface EvangelistData {
+  customerId: string;
+  fullName: string;
+  referralCode: string;
+  referralsSent: number;
+  conversions: number;
+  revenueAttributed: number;
+  currency: string;
+  usdRevenue: number | null;
+  isActive: boolean;
+}
+
+export interface CandidatoData {
+  customerId: string;
+  fullName: string;
+  npsScore: number;          // 0-10
+  respondedAt: string | null;
+}
+
+export interface NpsSummaryData {
+  npsScore: number | null;   // 0-10 average
+  standardNps: number | null; // -100 to +100
+  promoterCount: number;
+  passiveCount: number;
+  detractorCount: number;
+  totalResponses: number;
+  surveysSent: number;
+  responseRatePct: number;
+}
+
+export interface EvangelizationBottleneck {
+  type: string;
+  metricLabel: string;
+  currentRate: number;
+  severity: 'normal' | 'warning' | 'critical';
+  threshold: number;
+  tip: string;
+}
+
+export interface EvangelizationDetail {
+  headerKpis: EvangelizationHeaderKpis;
+  miniFunnel: MiniFunnelData;
+  referidos: EvangelistData[];
+  candidatos: CandidatoData[];
+  npsSummary: NpsSummaryData;
+  ugcCount: number;
+  ugcWritten: number;
+  ugcAudio: number;
+  bottlenecks: EvangelizationBottleneck[];
+  period: string;
+  lastUpdated?: string;
+}

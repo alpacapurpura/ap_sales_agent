@@ -1,8 +1,8 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, ChannelMetric, MetricValue, ExpansionOfferData, ExpansionGroupData } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL, MOCK_ADOPTION_DETAIL, MOCK_EXPANSION_DETAIL } from './metrics-mock-data';
+import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, ChannelMetric, MetricValue, ExpansionOfferData, ExpansionGroupData } from '../types/metrics';
+import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL, MOCK_ADOPTION_DETAIL, MOCK_EXPANSION_DETAIL, MOCK_EVANGELIZATION_DETAIL } from './metrics-mock-data';
 
 const API_URL = config.api.baseUrl;
 
@@ -284,6 +284,66 @@ function mapExpansionResponse(raw: any): ExpansionDetailData {
     lastUpdated: raw.last_updated,
   };
 }
+function mapEvangelizationResponse(raw: any): EvangelizationDetail {
+  return {
+    headerKpis: {
+      kFactor: raw.header_kpis?.k_factor ?? 0,
+      referralConversions: raw.header_kpis?.referral_conversions ?? 0,
+      npsScore: raw.header_kpis?.nps_score ?? null,
+      referralRevenue: raw.header_kpis?.referral_revenue ?? 0,
+      referralRevenueUsd: raw.header_kpis?.referral_revenue_usd ?? null,
+      currency: raw.header_kpis?.currency ?? 'MXN',
+      activeEvangelists: raw.header_kpis?.active_evangelists ?? 0,
+    },
+    miniFunnel: {
+      sourceLabel: raw.mini_funnel?.source_label ?? 'Clientes Activos',
+      sourceValue: raw.mini_funnel?.source_value ?? 0,
+      targetLabel: raw.mini_funnel?.target_label ?? 'Evangelistas',
+      targetValue: raw.mini_funnel?.target_value ?? 0,
+      conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
+    },
+    referidos: (raw.referidos ?? []).map((e: any) => ({
+      customerId: e.customer_id,
+      fullName: e.full_name,
+      referralCode: e.referral_code,
+      referralsSent: e.referrals_sent,
+      conversions: e.conversions,
+      revenueAttributed: e.revenue_attributed,
+      currency: e.currency ?? 'MXN',
+      usdRevenue: e.usd_revenue ?? null,
+      isActive: e.is_active,
+    })),
+    candidatos: (raw.candidatos ?? []).map((c: any) => ({
+      customerId: c.customer_id,
+      fullName: c.full_name,
+      npsScore: c.nps_score,
+      respondedAt: c.responded_at ?? null,
+    })),
+    npsSummary: {
+      npsScore: raw.nps_summary?.nps_score ?? null,
+      standardNps: raw.nps_summary?.standard_nps ?? null,
+      promoterCount: raw.nps_summary?.promoter_count ?? 0,
+      passiveCount: raw.nps_summary?.passive_count ?? 0,
+      detractorCount: raw.nps_summary?.detractor_count ?? 0,
+      totalResponses: raw.nps_summary?.total_responses ?? 0,
+      surveysSent: raw.nps_summary?.surveys_sent ?? 0,
+      responseRatePct: raw.nps_summary?.response_rate_pct ?? 0,
+    },
+    ugcCount: raw.ugc_count ?? 0,
+    ugcWritten: raw.ugc_written ?? 0,
+    ugcAudio: raw.ugc_audio ?? 0,
+    bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
+      type: b.type,
+      metricLabel: b.metric_label,
+      currentRate: b.current_rate,
+      severity: b.severity,
+      threshold: b.threshold,
+      tip: b.tip,
+    })),
+    period: raw.period ?? 'last_30_days',
+    lastUpdated: raw.last_updated,
+  };
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const metricsApi = {
@@ -424,5 +484,37 @@ export const metricsApi = {
       const data = await res.json();
       return mapExpansionResponse(data);
     } catch (error) { console.warn('Expansion API error -- using mock data:', error); return MOCK_EXPANSION_DETAIL; }
+  },
+
+  getEvangelizationDetail: async (token: string): Promise<EvangelizationDetail> => {
+    if (ENABLE_MOCKS) return MOCK_EVANGELIZATION_DETAIL;
+    try {
+      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/evangelization`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { console.warn('Evangelization API returned', res.status, '-- using mock data'); return MOCK_EVANGELIZATION_DETAIL; }
+      const data = await res.json();
+      return mapEvangelizationResponse(data);
+    } catch (error) { console.warn('Evangelization API error -- using mock data:', error); return MOCK_EVANGELIZATION_DETAIL; }
+  },
+
+  promoteToEvangelist: async (token: string, customerId: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/crm/referrals/promote`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customer_id: customerId }),
+    });
+    if (!res.ok) throw new Error('Failed to promote');
+    return res.json();
+  },
+
+  createNpsSurvey: async (token: string, payload: { customer_id?: string; offer_id?: string; delivery_channel?: string }): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/crm/nps/surveys`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to create survey');
+    return res.json();
   },
 };

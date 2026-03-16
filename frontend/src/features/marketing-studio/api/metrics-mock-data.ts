@@ -1,4 +1,4 @@
-import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData } from '../types/metrics';
+import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail } from '../types/metrics';
 
 export const STAGE_SUMMARIES: StageSummary[] = [
   {
@@ -71,7 +71,7 @@ export const STAGE_SUMMARIES: StageSummary[] = [
     description: 'Clientes que refieren nuevos prospectos activamente',
     mainKpi: { label: 'referidores', value: 85 },
     secondaryKpi: { label: 'referidos/mes', value: 340 },
-    hasDetail: false,
+    hasDetail: true,
   },
 ];
 
@@ -710,6 +710,44 @@ export const MOCK_EXPANSION_DETAIL: ExpansionDetailData = {
       { offerId: 'offer-4', publicName: 'Plan Coaching Mensual', count: 2, revenue: 2300, currency: 'MXN', usdRevenue: 133 },
     ],
   },
+  bottlenecks: [],
+  period: 'last_30_days',
+  lastUpdated: new Date().toISOString(),
+};
+
+export const MOCK_EVANGELIZATION_DETAIL: EvangelizationDetail = {
+  headerKpis: {
+    kFactor: 0.73,
+    referralConversions: 8,
+    npsScore: 8.4,
+    referralRevenue: 24500,
+    referralRevenueUsd: 1360,
+    currency: 'MXN',
+    activeEvangelists: 5,
+  },
+  miniFunnel: { sourceLabel: 'Clientes Activos', sourceValue: 42, targetLabel: 'Evangelistas', targetValue: 5, conversionRate: 11.9 },
+  referidos: [
+    { customerId: 'mock-1', fullName: 'Maria Garcia', referralCode: 'REF-MG2K4X', referralsSent: 6, conversions: 3, revenueAttributed: 12500, currency: 'MXN', usdRevenue: 694, isActive: true },
+    { customerId: 'mock-2', fullName: 'Carlos Lopez', referralCode: 'REF-CL9B7Z', referralsSent: 4, conversions: 2, revenueAttributed: 8000, currency: 'MXN', usdRevenue: 444, isActive: true },
+    { customerId: 'mock-3', fullName: 'Ana Torres', referralCode: 'REF-AT3F1Q', referralsSent: 3, conversions: 1, revenueAttributed: 4000, currency: 'MXN', usdRevenue: 222, isActive: true },
+  ],
+  candidatos: [
+    { customerId: 'mock-4', fullName: 'Roberto Diaz', npsScore: 10, respondedAt: '2026-03-10T14:30:00Z' },
+    { customerId: 'mock-5', fullName: 'Laura Mendez', npsScore: 9, respondedAt: '2026-03-12T09:15:00Z' },
+  ],
+  npsSummary: {
+    npsScore: 8.4,
+    standardNps: 65,
+    promoterCount: 15,
+    passiveCount: 8,
+    detractorCount: 3,
+    totalResponses: 26,
+    surveysSent: 35,
+    responseRatePct: 74.3,
+  },
+  ugcCount: 7,
+  ugcWritten: 5,
+  ugcAudio: 2,
   bottlenecks: [],
   period: 'last_30_days',
   lastUpdated: new Date().toISOString(),
