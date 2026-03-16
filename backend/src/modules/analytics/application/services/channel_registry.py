@@ -100,6 +100,10 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "referral": [
         {"slug": "referral-program", "name": "Referral Program", "channel_type": "referral", "source_label": "Referrals", "provider_name": "internal"},
     ],
+    "evangelization": [
+        {"slug": "referral-organic", "name": "Referidos Organicos", "channel_type": "referral", "source_label": "Codigos de Referido", "provider_name": "internal", "metric_names": ["referrals_sent", "conversions", "revenue"]},
+        {"slug": "nps-surveys", "name": "Encuestas NPS", "channel_type": "survey", "source_label": "NPS", "provider_name": "internal", "metric_names": ["score", "response_rate", "promoters"]},
+    ],
 }
 
 
