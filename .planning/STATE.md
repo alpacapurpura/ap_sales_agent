@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-16T05:46:12.264Z"
-last_activity: 2026-03-16 — Completed plan 05-02 (CaptureDetail panel with MiniFunnel, CostLink, channel groups)
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-16T06:45:22.683Z"
+last_activity: "2026-03-16 — Completed plan 06-01 (Nurture backend: MQL counting, Mailerlite webhook, retargeting providers, StageCostService)"
 progress:
   total_phases: 11
   completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_plans: 17
+  completed_plans: 16
+  percent: 94
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
-**Current focus:** Phase 5 — Stage 1 Captura
+**Current focus:** Phase 6 — Stage 2 Nutricion
 
 ## Current Position
 
-Phase: 5 of 11 (Stage 1 Captura) -- COMPLETE
-Plan: 2 of 2 in current phase (all complete)
-Status: Phase complete
-Last activity: 2026-03-16 — Completed plan 05-02 (CaptureDetail panel with MiniFunnel, CostLink, channel groups)
+Phase: 6 of 11 (Stage 2 Nutricion)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-16 — Completed plan 06-01 (Nurture backend: MQL counting, Mailerlite webhook, retargeting providers, StageCostService)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [██████████] 100%
 | Phase 04 P03 | 6min | 2 tasks | 1 files |
 | Phase 05 P01 | 7min | 3 tasks | 18 files |
 | Phase 05 P02 | 8min | 3 tasks | 10 files |
+| Phase 06 P01 | 9min | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,12 @@ Recent decisions affecting current work:
 - 05-02: Reused TrafficGroup type for both web_infrastructure and ai_agent capture groups
 - 05-02: CostLink defaults to /growth/settings/costs route for cost configuration
 - 05-02: ChannelRow conversations secondary line uses 10px muted text below leads metric
+- 06-01: StageCostService is generic (not nurture-specific) -- reusable for future stages
+- 06-01: Per-group cost/MQL injected into TrafficGroupDTO.totals dict for frontend consumption
+- 06-01: Mailerlite webhook queries CustomerProfileModel.primary_email directly (no find_by_email method)
+- 06-01: Provider retargeting detection: Meta uses custom_audiences on adsets, Google/TikTok use campaign name heuristic
+- 06-01: Legacy /webhooks/mailerlite endpoint preserved for backward compatibility
+- 06-01: ManyChat removed from nurture channels (infrastructure, not visible per CONTEXT.md)
 
 ### Pending Todos
 
@@ -136,6 +143,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T05:46:12.261Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-stage-2-nutricion/06-CONTEXT.md
+Last session: 2026-03-16T06:45:22.681Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None

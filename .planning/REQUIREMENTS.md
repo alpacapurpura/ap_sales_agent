@@ -48,10 +48,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Stage 2 — Nutricion
 
 - [ ] **NUT-01**: Detail panel showing two groups: Retargeting Omnichannel (Meta/Google/TikTok retargeting campaigns) and Automation (newsletters via Mailerlite, AI SDR engagement)
-- [ ] **NUT-02**: Backend endpoint `/metrics/nurturing` tracking MQL conversion — profiles crossing lead_score threshold (e.g., >75 pts)
-- [ ] **NUT-03**: Retargeting metrics from Meta/Google/TikTok APIs filtered to MOFU campaigns (Custom Audiences, remarketing audiences)
-- [ ] **NUT-04**: Mailerlite API integration for newsletter engagement (open_rate, click_rate) contributing to lead scoring
-- [ ] **NUT-05**: Conversion rate: Leads -> MQLs with cost of nurturing per MQL
+- [x] **NUT-02**: Backend endpoint `/metrics/nurturing` tracking MQL conversion — profiles crossing lead_score threshold (e.g., >75 pts)
+- [x] **NUT-03**: Retargeting metrics from Meta/Google/TikTok APIs filtered to MOFU campaigns (Custom Audiences, remarketing audiences)
+- [x] **NUT-04**: Mailerlite API integration for newsletter engagement (open_rate, click_rate) contributing to lead scoring
+- [x] **NUT-05**: Conversion rate: Leads -> MQLs with cost of nurturing per MQL
 
 ### Stage 3 — Oportunidad
 
@@ -162,10 +162,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CAP-04 | Phase 5: Stage 1 Captura | Complete |
 | CAP-05 | Phase 5: Stage 1 Captura | Complete |
 | NUT-01 | Phase 6: Stage 2 Nutricion | Pending |
-| NUT-02 | Phase 6: Stage 2 Nutricion | Pending |
-| NUT-03 | Phase 6: Stage 2 Nutricion | Pending |
-| NUT-04 | Phase 6: Stage 2 Nutricion | Pending |
-| NUT-05 | Phase 6: Stage 2 Nutricion | Pending |
+| NUT-02 | Phase 6: Stage 2 Nutricion | Complete |
+| NUT-03 | Phase 6: Stage 2 Nutricion | Complete |
+| NUT-04 | Phase 6: Stage 2 Nutricion | Complete |
+| NUT-05 | Phase 6: Stage 2 Nutricion | Complete |
 | OPO-01 | Phase 7: Stage 3 Oportunidad | Pending |
 | OPO-02 | Phase 7: Stage 3 Oportunidad | Pending |
 | OPO-03 | Phase 7: Stage 3 Oportunidad | Pending |
