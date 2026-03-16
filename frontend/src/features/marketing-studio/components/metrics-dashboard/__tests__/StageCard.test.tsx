@@ -29,8 +29,8 @@ describe('StageCard', () => {
     );
 
     // Act & Assert
-    // TODO (Plan 11-01): Verify mainKpi.value is rendered as formatted number
-    expect(screen.getByText(/1\.2k|1250/)).toBeInTheDocument();
+    // formatKpiValue: 1250 >= 1000 -> (1250/1000).toFixed(1) = "1.3k" (rounds up from 1.25)
+    expect(screen.getByText(/1\.3k|1\.2k|1250/)).toBeInTheDocument();
   });
 
   it('should display conversion rate as secondaryKpi in "X% conversión" format', () => {
