@@ -28,3 +28,15 @@ def mock_connection_credentials():
         credentials={"access_token": "test-token"},
         config={"page_id": "123456"},
     )
+
+
+@pytest.fixture
+def sample_offer_id() -> UUID:
+    """Fixed offer UUID for test determinism."""
+    return uuid.UUID("22222222-2222-2222-2222-222222222222")
+
+
+@pytest.fixture
+def sample_customer_id() -> UUID:
+    """Fixed customer UUID for test determinism."""
+    return uuid.UUID("33333333-3333-3333-3333-333333333333")
