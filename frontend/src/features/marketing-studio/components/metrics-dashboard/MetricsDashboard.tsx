@@ -12,6 +12,7 @@ import { OpportunityDetail } from './detail-panels/OpportunityDetail';
 import { SalesDetail } from './detail-panels/SalesDetail';
 import { AdoptionDetail } from './detail-panels/AdoptionDetail';
 import { ExpansionDetail } from './detail-panels/ExpansionDetail';
+import { EvangelizationDetail } from './detail-panels/EvangelizationDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 
 export function MetricsDashboard() {
@@ -55,6 +56,8 @@ export function MetricsDashboard() {
               <AdoptionDetail />
             ) : activeStage === 'EXPANSION' ? (
               <ExpansionDetail />
+            ) : activeStage === 'EVANGELIZACION' ? (
+              <EvangelizationDetail />
             ) : (
               <PlaceholderDetail stage={activeStageData} />
             )}
