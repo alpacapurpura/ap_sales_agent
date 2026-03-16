@@ -37,6 +37,7 @@ class TikTokProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
+        stage: str = "attraction",
     ) -> List[ExtractedMetric]:
         access_token = credentials.get("access_token")
         if not access_token:
@@ -49,25 +50,104 @@ class TikTokProvider(BaseMetricsProvider):
         try:
             adapter = TikTokAdapter()
 
-            # Organic metrics
-            organic = await self._extract_organic(
-                adapter, access_token, start_date, end_date
-            )
-            metrics.extend(organic)
-
-            # Ads metrics
-            advertiser_id = credentials.get("advertiser_id")
-            if advertiser_id:
-                ads = await self._extract_ads(
-                    adapter, access_token, advertiser_id, start_date, end_date
+            if stage == "nurturing":
+                # Retargeting: only ads filtered to custom audiences
+                advertiser_id = credentials.get("advertiser_id")
+                if advertiser_id:
+                    retargeting = await self._extract_retargeting(
+                        adapter, access_token, advertiser_id, start_date, end_date
+                    )
+                    metrics.extend(retargeting)
+            else:
+                # Standard attraction-stage extraction
+                # Organic metrics
+                organic = await self._extract_organic(
+                    adapter, access_token, start_date, end_date
                 )
-                metrics.extend(ads)
+                metrics.extend(organic)
+
+                # Ads metrics
+                advertiser_id = credentials.get("advertiser_id")
+                if advertiser_id:
+                    ads = await self._extract_ads(
+                        adapter, access_token, advertiser_id, start_date, end_date
+                    )
+                    metrics.extend(ads)
         except Exception:
             logger.exception(
                 "tiktok_provider_extract_failed tenant=%s", tenant_id
             )
 
         return metrics
+
+    async def _extract_retargeting(
+        self,
+        adapter: TikTokAdapter,
+        access_token: str,
+        advertiser_id: str,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Extract TikTok Ads retargeting metrics (Custom Audience campaigns).
+
+        TODO: TikTok Ads API audience_type filtering requires additional API call
+        to /audience/list to identify Custom Audience IDs, then filter ad groups.
+        Current implementation is best-effort: uses standard ads report and
+        filters by campaign name containing 'retargeting' or 'remarketing'.
+        """
+        try:
+            data = await adapter.get_ads_report(
+                access_token, advertiser_id, start_date, end_date
+            )
+            if not data:
+                return []
+
+            total_reach = 0.0
+            total_clicks = 0.0
+            total_spend = 0.0
+
+            for row in data:
+                # Best-effort retargeting detection by campaign name
+                campaign_name = (row.get("dimensions", {}).get("campaign_name", "") or "").lower()
+                if "retargeting" not in campaign_name and "remarketing" not in campaign_name:
+                    continue
+                row_metrics = row.get("metrics", {})
+                total_reach += float(row_metrics.get("reach", 0))
+                total_clicks += float(row_metrics.get("clicks", 0))
+                total_spend += float(row_metrics.get("spend", 0))
+
+            if total_reach == 0.0 and total_clicks == 0.0 and total_spend == 0.0:
+                return []
+
+            return [
+                ExtractedMetric(
+                    provider="tiktok",
+                    channel_slug="tiktok-retargeting",
+                    metric_name="reach",
+                    value=total_reach,
+                    unit="count",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="tiktok",
+                    channel_slug="tiktok-retargeting",
+                    metric_name="clicks",
+                    value=total_clicks,
+                    unit="count",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="tiktok",
+                    channel_slug="tiktok-retargeting",
+                    metric_name="spend",
+                    value=total_spend,
+                    unit="currency",
+                    date=end_date,
+                ),
+            ]
+        except Exception:
+            logger.exception("tiktok_retargeting_extract_failed")
+            return []
 
     async def _extract_organic(
         self,

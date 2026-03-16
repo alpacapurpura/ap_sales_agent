@@ -12,7 +12,7 @@ Per Phase 1 decision: per-instance API pattern for tenant isolation.
 import json
 import logging
 from datetime import date, datetime
-from typing import Dict, List, Optional
+from typing import List
 from uuid import UUID
 
 import httpx
@@ -43,6 +43,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
+        stage: str = "attraction",
     ) -> List[ExtractedMetric]:
         access_token = credentials.get("access_token")
         if not access_token:
@@ -52,23 +53,31 @@ class MetaProvider(BaseMetricsProvider):
         metrics: List[ExtractedMetric] = []
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                # Instagram organic
-                ig_metrics = await self._extract_instagram_organic(
-                    client, credentials, start_date, end_date
-                )
-                metrics.extend(ig_metrics)
+                if stage == "nurturing":
+                    # Retargeting: only Meta Ads filtered to custom audiences
+                    retargeting_metrics = await self._extract_meta_retargeting(
+                        client, credentials, start_date, end_date
+                    )
+                    metrics.extend(retargeting_metrics)
+                else:
+                    # Standard attraction-stage extraction
+                    # Instagram organic
+                    ig_metrics = await self._extract_instagram_organic(
+                        client, credentials, start_date, end_date
+                    )
+                    metrics.extend(ig_metrics)
 
-                # Facebook page organic
-                fb_metrics = await self._extract_facebook_organic(
-                    client, credentials, start_date, end_date
-                )
-                metrics.extend(fb_metrics)
+                    # Facebook page organic
+                    fb_metrics = await self._extract_facebook_organic(
+                        client, credentials, start_date, end_date
+                    )
+                    metrics.extend(fb_metrics)
 
-                # Meta Ads
-                ads_metrics = await self._extract_meta_ads(
-                    client, credentials, start_date, end_date
-                )
-                metrics.extend(ads_metrics)
+                    # Meta Ads
+                    ads_metrics = await self._extract_meta_ads(
+                        client, credentials, start_date, end_date
+                    )
+                    metrics.extend(ads_metrics)
         except Exception:
             logger.exception("meta_provider_extract_failed tenant=%s", tenant_id)
 
@@ -229,6 +238,88 @@ class MetaProvider(BaseMetricsProvider):
             ]
         except Exception:
             logger.exception("meta_facebook_organic_failed")
+            return []
+
+    async def _extract_meta_retargeting(
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Extract Meta Ads retargeting metrics (adsets with custom_audiences).
+
+        Filters to adsets that target custom audiences (audience-first classification
+        per CONTEXT.md). Uses channel_slug 'meta-retargeting'. Only extracts reach,
+        clicks, spend (no conversions -- those belong in Stage 3).
+
+        NOTE: targeting.custom_audiences lives on adsets, not campaigns (Meta API pitfall).
+        """
+        ad_account_id = credentials.get("ad_account_id")
+        access_token = credentials.get("access_token", "")
+        if not ad_account_id:
+            return []
+
+        try:
+            # Fetch adsets with targeting info to detect custom audiences
+            adsets_resp = await client.get(
+                f"{GRAPH_API_BASE}/act_{ad_account_id}/adsets",
+                params={
+                    "fields": "id,name,targeting,insights.time_range("
+                    + json.dumps({"since": start_date.isoformat(), "until": end_date.isoformat()})
+                    + "){reach,clicks,spend}",
+                    "limit": 200,
+                    "access_token": access_token,
+                },
+            )
+            adsets = adsets_resp.json().get("data", [])
+
+            total_reach = 0.0
+            total_clicks = 0.0
+            total_spend = 0.0
+
+            for adset in adsets:
+                targeting = adset.get("targeting", {})
+                custom_audiences = targeting.get("custom_audiences", [])
+                if not custom_audiences:
+                    continue  # Skip non-retargeting adsets
+
+                insights = adset.get("insights", {}).get("data", [{}])
+                if insights:
+                    data = insights[0]
+                    total_reach += float(data.get("reach", 0))
+                    total_clicks += float(data.get("clicks", 0))
+                    total_spend += float(data.get("spend", 0))
+
+            return [
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="meta-retargeting",
+                    metric_name="reach",
+                    value=total_reach,
+                    unit="count",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="meta-retargeting",
+                    metric_name="clicks",
+                    value=total_clicks,
+                    unit="count",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="meta-retargeting",
+                    metric_name="spend",
+                    value=total_spend,
+                    unit="currency",
+                    currency="USD",
+                    date=end_date,
+                ),
+            ]
+        except Exception:
+            logger.exception("meta_retargeting_extract_failed")
             return []
 
     async def _extract_meta_ads(

@@ -144,6 +144,156 @@ async def run_initial_load(
         db.close()
 
 
+async def run_mailerlite_etl_sync(ctx: dict) -> dict:
+    """Backup ETL sync: fetch Mailerlite campaign stats every 6 hours.
+
+    Retrieves recent campaign activity from Mailerlite API, finds events
+    not yet recorded as journey_events (idempotent via campaign_id + subscriber_email
+    deduplication), creates missing journey_events, and triggers score recalculation
+    for affected profiles.
+
+    This catches events missed by webhooks (webhook downtime, delivery failures).
+    """
+    from sqlalchemy import select, and_
+
+    logger.info("Starting Mailerlite ETL backup sync")
+    db_factory = ctx.get("db_factory")
+    if not db_factory:
+        logger.error("No db_factory in context")
+        return {"status": "error", "reason": "no_db_factory"}
+
+    db = db_factory()
+    try:
+        # 1. Get all tenants with active Mailerlite connections
+        from src.modules.connections.infrastructure.models.channel_connection_model import (
+            ChannelConnectionModel,
+        )
+
+        result = db.execute(
+            select(ChannelConnectionModel).where(
+                and_(
+                    ChannelConnectionModel.channel_type == "mailerlite",
+                    ChannelConnectionModel.is_active == True,  # noqa: E712
+                )
+            )
+        )
+        connections = result.scalars().all()
+
+        synced_count = 0
+        for conn in connections:
+            tenant_id = conn.tenant_id
+            try:
+                # 2. Initialize Mailerlite connector with tenant credentials
+                from src.modules.connections.infrastructure.marketing_connectors.mailerlite import (
+                    MailerLiteConnector,
+                )
+
+                api_key = conn.credentials.get("api_key") if conn.credentials else None
+                if not api_key:
+                    logger.warning(
+                        "No Mailerlite API key for tenant %s, skipping",
+                        tenant_id,
+                    )
+                    continue
+
+                connector = MailerLiteConnector(api_key=api_key)
+
+                # 3. Fetch recent campaign activity (last 7 hours to overlap with 6h interval)
+                # NOTE: get_recent_campaign_activity() may not be implemented yet.
+                if not hasattr(connector, "get_recent_campaign_activity"):
+                    logger.warning(
+                        "MailerLiteConnector.get_recent_campaign_activity() not implemented yet. "
+                        "Skipping tenant %s. Add method to connector when Mailerlite API "
+                        "integration is complete.",
+                        tenant_id,
+                    )
+                    continue
+
+                activities = await connector.get_recent_campaign_activity(hours=7)
+
+                # 4. For each activity, check if journey_event already exists
+                from src.modules.crm.infrastructure.models.customer_model import (
+                    CustomerProfileModel,
+                    JourneyEventModel,
+                )
+                from src.modules.crm.application.services.lifecycle_service import (
+                    LifecycleService,
+                )
+
+                lifecycle_svc = LifecycleService(db)
+
+                for activity in activities:
+                    email = activity.get("email")
+                    campaign_id = activity.get("campaign_id")
+                    event_type = activity.get("event_type")  # "open" or "click"
+
+                    # Look up profile by email
+                    profile_result = db.execute(
+                        select(CustomerProfileModel).where(
+                            and_(
+                                CustomerProfileModel.tenant_id == tenant_id,
+                                CustomerProfileModel.primary_email == email,
+                                CustomerProfileModel.is_inactive == False,  # noqa: E712
+                            )
+                        )
+                    )
+                    profile = profile_result.scalar_one_or_none()
+                    if not profile:
+                        continue
+
+                    event_name = "email_opened" if event_type == "open" else "email_clicked"
+
+                    # Dedup: check if this exact event already exists
+                    from sqlalchemy.dialects.postgresql import JSONB
+
+                    existing = db.execute(
+                        select(JourneyEventModel.id).where(
+                            and_(
+                                JourneyEventModel.profile_id == profile.id,
+                                JourneyEventModel.tenant_id == tenant_id,
+                                JourneyEventModel.event_name == event_name,
+                                JourneyEventModel.properties["campaign_id"].astext == str(campaign_id),
+                            )
+                        )
+                    )
+                    if existing.scalar_one_or_none():
+                        continue  # Already recorded
+
+                    # 5. Create missing journey_event
+                    journey_event = JourneyEventModel(
+                        profile_id=profile.id,
+                        tenant_id=tenant_id,
+                        event_name=event_name,
+                        event_type="track",
+                        properties={
+                            "campaign_id": str(campaign_id),
+                            "campaign_name": activity.get("campaign_name", ""),
+                            "source": "mailerlite_etl_sync",
+                        },
+                    )
+                    db.add(journey_event)
+
+                    # 6. Recalculate score for affected profile
+                    lifecycle_svc.recalculate_score(profile.id, tenant_id)
+                    synced_count += 1
+
+                db.commit()
+            except Exception as e:
+                logger.error("Mailerlite ETL sync failed for tenant %s: %s", tenant_id, e)
+                db.rollback()
+
+        logger.info("Mailerlite ETL backup sync complete: %d events synced", synced_count)
+        return {"status": "ok", "synced": synced_count}
+
+    except Exception:
+        logger.exception("Mailerlite ETL backup sync failed globally")
+        db.rollback()
+        return {"status": "error", "reason": "global_failure"}
+
+    finally:
+        db.close()
+
+
 async def run_inactivity_detection(ctx: dict) -> dict:
     """Batch job: flag inactive profiles and apply score decay.
 

@@ -57,6 +57,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
+        stage: str = "attraction",
     ) -> List[ExtractedMetric]:
         customer_id = credentials.get("customer_id")
         developer_token = credentials.get(
@@ -88,12 +89,50 @@ class GoogleAdsProvider(BaseMetricsProvider):
             if not rows:
                 return []
 
+            if stage == "nurturing":
+                return self._aggregate_retargeting(rows, end_date)
+
             return self._aggregate_by_channel(rows, end_date)
         except Exception:
             logger.exception(
                 "google_ads_provider_extract_failed tenant=%s", tenant_id
             )
             return []
+
+    def _aggregate_retargeting(
+        self, rows: List[dict], metric_date: date
+    ) -> List[ExtractedMetric]:
+        """Aggregate remarketing campaign rows into google-retargeting slug.
+
+        TODO: Google Ads remarketing detection differs from Meta -- uses UserList
+        criterion at ad group level. Current implementation is best-effort: filters
+        campaigns with 'remarketing' or 'retargeting' in name. Full ad_group_criterion
+        filtering requires additional GAQL query with ad_group_criterion.type = USER_LIST.
+        """
+        data = {"reach": 0.0, "clicks": 0.0, "spend": 0.0}
+
+        for row in rows:
+            campaign_name = (row.get("campaign_name", "") or "").lower()
+            if "remarketing" in campaign_name or "retargeting" in campaign_name:
+                data["reach"] += float(row.get("impressions", 0))
+                data["clicks"] += float(row.get("clicks", 0))
+                data["spend"] += float(row.get("cost_micros", 0)) / 1_000_000
+
+        if all(v == 0.0 for v in data.values()):
+            return []
+
+        return [
+            ExtractedMetric(
+                provider="google_ads",
+                channel_slug="google-retargeting",
+                metric_name=metric_name,
+                value=value,
+                unit="currency" if metric_name == "spend" else "count",
+                currency="USD" if metric_name == "spend" else None,
+                date=metric_date,
+            )
+            for metric_name, value in data.items()
+        ]
 
     def _aggregate_by_channel(
         self, rows: List[dict], metric_date: date
