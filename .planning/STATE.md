@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-03-16T17:24:12.011Z"
-last_activity: "2026-03-16 — Completed plan 08-02 (Sales frontend: SalesDetail panel with offer cards, tier groups, dual-currency KPIs)"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-16T17:23:00Z"
+last_activity: "2026-03-16 -- Completed plan 09-01 (Adoption panel: health tracking per offer, CSS health bar, TTV, bottleneck detection)"
 progress:
   total_phases: 11
   completed_phases: 9
@@ -155,6 +155,9 @@ Recent decisions affecting current work:
 - [Phase 08]: SalesBottleneck separate type from BottleneckData (different shape: message/tip vs metricLabel/currentRate/threshold)
 - [Phase 08]: useSalesDetail follows useAuth+metricsApi pattern (matches existing hooks, not tenantId prop pattern)
 - [Phase 08]: Dual currency formatting via Intl.NumberFormat with es-MX for MXN and en-US for USD
+- [Phase 09]: HealthBar uses CSS proportional widths (no chart library) with min 1% visual width for non-zero segments
+- [Phase 09]: BottleneckBanner reused from OpportunityDetail via BottleneckData type casting for adoption bottlenecks
+- [Phase 09]: Header KPI customer counts use distinct total query to avoid double-counting across offers
 - [Phase 09]: Renewal classification via jsonb_extract_path_text(metadata_info, event_name) = subscription_cycle
 - [Phase 09]: Churn lost revenue estimated from last EXPANSION sale per churned customer via SQL window function
 - [Phase 09]: KpiTooltip as reusable standalone component with shadcn Tooltip for plain-Spanish KPI hints
@@ -174,6 +177,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T17:24:12.007Z
-Stopped at: Completed 09-02-PLAN.md
-Resume file: None
+Last session: 2026-03-16T17:23:00Z
+Stopped at: Completed 09-01-PLAN.md (Adoption panel)
+Resume file: .planning/phases/09-stages-5-6-adoption-expansion/09-02-PLAN.md

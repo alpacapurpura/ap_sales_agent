@@ -71,10 +71,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Stage 5 — Adopcion
 
-- [ ] **ADO-01**: Detail panel showing customer health cohort per service sold: active users vs inactive users
-- [ ] **ADO-02**: Backend endpoint `/metrics/adoption` tracking product usage via `journey_events` post-purchase
-- [ ] **ADO-03**: Time-to-Value indicator — days from purchase to first meaningful engagement event
-- [ ] **ADO-04**: Inactivity as bottleneck — high inactive ratio predicts churn in next 30 days, flagged visually
+- [x] **ADO-01**: Detail panel showing customer health cohort per service sold: active users vs inactive users
+- [x] **ADO-02**: Backend endpoint `/metrics/adoption` tracking product usage via `journey_events` post-purchase
+- [x] **ADO-03**: Time-to-Value indicator — days from purchase to first meaningful engagement event
+- [x] **ADO-04**: Inactivity as bottleneck — high inactive ratio predicts churn in next 30 days, flagged visually
 
 ### Stage 6 — Expansion
 
@@ -176,10 +176,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VEN-03 | Phase 8: Stage 4 Ventas | Complete |
 | VEN-04 | Phase 8: Stage 4 Ventas | Complete |
 | VEN-05 | Phase 8: Stage 4 Ventas | Complete |
-| ADO-01 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
-| ADO-02 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
-| ADO-03 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
-| ADO-04 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| ADO-01 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
+| ADO-02 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
+| ADO-03 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
+| ADO-04 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
 | EXP-01 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
 | EXP-02 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
 | EXP-03 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
