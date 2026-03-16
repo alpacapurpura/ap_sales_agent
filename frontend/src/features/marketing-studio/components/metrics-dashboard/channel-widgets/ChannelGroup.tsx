@@ -56,6 +56,19 @@ function buildSummary(groupType: GroupType, totals: Record<string, number>, chan
       const costStr = costPerMql != null ? ` | Costo/MQL: $${costPerMql.toFixed(2)}` : '';
       return `Emails: ${formatNumber(totals.emails_sent ?? 0)} | Apertura: ${(totals.open_rate ?? 0).toFixed(1)}% | Click Rate: ${(totals.click_rate ?? 0).toFixed(1)}%${costStr}`;
     }
+    case 'checkout': {
+      const abandonRate = totals.abandonment_rate;
+      const abandonStr = abandonRate != null ? ` | Tasa Abandono: ${abandonRate.toFixed(1)}%` : '';
+      return `Checkouts: ${formatNumber(totals.count ?? 0)} | Abandonos: ${formatNumber(totals.abandoned ?? 0)} | Valor: ${formatCurrency(totals.value ?? 0)}${abandonStr}`;
+    }
+    case 'payment_links': {
+      return `Links: ${formatNumber(totals.count ?? 0)} | Valor: ${formatCurrency(totals.value ?? 0)}`;
+    }
+    case 'qualification': {
+      const attended = totals.attendance_rate;
+      const attendStr = attended != null ? ` | Asistencia: ${attended.toFixed(1)}%` : '';
+      return `Reuniones: ${formatNumber(totals.booked ?? 0)} | Completadas: ${formatNumber(totals.completed ?? 0)} | No-show: ${formatNumber(totals.no_show ?? 0)}${attendStr}`;
+    }
     case 'available':
       return `${channelCount} canales por configurar`;
     default:

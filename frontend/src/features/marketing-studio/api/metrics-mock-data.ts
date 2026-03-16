@@ -1,4 +1,4 @@
-import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail } from '../types/metrics';
+import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail } from '../types/metrics';
 
 export const STAGE_SUMMARIES: StageSummary[] = [
   {
@@ -35,7 +35,7 @@ export const STAGE_SUMMARIES: StageSummary[] = [
     description: 'Leads calificados listos para recibir una oferta',
     mainKpi: { label: 'SQLs', value: 850 },
     secondaryKpi: { label: 'pipeline value', value: 425000, unit: '$' },
-    hasDetail: false,
+    hasDetail: true,
   },
   {
     id: 'VENTAS',
@@ -427,6 +427,100 @@ export const MOCK_NURTURE_DETAIL: NurtureDetail = {
       },
     ],
   },
+  period: 'last_30_days',
+  lastUpdated: new Date().toISOString(),
+};
+
+export const MOCK_OPPORTUNITY_DETAIL: OpportunityDetail = {
+  headerKpis: {
+    totalSqls: 69,
+    conversionRate: 32.9,
+    costPerSql: 145.50,
+  },
+  miniFunnel: {
+    sourceLabel: 'MQLs',
+    sourceValue: 210,
+    targetLabel: 'SQLs',
+    targetValue: 69,
+    conversionRate: 32.9,
+  },
+  checkout: {
+    channels: [
+      {
+        slug: 'checkout-init',
+        name: 'Checkout Iniciado',
+        channelType: 'checkout',
+        sourceLabel: 'Shopify',
+        connected: true,
+        metrics: [
+          { name: 'count', value: 38 },
+          { name: 'value', value: 12450.00, unit: 'currency', currency: 'USD' },
+        ],
+      },
+      {
+        slug: 'abandoned-cart',
+        name: 'Carrito Abandonado',
+        channelType: 'checkout',
+        sourceLabel: 'Shopify',
+        connected: true,
+        metrics: [
+          { name: 'count', value: 14 },
+          { name: 'value', value: 4200.00, unit: 'currency', currency: 'USD' },
+          { name: 'abandonment_rate', value: 36.8 },
+        ],
+      },
+    ],
+    totals: { count: 38, abandoned: 14, value: 12450.00, abandonment_rate: 36.8 },
+  },
+  paymentLinks: {
+    channels: [
+      {
+        slug: 'link-enviado',
+        name: 'Link de Pago Enviado',
+        channelType: 'payment',
+        sourceLabel: 'Sales Agent',
+        connected: true,
+        metrics: [],
+      },
+      {
+        slug: 'checkout-lp',
+        name: 'Checkout Landing Page',
+        channelType: 'payment',
+        sourceLabel: 'Landing Page',
+        connected: true,
+        metrics: [],
+      },
+    ],
+    totals: { count: 0, value: 0 },
+  },
+  qualification: {
+    channels: [
+      {
+        slug: 'meeting-booked',
+        name: 'Reuniones Agendadas',
+        channelType: 'scheduling',
+        sourceLabel: 'Scheduling',
+        connected: true,
+        metrics: [
+          { name: 'booked', value: 24 },
+          { name: 'completed', value: 18 },
+          { name: 'no_show', value: 3 },
+          { name: 'rescheduled', value: 3 },
+        ],
+      },
+    ],
+    totals: { booked: 24, completed: 18, no_show: 3, rescheduled: 3, attendance_rate: 75.0 },
+  },
+  bottlenecks: [
+    {
+      type: 'abandoned_cart',
+      metricLabel: 'Tasa de Abandono',
+      currentRate: 36.8,
+      severity: 'warning',
+      threshold: 30,
+      tip: 'Revisa tu proceso de pago y considera email de recuperacion de carrito',
+    },
+  ],
   period: 'last_30_days',
   lastUpdated: new Date().toISOString(),
 };

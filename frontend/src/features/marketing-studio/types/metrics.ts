@@ -24,7 +24,7 @@ export interface MetricValue {
   breakdown?: Record<string, number>;
 }
 
-export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'available';
+export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'checkout' | 'payment_links' | 'qualification' | 'available';
 
 export interface ChannelMetric {
   slug: string;
@@ -109,6 +109,37 @@ export interface NurtureDetail {
   miniFunnel: MiniFunnelData;
   retargeting: TrafficGroup;
   automation: TrafficGroup;
+  available?: AvailableChannels;
+  period: string;
+  lastUpdated?: string;
+}
+
+// === Opportunity (Stage 3) Types ===
+
+export type OpportunityGroupType = 'checkout' | 'payment_links' | 'qualification' | 'available';
+
+export interface OpportunityHeaderKpis {
+  totalSqls: number;
+  conversionRate: number;        // percentage 0-100 (MQL -> SQL)
+  costPerSql: number | null;     // null = unconfigured
+}
+
+export interface BottleneckData {
+  type: 'abandoned_cart' | 'meeting_no_show';
+  metricLabel: string;
+  currentRate: number;           // percentage 0-100
+  severity: 'normal' | 'warning' | 'critical';
+  threshold: number;
+  tip: string;
+}
+
+export interface OpportunityDetail {
+  headerKpis: OpportunityHeaderKpis;
+  miniFunnel: MiniFunnelData;    // reuse existing type
+  checkout: TrafficGroup;
+  paymentLinks: TrafficGroup;
+  qualification: TrafficGroup;
+  bottlenecks: BottleneckData[];
   available?: AvailableChannels;
   period: string;
   lastUpdated?: string;

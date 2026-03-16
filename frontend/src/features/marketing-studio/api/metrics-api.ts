@@ -1,8 +1,8 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, NurtureDetail, ChannelMetric, MetricValue } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL } from './metrics-mock-data';
+import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, ChannelMetric, MetricValue } from '../types/metrics';
+import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL } from './metrics-mock-data';
 
 const API_URL = config.api.baseUrl;
 
@@ -93,6 +93,36 @@ function mapNurtureResponse(raw: any): NurtureDetail {
     lastUpdated: raw.last_updated ?? undefined,
   };
 }
+function mapOpportunityResponse(raw: any): OpportunityDetail {
+  return {
+    headerKpis: {
+      totalSqls: raw.header_kpis?.total_sqls ?? 0,
+      conversionRate: raw.header_kpis?.conversion_rate ?? 0,
+      costPerSql: raw.header_kpis?.cost_per_sql ?? null,
+    },
+    miniFunnel: {
+      sourceLabel: raw.mini_funnel?.source_label ?? 'MQLs',
+      sourceValue: raw.mini_funnel?.source_value ?? 0,
+      targetLabel: raw.mini_funnel?.target_label ?? 'SQLs',
+      targetValue: raw.mini_funnel?.target_value ?? 0,
+      conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
+    },
+    checkout: mapGroup(raw.checkout),
+    paymentLinks: mapGroup(raw.payment_links),
+    qualification: mapGroup(raw.qualification),
+    bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
+      type: b.type,
+      metricLabel: b.metric_label,
+      currentRate: b.current_rate,
+      severity: b.severity,
+      threshold: b.threshold,
+      tip: b.tip,
+    })),
+    available: raw.available ? { channels: (raw.available.channels ?? []).map(mapChannel) } : undefined,
+    period: raw.period ?? 'last_30_days',
+    lastUpdated: raw.last_updated,
+  };
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const metricsApi = {
@@ -162,6 +192,29 @@ export const metricsApi = {
     } catch (error) {
       console.warn('Nurture API error -- using mock data:', error);
       return MOCK_NURTURE_DETAIL;
+    }
+  },
+
+  getOpportunityDetail: async (token: string): Promise<OpportunityDetail> => {
+    if (ENABLE_MOCKS) {
+      return MOCK_OPPORTUNITY_DETAIL;
+    }
+
+    try {
+      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/opportunity`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        console.warn('Opportunity API returned', res.status, '-- using mock data');
+        return MOCK_OPPORTUNITY_DETAIL;
+      }
+
+      const data = await res.json();
+      return mapOpportunityResponse(data);
+    } catch (error) {
+      console.warn('Opportunity API error -- using mock data:', error);
+      return MOCK_OPPORTUNITY_DETAIL;
     }
   },
 };

@@ -33,6 +33,11 @@ const CHANNEL_ICONS: Record<string, string> = {
   'google-retargeting': '\uD83C\uDFAF',
   'tiktok-retargeting': '\uD83C\uDFB5',
   'ai-sdr': '\uD83E\uDD16',
+  'checkout-init': '\uD83D\uDED2',
+  'abandoned-cart': '\u26A0\uFE0F',
+  'link-enviado': '\uD83D\uDD17',
+  'checkout-lp': '\uD83D\uDCBB',
+  'meeting-booked': '\uD83D\uDCC5',
 };
 
 /** Metric name -> Spanish label mapping. */
@@ -56,6 +61,14 @@ const METRIC_LABELS: Record<string, string> = {
   followups: 'Follow-ups',
   response_rate: 'Respuestas',
   campaigns: 'Campanas',
+  count: 'Cantidad',
+  value: 'Valor',
+  abandonment_rate: 'Abandono',
+  booked: 'Agendadas',
+  completed: 'Completadas',
+  no_show: 'No-Show',
+  rescheduled: 'Reprogramadas',
+  attendance_rate: 'Asistencia',
 };
 
 /** Breakdown key -> Spanish label. */
@@ -144,13 +157,20 @@ export function ChannelRow({ channel }: ChannelRowProps) {
     );
   }
 
-  // AI SDR with no data: show "Proximamente" badge
-  if (channel.slug === 'ai-sdr' && (channel.metrics.length === 0 || channel.metrics.every(m => m.value === 0))) {
+  // AI SDR / checkout-lp / link-enviado with no data: show "Proximamente" badge
+  const isProximamente =
+    (channel.slug === 'ai-sdr' && (channel.metrics.length === 0 || channel.metrics.every(m => m.value === 0))) ||
+    channel.slug === 'checkout-lp' ||
+    (channel.slug === 'link-enviado' && channel.metrics.length === 0);
+  if (isProximamente) {
     return (
       <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors">
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-lg shrink-0">{CHANNEL_ICONS[channel.slug] ?? '\uD83D\uDCCA'}</span>
-          <p className="text-sm font-medium truncate">{channel.name}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{channel.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{channel.sourceLabel}</p>
+          </div>
         </div>
         <Badge variant="secondary">Proximamente</Badge>
       </div>
@@ -168,6 +188,32 @@ export function ChannelRow({ channel }: ChannelRowProps) {
   // Render metrics, excluding conversations (shown as secondary line) and handling CostLink
   const displayMetrics = channel.metrics.filter(m => m.name !== 'conversations');
 
+  // Inline bottleneck badge for abandoned-cart
+  const abandonmentMetric = channel.slug === 'abandoned-cart'
+    ? channel.metrics.find(m => m.name === 'abandonment_rate')
+    : undefined;
+  const abandonmentBadge = abandonmentMetric && abandonmentMetric.value > 50
+    ? 'critical'
+    : abandonmentMetric && abandonmentMetric.value > 30
+      ? 'warning'
+      : null;
+
+  // Inline bottleneck badge for meeting-booked no-show rate
+  const bookedMetric = channel.slug === 'meeting-booked'
+    ? channel.metrics.find(m => m.name === 'booked')
+    : undefined;
+  const noShowMetric = channel.slug === 'meeting-booked'
+    ? channel.metrics.find(m => m.name === 'no_show')
+    : undefined;
+  const noShowRate = bookedMetric && bookedMetric.value > 0 && noShowMetric
+    ? noShowMetric.value / bookedMetric.value
+    : 0;
+  const noShowBadge = noShowRate > 0.40
+    ? 'critical'
+    : noShowRate > 0.20
+      ? 'warning'
+      : null;
+
   // Determine if this channel should be wrapped with CampaignDrillDown
   const shouldWrapWithDrillDown = channel.channelType === 'retargeting' || channel.channelType === 'email';
   // campaigns would come from channel data when available; empty array for now
@@ -183,6 +229,26 @@ export function ChannelRow({ channel }: ChannelRowProps) {
             {channel.stale && (
               <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 dark:text-yellow-400 text-[10px] py-0">
                 Desactualizado
+              </Badge>
+            )}
+            {abandonmentBadge === 'warning' && (
+              <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 dark:text-yellow-400 text-[10px] py-0">
+                Alerta
+              </Badge>
+            )}
+            {abandonmentBadge === 'critical' && (
+              <Badge variant="outline" className="border-red-500/50 text-red-600 dark:text-red-400 text-[10px] py-0">
+                Critico
+              </Badge>
+            )}
+            {noShowBadge === 'warning' && (
+              <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 dark:text-yellow-400 text-[10px] py-0">
+                Alerta
+              </Badge>
+            )}
+            {noShowBadge === 'critical' && (
+              <Badge variant="outline" className="border-red-500/50 text-red-600 dark:text-red-400 text-[10px] py-0">
+                Critico
               </Badge>
             )}
           </div>
