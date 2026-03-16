@@ -140,6 +140,27 @@ async def get_sales_metrics(
     return await service.get_sales_metrics(user.tenant_id, start_date, now)
 
 
+@router.get("/adoption", response_model=AdoptionDetailDTO)
+async def get_adoption_metrics(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get Adoption (Stage 5) detail panel metrics.
+
+    Returns customer health post-purchase: active vs inactive per offer,
+    health percentage, Time-to-Value, refunds, and bottleneck alerts.
+    """
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    offer_port = OfferReadPortImpl(db)
+    service = MetricsService(
+        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+    )
+    now = datetime.now(timezone.utc)
+    start_date = now - timedelta(days=30)
+    return await service.get_adoption_metrics(user.tenant_id, start_date, now)
+
+
 @router.get("/expansion", response_model=ExpansionDetailDTO)
 async def get_expansion_metrics(
     db: Session = Depends(get_db),
