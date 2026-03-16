@@ -10,8 +10,8 @@ progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 23
-  completed_plans: 21
-  percent: 91
+  completed_plans: 22
+  percent: 96
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 8 of 11 (Stage 4 Ventas)
-Plan: 2 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-16 — Completed plan 08-01 (Sales backend: OfferReadPort, SalesMetricsRepo, GET /metrics/sales)
+Last activity: 2026-03-16 — Completed plan 08-02 (Sales frontend: SalesDetail panel with offer cards, tier groups, dual-currency KPIs)
 
-Progress: [█████████░] 91%
+Progress: [█████████▌] 96%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [█████████░] 91%
 | Phase 07 P02 | 4min | 2 tasks | 9 files |
 | Phase 08 P01 | 6min | 2 tasks | 11 files |
 | Phase 08 P00 | 2min | 1 tasks | 6 files |
+| Phase 08 P02 | 4min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,9 @@ Recent decisions affecting current work:
 - [Phase 08]: LifecycleTransitionModel.profile_id used for SQL count (not customer_id)
 - [Phase 08]: VALUE_LEVEL_TO_TIER maps 7 OfferValueLevel values to 4 display tiers (backend only)
 - [Phase 08]: Lazy imports inside test functions for RED-state stubs that fail individually per-test
+- [Phase 08]: SalesBottleneck separate type from BottleneckData (different shape: message/tip vs metricLabel/currentRate/threshold)
+- [Phase 08]: useSalesDetail follows useAuth+metricsApi pattern (matches existing hooks, not tenantId prop pattern)
+- [Phase 08]: Dual currency formatting via Intl.NumberFormat with es-MX for MXN and en-US for USD
 
 ### Pending Todos
 
@@ -165,6 +169,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:10:08Z
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-stage-4-ventas/08-01-SUMMARY.md
+Last session: 2026-03-16T15:18:21Z
+Stopped at: Completed 08-02-PLAN.md
+Resume file: .planning/phases/08-stage-4-ventas/08-02-SUMMARY.md
