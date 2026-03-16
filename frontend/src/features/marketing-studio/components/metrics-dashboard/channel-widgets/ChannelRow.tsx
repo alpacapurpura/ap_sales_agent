@@ -4,41 +4,11 @@ import { useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { ChannelMetric, CampaignMetric, MetricValue } from '../../../types/metrics';
+import type { ChannelMetric, CampaignMetric, MetricValue, MetricClickData, StageId } from '../../../types/metrics';
 import { ConnectionBadge } from './ConnectionBadge';
 import { CostLink } from './CostLink';
 import { CampaignDrillDown } from './CampaignDrillDown';
-
-const CHANNEL_ICONS: Record<string, string> = {
-  'ig-organic': '\uD83D\uDCF8',
-  'yt-organic': '\u25B6\uFE0F',
-  'fb-organic': '\uD83D\uDC64',
-  'tiktok-organic': '\uD83C\uDFB5',
-  'linkedin-organic': '\uD83D\uDCBC',
-  'google-organic': '\uD83D\uDD0D',
-  'direct': '\uD83D\uDD17',
-  'ai-search-organic': '\uD83E\uDD16',
-  'meta-ads': '\uD83D\uDCE2',
-  'google-ads': '\uD83C\uDFAF',
-  'tiktok-ads': '\uD83C\uDFB5',
-  'yt-ads': '\u25B6\uFE0F',
-  'cold-contact': '\uD83D\uDCDE',
-  'landing-form': '\uD83D\uDCC4',
-  'mailerlite': '\uD83D\uDCE7',
-  'ig-dm': '\uD83D\uDCF8',
-  'fb-messenger': '\uD83D\uDCAC',
-  'tiktok-dm': '\uD83C\uDFB5',
-  'whatsapp-inbound': '\uD83D\uDCF1',
-  'meta-retargeting': '\uD83D\uDCE2',
-  'google-retargeting': '\uD83C\uDFAF',
-  'tiktok-retargeting': '\uD83C\uDFB5',
-  'ai-sdr': '\uD83E\uDD16',
-  'checkout-init': '\uD83D\uDED2',
-  'abandoned-cart': '\u26A0\uFE0F',
-  'link-enviado': '\uD83D\uDD17',
-  'checkout-lp': '\uD83D\uDCBB',
-  'meeting-booked': '\uD83D\uDCC5',
-};
+import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 
 /** Metric name -> Spanish label mapping. */
 const METRIC_LABELS: Record<string, string> = {
@@ -69,6 +39,8 @@ const METRIC_LABELS: Record<string, string> = {
   no_show: 'No-Show',
   rescheduled: 'Reprogramadas',
   attendance_rate: 'Asistencia',
+  impressions: 'Impresiones',
+  visitors: 'Visitantes',
 };
 
 /** Breakdown key -> Spanish label. */
@@ -98,14 +70,23 @@ function formatBreakdown(breakdown: Record<string, number>): string {
     .join(', ');
 }
 
-function MetricDisplay({ metric }: { metric: MetricValue }) {
+interface MetricDisplayProps {
+  metric: MetricValue;
+  channelSlug?: string;
+  stageId?: StageId;
+  onMetricClick?: (metric: MetricClickData) => void;
+}
+
+function MetricDisplay({ metric, channelSlug, stageId, onMetricClick }: MetricDisplayProps) {
   const label = METRIC_LABELS[metric.name] ?? metric.name;
   const isCurrency = metric.unit === 'currency';
   const formatted = isCurrency
     ? formatCurrency(metric.value, metric.currency)
     : formatNumber(metric.value);
 
-  return (
+  const canClick = onMetricClick && channelSlug && stageId;
+
+  const content = (
     <div className="flex flex-col items-end min-w-[60px]">
       <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</span>
       <span className="text-sm font-semibold tabular-nums">{formatted}</span>
@@ -116,15 +97,42 @@ function MetricDisplay({ metric }: { metric: MetricValue }) {
       )}
     </div>
   );
+
+  if (canClick) {
+    return (
+      <button
+        onClick={() => onMetricClick({
+          stageId,
+          channelSlug,
+          metricName: metric.name,
+          currentValue: metric.value,
+          currency: metric.currency,
+        })}
+        className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+        title={`Ver detalle: ${label}`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return content;
 }
 
 interface ChannelRowProps {
   channel: ChannelMetric;
+  /** Stage context — used for MetricClickData when onMetricClick is provided */
+  stageId?: StageId;
+  /** Callback when user clicks a metric value to open drill-down sidebar */
+  onMetricClick?: (metric: MetricClickData) => void;
 }
 
-export function ChannelRow({ channel }: ChannelRowProps) {
+export function ChannelRow({ channel, stageId, onMetricClick }: ChannelRowProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [cooldown, setCooldown] = useState(false);
+
+  const Icon = getChannelIcon(channel.slug);
+  const iconColor = getChannelColor(channel.slug);
 
   const handleRefresh = useCallback(async () => {
     if (refreshing || cooldown) return;
@@ -147,9 +155,9 @@ export function ChannelRow({ channel }: ChannelRowProps) {
   // Available (unconnected) channels: only show name + Configurar badge
   if (!channel.connected) {
     return (
-      <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors">
+      <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors duration-100">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-lg shrink-0">{CHANNEL_ICONS[channel.slug] ?? '\uD83D\uDCCA'}</span>
+          <Icon className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} aria-hidden="true" />
           <p className="text-sm font-medium truncate">{channel.name}</p>
         </div>
         <ConnectionBadge connected={false} />
@@ -164,9 +172,9 @@ export function ChannelRow({ channel }: ChannelRowProps) {
     (channel.slug === 'link-enviado' && channel.metrics.length === 0);
   if (isProximamente) {
     return (
-      <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors">
+      <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors duration-100">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-lg shrink-0">{CHANNEL_ICONS[channel.slug] ?? '\uD83D\uDCCA'}</span>
+          <Icon className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} aria-hidden="true" />
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">{channel.name}</p>
             <p className="text-xs text-muted-foreground truncate">{channel.sourceLabel}</p>
@@ -216,13 +224,17 @@ export function ChannelRow({ channel }: ChannelRowProps) {
 
   // Determine if this channel should be wrapped with CampaignDrillDown
   const shouldWrapWithDrillDown = channel.channelType === 'retargeting' || channel.channelType === 'email';
-  // campaigns would come from channel data when available; empty array for now
   const campaigns: CampaignMetric[] = (channel as unknown as Record<string, unknown>).campaigns as CampaignMetric[] ?? [];
 
   const rowContent = (
-    <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors">
+    <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-primary/5 transition-all duration-100 ease-out group">
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-lg shrink-0">{CHANNEL_ICONS[channel.slug] ?? '\uD83D\uDCCA'}</span>
+        {/* Brand icon replacing emoji placeholder */}
+        <Icon
+          className="w-5 h-5 flex-shrink-0 transition-transform duration-100 group-hover:scale-110"
+          style={{ color: iconColor }}
+          aria-hidden="true"
+        />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium truncate">{channel.name}</p>
@@ -261,7 +273,8 @@ export function ChannelRow({ channel }: ChannelRowProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      {/* Metrics area — responsive: flex-col on mobile, flex-row on sm+ */}
+      <div className="flex flex-row items-center gap-2 sm:gap-3 shrink-0 flex-wrap justify-end">
         {hasNoData && !hasZeroLeads ? (
           <div className="flex flex-col items-end">
             <span className="text-sm font-semibold text-muted-foreground">---</span>
@@ -281,8 +294,9 @@ export function ChannelRow({ channel }: ChannelRowProps) {
 
             // Leads metric with conversations secondary line
             if (m.name === 'leads' && conversationsMetric) {
-              return (
-                <div key={m.name} className="flex flex-col items-end min-w-[60px]">
+              const canClick = onMetricClick && stageId;
+              const leadsContent = (
+                <div className="flex flex-col items-end min-w-[60px]">
                   <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
                     {METRIC_LABELS[m.name] ?? m.name}
                   </span>
@@ -292,9 +306,35 @@ export function ChannelRow({ channel }: ChannelRowProps) {
                   </span>
                 </div>
               );
+              if (canClick) {
+                return (
+                  <button
+                    key={m.name}
+                    onClick={() => onMetricClick({
+                      stageId,
+                      channelSlug: channel.slug,
+                      metricName: m.name,
+                      currentValue: m.value,
+                    })}
+                    className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    title={`Ver detalle: ${METRIC_LABELS[m.name] ?? m.name}`}
+                  >
+                    {leadsContent}
+                  </button>
+                );
+              }
+              return <div key={m.name}>{leadsContent}</div>;
             }
 
-            return <MetricDisplay key={m.name} metric={m} />;
+            return (
+              <MetricDisplay
+                key={m.name}
+                metric={m}
+                channelSlug={channel.slug}
+                stageId={stageId}
+                onMetricClick={onMetricClick}
+              />
+            );
           })
         )}
         {channel.stale && (
