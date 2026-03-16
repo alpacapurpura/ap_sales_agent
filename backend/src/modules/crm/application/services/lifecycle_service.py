@@ -216,6 +216,45 @@ class LifecycleService:
         )
         self.db.flush()
 
+    def promote_to_evangelist(
+        self,
+        profile_id: UUID,
+        tenant_id: UUID,
+        reason: str = "nps_promotion",
+    ) -> tuple:
+        """Atomically: (1) transition lifecycle to EVANGELIST via force_stage,
+        (2) generate referral code via ReferralService.
+
+        Returns (profile, referral_code).
+        """
+        # Lazy import to avoid circular dependency
+        from src.modules.crm.application.services.referral_service import ReferralService
+
+        profile = self._load_profile_for_update(profile_id, tenant_id)
+        if profile is None:
+            raise ValueError(f"Profile {profile_id} not found for tenant {tenant_id}")
+
+        # Step 1: Transition lifecycle stage
+        self._transition(
+            profile,
+            LifecycleStage.EVANGELIST,
+            reason=f"Evangelist promotion: {reason}",
+            triggered_by="admin",
+            metadata={"promotion_reason": reason},
+        )
+
+        # Step 2: Generate referral code
+        referral_service = ReferralService(self.db)
+        referral_code = referral_service.generate_code(tenant_id, profile_id)
+
+        self.db.flush()
+
+        logger.info(
+            "Customer %s promoted to EVANGELIST with referral code %s",
+            profile_id, referral_code.code,
+        )
+        return (profile, referral_code)
+
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
