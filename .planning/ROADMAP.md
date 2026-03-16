@@ -119,11 +119,11 @@ Plans:
   3. Retargeting metrics are sourced from Meta/Google/TikTok APIs filtered to MOFU campaigns only
   4. Mailerlite newsletter engagement data (open_rate, click_rate) is integrated and contributes to lead scoring
   5. Conversion rate (Leads to MQLs) and cost of nurturing per MQL are calculated and displayed
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: Nurturing backend endpoint with retargeting and Mailerlite adapters
-- [ ] 06-02: Nurturing detail panel frontend component
+- [ ] 06-01-PLAN.md — Backend: NurtureDetailDTO, NurtureMetricsRepository, StageCostService, provider stage filtering, Mailerlite webhook, GET /metrics/nurturing endpoint
+- [ ] 06-02-PLAN.md — Frontend: NurtureDetail panel, CampaignDrillDown, types, hook, ChannelGroup/ChannelRow modifications, MetricsDashboard wiring
 
 ### Phase 7: Stage 3 Oportunidad
 **Goal**: Business owner sees their sales pipeline: who is about to buy and where friction is causing drop-off
