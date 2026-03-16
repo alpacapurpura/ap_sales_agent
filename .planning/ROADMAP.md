@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: CRM Lifecycle Automation** - Implement move_stage() with automated rules, sale-triggered transitions, inactivity and churn detection
 - [x] **Phase 4: Stage 0 Attraction Fix & Validate** - Wire real API data into the existing Attraction panel and prove the infrastructure works end-to-end (completed 2026-03-15)
 - [x] **Phase 5: Stage 1 Captura** - Build the Capture detail panel with web infrastructure leads and AI Agent conversational leads (completed 2026-03-16)
-- [ ] **Phase 6: Stage 2 Nutricion** - Build the Nurturing detail panel with retargeting and automation metrics
+- [x] **Phase 6: Stage 2 Nutricion** - Build the Nurturing detail panel with retargeting and automation metrics (completed 2026-03-16)
 - [ ] **Phase 7: Stage 3 Oportunidad** - Build the Opportunity detail panel with transactional friction and high-ticket qualification
 - [ ] **Phase 8: Stage 4 Ventas** - Build the Sales detail panel with Offer Ladder breakdown and CONVERSION vs EXPANSION revenue
 - [ ] **Phase 9: Stages 5-6 Adoption & Expansion** - Build the post-sale retention panels covering customer health, MRR, and churn
@@ -215,7 +215,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 3. CRM Lifecycle Automation | 2/3 | In Progress|  |
 | 4. Stage 0 Attraction Fix & Validate | 3/3 | Complete   | 2026-03-15 |
 | 5. Stage 1 Captura | 2/2 | Complete   | 2026-03-16 |
-| 6. Stage 2 Nutricion | 1/2 | In Progress|  |
+| 6. Stage 2 Nutricion | 2/2 | Complete   | 2026-03-16 |
 | 7. Stage 3 Oportunidad | 0/2 | Not started | - |
 | 8. Stage 4 Ventas | 0/2 | Not started | - |
 | 9. Stages 5-6 Adoption & Expansion | 0/2 | Not started | - |

@@ -47,7 +47,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Stage 2 — Nutricion
 
-- [ ] **NUT-01**: Detail panel showing two groups: Retargeting Omnichannel (Meta/Google/TikTok retargeting campaigns) and Automation (newsletters via Mailerlite, AI SDR engagement)
+- [x] **NUT-01**: Detail panel showing two groups: Retargeting Omnichannel (Meta/Google/TikTok retargeting campaigns) and Automation (newsletters via Mailerlite, AI SDR engagement)
 - [x] **NUT-02**: Backend endpoint `/metrics/nurturing` tracking MQL conversion — profiles crossing lead_score threshold (e.g., >75 pts)
 - [x] **NUT-03**: Retargeting metrics from Meta/Google/TikTok APIs filtered to MOFU campaigns (Custom Audiences, remarketing audiences)
 - [x] **NUT-04**: Mailerlite API integration for newsletter engagement (open_rate, click_rate) contributing to lead scoring
@@ -161,7 +161,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CAP-03 | Phase 5: Stage 1 Captura | Complete |
 | CAP-04 | Phase 5: Stage 1 Captura | Complete |
 | CAP-05 | Phase 5: Stage 1 Captura | Complete |
-| NUT-01 | Phase 6: Stage 2 Nutricion | Pending |
+| NUT-01 | Phase 6: Stage 2 Nutricion | Complete |
 | NUT-02 | Phase 6: Stage 2 Nutricion | Complete |
 | NUT-03 | Phase 6: Stage 2 Nutricion | Complete |
 | NUT-04 | Phase 6: Stage 2 Nutricion | Complete |
