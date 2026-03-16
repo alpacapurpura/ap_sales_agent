@@ -25,14 +25,20 @@ created: 2026-03-16
 
 ---
 
+## Focal Point
+
+Primary focal point: Header KPI block (Total MQLs, Conversion, Cost per MQL). This is the first element the user scans when the NurtureDetail panel opens.
+
+---
+
 ## Spacing Scale
 
 Declared values (must be multiples of 4):
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gaps (`gap-1`), inline padding |
-| sm | 8px | Channel row vertical padding (`py-2`), compact spacing (`space-y-2`) |
+| xs | 4px | Icon gaps (`gap-1`), inline padding, campaign sub-row separator (`space-y-1`) |
+| sm | 8px | Channel row vertical padding (`py-2`), campaign sub-row vertical padding (`py-2`), compact spacing (`space-y-2`) |
 | md | 16px | Default element spacing (`space-y-4`, `p-4`), section padding (`px-3 py-3`) |
 | lg | 24px | Header KPI horizontal gaps (`gap-6`) |
 | xl | 32px | Not used in this phase |
@@ -47,7 +53,7 @@ Exceptions: none -- follows identical spacing pattern established in CaptureDeta
 
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| Body | 14px (`text-sm`) | 500 (medium) | 1.43 (default) | Channel names, metric values |
+| Body | 14px (`text-sm`) | 400 (regular) | 1.43 (default) | Channel names, metric values |
 | Label | 10px (`text-[10px]`) | 400 (regular) | 1.5 | KPI labels (uppercase tracking-wide), secondary lines, muted annotations |
 | Small | 12px (`text-xs`) | 400 (regular) | 1.5 | Source labels, group summaries, timestamps, conversion rate text |
 | KPI Value | 20px (`text-xl`) | 600 (semibold) | 1.2 | Header KPI numbers, MiniFunnel numbers |
@@ -79,7 +85,7 @@ Accent reserved for: MiniFunnel conversion rate percentage display, primary acti
 |-----------|------|-------------------|
 | `MiniFunnel` | `channel-widgets/MiniFunnel.tsx` | "Leads (8,500) -> MQLs (2,100) = 24.7%" header |
 | `ChannelRow` | `channel-widgets/ChannelRow.tsx` | Individual channel metric display |
-| `ConnectionBadge` | `channel-widgets/ConnectionBadge.tsx` | "Configurar" badge for unconnected channels |
+| `ConnectionBadge` | `channel-widgets/ConnectionBadge.tsx` | "Conectar canal" badge for unconnected channels |
 | `CostLink` | `channel-widgets/CostLink.tsx` | Link to cost configuration when cost is unconfigured |
 | `Skeleton` | `@/components/ui/skeleton` | Loading state placeholder |
 | `Badge` | `@/components/ui/badge` | Stale/status badges |
@@ -161,8 +167,8 @@ Accent reserved for: MiniFunnel conversion rate percentage display, primary acti
 - **Indicator**: Chevron icon (ChevronDown from lucide-react) at far right of ChannelRow, rotates 180deg when expanded
 - **Animation**: shadcn Collapsible component with default height transition
 - **Content**: List of individual campaigns, each as a compact sub-row with campaign name (left) and metrics (right)
-- **Sub-row style**: `pl-10` indent (aligns with channel name after icon), `py-1.5`, `text-xs` for all text, `bg-muted/20` background
-- **Separator**: No dividers between campaigns -- spacing only (`space-y-0.5`)
+- **Sub-row style**: `pl-10` indent (aligns with channel name after icon), `py-2` (8px), `text-xs` for all text, `bg-muted/20` background
+- **Separator**: No dividers between campaigns -- spacing only (`space-y-1`, 4px)
 
 ### "Proximamente" Badge (AI SDR fallback)
 
@@ -178,7 +184,7 @@ Accent reserved for: MiniFunnel conversion rate percentage display, primary acti
 
 | Element | Copy | Language |
 |---------|------|----------|
-| Primary CTA | "Configurar" (on ConnectionBadge for unconnected channels) | ES |
+| Primary CTA | "Conectar canal" (on ConnectionBadge for unconnected channels) | ES |
 | Panel header KPI 1 label | "TOTAL MQLs" | ES |
 | Panel header KPI 2 label | "CONVERSION" | ES |
 | Panel header KPI 3 label | "COSTO POR MQL" | ES |
@@ -269,7 +275,7 @@ Emails: {formatNumber(totals.emails_sent)} | Apertura: {totals.open_rate.toFixed
 | Channel connected, has data | Full ChannelRow with metrics |
 | Channel connected, zero data | "0 MQLs" + "Sin actividad en los ultimos 30 dias" |
 | Channel connected, stale | Yellow "Desactualizado" badge + last-updated date + refresh button |
-| Channel not connected | Name + "Configurar" badge only |
+| Channel not connected | Name + "Conectar canal" badge only |
 | AI SDR not implemented | Name + icon + "Proximamente" secondary badge |
 | Campaign drill-down collapsed | Chevron pointing right, row clickable |
 | Campaign drill-down expanded | Chevron rotated 180deg, sub-rows visible with indent |
