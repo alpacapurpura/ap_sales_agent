@@ -123,3 +123,42 @@ class LeadCapturedEvent(DomainEvent):
                 "source_channel_type": source_channel_type,
             },
         )
+
+
+@dataclass
+class AppointmentEvent(DomainEvent):
+    """Emitted by scheduling module when appointment status changes.
+
+    Payload keys:
+        lead_id: UUID of the lead (legacy leads table)
+        appointment_id: UUID of the appointment
+        status: AppointmentStatus value (SCHEDULED, COMPLETED, NO_SHOW, CANCELLED)
+        email: optional email for profile resolution
+    """
+
+    @classmethod
+    def create(
+        cls,
+        tenant_id: UUID,
+        lead_id: UUID,
+        appointment_id: UUID,
+        appointment_status: str,
+        email: Optional[str] = None,
+    ) -> "AppointmentEvent":
+        """Factory method. Maps appointment status to event_name automatically."""
+        event_names = {
+            "SCHEDULED": "appointment_booked",
+            "COMPLETED": "appointment_completed",
+            "NO_SHOW": "appointment_no_show",
+            "CANCELLED": "appointment_cancelled",
+        }
+        return cls(
+            event_name=event_names.get(appointment_status, f"appointment_{appointment_status.lower()}"),
+            tenant_id=tenant_id,
+            payload={
+                "lead_id": str(lead_id),
+                "appointment_id": str(appointment_id),
+                "status": appointment_status,
+                "email": email,
+            },
+        )
