@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-16T02:25:31.825Z"
+status: in_progress
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-16T02:32:35.787Z"
 last_activity: 2026-03-15 — Completed plan 04-03 (Validation script and end-to-end verification)
 progress:
   total_phases: 11
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
-**Current focus:** Phase 4 — Stage 0 Attraction Fix & Validate
+**Current focus:** Phase 5 — Stage 1 Captura
 
 ## Current Position
 
-Phase: 4 of 11 (Stage 0 Attraction Fix & Validate) -- COMPLETE
-Plan: 3 of 3 in current phase (04-03 complete)
-Status: Phase 4 complete
-Last activity: 2026-03-15 — Completed plan 04-03 (Validation script and end-to-end verification)
+Phase: 5 of 11 (Stage 1 Captura)
+Plan: 1 of 2 in current phase (05-01 complete)
+Status: In progress
+Last activity: 2026-03-16 — Completed plan 05-01 (Capture backend: DTOs, cost model, CRM repository, API endpoint)
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 | Phase 04 P01 | 9 min | 2 tasks | 18 files |
 | Phase 04 P02 | 4min | 2 tasks | 8 files |
 | Phase 04 P03 | 6min | 2 tasks | 1 files |
+| Phase 05 P01 | 7min | 3 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,10 @@ Recent decisions affecting current work:
 - [Phase 04]: Stale detection reads ExtractionRunRepository.get_latest() per provider with result caching
 - [Phase 04]: Error messages mapped from extraction error keywords to Spanish user-facing strings
 - [Phase 04]: UI visual polish deferred to Phase 11 based on user feedback
+- 05-01: IdentityService.get_or_create_customer changed to return (profile, was_created) tuple for conditional event emission
+- 05-01: CaptureMetricsRepository uses distinct profile_id as conversation approximation (JourneyEventModel lacks session_id)
+- 05-01: Alembic migration created manually due to pre-existing duplicate revision ID issue
+- 05-01: Agency cost proration distributes by category: organic_management, paid_management, video, full_service
 
 ### Pending Todos
 
@@ -127,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:25:31.823Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-stage-1-captura/05-CONTEXT.md
+Last session: 2026-03-16T04:01:40Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: .planning/phases/05-stage-1-captura/05-02-PLAN.md

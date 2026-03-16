@@ -40,10 +40,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Stage 1 — Captura
 
 - [ ] **CAP-01**: Detail panel showing two groups: Web Infrastructure leads (forms, Mailerlite) and AI Agent conversational leads (IG DMs, FB Messenger, TikTok DMs, WhatsApp inbound)
-- [ ] **CAP-02**: Backend endpoint `/metrics/capture` aggregating new `customer_profiles` by source channel with lead count and conversion rate from Stage 0
-- [ ] **CAP-03**: AI Agent leads tracked by extraction events where the agent successfully obtained email/phone from each messaging channel
-- [ ] **CAP-04**: Cost tracking per capture channel — Manychat licensing, LLM token consumption, WhatsApp API costs, Mailerlite subscription
-- [ ] **CAP-05**: Cost of Acquisition per Lead calculated as: Total Stage 0 investment / Total Stage 1 leads
+- [x] **CAP-02**: Backend endpoint `/metrics/capture` aggregating new `customer_profiles` by source channel with lead count and conversion rate from Stage 0
+- [x] **CAP-03**: AI Agent leads tracked by extraction events where the agent successfully obtained email/phone from each messaging channel
+- [x] **CAP-04**: Cost tracking per capture channel — Manychat licensing, LLM token consumption, WhatsApp API costs, Mailerlite subscription
+- [x] **CAP-05**: Cost of Acquisition per Lead calculated as: Total Stage 0 investment / Total Stage 1 leads
 
 ### Stage 2 — Nutricion
 
@@ -157,10 +157,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ATR-04 | Phase 4: Stage 0 Attraction Fix & Validate | Complete |
 | ATR-05 | Phase 4: Stage 0 Attraction Fix & Validate | Complete |
 | CAP-01 | Phase 5: Stage 1 Captura | Pending |
-| CAP-02 | Phase 5: Stage 1 Captura | Pending |
-| CAP-03 | Phase 5: Stage 1 Captura | Pending |
-| CAP-04 | Phase 5: Stage 1 Captura | Pending |
-| CAP-05 | Phase 5: Stage 1 Captura | Pending |
+| CAP-02 | Phase 5: Stage 1 Captura | Complete |
+| CAP-03 | Phase 5: Stage 1 Captura | Complete |
+| CAP-04 | Phase 5: Stage 1 Captura | Complete |
+| CAP-05 | Phase 5: Stage 1 Captura | Complete |
 | NUT-01 | Phase 6: Stage 2 Nutricion | Pending |
 | NUT-02 | Phase 6: Stage 2 Nutricion | Pending |
 | NUT-03 | Phase 6: Stage 2 Nutricion | Pending |
