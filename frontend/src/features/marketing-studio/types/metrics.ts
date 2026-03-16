@@ -207,3 +207,96 @@ export interface SalesDetail {
   period: string;
   lastUpdated?: string;
 }
+
+// === Stage 5: Adopcion ===
+
+export interface OfferHealthData {
+  offerId: string;
+  publicName: string;
+  totalCustomers: number;
+  activeCount: number;
+  inactiveCount: number;
+  healthPct: number;
+  ttvDays: number | null;
+}
+
+export interface AdoptionHeaderKpis {
+  activeCustomers: number;
+  inactiveCustomers: number;
+  healthPct: number;
+  avgTtvDays: number | null;
+  refundCount: number;
+  refundAmount: number;
+  refundCurrency: string;
+  refundAmountUsd: number | null;
+}
+
+export interface AdoptionBottleneck {
+  type: string;
+  metricLabel: string;
+  currentRate: number;
+  severity: 'normal' | 'warning' | 'critical';
+  threshold: number;
+  tip: string;
+}
+
+export interface AdoptionDetail {
+  headerKpis: AdoptionHeaderKpis;
+  miniFunnel: MiniFunnelData;
+  offers: OfferHealthData[];
+  bottlenecks: AdoptionBottleneck[];
+  period: string;
+  lastUpdated?: string;
+}
+
+// === Stage 6: Expansion ===
+
+export interface ExpansionOfferData {
+  offerId: string;
+  publicName: string;
+  count: number;
+  revenue: number;
+  currency: string;
+  usdRevenue: number | null;
+}
+
+export interface ExpansionGroupData {
+  groupKey: 'retencion' | 'crecimiento' | 'cancelaciones';
+  groupLabel: string;
+  groupSubtitle: string;
+  totalCount: number;
+  totalRevenue: number;
+  totalRevenueUsd: number | null;
+  currency: string;
+  ratePct: number | null;
+  offers: ExpansionOfferData[];
+}
+
+export interface ExpansionHeaderKpis {
+  netMrr: number;
+  netMrrUsd: number | null;
+  currency: string;
+  avgLtv: number;
+  avgLtvUsd: number | null;
+  churnRatePct: number;
+}
+
+export interface ExpansionBottleneck {
+  type: string;
+  metricLabel: string;
+  currentRate: number;
+  severity: 'normal' | 'warning' | 'critical';
+  threshold: number;
+  tip: string;
+}
+
+export interface ExpansionDetailData {
+  headerKpis: ExpansionHeaderKpis;
+  miniFunnel: MiniFunnelData;
+  retencion: ExpansionGroupData;
+  crecimiento: ExpansionGroupData;
+  cancelaciones: ExpansionGroupData;
+  bottlenecks: ExpansionBottleneck[];
+  period: string;
+  lastUpdated?: string;
+}

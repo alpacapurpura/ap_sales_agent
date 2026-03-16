@@ -1,4 +1,4 @@
-import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail } from '../types/metrics';
+import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData } from '../types/metrics';
 
 export const STAGE_SUMMARIES: StageSummary[] = [
   {
@@ -53,7 +53,7 @@ export const STAGE_SUMMARIES: StageSummary[] = [
     description: 'Clientes que usan activamente tu producto o servicio',
     mainKpi: { label: 'activos', value: 400 },
     secondaryKpi: { label: 'activacion', value: 88.9, unit: '%' },
-    hasDetail: false,
+    hasDetail: true,
   },
   {
     id: 'EXPANSION',
@@ -647,6 +647,67 @@ export const MOCK_SALES_DETAIL: SalesDetail = {
           },
         ],
       },
+    ],
+  },
+  bottlenecks: [],
+  period: 'last_30_days',
+  lastUpdated: new Date().toISOString(),
+};
+
+export const MOCK_ADOPTION_DETAIL: AdoptionDetail = {
+  headerKpis: {
+    activeCustomers: 128,
+    inactiveCustomers: 34,
+    healthPct: 79.0,
+    avgTtvDays: 4.2,
+    refundCount: 3,
+    refundAmount: 2500,
+    refundCurrency: 'MXN',
+    refundAmountUsd: 145,
+  },
+  miniFunnel: { sourceLabel: 'Ventas', sourceValue: 180, targetLabel: 'Activos', targetValue: 128, conversionRate: 71.1 },
+  offers: [
+    { offerId: 'offer-1', publicName: 'Curso de Marketing Digital', totalCustomers: 95, activeCount: 78, inactiveCount: 17, healthPct: 82.1, ttvDays: 3.5 },
+    { offerId: 'offer-2', publicName: 'Coaching 1:1', totalCustomers: 42, activeCount: 35, inactiveCount: 7, healthPct: 83.3, ttvDays: 1.2 },
+    { offerId: 'offer-3', publicName: 'Membresia Premium', totalCustomers: 25, activeCount: 15, inactiveCount: 10, healthPct: 60.0, ttvDays: 6.8 },
+  ],
+  bottlenecks: [],
+  period: 'last_30_days',
+  lastUpdated: new Date().toISOString(),
+};
+
+export const MOCK_EXPANSION_DETAIL: ExpansionDetailData = {
+  headerKpis: {
+    netMrr: 45000,
+    netMrrUsd: 2610,
+    currency: 'MXN',
+    avgLtv: 8500,
+    avgLtvUsd: 493,
+    churnRatePct: 3.8,
+  },
+  miniFunnel: { sourceLabel: 'Activos', sourceValue: 128, targetLabel: 'Expansion', targetValue: 23, conversionRate: 18.0 },
+  retencion: {
+    groupKey: 'retencion', groupLabel: 'Retencion', groupSubtitle: 'Renovaciones de suscripciones activas',
+    totalCount: 45, totalRevenue: 38000, totalRevenueUsd: 2204, currency: 'MXN', ratePct: 92.0,
+    offers: [
+      { offerId: 'offer-3', publicName: 'Membresia Premium', count: 30, revenue: 28500, currency: 'MXN', usdRevenue: 1653 },
+      { offerId: 'offer-4', publicName: 'Plan Coaching Mensual', count: 15, revenue: 9500, currency: 'MXN', usdRevenue: 551 },
+    ],
+  },
+  crecimiento: {
+    groupKey: 'crecimiento', groupLabel: 'Crecimiento', groupSubtitle: 'Ventas adicionales y upgrades a clientes existentes',
+    totalCount: 12, totalRevenue: 15000, totalRevenueUsd: 870, currency: 'MXN', ratePct: 9.4,
+    offers: [
+      { offerId: 'offer-5', publicName: 'Workshop Avanzado', count: 8, revenue: 12000, currency: 'MXN', usdRevenue: 696 },
+      { offerId: 'offer-6', publicName: 'Consultoria Express', count: 4, revenue: 3000, currency: 'MXN', usdRevenue: 174 },
+    ],
+  },
+  cancelaciones: {
+    groupKey: 'cancelaciones', groupLabel: 'Cancelaciones', groupSubtitle: 'Suscripciones perdidas y ingreso afectado',
+    totalCount: 5, totalRevenue: 8000, totalRevenueUsd: 464, currency: 'MXN', ratePct: 3.8,
+    offers: [
+      { offerId: 'offer-3', publicName: 'Membresia Premium', count: 3, revenue: 5700, currency: 'MXN', usdRevenue: 331 },
+      { offerId: 'offer-4', publicName: 'Plan Coaching Mensual', count: 2, revenue: 2300, currency: 'MXN', usdRevenue: 133 },
     ],
   },
   bottlenecks: [],

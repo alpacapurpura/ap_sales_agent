@@ -1,8 +1,8 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, ChannelMetric, MetricValue } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL } from './metrics-mock-data';
+import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, ChannelMetric, MetricValue, ExpansionOfferData, ExpansionGroupData } from '../types/metrics';
+import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL, MOCK_ADOPTION_DETAIL, MOCK_EXPANSION_DETAIL } from './metrics-mock-data';
 
 const API_URL = config.api.baseUrl;
 
@@ -187,6 +187,103 @@ function mapSalesResponse(raw: any): SalesDetail {
     lastUpdated: raw.last_updated,
   };
 }
+function mapAdoptionResponse(raw: any): AdoptionDetail {
+  return {
+    headerKpis: {
+      activeCustomers: raw.header_kpis?.active_customers ?? 0,
+      inactiveCustomers: raw.header_kpis?.inactive_customers ?? 0,
+      healthPct: raw.header_kpis?.health_pct ?? 0,
+      avgTtvDays: raw.header_kpis?.avg_ttv_days ?? null,
+      refundCount: raw.header_kpis?.refund_count ?? 0,
+      refundAmount: raw.header_kpis?.refund_amount ?? 0,
+      refundCurrency: raw.header_kpis?.refund_currency ?? 'USD',
+      refundAmountUsd: raw.header_kpis?.refund_amount_usd ?? null,
+    },
+    miniFunnel: {
+      sourceLabel: raw.mini_funnel?.source_label ?? 'Ventas',
+      sourceValue: raw.mini_funnel?.source_value ?? 0,
+      targetLabel: raw.mini_funnel?.target_label ?? 'Activos',
+      targetValue: raw.mini_funnel?.target_value ?? 0,
+      conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
+    },
+    offers: (raw.offers ?? []).map((o: any) => ({
+      offerId: o.offer_id,
+      publicName: o.public_name,
+      totalCustomers: o.total_customers,
+      activeCount: o.active_count,
+      inactiveCount: o.inactive_count,
+      healthPct: o.health_pct,
+      ttvDays: o.ttv_days ?? null,
+    })),
+    bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
+      type: b.type,
+      metricLabel: b.metric_label,
+      currentRate: b.current_rate,
+      severity: b.severity,
+      threshold: b.threshold,
+      tip: b.tip,
+    })),
+    period: raw.period ?? 'last_30_days',
+    lastUpdated: raw.last_updated,
+  };
+}
+function mapExpansionOffer(o: any): ExpansionOfferData {
+  return {
+    offerId: o.offer_id,
+    publicName: o.public_name,
+    count: o.count,
+    revenue: o.revenue,
+    currency: o.currency,
+    usdRevenue: o.usd_revenue ?? null,
+  };
+}
+
+function mapExpansionGroup(g: any): ExpansionGroupData {
+  return {
+    groupKey: g.group_key,
+    groupLabel: g.group_label,
+    groupSubtitle: g.group_subtitle,
+    totalCount: g.total_count,
+    totalRevenue: g.total_revenue,
+    totalRevenueUsd: g.total_revenue_usd ?? null,
+    currency: g.currency,
+    ratePct: g.rate_pct ?? null,
+    offers: (g.offers ?? []).map(mapExpansionOffer),
+  };
+}
+
+function mapExpansionResponse(raw: any): ExpansionDetailData {
+  return {
+    headerKpis: {
+      netMrr: raw.header_kpis?.net_mrr ?? 0,
+      netMrrUsd: raw.header_kpis?.net_mrr_usd ?? null,
+      currency: raw.header_kpis?.currency ?? 'MXN',
+      avgLtv: raw.header_kpis?.avg_ltv ?? 0,
+      avgLtvUsd: raw.header_kpis?.avg_ltv_usd ?? null,
+      churnRatePct: raw.header_kpis?.churn_rate_pct ?? 0,
+    },
+    miniFunnel: {
+      sourceLabel: raw.mini_funnel?.source_label ?? 'Activos',
+      sourceValue: raw.mini_funnel?.source_value ?? 0,
+      targetLabel: raw.mini_funnel?.target_label ?? 'Expansion',
+      targetValue: raw.mini_funnel?.target_value ?? 0,
+      conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
+    },
+    retencion: mapExpansionGroup(raw.retencion),
+    crecimiento: mapExpansionGroup(raw.crecimiento),
+    cancelaciones: mapExpansionGroup(raw.cancelaciones),
+    bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
+      type: b.type,
+      metricLabel: b.metric_label,
+      currentRate: b.current_rate,
+      severity: b.severity,
+      threshold: b.threshold,
+      tip: b.tip,
+    })),
+    period: raw.period ?? 'last_30_days',
+    lastUpdated: raw.last_updated,
+  };
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const metricsApi = {
@@ -303,5 +400,29 @@ export const metricsApi = {
       console.warn('Sales API error -- using mock data:', error);
       return MOCK_SALES_DETAIL;
     }
+  },
+
+  getAdoptionDetail: async (token: string): Promise<AdoptionDetail> => {
+    if (ENABLE_MOCKS) return MOCK_ADOPTION_DETAIL;
+    try {
+      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/adoption`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { console.warn('Adoption API returned', res.status, '-- using mock data'); return MOCK_ADOPTION_DETAIL; }
+      const data = await res.json();
+      return mapAdoptionResponse(data);
+    } catch (error) { console.warn('Adoption API error -- using mock data:', error); return MOCK_ADOPTION_DETAIL; }
+  },
+
+  getExpansionDetail: async (token: string): Promise<ExpansionDetailData> => {
+    if (ENABLE_MOCKS) return MOCK_EXPANSION_DETAIL;
+    try {
+      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/expansion`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { console.warn('Expansion API returned', res.status, '-- using mock data'); return MOCK_EXPANSION_DETAIL; }
+      const data = await res.json();
+      return mapExpansionResponse(data);
+    } catch (error) { console.warn('Expansion API error -- using mock data:', error); return MOCK_EXPANSION_DETAIL; }
   },
 };

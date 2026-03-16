@@ -10,6 +10,8 @@ import { CaptureDetail } from './detail-panels/CaptureDetail';
 import { NurtureDetail } from './detail-panels/NurtureDetail';
 import { OpportunityDetail } from './detail-panels/OpportunityDetail';
 import { SalesDetail } from './detail-panels/SalesDetail';
+import { AdoptionDetail } from './detail-panels/AdoptionDetail';
+import { ExpansionDetail } from './detail-panels/ExpansionDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 
 export function MetricsDashboard() {
@@ -49,6 +51,10 @@ export function MetricsDashboard() {
               <OpportunityDetail />
             ) : activeStage === 'VENTAS' ? (
               <SalesDetail />
+            ) : activeStage === 'ADOPCION' ? (
+              <AdoptionDetail />
+            ) : activeStage === 'EXPANSION' ? (
+              <ExpansionDetail />
             ) : (
               <PlaceholderDetail stage={activeStageData} />
             )}
