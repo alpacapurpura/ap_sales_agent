@@ -38,10 +38,13 @@ services:
       - "traefik.http.services.visionarias_api_dev.loadbalancer.server.port=8000"
     ports:
       - "8000:8000"
+    mem_limit: 1200m
+    mem_reservation: 512m
+    cpus: 1.50
+    pids_limit: 512
 
   # --- Admin Interface (Streamlit - Development) ---
   admin_dashboard_dev:
-    image: visionarias_brain_dev:latest
     build: ./backend
     container_name: visionarias_admin_dev
     restart: unless-stopped
@@ -61,6 +64,12 @@ services:
       - gateway
     ports:
       - "127.0.0.1:8502:8501"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -69,6 +78,12 @@ services:
       - "traefik.http.routers.admin_http.entrypoints=web"
       - "traefik.http.routers.admin_http.service=admin_dev"
       - "traefik.http.services.admin_dev.loadbalancer.server.port=8501"
+    profiles:
+      - extended
+    mem_limit: 600m
+    mem_reservation: 256m
+    cpus: 0.50
+    pids_limit: 256
 
   # --- Client Dashboard (Next.js - Development) ---
   client_dashboard_dev:
@@ -86,8 +101,8 @@ services:
       - .env
     volumes:
       - ./frontend:/app
-      - /app/.next
-      - /app/node_modules
+      - frontend_next:/app/.next
+      - frontend_node_modules:/app/node_modules
     ports:
       - "3000:3000"
     environment:
@@ -112,6 +127,64 @@ services:
       - "traefik.http.routers.client_dev.rule=Host(`salesagent.local`)"
       - "traefik.http.routers.client_dev.entrypoints=web"
       - "traefik.http.services.client_dev.loadbalancer.server.port=3000"
+    mem_limit: 1700m
+    mem_reservation: 768m
+    cpus: 1.75
+    pids_limit: 768
+
+  frontend_tooling:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: test
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    command: sh -c "sleep infinity"
+    profiles:
+      - tooling
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - INTERNAL_API_URL=${INTERNAL_API_URL}
+      - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    networks:
+      - internal_net
+    mem_limit: 1400m
+    mem_reservation: 512m
+    cpus: 1.25
+    pids_limit: 512
+
+  backend_tooling:
+    build:
+      context: ./backend
+      target: test
+    command: sh -c "sleep infinity"
+    profiles:
+      - tooling
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - ./data/model_cache:/app/model_cache
+    depends_on:
+      - redis
+      - qdrant
+      - postgres
+    networks:
+      - internal_net
+    mem_limit: 900m
+    mem_reservation: 384m
+    cpus: 1.00
+    pids_limit: 384
 
   init_cache:
     image: alpine:latest
@@ -144,6 +217,12 @@ services:
       - internal_net
     ports:
       - "127.0.0.1:8080:8080" # Secure binding for debugging
+    profiles:
+      - extended
+    mem_limit: 1200m
+    mem_reservation: 512m
+    cpus: 1.00
+    pids_limit: 512
 
   # --- Infrastructure Services ---
   redis:
@@ -157,6 +236,10 @@ services:
       - internal_net
     ports:
       - "127.0.0.1:6379:6379" # Secure binding
+    mem_limit: 300m
+    mem_reservation: 128m
+    cpus: 0.50
+    pids_limit: 256
 
   qdrant:
     image: qdrant/qdrant:v1.7.3
@@ -169,6 +252,10 @@ services:
     ports:
       - "127.0.0.1:6333:6333" # Secure binding
       - "127.0.0.1:6334:6334"
+    mem_limit: 1000m
+    mem_reservation: 512m
+    cpus: 1.00
+    pids_limit: 512
 
   postgres:
     image: postgres:15-alpine
@@ -184,10 +271,13 @@ services:
       - internal_net
     ports:
       - "127.0.0.1:5432:5432" # Secure binding
+    mem_limit: 800m
+    mem_reservation: 384m
+    cpus: 1.00
+    pids_limit: 512
 
   # --- ETL Scheduler ---
   scheduler:
-    image: visionarias_brain_dev:latest
     build: ./backend
     container_name: visionarias_scheduler
     restart: unless-stopped
@@ -201,10 +291,21 @@ services:
       - postgres
     networks:
       - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import redis; r=redis.from_url(\"redis://redis:6379/0\"); r.ping()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    profiles:
+      - extended
+    mem_limit: 450m
+    mem_reservation: 192m
+    cpus: 0.50
+    pids_limit: 256
 
   # --- ETL Worker ---
   worker:
-    image: visionarias_brain_dev:latest
     build: ./backend
     container_name: visionarias_worker
     restart: unless-stopped
@@ -218,6 +319,18 @@ services:
       - postgres
     networks:
       - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import redis; r=redis.from_url(\"redis://redis:6379/0\"); r.ping()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+    profiles:
+      - extended
+    mem_limit: 700m
+    mem_reservation: 256m
+    cpus: 0.75
+    pids_limit: 384
 
   # --- Cloudflare Tunnel ---
   tunnel:
@@ -227,6 +340,16 @@ services:
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - gateway
+    profiles:
+      - extended
+    mem_limit: 200m
+    mem_reservation: 64m
+    cpus: 0.25
+    pids_limit: 128
+
+volumes:
+  frontend_next:
+  frontend_node_modules:
 
 networks:
   internal_net:
