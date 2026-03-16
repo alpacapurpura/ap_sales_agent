@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-16T20:17:34.638Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-16T20:24:10.783Z"
 last_activity: "2026-03-16 -- Completed plan 09-01 (Adoption backend + frontend: health tracking per offer, CSS health bar, TTV, bottleneck detection)"
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 28
-  completed_plans: 26
+  completed_plans: 27
   percent: 97
 ---
 
@@ -69,6 +69,7 @@ Progress: [█████████▊] 97%
 | Phase 09 P01 | 9min | 2 tasks | 13 files |
 | Phase 09 P02 | 8min | 2 tasks | 14 files |
 | Phase 10 P01 | 6min | 3 tasks | 13 files |
+| Phase 10 P02 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,8 @@ Recent decisions affecting current work:
 - [Phase 10]: Public NPS survey endpoints use token-based access without auth
 - [Phase 10]: promote_to_evangelist uses lazy import of ReferralService to avoid circular dependency
 - [Phase 10]: ReferralService uses secrets.token_urlsafe(6) with REF- prefix and 3-retry collision handling
+- [Phase 10]: EvangelizationRepository uses sync DB queries called from async service (matching adoption/expansion pattern)
+- [Phase 10]: K-Factor bottleneck: < 0.5 critical, < 1.0 warning; NPS response rate: < 15% critical, < 30% warning
 
 ### Pending Todos
 
@@ -181,6 +184,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T20:17:34.636Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-16T20:24:10.780Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
