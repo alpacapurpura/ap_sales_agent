@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime, timedelta, timezone
 from typing import List, Literal, Optional
@@ -10,6 +11,7 @@ from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
 from src.modules.scheduling.infrastructure.repositories.appointment_repository import AppointmentRepository
+from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
 router = APIRouter(tags=["Scheduling - Agenda"])
@@ -69,3 +71,81 @@ async def get_agenda(
             lead_name=lead_map.get(a.lead_id, "Unknown Lead")
         ) for a in appointments
     ]
+
+
+class AppointmentStatusUpdate(BaseModel):
+    status: str = Field(..., description="New status: COMPLETED, NO_SHOW, CANCELLED")
+
+
+@router.patch("/{appointment_id}/status")
+async def update_appointment_status(
+    appointment_id: UUID,
+    payload: AppointmentStatusUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Update appointment status and publish event via EventBus."""
+    from src.modules.scheduling.domain.enums import AppointmentStatus
+
+    # Validate status
+    valid_statuses = {s.value for s in AppointmentStatus}
+    if payload.status not in valid_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+        )
+
+    stmt = select(AppointmentModel).where(
+        AppointmentModel.id == appointment_id,
+        AppointmentModel.tenant_id == user.tenant_id,
+    )
+    appointment = db.execute(stmt).scalar_one_or_none()
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    old_status = appointment.status
+    appointment.status = payload.status
+    db.flush()
+
+    # Publish EventBus event for CRM listeners
+    _publish_appointment_event(
+        db=db,
+        tenant_id=user.tenant_id,
+        lead_id=appointment.lead_id,
+        appointment_id=appointment.id,
+        status=payload.status,
+    )
+    db.commit()
+
+    return {
+        "status": "updated",
+        "appointment_id": str(appointment_id),
+        "old_status": old_status,
+        "new_status": payload.status,
+    }
+
+
+def _publish_appointment_event(
+    db: Session,
+    tenant_id: UUID,
+    lead_id: UUID | None,
+    appointment_id: UUID,
+    status: str,
+) -> None:
+    """Publish an AppointmentEvent via EventBus.
+
+    Uses late binding import to avoid circular dependencies.
+    """
+    from src.shared.domain.events import EventBus
+    from src.modules.crm.domain.events import AppointmentEvent
+
+    if not lead_id:
+        return
+
+    event = AppointmentEvent.create(
+        tenant_id=tenant_id,
+        lead_id=lead_id,
+        appointment_id=appointment_id,
+        appointment_status=status,
+    )
+    EventBus.publish(event, session=db)
