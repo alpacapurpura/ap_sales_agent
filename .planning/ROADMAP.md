@@ -168,11 +168,11 @@ Plans:
   3. High inactive ratio is flagged visually as a churn predictor
   4. Expansion panel shows MRR retained vs lost and upsell revenue
   5. `/metrics/expansion` endpoint tracks churn rate and updates lifetime_value on customer_profiles for EXPANSION events
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: Adoption backend endpoint and detail panel
-- [ ] 09-02: Expansion backend endpoint and detail panel
+- [ ] 09-01-PLAN.md — Adoption backend (DTOs, repository, MetricsService, endpoint) + frontend (HealthBar, OfferHealthCard, AdoptionDetail panel, routing)
+- [ ] 09-02-PLAN.md — Expansion backend (DTOs, repository, MetricsService, endpoint) + frontend (ExpansionGroup, KpiTooltip, ExpansionDetail panel, routing)
 
 ### Phase 10: Stage 7 Evangelizacion
 **Goal**: Business owner sees their viral growth loop: who is referring, how referrals convert, and overall K-Factor
