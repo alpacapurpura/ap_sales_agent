@@ -1,7 +1,8 @@
 ---
 phase: 10
 slug: stage-7-evangelizacion
-status: draft
+status: approved
+reviewed_at: 2026-03-16
 shadcn_initialized: true
 preset: default (slate base)
 created: 2026-03-16
@@ -39,7 +40,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks (py-12) |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions: none. Follows established panel rhythm `space-y-2` for panel sections and `px-3` for horizontal padding (12px — standard across all detail panels from Phases 4-9).
+Exceptions: `px-3` (12px) for horizontal padding — carried from Phases 4-9 panel rhythm. 12px is a multiple of 4, no grid violation.
 
 ---
 
@@ -111,7 +112,9 @@ Source: Emerald/yellow/red from BottleneckBanner.tsx and OfferHealthCard.tsx. Pu
 
 ### Structure (top to bottom)
 
-Follows established detail panel rhythm from Phases 5-9:
+Follows established detail panel rhythm from Phases 5-9.
+
+**Primary focal point:** K-Factor KPI (position 1, primary row) — largest numeric value on the panel, first element the business owner scans.
 
 ```
 1. Timestamp                    — text-xs text-muted-foreground px-3 pb-1
@@ -325,11 +328,11 @@ flex flex-col items-center justify-center py-12 px-4 text-center:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS (focal point added)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS (exception clause corrected)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved — 2026-03-16
