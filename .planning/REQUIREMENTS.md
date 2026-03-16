@@ -86,9 +86,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Stage 7 — Evangelizacion
 
 - [ ] **EVA-01**: Detail panel showing: referral conversions (purchases with `utm_source=referral` or assigned coupon), UGC count, and K-Factor
-- [ ] **EVA-02**: Backend endpoint `/metrics/evangelization` tracking referral-attributed sales and evangelist profiles
-- [ ] **EVA-03**: K-Factor calculation: (referrals sent per customer) x (conversion rate of referrals)
-- [ ] **EVA-04**: NPS integration via Mailerlite surveys — identify promoters (score 9-10) as potential evangelists
+- [x] **EVA-02**: Backend endpoint `/metrics/evangelization` tracking referral-attributed sales and evangelist profiles
+- [x] **EVA-03**: K-Factor calculation: (referrals sent per customer) x (conversion rate of referrals)
+- [x] **EVA-04**: NPS integration via Mailerlite surveys — identify promoters (score 9-10) as potential evangelists
 
 ### Frontend — Detail Panel UX
 
@@ -185,9 +185,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXP-03 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
 | EXP-04 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
 | EVA-01 | Phase 10: Stage 7 Evangelizacion | Pending |
-| EVA-02 | Phase 10: Stage 7 Evangelizacion | Pending |
-| EVA-03 | Phase 10: Stage 7 Evangelizacion | Pending |
-| EVA-04 | Phase 10: Stage 7 Evangelizacion | Pending |
+| EVA-02 | Phase 10: Stage 7 Evangelizacion | Complete |
+| EVA-03 | Phase 10: Stage 7 Evangelizacion | Complete |
+| EVA-04 | Phase 10: Stage 7 Evangelizacion | Complete |
 | UI-01 | Phase 11: Frontend Unification & Dashboard Polish | Pending |
 | UI-02 | Phase 11: Frontend Unification & Dashboard Polish | Pending |
 | UI-03 | Phase 11: Frontend Unification & Dashboard Polish | Pending |

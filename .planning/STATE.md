@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 10 context gathered
-last_updated: "2026-03-16T19:13:13.044Z"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-03-16T20:17:34.638Z"
 last_activity: "2026-03-16 -- Completed plan 09-01 (Adoption backend + frontend: health tracking per offer, CSS health bar, TTV, bottleneck detection)"
 progress:
   total_phases: 11
   completed_phases: 9
-  total_plans: 25
-  completed_plans: 25
+  total_plans: 28
+  completed_plans: 26
   percent: 97
 ---
 
@@ -68,6 +68,7 @@ Progress: [█████████▊] 97%
 | Phase 08 P02 | 4min | 2 tasks | 9 files |
 | Phase 09 P01 | 9min | 2 tasks | 13 files |
 | Phase 09 P02 | 8min | 2 tasks | 14 files |
+| Phase 10 P01 | 6min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,9 @@ Recent decisions affecting current work:
 - [Phase 09]: Renewal classification via jsonb_extract_path_text(metadata_info, event_name) = subscription_cycle
 - [Phase 09]: Churn lost revenue estimated from last EXPANSION sale per churned customer via SQL window function
 - [Phase 09]: KpiTooltip as reusable standalone component with shadcn Tooltip for plain-Spanish KPI hints
+- [Phase 10]: Public NPS survey endpoints use token-based access without auth
+- [Phase 10]: promote_to_evangelist uses lazy import of ReferralService to avoid circular dependency
+- [Phase 10]: ReferralService uses secrets.token_urlsafe(6) with REF- prefix and 3-retry collision handling
 
 ### Pending Todos
 
@@ -177,6 +181,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T19:13:13.032Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-stage-7-evangelizacion/10-CONTEXT.md
+Last session: 2026-03-16T20:17:34.636Z
+Stopped at: Completed 10-01-PLAN.md
+Resume file: None
