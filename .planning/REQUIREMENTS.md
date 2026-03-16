@@ -78,10 +78,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Stage 6 — Expansion
 
-- [ ] **EXP-01**: Detail panel showing: renewal events (MRR retained), upsell events (revenue expansion), and churn (MRR lost)
-- [ ] **EXP-02**: Backend endpoint `/metrics/expansion` tracking MRR retained vs lost, and upsell revenue
-- [ ] **EXP-03**: `lifetime_value` updated on `customer_profiles` for each EXPANSION event
-- [ ] **EXP-04**: Churn rate calculated — subscription cancellations / total active subscriptions; >5% flagged as critical bottleneck
+- [x] **EXP-01**: Detail panel showing: renewal events (MRR retained), upsell events (revenue expansion), and churn (MRR lost)
+- [x] **EXP-02**: Backend endpoint `/metrics/expansion` tracking MRR retained vs lost, and upsell revenue
+- [x] **EXP-03**: `lifetime_value` updated on `customer_profiles` for each EXPANSION event
+- [x] **EXP-04**: Churn rate calculated — subscription cancellations / total active subscriptions; >5% flagged as critical bottleneck
 
 ### Stage 7 — Evangelizacion
 
@@ -180,10 +180,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADO-02 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
 | ADO-03 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
 | ADO-04 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
-| EXP-01 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
-| EXP-02 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
-| EXP-03 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
-| EXP-04 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
+| EXP-01 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
+| EXP-02 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
+| EXP-03 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
+| EXP-04 | Phase 9: Stages 5-6 Adoption & Expansion | Complete |
 | EVA-01 | Phase 10: Stage 7 Evangelizacion | Pending |
 | EVA-02 | Phase 10: Stage 7 Evangelizacion | Pending |
 | EVA-03 | Phase 10: Stage 7 Evangelizacion | Pending |

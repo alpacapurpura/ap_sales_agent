@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-16T16:39:07.168Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-03-16T17:24:12.011Z"
 last_activity: "2026-03-16 — Completed plan 08-02 (Sales frontend: SalesDetail panel with offer cards, tier groups, dual-currency KPIs)"
 progress:
   total_phases: 11
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
+  completed_phases: 9
+  total_plans: 25
+  completed_plans: 25
   percent: 96
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 
 ## Current Position
 
-Phase: 8 of 11 (Stage 4 Ventas)
-Plan: 3 of 3 in current phase
+Phase: 9 of 11 (Stages 5-6 Adoption & Expansion)
+Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-03-16 — Completed plan 08-02 (Sales frontend: SalesDetail panel with offer cards, tier groups, dual-currency KPIs)
+Last activity: 2026-03-16 -- Completed plan 09-01 (Adoption backend + frontend: health tracking per offer, CSS health bar, TTV, bottleneck detection)
 
-Progress: [█████████▌] 96%
+Progress: [█████████▊] 97%
 
 ## Performance Metrics
 
@@ -66,6 +66,8 @@ Progress: [█████████▌] 96%
 | Phase 08 P01 | 6min | 2 tasks | 11 files |
 | Phase 08 P00 | 2min | 1 tasks | 6 files |
 | Phase 08 P02 | 4min | 2 tasks | 9 files |
+| Phase 09 P01 | 9min | 2 tasks | 13 files |
+| Phase 09 P02 | 8min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -153,6 +155,9 @@ Recent decisions affecting current work:
 - [Phase 08]: SalesBottleneck separate type from BottleneckData (different shape: message/tip vs metricLabel/currentRate/threshold)
 - [Phase 08]: useSalesDetail follows useAuth+metricsApi pattern (matches existing hooks, not tenantId prop pattern)
 - [Phase 08]: Dual currency formatting via Intl.NumberFormat with es-MX for MXN and en-US for USD
+- [Phase 09]: Renewal classification via jsonb_extract_path_text(metadata_info, event_name) = subscription_cycle
+- [Phase 09]: Churn lost revenue estimated from last EXPANSION sale per churned customer via SQL window function
+- [Phase 09]: KpiTooltip as reusable standalone component with shadcn Tooltip for plain-Spanish KPI hints
 
 ### Pending Todos
 
@@ -169,6 +174,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T16:39:07.148Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-stages-5-6-adoption-expansion/09-CONTEXT.md
+Last session: 2026-03-16T17:24:12.007Z
+Stopped at: Completed 09-02-PLAN.md
+Resume file: None
