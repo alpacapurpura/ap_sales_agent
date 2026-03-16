@@ -39,9 +39,9 @@ Declared values (must be multiples of 4):
 |-------|-------|-------|
 | xs | 4px | Icon gaps (`gap-1`), inline padding, campaign sub-row separator (`space-y-1`) |
 | sm | 8px | Channel row vertical padding (`py-2`), campaign sub-row vertical padding (`py-2`), compact spacing (`space-y-2`) |
-| md | 16px | Default element spacing (`space-y-4`, `p-4`), section padding (`px-3 py-3`) |
+| md | 16px | Default element spacing (`space-y-4`, `p-4`), section padding |
 | lg | 24px | Header KPI horizontal gaps (`gap-6`) |
-| xl | 32px | Not used in this phase |
+| xl | 32px | Campaign drill-down indent (`pl-8`), aligns sub-row content with channel name after icon |
 | 2xl | 48px | Not used in this phase |
 | 3xl | 64px | Not used in this phase |
 
@@ -127,9 +127,9 @@ Accent reserved for: MiniFunnel conversion rate percentage display, primary acti
 ### NurtureDetail Panel Structure
 
 ```
-[Ultima actualizacion: 16 mar 2026, 14:32]          -- text-xs muted, px-3 pb-1
+[Ultima actualizacion: 16 mar 2026, 14:32]          -- text-xs muted, p-4 pb-1
 
-[TOTAL MQLs]   [CONVERSION]   [COSTO POR MQL]       -- 3 KPIs, flex gap-6 px-3 py-2
+[TOTAL MQLs]   [CONVERSION]   [COSTO POR MQL]       -- 3 KPIs, flex gap-6 p-4 py-2
  2,100           24.7%          $12.50                -- text-xl semibold tabular-nums
 
 [Leads (8,500) --> MQLs (2,100) = 24.7%]             -- MiniFunnel, bg-muted/30 rounded-lg
@@ -167,7 +167,7 @@ Accent reserved for: MiniFunnel conversion rate percentage display, primary acti
 - **Indicator**: Chevron icon (ChevronDown from lucide-react) at far right of ChannelRow, rotates 180deg when expanded
 - **Animation**: shadcn Collapsible component with default height transition
 - **Content**: List of individual campaigns, each as a compact sub-row with campaign name (left) and metrics (right)
-- **Sub-row style**: `pl-10` indent (aligns with channel name after icon), `py-2` (8px), `text-xs` for all text, `bg-muted/20` background
+- **Sub-row style**: `pl-8` indent (32px, aligns sub-row content beneath channel name), `py-2` (8px), `text-xs` for all text, `bg-muted/20` background
 - **Separator**: No dividers between campaigns -- spacing only (`space-y-1`, 4px)
 
 ### "Proximamente" Badge (AI SDR fallback)
