@@ -63,11 +63,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Stage 4 — Ventas
 
-- [ ] **VEN-01**: Detail panel showing sales broken down by Offer Ladder position (core offer, subscription, upsell/expansion) using `type_offers` from Offer Studio
-- [ ] **VEN-02**: Backend endpoint `/metrics/sales` with revenue tracking — new money (CONVERSION) vs recurring (EXPANSION) split
-- [ ] **VEN-03**: Subscription revenue separated into: new subscriptions (`subscription_create`) vs renewals (`subscription_cycle`)
-- [ ] **VEN-04**: Cross-module read of Offer Studio `type_offers` via shared service or read-only projection (not direct ORM join)
-- [ ] **VEN-05**: CAC (Customer Acquisition Cost) calculated as: Total investment (Stages 0-3) / Total new customers (Stage 4 CONVERSION)
+- [x] **VEN-01**: Detail panel showing sales broken down by Offer Ladder position (core offer, subscription, upsell/expansion) using `type_offers` from Offer Studio
+- [x] **VEN-02**: Backend endpoint `/metrics/sales` with revenue tracking — new money (CONVERSION) vs recurring (EXPANSION) split
+- [x] **VEN-03**: Subscription revenue separated into: new subscriptions (`subscription_create`) vs renewals (`subscription_cycle`)
+- [x] **VEN-04**: Cross-module read of Offer Studio `type_offers` via shared service or read-only projection (not direct ORM join)
+- [x] **VEN-05**: CAC (Customer Acquisition Cost) calculated as: Total investment (Stages 0-3) / Total new customers (Stage 4 CONVERSION)
 
 ### Stage 5 — Adopcion
 
@@ -171,11 +171,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPO-03 | Phase 7: Stage 3 Oportunidad | Complete |
 | OPO-04 | Phase 7: Stage 3 Oportunidad | Complete |
 | OPO-05 | Phase 7: Stage 3 Oportunidad | Complete |
-| VEN-01 | Phase 8: Stage 4 Ventas | Pending |
-| VEN-02 | Phase 8: Stage 4 Ventas | Pending |
-| VEN-03 | Phase 8: Stage 4 Ventas | Pending |
-| VEN-04 | Phase 8: Stage 4 Ventas | Pending |
-| VEN-05 | Phase 8: Stage 4 Ventas | Pending |
+| VEN-01 | Phase 8: Stage 4 Ventas | Complete |
+| VEN-02 | Phase 8: Stage 4 Ventas | Complete |
+| VEN-03 | Phase 8: Stage 4 Ventas | Complete |
+| VEN-04 | Phase 8: Stage 4 Ventas | Complete |
+| VEN-05 | Phase 8: Stage 4 Ventas | Complete |
 | ADO-01 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
 | ADO-02 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |
 | ADO-03 | Phase 9: Stages 5-6 Adoption & Expansion | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-16T10:52:15.317Z"
-last_activity: 2026-03-16 — Completed plan 07-02 (Stage 3 Opportunity Frontend - OpportunityDetail panel, BottleneckBanner, MetricsDashboard routing)
+status: in_progress
+stopped_at: Completed 08-00 Wave 0 test stubs
+last_updated: "2026-03-16T15:06:05.631Z"
+last_activity: 2026-03-16 — Completed plan 08-00 (Wave 0 test stubs for Stage 4 Ventas)
 progress:
   total_phases: 11
   completed_phases: 7
-  total_plans: 20
-  completed_plans: 20
-  percent: 100
+  total_plans: 23
+  completed_plans: 21
+  percent: 91
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Business owner sees their entire customer lifecycle at a glance and understands where the funnel is healthy, leaking, or needs action.
-**Current focus:** Phase 7 — Stage 3 Oportunidad
+**Current focus:** Phase 8 — Stage 4 Ventas
 
 ## Current Position
 
-Phase: 7 of 11 (Stage 3 Oportunidad)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-03-16 — Completed plan 07-02 (Stage 3 Opportunity Frontend - OpportunityDetail panel, BottleneckBanner, MetricsDashboard routing)
+Phase: 8 of 11 (Stage 4 Ventas)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-16 — Completed plan 08-00 (Wave 0 test stubs for Stage 4 Ventas)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100%
 | Phase 06 P03 | 1min | 1 tasks | 1 files |
 | Phase 07 P01 | 11min | 3 tasks | 12 files |
 | Phase 07 P02 | 4min | 2 tasks | 9 files |
+| Phase 08 P00 | 2min | 1 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,7 @@ Recent decisions affecting current work:
 - [Phase 07]: OpportunityDetail panel matches NurtureDetail layout exactly (flex gap-6 KPIs, space-y-2 panel rhythm)
 - [Phase 07]: Inline bottleneck badges computed from metric values in ChannelRow (no prop drilling)
 - [Phase 07]: Proximamente badge extended to checkout-lp and link-enviado with sourceLabel context
+- [Phase 08]: Lazy imports inside test functions for RED-state stubs that fail individually per-test
 
 ### Pending Todos
 
@@ -158,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T10:52:15.314Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-stage-4-ventas/08-CONTEXT.md
+Last session: 2026-03-16T15:05:32Z
+Stopped at: Completed 08-00 Wave 0 test stubs
+Resume file: .planning/phases/08-stage-4-ventas/08-00-SUMMARY.md
