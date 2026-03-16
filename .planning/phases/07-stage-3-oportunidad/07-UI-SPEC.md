@@ -49,11 +49,11 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions: none -- Phase 7 follows established Phase 5-6 panel spacing exactly.
+Exceptions: 12px (`*-3`): inherited from Phase 5-6 panel component patterns (ChannelGroup, ChannelRow, MiniFunnel, header KPIs) -- grid-safe (multiple of 4), maintained for continuity with existing design.
 
 **Phase-specific spacing (from existing pattern):**
 - Panel outer: `space-y-2` (8px vertical rhythm between sections)
-- Header KPIs row: `gap-6` (24px between KPI columns), `px-3 py-2`
+- Header KPIs row: `gap-6` (24px between KPI columns), `px-3 py-2` (12px/8px)
 - MiniFunnel: `gap-3 px-3 py-3` (12px internal gaps, 12px padding)
 - ChannelGroup trigger: `py-3` (12px vertical padding)
 - ChannelRow: `py-2 px-3` (8px/12px)
@@ -62,6 +62,8 @@ Exceptions: none -- Phase 7 follows established Phase 5-6 panel spacing exactly.
 ---
 
 ## Typography
+
+Two weights only: 400 (regular) and 600 (semibold).
 
 | Role | Size | Weight | Line Height | Tailwind Class |
 |------|------|--------|-------------|----------------|
@@ -75,7 +77,7 @@ Exceptions: none -- Phase 7 follows established Phase 5-6 panel spacing exactly.
 **Additional type treatments:**
 - Metric value in ChannelRow: `text-sm font-semibold tabular-nums` (14px/600)
 - Secondary lines (conversions, source labels): `text-xs text-muted-foreground` (12px/400)
-- Bottleneck banner metric: `text-sm font-medium` (14px/500)
+- Bottleneck banner metric: `text-sm font-semibold` (14px/600)
 - Bottleneck banner tip: `text-xs text-muted-foreground` (12px/400)
 - Timestamp: `text-xs text-muted-foreground` (12px/400)
 
@@ -184,7 +186,7 @@ interface BottleneckBannerProps {
 **Sizing:**
 - Container: `rounded-lg border p-3` (12px padding)
 - Icon: `h-4 w-4` (16px)
-- Metric line: `text-sm font-medium` (14px/500)
+- Metric line: `text-sm font-semibold` (14px/600)
 - Tip line: `text-xs text-muted-foreground mt-1` (12px, 4px top margin)
 
 **Behavior:**
