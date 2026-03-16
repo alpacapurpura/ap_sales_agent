@@ -15,6 +15,7 @@ import { ExpansionDetail } from './detail-panels/ExpansionDetail';
 import { EvangelizationDetail } from './detail-panels/EvangelizationDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 import MetricSidebar from './MetricSidebar';
+import { SidebarContent } from './sidebar/SidebarContent';
 
 // Parallel per-stage hooks — all called unconditionally on mount (React Query deduplicates)
 import { useAttractionDetail } from '../../hooks/useAttractionDetail';
@@ -164,7 +165,7 @@ function mergeStageData(
 export function MetricsDashboard() {
   const [activeStage, setActiveStage] = useState<StageId | null>('ATRACCION');
 
-  // Sidebar state — metric drill-down (wired to detail panels in Plan 11-02)
+  // Sidebar state — metric drill-down wired to detail panels
   const [sidebarMetric, setSidebarMetric] = useState<MetricClickData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -234,6 +235,11 @@ export function MetricsDashboard() {
     setSidebarOpen(true);
   };
 
+  const handleSidebarClose = () => {
+    setSidebarOpen(false);
+    setSidebarMetric(null);
+  };
+
   const activeStageData = activeStage
     ? enrichedSummaries.find((s) => s.id === activeStage)
     : null;
@@ -259,21 +265,21 @@ export function MetricsDashboard() {
             </CardHeader>
             <CardContent>
               {activeStage === 'ATRACCION' ? (
-                <AttractionDetail />
+                <AttractionDetail onMetricClick={handleMetricClick} />
               ) : activeStage === 'CAPTURA' ? (
-                <CaptureDetail />
+                <CaptureDetail onMetricClick={handleMetricClick} />
               ) : activeStage === 'NUTRICION' ? (
-                <NurtureDetail />
+                <NurtureDetail onMetricClick={handleMetricClick} />
               ) : activeStage === 'OPORTUNIDAD' ? (
-                <OpportunityDetail />
+                <OpportunityDetail onMetricClick={handleMetricClick} />
               ) : activeStage === 'VENTAS' ? (
-                <SalesDetail />
+                <SalesDetail onMetricClick={handleMetricClick} />
               ) : activeStage === 'ADOPCION' ? (
-                <AdoptionDetail />
+                <AdoptionDetail onMetricClick={handleMetricClick} />
               ) : activeStage === 'EXPANSION' ? (
-                <ExpansionDetail />
+                <ExpansionDetail onMetricClick={handleMetricClick} />
               ) : activeStage === 'EVANGELIZACION' ? (
-                <EvangelizationDetail />
+                <EvangelizationDetail onMetricClick={handleMetricClick} />
               ) : (
                 <PlaceholderDetail stage={activeStageData} />
               )}
@@ -282,12 +288,14 @@ export function MetricsDashboard() {
         )}
       </div>
 
-      {/* Metric drill-down sidebar — triggered by onClick on detail panel metrics */}
+      {/* Metric drill-down sidebar — renders polymorphic SidebarContent per stageId */}
       <MetricSidebar
         isOpen={sidebarOpen}
-        onClose={() => { setSidebarOpen(false); setSidebarMetric(null); }}
+        onClose={handleSidebarClose}
         metric={sidebarMetric}
-      />
+      >
+        <SidebarContent metric={sidebarMetric} stageId={activeStage} />
+      </MetricSidebar>
     </>
   );
 }

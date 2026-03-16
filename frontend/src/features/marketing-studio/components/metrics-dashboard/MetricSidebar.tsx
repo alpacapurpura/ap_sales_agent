@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { X, TrendingUp, Info } from 'lucide-react';
 import {
   Sheet,
@@ -20,6 +21,11 @@ interface MetricSidebarProps {
   onClose: () => void;
   /** The metric that was clicked to open this sidebar, or null if nothing selected */
   metric: MetricClickData | null;
+  /**
+   * Optional children rendered below the current-value section.
+   * Used to inject SidebarContent (polymorphic per-stage content adapters) from Plan 11-02.
+   */
+  children?: ReactNode;
 }
 
 /**
@@ -29,7 +35,7 @@ interface MetricSidebarProps {
  * Per-metric content adapters (SidebarContent) will be added in Plan 11-02.
  * The sidebar uses shadcn Sheet with side="right" and 400px desktop width.
  */
-export default function MetricSidebar({ isOpen, onClose, metric }: MetricSidebarProps) {
+export default function MetricSidebar({ isOpen, onClose, metric, children }: MetricSidebarProps) {
   const hasMetric = metric != null;
 
   function formatValue(value: number, currency?: string): string {
@@ -126,54 +132,61 @@ export default function MetricSidebar({ isOpen, onClose, metric }: MetricSidebar
 
             <Separator />
 
-            {/* Action buttons — placeholder CTAs */}
-            <div className="space-y-3">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-                Acciones
-              </p>
+            {/* Per-stage polymorphic content (SidebarContent injected from MetricsDashboard) */}
+            {children ? (
+              children
+            ) : (
+              <>
+                {/* Fallback action buttons — shown when no SidebarContent children provided */}
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                    Acciones
+                  </p>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start gap-2"
-                disabled
-              >
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
-                  Pronto
-                </Badge>
-                Crear campana relacionada
-              </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                    disabled
+                  >
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
+                      Pronto
+                    </Badge>
+                    Crear campana relacionada
+                  </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start gap-2"
-                disabled
-              >
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
-                  Pronto
-                </Badge>
-                Editar configuracion del canal
-              </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                    disabled
+                  >
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
+                      Pronto
+                    </Badge>
+                    Editar configuracion del canal
+                  </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start gap-2"
-                disabled
-              >
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
-                  Pronto
-                </Badge>
-                Ver historial de cambios
-              </Button>
-            </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                    disabled
+                  >
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
+                      Pronto
+                    </Badge>
+                    Ver historial de cambios
+                  </Button>
+                </div>
 
-            {/* Connection state info */}
-            <div className="rounded-md bg-muted/30 p-3 space-y-1">
-              <p className="text-xs text-muted-foreground font-medium">Canal</p>
-              <p className="text-sm font-mono">{metric.channelSlug}</p>
-            </div>
+                {/* Connection state info */}
+                <div className="rounded-md bg-muted/30 p-3 space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">Canal</p>
+                  <p className="text-sm font-mono">{metric.channelSlug}</p>
+                </div>
+              </>
+            )}
           </div>
         )}
       </SheetContent>
