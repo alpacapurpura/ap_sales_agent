@@ -28,10 +28,12 @@ from src.modules.landing.api import landing as landing_ai
 # 5. Sales Agent
 from src.modules.sales_agent.api import audit as sales_audit
 
-# 6. Copilot (No API Router exposed yet)
+# 6. Copilot
+from src.modules.copilot.api import actions as copilot_actions
 
 # 7. CRM
 from src.modules.crm.api import leads as crm_leads, cdp as crm_cdp, sales as crm_sales, pipeline as crm_pipeline
+from src.modules.crm.api import referral as crm_referral, nps as crm_nps
 
 # 8. Scheduling
 from src.modules.scheduling.api import event_types as sched_types, public_links as sched_public, agenda as sched_agenda
@@ -46,7 +48,7 @@ from src.modules.analytics.api import etl_admin as analytics_etl_admin
 
 # 12. Connections
 from src.modules.connections.api import webhook as conn_webhook, telegram as conn_telegram, whatsapp as conn_whatsapp
-from src.modules.connections.api import calendar as conn_calendar, gmail as conn_gmail, marketing_webhooks as conn_marketing, shopify as conn_shopify, mailerlite as conn_mailerlite, manychat as conn_manychat, google_analytics as conn_google_analytics, meta as conn_meta, youtube as conn_youtube, youtube_analytics as conn_youtube_analytics, google_workspace as conn_google_workspace
+from src.modules.connections.api import calendar as conn_calendar, gmail as conn_gmail, marketing_webhooks as conn_marketing, shopify as conn_shopify, mailerlite as conn_mailerlite, manychat as conn_manychat, google_analytics as conn_google_analytics, meta as conn_meta, youtube as conn_youtube, youtube_analytics as conn_youtube_analytics, google_workspace as conn_google_workspace, shopify_compliance
 
 # 13. Assets
 from src.modules.assets.api import router as assets_gallery, offer_gallery as assets_offers
@@ -135,11 +137,16 @@ app.include_router(landing_ai.router, prefix="/api/v1/landings", tags=["Landing"
 # 5. Sales Agent - Audit
 app.include_router(sales_audit.router, prefix="/api/v1/admin/audit", tags=["Sales Agent - Audit"], dependencies=[Depends(get_tenant_context)])
 
+# 6. Copilot
+app.include_router(copilot_actions.router, prefix="/api/v1/copilot/actions", tags=["Copilot - Actions"], dependencies=[Depends(get_tenant_context)])
+
 # 7. CRM
 app.include_router(crm_leads.router, prefix="/api/v1/crm/leads", tags=["CRM - Leads"], dependencies=[Depends(get_tenant_context)])
 app.include_router(crm_cdp.router, prefix="/api/v1/crm/cdp", tags=["CRM - CDP"], dependencies=[Depends(get_tenant_context)])
 app.include_router(crm_sales.router, prefix="/api/v1/crm/sales", tags=["CRM - Sales"], dependencies=[Depends(get_tenant_context)])
 app.include_router(crm_pipeline.router, prefix="/api/v1/crm/pipeline", tags=["CRM - Pipeline"], dependencies=[Depends(get_tenant_context)])
+app.include_router(crm_referral.router, prefix="/api/v1/crm", tags=["CRM - Referrals"], dependencies=[Depends(get_tenant_context)])
+app.include_router(crm_nps.router, prefix="/api/v1/crm", tags=["CRM - NPS"], dependencies=[Depends(get_tenant_context)])
 
 # 8. Scheduling
 app.include_router(sched_types.router, prefix="/api/v1/scheduling/event-types", tags=["Scheduling - Event Types"], dependencies=[Depends(get_tenant_context)])
@@ -160,7 +167,6 @@ app.include_router(conn_webhook.router, prefix="/api/v1/connections/webhook", ta
 app.include_router(conn_marketing.router, prefix="/api/v1/connections/marketing-webhooks", tags=["Connections - Marketing Webhooks"])
 app.include_router(conn_shopify.router, prefix="/api/v1/connections/shopify", tags=["Connections - Shopify"], dependencies=[Depends(get_tenant_context)])
 app.include_router(conn_shopify.public_router, prefix="/api/v1/connections/shopify", tags=["Connections - Shopify"])
-from src.modules.connections.api import shopify_compliance
 app.include_router(shopify_compliance.router, prefix="/api/v1/connections/shopify/compliance", tags=["Connections - Shopify Compliance"])
 app.include_router(conn_mailerlite.router, prefix="/api/v1/connections/mailerlite", tags=["Connections - MailerLite"], dependencies=[Depends(get_tenant_context)])
 app.include_router(conn_google_analytics.router, prefix="/api/v1/connections/google-analytics", tags=["Connections - Google Analytics"], dependencies=[Depends(get_tenant_context)])
