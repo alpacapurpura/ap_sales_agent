@@ -47,6 +47,7 @@ class CaptureMetricsRepository:
                 CustomerProfileModel.first_seen_at >= start_date,
                 CustomerProfileModel.first_seen_at <= end_date,
                 CustomerProfileModel.lead_source.isnot(None),
+                CustomerProfileModel.is_inactive == False,  # noqa: E712
             )
             .group_by(CustomerProfileModel.lead_source)
         )
