@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-16T02:32:35.787Z"
-last_activity: 2026-03-15 — Completed plan 04-03 (Validation script and end-to-end verification)
+status: completed
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-16T04:39:24.062Z"
+last_activity: 2026-03-16 — Completed plan 05-02 (CaptureDetail panel with MiniFunnel, CostLink, channel groups)
 progress:
   total_phases: 11
-  completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
+  completed_phases: 5
+  total_plans: 15
+  completed_plans: 15
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 
 ## Current Position
 
-Phase: 5 of 11 (Stage 1 Captura)
-Plan: 1 of 2 in current phase (05-01 complete)
-Status: In progress
-Last activity: 2026-03-16 — Completed plan 05-01 (Capture backend: DTOs, cost model, CRM repository, API endpoint)
+Phase: 5 of 11 (Stage 1 Captura) -- COMPLETE
+Plan: 2 of 2 in current phase (all complete)
+Status: Phase complete
+Last activity: 2026-03-16 — Completed plan 05-02 (CaptureDetail panel with MiniFunnel, CostLink, channel groups)
 
-Progress: [███████░░░] 70%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [███████░░░] 70%
 | Phase 04 P02 | 4min | 2 tasks | 8 files |
 | Phase 04 P03 | 6min | 2 tasks | 1 files |
 | Phase 05 P01 | 7min | 3 tasks | 18 files |
+| Phase 05 P02 | 8min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - 05-01: CaptureMetricsRepository uses distinct profile_id as conversation approximation (JourneyEventModel lacks session_id)
 - 05-01: Alembic migration created manually due to pre-existing duplicate revision ID issue
 - 05-01: Agency cost proration distributes by category: organic_management, paid_management, video, full_service
+- 05-02: Reused TrafficGroup type for both web_infrastructure and ai_agent capture groups
+- 05-02: CostLink defaults to /growth/settings/costs route for cost configuration
+- 05-02: ChannelRow conversations secondary line uses 10px muted text below leads metric
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T04:01:40Z
-Stopped at: Completed 05-01-PLAN.md
-Resume file: .planning/phases/05-stage-1-captura/05-02-PLAN.md
+Last session: 2026-03-16T04:39:24.061Z
+Stopped at: Completed 05-02-PLAN.md
+Resume file: None
