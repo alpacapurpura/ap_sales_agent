@@ -103,11 +103,11 @@ Plans:
   3. AI Agent leads are tracked by extraction events where the agent obtained email/phone from messaging channels
   4. Each capture channel displays its associated cost (Manychat, LLM tokens, WhatsApp API, Mailerlite)
   5. Cost of Acquisition per Lead is calculated and displayed as total Stage 0 investment divided by total Stage 1 leads
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Capture backend endpoint and CRM internal adapter for leads
-- [ ] 05-02: Capture detail panel frontend component
+- [ ] 05-01-PLAN.md -- Backend: DTOs, cost model, CRM lead repository, LeadCapturedEvent, capture endpoint
+- [ ] 05-02-PLAN.md -- Frontend: CaptureDetail panel, MiniFunnel, CostLink, types, hook, and MetricsDashboard wiring
 
 ### Phase 6: Stage 2 Nutricion
 **Goal**: Business owner sees which nurturing activities are converting leads into marketing-qualified prospects
