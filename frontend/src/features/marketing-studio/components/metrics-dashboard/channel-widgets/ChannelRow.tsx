@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { ConnectionBadge } from './ConnectionBadge';
+import { CostLink } from './CostLink';
 
 const CHANNEL_ICONS: Record<string, string> = {
   'ig-organic': '\uD83D\uDCF8',
@@ -21,6 +22,12 @@ const CHANNEL_ICONS: Record<string, string> = {
   'tiktok-ads': '\uD83C\uDFB5',
   'yt-ads': '\u25B6\uFE0F',
   'cold-contact': '\uD83D\uDCDE',
+  'landing-form': '\uD83D\uDCC4',
+  'mailerlite': '\uD83D\uDCE7',
+  'ig-dm': '\uD83D\uDCF8',
+  'fb-messenger': '\uD83D\uDCAC',
+  'tiktok-dm': '\uD83C\uDFB5',
+  'whatsapp-inbound': '\uD83D\uDCF1',
 };
 
 /** Metric name -> Spanish label mapping. */
@@ -34,6 +41,10 @@ const METRIC_LABELS: Record<string, string> = {
   spend: 'Gasto',
   contacts: 'Contactos',
   responses: 'Respuestas',
+  leads: 'Leads',
+  cost: 'Costo',
+  conversion_rate: 'Conversion',
+  conversations: 'Conversaciones',
 };
 
 /** Breakdown key -> Spanish label. */
@@ -122,7 +133,16 @@ export function ChannelRow({ channel }: ChannelRowProps) {
     );
   }
 
+  // Check for leads metric with zero value
+  const leadsMetric = channel.metrics.find(m => m.name === 'leads');
+  const hasZeroLeads = leadsMetric !== undefined && leadsMetric.value === 0;
   const hasNoData = channel.metrics.length === 0 || channel.metrics.every(m => m.value === 0);
+
+  // Find conversations metric for AI Agent secondary line
+  const conversationsMetric = channel.metrics.find(m => m.name === 'conversations');
+
+  // Render metrics, excluding conversations (shown as secondary line) and handling CostLink
+  const displayMetrics = channel.metrics.filter(m => m.name !== 'conversations');
 
   return (
     <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors">
@@ -147,15 +167,40 @@ export function ChannelRow({ channel }: ChannelRowProps) {
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        {hasNoData ? (
+        {hasNoData && !hasZeroLeads ? (
           <div className="flex flex-col items-end">
             <span className="text-sm font-semibold text-muted-foreground">---</span>
             <span className="text-[10px] text-muted-foreground">Sin datos</span>
           </div>
+        ) : hasZeroLeads ? (
+          <div className="flex flex-col items-end">
+            <span className="text-sm font-semibold text-muted-foreground">0 leads</span>
+            <span className="text-[10px] text-muted-foreground">Sin actividad en los ultimos 30 dias</span>
+          </div>
         ) : (
-          channel.metrics.map((m) => (
-            <MetricDisplay key={m.name} metric={m} />
-          ))
+          displayMetrics.map((m) => {
+            // CostLink for unconfigured costs (value is 0/null and channel is connected)
+            if (m.name === 'cost' && m.unit === 'currency' && m.value === 0 && channel.connected) {
+              return <CostLink key={m.name} />;
+            }
+
+            // Leads metric with conversations secondary line
+            if (m.name === 'leads' && conversationsMetric) {
+              return (
+                <div key={m.name} className="flex flex-col items-end min-w-[60px]">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                    {METRIC_LABELS[m.name] ?? m.name}
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums">{formatNumber(m.value)}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    de {conversationsMetric.value.toLocaleString('es-ES')} conversaciones
+                  </span>
+                </div>
+              );
+            }
+
+            return <MetricDisplay key={m.name} metric={m} />;
+          })
         )}
         {channel.stale && (
           <Button

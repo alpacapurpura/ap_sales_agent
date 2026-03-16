@@ -6,6 +6,7 @@ import type { StageId } from '../../types/metrics';
 import { STAGE_SUMMARIES } from '../../api/metrics-mock-data';
 import { StageSummaryRow } from './StageSummaryRow';
 import { AttractionDetail } from './detail-panels/AttractionDetail';
+import { CaptureDetail } from './detail-panels/CaptureDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 
 export function MetricsDashboard() {
@@ -37,6 +38,8 @@ export function MetricsDashboard() {
           <CardContent>
             {activeStage === 'ATRACCION' ? (
               <AttractionDetail />
+            ) : activeStage === 'CAPTURA' ? (
+              <CaptureDetail />
             ) : (
               <PlaceholderDetail stage={activeStageData} />
             )}

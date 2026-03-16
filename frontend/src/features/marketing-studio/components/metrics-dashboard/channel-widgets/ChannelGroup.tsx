@@ -37,6 +37,15 @@ function buildSummary(groupType: GroupType, totals: Record<string, number>, chan
       return `Alcance: ${formatNumber(totals.reach ?? 0)} | Clicks: ${formatNumber(totals.clicks ?? 0)} | Conversiones: ${formatNumber(totals.conversions ?? 0)} | Gasto: ${formatCurrency(totals.spend ?? 0)}`;
     case 'outbound':
       return `Contactos: ${formatNumber(totals.contacts ?? 0)} | Respuestas: ${formatNumber(totals.responses ?? 0)}`;
+    case 'web_infrastructure':
+    case 'ai_agent': {
+      const leads = formatNumber(totals.leads ?? 0);
+      const cpl = totals.cost && totals.leads
+        ? `$${(totals.cost / totals.leads).toFixed(2)}`
+        : '---';
+      const conv = totals.conversion_rate?.toFixed(1) ?? '0';
+      return `Leads: ${leads} | Costo por Lead: ${cpl} | Conversion: ${conv}%`;
+    }
     case 'available':
       return `${channelCount} canales por configurar`;
     default:
