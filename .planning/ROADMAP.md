@@ -199,11 +199,11 @@ Plans:
   2. Every stage card in StageSummaryRow shows real KPI values from its backend endpoint, not hardcoded mock data
   3. Each stage card displays the conversion rate to the next stage (Stage N count / Stage N+1 count)
   4. Provider-specific channel icons and labels match the channel definitions from the product spec across all panels
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 11-01: Summary row KPI integration and conversion rate display
-- [ ] 11-02: Cross-stage UX audit and icon/label consistency pass
+- [ ] 11-01-PLAN.md — Shared UI infrastructure (DetailSkeleton, DetailEmpty, DetailError, MetricSidebar), real KPI data wiring, conversion rate display, sidebar state orchestration
+- [ ] 11-02-PLAN.md — Visual polish across all 8 detail panels, professional channel icons, action sidebar integration, responsive design, micro-interactions
 
 ## Progress
 
