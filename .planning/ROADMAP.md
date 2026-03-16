@@ -152,11 +152,11 @@ Plans:
   3. Subscription revenue is separated into new subscriptions vs renewals
   4. Offer Studio type_offers data is accessed via shared service or read-only projection without direct ORM join
   5. CAC is calculated as total investment from Stages 0-3 divided by total new CONVERSION customers
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: Offer Studio cross-module read and sales backend endpoint
-- [ ] 08-02: Sales detail panel frontend component with Offer Ladder breakdown
+- [ ] 08-01-PLAN.md -- Backend: OfferReadPort cross-module integration, SalesDetailDTO, SalesMetricsRepository, CAC calculation, GET /metrics/sales endpoint
+- [ ] 08-02-PLAN.md -- Frontend: SalesDetail panel, OfferCard/TierGroup/RevenueGroupHeader components, types, hook, MetricsDashboard wiring
 
 ### Phase 9: Stages 5-6 Adoption & Expansion
 **Goal**: Business owner sees customer health post-purchase and understands retention: who is active, who is expanding, who is churning
