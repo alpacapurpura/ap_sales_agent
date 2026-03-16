@@ -1,7 +1,7 @@
 """add_etl_infrastructure_tables_and_tenant_priority
 
-Revision ID: a1b2c3d4e5f6
-Revises: 194925304af0
+Revision ID: ab8346fd2c09
+Revises: f5a6b7c8d9e0
 Create Date: 2026-03-15 16:30:00.000000
 
 """
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "a1b2c3d4e5f6"
-down_revision: Union[str, None] = "194925304af0"
+revision: str = "ab8346fd2c09"
+down_revision: Union[str, None] = "f5a6b7c8d9e0"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
