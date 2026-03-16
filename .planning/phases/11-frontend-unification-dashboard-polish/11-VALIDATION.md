@@ -4,6 +4,7 @@ slug: frontend-unification-dashboard-polish
 status: draft
 nyquist_compliant: false
 wave_0_complete: false
+wave_0_plan_created: true
 created: 2026-03-16
 ---
 
@@ -38,10 +39,15 @@ created: 2026-03-16
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 11-01-01 | 01 | 1 | UI-01 | unit | `vitest src/features/marketing-studio/components/metrics-dashboard/detail-panels/*.test.tsx -u` | ❌ Wave 0 | ⬜ pending |
-| 11-01-02 | 01 | 1 | UI-02 | unit | `vitest src/features/marketing-studio/components/metrics-dashboard/StageCard.test.tsx -u` | ❌ Wave 0 | ⬜ pending |
-| 11-01-03 | 01 | 2 | UI-03 | unit | `vitest src/features/marketing-studio/types/metrics.test.ts -u` | ❌ Wave 0 | ⬜ pending |
-| 11-01-04 | 01 | 2 | UI-04 | unit | `vitest src/features/marketing-studio/components/metrics-dashboard/channel-widgets/ChannelRow.test.tsx -u` | ❌ Wave 0 | ⬜ pending |
+| 11-00-01 | 00 | 0 | Nyquist | unit | `npm run test -- DetailSkeleton --run` | ✅ Wave 0 | ⬜ pending |
+| 11-00-02 | 00 | 0 | Nyquist | unit | `npm run test -- StageCard --run` | ✅ Wave 0 | ⬜ pending |
+| 11-00-03 | 00 | 0 | Nyquist | unit | `npm run test -- MetricSidebar --run` | ✅ Wave 0 | ⬜ pending |
+| 11-00-04 | 00 | 0 | Nyquist | unit | `npm run test -- useAttractionDetail --run` | ✅ Wave 0 | ⬜ pending |
+| 11-01-01 | 01 | 1 | UI-01 | unit | `npm run test -- marketing-studio --run` | ✅ From Wave 0 | ⬜ pending |
+| 11-01-02 | 01 | 1 | UI-02 | unit | `npm run test -- marketing-studio --run` | ✅ From Wave 0 | ⬜ pending |
+| 11-01-03 | 01 | 1 | UI-03 | unit | `npm run test -- marketing-studio --run` | ✅ From Wave 0 | ⬜ pending |
+| 11-02-01 | 02 | 2 | UI-01 | unit | `npm run test -- marketing-studio --run` | ✅ From Wave 0 | ⬜ pending |
+| 11-02-02 | 02 | 2 | UI-04 | unit | `npm run test -- marketing-studio --run` | ✅ From Wave 0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,11 +55,22 @@ created: 2026-03-16
 
 ## Wave 0 Requirements
 
-- [ ] `frontend/src/features/marketing-studio/components/metrics-dashboard/detail-panels/__tests__/DetailSkeleton.test.tsx` — covers UI-01 loading pattern consistency
-- [ ] `frontend/src/features/marketing-studio/components/metrics-dashboard/__tests__/StageCard.test.tsx` — covers UI-02 real data display from API hooks
-- [ ] `frontend/src/features/marketing-studio/components/metrics-dashboard/sidebar/__tests__/MetricSidebar.test.tsx` — covers sidebar interaction and drill-down
-- [ ] `frontend/src/features/marketing-studio/hooks/__tests__/useAttractionDetail.test.ts` — covers API hook pattern with parallel calls
-- [ ] Framework install: Vitest already in place (vitest.config.mts exists). No changes needed.
+**Status: Plan Created (11-00-PLAN.md)**
+
+Wave 0 scaffolding tasks will create these test files:
+
+- [x] **PLAN**: `11-00-PLAN.md` created with 4 scaffolding tasks
+- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/detail-panels/__tests__/DetailSkeleton.test.tsx` — covers UI-01 loading pattern consistency
+- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/__tests__/StageCard.test.tsx` — covers UI-02 real data display from API hooks
+- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/components/metrics-dashboard/sidebar/__tests__/MetricSidebar.test.tsx` — covers sidebar interaction and drill-down
+- [ ] **EXECUTE**: `frontend/src/features/marketing-studio/hooks/__tests__/useAttractionDetail.test.ts` — covers API hook pattern with parallel calls
+- [ ] Framework: Vitest already in place (vitest.config.mts exists). No changes needed.
+
+**Execution order:**
+1. Run `/gsd:execute-phase 11 --wave 0` to scaffold all 4 test files
+2. Verify with `npm run test -- marketing-studio --run` (should discover all 4 files, 0 errors)
+3. Set `wave_0_complete: true` in VALIDATION.md frontmatter after execution passes
+4. Wave 1 (Plan 11-01) can then execute with confidence that test targets exist
 
 ---
 
@@ -70,16 +87,20 @@ created: 2026-03-16
 
 ## Validation Sign-Off
 
+- [x] Wave 0 plan created (11-00-PLAN.md) with 4 test scaffolding tasks
+- [ ] All 4 Wave 0 test files exist (after execution)
 - [ ] All tasks have `<automated>` verify or Wave 0 dependencies
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references (all 4 test files in .test.tsx files)
 - [ ] No watch-mode flags in production commands
 - [ ] Feedback latency < 30s (unit tests quick run)
-- [ ] `nyquist_compliant: true` set in frontmatter after execution
+- [ ] `nyquist_compliant: true` set in frontmatter after full phase execution
+- [ ] `wave_0_complete: true` set in frontmatter after Wave 0 execution
 
-**Approval:** pending
+**Approval:** Wave 0 plan created; pending execution
 
 ---
 
 *Phase: 11-frontend-unification-dashboard-polish*
-*Validation strategy created: 2026-03-16*
+*Validation strategy updated: 2026-03-16*
+*Wave 0 plan added: 2026-03-16*
