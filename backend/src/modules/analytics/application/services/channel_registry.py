@@ -70,6 +70,16 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "mailerlite", "name": "Mailerlite", "channel_type": "email", "source_label": "MailerLite", "provider_name": "mailerlite", "metric_names": ["emails_sent", "open_rate", "click_rate"]},
         {"slug": "ai-sdr", "name": "AI SDR", "channel_type": "automation", "source_label": "AI SDR", "provider_name": "internal", "metric_names": ["followups", "response_rate"]},
     ],
+    "opportunity": [
+        # Checkout group
+        {"slug": "checkout-init", "name": "Checkout Iniciado", "channel_type": "checkout", "source_label": "Shopify", "provider_name": "shopify", "metric_names": ["count", "value"]},
+        {"slug": "abandoned-cart", "name": "Carrito Abandonado", "channel_type": "checkout", "source_label": "Shopify", "provider_name": "shopify", "metric_names": ["count", "value", "abandonment_rate"]},
+        # Payment Links group
+        {"slug": "link-enviado", "name": "Link de Pago Enviado", "channel_type": "payment_link", "source_label": "Sales Agent", "provider_name": "internal", "metric_names": ["count", "value"]},
+        {"slug": "checkout-lp", "name": "Checkout Landing Page", "channel_type": "payment_link", "source_label": "Landing Page", "provider_name": "internal", "metric_names": ["count", "value"]},
+        # Qualification group
+        {"slug": "meeting-booked", "name": "Reuniones Agendadas", "channel_type": "qualification", "source_label": "Scheduling", "provider_name": "internal", "metric_names": ["booked", "completed", "no_show", "rescheduled"]},
+    ],
     "sales": [
         {"slug": "sales-agent", "name": "Sales Agent", "channel_type": "ai", "source_label": "AI SDR", "provider_name": "internal"},
         {"slug": "shopify", "name": "Shopify", "channel_type": "ecommerce", "source_label": "Shopify", "provider_name": "shopify"},

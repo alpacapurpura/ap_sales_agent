@@ -10,6 +10,7 @@ from src.modules.analytics.application.services.metrics_service import MetricsSe
 from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO
 from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
+from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 
@@ -92,6 +93,25 @@ async def get_nurturing_metrics(
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
     return await service.get_nurturing_metrics(user.tenant_id)
+
+
+@router.get("/opportunity", response_model=OpportunityDetailDTO)
+async def get_opportunity_metrics(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get Opportunity (Stage 3) detail panel metrics.
+
+    Returns SQL pipeline counts (checkout, meetings, payment links),
+    grouped into checkout, payment_links, and qualification groups,
+    with bottleneck detection for abandoned cart and meeting no-show rates.
+    """
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    service = MetricsService(db, cache=cache, connection_port=connection_port)
+    now = datetime.now(timezone.utc)
+    start_date = now - timedelta(days=30)
+    return await service.get_opportunity_metrics(user.tenant_id, start_date, now)
 
 
 @router.post("/attraction/refresh/{channel_slug}")
