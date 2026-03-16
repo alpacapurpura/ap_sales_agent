@@ -131,16 +131,16 @@ Plans:
 **Depends on**: Phase 6 (Stage 2 MQL data feeds Stage 3 conversion rates)
 **Requirements**: OPO-01, OPO-02, OPO-03, OPO-04, OPO-05
 **Success Criteria** (what must be TRUE):
-  1. Opportunity detail panel shows two groups: Web Transactional Friction and High-Ticket Qualification
+  1. Opportunity detail panel shows three groups: Checkout, Payment Links, and Qualification
   2. `/metrics/opportunity` endpoint returns SQL pipeline count from checkout initiations and meeting bookings
   3. Shopify checkout events are handled via test data (given known connection issues) with proper mock fallback
   4. Meeting booked count is sourced from the internal scheduling module via CRM journey_events
   5. High abandoned-cart vs checkout-init ratio is flagged visually as a bottleneck indicator
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: Opportunity backend endpoint with Shopify test data and scheduling integration
-- [ ] 07-02: Opportunity detail panel frontend component
+- [ ] 07-01-PLAN.md — Backend: OpportunityDetailDTO, Shopify webhook handler, scheduling EventBus bridge, OpportunityMetricsRepository, channel registry, GET /metrics/opportunity endpoint
+- [ ] 07-02-PLAN.md — Frontend: OpportunityDetail panel, BottleneckBanner, types, hook, ChannelGroup/ChannelRow modifications, MetricsDashboard wiring
 
 ### Phase 8: Stage 4 Ventas
 **Goal**: Business owner sees total revenue broken down by offer type, with clear separation of new vs recurring money
