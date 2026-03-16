@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 11-00-PLAN.md (Wave 0 test scaffolding)
-last_updated: "2026-03-16T22:22:09.599Z"
+stopped_at: Completed 11-02-PLAN.md (Detail panel polish, channel icons, sidebar wiring)
+last_updated: "2026-03-16T22:35:44.179Z"
 last_activity: "2026-03-16 -- Completed plan 09-01 (Adoption backend + frontend: health tracking per offer, CSS health bar, TTV, bottleneck detection)"
 progress:
   total_phases: 11
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 31
-  completed_plans: 30
+  completed_plans: 31
   percent: 97
 ---
 
@@ -73,6 +73,7 @@ Progress: [█████████▊] 97%
 | Phase 10 P03 | 4min | 2 tasks | 10 files |
 | Phase 11 P01 | 6 | 6 tasks | 8 files |
 | Phase 11 P00 | 8 | 4 tasks | 7 files |
+| Phase 11 P02 | 10 | 6 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,9 @@ Recent decisions affecting current work:
 - [Phase 11]: StageSummary.mainKpi.value widened to number|string for dual-currency pre-formatted strings
 - [Phase 11]: Stub components created instead of vi.mock: Vite resolves static imports before mock hoisting, stubs are more reliable
 - [Phase 11]: @testing-library/user-event not installed in frontend container — Plan 11-01 must add it before click interaction tests can run
+- [Phase 11]: channelIcons.ts uses lucide-react fallbacks for all channels; TikTok uses Radio, Meta Ads uses Zap
+- [Phase 11]: SidebarContent renders stage-specific context banners via polymorphic switch(stageId)
+- [Phase 11]: MetricSidebar accepts children ReactNode — SidebarContent injected from MetricsDashboard, static fallback preserved
 
 ### Pending Todos
 
@@ -193,6 +197,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:22:09.597Z
-Stopped at: Completed 11-00-PLAN.md (Wave 0 test scaffolding)
+Last session: 2026-03-16T22:35:44.177Z
+Stopped at: Completed 11-02-PLAN.md (Detail panel polish, channel icons, sidebar wiring)
 Resume file: None
