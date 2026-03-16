@@ -62,8 +62,13 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "whatsapp-inbound", "name": "WhatsApp Inbound", "channel_type": "messaging", "source_label": "WhatsApp", "provider_name": "whatsapp"},
     ],
     "nurture": [
-        {"slug": "mailerlite", "name": "MailerLite", "channel_type": "email", "source_label": "MailerLite", "provider_name": "mailerlite"},
-        {"slug": "manychat", "name": "ManyChat", "channel_type": "automation", "source_label": "ManyChat", "provider_name": "manychat"},
+        # Retargeting Omnichannel
+        {"slug": "meta-retargeting", "name": "Meta Retargeting", "channel_type": "retargeting", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "clicks", "spend"]},
+        {"slug": "google-retargeting", "name": "Google Retargeting", "channel_type": "retargeting", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "spend"]},
+        {"slug": "tiktok-retargeting", "name": "TikTok Retargeting", "channel_type": "retargeting", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "spend"]},
+        # Automatizacion
+        {"slug": "mailerlite", "name": "Mailerlite", "channel_type": "email", "source_label": "MailerLite", "provider_name": "mailerlite", "metric_names": ["emails_sent", "open_rate", "click_rate"]},
+        {"slug": "ai-sdr", "name": "AI SDR", "channel_type": "automation", "source_label": "AI SDR", "provider_name": "internal", "metric_names": ["followups", "response_rate"]},
     ],
     "sales": [
         {"slug": "sales-agent", "name": "Sales Agent", "channel_type": "ai", "source_label": "AI SDR", "provider_name": "internal"},
