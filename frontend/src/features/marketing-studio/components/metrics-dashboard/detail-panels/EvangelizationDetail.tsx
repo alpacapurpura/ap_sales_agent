@@ -1,6 +1,5 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { useEvangelizationDetail } from '../../../hooks/useEvangelizationDetail';
 import { usePromoteEvangelist } from '../../../hooks/useEvangelizationMutations';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
@@ -9,6 +8,20 @@ import { BottleneckBanner } from './BottleneckBanner';
 import { EvangelistCard } from '../channel-widgets/EvangelistCard';
 import { NpsSummaryCard } from '../channel-widgets/NpsSummaryCard';
 import { CandidatosBanner } from '../channel-widgets/CandidatosBanner';
+import DetailSkeleton from '../ui/DetailSkeleton';
+import DetailEmpty from '../ui/DetailEmpty';
+import DetailError from '../ui/DetailError';
+import type { MetricClickData, StageSummary } from '../../../types/metrics';
+
+const EVANGELIZACION_STAGE: StageSummary = {
+  id: 'EVANGELIZACION',
+  order: 7,
+  label: 'Evangelizacion',
+  description: 'K-Factor, referidos y NPS de clientes',
+  mainKpi: { label: 'k-factor', value: 0 },
+  secondaryKpi: { label: 'referidos', value: 0 },
+  hasDetail: true,
+};
 
 function formatLastUpdated(isoDate: string): string {
   const d = new Date(isoDate);
@@ -38,27 +51,34 @@ function formatDualCurrency(amount: number, currency: string, usdAmount: number 
   return main;
 }
 
-export function EvangelizationDetail() {
-  const { data, isLoading, error } = useEvangelizationDetail();
+interface EvangelizationDetailProps {
+  onMetricClick?: (metric: MetricClickData) => void;
+}
+
+export function EvangelizationDetail({ onMetricClick }: EvangelizationDetailProps) {
+  const { data, isLoading, error, refetch } = useEvangelizationDetail();
   const promote = usePromoteEvangelist();
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-      </div>
+      <DetailSkeleton isLoading>
+        <></>
+      </DetailSkeleton>
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
-      <p className="p-4 text-sm text-muted-foreground">
-        No se pudieron cargar los datos de evangelizacion. Verifica tu conexion e intenta nuevamente.
-      </p>
+      <DetailError
+        error={error instanceof Error ? error : new Error('Error desconocido')}
+        onRetry={() => { void refetch(); }}
+        lastData={data}
+      />
     );
+  }
+
+  if (!data) {
+    return <DetailEmpty stage={EVANGELIZACION_STAGE} />;
   }
 
   // Empty state: no referidos AND no NPS
@@ -82,47 +102,77 @@ export function EvangelizationDetail() {
       : 'text-red-600 dark:text-red-400';
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 animate-fade-in">
       {/* Timestamp */}
       {data.lastUpdated && (
-        <p className="text-[10px] text-muted-foreground px-3 pb-1">
-          Ultima actualizacion: {formatLastUpdated(data.lastUpdated)}
+        <p className="text-[10px] text-muted-foreground italic">
+          Actualizado: {formatLastUpdated(data.lastUpdated)}
         </p>
       )}
 
-      {/* Primary Header KPIs (3) */}
-      <div className="flex items-center gap-6 px-3 py-2">
-        <div className="flex flex-col">
+      {/* Primary Header KPIs — responsive 3-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          className={`flex flex-col bg-muted/30 rounded-lg p-3 ${onMetricClick ? 'cursor-pointer hover:bg-muted/50 transition-colors duration-100' : ''}`}
+          onClick={onMetricClick ? () => onMetricClick({
+            stageId: 'EVANGELIZACION',
+            channelSlug: 'referidos',
+            metricName: 'k_factor',
+            currentValue: headerKpis.kFactor,
+          }) : undefined}
+          role={onMetricClick ? 'button' : undefined}
+          tabIndex={onMetricClick ? 0 : undefined}
+        >
           <KpiTooltip
             label="K-FACTOR"
             hint="Por cada cliente, cuantos nuevos clientes genera a traves de referidos. Mayor a 1.0 significa crecimiento viral"
           />
-          <span className={`text-xl font-semibold tabular-nums ${kFactorColor}`}>
+          <span className={`text-xl sm:text-2xl font-semibold tabular-nums mt-1 ${kFactorColor}`}>
             {headerKpis.kFactor.toFixed(2)}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div
+          className={`flex flex-col bg-muted/30 rounded-lg p-3 ${onMetricClick ? 'cursor-pointer hover:bg-muted/50 transition-colors duration-100' : ''}`}
+          onClick={onMetricClick ? () => onMetricClick({
+            stageId: 'EVANGELIZACION',
+            channelSlug: 'referidos',
+            metricName: 'referral_conversions',
+            currentValue: headerKpis.referralConversions,
+          }) : undefined}
+          role={onMetricClick ? 'button' : undefined}
+          tabIndex={onMetricClick ? 0 : undefined}
+        >
           <KpiTooltip
             label="REFERIDOS CONVERTIDOS"
             hint="Cantidad de ventas que vinieron de un codigo de referido o enlace compartido"
           />
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {headerKpis.referralConversions.toLocaleString('es-ES')}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div
+          className={`flex flex-col bg-muted/30 rounded-lg p-3 ${onMetricClick ? 'cursor-pointer hover:bg-muted/50 transition-colors duration-100' : ''}`}
+          onClick={onMetricClick ? () => onMetricClick({
+            stageId: 'EVANGELIZACION',
+            channelSlug: 'nps',
+            metricName: 'nps_score',
+            currentValue: headerKpis.npsScore ?? 0,
+          }) : undefined}
+          role={onMetricClick ? 'button' : undefined}
+          tabIndex={onMetricClick ? 0 : undefined}
+        >
           <KpiTooltip
             label="NPS SCORE"
             hint="Calificacion de satisfaccion de tus clientes del 0 al 10. Arriba de 8 es excelente"
           />
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {headerKpis.npsScore?.toFixed(1) ?? '--'}
           </span>
         </div>
       </div>
 
-      {/* Secondary Header KPIs (2) */}
-      <div className="flex items-center gap-6 px-3">
+      {/* Secondary KPIs */}
+      <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
         <div className="flex flex-col">
           <KpiTooltip
             label="REVENUE REFERIDO"
@@ -148,7 +198,7 @@ export function EvangelizationDetail() {
 
       {/* Bottleneck Banners */}
       {bottlenecks.length > 0 && (
-        <div className="space-y-2 px-3">
+        <div className="space-y-2">
           {bottlenecks.map((b) => (
             <BottleneckBanner
               key={`${b.type}-${b.metricLabel}`}
@@ -167,46 +217,56 @@ export function EvangelizationDetail() {
 
       {/* Group 1: Referidos */}
       <div className="space-y-2">
-        <div className="px-3">
+        <div>
           <h3 className="text-sm font-semibold">Referidos</h3>
           <p className="text-xs text-muted-foreground">Ventas atribuidas a codigos de referido</p>
         </div>
         {referidos.length > 0 ? (
-          <div className="space-y-2 px-3">
+          <div className="space-y-2">
             {referidos.map((e) => (
-              <EvangelistCard key={e.customerId} evangelist={e} />
+              <div
+                key={e.customerId}
+                className={onMetricClick ? 'cursor-pointer hover:opacity-90 transition-opacity duration-100' : ''}
+                onClick={onMetricClick ? () => onMetricClick({
+                  stageId: 'EVANGELIZACION',
+                  channelSlug: `evangelist-${e.customerId}`,
+                  metricName: 'revenue_attributed',
+                  currentValue: e.revenueAttributed,
+                  currency: e.currency,
+                }) : undefined}
+                role={onMetricClick ? 'button' : undefined}
+                tabIndex={onMetricClick ? 0 : undefined}
+              >
+                <EvangelistCard evangelist={e} />
+              </div>
             ))}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground px-3">
+          <p className="text-xs text-muted-foreground">
             Aun no has promovido evangelistas
           </p>
         )}
       </div>
 
       {/* Candidatos a Evangelista */}
-      <div className="px-3">
-        <CandidatosBanner
-          candidatos={candidatos}
-          onPromote={promote.mutate}
-          isPromoting={promote.isPending}
-        />
-      </div>
+      <CandidatosBanner
+        candidatos={candidatos}
+        onPromote={promote.mutate}
+        isPromoting={promote.isPending}
+      />
 
       {/* Group 2: Reputacion */}
       <div className="space-y-2">
-        <div className="px-3">
+        <div>
           <h3 className="text-sm font-semibold">Reputacion</h3>
           <p className="text-xs text-muted-foreground">Satisfaccion del cliente y contenido generado</p>
         </div>
-        <div className="px-3">
-          <NpsSummaryCard
-            nps={npsSummary}
-            ugcCount={data.ugcCount}
-            ugcWritten={data.ugcWritten}
-            ugcAudio={data.ugcAudio}
-          />
-        </div>
+        <NpsSummaryCard
+          nps={npsSummary}
+          ugcCount={data.ugcCount}
+          ugcWritten={data.ugcWritten}
+          ugcAudio={data.ugcAudio}
+        />
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import type { ChannelMetric, GroupType } from '../../../types/metrics';
+import type { ChannelMetric, GroupType, MetricClickData, StageId } from '../../../types/metrics';
 import { ChannelRow } from './ChannelRow';
 
 interface ChannelGroupProps {
@@ -15,6 +15,10 @@ interface ChannelGroupProps {
   channels: ChannelMetric[];
   groupType: GroupType;
   defaultOpen?: boolean;
+  /** Stage context forwarded to ChannelRow for MetricClickData */
+  stageId?: StageId;
+  /** Callback forwarded to ChannelRow when user clicks a metric value */
+  onMetricClick?: (metric: MetricClickData) => void;
 }
 
 function formatNumber(n: number): string {
@@ -76,7 +80,7 @@ function buildSummary(groupType: GroupType, totals: Record<string, number>, chan
   }
 }
 
-export function ChannelGroup({ title, totals, channels, groupType, defaultOpen = true }: ChannelGroupProps) {
+export function ChannelGroup({ title, totals, channels, groupType, defaultOpen = true, stageId, onMetricClick }: ChannelGroupProps) {
   const summary = buildSummary(groupType, totals, channels.length);
 
   return (
@@ -91,7 +95,12 @@ export function ChannelGroup({ title, totals, channels, groupType, defaultOpen =
         <AccordionContent>
           <div className="space-y-1">
             {channels.map((ch) => (
-              <ChannelRow key={ch.slug} channel={ch} />
+              <ChannelRow
+                key={ch.slug}
+                channel={ch}
+                stageId={stageId}
+                onMetricClick={onMetricClick}
+              />
             ))}
           </div>
         </AccordionContent>

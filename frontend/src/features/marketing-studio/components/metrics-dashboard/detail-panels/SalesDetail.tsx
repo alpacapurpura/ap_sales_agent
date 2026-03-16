@@ -1,12 +1,24 @@
 'use client';
 
 import { AlertTriangle } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useSalesDetail } from '../../../hooks/useSalesDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
 import { RevenueGroupHeader } from '../channel-widgets/RevenueGroupHeader';
 import { TierGroup } from '../channel-widgets/TierGroup';
-import type { SalesBottleneck, RevenueGroupData } from '../../../types/metrics';
+import DetailSkeleton from '../ui/DetailSkeleton';
+import DetailEmpty from '../ui/DetailEmpty';
+import DetailError from '../ui/DetailError';
+import type { SalesBottleneck, RevenueGroupData, MetricClickData, StageSummary } from '../../../types/metrics';
+
+const VENTAS_STAGE: StageSummary = {
+  id: 'VENTAS',
+  order: 4,
+  label: 'Ventas',
+  description: 'Revenue y clientes nuevos por oferta',
+  mainKpi: { label: 'revenue', value: 0, unit: '$' },
+  secondaryKpi: { label: 'nuevos clientes', value: 0 },
+  hasDetail: true,
+};
 
 function formatLastUpdated(isoDate: string): string {
   const d = new Date(isoDate);
@@ -62,7 +74,7 @@ function SalesBottleneckBanner({ bottleneck }: { bottleneck: SalesBottleneck }) 
   );
 }
 
-function RevenueSection({ group }: { group: RevenueGroupData }) {
+function RevenueSection({ group, onMetricClick }: { group: RevenueGroupData; onMetricClick?: (metric: MetricClickData) => void }) {
   const nonEmptyTiers = group.tiers.filter((t) => t.offers.length > 0);
   if (nonEmptyTiers.length === 0) return null;
 
@@ -83,32 +95,48 @@ function RevenueSection({ group }: { group: RevenueGroupData }) {
           tierKey={tier.tierKey}
           tierLabel={tier.tierLabel}
           offers={tier.offers}
+          onOfferClick={onMetricClick ? (offerId, publicName, revenue) => {
+            onMetricClick({
+              stageId: 'VENTAS',
+              channelSlug: offerId,
+              metricName: 'revenue',
+              currentValue: revenue,
+              currency: group.currency,
+            });
+          } : undefined}
         />
       ))}
     </div>
   );
 }
 
-export function SalesDetail() {
-  const { data, isLoading, error } = useSalesDetail();
+interface SalesDetailProps {
+  onMetricClick?: (metric: MetricClickData) => void;
+}
+
+export function SalesDetail({ onMetricClick }: SalesDetailProps) {
+  const { data, isLoading, error, refetch } = useSalesDetail();
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-      </div>
+      <DetailSkeleton isLoading>
+        <></>
+      </DetailSkeleton>
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
-      <div className="p-4 text-sm text-muted-foreground">
-        No se pudieron cargar los datos de ventas. Verifica tu conexion e intenta nuevamente.
-      </div>
+      <DetailError
+        error={error instanceof Error ? error : new Error('Error desconocido')}
+        onRetry={() => { void refetch(); }}
+        lastData={data}
+      />
     );
+  }
+
+  if (!data) {
+    return <DetailEmpty stage={VENTAS_STAGE} />;
   }
 
   const { headerKpis, miniFunnel, adquisicion, expansion, bottlenecks } = data;
@@ -133,36 +161,38 @@ export function SalesDetail() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 animate-fade-in">
       {/* Timestamp */}
       {data.lastUpdated && (
-        <p className="text-xs text-muted-foreground px-3 pb-1">
-          Ultima actualizacion: {formatLastUpdated(data.lastUpdated)}
+        <p className="text-xs text-muted-foreground italic">
+          Actualizado: {formatLastUpdated(data.lastUpdated)}
         </p>
       )}
 
-      {/* Header KPIs */}
-      <div className="flex items-center gap-6 px-3 py-2">
-        <div className="flex flex-col">
+      {/* Header KPIs — responsive 3-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">REVENUE TOTAL</span>
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {formatDualCurrency(headerKpis.totalRevenue, headerKpis.currency, headerKpis.totalRevenueUsd)}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">NUEVOS CLIENTES</span>
-          <span className="text-xl font-semibold tabular-nums">{headerKpis.newCustomers.toLocaleString('es-ES')}</span>
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
+            {headerKpis.newCustomers.toLocaleString('es-ES')}
+          </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">CAC</span>
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {headerKpis.cac != null
               ? `${new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.cac)}${headerKpis.cacIncomplete ? '*' : ''}`
               : '--'}
           </span>
           {headerKpis.cacIncomplete && (
-            <span className="text-[10px] text-muted-foreground">
-              Costos incompletos -- configura en Growth Settings
+            <span className="text-[10px] text-muted-foreground mt-0.5">
+              Costos incompletos — configurar en Growth Settings
             </span>
           )}
         </div>
@@ -173,7 +203,7 @@ export function SalesDetail() {
 
       {/* Bottleneck Banners */}
       {bottlenecks.length > 0 && (
-        <div className="space-y-2 px-3">
+        <div className="space-y-2">
           {bottlenecks.map((b) => (
             <SalesBottleneckBanner key={b.type} bottleneck={b} />
           ))}
@@ -181,8 +211,8 @@ export function SalesDetail() {
       )}
 
       {/* Revenue Groups */}
-      <RevenueSection group={adquisicion} />
-      <RevenueSection group={expansion} />
+      <RevenueSection group={adquisicion} onMetricClick={onMetricClick} />
+      <RevenueSection group={expansion} onMetricClick={onMetricClick} />
     </div>
   );
 }

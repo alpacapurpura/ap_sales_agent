@@ -1,11 +1,24 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { useExpansionDetail } from '../../../hooks/useExpansionDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
 import { KpiTooltip } from '../channel-widgets/KpiTooltip';
 import { ExpansionGroup } from '../channel-widgets/ExpansionGroup';
 import { BottleneckBanner } from './BottleneckBanner';
+import DetailSkeleton from '../ui/DetailSkeleton';
+import DetailEmpty from '../ui/DetailEmpty';
+import DetailError from '../ui/DetailError';
+import type { MetricClickData, StageSummary } from '../../../types/metrics';
+
+const EXPANSION_STAGE: StageSummary = {
+  id: 'EXPANSION',
+  order: 6,
+  label: 'Expansion',
+  description: 'Ingreso recurrente, upsell y cancelaciones',
+  mainKpi: { label: 'net MRR', value: 0, unit: '$' },
+  secondaryKpi: { label: 'churn %', value: 0, unit: '%' },
+  hasDetail: true,
+};
 
 function formatLastUpdated(isoDate: string): string {
   const d = new Date(isoDate);
@@ -35,26 +48,33 @@ function formatDualCurrency(amount: number, currency: string, usdAmount: number 
   return main;
 }
 
-export function ExpansionDetail() {
-  const { data, isLoading, error } = useExpansionDetail();
+interface ExpansionDetailProps {
+  onMetricClick?: (metric: MetricClickData) => void;
+}
+
+export function ExpansionDetail({ onMetricClick }: ExpansionDetailProps) {
+  const { data, isLoading, error, refetch } = useExpansionDetail();
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-      </div>
+      <DetailSkeleton isLoading>
+        <></>
+      </DetailSkeleton>
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
-      <div className="p-4 text-sm text-muted-foreground">
-        No se pudieron cargar los datos de expansion. Verifica tu conexion e intenta nuevamente.
-      </div>
+      <DetailError
+        error={error instanceof Error ? error : new Error('Error desconocido')}
+        onRetry={() => { void refetch(); }}
+        lastData={data}
+      />
     );
+  }
+
+  if (!data) {
+    return <DetailEmpty stage={EXPANSION_STAGE} />;
   }
 
   const { headerKpis, miniFunnel, retencion, crecimiento, cancelaciones, bottlenecks } = data;
@@ -78,40 +98,51 @@ export function ExpansionDetail() {
       : '';
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 animate-fade-in">
       {/* Timestamp */}
       {data.lastUpdated && (
-        <p className="text-xs text-muted-foreground px-3 pb-1">
-          Ultima actualizacion: {formatLastUpdated(data.lastUpdated)}
+        <p className="text-xs text-muted-foreground italic">
+          Actualizado: {formatLastUpdated(data.lastUpdated)}
         </p>
       )}
 
-      {/* Header KPIs */}
-      <div className="flex items-center gap-6 px-3 py-2">
-        <div className="flex flex-col">
+      {/* Header KPIs — responsive 3-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          className={`flex flex-col bg-muted/30 rounded-lg p-3 ${onMetricClick ? 'cursor-pointer hover:bg-muted/50 transition-colors duration-100' : ''}`}
+          onClick={onMetricClick ? () => onMetricClick({
+            stageId: 'EXPANSION',
+            channelSlug: 'mrr',
+            metricName: 'net_mrr',
+            currentValue: headerKpis.netMrr,
+            currency: headerKpis.currency,
+          }) : undefined}
+          role={onMetricClick ? 'button' : undefined}
+          tabIndex={onMetricClick ? 0 : undefined}
+        >
           <KpiTooltip
             label="INGRESO RECURRENTE NETO"
             hint="Dinero que recibes cada mes de suscripciones activas, despues de restar cancelaciones"
           />
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {formatDualCurrency(headerKpis.netMrr, headerKpis.currency, headerKpis.netMrrUsd)}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <KpiTooltip
             label="VALOR PROMEDIO POR CLIENTE"
             hint="Cuanto dinero ha generado en promedio cada cliente desde su primera compra"
           />
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {formatDualCurrency(headerKpis.avgLtv, headerKpis.currency, headerKpis.avgLtvUsd)}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <KpiTooltip
             label="TASA DE CANCELACION"
             hint="Porcentaje de suscriptores que cancelaron en este periodo. Menos de 5% es saludable"
           />
-          <span className={`text-xl font-semibold tabular-nums ${churnColor}`}>
+          <span className={`text-xl sm:text-2xl font-semibold tabular-nums mt-1 ${churnColor}`}>
             {headerKpis.churnRatePct.toFixed(1)}%
           </span>
         </div>
@@ -122,7 +153,7 @@ export function ExpansionDetail() {
 
       {/* Bottleneck Banners */}
       {bottlenecks.length > 0 && (
-        <div className="space-y-2 px-3">
+        <div className="space-y-2">
           {bottlenecks.map((b) => (
             <BottleneckBanner
               key={b.type}

@@ -6,6 +6,8 @@ import type { OfferSaleData } from '../../../types/metrics';
 interface OfferCardProps {
   offer: OfferSaleData;
   tierKey: string;
+  /** Callback when user clicks the revenue value to open drill-down sidebar */
+  onRevenueClick?: () => void;
 }
 
 function getTierIndicator(tierKey: string) {
@@ -49,7 +51,7 @@ function formatRevenue(amount: number, currency: string, usdAmount: number | nul
   return main;
 }
 
-export function OfferCard({ offer, tierKey }: OfferCardProps) {
+export function OfferCard({ offer, tierKey, onRevenueClick }: OfferCardProps) {
   const {
     publicName,
     salesCount,
@@ -86,9 +88,19 @@ export function OfferCard({ offer, tierKey }: OfferCardProps) {
           <span className="text-sm font-medium">{publicName}</span>
           <span className="text-xs text-muted-foreground ml-2">{salesCount} ventas</span>
         </div>
-        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-          {formatRevenue(totalRevenue, currency, usdRevenue)}
-        </span>
+        {onRevenueClick ? (
+          <button
+            onClick={onRevenueClick}
+            className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums cursor-pointer hover:opacity-80 hover:underline transition-opacity duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-1"
+            title="Ver detalle de revenue"
+          >
+            {formatRevenue(totalRevenue, currency, usdRevenue)}
+          </button>
+        ) : (
+          <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+            {formatRevenue(totalRevenue, currency, usdRevenue)}
+          </span>
+        )}
       </div>
 
       {/* Line 2: Source breakdown */}

@@ -1,9 +1,22 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { useCaptureDetail } from '../../../hooks/useCaptureDetail';
 import { ChannelGroup } from '../channel-widgets/ChannelGroup';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
+import DetailSkeleton from '../ui/DetailSkeleton';
+import DetailEmpty from '../ui/DetailEmpty';
+import DetailError from '../ui/DetailError';
+import type { MetricClickData, StageSummary } from '../../../types/metrics';
+
+const CAPTURA_STAGE: StageSummary = {
+  id: 'CAPTURA',
+  order: 1,
+  label: 'Captura',
+  description: 'Leads generados desde formularios y agentes conversacionales',
+  mainKpi: { label: 'leads', value: 0 },
+  secondaryKpi: { label: 'conversion', value: 0, unit: '%' },
+  hasDetail: true,
+};
 
 function formatLastUpdated(isoDate: string): string {
   const d = new Date(isoDate);
@@ -11,51 +24,63 @@ function formatLastUpdated(isoDate: string): string {
     + ', ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
-export function CaptureDetail() {
-  const { data, isLoading, error } = useCaptureDetail();
+interface CaptureDetailProps {
+  onMetricClick?: (metric: MetricClickData) => void;
+}
+
+export function CaptureDetail({ onMetricClick }: CaptureDetailProps) {
+  const { data, isLoading, error, refetch } = useCaptureDetail();
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-      </div>
+      <DetailSkeleton isLoading>
+        <></>
+      </DetailSkeleton>
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
-      <div className="p-4 text-sm text-muted-foreground">
-        No se pudieron cargar los datos de captura. Verifica tu conexion e intenta nuevamente.
-      </div>
+      <DetailError
+        error={error instanceof Error ? error : new Error('Error desconocido')}
+        onRetry={() => { void refetch(); }}
+        lastData={data}
+      />
     );
+  }
+
+  if (!data) {
+    return <DetailEmpty stage={CAPTURA_STAGE} />;
   }
 
   const { headerKpis, miniFunnel } = data;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 animate-fade-in">
+      {/* Timestamp */}
       {data.lastUpdated && (
-        <p className="text-xs text-muted-foreground px-3 pb-1">
-          Ultima actualizacion: {formatLastUpdated(data.lastUpdated)}
+        <p className="text-xs text-muted-foreground italic">
+          Actualizado: {formatLastUpdated(data.lastUpdated)}
         </p>
       )}
 
-      {/* Panel Header KPIs */}
-      <div className="flex items-center gap-6 px-3 py-2">
-        <div className="flex flex-col">
+      {/* Header KPIs — responsive 3-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] text-muted-foreground uppercase tracking-wide">TOTAL LEADS</span>
-          <span className="text-xl font-semibold tabular-nums">{headerKpis.totalLeads.toLocaleString('es-ES')}</span>
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
+            {headerKpis.totalLeads.toLocaleString('es-ES')}
+          </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] text-muted-foreground uppercase tracking-wide">CONVERSION</span>
-          <span className="text-xl font-semibold tabular-nums">{headerKpis.conversionRate.toFixed(1)}%</span>
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
+            {headerKpis.conversionRate.toFixed(1)}%
+          </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] text-muted-foreground uppercase tracking-wide">COSTO POR LEAD</span>
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {headerKpis.costPerLead !== null ? `$${headerKpis.costPerLead.toFixed(2)}` : '---'}
           </span>
         </div>
@@ -71,6 +96,8 @@ export function CaptureDetail() {
         channels={data.webInfrastructure.channels}
         groupType="web_infrastructure"
         defaultOpen
+        stageId="CAPTURA"
+        onMetricClick={onMetricClick}
       />
       <ChannelGroup
         title="Agente AI Conversacional"
@@ -78,6 +105,8 @@ export function CaptureDetail() {
         channels={data.aiAgent.channels}
         groupType="ai_agent"
         defaultOpen
+        stageId="CAPTURA"
+        onMetricClick={onMetricClick}
       />
       {data.available && data.available.channels.length > 0 && (
         <ChannelGroup
@@ -86,6 +115,8 @@ export function CaptureDetail() {
           channels={data.available.channels}
           groupType="available"
           defaultOpen={false}
+          stageId="CAPTURA"
+          onMetricClick={onMetricClick}
         />
       )}
     </div>

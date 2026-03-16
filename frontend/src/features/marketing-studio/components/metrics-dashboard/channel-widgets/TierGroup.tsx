@@ -14,9 +14,11 @@ interface TierGroupProps {
   tierLabel: string;
   offers: OfferSaleData[];
   defaultOpen?: boolean;
+  /** Callback when user clicks an offer's revenue metric for drill-down */
+  onOfferClick?: (offerId: string, publicName: string, revenue: number) => void;
 }
 
-export function TierGroup({ tierKey, tierLabel, offers, defaultOpen }: TierGroupProps) {
+export function TierGroup({ tierKey, tierLabel, offers, defaultOpen, onOfferClick }: TierGroupProps) {
   const shouldOpen = defaultOpen ?? offers.some((o) => o.salesCount > 0);
 
   return (
@@ -30,7 +32,12 @@ export function TierGroup({ tierKey, tierLabel, offers, defaultOpen }: TierGroup
         <AccordionContent>
           <div className="space-y-2">
             {offers.map((offer) => (
-              <OfferCard key={offer.offerId} offer={offer} tierKey={tierKey} />
+              <OfferCard
+                key={offer.offerId}
+                offer={offer}
+                tierKey={tierKey}
+                onRevenueClick={onOfferClick ? () => onOfferClick(offer.offerId, offer.publicName, offer.totalRevenue) : undefined}
+              />
             ))}
           </div>
         </AccordionContent>

@@ -1,11 +1,24 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAdoptionDetail } from '../../../hooks/useAdoptionDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
 import { HealthBar } from '../channel-widgets/HealthBar';
 import { OfferHealthCard } from '../channel-widgets/OfferHealthCard';
 import { BottleneckBanner } from './BottleneckBanner';
+import DetailSkeleton from '../ui/DetailSkeleton';
+import DetailEmpty from '../ui/DetailEmpty';
+import DetailError from '../ui/DetailError';
+import type { MetricClickData, StageSummary } from '../../../types/metrics';
+
+const ADOPCION_STAGE: StageSummary = {
+  id: 'ADOPCION',
+  order: 5,
+  label: 'Adopcion',
+  description: 'Salud y activacion de clientes existentes',
+  mainKpi: { label: 'salud %', value: 0, unit: '%' },
+  secondaryKpi: { label: 'activos', value: 0 },
+  hasDetail: true,
+};
 
 function formatLastUpdated(isoDate: string): string {
   const d = new Date(isoDate);
@@ -35,26 +48,33 @@ function formatDualCurrency(amount: number, currency: string, usdAmount: number 
   return main;
 }
 
-export function AdoptionDetail() {
-  const { data, isLoading, error } = useAdoptionDetail();
+interface AdoptionDetailProps {
+  onMetricClick?: (metric: MetricClickData) => void;
+}
+
+export function AdoptionDetail({ onMetricClick }: AdoptionDetailProps) {
+  const { data, isLoading, error, refetch } = useAdoptionDetail();
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-32 w-full" />
-      </div>
+      <DetailSkeleton isLoading>
+        <></>
+      </DetailSkeleton>
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
-      <div className="p-4 text-sm text-muted-foreground">
-        No se pudieron cargar los datos de adopcion. Verifica tu conexion e intenta nuevamente.
-      </div>
+      <DetailError
+        error={error instanceof Error ? error : new Error('Error desconocido')}
+        onRetry={() => { void refetch(); }}
+        lastData={data}
+      />
     );
+  }
+
+  if (!data) {
+    return <DetailEmpty stage={ADOPCION_STAGE} />;
   }
 
   // Empty state
@@ -65,7 +85,7 @@ export function AdoptionDetail() {
         <p className="text-xs text-muted-foreground mt-2 max-w-md">
           Cuando completes tus primeras ventas, aqui veras como tus clientes usan tu producto o servicio.
         </p>
-        <span className="text-xs text-primary underline mt-3">
+        <span className="text-xs text-primary underline mt-3 cursor-pointer">
           Ir a Ventas
         </span>
       </div>
@@ -79,38 +99,38 @@ export function AdoptionDetail() {
     : 'text-yellow-600 dark:text-yellow-400';
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 animate-fade-in">
       {/* Timestamp */}
       {data.lastUpdated && (
-        <p className="text-xs text-muted-foreground px-3 pb-1">
-          Ultima actualizacion: {formatLastUpdated(data.lastUpdated)}
+        <p className="text-xs text-muted-foreground italic">
+          Actualizado: {formatLastUpdated(data.lastUpdated)}
         </p>
       )}
 
-      {/* Primary Header KPIs */}
-      <div className="flex items-center gap-6 px-3 py-2">
-        <div className="flex flex-col">
+      {/* Primary Header KPIs — responsive 3-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">CLIENTES ACTIVOS</span>
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {headerKpis.activeCustomers.toLocaleString('es-ES')}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">CLIENTES INACTIVOS</span>
-          <span className="text-xl font-semibold tabular-nums">
+          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
             {headerKpis.inactiveCustomers.toLocaleString('es-ES')}
           </span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">SALUD DEL CLIENTE</span>
-          <span className={`text-xl font-semibold tabular-nums ${healthColor}`}>
+          <span className={`text-xl sm:text-2xl font-semibold tabular-nums mt-1 ${healthColor}`}>
             {headerKpis.healthPct.toFixed(1)}%
           </span>
         </div>
       </div>
 
       {/* Secondary KPIs */}
-      <div className="flex items-center gap-6 px-3">
+      <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
         <div className="flex flex-col">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">TIEMPO DE ACTIVACION</span>
           <span className="text-sm font-semibold tabular-nums">
@@ -132,7 +152,7 @@ export function AdoptionDetail() {
 
       {/* Bottleneck Banners */}
       {bottlenecks.length > 0 && (
-        <div className="space-y-2 px-3">
+        <div className="space-y-2">
           {bottlenecks.map((b) => (
             <BottleneckBanner
               key={`${b.type}-${b.metricLabel}`}
@@ -155,10 +175,33 @@ export function AdoptionDetail() {
         inactiveCount={headerKpis.inactiveCustomers}
       />
 
-      {/* Offer Cards */}
-      <div className="space-y-2 px-3">
+      {/* Offer Health Cards */}
+      <div className="space-y-2">
         {offers.map((offer) => (
-          <OfferHealthCard key={offer.offerId} offer={offer} />
+          <div
+            key={offer.offerId}
+            className={onMetricClick ? 'cursor-pointer hover:opacity-90 transition-opacity duration-100' : ''}
+            onClick={onMetricClick ? () => onMetricClick({
+              stageId: 'ADOPCION',
+              channelSlug: offer.offerId,
+              metricName: 'health_pct',
+              currentValue: offer.healthPct,
+            }) : undefined}
+            role={onMetricClick ? 'button' : undefined}
+            tabIndex={onMetricClick ? 0 : undefined}
+            onKeyDown={onMetricClick ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onMetricClick({
+                  stageId: 'ADOPCION',
+                  channelSlug: offer.offerId,
+                  metricName: 'health_pct',
+                  currentValue: offer.healthPct,
+                });
+              }
+            } : undefined}
+          >
+            <OfferHealthCard offer={offer} />
+          </div>
         ))}
       </div>
     </div>
