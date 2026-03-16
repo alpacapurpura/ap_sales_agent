@@ -183,11 +183,12 @@ Plans:
   2. `/metrics/evangelization` endpoint tracks referral-attributed sales and evangelist profiles
   3. K-Factor is calculated as (referrals sent per customer) x (conversion rate of referrals)
   4. NPS integration via Mailerlite surveys identifies promoters (score 9-10) as potential evangelists
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: Evangelization backend endpoint with referral and NPS tracking
-- [ ] 10-02: Evangelization detail panel frontend component
+- [ ] 10-01-PLAN.md — CRM domain models (ReferralCode, NpsSurvey, NpsResponse), migration, services (ReferralService, NpsService), evangelist promotion, CRM API endpoints
+- [ ] 10-02-PLAN.md — Analytics backend: EvangelizationDetailDTO, repository, MetricsService method, channel registry, GET /metrics/evangelization endpoint
+- [ ] 10-03-PLAN.md — Frontend: types, API client, mock data, hooks, EvangelizationDetail panel, EvangelistCard, NpsSummaryCard, CandidatosBanner, MetricsDashboard wiring
 
 ### Phase 11: Frontend Unification & Dashboard Polish
 **Goal**: All 8 stages present a consistent, polished experience with real summary KPIs and inter-stage conversion rates
@@ -220,5 +221,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. Stage 3 Oportunidad | 2/2 | Complete   | 2026-03-16 |
 | 8. Stage 4 Ventas | 3/3 | Complete   | 2026-03-16 |
 | 9. Stages 5-6 Adoption & Expansion | 2/2 | Complete   | 2026-03-16 |
-| 10. Stage 7 Evangelizacion | 0/2 | Not started | - |
+| 10. Stage 7 Evangelizacion | 0/3 | Not started | - |
 | 11. Frontend Unification & Dashboard Polish | 0/2 | Not started | - |
