@@ -142,3 +142,49 @@ class StageCostService:
             return None
 
         return round(group_cost / total_mqls, 2)
+
+    def get_total_funnel_investment(
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> tuple[float, bool]:
+        """Sum all pre-sale funnel investment (Stages 0-3) for CAC calculation.
+
+        Returns: (total_cost, is_complete)
+        - is_complete=False when total is 0.0 (likely unconfigured costs)
+
+        Stage 0: Ad spend from MetricAggregationModel (meta-ads, google-ads, tiktok-ads)
+        Stage 1: Capture channel costs (platform + agency + LLM tokens)
+        Stage 2: Nurture costs (retargeting spend + automation tools)
+        Stage 3: Opportunity costs (Shopify, scheduling tools -- manual config)
+        """
+        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+            MetricAggregationModel,
+        )
+
+        # Stage 0: paid ad spend
+        ad_slugs = {"meta-ads", "google-ads", "tiktok-ads"}
+        stmt_ads = (
+            select(func.coalesce(func.sum(MetricAggregationModel.value), 0.0))
+            .where(
+                MetricAggregationModel.tenant_id == tenant_id,
+                MetricAggregationModel.channel_slug.in_(ad_slugs),
+                MetricAggregationModel.metric_name == "spend",
+                MetricAggregationModel.period_type == "last_30_days",
+            )
+        )
+        ad_spend = float(self.db.execute(stmt_ads).scalar() or 0.0)
+
+        # Stages 1-3: manual channel costs (all stages)
+        all_manual_costs = self.get_channel_costs(tenant_id)
+        manual_total = sum(all_manual_costs.values())
+
+        # Stage 2: retargeting ad spend
+        retargeting = self.get_retargeting_spend(tenant_id, start_date, end_date)
+        retargeting_total = sum(retargeting.values())
+
+        total = ad_spend + manual_total + retargeting_total
+        is_complete = total > 0.0
+
+        return total, is_complete

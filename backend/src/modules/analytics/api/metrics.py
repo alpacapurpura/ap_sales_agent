@@ -11,8 +11,10 @@ from src.modules.analytics.application.dto.attraction_dto import AttractionDetai
 from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
 from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
+from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
+from src.modules.offer.application.services.offer_read_port_impl import OfferReadPortImpl
 
 router = APIRouter(prefix="/metrics", tags=["Marketing Metrics"])
 
@@ -112,6 +114,28 @@ async def get_opportunity_metrics(
     now = datetime.now(timezone.utc)
     start_date = now - timedelta(days=30)
     return await service.get_opportunity_metrics(user.tenant_id, start_date, now)
+
+
+@router.get("/sales", response_model=SalesDetailDTO)
+async def get_sales_metrics(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get Sales (Stage 4) detail panel metrics.
+
+    Returns revenue broken down by Offer Ladder position with CONVERSION/EXPANSION
+    split, tier grouping, subscription new/renewal split, CAC calculation,
+    and bottleneck detection.
+    """
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    offer_port = OfferReadPortImpl(db)
+    service = MetricsService(
+        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+    )
+    now = datetime.now(timezone.utc)
+    start_date = now - timedelta(days=30)
+    return await service.get_sales_metrics(user.tenant_id, start_date, now)
 
 
 @router.post("/attraction/refresh/{channel_slug}")
