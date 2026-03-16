@@ -79,3 +79,47 @@ class ChurnEvent(DomainEvent):
                 "cancellation_reason": cancellation_reason or "",
             },
         )
+
+
+# Mapping from connections module channel_type to capture channel slugs
+# (used by ChatOrchestrator when setting lead_source on new profiles)
+CHANNEL_TYPE_TO_CAPTURE_SLUG = {
+    "instagram": "ig-dm",
+    "facebook": "fb-messenger",
+    "tiktok": "tiktok-dm",
+    "whatsapp": "whatsapp-inbound",
+    "telegram": "telegram-dm",
+}
+
+
+@dataclass
+class LeadCapturedEvent(DomainEvent):
+    """Emitted by Sales Agent when AI extracts email/phone from conversation.
+
+    Payload keys:
+        profile_id: UUID of the created customer profile
+        channel_slug: capture channel slug (ig-dm, fb-messenger, etc.)
+        extracted_field: "email" or "phone"
+        source_channel_type: original channel_type from connections module
+    """
+
+    @classmethod
+    def create(
+        cls,
+        tenant_id: UUID,
+        profile_id: UUID,
+        channel_slug: str,
+        extracted_field: str,
+        source_channel_type: str,
+    ) -> "LeadCapturedEvent":
+        """Factory method. Sets event_name='lead_captured' automatically."""
+        return cls(
+            event_name="lead_captured",
+            tenant_id=tenant_id,
+            payload={
+                "profile_id": str(profile_id),
+                "channel_slug": channel_slug,
+                "extracted_field": extracted_field,
+                "source_channel_type": source_channel_type,
+            },
+        )

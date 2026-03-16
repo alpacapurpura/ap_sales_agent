@@ -15,10 +15,14 @@ from src.modules.analytics.infrastructure.models.extraction_run_model import (
 from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
     MetricAggregationModel,
 )
+from src.modules.analytics.infrastructure.models.channel_cost_model import (
+    ChannelCostSettingModel,
+)
 
 __all__ = [
     "StagingMetricModel",
     "OfficialMetricModel",
     "ExtractionRunModel",
     "MetricAggregationModel",
+    "ChannelCostSettingModel",
 ]
