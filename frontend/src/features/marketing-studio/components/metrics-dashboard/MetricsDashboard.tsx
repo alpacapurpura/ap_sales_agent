@@ -54,57 +54,59 @@ function mergeStageData(
 
     switch (base.id) {
       case 'ATRACCION': {
-        // Sum totals across all group totals for total visitors
+        // Sum reach/sessions across all group totals for total visitors
+        // Backend returns: organicSocial.totals.reach, ga4Search.totals.sessions,
+        // paid.totals.reach, outbound.totals.contacts
         const groups = ['organicSocial', 'ga4Search', 'paid', 'outbound'] as const;
         let totalVisitors = 0;
         for (const g of groups) {
           const group = (data[g] ?? {}) as Record<string, unknown>;
           const totals = (group.totals ?? {}) as Record<string, number>;
-          totalVisitors += totals.visitors ?? totals.totalVisitors ?? 0;
+          // Each group uses different metric names; sum all traffic-related metrics
+          totalVisitors += totals.reach ?? totals.sessions ?? totals.contacts ?? 0;
         }
-        if (totalVisitors > 0) {
-          mainValue = totalVisitors;
-          mainLabel = 'visitantes';
-          mainUnit = undefined;
+        mainValue = totalVisitors;
+        mainLabel = 'visitantes';
+        mainUnit = undefined;
+
+        // Count connected channels for secondary KPI
+        let connectedCount = 0;
+        for (const g of groups) {
+          const group = (data[g] ?? {}) as Record<string, unknown>;
+          const channels = (group.channels ?? []) as unknown[];
+          connectedCount += channels.length;
         }
-        // No conversion rate for Stage 0; secondary = channels connected count (keep mock)
+        secondaryValue = connectedCount;
         break;
       }
       case 'CAPTURA': {
-        const captured = (kpis.totalLeads ?? base.mainKpi.value) as number;
-        const rate = (kpis.conversionRate ?? (miniFunnel.conversionRate ?? 0)) as number;
-        mainValue = captured;
+        mainValue = (kpis.totalLeads ?? 0) as number;
         mainLabel = 'leads';
         mainUnit = undefined;
-        secondaryValue = rate;
+        secondaryValue = (kpis.conversionRate ?? (miniFunnel.conversionRate ?? 0)) as number;
         secondaryUnit = '%';
         break;
       }
       case 'NUTRICION': {
-        const mqls = (kpis.totalMqls ?? base.mainKpi.value) as number;
-        const rate = (kpis.conversionRate ?? (miniFunnel.conversionRate ?? 0)) as number;
-        mainValue = mqls;
+        mainValue = (kpis.totalMqls ?? 0) as number;
         mainLabel = 'MQLs';
         mainUnit = undefined;
-        secondaryValue = rate;
+        secondaryValue = (kpis.conversionRate ?? (miniFunnel.conversionRate ?? 0)) as number;
         secondaryUnit = '%';
         break;
       }
       case 'OPORTUNIDAD': {
-        const sqls = (kpis.totalSqls ?? base.mainKpi.value) as number;
-        const rate = (kpis.conversionRate ?? (miniFunnel.conversionRate ?? 0)) as number;
-        mainValue = sqls;
+        mainValue = (kpis.totalSqls ?? 0) as number;
         mainLabel = 'SQLs';
         mainUnit = undefined;
-        secondaryValue = rate;
+        secondaryValue = (kpis.conversionRate ?? (miniFunnel.conversionRate ?? 0)) as number;
         secondaryUnit = '%';
         break;
       }
       case 'VENTAS': {
-        const revenue = (kpis.totalRevenue ?? base.mainKpi.value) as number;
+        mainValue = (kpis.totalRevenue ?? 0) as number;
         const newCust = (kpis.newCustomers ?? 0) as number;
         const rate = (miniFunnel.conversionRate ?? 0) as number;
-        mainValue = revenue;
         mainLabel = 'revenue';
         mainUnit = '$';
         secondaryValue = rate > 0 ? rate : newCust;
@@ -112,10 +114,9 @@ function mergeStageData(
         break;
       }
       case 'ADOPCION': {
-        const health = (kpis.healthPct ?? base.mainKpi.value) as number;
+        mainValue = (kpis.healthPct ?? 0) as number;
         const active = (kpis.activeCustomers ?? 0) as number;
         const rate = (miniFunnel.conversionRate ?? 0) as number;
-        mainValue = health;
         mainLabel = 'salud %';
         mainUnit = '%';
         secondaryValue = rate > 0 ? rate : active;
@@ -123,21 +124,18 @@ function mergeStageData(
         break;
       }
       case 'EXPANSION': {
-        const netMrr = (kpis.netMrr ?? base.mainKpi.value) as number;
-        const rate = (kpis.churnRatePct ?? (miniFunnel.conversionRate ?? 0)) as number;
-        mainValue = netMrr;
+        mainValue = (kpis.netMrr ?? 0) as number;
         mainLabel = 'net MRR';
         mainUnit = '$';
-        secondaryValue = rate;
+        secondaryValue = (kpis.churnRatePct ?? (miniFunnel.conversionRate ?? 0)) as number;
         secondaryUnit = '%';
         break;
       }
       case 'EVANGELIZACION': {
-        const kFactor = (kpis.kFactor ?? base.mainKpi.value) as number;
-        const rate = (miniFunnel.conversionRate ?? 0) as number;
-        mainValue = kFactor;
+        mainValue = (kpis.kFactor ?? 0) as number;
         mainLabel = 'k-factor';
         mainUnit = undefined;
+        const rate = (miniFunnel.conversionRate ?? 0) as number;
         secondaryValue = rate;
         secondaryUnit = rate > 0 ? '%' : undefined;
         break;
@@ -257,34 +255,36 @@ export function MetricsDashboard() {
         />
 
         {activeStageData && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">
-                Detalle: {activeStageData.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activeStage === 'ATRACCION' ? (
-                <AttractionDetail onMetricClick={handleMetricClick} />
-              ) : activeStage === 'CAPTURA' ? (
-                <CaptureDetail onMetricClick={handleMetricClick} />
-              ) : activeStage === 'NUTRICION' ? (
-                <NurtureDetail onMetricClick={handleMetricClick} />
-              ) : activeStage === 'OPORTUNIDAD' ? (
-                <OpportunityDetail onMetricClick={handleMetricClick} />
-              ) : activeStage === 'VENTAS' ? (
-                <SalesDetail onMetricClick={handleMetricClick} />
-              ) : activeStage === 'ADOPCION' ? (
-                <AdoptionDetail onMetricClick={handleMetricClick} />
-              ) : activeStage === 'EXPANSION' ? (
-                <ExpansionDetail onMetricClick={handleMetricClick} />
-              ) : activeStage === 'EVANGELIZACION' ? (
-                <EvangelizationDetail onMetricClick={handleMetricClick} />
-              ) : (
-                <PlaceholderDetail stage={activeStageData} />
-              )}
-            </CardContent>
-          </Card>
+          activeStage === 'ATRACCION' ? (
+            <AttractionDetail onMetricClick={handleMetricClick} />
+          ) : (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">
+                  Detalle: {activeStageData.label}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {activeStage === 'CAPTURA' ? (
+                  <CaptureDetail onMetricClick={handleMetricClick} />
+                ) : activeStage === 'NUTRICION' ? (
+                  <NurtureDetail onMetricClick={handleMetricClick} />
+                ) : activeStage === 'OPORTUNIDAD' ? (
+                  <OpportunityDetail onMetricClick={handleMetricClick} />
+                ) : activeStage === 'VENTAS' ? (
+                  <SalesDetail onMetricClick={handleMetricClick} />
+                ) : activeStage === 'ADOPCION' ? (
+                  <AdoptionDetail onMetricClick={handleMetricClick} />
+                ) : activeStage === 'EXPANSION' ? (
+                  <ExpansionDetail onMetricClick={handleMetricClick} />
+                ) : activeStage === 'EVANGELIZACION' ? (
+                  <EvangelizationDetail onMetricClick={handleMetricClick} />
+                ) : (
+                  <PlaceholderDetail stage={activeStageData} />
+                )}
+              </CardContent>
+            </Card>
+          )
         )}
       </div>
 

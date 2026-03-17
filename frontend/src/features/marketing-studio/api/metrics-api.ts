@@ -348,154 +348,83 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
 
 export const metricsApi = {
   getAttractionDetail: async (token: string): Promise<AttractionDetail> => {
-    if (ENABLE_MOCKS) {
-      return MOCK_ATTRACTION_DETAIL;
-    }
-
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/attraction`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        console.warn('Attraction API returned', res.status, '-- using mock data');
-        return MOCK_ATTRACTION_DETAIL;
-      }
-
-      const data = await res.json();
-      return mapResponse(data);
-    } catch (error) {
-      console.warn('Attraction API error -- using mock data:', error);
-      return MOCK_ATTRACTION_DETAIL;
-    }
+    if (ENABLE_MOCKS) return MOCK_ATTRACTION_DETAIL;
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/attraction`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Attraction API returned ${res.status}`);
+    const data = await res.json();
+    return mapResponse(data);
   },
 
   getCaptureDetail: async (token: string): Promise<CaptureDetail> => {
-    if (ENABLE_MOCKS) {
-      return MOCK_CAPTURE_DETAIL;
-    }
-
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/capture`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        console.warn('Capture API returned', res.status, '-- using mock data');
-        return MOCK_CAPTURE_DETAIL;
-      }
-
-      const data = await res.json();
-      return mapCaptureResponse(data);
-    } catch (error) {
-      console.warn('Capture API error -- using mock data:', error);
-      return MOCK_CAPTURE_DETAIL;
-    }
+    if (ENABLE_MOCKS) return MOCK_CAPTURE_DETAIL;
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/capture`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Capture API returned ${res.status}`);
+    const data = await res.json();
+    return mapCaptureResponse(data);
   },
 
   getNurtureDetail: async (token: string): Promise<NurtureDetail> => {
-    if (ENABLE_MOCKS) {
-      return MOCK_NURTURE_DETAIL;
-    }
-
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/nurturing`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        console.warn('Nurture API returned', res.status, '-- using mock data');
-        return MOCK_NURTURE_DETAIL;
-      }
-
-      const data = await res.json();
-      return mapNurtureResponse(data);
-    } catch (error) {
-      console.warn('Nurture API error -- using mock data:', error);
-      return MOCK_NURTURE_DETAIL;
-    }
+    if (ENABLE_MOCKS) return MOCK_NURTURE_DETAIL;
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/nurturing`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Nurture API returned ${res.status}`);
+    const data = await res.json();
+    return mapNurtureResponse(data);
   },
 
   getOpportunityDetail: async (token: string): Promise<OpportunityDetail> => {
-    if (ENABLE_MOCKS) {
-      return MOCK_OPPORTUNITY_DETAIL;
-    }
-
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/opportunity`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        console.warn('Opportunity API returned', res.status, '-- using mock data');
-        return MOCK_OPPORTUNITY_DETAIL;
-      }
-
-      const data = await res.json();
-      return mapOpportunityResponse(data);
-    } catch (error) {
-      console.warn('Opportunity API error -- using mock data:', error);
-      return MOCK_OPPORTUNITY_DETAIL;
-    }
+    if (ENABLE_MOCKS) return MOCK_OPPORTUNITY_DETAIL;
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/opportunity`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Opportunity API returned ${res.status}`);
+    const data = await res.json();
+    return mapOpportunityResponse(data);
   },
 
   getSalesDetail: async (token: string): Promise<SalesDetail> => {
-    if (ENABLE_MOCKS) {
-      return MOCK_SALES_DETAIL;
-    }
-
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/sales`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        console.warn('Sales API returned', res.status, '-- using mock data');
-        return MOCK_SALES_DETAIL;
-      }
-
-      const data = await res.json();
-      return mapSalesResponse(data);
-    } catch (error) {
-      console.warn('Sales API error -- using mock data:', error);
-      return MOCK_SALES_DETAIL;
-    }
+    if (ENABLE_MOCKS) return MOCK_SALES_DETAIL;
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/sales`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Sales API returned ${res.status}`);
+    const data = await res.json();
+    return mapSalesResponse(data);
   },
 
   getAdoptionDetail: async (token: string): Promise<AdoptionDetail> => {
     if (ENABLE_MOCKS) return MOCK_ADOPTION_DETAIL;
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/adoption`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) { console.warn('Adoption API returned', res.status, '-- using mock data'); return MOCK_ADOPTION_DETAIL; }
-      const data = await res.json();
-      return mapAdoptionResponse(data);
-    } catch (error) { console.warn('Adoption API error -- using mock data:', error); return MOCK_ADOPTION_DETAIL; }
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/adoption`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Adoption API returned ${res.status}`);
+    const data = await res.json();
+    return mapAdoptionResponse(data);
   },
 
   getExpansionDetail: async (token: string): Promise<ExpansionDetailData> => {
     if (ENABLE_MOCKS) return MOCK_EXPANSION_DETAIL;
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/expansion`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) { console.warn('Expansion API returned', res.status, '-- using mock data'); return MOCK_EXPANSION_DETAIL; }
-      const data = await res.json();
-      return mapExpansionResponse(data);
-    } catch (error) { console.warn('Expansion API error -- using mock data:', error); return MOCK_EXPANSION_DETAIL; }
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/expansion`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Expansion API returned ${res.status}`);
+    const data = await res.json();
+    return mapExpansionResponse(data);
   },
 
   getEvangelizationDetail: async (token: string): Promise<EvangelizationDetail> => {
     if (ENABLE_MOCKS) return MOCK_EVANGELIZATION_DETAIL;
-    try {
-      const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/evangelization`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) { console.warn('Evangelization API returned', res.status, '-- using mock data'); return MOCK_EVANGELIZATION_DETAIL; }
-      const data = await res.json();
-      return mapEvangelizationResponse(data);
-    } catch (error) { console.warn('Evangelization API error -- using mock data:', error); return MOCK_EVANGELIZATION_DETAIL; }
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/evangelization`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Evangelization API returned ${res.status}`);
+    const data = await res.json();
+    return mapEvangelizationResponse(data);
   },
 
   promoteToEvangelist: async (token: string, customerId: string): Promise<any> => {
