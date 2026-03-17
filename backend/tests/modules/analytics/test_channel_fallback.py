@@ -99,7 +99,7 @@ class TestGetAvailableChannels:
         """Connected channels appear in the 'connected' list."""
         mock_connection_port.list_active_connections.return_value = [
             ConnectionCredentials(
-                channel_type="meta-ads",
+                channel_type="meta",
                 credentials={"access_token": "tok123"},
                 config={},
             ),
@@ -132,7 +132,7 @@ class TestGetAvailableChannels:
         """Connected channels have connected=True."""
         mock_connection_port.list_active_connections.return_value = [
             ConnectionCredentials(
-                channel_type="ig-organic",
+                channel_type="instagram_account",
                 credentials={"access_token": "tok"},
                 config={},
             ),
@@ -152,7 +152,7 @@ class TestGetAvailableChannels:
         """Total of connected + available equals total stage channels."""
         mock_connection_port.list_active_connections.return_value = [
             ConnectionCredentials(
-                channel_type="meta-ads",
+                channel_type="meta",
                 credentials={},
                 config={},
             ),

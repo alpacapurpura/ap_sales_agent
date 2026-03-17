@@ -1,7 +1,7 @@
 from typing import Optional, List, Literal
 from uuid import UUID
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user

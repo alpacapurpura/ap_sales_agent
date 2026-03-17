@@ -15,7 +15,6 @@ from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
-from src.modules.crm.infrastructure.repositories.lead_repository import LeadRepository
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
 router = APIRouter(tags=["CRM - Pipeline"])
@@ -71,14 +70,13 @@ async def get_pipeline(
     user: User = Depends(get_current_user),
 ):
     """Get high-intent leads for the pipeline view."""
-    repo = LeadRepository(db)
     # Fallback to simple query until repo method is robust
     leads_orm = (
         db.query(LeadModel)
         .options(joinedload(LeadModel.customer))
         .filter(
             LeadModel.tenant_id == user.tenant_id,
-            LeadModel.is_blacklisted == False,
+            LeadModel.is_blacklisted.is_(False),
         )
         .limit(limit)
         .all()

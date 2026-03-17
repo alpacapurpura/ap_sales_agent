@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Dict
 from uuid import UUID
 
-from sqlalchemy import func, select, and_
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (

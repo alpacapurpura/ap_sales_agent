@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 from src.modules.copilot.application.orchestrator.graph import copilot_app
 from src.modules.copilot.application.orchestrator.state import create_initial_copilot_state
 

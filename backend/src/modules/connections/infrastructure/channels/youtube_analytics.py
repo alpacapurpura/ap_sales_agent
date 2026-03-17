@@ -7,8 +7,7 @@ traffic sources, and revenue data for the authenticated user's channel.
 Uses the same OAuth credentials as the unified Google Workspace flow.
 """
 import logging
-import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build

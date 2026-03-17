@@ -1,6 +1,5 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 from uuid import UUID
 
 from src.modules.iam.domain.tenant import Tenant

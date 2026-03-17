@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 import structlog
-import secrets
 
 from src.core.database import get_db
 from src.core.context import set_tenant_id
@@ -274,7 +273,7 @@ async def get_assets(
 ):
     """Returns the list of Meta business assets stored in the DB for this tenant."""
     existing = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
-    by_id: dict[str, ChannelConnectionModel] = {
+    _by_id: dict[str, ChannelConnectionModel] = {
         conn.config.get("asset_id", ""): conn for conn in existing if conn.config
     }
 
@@ -353,7 +352,7 @@ async def sync_assets(
 
     # Load existing to preserve is_active
     existing = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
-    active_map: dict[str, bool] = {
+    _active_map: dict[str, bool] = {
         conn.config.get("asset_id", ""): conn.is_active
         for conn in existing
         if conn.config

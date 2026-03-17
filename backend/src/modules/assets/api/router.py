@@ -5,7 +5,6 @@ from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.assets.application.assets_service import AssetsService
 from src.modules.assets.domain.schemas import AssetDto
-from src.modules.assets.domain.enums import AssetType
 from uuid import UUID
 from typing import List, Optional
 import structlog

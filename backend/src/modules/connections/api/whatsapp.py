@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from src.core.database import get_db
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.models import ChannelConnectionModel
 from src.modules.iam.api.dependencies import get_current_tenant_id
 from src.modules.connections.infrastructure.channels.whatsapp import WhatsAppChannel
 from src.core.config import settings

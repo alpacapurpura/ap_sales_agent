@@ -64,7 +64,7 @@ class ReferralService:
             ReferralCodeModel.tenant_id == tenant_id
         )
         if active_only:
-            stmt = stmt.where(ReferralCodeModel.is_active == True)
+            stmt = stmt.where(ReferralCodeModel.is_active.is_(True))
         result = self.db.execute(stmt)
         return list(result.scalars().all())
 
@@ -75,7 +75,7 @@ class ReferralService:
         stmt = select(ReferralCodeModel).where(
             ReferralCodeModel.tenant_id == tenant_id,
             ReferralCodeModel.customer_id == customer_id,
-            ReferralCodeModel.is_active == True,
+            ReferralCodeModel.is_active.is_(True),
         )
         result = self.db.execute(stmt)
         return result.scalars().first()

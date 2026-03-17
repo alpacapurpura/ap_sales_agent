@@ -9,6 +9,7 @@ __pycache__
 *.so
 .env
 .env.*
+!.env.test
 venv/
 .venv/
 env/

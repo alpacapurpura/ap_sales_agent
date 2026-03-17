@@ -6,7 +6,7 @@ Replaces the hardcoded 13-channel list in MetricsService.get_attraction_metrics(
 """
 
 import logging
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Set
 from uuid import UUID
 
 from src.modules.analytics.domain.ports import ConnectionPort

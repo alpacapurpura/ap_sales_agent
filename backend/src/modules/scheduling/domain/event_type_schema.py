@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from src.shared.domain.base_entity import BaseEntity
 from pydantic import Field
 import uuid

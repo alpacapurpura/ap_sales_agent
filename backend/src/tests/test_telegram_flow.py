@@ -5,24 +5,40 @@ type errors, and constraint violations BEFORE manual testing.
 
 Run: docker exec visionarias_brain_dev pytest src/tests/test_telegram_flow.py -v
 """
+import socket
 import pytest
 import uuid
-from uuid import UUID
-from sqlalchemy import text
 
-from src.core.database import SessionLocal
-from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import LeadRepository
-from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.domain.enums import IdentityType, LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
-from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
-from src.core.context import set_tenant_id
+
+def _postgres_available() -> bool:
+    try:
+        with socket.create_connection(("localhost", 5432), timeout=1):
+            return True
+    except OSError:
+        return False
+
+
+if not _postgres_available():
+    pytest.skip(
+        "PostgreSQL not reachable — skipping live integration tests",
+        allow_module_level=True,
+    )
+
+from uuid import UUID  # noqa: E402
+from sqlalchemy import text  # noqa: E402
+
+from src.core.database import SessionLocal  # noqa: E402
+from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository  # noqa: E402
+from src.modules.crm.infrastructure.repositories.lead_metrics_repository import LeadRepository  # noqa: E402
+from src.modules.crm.application.services.identity_service import IdentityService  # noqa: E402
+from src.modules.crm.domain.enums import IdentityType, LifecycleStage  # noqa: E402
+from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel  # noqa: E402
+from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository  # noqa: E402
+from src.core.context import set_tenant_id  # noqa: E402
 # Import all related models so SQLAlchemy can resolve relationships
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel  # noqa: F401
-from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel  # noqa: F401
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel  # noqa: F401
+from src.modules.iam.infrastructure.models.tenant_model import TenantModel  # noqa: F401, E402
+from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel  # noqa: F401, E402
+from src.modules.sales_agent.infrastructure.models.message_model import MessageModel  # noqa: F401, E402
 
 
 TENANT_ID = UUID("6347e21e-8112-4aa1-80d3-6adaa73bf6f9")

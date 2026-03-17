@@ -8,7 +8,6 @@ import logging
 import time
 import uuid
 from datetime import date
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -148,7 +147,7 @@ class ETLPipeline:
             )
 
             # Step 6: Upsert official metrics
-            rows_official = self.official_repo.upsert_from_staging(official_dicts)
+            _rows_official = self.official_repo.upsert_from_staging(official_dicts)
 
             # Step 7: Compute aggregations
             agg_dicts = compute_aggregations(

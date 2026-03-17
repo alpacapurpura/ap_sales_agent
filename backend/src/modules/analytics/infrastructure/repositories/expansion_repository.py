@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple
 from uuid import UUID
 
-from sqlalchemy import func, select, distinct, and_
+from sqlalchemy import func, select, distinct
 from sqlalchemy.orm import Session
 
 from src.modules.crm.infrastructure.models.sale_model import SaleModel

@@ -8,7 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.abspath(os.path.join(current_dir, '../../'))
 sys.path.append(backend_dir)
 
-from src.core.database import engine
+from src.core.database import engine  # noqa: E402
 
 def migrate():
     print("Starting Assets Module Migration...")

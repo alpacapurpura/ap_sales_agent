@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from src.modules.crm.domain.customer import CustomerProfile, CustomerIdentity
 from src.modules.crm.domain.enums import IdentityType
 from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository, JourneyEventRepository

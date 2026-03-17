@@ -9,6 +9,7 @@ get_marketing_sankey_metrics() still reads from journey_events (separate migrati
 """
 
 from collections import defaultdict
+from datetime import datetime
 from uuid import UUID
 from typing import Dict, Any, List, Optional
 
@@ -871,7 +872,7 @@ class MetricsService:
         5. Build header KPIs and mini funnel (MQLs -> SQLs)
         6. Cache result and return OpportunityDetailDTO
         """
-        from datetime import datetime as dt_cls, timedelta, timezone as tz
+        from datetime import datetime as dt_cls, timezone as tz
 
         from src.modules.analytics.infrastructure.repositories.opportunity_repository import (
             OpportunityMetricsRepository,
@@ -1144,7 +1145,7 @@ class MetricsService:
         }
 
         # Track per-stage customer counts and revenue totals
-        stage_customer_counts: Dict[str, int] = {"adquisicion": 0, "expansion": 0}
+        _stage_customer_counts: Dict[str, int] = {"adquisicion": 0, "expansion": 0}
         stage_revenue: Dict[str, float] = {"adquisicion": 0.0, "expansion": 0.0}
 
         for row in raw_sales:

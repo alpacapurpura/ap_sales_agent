@@ -65,12 +65,12 @@ def create_initial_state(
     # Ensure UUIDs
     try:
         uid = UUID(user_id) if isinstance(user_id, str) else user_id
-    except:
+    except Exception:
         uid = None
-        
+
     try:
         tid = UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
-    except:
+    except Exception:
         tid = None
 
     return {

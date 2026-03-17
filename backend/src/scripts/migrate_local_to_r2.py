@@ -26,10 +26,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.abspath(os.path.join(current_dir, "../../"))
 sys.path.insert(0, backend_dir)
 
-from src.core.config import settings
-from src.core.database import SessionLocal
-from src.modules.assets.infrastructure.models.asset_model import AssetModel
-from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy
+from src.core.config import settings  # noqa: E402
+from src.core.database import SessionLocal  # noqa: E402
+from src.modules.assets.infrastructure.models.asset_model import AssetModel  # noqa: E402
+from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy  # noqa: E402
 
 
 def migrate(dry_run: bool = False):
@@ -81,7 +81,7 @@ def migrate(dry_run: bool = False):
             print(f"     url:    {r2_public_url}")
 
             if dry_run:
-                print(f"     [DRY RUN] Skipping upload.\n")
+                print("     [DRY RUN] Skipping upload.\n")
                 continue
 
             try:
@@ -104,7 +104,7 @@ def migrate(dry_run: bool = False):
 
                 # Remove local file
                 os.remove(local_path)
-                print(f"     ✅ Migrated & local file deleted.\n")
+                print("     ✅ Migrated & local file deleted.\n")
                 success += 1
 
             except Exception as e:
@@ -112,7 +112,7 @@ def migrate(dry_run: bool = False):
                 print(f"     ❌ FAILED: {e}\n")
                 failed += 1
 
-        print(f"\nMigration complete:")
+        print("\nMigration complete:")
         print(f"  ✅ Migrated: {success}")
         print(f"  ⚠️  Skipped:  {skipped}")
         print(f"  ❌ Failed:   {failed}")

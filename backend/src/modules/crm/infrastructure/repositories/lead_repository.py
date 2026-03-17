@@ -92,7 +92,7 @@ class LeadRepository:
         models = self.db.query(LeadModel).filter(
             LeadModel.tenant_id == tenant_id,
             LeadModel.intent_score >= min_score,
-            LeadModel.is_blacklisted == False
+            LeadModel.is_blacklisted.is_(False)
         ).order_by(desc(LeadModel.intent_score)).limit(limit).all()
         return [self._to_domain(m) for m in models]
 

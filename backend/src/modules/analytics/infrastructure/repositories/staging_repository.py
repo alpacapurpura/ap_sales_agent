@@ -5,7 +5,7 @@ to official_metrics after transformation.
 """
 
 from datetime import date, datetime, timedelta, timezone
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 from sqlalchemy import delete, select

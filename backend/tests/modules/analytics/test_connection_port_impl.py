@@ -62,7 +62,7 @@ class TestConnectionPortImplGetCredentials:
         port.repo = MagicMock()
         port.repo.get_active = MagicMock(return_value=conn)
 
-        with patch("asyncio.to_thread", new_callable=lambda: _sync_to_thread):
+        with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
                 port.get_credentials(TENANT_ID, "meta")
             )
@@ -83,7 +83,7 @@ class TestConnectionPortImplGetCredentials:
         port.repo = MagicMock()
         port.repo.get_active = MagicMock(return_value=None)
 
-        with patch("asyncio.to_thread", new_callable=lambda: _sync_to_thread):
+        with patch("asyncio.to_thread", _sync_to_thread):
             with pytest.raises(ConnectionRevokedException):
                 asyncio.get_event_loop().run_until_complete(
                     port.get_credentials(TENANT_ID, "meta")
@@ -124,7 +124,7 @@ class TestConnectionPortImplGetCredentials:
 
         port._refresh_token = mock_refresh
 
-        with patch("asyncio.to_thread", new_callable=lambda: _sync_to_thread):
+        with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
                 port.get_credentials(TENANT_ID, "meta")
             )
@@ -159,7 +159,7 @@ class TestConnectionPortImplGetCredentials:
 
         port._refresh_token = mock_refresh_fail
 
-        with patch("asyncio.to_thread", new_callable=lambda: _sync_to_thread):
+        with patch("asyncio.to_thread", _sync_to_thread):
             with pytest.raises(TokenRefreshFailed):
                 asyncio.get_event_loop().run_until_complete(
                     port.get_credentials(TENANT_ID, "meta")
@@ -183,7 +183,7 @@ class TestConnectionPortImplListActive:
         port.repo = MagicMock()
         port.repo.get_all_by_tenant = MagicMock(return_value=[conn1, conn2])
 
-        with patch("asyncio.to_thread", new_callable=lambda: _sync_to_thread):
+        with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
                 port.list_active_connections(TENANT_ID)
             )
@@ -205,7 +205,7 @@ class TestConnectionPortImplListActive:
         port.repo = MagicMock()
         port.repo.get_all_by_tenant = MagicMock(return_value=[])
 
-        with patch("asyncio.to_thread", new_callable=lambda: _sync_to_thread):
+        with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
                 port.list_active_connections(TENANT_ID)
             )
@@ -226,7 +226,7 @@ class TestConnectionPortImplListActive:
         port.repo = MagicMock()
         port.repo.get_all_by_tenant = MagicMock(return_value=[active, inactive])
 
-        with patch("asyncio.to_thread", new_callable=lambda: _sync_to_thread):
+        with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
                 port.list_active_connections(TENANT_ID)
             )
@@ -236,10 +236,6 @@ class TestConnectionPortImplListActive:
 
 
 # Helper: makes asyncio.to_thread execute synchronously for tests
-def _sync_to_thread():
-    """Returns an async function that calls the sync fn directly."""
-
-    async def _to_thread(fn, *args, **kwargs):
-        return fn(*args, **kwargs)
-
-    return _to_thread
+async def _sync_to_thread(fn, *args, **kwargs):
+    """Drop-in replacement for asyncio.to_thread that calls fn synchronously."""
+    return fn(*args, **kwargs)

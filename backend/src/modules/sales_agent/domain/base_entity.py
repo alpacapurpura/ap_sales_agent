@@ -1,7 +1,4 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Any, Dict, Optional
-from datetime import datetime
-import uuid
 
 class BaseEntity(BaseModel):
     """

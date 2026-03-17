@@ -72,7 +72,7 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
 
     # Idempotency: check for existing event with same checkout_token
     if checkout_token:
-        from sqlalchemy import func as sa_func, text
+        from sqlalchemy import func as sa_func
 
         existing_stmt = select(JourneyEventModel.id).where(
             JourneyEventModel.tenant_id == tenant_id,
