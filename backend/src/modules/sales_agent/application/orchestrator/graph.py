@@ -1,4 +1,4 @@
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, START, END
 from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.modules.sales_agent.application.agents.sales.graph import sales_app
 from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
@@ -27,7 +27,7 @@ workflow = StateGraph(AgentState)
 workflow.add_node("supervisor", supervisor_node)
 workflow.add_node("sales_agent", sales_agent_node)
 
-workflow.set_entry_point("supervisor")
+workflow.add_edge(START, "supervisor")
 
 workflow.add_conditional_edges(
     "supervisor",

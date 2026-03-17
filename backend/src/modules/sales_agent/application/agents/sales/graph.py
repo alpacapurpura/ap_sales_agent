@@ -1,4 +1,4 @@
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, START, END
 from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.modules.sales_agent.application.agents.sales.nodes import (
     node_sales_supervisor,
@@ -18,7 +18,7 @@ def create_sales_subgraph():
     # workflow.add_node("scheduler", node_scheduler) # TODO: Implement
     
     # Entry Point
-    workflow.set_entry_point("supervisor")
+    workflow.add_edge(START, "supervisor")
     
     # Supervisor Routing
     workflow.add_conditional_edges(

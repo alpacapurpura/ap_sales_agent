@@ -1,4 +1,4 @@
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, START, END
 from src.modules.copilot.application.orchestrator.state import CopilotState
 
 def copilot_router(state: CopilotState):
@@ -21,7 +21,7 @@ workflow = StateGraph(CopilotState)
 workflow.add_node("router", copilot_router)
 workflow.add_node("general_chat", general_chat_node)
 
-workflow.set_entry_point("router")
+workflow.add_edge(START, "router")
 
 workflow.add_conditional_edges(
     "router",

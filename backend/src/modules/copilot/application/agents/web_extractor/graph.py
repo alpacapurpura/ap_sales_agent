@@ -1,4 +1,4 @@
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, START, END
 from typing import TypedDict, Optional, Dict, Any
 
 class WebExtractorState(TypedDict):
@@ -19,7 +19,7 @@ def extract_node(state: WebExtractorState):
 
 workflow = StateGraph(WebExtractorState)
 workflow.add_node("extract", extract_node)
-workflow.set_entry_point("extract")
+workflow.add_edge(START, "extract")
 workflow.add_edge("extract", END)
 
 web_extractor_graph = workflow.compile()

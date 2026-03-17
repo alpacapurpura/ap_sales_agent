@@ -1,4 +1,4 @@
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, START, END
 from src.modules.copilot.application.agents.style_analyzer.state import OnboardingState
 from src.modules.copilot.application.agents.style_analyzer.nodes import (
     node_janitor,
@@ -19,7 +19,7 @@ def create_onboarding_graph():
     workflow.add_node("simulator", node_simulator)
     
     # Set Entry Point
-    workflow.set_entry_point("janitor")
+    workflow.add_edge(START, "janitor")
     
     # Define Edges (Sequential for now)
     workflow.add_edge("janitor", "psychologist")
