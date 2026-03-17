@@ -76,7 +76,7 @@ export function TeamView() {
 
   useEffect(() => {
     loadTeam()
-  }, [getToken])
+  }, [getToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsCreating(true)

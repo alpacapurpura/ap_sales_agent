@@ -67,7 +67,7 @@ export function ShopifyView() {
       toast.error(message);
       router.replace("/marketing-studio/connections");
     }
-  }, [searchParams, router]);
+  }, [searchParams, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConnect = async () => {
     // Clean shop URL: remove https://, http://, slashes

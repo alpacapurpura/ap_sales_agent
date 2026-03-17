@@ -60,7 +60,7 @@ export function GoogleAnalyticsView() {
 
   useEffect(() => {
     fetchStatus();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle OAuth Callback (Popup Listener)
   useEffect(() => {
@@ -96,7 +96,7 @@ export function GoogleAnalyticsView() {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSaveConfig = async () => {
       if (!clientId || !clientSecret) {

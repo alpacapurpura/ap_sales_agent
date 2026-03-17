@@ -37,7 +37,7 @@ export function InstructorsWidget({ selectedInstructorIds }: InstructorsWidgetPr
 
     useEffect(() => {
         fetchTeam();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const selectedInstructors = team.filter(m => selectedInstructorIds.includes(m.id));
 

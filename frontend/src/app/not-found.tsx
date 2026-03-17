@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 export default function NotFound() {
   return (
     <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
