@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { SqueezeContent, LandingPageTheme } from '../../types/schema';
 import { Button } from '@/components/ui/button'; // Assuming we have shadcn button
 import { Card } from '@/components/ui/card';
@@ -48,12 +49,14 @@ export function SqueezeServerTpl({ content, theme }: SqueezeTemplateProps) {
         {/* VISUAL / MOCKUP */}
         {content.visual_url && (
           <div className="relative mx-auto w-full max-w-md aspect-video rounded-xl overflow-hidden shadow-2xl my-8 bg-gray-200">
-             {/* Use standard img for zero-js if needed, or Next Image */}
-             <img 
-               src={content.visual_url} 
-               alt="Resource Mockup" 
+             <Image
+               src={content.visual_url}
+               alt="Resource Mockup"
+               width={640}
+               height={360}
                className="object-cover w-full h-full"
-               loading="eager" // LCP optimization
+               priority
+               unoptimized
              />
           </div>
         )}

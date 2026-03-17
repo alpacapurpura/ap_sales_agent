@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 export interface AuthoritySectionProps {
     authority_image_url?: string;
@@ -13,10 +14,13 @@ export function AuthoritySection({ authority_image_url, authority_name, authorit
             <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12">
                 <div className="w-full md:w-1/3">
                      {authority_image_url && (
-                        <img 
-                            src={authority_image_url} 
+                        <Image
+                            src={authority_image_url}
                             alt={authority_name}
+                            width={400}
+                            height={533}
                             className="shadow-2xl ring-4 ring-white/10 rotate-3 transform hover:rotate-0 transition-all duration-500 rounded-lg w-full object-cover aspect-[3/4]"
+                            unoptimized
                         />
                      )}
                 </div>

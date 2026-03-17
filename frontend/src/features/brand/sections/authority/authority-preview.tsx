@@ -19,10 +19,13 @@ export function TrustSection({ identity, authority, visuals, onEditIdentity, onE
     >
         <div className="h-12 w-12 rounded bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground overflow-hidden shrink-0">
             {item.logo_url ? (
-                <img 
-                    src={item.logo_url} 
-                    alt={item.entity_name} 
-                    className="h-full w-full object-cover" 
+                <Image
+                    src={item.logo_url}
+                    alt={item.entity_name}
+                    width={48}
+                    height={48}
+                    className="h-full w-full object-cover"
+                    unoptimized
                 />
             ) : (
                 item.entity_name.substring(0,2)

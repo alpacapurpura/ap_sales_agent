@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import NextImage from "next/image";
 import { Image as ImageIcon, Loader2, Trash2, Plus, Info, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -173,10 +174,13 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
                                     className="relative aspect-video w-full bg-muted cursor-zoom-in"
                                     onClick={() => setSelectedImage(img)}
                                 >
-                                    <img 
+                                    <NextImage
                                         src={getAssetUrl(img.public_url)}
-                                        alt="Gallery Image" 
+                                        alt="Gallery Image"
+                                        width={400}
+                                        height={300}
                                         className="object-cover w-full h-full"
+                                        unoptimized
                                     />
                                     <div className="absolute top-2 right-2 flex gap-2">
                                         {img.status === "processing" ? (
@@ -259,11 +263,13 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
                     </VisuallyHidden>
                     {selectedImage && (
                         <div className="relative">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img 
+                            <NextImage
                                 src={getAssetUrl(selectedImage.public_url)}
-                                alt="Full size preview" 
+                                alt="Full size preview"
+                                width={1200}
+                                height={900}
                                 className="w-full h-auto max-h-[85vh] rounded-md object-contain shadow-2xl"
+                                unoptimized
                             />
                             {selectedImage.user_description && (
                                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-4 backdrop-blur-sm rounded-b-md">

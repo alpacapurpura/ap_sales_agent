@@ -39,6 +39,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { config as appConfig } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
@@ -471,7 +472,7 @@ export function MetaView() {
                       {/* Avatar */}
                       <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden border bg-muted flex items-center justify-center">
                         {page.picture_url ? (
-                          <img src={page.picture_url} alt={page.page_name} className="h-full w-full object-cover" />
+                          <Image src={page.picture_url} alt={page.page_name} width={40} height={40} className="h-full w-full object-cover" unoptimized />
                         ) : (
                           <ImageIcon className="h-5 w-5 text-muted-foreground" />
                         )}
@@ -538,7 +539,7 @@ export function MetaView() {
                     >
                       <div className="h-10 w-10 shrink-0 rounded-full overflow-hidden border bg-muted flex items-center justify-center">
                         {ig.profile_picture_url ? (
-                          <img src={ig.profile_picture_url} alt={ig.ig_username} className="h-full w-full object-cover" />
+                          <Image src={ig.profile_picture_url} alt={ig.ig_username} width={40} height={40} className="h-full w-full object-cover" unoptimized />
                         ) : (
                           <Instagram className="h-5 w-5 text-pink-400" />
                         )}

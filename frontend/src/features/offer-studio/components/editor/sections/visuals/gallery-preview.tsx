@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { OfferFormValues } from '../../../../types/schema';
 import { useFormContext } from 'react-hook-form';
 import { Play } from 'lucide-react';
@@ -25,10 +26,13 @@ export const GalleryPreview = ({ data: propsData }: GalleryPreviewProps) => {
       {media.map((item, idx) => (
         <div key={idx} className="group relative aspect-square rounded-lg overflow-hidden bg-muted cursor-zoom-in">
             {item.type === AssetType.IMAGE ? (
-                <img 
-                    src={item.url} 
-                    alt={item.name} 
+                <Image
+                    src={item.url}
+                    alt={item.name}
+                    width={400}
+                    height={400}
                     className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                    unoptimized
                 />
             ) : (
                 <div className="w-full h-full flex items-center justify-center bg-slate-900">

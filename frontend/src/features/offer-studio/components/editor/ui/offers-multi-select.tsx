@@ -67,6 +67,7 @@ export function OffersMultiSelect({ value = [], onChange, currentOfferId }: Offe
           <div
             role="combobox"
             aria-expanded={open}
+            aria-controls="offers-listbox"
             className={cn(
               buttonVariants({ variant: "outline" }),
               "w-full justify-between h-auto min-h-[2.5rem] px-3 py-2 cursor-pointer"
@@ -116,7 +117,7 @@ export function OffersMultiSelect({ value = [], onChange, currentOfferId }: Offe
         <PopoverContent className="w-[400px] p-0" align="start">
           <Command>
             <CommandInput placeholder="Buscar oferta..." />
-            <CommandList>
+            <CommandList id="offers-listbox">
                 <CommandEmpty>No se encontraron ofertas.</CommandEmpty>
                 <CommandGroup className="max-h-[300px] overflow-auto">
                 {isLoading ? (

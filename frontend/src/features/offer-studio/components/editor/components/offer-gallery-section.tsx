@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import NextImage from "next/image";
 import { Image as ImageIcon, Loader2, Trash2, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -154,10 +155,13 @@ export function OfferGallerySection({ offerId }: OfferGallerySectionProps) {
                     {images.map((img) => (
                         <div key={img.id} className="group relative bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all">
                             <div className="relative aspect-video w-full bg-muted">
-                                <img 
+                                <NextImage
                                     src={getAssetUrl(img.public_url)}
-                                    alt="Offer Gallery Image" 
+                                    alt="Offer Gallery Image"
+                                    width={400}
+                                    height={300}
                                     className="object-cover w-full h-full"
+                                    unoptimized
                                 />
                                 <div className="absolute top-2 right-2 flex gap-2">
                                     {img.status === "processing" ? (

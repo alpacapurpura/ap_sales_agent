@@ -3,6 +3,7 @@
 import { AuthorityItem } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 import { Award, ExternalLink, Edit2, Trash2 } from "lucide-react";
 
 interface AuthorityListProps {
@@ -32,7 +33,7 @@ export function AuthorityList({ items, onEdit, onDelete }: AuthorityListProps) {
                         <div className="flex items-center space-x-4">
                             <div className="p-2 bg-amber-500/10 rounded-full">
                                 {item.logo_url ? (
-                                    <img src={item.logo_url} alt={item.entity_name} className="h-6 w-6 object-contain" />
+                                    <Image src={item.logo_url} alt={item.entity_name} width={24} height={24} className="h-6 w-6 object-contain" unoptimized />
                                 ) : (
                                     <Award className="h-6 w-6 text-amber-600" />
                                 )}
