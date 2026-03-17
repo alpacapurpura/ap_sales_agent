@@ -62,65 +62,31 @@ def upgrade() -> None:
     )
 
     # --- Create lifecycle_transitions table ---
-    # Note: LifecycleStage enum already exists from customer_profiles table.
-    # Use postgresql.ENUM with create_type=False to avoid re-creating existing type.
-    lifecyclestage = postgresql.ENUM(
-        "subscriber", "lead", "mql", "sql", "opportunity",
-        "customer", "evangelist", "churned",
-        name="lifecyclestage",
-        create_type=False,
-    )
-    op.create_table(
-        "lifecycle_transitions",
-        sa.Column(
-            "id",
-            postgresql.UUID(as_uuid=True),
-            primary_key=True,
-            server_default=sa.text("gen_random_uuid()"),
-        ),
-        sa.Column(
-            "profile_id",
-            postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("customer_profiles.id"),
-            nullable=False,
-        ),
-        sa.Column(
-            "tenant_id",
-            postgresql.UUID(as_uuid=True),
-            nullable=False,
-        ),
-        sa.Column(
-            "from_stage",
-            lifecyclestage,
-            nullable=True,
-        ),
-        sa.Column(
-            "to_stage",
-            lifecyclestage,
-            nullable=False,
-        ),
-        sa.Column("reason", sa.String(), nullable=False),
-        sa.Column("triggered_by", sa.String(), nullable=False),
-        sa.Column("score_at_transition", sa.Float(), nullable=True),
-        sa.Column("metadata", postgresql.JSONB(), server_default="{}"),
-        sa.Column(
-            "occurred_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.func.now(),
-        ),
-    )
+    # Use raw SQL to avoid SQLAlchemy trying to CREATE TYPE for existing enum.
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS lifecycle_transitions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            profile_id UUID NOT NULL REFERENCES customer_profiles(id),
+            tenant_id UUID NOT NULL,
+            from_stage lifecyclestage,
+            to_stage lifecyclestage NOT NULL,
+            reason VARCHAR NOT NULL,
+            triggered_by VARCHAR NOT NULL,
+            score_at_transition FLOAT,
+            metadata JSONB DEFAULT '{}',
+            occurred_at TIMESTAMPTZ DEFAULT now()
+        );
+    """)
 
     # Indexes for lifecycle_transitions
-    op.create_index(
-        "ix_lifecycle_transitions_profile_id",
-        "lifecycle_transitions",
-        ["profile_id"],
-    )
-    op.create_index(
-        "ix_lifecycle_transitions_tenant_id",
-        "lifecycle_transitions",
-        ["tenant_id"],
-    )
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS ix_lifecycle_transitions_profile_id
+        ON lifecycle_transitions (profile_id);
+    """)
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS ix_lifecycle_transitions_tenant_id
+        ON lifecycle_transitions (tenant_id);
+    """)
 
 
 def downgrade() -> None:
