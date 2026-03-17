@@ -1,8 +1,6 @@
 from typing import Optional, Literal
 from uuid import UUID
 from sqlalchemy.orm import Session
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
 import structlog
 import json
 import asyncio
@@ -18,6 +16,7 @@ from src.modules.copilot.infrastructure.prompts.brand_extraction.team import BRA
 from src.modules.copilot.infrastructure.prompts.brand_extraction.strategy import BRAND_STRATEGY_PROMPT
 from src.modules.copilot.application.agents.web_extractor.graph import web_extractor_graph
 from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
+from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
 
 logger = structlog.get_logger()
 
@@ -26,8 +25,16 @@ class BrandExtractionService:
         self.db = db
         self.tenant_id = tenant_id
         self.repository = BrandRepository(db)
-        # Use gpt-4o for better reasoning and extraction quality on complex tasks
-        self.llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        self.ai_action_service = AIActionService()
+        self.default_policy = AIActionPolicy(
+            retries=2,
+            retry_delay_seconds=0.4,
+            model=AIModelPolicy(
+                model_type="smart",
+                temperature=0,
+                max_output_tokens=1800,
+            ),
+        )
 
     async def crawl_content(self, url: str) -> str:
         """
@@ -147,111 +154,88 @@ class BrandExtractionService:
 
     async def _extract_identity(self, content: str, current_data: str, instructions: str) -> BrandIdentity:
         try:
-            # Use json_mode for better compliance with complex schemas where optional fields are ignored by function calling
-            structured_llm = self.llm.with_structured_output(BrandIdentity, method="json_mode")
-            
-            schema_json = json.dumps(BrandIdentity.model_json_schema(), indent=2)
-            
             prompt = BRAND_IDENTITY_PROMPT.format(
                 content=content[:50000], 
                 visual_context="",
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            
-            # Append schema instruction
-            system_prompt = f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
-            
-            messages = [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content="Extract the Brand Identity.")
-            ]
-            result = await structured_llm.ainvoke(messages)
-            logger.info("extraction_raw_result", type="identity", result=result)
-            if isinstance(result, dict):
-                return BrandIdentity(**result)
-            return result
+            return self.ai_action_service.run_structured_action(
+                action_name="brand_extract_identity",
+                tenant_id=self.tenant_id,
+                system_prompt=self._append_schema_instruction(prompt, BrandIdentity),
+                user_prompt="Extract the Brand Identity.",
+                response_model=BrandIdentity,
+                policy=self.default_policy,
+                metadata={"prompt_template": "brand_identity_extraction"},
+            )
         except Exception as e:
             logger.error("extract_identity_failed", error=str(e))
             return BrandIdentity()
 
     async def _extract_story(self, content: str, current_data: str, instructions: str) -> BrandStory:
         try:
-            structured_llm = self.llm.with_structured_output(BrandStory, method="json_mode")
-            schema_json = json.dumps(BrandStory.model_json_schema(), indent=2)
-            
             prompt = BRAND_STORY_PROMPT.format(
                 content=content[:50000],
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            
-            system_prompt = f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
-            
-            messages = [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content="Extract the Brand Story.")
-            ]
-            result = await structured_llm.ainvoke(messages)
-            logger.info("extraction_raw_result", type="story", result=result)
-            if isinstance(result, dict):
-                return BrandStory(**result)
-            return result
+            return self.ai_action_service.run_structured_action(
+                action_name="brand_extract_story",
+                tenant_id=self.tenant_id,
+                system_prompt=self._append_schema_instruction(prompt, BrandStory),
+                user_prompt="Extract the Brand Story.",
+                response_model=BrandStory,
+                policy=self.default_policy,
+                metadata={"prompt_template": "brand_story_extraction"},
+            )
         except Exception as e:
             logger.error("extract_story_failed", error=str(e))
             return BrandStory()
 
     async def _extract_strategy(self, content: str, current_data: str, instructions: str) -> BrandStrategy:
         try:
-            structured_llm = self.llm.with_structured_output(BrandStrategy, method="json_mode")
-            schema_json = json.dumps(BrandStrategy.model_json_schema(), indent=2)
-            
             prompt = BRAND_STRATEGY_PROMPT.format(
                 content=content[:50000],
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            
-            system_prompt = f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
-            
-            messages = [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content="Extract the Brand Strategy.")
-            ]
-            result = await structured_llm.ainvoke(messages)
-            logger.info("extraction_raw_result", type="strategy", result=result)
-            if isinstance(result, dict):
-                return BrandStrategy(**result)
-            return result
+            return self.ai_action_service.run_structured_action(
+                action_name="brand_extract_strategy",
+                tenant_id=self.tenant_id,
+                system_prompt=self._append_schema_instruction(prompt, BrandStrategy),
+                user_prompt="Extract the Brand Strategy.",
+                response_model=BrandStrategy,
+                policy=self.default_policy,
+                metadata={"prompt_template": "brand_strategy_extraction"},
+            )
         except Exception as e:
             logger.error("extract_strategy_failed", error=str(e))
             return BrandStrategy()
 
     async def _extract_team(self, content: str, current_data: str, instructions: str) -> BrandTeamWrapper:
         try:
-            structured_llm = self.llm.with_structured_output(BrandTeamWrapper, method="json_mode")
-            schema_json = json.dumps(BrandTeamWrapper.model_json_schema(), indent=2)
-            
             prompt = BRAND_TEAM_PROMPT.format(
                 content=content[:50000],
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            
-            system_prompt = f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
-            
-            messages = [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content="Extract the Team structure.")
-            ]
-            result = await structured_llm.ainvoke(messages)
-            logger.info("extraction_raw_result", type="team", result=result)
-            if isinstance(result, dict):
-                return BrandTeamWrapper(**result)
-            return result
+            return self.ai_action_service.run_structured_action(
+                action_name="brand_extract_team",
+                tenant_id=self.tenant_id,
+                system_prompt=self._append_schema_instruction(prompt, BrandTeamWrapper),
+                user_prompt="Extract the Team structure.",
+                response_model=BrandTeamWrapper,
+                policy=self.default_policy,
+                metadata={"prompt_template": "brand_team_extraction"},
+            )
         except Exception as e:
             logger.error("extract_team_failed", error=str(e))
             return BrandTeamWrapper()
+
+    def _append_schema_instruction(self, prompt: str, schema_model) -> str:
+        schema_json = json.dumps(schema_model.model_json_schema(), indent=2)
+        return f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
 
     def _merge_and_save(
         self, 

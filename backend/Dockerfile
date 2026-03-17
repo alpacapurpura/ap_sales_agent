@@ -1,16 +1,10 @@
-# ==========================================
-# Stage 1: Builder
-# ==========================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system dependencies required for building python packages
-# (gcc, libpq-dev for psycopg2, etc.)
-# Using BuildKit cache mounts to speed up apt
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
@@ -18,20 +12,18 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies
-# Using BuildKit cache mount to speed up pip
-COPY requirements.txt .
+COPY requirements-runtime.txt requirements-dev.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r requirements.txt
+    pip install -r requirements-runtime.txt
 
-# ==========================================
-# Stage 2: Runtime
-# ==========================================
-FROM python:3.11-slim as final
+FROM builder AS dev_builder
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements-dev.txt
+
+FROM python:3.11-slim AS runtime_base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -39,8 +31,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install runtime system dependencies only
-# (libpq5 is needed for psycopg2 at runtime, but we don't need gcc)
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
@@ -48,31 +38,30 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser -m -d /home/appuser appuser
-
-# Create cache directories and set permissions
 RUN mkdir -p /home/appuser/.cache && chown -R appuser:appuser /home/appuser
 RUN mkdir -p /tmp/fastembed_cache && chown -R appuser:appuser /tmp/fastembed_cache && chmod 777 /tmp/fastembed_cache
 
-# Copy virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
-
-# Copy application code
+FROM runtime_base AS dev
+COPY --from=dev_builder /opt/venv /opt/venv
 COPY . .
-
-# Change ownership to non-root user
 RUN chown -R appuser:appuser /app
-
-# Switch to non-root user
 USER appuser
-
-# Expose port
 EXPOSE 8000
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-# Healthcheck
+FROM dev AS test
+CMD ["pytest"]
+
+FROM dev AS lint
+CMD ["ruff", "check", "src"]
+
+FROM runtime_base AS final
+COPY --from=builder /opt/venv /opt/venv
+COPY . .
+RUN chown -R appuser:appuser /app
+USER appuser
+EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
-
-# Default command
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

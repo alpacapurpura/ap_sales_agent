@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Dict
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import Float, cast, func, select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
@@ -112,11 +112,11 @@ class OpportunityMetricsRepository:
                     select(
                         func.coalesce(
                             func.sum(
-                                func.cast(
+                                cast(
                                     func.jsonb_extract_path_text(
                                         JourneyEventModel.properties, "total_price"
                                     ),
-                                    func.FLOAT(),
+                                    Float,
                                 )
                             ),
                             0.0,

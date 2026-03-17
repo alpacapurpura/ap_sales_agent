@@ -71,7 +71,7 @@ class CaptureMetricsRepository:
         # JourneyEventModel does not have session_id, so use distinct profile_id
         # as approximation for unique conversations.
         # TODO: Add session tracking to JourneyEventModel for more accurate counts.
-        channel_col = func.json_extract_path_text(
+        channel_col = func.jsonb_extract_path_text(
             JourneyEventModel.properties, "channel_slug"
         ).label("channel")
 

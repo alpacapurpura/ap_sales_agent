@@ -1,10 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
-from typing import Literal, Optional, List
+from typing import Literal, Optional
 from sqlalchemy.orm import Session
-from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
-from src.modules.brand.application.extraction_service import BrandExtractionService
+from src.modules.copilot.application.services.brand_ai_actions_service import CopilotBrandAIActionsService
 from src.shared.infrastructure.files.file_parsing_service import FileParsingService
-from src.modules.brand.domain.identity import BrandIdentity
 from src.modules.brand.domain.aggregates import BrandSettings
 from src.modules.iam.api.dependencies import get_current_user, get_db
 from src.modules.iam.domain.user import User
@@ -17,22 +15,22 @@ router = APIRouter()
 @router.post("/extract")
 async def extract_data(
     request: ExtractRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Extracts structured data from a URL using the Web Extractor Subgraph.
     Currently supports: 'brand_identity'.
     """
     
-    # Select schema based on type
-    if request.type == "brand_identity":
-        schema = BrandIdentity
-    else:
-        raise HTTPException(status_code=400, detail=f"Unsupported extraction type: {request.type}")
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
 
-    # Invoke the extractor graph
+    service = CopilotBrandAIActionsService(db, current_user.tenant_id)
     try:
-        data = await extract_from_url(request.url, schema)
+        data = await service.extract_brand_identity(request.url, request.type)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal extraction error: {str(e)}")
 
@@ -49,7 +47,7 @@ async def extract_full_brand(
     update_instructions: Optional[str] = Form(None),
     dry_run: bool = Form(False),
     include_visuals: bool = Form(False),
-    files: List[UploadFile] = File(None),
+    files: list[UploadFile] = File(default_factory=list),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -60,11 +58,10 @@ async def extract_full_brand(
     
     # Parse uploaded files
     extracted_file_text = ""
-    if files:
-        for file in files:
-            content = await FileParsingService.parse_file(file)
-            if content:
-                extracted_file_text += f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
+    for file in files:
+        content = await FileParsingService.parse_file(file)
+        if content:
+            extracted_file_text += f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
     
     # Combine with raw text
     combined_text = (text or "") + "\n" + extracted_file_text
@@ -76,12 +73,12 @@ async def extract_full_brand(
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
 
-    service = BrandExtractionService(db, current_user.tenant_id)
-    return await service.extract_all(
-        url=url, 
-        text=combined_text if combined_text else None, 
-        mode=mode, 
+    service = CopilotBrandAIActionsService(db, current_user.tenant_id)
+    return await service.extract_full_brand(
+        url=url,
+        text=combined_text if combined_text else None,
+        mode=mode,
         update_instructions=update_instructions,
         dry_run=dry_run,
-        include_visuals=include_visuals
+        include_visuals=include_visuals,
     )
