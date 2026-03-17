@@ -4,10 +4,10 @@ import { metricsApi } from '../api/metrics-api';
 import type { OpportunityDetail } from '../types/metrics';
 
 export function useOpportunityDetail() {
-  const { getToken } = useAuth();
+  const { getToken, orgId } = useAuth();
 
   return useQuery<OpportunityDetail>({
-    queryKey: ['opportunity-detail'],
+    queryKey: ['opportunity-detail', orgId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');

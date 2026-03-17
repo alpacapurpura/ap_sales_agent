@@ -4,10 +4,10 @@ import { metricsApi } from '../api/metrics-api';
 import type { AdoptionDetail } from '../types/metrics';
 
 export function useAdoptionDetail() {
-  const { getToken } = useAuth();
+  const { getToken, orgId } = useAuth();
 
   return useQuery<AdoptionDetail>({
-    queryKey: ['adoption-detail'],
+    queryKey: ['adoption-detail', orgId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');

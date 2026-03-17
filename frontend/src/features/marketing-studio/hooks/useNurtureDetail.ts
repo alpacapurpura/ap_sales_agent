@@ -4,10 +4,10 @@ import { metricsApi } from '../api/metrics-api';
 import type { NurtureDetail } from '../types/metrics';
 
 export function useNurtureDetail() {
-  const { getToken } = useAuth();
+  const { getToken, orgId } = useAuth();
 
   return useQuery<NurtureDetail>({
-    queryKey: ['nurture-detail'],
+    queryKey: ['nurture-detail', orgId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');

@@ -4,10 +4,10 @@ import { metricsApi } from '../api/metrics-api';
 import type { AttractionDetail } from '../types/metrics';
 
 export function useAttractionDetail() {
-  const { getToken } = useAuth();
+  const { getToken, orgId } = useAuth();
 
   return useQuery<AttractionDetail>({
-    queryKey: ['attraction-detail'],
+    queryKey: ['attraction-detail', orgId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');
