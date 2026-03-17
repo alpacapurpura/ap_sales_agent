@@ -293,4 +293,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    pass
+    # WARNING: This migration is irreversible in production.
+    # The data migration from leads to customer_profiles/customer_identities
+    # cannot be safely reversed without data loss. Manual backup restoration
+    # is required if rollback is needed.
+    raise RuntimeError(
+        "Irreversible migration: rollback requires manual backup restoration. "
+        "See migration docstring for details."
+    )

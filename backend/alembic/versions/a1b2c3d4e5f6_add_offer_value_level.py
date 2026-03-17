@@ -1,7 +1,7 @@
 """add offer_value_level
 
 Revision ID: a1b2c3d4e5f6
-Revises: 9c6fc3c2980b
+Revises: 6ff69443dd82
 Create Date: 2026-02-04 10:00:00.000000
 
 """

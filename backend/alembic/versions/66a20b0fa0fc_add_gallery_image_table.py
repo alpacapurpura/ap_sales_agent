@@ -1,7 +1,7 @@
 """add_gallery_image_table
 
 Revision ID: 66a20b0fa0fc
-Revises: e9a1d0ee1583
+Revises: a1b2c3d4e5f6
 Create Date: 2026-02-10 13:31:54.056326
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '66a20b0fa0fc'
-down_revision: Union[str, None] = 'e9a1d0ee1583'
+down_revision: Union[str, None] = 'a1b2c3d4e5f6'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
