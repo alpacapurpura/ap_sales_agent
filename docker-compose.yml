@@ -339,6 +339,7 @@ services:
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
+      - internal_net
       - gateway
     profiles:
       - extended

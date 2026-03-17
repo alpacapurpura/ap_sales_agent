@@ -10,17 +10,118 @@ env:
   FRONTEND_IMAGE: ghcr.io/alpacapurpura/visionarias-frontend
 
 jobs:
-  # ─────────────────────────────────────────────────────────────
-  # JOB 1: Build Docker images and push to GHCR
-  # Runs on GitHub's servers — zero load on your VPS
-  # ─────────────────────────────────────────────────────────────
+  quality-gates:
+    name: ✅ Docker Lint & Test Gates
+    runs-on: ubuntu-latest
+    environment: ap_sales_agent
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend lint image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          target: lint
+          load: true
+          tags: visionarias/backend-lint:ci
+
+      - name: Run backend lint
+        run: docker run --rm visionarias/backend-lint:ci
+
+      - name: Build backend test image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          target: test
+          load: true
+          tags: visionarias/backend-test:ci
+
+      - name: Run backend tests
+        run: docker run --rm visionarias/backend-test:ci
+
+      - name: Build frontend test image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          target: test
+          load: true
+          tags: visionarias/frontend-test:ci
+
+      - name: Run frontend lint
+        run: docker run --rm visionarias/frontend-test:ci npm run lint
+
+      - name: Run frontend tests
+        run: docker run --rm visionarias/frontend-test:ci
+
+  security-scan:
+    name: 🔐 Vulnerability Scan
+    runs-on: ubuntu-latest
+    environment: ap_sales_agent
+    needs: quality-gates
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image for scan
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          target: final
+          load: true
+          tags: visionarias/backend-scan:${{ github.sha }}
+
+      - name: Build frontend image for scan
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          target: runner
+          load: true
+          tags: visionarias/frontend-scan:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=ci-placeholder-key
+            NEXT_PUBLIC_API_URL=http://localhost:8000
+            NEXT_PUBLIC_APP_URL=http://localhost:3000
+            INTERNAL_API_URL=http://localhost:8000
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: visionarias/backend-scan:${{ github.sha }}
+          format: table
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: visionarias/frontend-scan:${{ github.sha }}
+          format: table
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
   build:
     name: 🔨 Build & Push Images
     runs-on: ubuntu-latest
     environment: ap_sales_agent
+    needs:
+      - quality-gates
+      - security-scan
     permissions:
       contents: read
-      packages: write  # required to push to GHCR
+      packages: write
 
     outputs:
       image_tag: ${{ github.sha }}
@@ -34,12 +135,11 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}  # automatic, no config needed
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx (layer cache support)
         uses: docker/setup-buildx-action@v3
 
-      # --- Backend ---
       - name: Build & Push Backend
         uses: docker/build-push-action@v5
         with:
@@ -52,7 +152,6 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,scope=backend,mode=max
 
-      # --- Frontend ---
       - name: Build & Push Frontend
         uses: docker/build-push-action@v5
         with:
@@ -70,10 +169,6 @@ jobs:
           cache-from: type=gha,scope=frontend-v2
           cache-to: type=gha,scope=frontend-v2,mode=max
 
-  # ─────────────────────────────────────────────────────────────
-  # JOB 2: Deploy to VPS via SSH
-  # Only runs after build succeeds
-  # ─────────────────────────────────────────────────────────────
   deploy:
     name: 🚢 Deploy to VPS
     runs-on: ubuntu-latest
@@ -104,7 +199,7 @@ jobs:
           timeout: 30s
           command_timeout: 10m
           script: |
-            set -e  # exit on any error
+            set -e
 
             cd ${{ secrets.VPS_APP_PATH }}
 
@@ -128,10 +223,6 @@ jobs:
 
             echo "✅ Deploy completed at $(date)"
 
-  # ─────────────────────────────────────────────────────────────
-  # JOB 3: Health check
-  # Verifies the app is responding after deploy
-  # ─────────────────────────────────────────────────────────────
   healthcheck:
     name: 🏥 Health Check
     runs-on: ubuntu-latest

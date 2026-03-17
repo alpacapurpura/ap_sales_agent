@@ -1,6 +1,6 @@
-# Feature-Sliced Design (FSD) Cheatsheet
+# Feature-Based Architecture (FSD-Inspired) Cheatsheet
 
-This project uses a simplified version of FSD adapted for Next.js App Router.
+This project uses a pragmactic Feature-Based architecture inspired by FSD principles, but without strict layers like widgets/entities unless necessary.
 
 ## 1. Directory Structure
 
@@ -11,11 +11,14 @@ Everything related to a specific business domain lives here.
 Structure:
 ```
 src/features/{domain}/
-├── components/       # UI Components specific to Brand
+├── components/       # UI Components specific to this feature
 ├── hooks/           # Logic & State
 ├── types/           # Domain Interfaces & Zod Schemas
+├── utils/           # Helper functions
 └── index.ts         # PUBLIC API (Barrel File)
 ```
+
+**Note:** We do NOT strictly enforce `entities` or `widgets` layers. Logic should be kept within the `feature` unless it is genuinely shared across multiple features (in which case, refactor to `shared` or a common feature).
 
 ### `src/components/` (The Shared)
 - **`ui/`**: Shadcn primitives (Button, Input). **DO NOT MODIFY** logic here.

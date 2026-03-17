@@ -95,7 +95,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **UI-01**: Consistent detail panel pattern across all 8 stages following ChannelGroup + ChannelRow + ConnectionBadge from AttractionDetail
 - [x] **UI-02**: Each stage card in StageSummaryRow shows real KPI values (main + secondary) from backend, not hardcoded mock data
 - [x] **UI-03**: Conversion rate between adjacent stages displayed on each stage card (Stage N->N+1 ratio)
-- [ ] **UI-04**: Provider-specific channel icons and labels matching the channel definitions from the product spec
+- [x] **UI-04**: Provider-specific channel icons and labels matching the channel definitions from the product spec
 
 ## v2 Requirements
 
@@ -191,7 +191,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-01 | Phase 11: Frontend Unification & Dashboard Polish | Complete |
 | UI-02 | Phase 11: Frontend Unification & Dashboard Polish | Complete |
 | UI-03 | Phase 11: Frontend Unification & Dashboard Polish | Complete |
-| UI-04 | Phase 11: Frontend Unification & Dashboard Polish | Pending |
+| UI-04 | Phase 11: Frontend Unification & Dashboard Polish | Complete |
 
 **Coverage:**
 - v1 requirements: 54 total

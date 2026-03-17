@@ -79,6 +79,8 @@ The business owner sees their entire customer lifecycle at a glance — from fir
 
 ### Out of Scope
 
+- Sales Agent completion — in construction, future milestone; will close sales via payment links and schedule meetings (Calendly clone exists)
+- Landing page generation from Offer Studio — future milestone; will eventually feed Atracción/Captura with analytics/pixel/Meta Conversion API
 - Action Triggers (click-to-act slider on funnel nodes) — future milestone, focus on visualization first
 - Date range picker / time period selection — future enhancement
 - Real-time refresh / WebSocket updates — React Query 5-min staleTime is sufficient
@@ -124,6 +126,8 @@ The business owner sees their entire customer lifecycle at a glance — from fir
 - **Provider API casuistry**: Each provider (Meta, Google, TikTok) delivers data differently — document and handle per-provider specifics.
 - **Offer Ladder integration**: Stage 4 (Ventas) must reflect the Offer Studio's `type_offers` structure, not arbitrary product categories.
 - **Soft deletes only**: Use `lifecycle_stage = CHURNED`, never hard-delete customer data.
+- **Source-agnostic design**: Metrics aggregation must use provider/adapter pattern so future data sources (Sales Agent, generated landing pages, new integrations) plug in without rebuilding the pipeline.
+- **No module contamination**: Follow `backend-expert` and `frontend-expert` skill methodologies. Always review existing code before writing. Fix bad practices found, but keep everything functional.
 
 ## Key Decisions
 
@@ -134,6 +138,7 @@ The business owner sees their entire customer lifecycle at a glance — from fir
 | CRM lifecycle transitions must be automated | Manual stage tracking won't scale; need scoring-based and event-based triggers | — Pending |
 | Action Triggers deferred to next milestone | Focus on getting all 8 stages showing real data first | ✓ Good |
 | Shopify uses test data | Known issues with Shopify connection; use mock/test data for Shopify-dependent stages | — Pending |
+| Source-agnostic metrics architecture | Sales Agent and generated Landing Pages will be future data sources; adapter pattern needed | — Pending |
 
 ---
 *Last updated: 2026-03-15 after initialization*
