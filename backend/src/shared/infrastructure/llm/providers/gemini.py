@@ -24,15 +24,14 @@ class GeminiService(BaseLLMService):
         # Initialize LangChain Chat Model
         self.chat_model = ChatGoogleGenerativeAI(
             model=self.model_name,
-            google_api_key=self.api_key,
+            api_key=self.api_key,
             temperature=0.7,
-            convert_system_message_to_human=True # Gemini sometimes prefers this
         )
         
         # Initialize Embeddings Model
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model=self.embedding_model_name,
-            google_api_key=self.api_key
+            api_key=self.api_key
         )
 
     def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, **kwargs) -> str:

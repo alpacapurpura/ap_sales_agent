@@ -26,21 +26,21 @@ class OpenAIService(BaseLLMService):
         # Initialize LangChain Chat Model
         self.chat_model = ChatOpenAI(
             model=self.model_name,
-            openai_api_key=self.api_key,
+            api_key=self.api_key,
             temperature=0.7
         )
         
         # Initialize Fast Model (for tiered compute)
         self.fast_chat_model = ChatOpenAI(
             model=settings.OPENAI_FAST_MODEL,
-            openai_api_key=self.api_key,
+            api_key=self.api_key,
             temperature=0.7
         )
         
         # Initialize Embeddings Model
         self.embeddings = OpenAIEmbeddings(
             model=self.embedding_model_name,
-            openai_api_key=self.api_key
+            api_key=self.api_key
         )
 
     def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, model_type: str = "smart", **kwargs) -> str:
