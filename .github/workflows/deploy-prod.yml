@@ -93,21 +93,23 @@ jobs:
             INTERNAL_API_URL=http://localhost:8000
 
       - name: Scan backend image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: visionarias/backend-scan:${{ github.sha }}
           format: table
-          vuln-type: os,library
+          scanners: vuln
+          pkg-types: os,library
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
 
       - name: Scan frontend image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: visionarias/frontend-scan:${{ github.sha }}
           format: table
-          vuln-type: os,library
+          scanners: vuln
+          pkg-types: os,library
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"

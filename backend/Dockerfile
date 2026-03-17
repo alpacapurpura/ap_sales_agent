@@ -15,6 +15,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+RUN pip install --upgrade pip wheel>=0.46.2 setuptools
+
 COPY requirements-runtime.txt requirements-dev.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements-runtime.txt
@@ -33,7 +35,7 @@ WORKDIR /app
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -58,6 +60,7 @@ FROM dev AS lint
 CMD ["ruff", "check", "src"]
 
 FROM runtime_base AS final
+RUN pip install --upgrade pip setuptools>=78.0.0 wheel>=0.46.2
 COPY --from=builder /opt/venv /opt/venv
 COPY . .
 RUN chown -R appuser:appuser /app

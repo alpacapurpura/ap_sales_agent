@@ -46,7 +46,8 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN apk add --no-cache libc6-compat
+RUN apk upgrade --no-cache && apk add --no-cache libc6-compat
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
