@@ -63,7 +63,13 @@ def upgrade() -> None:
 
     # --- Create lifecycle_transitions table ---
     # Note: LifecycleStage enum already exists from customer_profiles table.
-    # triggered_by uses String (not PG enum) to avoid ALTER TYPE issues.
+    # Use postgresql.ENUM with create_type=False to avoid re-creating existing type.
+    lifecyclestage = postgresql.ENUM(
+        "subscriber", "lead", "mql", "sql", "opportunity",
+        "customer", "evangelist", "churned",
+        name="lifecyclestage",
+        create_type=False,
+    )
     op.create_table(
         "lifecycle_transitions",
         sa.Column(
@@ -85,34 +91,12 @@ def upgrade() -> None:
         ),
         sa.Column(
             "from_stage",
-            sa.Enum(
-                "subscriber",
-                "lead",
-                "mql",
-                "sql",
-                "opportunity",
-                "customer",
-                "evangelist",
-                "churned",
-                name="lifecyclestage",
-                create_type=False,  # Enum already exists
-            ),
+            lifecyclestage,
             nullable=True,
         ),
         sa.Column(
             "to_stage",
-            sa.Enum(
-                "subscriber",
-                "lead",
-                "mql",
-                "sql",
-                "opportunity",
-                "customer",
-                "evangelist",
-                "churned",
-                name="lifecyclestage",
-                create_type=False,
-            ),
+            lifecyclestage,
             nullable=False,
         ),
         sa.Column("reason", sa.String(), nullable=False),
