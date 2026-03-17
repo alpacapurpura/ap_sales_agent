@@ -19,50 +19,32 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # --- All operations use raw SQL with IF NOT EXISTS for idempotency ---
+    # These columns/tables may already exist in production if they were
+    # created outside of alembic before this migration was registered.
+
     # --- Add new columns to customer_profiles ---
-    op.add_column(
-        "customer_profiles",
-        sa.Column("lifetime_value", sa.Float(), server_default="0", nullable=True),
-    )
-    op.add_column(
-        "customer_profiles",
-        sa.Column("last_activity_at", sa.DateTime(timezone=True), nullable=True),
-    )
-    op.add_column(
-        "customer_profiles",
-        sa.Column("is_inactive", sa.Boolean(), server_default="false", nullable=True),
-    )
-    op.add_column(
-        "customer_profiles",
-        sa.Column("first_conversion_at", sa.DateTime(timezone=True), nullable=True),
-    )
-    op.add_column(
-        "customer_profiles",
-        sa.Column("first_seen_at", sa.DateTime(timezone=True), nullable=True),
-    )
-    op.add_column(
-        "customer_profiles",
-        sa.Column("lead_source", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "customer_profiles",
-        sa.Column("lead_source_detail", sa.String(), nullable=True),
-    )
+    op.execute("""
+        ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS lifetime_value FLOAT DEFAULT 0;
+        ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS last_activity_at TIMESTAMPTZ;
+        ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS is_inactive BOOLEAN DEFAULT false;
+        ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS first_conversion_at TIMESTAMPTZ;
+        ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS first_seen_at TIMESTAMPTZ;
+        ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS lead_source VARCHAR;
+        ALTER TABLE customer_profiles ADD COLUMN IF NOT EXISTS lead_source_detail VARCHAR;
+    """)
 
     # Indexes on frequently queried columns
-    op.create_index(
-        "ix_customer_profiles_last_activity_at",
-        "customer_profiles",
-        ["last_activity_at"],
-    )
-    op.create_index(
-        "ix_customer_profiles_lead_source",
-        "customer_profiles",
-        ["lead_source"],
-    )
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS ix_customer_profiles_last_activity_at
+        ON customer_profiles (last_activity_at);
+    """)
+    op.execute("""
+        CREATE INDEX IF NOT EXISTS ix_customer_profiles_lead_source
+        ON customer_profiles (lead_source);
+    """)
 
     # --- Create lifecycle_transitions table ---
-    # Use raw SQL to avoid SQLAlchemy trying to CREATE TYPE for existing enum.
     op.execute("""
         CREATE TABLE IF NOT EXISTS lifecycle_transitions (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
