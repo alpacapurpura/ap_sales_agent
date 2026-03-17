@@ -35,8 +35,7 @@ const imageRemotePatterns = [
 const nextConfig = {
   output: 'standalone',
   devIndicators: {
-    buildActivity: true,
-    buildActivityPosition: 'bottom-left',
+    position: 'bottom-left',
   },
   allowedDevOrigins: allowedOrigins,
   images: {
@@ -45,7 +44,7 @@ const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: allowedOrigins,
-    }
+    },
   },
   async rewrites() {
     if (!internalApiUrl) return [];

@@ -38,10 +38,13 @@ services:
       - "traefik.http.services.visionarias_api_dev.loadbalancer.server.port=8000"
     ports:
       - "8000:8000"
-    mem_limit: 1200m
-    mem_reservation: 512m
-    cpus: 1.50
-    pids_limit: 512
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1024M
+        reservations:
+          memory: 256M
 
   # --- Admin Interface (Streamlit - Development) ---
   admin_dashboard_dev:
@@ -80,10 +83,13 @@ services:
       - "traefik.http.services.admin_dev.loadbalancer.server.port=8501"
     profiles:
       - extended
-    mem_limit: 600m
-    mem_reservation: 256m
-    cpus: 0.50
-    pids_limit: 256
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          memory: 128M
 
   # --- Client Dashboard (Next.js - Development) ---
   client_dashboard_dev:
@@ -127,10 +133,13 @@ services:
       - "traefik.http.routers.client_dev.rule=Host(`salesagent.local`)"
       - "traefik.http.routers.client_dev.entrypoints=web"
       - "traefik.http.services.client_dev.loadbalancer.server.port=3000"
-    mem_limit: 1700m
-    mem_reservation: 768m
-    cpus: 1.75
-    pids_limit: 768
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 2048M
+        reservations:
+          memory: 512M
 
   frontend_tooling:
     build:
@@ -158,10 +167,13 @@ services:
       - frontend_node_modules:/app/node_modules
     networks:
       - internal_net
-    mem_limit: 1400m
-    mem_reservation: 512m
-    cpus: 1.25
-    pids_limit: 512
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   backend_tooling:
     build:
@@ -181,48 +193,61 @@ services:
       - postgres
     networks:
       - internal_net
-    mem_limit: 900m
-    mem_reservation: 384m
-    cpus: 1.00
-    pids_limit: 384
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   init_cache:
     image: alpine:latest
     command: sh -c "mkdir -p /app/model_cache && chmod 777 /app/model_cache"
     volumes:
       - ./data/model_cache:/app/model_cache
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          memory: 64M
 
   # --- WhatsApp Engine (Evolution API - Development v1.8.2) ---
-  whatsapp_engine:
-    image: atendai/evolution-api:v1.8.2
-    container_name: visionarias_whatsapp
-    restart: unless-stopped
-    shm_size: '2gb' # Critical for Chrome stability in Docker
-    volumes:
-      - ./data/whatsapp_data:/evolution/store
-    environment:
-      - SERVER_URL=http://visionarias_whatsapp:8080
-      - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY:-evolution-api-secret-key}
-      - DEL_INSTANCE=false
-      # Database Config (Disabled for v1 stability test in WSL2 - Uses File Store)
-      - "DATABASE_ENABLED=false"
-      - "DATABASE_PROVIDER=postgresql"
-      - "DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution"
-      - "DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange"
-      # Cache Config
-      - "CACHE_REDIS_ENABLED=true"
-      - "CACHE_REDIS_URI=redis://redis:6379/1"
-      - "CACHE_REDIS_PREFIX=evolution:"
-    networks:
-      - internal_net
-    ports:
-      - "127.0.0.1:8080:8080" # Secure binding for debugging
-    profiles:
-      - extended
-    mem_limit: 1200m
-    mem_reservation: 512m
-    cpus: 1.00
-    pids_limit: 512
+  # whatsapp_engine:
+  #   image: atendai/evolution-api:v1.8.2
+  #   container_name: visionarias_whatsapp
+  #   restart: unless-stopped
+  #   shm_size: '2gb' # Critical for Chrome stability in Docker
+  #   volumes:
+  #     - ./data/whatsapp_data:/evolution/store
+  #   environment:
+  #     - SERVER_URL=http://visionarias_whatsapp:8080
+  #     - AUTHENTICATION_API_KEY=${WHATSAPP_API_KEY:-evolution-api-secret-key}
+  #     - DEL_INSTANCE=false
+  #     # Database Config (Disabled for v1 stability test in WSL2 - Uses File Store)
+  #     - "DATABASE_ENABLED=false"
+  #     - "DATABASE_PROVIDER=postgresql"
+  #     - "DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=evolution"
+  #     - "DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange"
+  #     # Cache Config
+  #     - "CACHE_REDIS_ENABLED=true"
+  #     - "CACHE_REDIS_URI=redis://redis:6379/1"
+  #     - "CACHE_REDIS_PREFIX=evolution:"
+  #   networks:
+  #     - internal_net
+  #   ports:
+  #     - "127.0.0.1:8080:8080" # Secure binding for debugging
+  #   profiles:
+  #     - extended
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '0.50'
+  #         memory: 1024M
+  #       reservations:
+  #         memory: 512M
 
   # --- Infrastructure Services ---
   redis:
@@ -236,10 +261,13 @@ services:
       - internal_net
     ports:
       - "127.0.0.1:6379:6379" # Secure binding
-    mem_limit: 300m
-    mem_reservation: 128m
-    cpus: 0.50
-    pids_limit: 256
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          memory: 128M
 
   qdrant:
     image: qdrant/qdrant:v1.7.3
@@ -252,10 +280,13 @@ services:
     ports:
       - "127.0.0.1:6333:6333" # Secure binding
       - "127.0.0.1:6334:6334"
-    mem_limit: 1000m
-    mem_reservation: 512m
-    cpus: 1.00
-    pids_limit: 512
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   postgres:
     image: postgres:15-alpine
@@ -271,10 +302,13 @@ services:
       - internal_net
     ports:
       - "127.0.0.1:5432:5432" # Secure binding
-    mem_limit: 800m
-    mem_reservation: 384m
-    cpus: 1.00
-    pids_limit: 512
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   # --- ETL Scheduler ---
   scheduler:
@@ -299,10 +333,13 @@ services:
       retries: 3
     profiles:
       - extended
-    mem_limit: 450m
-    mem_reservation: 192m
-    cpus: 0.50
-    pids_limit: 256
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   # --- ETL Worker ---
   worker:
@@ -327,10 +364,13 @@ services:
       retries: 3
     profiles:
       - extended
-    mem_limit: 700m
-    mem_reservation: 256m
-    cpus: 0.75
-    pids_limit: 384
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          memory: 256M
 
   # --- Cloudflare Tunnel ---
   tunnel:
@@ -343,10 +383,13 @@ services:
       - gateway
     profiles:
       - extended
-    mem_limit: 200m
-    mem_reservation: 64m
-    cpus: 0.25
-    pids_limit: 128
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          memory: 64M
 
 volumes:
   frontend_next:
