@@ -7,7 +7,8 @@ interface PlaceholderDetailProps {
   stage: StageSummary;
 }
 
-function formatKpiValue(value: number, unit?: string): string {
+function formatKpiValue(value: number | string, unit?: string): string {
+  if (typeof value === 'string') return value;
   if (unit === '$') return `$${value.toLocaleString()}`;
   if (unit === '%') return `${value}%`;
   if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;

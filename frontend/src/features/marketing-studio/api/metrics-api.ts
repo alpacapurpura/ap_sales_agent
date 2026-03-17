@@ -6,7 +6,6 @@ import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_
 
 const API_URL = config.api.baseUrl;
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 function mapMetric(raw: any): MetricValue {
   return {
     name: raw.name,
@@ -344,7 +343,6 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
     lastUpdated: raw.last_updated,
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export const metricsApi = {
   getAttractionDetail: async (token: string): Promise<AttractionDetail> => {

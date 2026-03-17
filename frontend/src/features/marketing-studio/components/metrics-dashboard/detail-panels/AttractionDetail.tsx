@@ -1,13 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { useAttractionDetail } from '../../../hooks/useAttractionDetail';
 import { ChannelGroupCard } from '../channel-widgets/ChannelGroupCard';
-import { ActionPanel } from '../widgets/ActionPanel';
+import { ActionPanel } from '../action-widgets/ActionPanel';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 const ATRACCION_STAGE: StageSummary = {
   id: 'ATRACCION',
@@ -38,6 +41,7 @@ interface AttractionDetailProps {
 
 export function AttractionDetail({ onMetricClick }: AttractionDetailProps) {
   const { data, isLoading, error, refetch } = useAttractionDetail();
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -118,8 +122,17 @@ export function AttractionDetail({ onMetricClick }: AttractionDetailProps) {
 
           {/* Channel Groups - Vertical Stack of Cards */}
           <div className="space-y-6">
+            
             <ChannelGroupCard
-              title="Redes Sociales"
+              title="Publicidad Pagada"
+              totals={data.paid.totals}
+              channels={data.paid.channels}
+              groupType="paid"
+              stageId="ATRACCION"
+              onMetricClick={onMetricClick}
+            />
+            <ChannelGroupCard
+              title="Trabajo Orgánico"
               totals={data.organicSocial.totals}
               channels={data.organicSocial.channels}
               groupType="organic_social"
@@ -127,18 +140,10 @@ export function AttractionDetail({ onMetricClick }: AttractionDetailProps) {
               onMetricClick={onMetricClick}
             />
             <ChannelGroupCard
-              title="Busqueda"
+              title="Busquedas en Google"
               totals={data.ga4Search.totals}
               channels={data.ga4Search.channels}
               groupType="ga4_search"
-              stageId="ATRACCION"
-              onMetricClick={onMetricClick}
-            />
-            <ChannelGroupCard
-              title="Publicidad Pagada"
-              totals={data.paid.totals}
-              channels={data.paid.channels}
-              groupType="paid"
               stageId="ATRACCION"
               onMetricClick={onMetricClick}
             />
@@ -165,7 +170,18 @@ export function AttractionDetail({ onMetricClick }: AttractionDetailProps) {
 
         {/* Right Column (Sidebar) - 33% */}
         <div className="space-y-6">
-          <ActionPanel />
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setIsPanelOpen(true)}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Gestionar Atracción
+          </Button>
+          <ActionPanel
+            isOpen={isPanelOpen}
+            onClose={() => setIsPanelOpen(false)}
+          />
         </div>
       </div>
     </div>
