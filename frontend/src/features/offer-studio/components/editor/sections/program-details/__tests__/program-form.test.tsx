@@ -36,7 +36,12 @@ function Wrapper() {
     <Form {...form}>
       <ProgramDetailsForm
         form={form}
-        defaultValues={{}}
+        defaultValues={{
+          specific_details: {
+            structure_type: ProgramStructure.FIXED_DATE_COHORT,
+            schedule: []
+          }
+        }}
         onSave={async () => {}}
       />
     </Form>
@@ -48,7 +53,7 @@ describe('ProgramDetailsForm', () => {
     render(<Wrapper />);
     
     // Check for the section headers we added/modified
-    expect(screen.getByText('Estructura y Admisión')).toBeDefined();
+    expect(screen.getByText('Diseño del Programa')).toBeDefined();
     expect(screen.getByText('Calendario de Lanzamiento')).toBeDefined();
     
     // Check for the Labels we fixed (they should be rendered as Label now)
