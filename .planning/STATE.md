@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 Phase: 9 of 11 (Stages 5-6 Adoption & Expansion)
 Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-03-17 - Completed quick task 260316-s5p: Fix Growth Studio metric buttons showing same values across tenants - add tenantId to React Query keys
+Last activity: 2026-03-17 - Completed quick task 260317-h91: Fix frontend ESLint errors blocking GitHub Actions CI
 
 Progress: [█████████▊] 97%
 
@@ -200,9 +200,10 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260316-s5p | Fix Growth Studio metric buttons showing same values across tenants - add tenantId to React Query keys | 2026-03-17 | 10099cd | [260316-s5p-fix-growth-studio-metric-buttons-showing](./quick/260316-s5p-fix-growth-studio-metric-buttons-showing/) |
+| 260317-h91 | Fix frontend ESLint errors blocking GitHub Actions CI (Link, Image, a11y) | 2026-03-17 | 2c53bb1 | [260317-h91-fix-frontend-eslint-errors-blocking-gith](./quick/260317-h91-fix-frontend-eslint-errors-blocking-gith/) |
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:35:44.177Z
-Stopped at: Completed 11-02-PLAN.md (Detail panel polish, channel icons, sidebar wiring)
+Last session: 2026-03-17T17:29:52Z
+Stopped at: Completed quick task 260317-h91 (Fix frontend ESLint errors blocking GitHub Actions)
 Resume file: None
