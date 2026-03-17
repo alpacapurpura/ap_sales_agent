@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 Phase: 9 of 11 (Stages 5-6 Adoption & Expansion)
 Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-03-16 -- Completed plan 09-01 (Adoption backend + frontend: health tracking per offer, CSS health bar, TTV, bottleneck detection)
+Last activity: 2026-03-17 - Completed quick task 260316-s5p: Fix Growth Studio metric buttons showing same values across tenants - add tenantId to React Query keys
 
 Progress: [█████████▊] 97%
 
@@ -194,6 +194,12 @@ None yet.
 - ~~CRM scoring thresholds (e.g., lead_score > 70 = MQL) need product input before Phase 3 implementation.~~ RESOLVED in 03-01: thresholds set at 10/40/70 per research recommendations
 - TikTok token 24h expiry needs refresh job that differs from Google/Meta patterns.
 - Stage 7 K-Factor depends on whether referral codes exist in CRM schema — verify before Phase 10.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260316-s5p | Fix Growth Studio metric buttons showing same values across tenants - add tenantId to React Query keys | 2026-03-17 | 10099cd | [260316-s5p-fix-growth-studio-metric-buttons-showing](./quick/260316-s5p-fix-growth-studio-metric-buttons-showing/) |
 
 ## Session Continuity
 
