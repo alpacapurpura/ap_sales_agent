@@ -1,5 +1,6 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+import { aiActionsApi, OfferPsychologyPayload } from "@/lib/api/ai-actions";
 import {
   Offer,
   AvatarDefinition,
@@ -205,13 +206,7 @@ export const offerApi = {
   saveObjections: async (offerId: string, objections: Objection[]) => { return objections; },
   uploadAsset: async (offerId: string, file: File) => { return { id: "mock", name: file.name, type: "PDF" }; },
 
-  generatePsychology: async (data: {
-    avatar_id: string;
-    offer_name: string;
-    offer_description?: string;
-    current_pains: string[];
-    current_desires: string[];
-  }, token: string): Promise<{ pains: string[]; desires: string[] }> => {
+  generatePsychology: async (data: OfferPsychologyPayload, token: string): Promise<{ pains: string[]; desires: string[] }> => {
     if (USE_MOCK_DATA) {
         console.log("🔸 Using Mock Data for generatePsychology");
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -221,19 +216,7 @@ export const offerApi = {
         };
     }
 
-    const res = await fetchClient(`${API_URL}/api/v1/offers/ai/psychology`, {
-        method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify(data)
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(err.detail || "Error generating psychology");
-    }
-    return res.json();
+    return aiActionsApi.generateOfferPsychology(data, token);
   },
 
   getLandingConfig: async (offerId: string, token: string): Promise<any> => {

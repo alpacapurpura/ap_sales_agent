@@ -31,7 +31,7 @@ function formatCurrency(n: number): string {
   return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function buildSummary(groupType: GroupType, totals: Record<string, number>, channelCount: number): string {
+export function buildSummary(groupType: GroupType, totals: Record<string, number>, channelCount: number): string {
   switch (groupType) {
     case 'organic_social':
       return `Alcance: ${formatNumber(totals.reach ?? 0)} | Engagement: ${formatNumber(totals.engagement ?? 0)}`;

@@ -39,7 +39,7 @@ function formatKpiValue(value: number | string, unit?: string): string {
 }
 
 function formatConversionRate(rate: number): string {
-  return `${rate.toFixed(1)}% conversion`;
+  return `${rate.toFixed(1)}% Conversión`;
 }
 
 export function StageCard({ stage, isActive, onClick, isLoading = false, isMock = false }: StageCardProps) {
@@ -88,9 +88,9 @@ export function StageCard({ stage, isActive, onClick, isLoading = false, isMock 
 
             {/* Secondary KPI: conversion rate or fallback metric */}
             {!isLoading && (
-              <span className="text-xs text-muted-foreground/70 mt-1 tabular-nums">
+              <div className="text-[10px] text-muted-foreground/70 bg-muted px-2 py-0.5 rounded-full mt-1 tabular-nums font-medium">
                 {secondaryText}
-              </span>
+              </div>
             )}
 
             {/* Detail indicator when active */}

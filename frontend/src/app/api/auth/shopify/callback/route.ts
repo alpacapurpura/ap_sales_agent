@@ -19,11 +19,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const backendUrl = process.env.INTERNAL_API_URL;
-    if (!backendUrl) {
-      console.error('INTERNAL_API_URL is not configured');
-      return NextResponse.redirect(new URL('/marketing-studio/connections?status=error&message=Server misconfiguration: INTERNAL_API_URL not set', request.url));
-    }
+    const backendUrl = process.env.INTERNAL_API_URL || 'http://visionarias_brain_dev:8000';
     let exchangeSuccess = false;
     let errorDetail = '';
     const exchangePayload: Record<string, string> = {

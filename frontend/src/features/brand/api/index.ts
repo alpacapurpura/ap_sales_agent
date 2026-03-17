@@ -1,5 +1,6 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
+import { aiActionsApi } from "@/lib/api/ai-actions";
 import { BrandSettings, ExtractedVisuals, FullBrandExtractionRequest } from "../types";
 import { MOCK_BRAND_SETTINGS } from "./mock-data";
 import { ENABLE_MOCKS as USE_MOCK_API } from "@/lib/mock-config";
@@ -54,83 +55,15 @@ export const brandApi = {
     },
 
     extractBrandVisuals: async (url: string, token: string): Promise<ExtractedVisuals> => {
-        const res = await fetchClient(`${API_URL}/api/v1/tools/extract`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                url,
-                type: "brand_identity"
-            })
-        });
-        if (!res.ok) throw new Error("Failed to extract brand visuals");
-        return res.json() as Promise<ExtractedVisuals>;
+        const result = await aiActionsApi.extractBrandIdentity({
+            url,
+            type: "brand_identity"
+        }, token);
+        return result as ExtractedVisuals;
     },
 
     extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<BrandSettings> => {
-        let body: FormData;
-        
-        if (data instanceof FormData) {
-            body = data;
-        } else {
-            // Convert plain object to FormData to satisfy FastAPI Form(...) dependency
-            body = new FormData();
-            if (data.url) body.append("url", data.url);
-            if (data.text) body.append("text", data.text);
-            if (data.mode) body.append("mode", data.mode);
-            if (data.update_instructions) body.append("update_instructions", data.update_instructions);
-        }
-        
-        const headers: HeadersInit = {
-            Authorization: `Bearer ${token}`
-        };
-        // Do NOT set Content-Type for FormData, browser handles it
-
-        // Ensure API_URL has a protocol
-        let baseUrl = API_URL;
-        if (baseUrl && !baseUrl.startsWith("http")) {
-             // Fallback for relative URLs or missing protocol
-             console.warn("API_URL missing protocol, defaulting to https://");
-             baseUrl = `https://${baseUrl}`;
-        }
-        
-        // Remove trailing slash if present to avoid double slashes
-        if (baseUrl?.endsWith("/")) {
-            baseUrl = baseUrl.slice(0, -1);
-        }
-
-        const url = `${baseUrl}/api/v1/tools/extract-full-brand`;
-        console.log(`[BrandAPI] Extracting from: ${url}`);
-
-        // Create a controller to allow manual timeout (set to 8 minutes for full crawl + visuals)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 480000); // 8 minutes
-
-        try {
-            const res = await fetch(url, {
-                method: "POST",
-                headers,
-                body: body,
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!res.ok) {
-                const errorText = await res.text();
-                console.error(`[BrandAPI] Error ${res.status}: ${errorText}`);
-                throw new Error(`Failed to extract full brand data: ${res.status} ${res.statusText}`);
-            }
-            return res.json();
-        } catch (error: any) {
-            clearTimeout(timeoutId);
-            console.error("[BrandAPI] Network or Fetch Error:", error);
-            if (error.name === 'AbortError') {
-                throw new Error("La solicitud excedió el tiempo límite de 5 minutos.");
-            }
-            throw error;
-        }
+        const result = await aiActionsApi.extractFullBrand(data, token);
+        return result as BrandSettings;
     }
 };

@@ -1,11 +1,13 @@
 'use client';
 
 import { useAttractionDetail } from '../../../hooks/useAttractionDetail';
-import { ChannelGroup } from '../channel-widgets/ChannelGroup';
+import { ChannelGroupCard } from '../channel-widgets/ChannelGroupCard';
+import { ActionPanel } from '../widgets/ActionPanel';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
+import { Card, CardContent } from '@/components/ui/card';
 
 const ATRACCION_STAGE: StageSummary = {
   id: 'ATRACCION',
@@ -68,87 +70,104 @@ export function AttractionDetail({ onMetricClick }: AttractionDetailProps) {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Timestamp */}
-      {data.lastUpdated && (
-        <p className="text-xs text-muted-foreground italic">
-          Actualizado: {formatLastUpdated(data.lastUpdated)}
-        </p>
-      )}
-
-      {/* Header KPIs — responsive 3-column grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">VISITANTES TOTALES</span>
-          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
-            {totalVisitors > 0 ? totalVisitors.toLocaleString('es-ES') : '---'}
+      {/* Header & Timestamp */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold tracking-tight">Detalle: Atracción</h2>
+        {data.lastUpdated && (
+          <span className="text-xs text-muted-foreground italic bg-muted/30 px-2 py-1 rounded-md">
+            Actualizado: {formatLastUpdated(data.lastUpdated)}
           </span>
-        </div>
-        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">ALCANCE TOTAL</span>
-          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
-            {totalReach > 0 ? totalReach.toLocaleString('es-ES') : '---'}
-          </span>
-        </div>
-        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
-            {totalSpend > 0 ? 'GASTO TOTAL' : 'CANALES ACTIVOS'}
-          </span>
-          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
-            {totalSpend > 0
-              ? `$${totalSpend.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-              : `${connectedChannels}`}
-          </span>
-        </div>
+        )}
       </div>
 
-      {/* Channel Groups */}
-      <ChannelGroup
-        title="Redes Sociales"
-        totals={data.organicSocial.totals}
-        channels={data.organicSocial.channels}
-        groupType="organic_social"
-        defaultOpen
-        stageId="ATRACCION"
-        onMetricClick={onMetricClick}
-      />
-      <ChannelGroup
-        title="Busqueda"
-        totals={data.ga4Search.totals}
-        channels={data.ga4Search.channels}
-        groupType="ga4_search"
-        defaultOpen
-        stageId="ATRACCION"
-        onMetricClick={onMetricClick}
-      />
-      <ChannelGroup
-        title="Publicidad Pagada"
-        totals={data.paid.totals}
-        channels={data.paid.channels}
-        groupType="paid"
-        defaultOpen
-        stageId="ATRACCION"
-        onMetricClick={onMetricClick}
-      />
-      <ChannelGroup
-        title="Contacto Directo"
-        totals={data.outbound.totals}
-        channels={data.outbound.channels}
-        groupType="outbound"
-        defaultOpen
-        stageId="ATRACCION"
-        onMetricClick={onMetricClick}
-      />
-      {data.available && data.available.channels.length > 0 && (
-        <ChannelGroup
-          title="Canales Disponibles"
-          totals={{}}
-          channels={data.available.channels}
-          groupType="available"
-          defaultOpen={false}
-          stageId="ATRACCION"
-          onMetricClick={onMetricClick}
-        />
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column (Main Content) - 66% */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          {/* Header KPIs — 3 independent cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">VISITANTES TOTALES</span>
+                <span className="text-2xl font-bold tabular-nums mt-1 text-primary">
+                  {totalVisitors > 0 ? totalVisitors.toLocaleString('es-ES') : '---'}
+                </span>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">ALCANCE TOTAL</span>
+                <span className="text-2xl font-bold tabular-nums mt-1">
+                  {totalReach > 0 ? totalReach.toLocaleString('es-ES') : '---'}
+                </span>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">
+                  {totalSpend > 0 ? 'GASTO TOTAL' : 'CANALES ACTIVOS'}
+                </span>
+                <span className="text-2xl font-bold tabular-nums mt-1">
+                  {totalSpend > 0
+                    ? `$${totalSpend.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+                    : `${connectedChannels}`}
+                </span>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Channel Groups - Vertical Stack of Cards */}
+          <div className="space-y-6">
+            <ChannelGroupCard
+              title="Redes Sociales"
+              totals={data.organicSocial.totals}
+              channels={data.organicSocial.channels}
+              groupType="organic_social"
+              stageId="ATRACCION"
+              onMetricClick={onMetricClick}
+            />
+            <ChannelGroupCard
+              title="Busqueda"
+              totals={data.ga4Search.totals}
+              channels={data.ga4Search.channels}
+              groupType="ga4_search"
+              stageId="ATRACCION"
+              onMetricClick={onMetricClick}
+            />
+            <ChannelGroupCard
+              title="Publicidad Pagada"
+              totals={data.paid.totals}
+              channels={data.paid.channels}
+              groupType="paid"
+              stageId="ATRACCION"
+              onMetricClick={onMetricClick}
+            />
+            <ChannelGroupCard
+              title="Contacto Directo"
+              totals={data.outbound.totals}
+              channels={data.outbound.channels}
+              groupType="outbound"
+              stageId="ATRACCION"
+              onMetricClick={onMetricClick}
+            />
+            {data.available && data.available.channels.length > 0 && (
+              <ChannelGroupCard
+                title="Canales Disponibles"
+                totals={{}}
+                channels={data.available.channels}
+                groupType="available"
+                stageId="ATRACCION"
+                onMetricClick={onMetricClick}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Right Column (Sidebar) - 33% */}
+        <div className="space-y-6">
+          <ActionPanel />
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,30 +2,31 @@ FROM node:22-alpine AS base
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
 
-# Install dependencies only when needed
 FROM base AS deps
-WORKDIR /app
-COPY package*.json ./
-# Using npm install to allow package.json changes without strict lock file sync
+COPY package.json package-lock.json .npmrc ./
+ENV npm_config_jobs=2
 RUN --mount=type=cache,target=/root/.npm \
-    npm install --legacy-peer-deps
+    npm ci --include=dev
 
-# Development image, copy all the files and run next
 FROM base AS dev
-WORKDIR /app
+ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Environment variables will be injected by docker-compose
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
-# Rebuild the source code only when needed
-FROM base AS builder
+FROM base AS test
+ENV NODE_ENV=test
+ENV NODE_OPTIONS=--max-old-space-size=1024
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+CMD ["npm", "run", "test"]
+
+FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build args
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_APP_URL
@@ -35,40 +36,28 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV INTERNAL_API_URL=$INTERNAL_API_URL
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=1536
 
+RUN test -n "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
+    || (echo "❌ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is empty — Clerk auth will not work. Check secrets." && exit 1)
 RUN npm run build
 
-# Fail fast if critical build-time env vars are missing
-RUN test -n "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
-    || (echo "❌ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is empty — Clerk auth will not work. Check GitHub secrets." && exit 1)
-RUN echo "✅ Build-time env vars:" \
-    && echo "   CLERK_KEY length: $(echo -n "$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" | wc -c)" \
-    && echo "   API_URL: $NEXT_PUBLIC_API_URL" \
-    && echo "   APP_URL: $NEXT_PUBLIC_APP_URL"
-
-# Production image, copy all the files and run next
-FROM base AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+RUN apk add --no-cache libc6-compat
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
+COPY --from=build /app/public ./public
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
-
 EXPOSE 3000
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
+ENV HOSTNAME=0.0.0.0
 CMD ["node", "server.js"]
