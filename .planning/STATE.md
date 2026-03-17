@@ -205,9 +205,10 @@ None yet.
 | 260317-hrh | Replicate and verify CI/CD quality-gates pass (lint + test) -- no fixes needed | 2026-03-17 | n/a | [260317-hrh-replicate-and-fix-github-actions-ci-cd-f](./quick/260317-hrh-replicate-and-fix-github-actions-ci-cd-f/) |
 | 260317-i9e | Commit remaining test fix and verify CI gates pass (lint 0 errors, 60/60 tests) | 2026-03-17 | 7cd839d | [260317-i9e-fix-frontend-eslint-errors-blocking-gith](./quick/260317-i9e-fix-frontend-eslint-errors-blocking-gith/) |
 | 260317-naa | Fix breaking changes from langchain/langgraph migration (5 graphs + 2 LLM providers) | 2026-03-17 | bbbf109, 9d811ed | [260317-naa-fix-breaking-changes-from-langchain-and-](./quick/260317-naa-fix-breaking-changes-from-langchain-and-/) |
+| 260317-q0z | Fix production backend not starting (numpy CPU + missing worker/scheduler services) | 2026-03-17 | cb19788, 9b20f24 | [260317-q0z-diagnose-and-fix-production-backend-not-](./quick/260317-q0z-diagnose-and-fix-production-backend-not-/) |
 
 ## Session Continuity
 
-Last session: 2026-03-17T21:57:43.142Z
-Stopped at: Completed quick task 260317-naa (fix langchain/langgraph breaking changes)
+Last session: 2026-03-17T23:48:09Z
+Stopped at: Completed quick task 260317-q0z (fix production backend boot + deployment checklist)
 Resume file: None
