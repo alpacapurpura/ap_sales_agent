@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
 import { useSalesDetail } from '../../../hooks/useSalesDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
@@ -153,9 +154,9 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
           Configura tu Offer Ladder para ver ventas por producto. Tu panel de ventas se llenara
           automaticamente cuando registres tus primeras transacciones.
         </p>
-        <a href="/offer-studio" className="text-xs text-primary underline mt-3">
+        <Link href="/offer-studio" className="text-xs text-primary underline mt-3">
           Ir a Offer Studio
-        </a>
+        </Link>
       </div>
     );
   }
