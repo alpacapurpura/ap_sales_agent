@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v19.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed quick task 260317-i9e (commit test file, verify CI gates)
-last_updated: "2026-03-17T18:12:40.518Z"
+stopped_at: Completed quick task 260317-naa (fix langchain/langgraph breaking changes)
+last_updated: "2026-03-17T21:57:47.685Z"
 last_activity: "2026-03-17 - Completed quick task 260317-h91: Fix frontend ESLint errors blocking GitHub Actions CI"
 progress:
   total_phases: 11
@@ -181,6 +181,7 @@ Recent decisions affecting current work:
 - [Phase 11]: channelIcons.ts uses lucide-react fallbacks for all channels; TikTok uses Radio, Meta Ads uses Zap
 - [Phase 11]: SidebarContent renders stage-specific context banners via polymorphic switch(stageId)
 - [Phase 11]: MetricSidebar accepts children ReactNode — SidebarContent injected from MetricsDashboard, static fallback preserved
+- [Phase quick-260317-naa]: langgraph 1.x migration: add_edge(START, node) replaces set_entry_point(); api_key replaces openai_api_key/google_api_key; convert_system_message_to_human removed from Gemini
 
 ### Pending Todos
 
@@ -203,9 +204,10 @@ None yet.
 | 260317-h91 | Fix frontend ESLint errors blocking GitHub Actions CI (Link, Image, a11y) | 2026-03-17 | 2c53bb1 | [260317-h91-fix-frontend-eslint-errors-blocking-gith](./quick/260317-h91-fix-frontend-eslint-errors-blocking-gith/) |
 | 260317-hrh | Replicate and verify CI/CD quality-gates pass (lint + test) -- no fixes needed | 2026-03-17 | n/a | [260317-hrh-replicate-and-fix-github-actions-ci-cd-f](./quick/260317-hrh-replicate-and-fix-github-actions-ci-cd-f/) |
 | 260317-i9e | Commit remaining test fix and verify CI gates pass (lint 0 errors, 60/60 tests) | 2026-03-17 | 7cd839d | [260317-i9e-fix-frontend-eslint-errors-blocking-gith](./quick/260317-i9e-fix-frontend-eslint-errors-blocking-gith/) |
+| 260317-naa | Fix breaking changes from langchain/langgraph migration (5 graphs + 2 LLM providers) | 2026-03-17 | bbbf109, 9d811ed | [260317-naa-fix-breaking-changes-from-langchain-and-](./quick/260317-naa-fix-breaking-changes-from-langchain-and-/) |
 
 ## Session Continuity
 
-Last session: 2026-03-17T18:12:40.515Z
-Stopped at: Completed quick task 260317-i9e (commit test file, verify CI gates)
+Last session: 2026-03-17T21:57:43.142Z
+Stopped at: Completed quick task 260317-naa (fix langchain/langgraph breaking changes)
 Resume file: None
