@@ -26,7 +26,7 @@ def _build_request(query: str) -> Request:
     return Request(scope)
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_exchange_resuelve_tenant_por_shop_sin_state():
     tenant_id = uuid.uuid4()
     repo = MagicMock()
@@ -59,7 +59,7 @@ async def test_exchange_resuelve_tenant_por_shop_sin_state():
     assert repo.upsert.call_args.kwargs["channel_type"] == ChannelType.SHOPIFY
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_exchange_falla_si_no_hay_tenant_por_shop():
     repo = MagicMock()
     repo.get_active_shopify_by_shop.return_value = None
@@ -82,7 +82,7 @@ async def test_exchange_falla_si_no_hay_tenant_por_shop():
     assert exc_info.value.detail == "Tenant resolution failed for shop"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_callback_publico_permite_state_ausente():
     tenant_id = uuid.uuid4()
     repo = MagicMock()
@@ -100,7 +100,10 @@ async def test_callback_publico_permite_state_ausente():
     ), patch(
         "src.modules.connections.api.shopify.ShopifyConnector.verify_connection",
         new=AsyncMock(return_value=(True, {"domain": "mi-tienda.myshopify.com"})),
-    ):
+    ), patch(
+        "src.modules.connections.api.shopify.settings"
+    ) as mock_settings:
+        mock_settings.DASHBOARD_DOMAIN = "http://localhost:3000"
         response = await auth_callback(request=request, repo=repo)
 
     assert response.status_code in (302, 307)

@@ -176,7 +176,7 @@ async def test_get_attraction_populates_values_from_repo(
             result = await service.get_attraction_metrics(test_tenant_id)
 
     # Find the ig-organic channel in organic group
-    all_channels = result.organic.channels + result.paid.channels
+    all_channels = result.organic_social.channels + result.paid.channels
     ig = next((ch for ch in all_channels if ch.slug == "ig-organic"), None)
     assert ig is not None
     assert ig.value == 1500.0
@@ -195,9 +195,13 @@ async def test_get_attraction_returns_cached_on_hit(
 ):
     """On cache hit, OfficialMetricsRepository is NOT called."""
     cached_data = {
-        "organic": {"total_value": 100, "channels": []},
-        "paid": {"total_value": 50, "total_cost": 25, "channels": []},
+        "organic_social": {"totals": {"visitors": 100.0}, "channels": []},
+        "ga4_search": {"totals": {}, "channels": []},
+        "paid": {"totals": {"spend": 50.0}, "channels": []},
+        "outbound": {"totals": {}, "channels": []},
+        "available": None,
         "period": "last_30_days",
+        "last_updated": None,
     }
 
     mock_cache = AsyncMock()
@@ -218,7 +222,7 @@ async def test_get_attraction_returns_cached_on_hit(
         mock_repo_inst.get_channel_summary.assert_not_called()
 
     assert isinstance(result, AttractionDetailDTO)
-    assert result.organic.total_value == 100
+    assert result.organic_social.totals["visitors"] == 100.0
 
 
 # ---------------------------------------------------------------------------
@@ -290,8 +294,8 @@ async def test_unconnected_channels_return_zero(
 
             result = await service.get_attraction_metrics(test_tenant_id)
 
-    all_channels = result.organic.channels + result.paid.channels
-    tiktok = next((ch for ch in all_channels if ch.slug == "tiktok-organic"), None)
+    assert result.available is not None
+    tiktok = next((ch for ch in result.available.channels if ch.slug == "tiktok-organic"), None)
     assert tiktok is not None
     assert tiktok.value == 0
     assert tiktok.connected is False
@@ -330,7 +334,7 @@ async def test_connected_channels_include_last_updated(
 
             result = await service.get_attraction_metrics(test_tenant_id)
 
-    ig = next((ch for ch in result.organic.channels if ch.slug == "ig-organic"), None)
+    ig = next((ch for ch in result.organic_social.channels if ch.slug == "ig-organic"), None)
     assert ig is not None
     assert ig.last_updated is not None
     assert ig.connected is True

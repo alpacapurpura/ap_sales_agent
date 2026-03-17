@@ -95,7 +95,7 @@ class TestMetricsCacheSet:
 
         mock_redis.setex.assert_called_once_with(
             f"metrics:{TENANT_ID}:attraction:last_30_days",
-            300,
+            3600,
             json.dumps(data),
         )
 

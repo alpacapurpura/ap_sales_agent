@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 import datetime
 from src.modules.scheduling.domain.event_type_schema import EventType
+from src.shared.links.schemas import LinkResolveResponse as LinkResolveResponse
 
 class BookingRequest(BaseModel):
     slot_time: datetime.datetime
