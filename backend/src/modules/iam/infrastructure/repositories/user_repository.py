@@ -1,11 +1,9 @@
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 from uuid import UUID
 
 from src.modules.iam.domain.user import User
 from src.modules.iam.infrastructure.models.user_model import UserModel
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
 class UserRepository:
     def __init__(self, db: Session):

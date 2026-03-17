@@ -15,10 +15,10 @@ All queries use SQLAlchemy 2.0 select() syntax with tenant_id isolation.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List
 from uuid import UUID
 
-from sqlalchemy import distinct, func, select, and_, case
+from sqlalchemy import func, select, and_, case
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.enums import LifecycleStage, SaleStatus

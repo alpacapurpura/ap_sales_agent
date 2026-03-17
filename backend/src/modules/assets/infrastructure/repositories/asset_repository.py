@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from src.modules.assets.domain.entity import Asset
 from src.modules.assets.infrastructure.models.asset_model import AssetModel
-from src.modules.assets.domain.enums import AssetType, StorageProvider
 
 class AssetRepository:
     def __init__(self, db: Session):

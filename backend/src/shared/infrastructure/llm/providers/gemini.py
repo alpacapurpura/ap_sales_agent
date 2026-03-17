@@ -4,7 +4,6 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.shared.infrastructure.llm.base import BaseLLMService
 from src.core.config import settings
 
-from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
 
 class GeminiService(BaseLLMService):
     """
@@ -59,16 +58,10 @@ class GeminiService(BaseLLMService):
             response = self.chat_model.invoke(lc_messages, **kwargs)
             response_text = response.content
             
-            # Extract Usage Metadata
-            # Google Generative AI usually provides usage_metadata
-            usage = response.usage_metadata or {}
-            tokens_in = usage.get("input_tokens", 0)
-            tokens_out = usage.get("output_tokens", 0)
+            # Usage metadata available but logging removed to decouple shared from sales_agent
             
         except Exception as e:
             response_text = f"ERROR: {str(e)}"
-            tokens_in = 0
-            tokens_out = 0
             raise e
         
         # Logging logic removed to decouple shared from sales_agent.

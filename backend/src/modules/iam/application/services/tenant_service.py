@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from src.modules.iam.domain.tenant import Tenant
 from src.modules.iam.infrastructure.repositories.tenant_repository import TenantRepository
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel # Needed for ordering/filtering until Repo is advanced
 
 class TenantService:
     def __init__(self, db: Session):

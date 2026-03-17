@@ -2,7 +2,6 @@ from typing import Optional, List, Dict, Any
 from uuid import UUID
 from datetime import datetime
 from src.shared.domain.base_entity import BaseEntity
-from src.modules.assets.domain.enums import AssetType, AssetStatus
 
 class AssetDto(BaseEntity):
     id: UUID

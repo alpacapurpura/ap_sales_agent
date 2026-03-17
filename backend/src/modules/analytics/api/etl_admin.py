@@ -171,7 +171,7 @@ async def retry_extraction(
 
     # Enqueue the retry job via ARQ
     try:
-        from arq.connections import ArqRedis, create_pool, RedisSettings
+        from arq.connections import create_pool, RedisSettings
         from src.core.config import settings
 
         pool = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 from sqlalchemy.orm import Session
 from uuid import UUID
 from src.modules.sales_agent.domain.message import Message

@@ -36,7 +36,7 @@ async def run_tenant_extraction(
         from src.modules.analytics.application.services.etl_service import ETLService
 
         etl_service = ETLService(db=db)
-        result = await etl_service.run_extraction(UUID(tenant_id), provider)
+        await etl_service.run_extraction(UUID(tenant_id), provider)
 
         logger.info(
             "Extraction completed for tenant=%s provider=%s",
@@ -98,7 +98,7 @@ async def run_initial_load(
         etl_service = ETLService(db=db)
         start_date = date.today() - timedelta(days=initial_days)
 
-        result = await etl_service.run_extraction(
+        await etl_service.run_extraction(
             UUID(tenant_id), provider, start_date=start_date
         )
 
@@ -244,7 +244,6 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
                     event_name = "email_opened" if event_type == "open" else "email_clicked"
 
                     # Dedup: check if this exact event already exists
-                    from sqlalchemy.dialects.postgresql import JSONB
 
                     existing = db.execute(
                         select(JourneyEventModel.id).where(

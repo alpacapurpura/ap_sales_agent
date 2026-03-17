@@ -1,7 +1,6 @@
 import httpx
 import structlog
 from typing import Dict, Any, Tuple, List, Optional
-from fastapi import HTTPException
 from src.modules.connections.infrastructure.marketing_connectors.base import BaseConnector
 from src.core.config import settings
 import hmac

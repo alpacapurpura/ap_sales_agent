@@ -118,7 +118,7 @@ class AuditRepository(EpisodicMemoryStore):
             # Build LLM summary for timeline preview (avoid N+1 with lazy join)
             llm_summary = None
             if t.llm_logs:
-                total_tokens = sum((l.tokens_input or 0) + (l.tokens_output or 0) for l in t.llm_logs)
+                total_tokens = sum((log_entry.tokens_input or 0) + (log_entry.tokens_output or 0) for log_entry in t.llm_logs)
                 first_log = t.llm_logs[0]
                 llm_summary = {
                     "model": first_log.model,
@@ -159,14 +159,14 @@ class AuditRepository(EpisodicMemoryStore):
             },
             "llm_logs": [
                 {
-                    "id": str(l.id),
-                    "model": l.model,
-                    "prompt_template": l.prompt_template or "unknown",
-                    "prompt": l.prompt_rendered,
-                    "response": l.response_text,
-                    "tokens": {"in": l.tokens_input, "out": l.tokens_output},
-                    "metadata": l.metadata_info
-                } for l in logs
+                    "id": str(log_entry.id),
+                    "model": log_entry.model,
+                    "prompt_template": log_entry.prompt_template or "unknown",
+                    "prompt": log_entry.prompt_rendered,
+                    "response": log_entry.response_text,
+                    "tokens": {"in": log_entry.tokens_input, "out": log_entry.tokens_output},
+                    "metadata": log_entry.metadata_info
+                } for log_entry in logs
             ]
         }
 

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session, Query
 from src.core.database import SessionLocal
 from src.core.context import get_tenant_id
-from typing import Type, Optional
+from typing import Type
 
 class BaseRepository:
     def __init__(self, db: Session = None):

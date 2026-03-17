@@ -10,7 +10,6 @@ so new fields are automatically available without changing this builder.
 """
 
 import logging
-from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
 

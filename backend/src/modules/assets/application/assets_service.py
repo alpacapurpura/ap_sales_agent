@@ -3,7 +3,7 @@ import mimetypes
 from uuid import UUID
 import uuid
 from sqlalchemy.orm import Session
-from fastapi import UploadFile, BackgroundTasks
+from fastapi import BackgroundTasks
 import structlog
 
 from src.modules.assets.domain.entity import Asset

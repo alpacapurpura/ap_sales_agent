@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime, timedelta, timezone
@@ -52,13 +52,13 @@ async def get_agenda(
             joinedload(LeadModel.customer)
         ).filter(LeadModel.id.in_(lead_ids)).all()
         
-        for l in leads:
+        for lead in leads:
             # Try to get name from Customer (SSOT), then fallback to Lead profile_data
-            customer_name = l.customer.full_name if l.customer else None
-            profile = l.profile_data or {}
-            
+            customer_name = lead.customer.full_name if lead.customer else None
+            profile = lead.profile_data or {}
+
             name = customer_name or profile.get('full_name') or profile.get('name') or "Unknown Lead"
-            lead_map[l.id] = name
+            lead_map[lead.id] = name
             
     return [
         AgendaItem(

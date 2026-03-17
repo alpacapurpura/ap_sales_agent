@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 import uuid
-from typing import Optional
 
 class DomainEvent(BaseModel):
     """Base class for all domain events."""

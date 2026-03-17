@@ -5,7 +5,6 @@ from uuid import UUID
 from typing import Dict, Any
 
 from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.models import ChannelConnectionModel
 from src.modules.connections.domain.enums import ChannelType
 from src.core.config import settings
 

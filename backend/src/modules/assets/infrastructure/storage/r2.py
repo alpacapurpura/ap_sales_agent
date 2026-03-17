@@ -1,6 +1,5 @@
 import os
 import uuid
-from io import BytesIO
 from typing import BinaryIO, Tuple
 
 import boto3

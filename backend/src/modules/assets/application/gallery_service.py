@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import UploadFile, BackgroundTasks
+from fastapi import BackgroundTasks
 from uuid import UUID
 import os
 import shutil

@@ -16,7 +16,6 @@ from src.modules.crm.infrastructure.repositories.lead_metrics_repository import 
 from src.modules.crm.application.services.identity_service import IdentityService
 from src.modules.crm.domain.enums import IdentityType, LifecycleStage
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
 from src.core.context import set_tenant_id
 # Import all related models so SQLAlchemy can resolve relationships

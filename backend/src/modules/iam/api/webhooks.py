@@ -6,7 +6,6 @@ from src.modules.iam.infrastructure.user import UserRepository
 from src.modules.iam.domain.user import User
 import structlog
 import uuid
-from typing import Optional
 
 router = APIRouter()
 logger = structlog.get_logger()

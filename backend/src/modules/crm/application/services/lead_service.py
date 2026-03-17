@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
 from src.modules.crm.infrastructure.repositories.lead_repository import LeadRepository

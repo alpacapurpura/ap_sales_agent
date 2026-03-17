@@ -1,5 +1,5 @@
 from typing import List, Any
-from src.shared.domain.messages import IncomingMessage, OutgoingMessage
+from src.shared.domain.messages import OutgoingMessage
 import structlog
 
 logger = structlog.get_logger()

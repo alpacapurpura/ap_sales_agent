@@ -4,9 +4,8 @@ CRM-specific domain events.
 Typed event classes for cross-module communication via the shared EventBus.
 Each event has a factory classmethod that sets event_name automatically.
 """
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from dataclasses import dataclass
+from typing import Optional
 from uuid import UUID
 
 from src.shared.domain.events import DomainEvent

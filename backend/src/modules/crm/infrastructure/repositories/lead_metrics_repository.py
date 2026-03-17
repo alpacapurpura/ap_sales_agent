@@ -14,7 +14,7 @@ class LeadRepository(BaseRepository):
         """
         return self.db.query(func.count(LeadModel.id)).filter(
             LeadModel.tenant_id == tenant_id,
-            LeadModel.is_blacklisted == False
+            LeadModel.is_blacklisted.is_(False)
         ).scalar() or 0
 
     def count_qualified(self, tenant_id: uuid.UUID) -> int:
@@ -23,7 +23,7 @@ class LeadRepository(BaseRepository):
         """
         return self.db.query(func.count(LeadModel.id)).filter(
             LeadModel.tenant_id == tenant_id,
-            LeadModel.is_blacklisted == False,
+            LeadModel.is_blacklisted.is_(False),
             (LeadModel.fit_score >= 50) | (LeadModel.temperature != 'COLD')
         ).scalar() or 0
 
@@ -75,7 +75,7 @@ class LeadRepository(BaseRepository):
         """
         query = self.db.query(LeadModel).filter(
             LeadModel.customer_id == customer_id,
-            LeadModel.is_blacklisted == False
+            LeadModel.is_blacklisted.is_(False)
         ).order_by(desc(LeadModel.created_at))
         
         # Aplicar filtro de tenant
