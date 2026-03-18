@@ -5,7 +5,7 @@ milestone_name: milestone
 status: executing
 stopped_at: Completed quick task 260317-tng (fix Meta asset sync bug and auto-sync)
 last_updated: "2026-03-18T02:27:19.110Z"
-last_activity: "2026-03-18 - Completed quick task 260317-tng: Revisar bug Meta Business Suite (asset sync + auto-sync)"
+last_activity: "2026-03-18 - Completed quick task 260317-ucp: Rebuild api_dev container for langgraph 1.1.2"
 progress:
   total_phases: 11
   completed_phases: 11
@@ -208,7 +208,8 @@ None yet.
 | 260317-q0z | Fix production backend not starting (numpy CPU + missing worker/scheduler services) | 2026-03-17 | cb19788, 9b20f24 | | [260317-q0z-diagnose-and-fix-production-backend-not-](./quick/260317-q0z-diagnose-and-fix-production-backend-not-/) |
 | 260317-rwl | Fix Streamlit admin LeadModel relationship resolution error (bootstrap CRM model imports) | 2026-03-18 | 2dca522 | | [260317-rwl-fix-streamlit-admin-leadmodel-relationsh](./quick/260317-rwl-fix-streamlit-admin-leadmodel-relationsh/) |
 | 260317-tng | Revisar bug en Configuración - conexión Meta Business Suite no sincroniza automáticamente activos | 2026-03-18 | cdce0bd, f4285dd, 3deb3af | Verified | [260317-tng-revisar-bug-en-configuraci-n-conexi-n-me](./quick/260317-tng-revisar-bug-en-configuraci-n-conexi-n-me/) |
-| 260317-tng | Fix Meta asset sync: multi-asset storage bug + auto-sync after OAuth | 2026-03-18 | cdce0bd, f4285dd | [260317-tng-revisar-bug-en-configuraci-n-conexi-n-me](./quick/260317-tng-revisar-bug-en-configuraci-n-conexi-n-me/) |
+| 260317-tng | Fix Meta asset sync: multi-asset storage bug + auto-sync after OAuth | 2026-03-18 | cdce0bd, f4285dd | | [260317-tng-revisar-bug-en-configuraci-n-conexi-n-me](./quick/260317-tng-revisar-bug-en-configuraci-n-conexi-n-me/) |
+| 260317-ucp | Fix backend api_dev container crash (rebuild for langgraph 1.1.2) | 2026-03-18 | n/a (container rebuild) | | [260317-ucp-fix-backend-api-dev-container-errors-fro](./quick/260317-ucp-fix-backend-api-dev-container-errors-fro/) |
 
 ## Session Continuity
 
