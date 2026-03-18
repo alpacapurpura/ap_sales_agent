@@ -56,6 +56,30 @@ services:
       - "traefik.http.routers.client.tls.certresolver=letsencrypt"
       - "traefik.http.services.client.loadbalancer.server.port=3000"
 
+  # --- Admin Interface (Streamlit - On-demand via SSH Tunnel) ---
+  admin:
+    image: ghcr.io/alpacapurpura/visionarias-backend:latest
+    container_name: visionarias_admin
+    restart: "no"
+    command: streamlit run src/admin/app.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false --server.enableCORS false --server.enableXsrfProtection false --server.maxUploadSize 500
+    env_file:
+      - .env.prod
+    environment:
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+      - postgres
+    networks:
+      - internal_net
+    ports:
+      - "127.0.0.1:8501:8501"
+    profiles:
+      - admin
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
   # --- ETL Worker ---
   worker:
     image: ghcr.io/alpacapurpura/visionarias-backend:latest

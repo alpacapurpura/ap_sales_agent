@@ -7,10 +7,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 # --- BOOTSTRAP MODELS (CRITICAL) ---
 # Import all models to ensure SQLAlchemy Registry is fully populated before any query.
-# TenantModel.leads -> LeadModel -> CustomerProfileModel (+ Identity, JourneyEvent in same file)
+# TenantModel.leads -> LeadModel -> CustomerProfileModel, MessageModel, AppointmentModel
 # Without these, SQLAlchemy cannot resolve string-based relationship() references.
 from src.modules.crm.infrastructure.models.lead_model import LeadModel  # noqa: F401
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel  # noqa: F401
+from src.modules.sales_agent.infrastructure.models.message_model import MessageModel  # noqa: F401
+from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel  # noqa: F401
 
 from src.admin.modules.tenants import render_tenants_view
 from src.admin.modules.users import render_users_view
