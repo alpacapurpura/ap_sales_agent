@@ -30,6 +30,107 @@ logger = structlog.get_logger()
 orchestrator = ChatOrchestrator()
 
 
+_ASSET_CHANNEL_TYPES = [
+    ChannelType.FACEBOOK_PAGE,
+    ChannelType.INSTAGRAM_ACCOUNT,
+    ChannelType.META_ADS_ACCOUNT,
+]
+
+
+async def _sync_assets_for_tenant(
+    adapter: MetaAdapter,
+    repo: ChannelConnectionRepository,
+    tenant_id,
+    master: ChannelConnectionModel,
+) -> dict:
+    """Fetch business assets from Meta API and store them.
+
+    Returns the raw asset dict from the adapter.
+    Uses create_asset for NEW rows (not upsert) to correctly handle
+    multiple assets of the same channel type per tenant.
+    """
+    raw = await adapter.get_business_assets()
+
+    # Pages
+    for page in raw.get("pages", []):
+        page_id = page["page_id"]
+        page_token = page.pop("page_access_token", None)
+        config = {
+            "asset_id": page_id,
+            "page_name": page["page_name"],
+            "category": page.get("category"),
+            "picture_url": page.get("picture_url"),
+            "fan_count": page.get("fan_count"),
+            "instagram_account_id": page.get("instagram_account_id"),
+            "instagram_username": page.get("instagram_username"),
+            "parent_connection_id": str(master.id),
+        }
+        credentials = {"access_token": page_token} if page_token else master.credentials
+        conn = repo.get_by_asset_id(tenant_id, ChannelType.FACEBOOK_PAGE, page_id)
+        if conn:
+            conn.credentials = credentials
+            conn.config = config
+            repo.db.commit()
+        else:
+            repo.create_asset(
+                tenant_id=tenant_id,
+                channel_type=ChannelType.FACEBOOK_PAGE,
+                credentials=credentials,
+                config=config,
+            )
+
+    # Instagram accounts
+    for ig in raw.get("instagram_accounts", []):
+        ig_id = ig["ig_account_id"]
+        page_token = ig.pop("page_access_token", None)
+        config = {
+            "asset_id": ig_id,
+            "ig_username": ig["ig_username"],
+            "profile_picture_url": ig.get("profile_picture_url"),
+            "follower_count": ig.get("follower_count"),
+            "linked_page_id": ig.get("linked_page_id"),
+            "linked_page_name": ig.get("linked_page_name"),
+            "parent_connection_id": str(master.id),
+        }
+        credentials = {"access_token": page_token} if page_token else master.credentials
+        conn = repo.get_by_asset_id(tenant_id, ChannelType.INSTAGRAM_ACCOUNT, ig_id)
+        if conn:
+            conn.credentials = credentials
+            conn.config = config
+            repo.db.commit()
+        else:
+            repo.create_asset(
+                tenant_id=tenant_id,
+                channel_type=ChannelType.INSTAGRAM_ACCOUNT,
+                credentials=credentials,
+                config=config,
+            )
+
+    # Ad accounts
+    for ad in raw.get("ads_accounts", []):
+        ad_id = ad["ad_account_id"]
+        config = {
+            "asset_id": ad_id,
+            "ad_account_name": ad["ad_account_name"],
+            "currency": ad.get("currency"),
+            "account_status": ad.get("account_status"),
+            "parent_connection_id": str(master.id),
+        }
+        conn = repo.get_by_asset_id(tenant_id, ChannelType.META_ADS_ACCOUNT, ad_id)
+        if conn:
+            conn.config = config
+            repo.db.commit()
+        else:
+            repo.create_asset(
+                tenant_id=tenant_id,
+                channel_type=ChannelType.META_ADS_ACCOUNT,
+                credentials={},
+                config=config,
+            )
+
+    return raw
+
+
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
     return ChannelConnectionRepository(db)
 
@@ -184,14 +285,29 @@ async def oauth_callback(
         logger.error("failed_to_get_meta_profile", error=str(e))
         raise HTTPException(status_code=400, detail="No se pudo obtener el perfil de Meta.")
 
-    repo.upsert(
+    master = repo.upsert(
         tenant_id=user.tenant_id,
         channel_type=ChannelType.META,
         credentials=creds_data,
         config={"user_id": user_id, "name": name},
     )
 
-    return {"status": "connected", "profile": profile}
+    # Auto-sync business assets after successful OAuth
+    assets_synced = False
+    try:
+        raw = await _sync_assets_for_tenant(adapter_with_token, repo, user.tenant_id, master)
+        assets_synced = True
+        logger.info(
+            "meta_oauth_auto_sync_ok",
+            tenant_id=str(user.tenant_id),
+            pages=len(raw.get("pages", [])),
+            instagram=len(raw.get("instagram_accounts", [])),
+            ads=len(raw.get("ads_accounts", [])),
+        )
+    except Exception as e:
+        logger.warning("meta_oauth_auto_sync_failed", error=str(e), tenant_id=str(user.tenant_id))
+
+    return {"status": "connected", "profile": profile, "assets_synced": assets_synced}
 
 
 # ---------------------------------------------------------------------------
@@ -258,13 +374,6 @@ async def test_connection(
 # ---------------------------------------------------------------------------
 # Business Assets
 # ---------------------------------------------------------------------------
-
-_ASSET_CHANNEL_TYPES = [
-    ChannelType.FACEBOOK_PAGE,
-    ChannelType.INSTAGRAM_ACCOUNT,
-    ChannelType.META_ADS_ACCOUNT,
-]
-
 
 @router.get("/assets", response_model=MetaAssetsResponse)
 async def get_assets(
@@ -345,96 +454,10 @@ async def sync_assets(
 
     adapter = MetaAdapter(access_token=access_token)
     try:
-        raw = await adapter.get_business_assets()
+        await _sync_assets_for_tenant(adapter, repo, user.tenant_id, master)
     except Exception as e:
         logger.error("meta_sync_assets_failed", error=str(e))
         raise HTTPException(status_code=502, detail=f"Error consultando activos de Meta: {e}")
-
-    # Load existing to preserve is_active
-    existing = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
-    _active_map: dict[str, bool] = {
-        conn.config.get("asset_id", ""): conn.is_active
-        for conn in existing
-        if conn.config
-    }
-
-    # Upsert pages
-    for page in raw["pages"]:
-        page_id = page["page_id"]
-        page_token = page.pop("page_access_token", None)
-        config = {
-            "asset_id": page_id,
-            "page_name": page["page_name"],
-            "category": page.get("category"),
-            "picture_url": page.get("picture_url"),
-            "fan_count": page.get("fan_count"),
-            "instagram_account_id": page.get("instagram_account_id"),
-            "instagram_username": page.get("instagram_username"),
-            "parent_connection_id": str(master.id),
-        }
-        credentials = {"access_token": page_token} if page_token else master.credentials
-        conn = repo.get_by_asset_id(user.tenant_id, ChannelType.FACEBOOK_PAGE, page_id)
-        if conn:
-            conn.credentials = credentials
-            conn.config = config
-            # Don't flip is_active for existing — preserve user choice
-            repo.db.commit()
-        else:
-            repo.upsert(
-                tenant_id=user.tenant_id,
-                channel_type=ChannelType.FACEBOOK_PAGE,
-                credentials=credentials,
-                config=config,
-            )
-
-    # Upsert Instagram accounts
-    for ig in raw["instagram_accounts"]:
-        ig_id = ig["ig_account_id"]
-        page_token = ig.pop("page_access_token", None)
-        config = {
-            "asset_id": ig_id,
-            "ig_username": ig["ig_username"],
-            "profile_picture_url": ig.get("profile_picture_url"),
-            "follower_count": ig.get("follower_count"),
-            "linked_page_id": ig.get("linked_page_id"),
-            "linked_page_name": ig.get("linked_page_name"),
-            "parent_connection_id": str(master.id),
-        }
-        credentials = {"access_token": page_token} if page_token else master.credentials
-        conn = repo.get_by_asset_id(user.tenant_id, ChannelType.INSTAGRAM_ACCOUNT, ig_id)
-        if conn:
-            conn.credentials = credentials
-            conn.config = config
-            repo.db.commit()
-        else:
-            repo.upsert(
-                tenant_id=user.tenant_id,
-                channel_type=ChannelType.INSTAGRAM_ACCOUNT,
-                credentials=credentials,
-                config=config,
-            )
-
-    # Upsert Ad Accounts (no sensitive credentials — uses master token at query time)
-    for ad in raw["ads_accounts"]:
-        ad_id = ad["ad_account_id"]
-        config = {
-            "asset_id": ad_id,
-            "ad_account_name": ad["ad_account_name"],
-            "currency": ad.get("currency"),
-            "account_status": ad.get("account_status"),
-            "parent_connection_id": str(master.id),
-        }
-        conn = repo.get_by_asset_id(user.tenant_id, ChannelType.META_ADS_ACCOUNT, ad_id)
-        if conn:
-            conn.config = config
-            repo.db.commit()
-        else:
-            repo.upsert(
-                tenant_id=user.tenant_id,
-                channel_type=ChannelType.META_ADS_ACCOUNT,
-                credentials={},
-                config=config,
-            )
 
     # Return the refreshed asset list
     return await get_assets(user=user, repo=repo)

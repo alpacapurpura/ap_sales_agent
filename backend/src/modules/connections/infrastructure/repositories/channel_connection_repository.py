@@ -139,6 +139,30 @@ class ChannelConnectionRepository:
 
     # --- Mutations ---
 
+    def create_asset(
+        self,
+        tenant_id: UUID,
+        channel_type: ChannelType,
+        credentials: dict,
+        config: dict,
+    ) -> ChannelConnectionModel:
+        """Create a new asset connection row. Unlike upsert(), this always inserts.
+
+        Use for asset channel types (FACEBOOK_PAGE, INSTAGRAM_ACCOUNT, META_ADS_ACCOUNT)
+        where multiple rows per tenant per type are expected.
+        """
+        connection = ChannelConnectionModel(
+            tenant_id=tenant_id,
+            channel_type=channel_type.value,
+            credentials=credentials,
+            config=config,
+            is_active=True,
+        )
+        self.db.add(connection)
+        self.db.commit()
+        self.db.refresh(connection)
+        return connection
+
     def upsert(
         self,
         tenant_id: UUID,
