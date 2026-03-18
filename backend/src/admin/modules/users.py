@@ -1,11 +1,37 @@
 import streamlit as st
 import pandas as pd
 import time
+import structlog
 from src.core.database import SessionLocal
 from src.modules.iam.infrastructure.models.user_model import UserModel as User
 from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel as UserTenant
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel as Tenant
 from src.shared.infrastructure.external.clerk import ClerkService
+
+logger = structlog.get_logger()
+
+
+def ensure_tenant_clerk_org(db, tenant: Tenant, clerk: ClerkService) -> str | None:
+    """Ensure a tenant has a Clerk Organization. Creates one if missing. Returns clerk_org_id."""
+    if tenant.clerk_org_id:
+        return tenant.clerk_org_id
+
+    try:
+        org = clerk.create_organization(name=tenant.name, slug=tenant.slug)
+        if org and org.get("id"):
+            tenant.clerk_org_id = org["id"]
+            db.commit()
+            logger.info("clerk_org_created_for_tenant", tenant_id=str(tenant.id), org_id=org["id"])
+            return org["id"]
+    except Exception as e:
+        logger.error("ensure_tenant_clerk_org_failed", tenant_id=str(tenant.id), error=str(e))
+    return None
+
+
+def add_user_to_clerk_org(clerk: ClerkService, clerk_org_id: str, clerk_user_id: str, role: str = "member"):
+    """Add a user to the tenant's Clerk Organization."""
+    clerk_role = "org:admin" if role == "admin" else "org:member"
+    return clerk.add_member_to_organization(clerk_org_id, clerk_user_id, clerk_role)
 
 def get_tenants():
     """Fetch all active tenants for the dropdown."""
@@ -231,19 +257,27 @@ def render_users_view():
                                     )
                                     db.add(new_link)
                                     db.commit()
-                                    st.success(f"✅ Usuario existente asignado correctamente a {selected_tenant_name}!")
-                                    
-                                    # Update Metadata in Clerk (Add tenant_id to list? Clerk metadata is simple JSON)
-                                    # For M:N, keeping 'tenant_id' in metadata is ambiguous. 
-                                    # We might want to store 'active_tenant' or list.
-                                    # For now, we leave Clerk metadata as is or update 'tenant_id' to the LAST one (Legacy support).
-                                    # Let's update it to current to ensure login defaults here.
+
+                                    # Update Clerk metadata
                                     if existing_user.clerk_id:
                                         clerk.update_user_metadata(existing_user.clerk_id, {
-                                            "tenant_id": str(selected_tenant_id), # Set as active/default
+                                            "tenant_id": str(selected_tenant_id),
                                             "role": new_role
                                         })
-                                    
+
+                                    # Add to Clerk Organization
+                                    tenant_model = db.query(Tenant).filter(Tenant.id == selected_tenant_id).first()
+                                    if tenant_model and existing_user.clerk_id:
+                                        clerk_org_id = ensure_tenant_clerk_org(db, tenant_model, clerk)
+                                        if clerk_org_id:
+                                            add_user_to_clerk_org(clerk, clerk_org_id, existing_user.clerk_id, new_role)
+                                            st.success(f"✅ Usuario asignado a {selected_tenant_name} y agregado a Clerk Org!")
+                                        else:
+                                            st.success(f"✅ Usuario asignado a {selected_tenant_name}.")
+                                            st.warning("⚠️ No se pudo crear/encontrar Clerk Organization.")
+                                    else:
+                                        st.success(f"✅ Usuario existente asignado correctamente a {selected_tenant_name}!")
+
                                     time.sleep(1.5)
                                     st.rerun()
                                 except Exception as e_link:
@@ -284,12 +318,12 @@ def render_users_view():
                                             full_name=new_name,
                                             email=new_email,
                                             clerk_id=created_clerk_id,
-                                            role=new_role, # Default global role
+                                            role=new_role,
                                             is_active=True
                                         )
                                         db.add(new_db_user)
-                                        db.flush() # Generate ID
-                                        
+                                        db.flush()
+
                                         # Link to Tenant
                                         new_link = UserTenant(
                                             user_id=new_db_user.id,
@@ -297,16 +331,26 @@ def render_users_view():
                                             role=new_role
                                         )
                                         db.add(new_link)
-                                        
                                         db.commit()
-                                        st.success(f"✅ Usuario {new_name} creado y asignado exitosamente!")
+
+                                        # 4. Add to Clerk Organization
+                                        tenant_model = db.query(Tenant).filter(Tenant.id == selected_tenant_id).first()
+                                        if tenant_model:
+                                            clerk_org_id = ensure_tenant_clerk_org(db, tenant_model, clerk)
+                                            if clerk_org_id:
+                                                add_user_to_clerk_org(clerk, clerk_org_id, created_clerk_id, new_role)
+                                                st.success(f"✅ Usuario {new_name} creado, asignado y agregado a Clerk Org!")
+                                            else:
+                                                st.success(f"✅ Usuario {new_name} creado y asignado.")
+                                                st.warning("⚠️ No se pudo crear Clerk Organization para el tenant.")
+                                        else:
+                                            st.success(f"✅ Usuario {new_name} creado y asignado exitosamente!")
+
                                         time.sleep(1.5)
                                         st.rerun()
                                     except Exception as db_e:
                                         db.rollback()
                                         st.error(f"❌ Error al guardar en DB Local: {db_e}")
-                                        # Rollback Clerk logic omitted for brevity in "Assign" flow but valid here
-                                        # If needed, add delete_user logic back
                                 else:
                                     st.error("❌ No se pudo obtener ID de Clerk.")
                                 

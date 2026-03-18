@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from src.core.database import SessionLocal
 from src.modules.iam.application.services.tenant_service import TenantService
+from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
+from src.modules.iam.infrastructure.models.user_model import UserModel
+from src.shared.infrastructure.external.clerk import ClerkService
 
 def get_tenants():
     db = SessionLocal()
@@ -13,9 +17,21 @@ def get_tenants():
 
 def create_tenant(name, slug, can_use_keys, company_name, agent_persona):
     db = SessionLocal()
+    clerk = ClerkService()
     try:
+        # 1. Create Clerk Organization first
+        clerk_org_id = None
+        try:
+            org = clerk.create_organization(name=name, slug=slug)
+            if org:
+                clerk_org_id = org.get("id")
+        except Exception as e:
+            return None, f"Error creando Org en Clerk: {e}"
+
+        # 2. Create tenant in DB with clerk_org_id
         service = TenantService(db)
-        return service.create_tenant(name, slug, can_use_keys, company_name, agent_persona)
+        tenant, error = service.create_tenant(name, slug, can_use_keys, company_name, agent_persona, clerk_org_id=clerk_org_id)
+        return tenant, error
     finally:
         db.close()
 
@@ -34,7 +50,7 @@ def render_tenants_view():
     tenants = get_tenants()
 
     # Tabs para organizar
-    tab_list, tab_create, tab_edit = st.tabs(["📋 Listado", "➕ Crear Nuevo", "✏️ Editar"])
+    tab_list, tab_create, tab_edit, tab_sync = st.tabs(["📋 Listado", "➕ Crear Nuevo", "✏️ Editar", "🔄 Sync Clerk Orgs"])
 
     # --- TAB 1: LISTADO ---
     with tab_list:
@@ -50,6 +66,7 @@ def render_tenants_view():
                     "ID": str(t.id),
                     "Nombre": t.name,
                     "Slug": t.slug,
+                    "Clerk Org ID": t.clerk_org_id or "⚠️ Sin Org",
                     "Activo": t.is_active,
                     "Usa Keys Plataforma": t.can_use_platform_keys,
                     "Creado": t.created_at
@@ -150,3 +167,83 @@ def render_tenants_view():
                             st.rerun()
                         else:
                             st.error(f"Error al actualizar: {error}")
+
+    # --- TAB 4: SYNC CLERK ORGS ---
+    with tab_sync:
+        st.header("Sincronizar Clerk Organizations")
+        st.info(
+            "Este proceso crea Clerk Organizations para tenants que no tienen una, "
+            "y agrega a los usuarios a su Clerk Organization correspondiente."
+        )
+
+        # Show current state
+        tenants_without_org = [t for t in tenants if not t.clerk_org_id]
+        if tenants_without_org:
+            st.warning(f"⚠️ {len(tenants_without_org)} tenant(s) sin Clerk Organization:")
+            for t in tenants_without_org:
+                st.write(f"  - **{t.name}** ({t.slug})")
+        else:
+            st.success("✅ Todos los tenants tienen Clerk Organization asignada.")
+
+        if st.button("🔄 Ejecutar Sincronización Completa", type="primary"):
+            db = SessionLocal()
+            clerk = ClerkService()
+            try:
+                results = {"orgs_created": 0, "members_added": 0, "errors": []}
+
+                # Step 1: Create Clerk Orgs for tenants without one
+                all_tenant_models = db.query(TenantModel).filter(TenantModel.is_active.is_(True)).all()
+
+                for tenant_model in all_tenant_models:
+                    if not tenant_model.clerk_org_id:
+                        try:
+                            org = clerk.create_organization(name=tenant_model.name, slug=tenant_model.slug)
+                            if org and org.get("id"):
+                                tenant_model.clerk_org_id = org["id"]
+                                db.commit()
+                                results["orgs_created"] += 1
+                                st.write(f"  ✅ Org creada para **{tenant_model.name}**: `{org['id']}`")
+                            else:
+                                results["errors"].append(f"No se pudo crear org para {tenant_model.name}")
+                        except Exception as e:
+                            results["errors"].append(f"Error org {tenant_model.name}: {e}")
+                            st.write(f"  ❌ Error para **{tenant_model.name}**: {e}")
+
+                # Step 2: Add users to their tenant's Clerk Org
+                st.write("---")
+                st.write("**Sincronizando membresías de usuarios...**")
+
+                user_tenant_links = db.query(UserTenantModel, UserModel, TenantModel)\
+                    .join(UserModel, UserTenantModel.user_id == UserModel.id)\
+                    .join(TenantModel, UserTenantModel.tenant_id == TenantModel.id)\
+                    .filter(TenantModel.clerk_org_id.isnot(None))\
+                    .filter(UserModel.clerk_id.isnot(None))\
+                    .all()
+
+                for link, user, tenant in user_tenant_links:
+                    role = "org:admin" if link.role == "admin" else "org:member"
+                    success = clerk.add_member_to_organization(
+                        org_id=tenant.clerk_org_id,
+                        user_id=user.clerk_id,
+                        role=role
+                    )
+                    if success:
+                        results["members_added"] += 1
+                        st.write(f"  ✅ **{user.full_name or user.email}** → {tenant.name} ({role})")
+                    else:
+                        results["errors"].append(f"No se pudo agregar {user.email} a {tenant.name}")
+                        st.write(f"  ❌ Error: **{user.email}** → {tenant.name}")
+
+                # Summary
+                st.write("---")
+                st.success(
+                    f"**Sincronización completa:** {results['orgs_created']} org(s) creadas, "
+                    f"{results['members_added']} membresía(s) agregadas."
+                )
+                if results["errors"]:
+                    st.warning(f"Errores ({len(results['errors'])}): " + "; ".join(results["errors"]))
+
+            except Exception as e:
+                st.error(f"Error en sincronización: {e}")
+            finally:
+                db.close()

@@ -16,12 +16,13 @@ class TenantService:
 
 
     def create_tenant(
-        self, 
-        name: str, 
-        slug: str, 
-        can_use_keys: bool, 
-        company_name: str, 
-        agent_persona: str
+        self,
+        name: str,
+        slug: str,
+        can_use_keys: bool,
+        company_name: str,
+        agent_persona: str,
+        clerk_org_id: Optional[str] = None
     ) -> Tuple[Optional[Tenant], Optional[str]]:
         """
         Crea un nuevo tenant.
@@ -37,6 +38,7 @@ class TenantService:
                 id=uuid.uuid4(),
                 name=name,
                 slug=slug,
+                clerk_org_id=clerk_org_id,
                 can_use_platform_keys=can_use_keys,
                 config_json=config,
                 is_active=True

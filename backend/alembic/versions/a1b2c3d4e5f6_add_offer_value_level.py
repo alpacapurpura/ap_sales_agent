@@ -17,11 +17,8 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add the new column offer_value_level
-    op.add_column('products', sa.Column('offer_value_level', sa.String(), nullable=True))
-    
-    # Note: JSONB fields (pricing, specific_details, prerequisites) are already there 
-    # and schema-less, so no migration needed for them unless we want to migrate data inside them.
+    # Idempotent: raw SQL with IF NOT EXISTS (per project convention)
+    op.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS offer_value_level VARCHAR;")
 
 
 def downgrade() -> None:
