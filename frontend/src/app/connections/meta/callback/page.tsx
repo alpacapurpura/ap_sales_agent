@@ -48,7 +48,20 @@ function CallbackContent() {
           throw new Error(errorData.detail || "Error al procesar la conexión con Meta");
         }
 
-        toast.success("Meta conectado exitosamente");
+        // Auto-sync assets after successful OAuth
+        try {
+          await fetchClient(`${config.api.baseUrl}/api/v1/connections/meta/assets/sync`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        } catch {
+          // Non-blocking — backend oauth_callback may have already synced
+        }
+
+        toast.success("Meta conectado - activos sincronizados");
         const tenantId = sessionStorage.getItem("meta_oauth_tenant_id");
         sessionStorage.removeItem("meta_oauth_tenant_id");
         router.push(tenantId ? `/${tenantId}/settings?tab=meta` : "/");
