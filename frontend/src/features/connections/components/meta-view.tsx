@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { connectionsApi } from "@/lib/api/connections";
 import type { MetaStatusResponse } from "@/lib/api/connections";
 import {
@@ -219,7 +219,9 @@ function NotConnectedScreen({
 export function MetaView() {
   const { getToken } = useAuth();
   const params = useParams();
+  const searchParams = useSearchParams();
   const tenantId = params?.tenantId as string | undefined;
+  const tabParam = searchParams?.get("tab");
 
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<MetaStatusResponse | null>(null);
@@ -269,7 +271,7 @@ export function MetaView() {
 
   useEffect(() => {
     loadAll();
-  }, [loadAll]);
+  }, [loadAll, tabParam]);
 
   // ── Connect ──
   const handleConnect = async () => {
@@ -372,7 +374,7 @@ export function MetaView() {
       if (!token) return;
       await connectionsApi.disconnectMeta(token);
       toast.success("Meta desconectado");
-      setStatus({ is_connected: false });
+      setStatus((prev) => ({ is_connected: false, is_configured: prev?.is_configured }));
       setAssets(null);
     } catch (e: any) {
       toast.error(e.message || "Error al desconectar");
