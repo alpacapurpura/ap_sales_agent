@@ -16,6 +16,7 @@ import { EvangelizationDetail } from './detail-panels/EvangelizationDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 import MetricSidebar from './MetricSidebar';
 import { SidebarContent } from './sidebar/SidebarContent';
+import { ChannelConnectionModal } from './channel-widgets/ChannelConnectionModal';
 
 // Parallel per-stage hooks — all called unconditionally on mount (React Query deduplicates)
 import { useAttractionDetail } from '../../hooks/useAttractionDetail';
@@ -167,6 +168,9 @@ export function MetricsDashboard() {
   const [sidebarMetric, setSidebarMetric] = useState<MetricClickData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Channel connection modal state
+  const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
+
   // All 8 stage hooks called in parallel — React Query handles deduplication
   const { data: attractionData, isLoading: attractionLoading, error: attractionError } = useAttractionDetail();
   const { data: captureData, isLoading: captureLoading, error: captureError } = useCaptureDetail();
@@ -238,6 +242,10 @@ export function MetricsDashboard() {
     setSidebarMetric(null);
   };
 
+  const handleConfigure = (slug: string, name: string) => {
+    setConfigureChannel({ slug, name });
+  };
+
   const activeStageData = activeStage
     ? enrichedSummaries.find((s) => s.id === activeStage)
     : null;
@@ -256,7 +264,7 @@ export function MetricsDashboard() {
 
         {activeStageData && (
           activeStage === 'ATRACCION' ? (
-            <AttractionDetail onMetricClick={handleMetricClick} />
+            <AttractionDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
           ) : (
             <Card>
               <CardHeader className="pb-3">
@@ -266,11 +274,11 @@ export function MetricsDashboard() {
               </CardHeader>
               <CardContent>
                 {activeStage === 'CAPTURA' ? (
-                  <CaptureDetail onMetricClick={handleMetricClick} />
+                  <CaptureDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
                 ) : activeStage === 'NUTRICION' ? (
-                  <NurtureDetail onMetricClick={handleMetricClick} />
+                  <NurtureDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
                 ) : activeStage === 'OPORTUNIDAD' ? (
-                  <OpportunityDetail onMetricClick={handleMetricClick} />
+                  <OpportunityDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
                 ) : activeStage === 'VENTAS' ? (
                   <SalesDetail onMetricClick={handleMetricClick} />
                 ) : activeStage === 'ADOPCION' ? (
@@ -296,6 +304,12 @@ export function MetricsDashboard() {
       >
         <SidebarContent metric={sidebarMetric} stageId={activeStage} />
       </MetricSidebar>
+
+      <ChannelConnectionModal
+        channelSlug={configureChannel?.slug ?? null}
+        channelName={configureChannel?.name ?? ''}
+        onClose={() => setConfigureChannel(null)}
+      />
     </>
   );
 }

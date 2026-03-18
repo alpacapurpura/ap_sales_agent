@@ -37,9 +37,11 @@ function formatLastUpdated(isoDate: string): string {
 interface AttractionDetailProps {
   /** Callback when user clicks a metric value to open the action sidebar */
   onMetricClick?: (metric: MetricClickData) => void;
+  /** Callback when user clicks "Configurar" on an unconnected channel */
+  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function AttractionDetail({ onMetricClick }: AttractionDetailProps) {
+export function AttractionDetail({ onMetricClick, onConfigure }: AttractionDetailProps) {
   const { data, isLoading, error, refetch } = useAttractionDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
@@ -163,6 +165,7 @@ export function AttractionDetail({ onMetricClick }: AttractionDetailProps) {
                 groupType="available"
                 stageId="ATRACCION"
                 onMetricClick={onMetricClick}
+                onConfigure={onConfigure}
               />
             )}
           </div>

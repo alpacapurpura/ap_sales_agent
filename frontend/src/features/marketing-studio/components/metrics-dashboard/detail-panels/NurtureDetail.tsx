@@ -26,9 +26,10 @@ function formatLastUpdated(isoDate: string): string {
 
 interface NurtureDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
+  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function NurtureDetail({ onMetricClick }: NurtureDetailProps) {
+export function NurtureDetail({ onMetricClick, onConfigure }: NurtureDetailProps) {
   const { data, isLoading, error, refetch } = useNurtureDetail();
 
   if (isLoading) {
@@ -117,6 +118,7 @@ export function NurtureDetail({ onMetricClick }: NurtureDetailProps) {
           defaultOpen={false}
           stageId="NUTRICION"
           onMetricClick={onMetricClick}
+          onConfigure={onConfigure}
         />
       )}
     </div>

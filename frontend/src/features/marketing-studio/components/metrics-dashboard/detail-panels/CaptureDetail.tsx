@@ -26,9 +26,10 @@ function formatLastUpdated(isoDate: string): string {
 
 interface CaptureDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
+  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function CaptureDetail({ onMetricClick }: CaptureDetailProps) {
+export function CaptureDetail({ onMetricClick, onConfigure }: CaptureDetailProps) {
   const { data, isLoading, error, refetch } = useCaptureDetail();
 
   if (isLoading) {
@@ -117,6 +118,7 @@ export function CaptureDetail({ onMetricClick }: CaptureDetailProps) {
           defaultOpen={false}
           stageId="CAPTURA"
           onMetricClick={onMetricClick}
+          onConfigure={onConfigure}
         />
       )}
     </div>

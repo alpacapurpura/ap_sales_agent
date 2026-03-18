@@ -9,6 +9,7 @@ import { ConnectionBadge } from './ConnectionBadge';
 import { CostLink } from './CostLink';
 import { CampaignDrillDown } from './CampaignDrillDown';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
+import { getConnectionView } from '../../../lib/channelViewMap';
 
 /** Metric name -> Spanish label mapping. */
 const METRIC_LABELS: Record<string, string> = {
@@ -125,9 +126,11 @@ interface ChannelRowProps {
   stageId?: StageId;
   /** Callback when user clicks a metric value to open drill-down sidebar */
   onMetricClick?: (metric: MetricClickData) => void;
+  /** Callback when user clicks "Configurar" on an unconnected channel */
+  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function ChannelRow({ channel, stageId, onMetricClick }: ChannelRowProps) {
+export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: ChannelRowProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [cooldown, setCooldown] = useState(false);
 
@@ -154,13 +157,18 @@ export function ChannelRow({ channel, stageId, onMetricClick }: ChannelRowProps)
 
   // Available (unconnected) channels: only show name + Configurar badge
   if (!channel.connected) {
+    const hasView = getConnectionView(channel.slug) !== null;
     return (
       <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors duration-100">
         <div className="flex items-center gap-3 min-w-0">
           <Icon className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} aria-hidden="true" />
           <p className="text-sm font-medium truncate">{channel.name}</p>
         </div>
-        <ConnectionBadge connected={false} />
+        <ConnectionBadge
+          connected={false}
+          onConfigure={hasView && onConfigure ? () => onConfigure(channel.slug, channel.name) : undefined}
+          comingSoon={!hasView}
+        />
       </div>
     );
   }

@@ -27,9 +27,10 @@ function formatLastUpdated(isoDate: string): string {
 
 interface OpportunityDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
+  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function OpportunityDetail({ onMetricClick }: OpportunityDetailProps) {
+export function OpportunityDetail({ onMetricClick, onConfigure }: OpportunityDetailProps) {
   const { data, isLoading, error, refetch } = useOpportunityDetail();
 
   if (isLoading) {
@@ -140,6 +141,7 @@ export function OpportunityDetail({ onMetricClick }: OpportunityDetailProps) {
           defaultOpen={false}
           stageId="OPORTUNIDAD"
           onMetricClick={onMetricClick}
+          onConfigure={onConfigure}
         />
       )}
     </div>

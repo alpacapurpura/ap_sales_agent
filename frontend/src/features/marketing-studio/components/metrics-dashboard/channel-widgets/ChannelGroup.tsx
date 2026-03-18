@@ -19,6 +19,8 @@ interface ChannelGroupProps {
   stageId?: StageId;
   /** Callback forwarded to ChannelRow when user clicks a metric value */
   onMetricClick?: (metric: MetricClickData) => void;
+  /** Callback forwarded to ChannelRow when user clicks "Configurar" */
+  onConfigure?: (slug: string, name: string) => void;
 }
 
 function formatNumber(n: number): string {
@@ -80,7 +82,7 @@ export function buildSummary(groupType: GroupType, totals: Record<string, number
   }
 }
 
-export function ChannelGroup({ title, totals, channels, groupType, defaultOpen = true, stageId, onMetricClick }: ChannelGroupProps) {
+export function ChannelGroup({ title, totals, channels, groupType, defaultOpen = true, stageId, onMetricClick, onConfigure }: ChannelGroupProps) {
   const summary = buildSummary(groupType, totals, channels.length);
 
   return (
@@ -100,6 +102,7 @@ export function ChannelGroup({ title, totals, channels, groupType, defaultOpen =
                 channel={ch}
                 stageId={stageId}
                 onMetricClick={onMetricClick}
+                onConfigure={onConfigure}
               />
             ))}
           </div>

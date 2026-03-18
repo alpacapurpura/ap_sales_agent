@@ -14,9 +14,11 @@ interface ChannelGroupCardProps {
   stageId?: StageId;
   /** Callback forwarded to ChannelRow when user clicks a metric value */
   onMetricClick?: (metric: MetricClickData) => void;
+  /** Callback forwarded to ChannelRow when user clicks "Configurar" */
+  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function ChannelGroupCard({ title, totals, channels, groupType, stageId, onMetricClick }: ChannelGroupCardProps) {
+export function ChannelGroupCard({ title, totals, channels, groupType, stageId, onMetricClick, onConfigure }: ChannelGroupCardProps) {
   const summary = buildSummary(groupType, totals, channels.length);
 
   return (
@@ -34,6 +36,7 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
             channel={ch}
             stageId={stageId}
             onMetricClick={onMetricClick}
+            onConfigure={onConfigure}
           />
         ))}
       </CardContent>
