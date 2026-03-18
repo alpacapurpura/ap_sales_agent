@@ -213,9 +213,10 @@ None yet.
 | 260317-u42 | Design System Playground + component registry + audit (120+ components cataloged) | 2026-03-18 | a058956, 1ae3700 | | [260317-u42-atomic-design-system-playground-componen](./quick/260317-u42-atomic-design-system-playground-componen/) |
 | 260317-uy0 | Storybook 10 with 29 Shadcn stories, dark/light toggle, design tokens docs | 2026-03-18 | 0bb8206, bfea1ad | | [260317-uy0-design-system-playground-v2-dark-light-t](./quick/260317-uy0-design-system-playground-v2-dark-light-t/) |
 | 260318-e07 | Fix GitHub Actions CI checks — run all jobs locally, fix failures, push clean | 2026-03-18 | efc3fe7, 275641d | Verified | [260318-e07-fix-github-actions-ci-checks-run-all-job](./quick/260318-e07-fix-github-actions-ci-checks-run-all-job/) |
+| 260318-o1b | Fix Meta Business Suite reconnection bug (disconnect cleanup + frontend state) | 2026-03-18 | c29f579, bbe100b | | [260318-o1b-fix-meta-business-suite-reconnection-bug](./quick/260318-o1b-fix-meta-business-suite-reconnection-bug/) |
 
 ## Session Continuity
 
-Last session: 2026-03-18T04:01:29Z
-Stopped at: Completed quick task 260317-uy0 (Storybook 10 design system with 29 component stories)
+Last session: 2026-03-18T22:24:43Z
+Stopped at: Completed quick task 260318-o1b (Fix Meta Business Suite reconnection bug)
 Resume file: None
