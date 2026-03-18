@@ -37,6 +37,12 @@ import {
   RefreshCw,
   Users,
   ImageIcon,
+  Crosshair,
+  Link,
+  Info,
+  AlertTriangle,
+  MessageCircle,
+  Phone,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -78,10 +84,40 @@ interface MetaAdsAccountAsset {
   has_credentials: boolean;
 }
 
+interface MetaPixelAsset {
+  pixel_id: string;
+  pixel_name: string;
+  linked_ad_account_id?: string;
+  is_active: boolean;
+  has_credentials: boolean;
+}
+
+interface WhatsAppPhoneNumber {
+  phone_number_id: string;
+  display_phone_number?: string;
+  verified_name?: string;
+  quality_rating?: string;
+}
+
+interface WhatsAppBusinessAsset {
+  waba_id: string;
+  waba_name: string;
+  currency?: string;
+  timezone_id?: string;
+  business_id?: string;
+  business_name?: string;
+  phone_numbers: WhatsAppPhoneNumber[];
+  is_active: boolean;
+  has_credentials: boolean;
+}
+
 interface MetaAssetsResponse {
   pages: FacebookPageAsset[];
   instagram_accounts: InstagramAccountAsset[];
   ads_accounts: MetaAdsAccountAsset[];
+  pixels: MetaPixelAsset[];
+  whatsapp_accounts: WhatsAppBusinessAsset[];
+  warnings?: string[];
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -191,6 +227,7 @@ export function MetaView() {
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncWarnings, setSyncWarnings] = useState<string[]>([]);
   const [togglingAsset, setTogglingAsset] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
@@ -269,8 +306,9 @@ export function MetaView() {
       }
       const data: MetaAssetsResponse = await res.json();
       setAssets(data);
+      setSyncWarnings(data.warnings ?? []);
       const total =
-        data.pages.length + data.instagram_accounts.length + data.ads_accounts.length;
+        data.pages.length + data.instagram_accounts.length + data.ads_accounts.length + data.pixels.length;
       toast.success(`Activos sincronizados: ${total} encontrado${total !== 1 ? "s" : ""}`);
     } catch (e: any) {
       toast.error(e.message || "Error al sincronizar activos de Meta");
@@ -314,6 +352,8 @@ export function MetaView() {
           pages: update(prev.pages, (p) => p.page_id),
           instagram_accounts: update(prev.instagram_accounts, (ig) => ig.ig_account_id),
           ads_accounts: update(prev.ads_accounts, (ad) => ad.ad_account_id),
+          pixels: update(prev.pixels, (px) => px.pixel_id),
+          whatsapp_accounts: update(prev.whatsapp_accounts, (wa) => wa.waba_id),
         };
       });
     } catch (e: any) {
@@ -363,9 +403,6 @@ export function MetaView() {
     );
   }
 
-  const hasAssets =
-    assets && (assets.pages.length + assets.instagram_accounts.length + assets.ads_accounts.length) > 0;
-
   // ── Connected ──
   return (
     <div className="space-y-4">
@@ -400,6 +437,19 @@ export function MetaView() {
                 )}
                 Sincronizar activos
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleConnect}
+                disabled={connecting}
+              >
+                {connecting ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <Link className="mr-1.5 h-4 w-4" />
+                )}
+                Reconectar permisos
+              </Button>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
@@ -426,7 +476,7 @@ export function MetaView() {
           </div>
         </CardHeader>
 
-        {!hasAssets && (
+        {!assets && (
           <>
             <Separator />
             <CardContent className="pt-5">
@@ -445,20 +495,56 @@ export function MetaView() {
         )}
       </Card>
 
-      {/* Asset sections */}
-      {hasAssets && (
+      {/* Sync warnings from backend diagnostics */}
+      {syncWarnings.length > 0 && (
+        <Alert className="bg-yellow-50 text-yellow-900 border-yellow-300 dark:bg-yellow-950/30 dark:text-yellow-200 dark:border-yellow-800">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle className="text-sm font-semibold">Advertencias de sincronización</AlertTitle>
+          <AlertDescription className="text-xs mt-1 space-y-1">
+            {syncWarnings.map((w, i) => (
+              <p key={i}>{w}</p>
+            ))}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Informative alert when at least one category is empty */}
+      {assets && (assets.pages.length === 0 || assets.instagram_accounts.length === 0 ||
+        assets.ads_accounts.length === 0 || assets.pixels.length === 0) && (
+        <Alert className="bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-950/30 dark:text-blue-200 dark:border-blue-800">
+          <Info className="h-4 w-4" />
+          <AlertTitle className="text-sm font-semibold">¿Falta algo?</AlertTitle>
+          <AlertDescription className="text-xs mt-1">
+            Si no ves todas tus páginas, cuentas de Instagram o publicitarias, puede que
+            necesites reconectar para actualizar los permisos otorgados a Nicolify.
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto p-0 ml-1 text-xs text-blue-700 dark:text-blue-300"
+              onClick={handleConnect}
+              disabled={connecting}
+            >
+              {connecting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
+              Reconectar permisos
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Asset sections — always show all 4 categories when assets have been fetched */}
+      {assets && (
         <>
           {/* Facebook Pages */}
-          {assets.pages.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Facebook className="h-4 w-4 text-blue-600" />
-                  Páginas de Facebook
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {assets.pages.map((page) => {
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Facebook className="h-4 w-4 text-blue-600" />
+                Páginas de Facebook
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {assets.pages.length > 0 ? (
+                assets.pages.map((page) => {
                   const key = `facebook_page:${page.page_id}`;
                   const isToggling = togglingAsset === key;
                   return (
@@ -511,22 +597,32 @@ export function MetaView() {
                       />
                     </div>
                   );
-                })}
-              </CardContent>
-            </Card>
-          )}
+                })
+              ) : (
+                <div className="flex flex-col items-center py-4 text-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    No se encontraron Páginas. Puede que no hayas seleccionado tus páginas al conectar Meta.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
+                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    Reconectar permisos
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Instagram Accounts */}
-          {assets.instagram_accounts.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Instagram className="h-4 w-4 text-pink-500" />
-                  Cuentas de Instagram Business
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {assets.instagram_accounts.map((ig) => {
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Instagram className="h-4 w-4 text-pink-500" />
+                Cuentas de Instagram Business
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {assets.instagram_accounts.length > 0 ? (
+                assets.instagram_accounts.map((ig) => {
                   const key = `instagram_account:${ig.ig_account_id}`;
                   const isToggling = togglingAsset === key;
                   return (
@@ -576,22 +672,32 @@ export function MetaView() {
                       />
                     </div>
                   );
-                })}
-              </CardContent>
-            </Card>
-          )}
+                })
+              ) : (
+                <div className="flex flex-col items-center py-4 text-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    No se encontraron cuentas de Instagram Business. Esto suele pasar cuando no seleccionaste la Página vinculada a tu cuenta de IG al conectar. Reconecta para elegir las páginas correctas.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
+                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    Reconectar permisos
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Ads Accounts */}
-          {assets.ads_accounts.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-orange-500" />
-                  Cuentas Publicitarias
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {assets.ads_accounts.map((ad) => {
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-orange-500" />
+                Cuentas Publicitarias
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {assets.ads_accounts.length > 0 ? (
+                assets.ads_accounts.map((ad) => {
                   const key = `meta_ads_account:${ad.ad_account_id}`;
                   const isToggling = togglingAsset === key;
                   const statusInfo = ad.account_status != null
@@ -633,10 +739,154 @@ export function MetaView() {
                       />
                     </div>
                   );
-                })}
-              </CardContent>
-            </Card>
-          )}
+                })
+              ) : (
+                <div className="flex flex-col items-center py-4 text-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    No se encontraron cuentas publicitarias. Si tienes una, reconecta para otorgar acceso.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
+                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    Reconectar permisos
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Meta Pixels */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Crosshair className="h-4 w-4 text-purple-500" />
+                Meta Pixels
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {assets.pixels.length > 0 ? (
+                assets.pixels.map((px) => {
+                  const key = `meta_pixel:${px.pixel_id}`;
+                  const isToggling = togglingAsset === key;
+                  return (
+                    <div
+                      key={px.pixel_id}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3 transition-colors",
+                        px.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30"
+                      )}
+                    >
+                      <div className="h-10 w-10 shrink-0 rounded-lg border bg-muted flex items-center justify-center">
+                        <Crosshair className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium text-sm truncate">{px.pixel_name}</span>
+                          {px.is_active && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+                              Activo
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                          <span className="text-muted-foreground/60">ID: {px.pixel_id}</span>
+                          {px.linked_ad_account_id && (
+                            <span className="flex items-center gap-0.5">
+                              <BarChart3 className="h-3 w-3" />
+                              Cuenta: {px.linked_ad_account_id}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <AssetToggleRow
+                        isActive={px.is_active}
+                        hasCredentials={px.has_credentials}
+                        isToggling={isToggling}
+                        onToggle={(val) => handleToggle("meta_pixel", px.pixel_id, val)}
+                      />
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="flex flex-col items-center py-4 text-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    No se encontraron Meta Pixels. Si tienes uno configurado en tu cuenta publicitaria, reconecta para otorgar acceso.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
+                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    Reconectar permisos
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* WhatsApp Business Accounts */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <MessageCircle className="h-4 w-4 text-green-500" />
+                WhatsApp Business
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {assets.whatsapp_accounts.length > 0 ? (
+                assets.whatsapp_accounts.map((wa) => {
+                  const key = `whatsapp_business_account:${wa.waba_id}`;
+                  const isToggling = togglingAsset === key;
+                  return (
+                    <div
+                      key={wa.waba_id}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3 transition-colors",
+                        wa.is_active ? "border-border bg-card" : "border-border/50 bg-muted/30"
+                      )}
+                    >
+                      <div className="h-10 w-10 shrink-0 rounded-lg border bg-muted flex items-center justify-center">
+                        <MessageCircle className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium text-sm truncate">{wa.waba_name}</span>
+                          {wa.is_active && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-green-700 bg-green-100 border-green-200">
+                              Activa
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground flex-wrap">
+                          {wa.business_name && <span>{wa.business_name}</span>}
+                          {wa.currency && <span>{wa.currency}</span>}
+                          {wa.phone_numbers.length > 0 && wa.phone_numbers.map((ph) => (
+                            <span key={ph.phone_number_id} className="flex items-center gap-0.5 text-green-600">
+                              <Phone className="h-3 w-3" />
+                              {ph.display_phone_number}
+                              {ph.verified_name && <span className="text-muted-foreground ml-0.5">({ph.verified_name})</span>}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <AssetToggleRow
+                        isActive={wa.is_active}
+                        hasCredentials={wa.has_credentials}
+                        isToggling={isToggling}
+                        onToggle={(val) => handleToggle("whatsapp_business_account", wa.waba_id, val)}
+                      />
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="flex flex-col items-center py-4 text-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    No se encontró ninguna cuenta de WhatsApp Business vinculada. Si usas WhatsApp Business, reconecta tu cuenta de Meta para otorgar acceso.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
+                    {connecting ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Link className="mr-1.5 h-4 w-4" />}
+                    Reconectar permisos
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

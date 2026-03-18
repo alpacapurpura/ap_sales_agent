@@ -39,7 +39,7 @@ docker ps --filter name=visionarias_admin
 En una **nueva terminal local** (no en el servidor):
 
 ```bash
-ssh -L 8501:localhost:8501 tu-usuario@tu-servidor
+ssh -p 22022 -L 8501:localhost:8501 root@161.132.41.191
 ```
 
 Esto mapea tu `localhost:8501` al puerto `8501` del servidor (que a su vez va al contenedor).

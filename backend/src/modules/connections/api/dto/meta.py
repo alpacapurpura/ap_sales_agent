@@ -49,10 +49,40 @@ class MetaAdsAccountAsset(BaseModel):
     has_credentials: bool = False
 
 
+class MetaPixelAsset(BaseModel):
+    pixel_id: str
+    pixel_name: str
+    linked_ad_account_id: Optional[str] = None
+    is_active: bool = False
+    has_credentials: bool = False
+
+
+class WhatsAppPhoneNumber(BaseModel):
+    phone_number_id: str
+    display_phone_number: Optional[str] = None
+    verified_name: Optional[str] = None
+    quality_rating: Optional[str] = None
+
+
+class WhatsAppBusinessAsset(BaseModel):
+    waba_id: str
+    waba_name: str
+    currency: Optional[str] = None
+    timezone_id: Optional[str] = None
+    business_id: Optional[str] = None
+    business_name: Optional[str] = None
+    phone_numbers: List[WhatsAppPhoneNumber] = []
+    is_active: bool = False
+    has_credentials: bool = False
+
+
 class MetaAssetsResponse(BaseModel):
     pages: List[FacebookPageAsset] = []
     instagram_accounts: List[InstagramAccountAsset] = []
     ads_accounts: List[MetaAdsAccountAsset] = []
+    pixels: List[MetaPixelAsset] = []
+    whatsapp_accounts: List[WhatsAppBusinessAsset] = []
+    warnings: Optional[List[str]] = None
 
 
 class ToggleAssetRequest(BaseModel):

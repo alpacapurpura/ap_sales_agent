@@ -1,4 +1,3 @@
-import logging
 import secrets
 from typing import Dict, Any, Optional, List
 import httpx
@@ -7,10 +6,11 @@ import asyncio
 from facebook_business.api import FacebookAdsApi
 from facebook_business.adobjects.user import User
 from facebook_business.session import FacebookSession
+import structlog
 
 from src.core.config import settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class MetaAdapter:
@@ -79,6 +79,7 @@ class MetaAdapter:
             params["scope"] = (
                 "public_profile,email,pages_show_list,"
                 "pages_read_engagement,pages_messaging,"
+                "instagram_basic,"
                 "instagram_manage_messages,instagram_manage_comments,"
                 "ads_read"
             )
@@ -147,6 +148,26 @@ class MetaAdapter:
         profile = await asyncio.to_thread(_get_profile)
         return profile.export_all_data()
 
+    async def get_token_permissions(self) -> List[str]:
+        """Returns granted permissions for the current access token."""
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(
+                f"{self.BASE_URL}/{self.API_VERSION}/me/permissions",
+                params={"access_token": self.access_token},
+            )
+            if resp.status_code == 200:
+                return [
+                    p["permission"]
+                    for p in resp.json().get("data", [])
+                    if p.get("status") == "granted"
+                ]
+            logger.warning(
+                "meta_get_permissions_failed",
+                status=resp.status_code,
+                body=resp.text[:200],
+            )
+            return []
+
     async def get_business_assets(self) -> Dict[str, Any]:
         """
         Fetches all business assets accessible with the current user/system token:
@@ -195,7 +216,7 @@ class MetaAdapter:
                         client.get(
                             f"{base}/{page['id']}",
                             params={
-                                "fields": "instagram_accounts{id,username,profile_picture_url,followers_count}",
+                                "fields": "instagram_business_account{id,username,profile_picture_url,followers_count}",
                                 "access_token": page.get("access_token", token),
                             },
                         )
@@ -221,11 +242,19 @@ class MetaAdapter:
                 }
                 pages.append(page_entry)
 
-                # Parse linked Instagram account
+                # Parse linked Instagram Business account
+                # instagram_business_account returns a single object, not an array
                 if not isinstance(ig_resp, Exception) and ig_resp.status_code == 200:
-                    ig_data = ig_resp.json().get("instagram_accounts", {}).get("data", [])
-                    if ig_data:
-                        ig = ig_data[0]
+                    ig_json = ig_resp.json()
+                    logger.info(
+                        "meta_ig_raw_response",
+                        page_id=page["id"],
+                        page_name=page.get("name"),
+                        response_keys=list(ig_json.keys()),
+                        has_ig=("instagram_business_account" in ig_json),
+                    )
+                    ig = ig_json.get("instagram_business_account")
+                    if ig:
                         page_entry["instagram_account_id"] = ig.get("id")
                         page_entry["instagram_username"] = ig.get("username")
                         instagram_accounts.append(
@@ -239,6 +268,11 @@ class MetaAdapter:
                                 "page_access_token": page.get("access_token"),
                             }
                         )
+                else:
+                    if isinstance(ig_resp, Exception):
+                        logger.warning("meta_ig_fetch_exception", page_id=page["id"], page_name=page.get("name"), error=str(ig_resp))
+                    else:
+                        logger.warning("meta_ig_fetch_failed", page_id=page["id"], page_name=page.get("name"), status=ig_resp.status_code, body=ig_resp.text[:300])
         else:
             logger.warning(
                 "meta_get_pages_failed",
@@ -264,8 +298,126 @@ class MetaAdapter:
                 body=ads_raw.text[:200],
             )
 
+        # ── Pixels (per Ad Account) ───────────────────────────────────────────
+        pixels: List[Dict[str, Any]] = []
+        if ads_accounts:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                pixel_responses = await asyncio.gather(
+                    *[
+                        client.get(
+                            f"{base}/act_{ad['ad_account_id']}/adspixels",
+                            params={"fields": "id,name", "access_token": token},
+                        )
+                        for ad in ads_accounts
+                    ],
+                    return_exceptions=True,
+                )
+            for ad, px_resp in zip(ads_accounts, pixel_responses):
+                if isinstance(px_resp, Exception):
+                    logger.warning("meta_pixel_fetch_exception", ad_account_id=ad["ad_account_id"], error=str(px_resp))
+                    continue
+                if px_resp.status_code != 200:
+                    logger.warning("meta_pixel_fetch_failed", ad_account_id=ad["ad_account_id"], status=px_resp.status_code, body=px_resp.text[:300])
+                    continue
+                for px in px_resp.json().get("data", []):
+                    pixels.append({
+                        "pixel_id": px.get("id"),
+                        "pixel_name": px.get("name", ""),
+                        "linked_ad_account_id": ad["ad_account_id"],
+                    })
+
+        # ── WhatsApp Business Accounts (via Business Manager) ─────────────────
+        whatsapp_accounts: List[Dict[str, Any]] = []
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                biz_resp = await client.get(
+                    f"{base}/me/businesses",
+                    params={"fields": "id,name", "access_token": token},
+                )
+            if biz_resp.status_code == 200:
+                businesses = biz_resp.json().get("data", [])
+                if businesses:
+                    # Fetch WABAs for each business in parallel
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        waba_responses = await asyncio.gather(
+                            *[
+                                client.get(
+                                    f"{base}/{biz['id']}/owned_whatsapp_business_accounts",
+                                    params={
+                                        "fields": "id,name,currency,timezone_id",
+                                        "access_token": token,
+                                    },
+                                )
+                                for biz in businesses
+                            ],
+                            return_exceptions=True,
+                        )
+
+                    wabas: List[Dict[str, Any]] = []
+                    for biz, waba_resp in zip(businesses, waba_responses):
+                        if isinstance(waba_resp, Exception):
+                            logger.warning("meta_waba_fetch_exception", business_id=biz["id"], error=str(waba_resp))
+                            continue
+                        if waba_resp.status_code != 200:
+                            logger.warning("meta_waba_fetch_failed", business_id=biz["id"], status=waba_resp.status_code, body=waba_resp.text[:300])
+                            continue
+                        for waba in waba_resp.json().get("data", []):
+                            waba["business_id"] = biz["id"]
+                            waba["business_name"] = biz.get("name", "")
+                            wabas.append(waba)
+
+                    # Fetch phone numbers for each WABA in parallel
+                    if wabas:
+                        async with httpx.AsyncClient(timeout=15.0) as client:
+                            phone_responses = await asyncio.gather(
+                                *[
+                                    client.get(
+                                        f"{base}/{waba['id']}/phone_numbers",
+                                        params={
+                                            "fields": "id,display_phone_number,verified_name,quality_rating",
+                                            "access_token": token,
+                                        },
+                                    )
+                                    for waba in wabas
+                                ],
+                                return_exceptions=True,
+                            )
+                        for waba, ph_resp in zip(wabas, phone_responses):
+                            phones: List[Dict[str, Any]] = []
+                            if not isinstance(ph_resp, Exception) and ph_resp.status_code == 200:
+                                phones = ph_resp.json().get("data", [])
+                            else:
+                                if isinstance(ph_resp, Exception):
+                                    logger.warning("meta_waba_phones_exception", waba_id=waba["id"], error=str(ph_resp))
+                                else:
+                                    logger.warning("meta_waba_phones_failed", waba_id=waba["id"], status=ph_resp.status_code, body=ph_resp.text[:300])
+
+                            whatsapp_accounts.append({
+                                "waba_id": waba["id"],
+                                "waba_name": waba.get("name", ""),
+                                "currency": waba.get("currency"),
+                                "timezone_id": waba.get("timezone_id"),
+                                "business_id": waba.get("business_id"),
+                                "business_name": waba.get("business_name"),
+                                "phone_numbers": [
+                                    {
+                                        "phone_number_id": ph.get("id"),
+                                        "display_phone_number": ph.get("display_phone_number"),
+                                        "verified_name": ph.get("verified_name"),
+                                        "quality_rating": ph.get("quality_rating"),
+                                    }
+                                    for ph in phones
+                                ],
+                            })
+            else:
+                logger.warning("meta_get_businesses_failed", status=biz_resp.status_code, body=biz_resp.text[:200])
+        except Exception as e:
+            logger.warning("meta_whatsapp_fetch_error", error=str(e))
+
         return {
             "pages": pages,
             "instagram_accounts": instagram_accounts,
             "ads_accounts": ads_accounts,
+            "pixels": pixels,
+            "whatsapp_accounts": whatsapp_accounts,
         }

@@ -223,3 +223,8 @@ class ChannelConnectionRepository:
         self.db.commit()
         self.db.refresh(connection)
         return connection
+
+    def delete(self, connection: ChannelConnectionModel) -> None:
+        """Hard-delete an asset connection that no longer exists in the external platform."""
+        self.db.delete(connection)
+        self.db.commit()

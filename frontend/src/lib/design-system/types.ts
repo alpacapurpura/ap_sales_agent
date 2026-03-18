@@ -34,4 +34,6 @@ export interface DesignToken {
   cssVar?: string;
   tailwindClass: string;
   value: string;
+  /** Dark mode HSL value (color tokens only) */
+  darkValue?: string;
 }

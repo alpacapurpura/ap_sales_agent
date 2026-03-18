@@ -21,6 +21,9 @@ from src.modules.connections.api.dto.meta import (
     FacebookPageAsset,
     InstagramAccountAsset,
     MetaAdsAccountAsset,
+    MetaPixelAsset,
+    WhatsAppBusinessAsset,
+    WhatsAppPhoneNumber,
     ToggleAssetRequest,
 )
 from src.modules.connections.api.dependencies.webhook_security import verify_meta_signature
@@ -34,6 +37,8 @@ _ASSET_CHANNEL_TYPES = [
     ChannelType.FACEBOOK_PAGE,
     ChannelType.INSTAGRAM_ACCOUNT,
     ChannelType.META_ADS_ACCOUNT,
+    ChannelType.META_PIXEL,
+    ChannelType.WHATSAPP_BUSINESS_ACCOUNT,
 ]
 
 
@@ -42,13 +47,27 @@ async def _sync_assets_for_tenant(
     repo: ChannelConnectionRepository,
     tenant_id,
     master: ChannelConnectionModel,
-) -> dict:
+) -> tuple[dict, list[str]]:
     """Fetch business assets from Meta API and store them.
 
-    Returns the raw asset dict from the adapter.
+    Returns (raw_assets, warnings).
     Uses create_asset for NEW rows (not upsert) to correctly handle
     multiple assets of the same channel type per tenant.
     """
+    warnings: list[str] = []
+
+    # Check token permissions for diagnostics
+    try:
+        permissions = await adapter.get_token_permissions()
+        logger.info("meta_sync_token_permissions", tenant_id=str(tenant_id), permissions=permissions)
+        if "instagram_basic" not in permissions:
+            warnings.append(
+                "El token no tiene el permiso instagram_basic. "
+                "Agréguelo en la configuración de Facebook Login for Business y reconecte."
+            )
+    except Exception as e:
+        logger.warning("meta_sync_permissions_check_failed", error=str(e))
+
     raw = await adapter.get_business_assets()
 
     # Pages
@@ -128,7 +147,79 @@ async def _sync_assets_for_tenant(
                 config=config,
             )
 
-    return raw
+    # Pixels
+    for px in raw.get("pixels", []):
+        px_id = px["pixel_id"]
+        config = {
+            "asset_id": px_id,
+            "pixel_name": px["pixel_name"],
+            "linked_ad_account_id": px.get("linked_ad_account_id"),
+            "parent_connection_id": str(master.id),
+        }
+        conn = repo.get_by_asset_id(tenant_id, ChannelType.META_PIXEL, px_id)
+        if conn:
+            conn.config = config
+            repo.db.commit()
+        else:
+            repo.create_asset(
+                tenant_id=tenant_id,
+                channel_type=ChannelType.META_PIXEL,
+                credentials={},
+                config=config,
+            )
+
+    # WhatsApp Business Accounts
+    for wa in raw.get("whatsapp_accounts", []):
+        waba_id = wa["waba_id"]
+        config = {
+            "asset_id": waba_id,
+            "waba_name": wa["waba_name"],
+            "currency": wa.get("currency"),
+            "timezone_id": wa.get("timezone_id"),
+            "business_id": wa.get("business_id"),
+            "business_name": wa.get("business_name"),
+            "phone_numbers": wa.get("phone_numbers", []),
+            "parent_connection_id": str(master.id),
+        }
+        conn = repo.get_by_asset_id(tenant_id, ChannelType.WHATSAPP_BUSINESS_ACCOUNT, waba_id)
+        if conn:
+            conn.config = config
+            repo.db.commit()
+        else:
+            repo.create_asset(
+                tenant_id=tenant_id,
+                channel_type=ChannelType.WHATSAPP_BUSINESS_ACCOUNT,
+                credentials=master.credentials,
+                config=config,
+            )
+
+    # ── Cleanup stale assets ──────────────────────────────────────────────
+    # Remove assets from DB that Meta no longer returns (e.g. permissions revoked)
+    synced_ids = {
+        ChannelType.FACEBOOK_PAGE: {p["page_id"] for p in raw.get("pages", [])},
+        ChannelType.INSTAGRAM_ACCOUNT: {ig["ig_account_id"] for ig in raw.get("instagram_accounts", [])},
+        ChannelType.META_ADS_ACCOUNT: {ad["ad_account_id"] for ad in raw.get("ads_accounts", [])},
+        ChannelType.META_PIXEL: {px["pixel_id"] for px in raw.get("pixels", [])},
+        ChannelType.WHATSAPP_BUSINESS_ACCOUNT: {wa["waba_id"] for wa in raw.get("whatsapp_accounts", [])},
+    }
+
+    existing = repo.get_all_by_tenant_and_types(tenant_id, list(synced_ids.keys()))
+    for conn in existing:
+        cfg = conn.config or {}
+        asset_id = cfg.get("asset_id", "")
+        ct = ChannelType(conn.channel_type)
+        if asset_id and asset_id not in synced_ids.get(ct, set()):
+            logger.info("meta_sync_removing_stale_asset", channel_type=ct.value, asset_id=asset_id, tenant_id=str(tenant_id))
+            repo.delete(conn)
+
+    # Warn if pages exist but none have IG linked
+    if raw.get("pages") and not raw.get("instagram_accounts"):
+        warnings.append(
+            "Ninguna de tus Pages tiene una cuenta de Instagram Business/Creator vinculada. "
+            "Verifica que tu cuenta de IG sea profesional y esté vinculada a una Page."
+        )
+
+    return raw, warnings
 
 
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
@@ -285,17 +376,30 @@ async def oauth_callback(
         logger.error("failed_to_get_meta_profile", error=str(e))
         raise HTTPException(status_code=400, detail="No se pudo obtener el perfil de Meta.")
 
+    # Log and store granted permissions for diagnostics
+    granted_permissions: list[str] = []
+    try:
+        granted_permissions = await adapter_with_token.get_token_permissions()
+        logger.info(
+            "meta_oauth_granted_permissions",
+            tenant_id=str(user.tenant_id),
+            permissions=granted_permissions,
+        )
+    except Exception as e:
+        logger.warning("meta_oauth_permissions_fetch_failed", error=str(e))
+
+    config = {"user_id": user_id, "name": name, "granted_permissions": granted_permissions}
     master = repo.upsert(
         tenant_id=user.tenant_id,
         channel_type=ChannelType.META,
         credentials=creds_data,
-        config={"user_id": user_id, "name": name},
+        config=config,
     )
 
     # Auto-sync business assets after successful OAuth
     assets_synced = False
     try:
-        raw = await _sync_assets_for_tenant(adapter_with_token, repo, user.tenant_id, master)
+        raw, _warnings = await _sync_assets_for_tenant(adapter_with_token, repo, user.tenant_id, master)
         assets_synced = True
         logger.info(
             "meta_oauth_auto_sync_ok",
@@ -389,6 +493,8 @@ async def get_assets(
     pages: list[FacebookPageAsset] = []
     instagram_accounts: list[InstagramAccountAsset] = []
     ads_accounts: list[MetaAdsAccountAsset] = []
+    pixels: list[MetaPixelAsset] = []
+    whatsapp_accounts: list[WhatsAppBusinessAsset] = []
 
     for conn in existing:
         cfg = conn.config or {}
@@ -426,11 +532,35 @@ async def get_assets(
                 is_active=conn.is_active,
                 has_credentials=bool(conn.credentials),
             ))
+        elif channel == ChannelType.META_PIXEL.value:
+            pixels.append(MetaPixelAsset(
+                pixel_id=cfg.get("asset_id", ""),
+                pixel_name=cfg.get("pixel_name", ""),
+                linked_ad_account_id=cfg.get("linked_ad_account_id"),
+                is_active=conn.is_active,
+                has_credentials=bool(conn.credentials),
+            ))
+        elif channel == ChannelType.WHATSAPP_BUSINESS_ACCOUNT.value:
+            whatsapp_accounts.append(WhatsAppBusinessAsset(
+                waba_id=cfg.get("asset_id", ""),
+                waba_name=cfg.get("waba_name", ""),
+                currency=cfg.get("currency"),
+                timezone_id=cfg.get("timezone_id"),
+                business_id=cfg.get("business_id"),
+                business_name=cfg.get("business_name"),
+                phone_numbers=[
+                    WhatsAppPhoneNumber(**ph) for ph in cfg.get("phone_numbers", [])
+                ],
+                is_active=conn.is_active,
+                has_credentials=bool(conn.credentials),
+            ))
 
     return MetaAssetsResponse(
         pages=pages,
         instagram_accounts=instagram_accounts,
         ads_accounts=ads_accounts,
+        pixels=pixels,
+        whatsapp_accounts=whatsapp_accounts,
     )
 
 
@@ -454,13 +584,16 @@ async def sync_assets(
 
     adapter = MetaAdapter(access_token=access_token)
     try:
-        await _sync_assets_for_tenant(adapter, repo, user.tenant_id, master)
+        _raw, warnings = await _sync_assets_for_tenant(adapter, repo, user.tenant_id, master)
     except Exception as e:
         logger.error("meta_sync_assets_failed", error=str(e))
         raise HTTPException(status_code=502, detail=f"Error consultando activos de Meta: {e}")
 
-    # Return the refreshed asset list
-    return await get_assets(user=user, repo=repo)
+    # Return the refreshed asset list with warnings
+    response = await get_assets(user=user, repo=repo)
+    if warnings:
+        response.warnings = warnings
+    return response
 
 
 @router.patch("/assets/{channel_type}/{asset_id}")
