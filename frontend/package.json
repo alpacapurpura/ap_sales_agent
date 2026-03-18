@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "prepare": "husky"
+    "prepare": "husky",
+    "storybook": "storybook dev -p 6006 --host 0.0.0.0",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.8",
@@ -65,6 +67,10 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
+    "@storybook/addon-a11y": "^10.2.19",
+    "@storybook/addon-themes": "^10.2.19",
+    "@storybook/nextjs-vite": "^10.2.19",
+    "@storybook/react": "^10.2.19",
     "@tailwindcss/postcss": "^4.1.18",
     "@tanstack/react-query-devtools": "^5.91.2",
     "@testing-library/dom": "^10.4.1",
@@ -83,6 +89,7 @@
     "jsdom": "^27.4.0",
     "lint-staged": "^16.2.7",
     "postcss": "^8.5.6",
+    "storybook": "^10.2.19",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
