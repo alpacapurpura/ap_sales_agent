@@ -395,6 +395,7 @@ async def oauth_callback(
         credentials=creds_data,
         config=config,
     )
+    logger.info("meta_oauth_upsert_complete", tenant_id=str(user.tenant_id), is_active=master.is_active, master_id=str(master.id))
 
     # Auto-sync business assets after successful OAuth
     assets_synced = False
@@ -411,7 +412,7 @@ async def oauth_callback(
     except Exception as e:
         logger.warning("meta_oauth_auto_sync_failed", error=str(e), tenant_id=str(user.tenant_id))
 
-    return {"status": "connected", "profile": profile, "assets_synced": assets_synced}
+    return {"status": "connected", "is_connected": True, "profile": profile, "assets_synced": assets_synced}
 
 
 # ---------------------------------------------------------------------------
@@ -448,7 +449,13 @@ async def disconnect(
 ):
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
     if connection:
+        # Deactivate all child asset connections first
+        child_assets = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
+        for asset in child_assets:
+            repo.deactivate(asset)
+        # Then deactivate master
         repo.deactivate(connection)
+        logger.info("meta_disconnect_complete", tenant_id=str(user.tenant_id), child_assets_deactivated=len(child_assets))
     return {"status": "disconnected"}
 
 
