@@ -93,12 +93,18 @@ export function GalleryManager({ visuals }: GalleryManagerProps) {
         );
     }
     
+    const normalizeUrl = (url: string) => {
+        // Strip trailing slashes and any query params for comparison
+        return url.split('?')[0].replace(/\/+$/, '');
+    };
+
     const logoUrls = new Set(
         Object.values(visuals.logos || {})
             .filter((url): url is string => typeof url === 'string' && url.length > 0)
+            .map(normalizeUrl)
     );
 
-    const filteredImages = images?.filter(img => !logoUrls.has(img.public_url)) || [];
+    const filteredImages = images?.filter(img => !logoUrls.has(normalizeUrl(img.public_url))) || [];
     const hasContent = filteredImages.length > 0;
 
     return (
