@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from src.modules.brand.domain import (
     BrandSettings, BrandIdentity, BrandStory, BrandStrategy, BrandVisuals,
-    BrandTeamWrapper, BrandContact, BrandTestimonial, BrandAuthorityItem, KeyFigure, BrandTeam
+    BrandContact, BrandTestimonial, BrandAuthorityItem, KeyFigure, BrandTeam
 )
 from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
@@ -18,7 +18,6 @@ import httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
-from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
 from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
 import traceback
 import re

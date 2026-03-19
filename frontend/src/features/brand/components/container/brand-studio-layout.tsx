@@ -170,12 +170,12 @@ export function BrandStudioLayout({
 
                     <div id="strategy" className="grid grid-cols-1 md:grid-cols-2 gap-12">
                         <StrategySection
-                            strategy={settings.strategy}
+                            strategy={settings.strategy ?? {} as BrandStrategy}
                             visuals={settings.visuals ?? {}}
                             onEdit={() => openEdit("strategy")}
                         />
                         <MethodologySection
-                            strategy={settings.strategy}
+                            strategy={settings.strategy ?? {} as BrandStrategy}
                             visuals={settings.visuals ?? {}}
                             onEdit={() => openEdit("methodology")}
                         />

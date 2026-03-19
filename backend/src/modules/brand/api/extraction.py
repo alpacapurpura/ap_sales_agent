@@ -119,7 +119,7 @@ async def extract_full_brand(
         )
 
     # Log response summary
-    result_dict = result.model_dump(mode='json') if result else {}
+    result_dict = result if isinstance(result, dict) else (result.model_dump(mode='json') if result else {})
     logger.info("extract_full_brand_response",
                 tenant_id=str(current_user.tenant_id),
                 has_identity=bool(result_dict.get("identity", {}).get("brand_name")),
