@@ -14,7 +14,10 @@ from src.modules.copilot.infrastructure.prompts.brand_extraction.identity import
 from src.modules.copilot.infrastructure.prompts.brand_extraction.story import BRAND_STORY_PROMPT
 from src.modules.copilot.infrastructure.prompts.brand_extraction.team import BRAND_TEAM_PROMPT
 from src.modules.copilot.infrastructure.prompts.brand_extraction.strategy import BRAND_STRATEGY_PROMPT
-from src.modules.copilot.application.agents.web_extractor.graph import web_extractor_graph
+import httpx
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
+
 from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
 from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
 
@@ -38,33 +41,70 @@ class BrandExtractionService:
 
     async def crawl_content(self, url: str) -> str:
         """
-        Crawls the URL and returns aggregated text content using the Web Extractor Graph in 'crawl_only' mode.
+        Crawls the URL and up to 5 internal subpages, returning aggregated text content
+        using httpx + BeautifulSoup.
         """
-        initial_state = {
-            "base_url": url,
-            "queue": [url],
-            "visited": [],
-            "depth": 0,
-            "max_depth": 1, # Crawl 1 level deep for better context
-            "mode": "crawl_only",
-            "aggregated_content": [],
-            "target_schema": {}, # Dummy schema
-            "retry_count": 0,
-            "error": None
-        }
-        
         try:
-            # Increase recursion limit to handle multi-page crawling (Home + 5 subpages = ~12-15 steps)
-            result = await web_extractor_graph.ainvoke(initial_state, {"recursion_limit": 100})
-            if result.get("error"):
-                logger.error("crawl_failed", url=url, error=result["error"])
-                return ""
-            
-            extracted = result.get("extracted_data", {})
-            return extracted.get("content", "")
+            base_domain = urlparse(url).netloc
+            all_text_parts: list[str] = []
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+                # Fetch main page
+                response = await client.get(url)
+                response.raise_for_status()
+                main_text = self._extract_text_from_html(response.text)
+                all_text_parts.append(main_text)
+
+                # Depth 1: find internal links from main page
+                soup = BeautifulSoup(response.text, "html.parser")
+                seen_urls: set[str] = {url}
+                internal_links: list[str] = []
+
+                for a_tag in soup.find_all("a", href=True):
+                    href = a_tag["href"]
+                    full_url = urljoin(url, href)
+                    parsed = urlparse(full_url)
+                    # Same domain, not already seen, HTTP(S) only
+                    if (
+                        parsed.netloc == base_domain
+                        and full_url not in seen_urls
+                        and parsed.scheme in ("http", "https")
+                    ):
+                        seen_urls.add(full_url)
+                        internal_links.append(full_url)
+                        if len(internal_links) >= 5:
+                            break
+
+                # Fetch subpages
+                for link in internal_links:
+                    try:
+                        sub_response = await client.get(link)
+                        sub_response.raise_for_status()
+                        sub_text = self._extract_text_from_html(sub_response.text)
+                        if sub_text.strip():
+                            all_text_parts.append(sub_text)
+                    except Exception:
+                        continue
+
+            result = "\n\n".join(all_text_parts)[:100_000]
+            pages_crawled = 1 + len([p for p in all_text_parts[1:] if p.strip()])
+            logger.info("crawl_completed", url=url, pages_crawled=pages_crawled, total_chars=len(result))
+            return result
+
         except Exception as e:
             logger.error("crawl_exception", url=url, error=str(e))
             return ""
+
+    @staticmethod
+    def _extract_text_from_html(html: str) -> str:
+        """Parse HTML and extract clean text content, removing non-content elements."""
+        soup = BeautifulSoup(html, "html.parser")
+        for tag in soup.find_all(["script", "style", "nav", "footer", "header"]):
+            tag.decompose()
+        return soup.get_text(separator="\n", strip=True)
 
     async def extract_all(
         self, 
