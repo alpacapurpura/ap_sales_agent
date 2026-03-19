@@ -21,6 +21,7 @@ from urllib.parse import urljoin, urlparse
 from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
 from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
 import traceback
+import re
 
 logger = structlog.get_logger()
 
@@ -291,6 +292,118 @@ class BrandExtractionService:
         return soup.get_text(separator="\n", strip=True)
 
     @staticmethod
+    def _extract_html_with_styles(html: str) -> str:
+        """Parse HTML preserving CSS data for visual identity analysis.
+
+        Unlike _extract_text_from_html which strips <style> tags, this method
+        extracts and preserves CSS variables, inline styles, class names,
+        Google Font links and theme-color meta — everything needed for
+        accurate color/font extraction by the LLM.
+        """
+        soup = BeautifulSoup(html, "html.parser")
+
+        # Remove only scripts (keep styles!)
+        for tag in soup.find_all("script"):
+            tag.decompose()
+
+        # --- [CSS_STYLES] section ---
+        css_parts: list[str] = []
+
+        # <style> tag contents
+        for style_tag in soup.find_all("style"):
+            text = style_tag.get_text(strip=True)
+            if text:
+                css_parts.append(text)
+
+        # <meta name="theme-color">
+        for meta in soup.find_all("meta", attrs={"name": "theme-color"}):
+            color = meta.get("content", "")
+            if color:
+                css_parts.append(f"theme-color: {color}")
+
+        # Google Fonts links — extract font family names
+        for link in soup.find_all("link", href=True):
+            href = link["href"]
+            if "fonts.googleapis.com" in href:
+                # Extract family param: family=Montserrat:wght@400;700&family=Open+Sans
+                match = re.findall(r"family=([^&]+)", href)
+                for fam in match:
+                    # Clean: "Montserrat:wght@400;700" -> "Montserrat"
+                    font_name = fam.split(":")[0].replace("+", " ")
+                    css_parts.append(f"Google Font: {font_name}")
+
+        css_section = "\n".join(css_parts) if css_parts else "(no CSS data found)"
+
+        # --- [INLINE_STYLES] section ---
+        inline_parts: list[str] = []
+        for i, el in enumerate(soup.find_all(attrs={"style": True})):
+            if i >= 50:
+                break
+            tag_name = el.name
+            classes = " ".join(el.get("class", []))
+            style_val = el.get("style", "")
+            label = f"{tag_name}.{classes}" if classes else tag_name
+            inline_parts.append(f"{label}: {style_val}")
+
+        inline_section = "\n".join(inline_parts) if inline_parts else "(no inline styles found)"
+
+        # --- [KEY_ELEMENTS] section ---
+        key_tags = ["body", "header", "nav", "footer", "main",
+                     "h1", "h2", "h3", "h4", "h5", "h6", "button", "a"]
+        element_parts: list[str] = []
+        for tag_name in key_tags:
+            for j, el in enumerate(soup.find_all(tag_name)):
+                if j >= 5:
+                    break
+                classes = el.get("class")
+                if classes:
+                    element_parts.append(f'<{tag_name} class="{" ".join(classes)}">')
+
+        elements_section = "\n".join(element_parts) if element_parts else "(no class attributes found)"
+
+        # --- [TEXT_CONTENT] section (lightweight body text for context) ---
+        body = soup.find("body")
+        text_content = ""
+        if body:
+            # Remove style tags from a copy to get clean text
+            body_copy = BeautifulSoup(str(body), "html.parser")
+            for s in body_copy.find_all("style"):
+                s.decompose()
+            text_content = body_copy.get_text(separator="\n", strip=True)
+        else:
+            text_content = soup.get_text(separator="\n", strip=True)
+
+        # Combine sections
+        return (
+            f"[CSS_STYLES]\n{css_section}\n[/CSS_STYLES]\n\n"
+            f"[INLINE_STYLES]\n{inline_section}\n[/INLINE_STYLES]\n\n"
+            f"[KEY_ELEMENTS]\n{elements_section}\n[/KEY_ELEMENTS]\n\n"
+            f"[TEXT_CONTENT]\n{text_content}\n[/TEXT_CONTENT]"
+        )
+
+    async def crawl_content_with_styles(self, url: str) -> str:
+        """Crawl the main page preserving CSS data for visual identity extraction.
+
+        Unlike crawl_content() which fetches subpages and strips styles, this
+        only fetches the homepage and calls _extract_html_with_styles() to
+        preserve all CSS information needed for color/font extraction.
+        """
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                enriched = self._extract_html_with_styles(response.text)
+                result = enriched[:40_000]
+                logger.info("crawl_with_styles_completed", url=url, total_chars=len(result))
+                return result
+        except Exception as e:
+            logger.error("crawl_with_styles_exception", url=url, error=str(e))
+            return ""
+
+    @staticmethod
     def _truncate_at_page_boundary(content: str, max_chars: int = 50000) -> str:
         """Truncate content at the nearest === FIN PAGINA === boundary within max_chars."""
         if len(content) <= max_chars:
@@ -514,11 +627,15 @@ class BrandExtractionService:
                                        "Extract Testimonials.")
 
     async def extract_visuals_only(self, url: str) -> BrandVisuals:
-        """Extract only visual identity (colors, fonts, style) from a URL."""
-        content = await self.crawl_content(url)
+        """Extract only visual identity (colors, fonts, style) from a URL.
+
+        Uses CSS-enriched HTML (not stripped text) so the LLM can see actual
+        colors, fonts, and class names from the website.
+        """
+        content = await self.crawl_content_with_styles(url)
         if not content.strip():
             raise ValueError("Could not crawl content from URL")
-        prompt = self._render_prompt("brand_extract_visuals", content, "", "")
+        prompt = self._render_prompt("brand_extract_visuals", content, "", "", max_chars=40000)
         return await self._run_section(
             "visuals", "brand_extract_visuals", prompt,
             BrandVisuals, BrandVisuals(), "Extract the visual identity (colors, fonts, design style)."
