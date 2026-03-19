@@ -47,7 +47,16 @@ export function useBrandSettings() {
       if (!data.story) data.story = {};
       if (!data.contact) data.contact = {};
       if (!data.team) data.team = [];
-      
+
+      console.log("[useBrandSettings] Final data after defaults:", {
+          hasIdentityName: !!data.identity?.brand_name,
+          hasStoryOrigin: !!(data.story as any)?.origin_story,
+          hasStrategyVP: !!(data.strategy as any)?.value_proposition,
+          teamCount: data.team?.length || 0,
+          testimonialsCount: data.testimonials?.length || 0,
+          authorityCount: data.authority_vault?.length || 0,
+      });
+
       return data;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes cache

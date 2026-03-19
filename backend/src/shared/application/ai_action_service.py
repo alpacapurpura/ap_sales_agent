@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Type, TypeVar
@@ -58,7 +59,14 @@ class AIActionService:
                     max_output_tokens=resolved_policy.model.max_output_tokens,
                     metadata=request_metadata,
                 )
-                payload = json.loads(llm_response)
+                self.logger.debug(
+                    "ai_action_raw_response",
+                    action_name=action_name,
+                    response_length=len(llm_response),
+                    response_preview=llm_response[:500],
+                )
+                cleaned = self._extract_json(llm_response)
+                payload = json.loads(cleaned)
                 parsed = response_model.model_validate(payload)
                 self.logger.info(
                     "ai_action_success",
@@ -72,6 +80,7 @@ class AIActionService:
                 return parsed
             except (json.JSONDecodeError, ValidationError, Exception) as error:
                 last_error = error
+                raw_preview = llm_response[:300] if 'llm_response' in locals() else "N/A"
                 self.logger.warning(
                     "ai_action_retry",
                     action_name=action_name,
@@ -79,6 +88,7 @@ class AIActionService:
                     attempt=attempt,
                     retries=resolved_policy.retries,
                     error=str(error),
+                    raw_response_preview=raw_preview,
                     duration_ms=round((time.perf_counter() - attempt_started_at) * 1000, 2),
                     model_type=resolved_policy.model.model_type,
                 )
@@ -95,6 +105,22 @@ class AIActionService:
             model_type=resolved_policy.model.model_type,
         )
         raise ValueError("La IA generó una respuesta inválida para la acción solicitada.")
+
+    @staticmethod
+    def _extract_json(raw: str) -> str:
+        """Extract JSON from LLM response that may contain markdown code blocks or preamble text."""
+        # Try markdown code block first: ```json ... ``` or ``` ... ```
+        match = re.search(r"```(?:json)?\s*([\s\S]*?)```", raw)
+        if match:
+            return match.group(1).strip()
+        # Fallback: find outermost { ... } or [ ... ]
+        for open_char, close_char in [("{", "}"), ("[", "]")]:
+            start = raw.find(open_char)
+            if start != -1:
+                end = raw.rfind(close_char)
+                if end > start:
+                    return raw[start : end + 1]
+        return raw
 
     def _validate_inputs(
         self,

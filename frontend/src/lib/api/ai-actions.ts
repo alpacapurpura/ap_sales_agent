@@ -77,6 +77,9 @@ export const aiActionsApi = {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        if (response.status === 504) {
+          throw new Error("TIMEOUT:La extracción tardó demasiado. Intenta con menos contenido o sube la información como texto.");
+        }
         throw new Error(`Failed to extract full brand data: ${response.status} ${response.statusText}`);
       }
       return response.json();

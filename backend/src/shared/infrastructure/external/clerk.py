@@ -207,7 +207,7 @@ class ClerkService:
             "Authorization": f"Bearer {self.secret_key}",
             "Content-Type": "application/json"
         }
-        payload = {"name": name, "slug": slug}
+        payload = {"name": name}
 
         try:
             logger.info("creating_clerk_organization", name=name, slug=slug)

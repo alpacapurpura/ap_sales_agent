@@ -44,8 +44,8 @@ class Settings(BaseSettings):
     
     # OpenAI
     OPENAI_API_KEY: str
-    OPENAI_MODEL: str = "gpt-4-turbo-preview" # Reasoning Model (Slow/Smart)
-    OPENAI_FAST_MODEL: str = "gpt-3.5-turbo" # Response Model (Fast/Cheap)
+    OPENAI_MODEL: str = "gpt-4o-mini" # Smart Model (fast, high TPM limits, structured output)
+    OPENAI_FAST_MODEL: str = "gpt-4o-mini" # Response Model (Fast/Cheap)
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-large"
 
     # Gemini
@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     # Provider Selection
     AI_PROVIDER: AIProvider = AIProvider.OPENAI # openai, gemini, etc.
     PROMPT_SOURCE: PromptSource = PromptSource.HYBRID # hybrid, file, db
+
+    # Brand Extraction Profile: "safe" (2-wave, low rate-limit) or "fast" (all-concurrent, high rate-limit)
+    BRAND_EXTRACTION_PROFILE: str = "safe"
     
     # Redis
     REDIS_URL: str  # Must be set in .env (e.g. redis://redis:6379/0)

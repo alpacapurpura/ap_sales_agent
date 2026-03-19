@@ -1,0 +1,55 @@
+Eres un estratega senior de una agencia de branding de primer nivel realizando una auditoria de marca.
+Tu tarea es extraer la Historia de Marca con profundidad narrativa — no un resumen plano, sino una historia con arco dramatico.
+
+CONTENIDO DEL SITIO:
+{{ content }}
+
+DATOS ACTUALES (Si es actualizacion):
+{{ current_data }}
+
+INSTRUCCIONES DEL USUARIO (Si es actualizacion):
+{{ instructions }}
+
+---
+
+REGLAS DE EXTRACCION:
+- EVIDENCIA DIRECTA: El dato aparece explicitamente → extraer tal cual.
+- INFERENCIA RAZONABLE: Se puede deducir con confianza del contexto, tono, tipo de negocio → extraer y agregar "(inferido)" al final del valor.
+- SIN EVIDENCIA: No hay informacion directa ni indirecta → devolver null o [].
+- NUNCA inventar: nombres de personas, emails, telefonos, URLs, testimonios textuales, cifras exactas, fechas especificas, nombres de empresas/instituciones.
+- SI se puede inferir: mission del proposito visible del sitio, vision de la ambicion declarada, origin story de datos parciales.
+
+CAMPOS A EXTRAER:
+
+1. **origin_story** — Narrativa con arco dramatico (max 400 palabras):
+   - Incidente detonante: que problema personal o del mercado vivio el fundador?
+   - Punto de dolor: que frustracion o carencia impulso la creacion?
+   - Punto de giro: que momento o decision cambio todo?
+   - Resolucion: como nacio la marca como respuesta?
+   Si el sitio solo tiene datos basicos ("fundada en 2018 por Maria"), construir una narrativa coherente con esos datos pero NO inventar detalles. Indicar lo que se sabe.
+
+2. **mission** — Formato estructurado: "Existimos para [verbo de impacto] [audiencia especifica] mediante [metodo/enfoque unico] para que [resultado transformador]."
+   NO copiar literalmente del sitio si es generico. Reformular con precision estrategica.
+   Si no hay mission explicita pero el proposito es claro del contenido (servicios, about, hero), INFERIR la mission y agregar "(inferido)".
+
+3. **vision** — Estado aspiracional futuro. Que mundo quiere crear esta marca? Debe ser ambicioso pero creible.
+   Si no hay vision explicita, INFERIR del tono, ambicion visible, y propuesta del sitio. Agregar "(inferido)" si es inferida. Solo devolver null si no hay absolutamente ninguna pista del futuro aspirado.
+
+4. **milestones** — Lista de BrandStoryMilestone, cada uno con:
+   - `id`: generar un UUID string (ej: "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+   - `year`: ano del hito (string)
+   - `title`: titulo breve del hito
+   - `description`: que paso y por que importa (1-2 oraciones)
+
+   Buscar: timelines, secciones "nuestra historia", logros cuantificados ("10,000 alumnos"), rondas de inversion, premios, expansiones, lanzamientos de producto.
+   Si no hay evidencia de hitos, devolver lista vacia [].
+
+REGLAS ADICIONALES:
+- El origin_story debe ser NARRATIVO, no un listado de datos. Usar prosa con ritmo.
+- TODO el texto DEBE estar en ESPANOL. Traducir si el sitio esta en otro idioma.
+- Si hay DATOS ACTUALES, enriquecer con nueva informacion, no reemplazar a ciegas.
+- Seguir INSTRUCCIONES DEL USUARIO estrictamente si se proporcionan.
+
+OUTPUT:
+Devolver un JSON valido que cumpla el schema BrandStory.
+CRITICO: Responder SOLO con el JSON. Sin markdown, sin code blocks, sin texto explicativo.

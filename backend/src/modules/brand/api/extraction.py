@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
 from typing import Literal, Optional
 from sqlalchemy.orm import Session
@@ -7,7 +9,9 @@ from src.modules.brand.domain.aggregates import BrandSettings
 from src.modules.iam.api.dependencies import get_current_user, get_db
 from src.modules.iam.domain.user import User
 from src.modules.brand.api.dto.extraction import ExtractRequest
+import structlog
 
+logger = structlog.get_logger()
 router = APIRouter()
 
 # Removed FullBrandExtractionRequest as it's now handled via Form/File parameters
@@ -73,12 +77,57 @@ async def extract_full_brand(
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
 
+    logger.info("extract_full_brand_request",
+                tenant_id=str(current_user.tenant_id),
+                has_url=bool(url),
+                url=url,
+                mode=mode,
+                has_text=bool(combined_text),
+                text_length=len(combined_text) if combined_text else 0,
+                file_count=len(files),
+                has_instructions=bool(update_instructions),
+                dry_run=dry_run)
+
     service = CopilotBrandAIActionsService(db, current_user.tenant_id)
-    return await service.extract_full_brand(
-        url=url,
-        text=combined_text if combined_text else None,
-        mode=mode,
-        update_instructions=update_instructions,
-        dry_run=dry_run,
-        include_visuals=include_visuals,
-    )
+    try:
+        result = await asyncio.wait_for(
+            service.extract_full_brand(
+                url=url,
+                text=combined_text if combined_text else None,
+                mode=mode,
+                update_instructions=update_instructions,
+                dry_run=dry_run,
+                include_visuals=include_visuals,
+            ),
+            timeout=480.0
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail="La extracción tardó demasiado. Intenta con menos contenido o sube la información como texto."
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("extract_full_brand_error",
+                     tenant_id=str(current_user.tenant_id),
+                     error=str(e),
+                     error_type=type(e).__name__)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error interno en la extracción: {type(e).__name__}: {str(e)[:200]}"
+        )
+
+    # Log response summary
+    result_dict = result.model_dump(mode='json') if result else {}
+    logger.info("extract_full_brand_response",
+                tenant_id=str(current_user.tenant_id),
+                has_identity=bool(result_dict.get("identity", {}).get("brand_name")),
+                has_story=bool(result_dict.get("story", {}).get("origin_story")),
+                has_strategy=bool(result_dict.get("strategy", {}).get("value_proposition")),
+                team_count=len(result_dict.get("team") or []),
+                testimonials_count=len(result_dict.get("testimonials") or []),
+                authority_count=len(result_dict.get("authority_vault") or []),
+                response_keys=list(result_dict.keys()))
+
+    return result

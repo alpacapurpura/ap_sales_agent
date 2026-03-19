@@ -27,12 +27,22 @@ export const brandApi = {
                 console.warn("[BrandAPI] Settings not found (404), returning empty object");
                 return {} as BrandSettings;
             }
-            
+
             const errorText = await res.text().catch(() => "Unknown error");
             console.error(`[BrandAPI] Failed to fetch settings: ${res.status} ${res.statusText}`, errorText);
             throw new Error(`Failed to fetch brand settings: ${res.status} ${res.statusText}`);
         }
-        return res.json() as Promise<BrandSettings>;
+        const data = await res.json() as BrandSettings;
+        console.log("[BrandAPI] GET settings response:", {
+            hasIdentity: !!data.identity?.brand_name,
+            hasStory: !!(data.story as any)?.origin_story,
+            hasStrategy: !!(data.strategy as any)?.value_proposition,
+            teamCount: data.team?.length || 0,
+            testimonialsCount: data.testimonials?.length || 0,
+            authorityCount: data.authority_vault?.length || 0,
+            keys: Object.keys(data),
+        });
+        return data;
     },
 
     updateBrandSettings: async (data: BrandSettings, token: string): Promise<BrandSettings> => {
@@ -64,6 +74,16 @@ export const brandApi = {
 
     extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<BrandSettings> => {
         const result = await aiActionsApi.extractFullBrand(data, token);
-        return result as BrandSettings;
+        const brandResult = result as BrandSettings;
+        console.log("[BrandAPI] extractFullBrand response:", {
+            hasIdentity: !!brandResult?.identity?.brand_name,
+            hasStory: !!(brandResult?.story as any)?.origin_story,
+            hasStrategy: !!(brandResult?.strategy as any)?.value_proposition,
+            teamCount: brandResult?.team?.length || 0,
+            testimonialsCount: brandResult?.testimonials?.length || 0,
+            authorityCount: brandResult?.authority_vault?.length || 0,
+            keys: Object.keys(brandResult || {}),
+        });
+        return brandResult;
     }
 };

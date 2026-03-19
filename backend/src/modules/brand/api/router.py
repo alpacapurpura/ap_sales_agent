@@ -25,7 +25,18 @@ async def get_brand_settings(
     
     repo = BrandRepository(db)
     settings = repo.get_settings(current_user.tenant_id)
-    
+
+    # Log what we're returning
+    settings_dict = settings.model_dump(mode='json')
+    logger.info("get_brand_settings_response",
+                tenant_id=str(current_user.tenant_id),
+                has_identity=bool(settings_dict.get("identity", {}).get("brand_name")),
+                has_story=bool(settings_dict.get("story", {}).get("origin_story")),
+                has_strategy=bool(settings_dict.get("strategy", {}).get("value_proposition")),
+                team_count=len(settings_dict.get("team") or []),
+                testimonials_count=len(settings_dict.get("testimonials") or []),
+                response_keys=list(settings_dict.keys()))
+
     # Validation/Defaulting handled by Pydantic
     return settings
 
