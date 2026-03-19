@@ -161,7 +161,7 @@ export function BrandStudioLayout({
             {/* BODY - Editorial Style (Clean, No Cards) */}
             <div className="space-y-20 px-6 md:px-12">
 
-                {/* BLOQUE 1: EL ADN (Estrategia & Historia) */}
+                {/* BLOQUE I: EL ADN (Estrategia & Historia) */}
                 <div className="space-y-12">
                     <div className="border-b pb-4">
                         <h2 className="text-2xl font-bold tracking-tight text-foreground/80">I. El ADN de Marca</h2>
@@ -181,30 +181,46 @@ export function BrandStudioLayout({
                         />
                     </div>
 
-                    <div id="story" className="space-y-12">
+                    <div id="story">
                          <StorySection
                             story={settings.story ?? {}}
                             visuals={settings.visuals ?? {}}
                             onEdit={() => openEdit("story")}
                         />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <VoiceSection
-                                identity={settings.identity ?? {}}
-                                onEdit={() => openEdit("voice")}
-                            />
-                            <AvatarsSection
-                                visuals={settings.visuals ?? {}}
-                                onEdit={(item) => openEdit("avatars", item)}
-                            />
-                        </div>
                     </div>
                 </div>
 
-                {/* BLOQUE 2: UNIVERSO VISUAL */}
+                {/* BLOQUE II: VOZ & COMUNICACION */}
+                <div id="voice" className="space-y-12">
+                    <div className="border-b pb-4">
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground/80">II. Voz & Comunicaci&oacute;n</h2>
+                        <p className="text-muted-foreground mt-1">Idioma, tono y estilo de comunicaci&oacute;n.</p>
+                    </div>
+
+                    <VoiceSection
+                        identity={settings.identity ?? {}}
+                        onEdit={() => openEdit("voice")}
+                    />
+                </div>
+
+                {/* BLOQUE III: PUBLICO */}
+                <div id="avatars" className="space-y-12">
+                    <div className="border-b pb-4">
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground/80">III. P&uacute;blico</h2>
+                        <p className="text-muted-foreground mt-1">Tu cliente ideal y buyer personas.</p>
+                    </div>
+
+                    <AvatarsSection
+                        visuals={settings.visuals ?? {}}
+                        onEdit={(item) => openEdit("avatars", item)}
+                    />
+                </div>
+
+                {/* BLOQUE IV: UNIVERSO VISUAL */}
                 <div className="space-y-12">
                     <div className="border-b pb-4">
-                        <h2 className="text-2xl font-bold tracking-tight text-foreground/80">II. Universo Visual</h2>
-                        <p className="text-muted-foreground mt-1">Look & Feel, Colores y Galería.</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground/80">IV. Universo Visual</h2>
+                        <p className="text-muted-foreground mt-1">Look & Feel, Colores y Galer&iacute;a.</p>
                     </div>
 
                     <div id="visuals">
@@ -220,10 +236,10 @@ export function BrandStudioLayout({
                     </div>
                 </div>
 
-                {/* BLOQUE 3: VALIDACIÓN SOCIAL */}
+                {/* BLOQUE V: VALIDACION SOCIAL */}
                 <div className="space-y-12">
                     <div className="border-b pb-4">
-                        <h2 className="text-2xl font-bold tracking-tight text-foreground/80">III. Validación Social</h2>
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground/80">V. Validaci&oacute;n Social</h2>
                         <p className="text-muted-foreground mt-1">Equipo, Testimonios y Autoridad.</p>
                     </div>
 

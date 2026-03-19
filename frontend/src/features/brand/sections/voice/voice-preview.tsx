@@ -21,8 +21,8 @@ export function VoiceSection({ identity, onEdit }: VoiceSectionProps) {
       </div>
 
       <div className="pl-0 md:pl-14">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-             <div className="space-y-2">
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+             <div className="md:col-span-1 space-y-2">
                  <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Languages className="w-3 h-3" /> Idioma Principal
                  </h4>
@@ -30,9 +30,9 @@ export function VoiceSection({ identity, onEdit }: VoiceSectionProps) {
                      {identity.language || "Español"}
                  </p>
              </div>
-             
+
              {/* Placeholder for Tone/Style */}
-             <div className="space-y-2 opacity-50">
+             <div className="md:col-span-3 space-y-2 opacity-50">
                  <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Tono de Voz</h4>
                  <p className="text-lg text-muted-foreground italic">
                      &quot;Cercano, profesional y directo.&quot; (Ejemplo)

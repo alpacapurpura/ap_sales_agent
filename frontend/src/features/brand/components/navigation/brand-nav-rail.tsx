@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { 
-  Building2, Target, BookOpen, Palette, Users, Award, MessageSquare, Contact, CheckCircle2, AlertCircle, Circle, ChevronRight, Image as ImageIcon, MessageSquareQuote, Scale
+import {
+  Building2, Target, BookOpen, Palette, Users, Award, MessageSquare, Contact, CheckCircle2, AlertCircle, Circle, ChevronRight, Image as ImageIcon, MessageSquareQuote, Scale, UserSearch
 } from "lucide-react";
 import { BrandSettings } from "@/features/brand/types";
-import { 
-  validateIdentity, 
-  validateStrategy, 
-  validateStory, 
-  validateVisuals, 
-  validateTeam, 
+import {
+  validateIdentity,
+  validateStrategy,
+  validateStory,
+  validateVoice,
+  validateAvatars,
+  validateVisuals,
+  validateTeam,
   validateAuthority,
   validateContact,
   getBrandHealth,
@@ -30,7 +32,7 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
   const [isHovered, setIsHovered] = useState(false);
   const health = getBrandHealth(settings);
 
-  // Grouped Navigation Items
+  // Grouped Navigation Items (5 blocks + Operaciones)
   const navGroups = [
     {
       title: "I. ADN de Marca",
@@ -41,17 +43,29 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
       ]
     },
     {
-      title: "II. Universo Visual",
+      title: "II. Voz",
       items: [
-        { id: "visuals", label: "Visuales", icon: Palette, status: validateVisuals(settings.visuals ?? {}) },
-        { id: "gallery", label: "Galería", icon: ImageIcon, status: { status: "optional", message: "Opcional" } as any }, // TODO: Add validator
+        { id: "voice", label: "Voz & Comunicacion", icon: MessageSquare, status: validateVoice(settings.identity ?? {}) },
       ]
     },
     {
-      title: "III. Validación Social",
+      title: "III. Publico",
+      items: [
+        { id: "avatars", label: "Target & Personas", icon: UserSearch, status: validateAvatars(settings.visuals ?? {}) },
+      ]
+    },
+    {
+      title: "IV. Universo Visual",
+      items: [
+        { id: "visuals", label: "Visuales", icon: Palette, status: validateVisuals(settings.visuals ?? {}) },
+        { id: "gallery", label: "Galeria", icon: ImageIcon, status: { status: "optional", message: "Opcional" } as any },
+      ]
+    },
+    {
+      title: "V. Validacion Social",
       items: [
         { id: "team", label: "Equipo", icon: Users, status: validateTeam(settings.team ?? []) },
-        { id: "testimonials", label: "Testimonios", icon: MessageSquareQuote, status: { status: "optional", message: "Opcional" } as any }, // TODO: Add validator
+        { id: "testimonials", label: "Testimonios", icon: MessageSquareQuote, status: { status: "optional", message: "Opcional" } as any },
         { id: "authority", label: "Autoridad", icon: Award, status: validateAuthority(settings.authority_vault ?? []) },
       ]
     },
