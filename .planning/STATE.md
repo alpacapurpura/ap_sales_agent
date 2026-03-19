@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 Phase: 9 of 11 (Stages 5-6 Adoption & Expansion)
 Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-03-19 - Completed quick task 260319-ls1: Reorganizar Brand Studio preview (5 bloques, health check 9 secciones)
+Last activity: 2026-03-19 - Completed quick task 260319-m95: Remove Roman numeral group titles from Brand Studio nav rail
 
 Progress: [█████████▊] 97%
 
@@ -226,6 +226,7 @@ None yet.
 | 260319-gxp | Fix visual identity extraction (CSS-preserving extractor, brandbook prompt, 7th pipeline section) | 2026-03-19 | 0a86245, cda0834 | | [260319-gxp-fix-visual-identity-extraction-poor-qual](./quick/260319-gxp-fix-visual-identity-extraction-poor-qual/) |
 | 260319-hdo | Fix image gallery upload error (assets.file_path NOT NULL violation + better error messages) | 2026-03-19 | 462b8d8, 1a120d9 | | [260319-hdo-fix-image-gallery-upload-error-diagnose-](./quick/260319-hdo-fix-image-gallery-upload-error-diagnose-/) |
 | 260319-ls1 | Reorganize Brand Studio preview from 3 blocks to 5 (Voice + Publico independent) | 2026-03-19 | bfac18b, 7cea906 | | [260319-ls1-reorganizar-brand-studio-preview-separar](./quick/260319-ls1-reorganizar-brand-studio-preview-separar/) |
+| 260319-m95 | Remove Roman numeral group titles from Brand Studio nav rail | 2026-03-19 | e2ddcdf | | [260319-m95-elimina-los-t-tulos-en-n-meros-romanos-e](./quick/260319-m95-elimina-los-t-tulos-en-n-meros-romanos-e/) |
 
 ## Session Continuity
 
