@@ -121,6 +121,24 @@ export const validateAuthority = (vault: AuthorityItem[]): StatusResult => {
   return { status: "complete", label: "Autoridad Activa", missingFields: [], score: 100 };
 };
 
+export const validateVoice = (identity: BrandIdentity): StatusResult => {
+  const missing: string[] = [];
+  if (!identity) return { status: "empty", label: "Pendiente", missingFields: ["Idioma Principal", "Tono de Voz"], score: 0 };
+
+  if (!identity.language) missing.push("Idioma Principal");
+  // BrandIdentity does not have a tone_of_voice field yet — treat as always missing for now
+  missing.push("Tono de Voz");
+
+  const criticalMissing = false; // language defaults to "Español" in UI
+  return calculateStatus(missing, 2, criticalMissing);
+};
+
+export const validateAvatars = (visuals: BrandVisuals): StatusResult => {
+  // TODO: Integrate with avatars API count when available in BrandSettings.
+  // Avatars are fetched via React Query in the component, not stored in BrandSettings directly.
+  return { status: "partial", label: "Revisar", missingFields: ["Buyer Personas"], score: 50 };
+};
+
 // Item Level Validation
 
 export const validateTeamMember = (member: KeyFigure): StatusResult => {
@@ -149,11 +167,13 @@ export const getBrandHealth = (settings: BrandSettings): number => {
     validateIdentity(settings.identity ?? {}).score,
     validateStrategy(settings.strategy ?? { competitors: [], methodology_pillars: [] }).score,
     validateStory(settings.story ?? {}).score,
+    validateVoice(settings.identity ?? {}).score,
+    validateAvatars(settings.visuals ?? {}).score,
     validateVisuals(settings.visuals ?? {}).score,
     validateTeam(settings.team ?? []).score,
     validateContact(settings.contact ?? {}).score,
     validateAuthority(settings.authority_vault ?? []).score
   ];
-  
+
   return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 };
