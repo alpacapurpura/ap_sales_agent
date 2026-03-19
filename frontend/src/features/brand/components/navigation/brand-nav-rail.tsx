@@ -35,7 +35,6 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
   // Grouped Navigation Items (5 blocks + Operaciones)
   const navGroups = [
     {
-      title: "I. ADN de Marca",
       items: [
         { id: "identity", label: "Identidad", icon: Building2, status: validateIdentity(settings.identity ?? {}) },
         { id: "strategy", label: "Estrategia", icon: Target, status: validateStrategy(settings.strategy ?? { competitors: [], methodology_pillars: [] }) },
@@ -43,26 +42,22 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
       ]
     },
     {
-      title: "II. Voz",
       items: [
         { id: "voice", label: "Voz & Comunicacion", icon: MessageSquare, status: validateVoice(settings.identity ?? {}) },
       ]
     },
     {
-      title: "III. Publico",
       items: [
         { id: "avatars", label: "Target & Personas", icon: UserSearch, status: validateAvatars(settings.visuals ?? {}) },
       ]
     },
     {
-      title: "IV. Universo Visual",
       items: [
         { id: "visuals", label: "Visuales", icon: Palette, status: validateVisuals(settings.visuals ?? {}) },
         { id: "gallery", label: "Galeria", icon: ImageIcon, status: { status: "optional", message: "Opcional" } as any },
       ]
     },
     {
-      title: "V. Validacion Social",
       items: [
         { id: "team", label: "Equipo", icon: Users, status: validateTeam(settings.team ?? []) },
         { id: "testimonials", label: "Testimonios", icon: MessageSquareQuote, status: { status: "optional", message: "Opcional" } as any },
@@ -70,7 +65,6 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
       ]
     },
     {
-      title: "Operaciones",
       items: [
         { id: "contact", label: "Contacto", icon: Contact, status: validateContact(settings.contact ?? {}) },
         { id: "legal", label: "Legales", icon: Scale, status: { status: "optional", message: "Revisar" } as any }
@@ -127,18 +121,10 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
       </div>
 
       {/* BODY: Navigation Items */}
-      <nav className="flex-1 py-4 flex flex-col gap-6 overflow-y-auto overflow-x-hidden scrollbar-hide">
+      <nav className="flex-1 py-4 flex flex-col gap-3 overflow-y-auto overflow-x-hidden scrollbar-hide">
         <TooltipProvider delayDuration={0}>
           {navGroups.map((group, groupIdx) => (
-            <div key={groupIdx} className="flex flex-col gap-1">
-              {/* Group Title (Only visible when expanded) */}
-              <div className={cn(
-                  "px-4 py-1 text-xs font-semibold text-muted-foreground/50 uppercase tracking-wider transition-opacity duration-300",
-                  isHovered ? "opacity-100 delay-75" : "opacity-0 w-0 h-0 overflow-hidden"
-              )}>
-                {group.title}
-              </div>
-
+            <div key={groupIdx} className={cn("flex flex-col gap-1", groupIdx > 0 && "border-t border-muted/20 pt-3")}>
               {group.items.map((item) => {
                 const isActive = activeSection === item.id;
                 const isComplete = item.status.status === "complete";
