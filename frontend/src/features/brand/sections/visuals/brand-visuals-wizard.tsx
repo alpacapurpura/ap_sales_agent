@@ -41,12 +41,17 @@ export function BrandVisualsWizard({
   const [step, setStep] = useState<"select-source" | "preview">("select-source");
   const [selectedVisuals, setSelectedVisuals] = useState<BrandVisuals>(currentVisuals);
   const [analyzing, setAnalyzing] = useState(false);
+  const [webUrl, setWebUrl] = useState(websiteUrl || "");
   const { getToken } = useAuth();
 
   // --- ACTIONS ---
 
   const handleAnalyzeWeb = async () => {
-    if (!websiteUrl) return;
+    const urlToScan = webUrl.trim();
+    if (!urlToScan) {
+      toast.error("Ingresa la URL de tu sitio web.");
+      return;
+    }
     setAnalyzing(true);
     
     try {
@@ -54,7 +59,7 @@ export function BrandVisualsWizard({
         if (!token) throw new Error("No auth token");
 
         toast.info("Analizando sitio web... Esto puede tomar unos segundos.");
-        const extracted = await brandApi.extractBrandVisuals(websiteUrl, token);
+        const extracted = await brandApi.extractBrandVisuals(urlToScan, token);
         
         setSelectedVisuals({
             ...selectedVisuals,
@@ -173,7 +178,11 @@ export function BrandVisualsWizard({
                             <CardContent className="space-y-4 mt-auto">
                                 <div className="space-y-2">
                                     <Label>URL del Sitio</Label>
-                                    <Input defaultValue={websiteUrl || "https://"} disabled={!!websiteUrl} />
+                                    <Input
+                                      value={webUrl}
+                                      onChange={(e) => setWebUrl(e.target.value)}
+                                      placeholder="https://tusitio.com"
+                                    />
                                 </div>
                                 <Button className="w-full" onClick={handleAnalyzeWeb} disabled={analyzing}>
                                     {analyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Escanear Web"}
