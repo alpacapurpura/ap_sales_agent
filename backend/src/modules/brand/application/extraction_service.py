@@ -181,13 +181,15 @@ class BrandExtractionService:
                     current_data_length=len(current_data_str)
         )
 
-        # 3. Run Extractions
-        # We pass current_data and instructions to prompts
-        
-        identity = await self._extract_identity(content, current_data_str, update_instructions)
-        story = await self._extract_story(content, current_data_str, update_instructions)
-        strategy = await self._extract_strategy(content, current_data_str, update_instructions)
-        team_wrapper = await self._extract_team(content, current_data_str, update_instructions)
+        # 3. Run Extractions concurrently (each uses asyncio.to_thread internally)
+        logger.info("starting_llm_extractions", sections=4, concurrent=True)
+
+        identity, story, strategy, team_wrapper = await asyncio.gather(
+            self._extract_identity(content, current_data_str, update_instructions),
+            self._extract_story(content, current_data_str, update_instructions),
+            self._extract_strategy(content, current_data_str, update_instructions),
+            self._extract_team(content, current_data_str, update_instructions),
+        )
         
         # 4. Merge & Save
         return self._merge_and_save(identity, story, strategy, team_wrapper, extracted_visuals, dry_run=dry_run)
@@ -200,7 +202,8 @@ class BrandExtractionService:
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            return self.ai_action_service.run_structured_action(
+            return await asyncio.to_thread(
+                self.ai_action_service.run_structured_action,
                 action_name="brand_extract_identity",
                 tenant_id=self.tenant_id,
                 system_prompt=self._append_schema_instruction(prompt, BrandIdentity),
@@ -220,7 +223,8 @@ class BrandExtractionService:
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            return self.ai_action_service.run_structured_action(
+            return await asyncio.to_thread(
+                self.ai_action_service.run_structured_action,
                 action_name="brand_extract_story",
                 tenant_id=self.tenant_id,
                 system_prompt=self._append_schema_instruction(prompt, BrandStory),
@@ -240,7 +244,8 @@ class BrandExtractionService:
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            return self.ai_action_service.run_structured_action(
+            return await asyncio.to_thread(
+                self.ai_action_service.run_structured_action,
                 action_name="brand_extract_strategy",
                 tenant_id=self.tenant_id,
                 system_prompt=self._append_schema_instruction(prompt, BrandStrategy),
@@ -260,7 +265,8 @@ class BrandExtractionService:
                 current_data=current_data or "None",
                 instructions=instructions or "None"
             )
-            return self.ai_action_service.run_structured_action(
+            return await asyncio.to_thread(
+                self.ai_action_service.run_structured_action,
                 action_name="brand_extract_team",
                 tenant_id=self.tenant_id,
                 system_prompt=self._append_schema_instruction(prompt, BrandTeamWrapper),
