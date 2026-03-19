@@ -127,86 +127,88 @@ def render_users_view():
             selected_user_id = user_options_map[selected_user_label]
 
             # Fetch fresh user object for actions
-            db = SessionLocal()
-            target_user = db.query(User).filter(User.id == selected_user_id).first()
-            
-            if target_user:
-                col_act1, col_act2 = st.columns(2)
-                
-                # Action: Change Password
-                with col_act1:
-                    with st.container(border=True):
-                        st.markdown("#### 🔐 Cambiar Contraseña")
-                        with st.form("change_pwd_form"):
-                            new_pass = st.text_input("Nueva Contraseña", type="password", help="Mínimo 8 caracteres")
-                            submit_pass = st.form_submit_button("Actualizar Password")
-                            
-                            if submit_pass:
-                                if not new_pass or len(new_pass) < 8:
-                                    st.error("La contraseña debe tener al menos 8 caracteres.")
-                                elif not target_user.clerk_id:
-                                    st.error("❌ Este usuario no tiene Clerk ID vinculado. No se puede cambiar password.")
-                                else:
-                                    clerk = ClerkService()
-                                    try:
-                                        if clerk.update_user_password(target_user.clerk_id, new_pass):
-                                            st.success("✅ Contraseña actualizada exitosamente en Clerk.")
-                                        else:
-                                            st.error("❌ Error al actualizar en Clerk. Verifique logs (Posible password débil o pwned).")
-                                    except Exception as e:
-                                        st.error(f"❌ Error Clerk: {e}")
+            db_actions = SessionLocal()
+            try:
+                target_user = db_actions.query(User).filter(User.id == selected_user_id).first()
 
-                # Action: Block/Unblock
-                with col_act2:
-                    with st.container(border=True):
-                        st.markdown("#### 🚫 Gestión de Acceso")
-                        status_label = "Activo" if target_user.is_active else "Bloqueado"
-                        status_color = "green" if target_user.is_active else "red"
-                        st.markdown(f"Estado Actual: :{status_color}[**{status_label}**]")
-                        
-                        clerk = ClerkService()
-                        
-                        if target_user.is_active:
-                            if st.button("🔴 Bloquear (Banear) Usuario", type="primary", use_container_width=True):
-                                # 1. Ban in Clerk
-                                clerk_success = True
-                                if target_user.clerk_id:
-                                    if not clerk.ban_user(target_user.clerk_id):
-                                        st.warning("⚠️ No se pudo banear en Clerk (o no existe), pero se bloqueará localmente.")
-                                        clerk_success = False
-                                
-                                # 2. Update DB Local
-                                target_user.is_active = False
-                                db.commit()
-                                
-                                if clerk_success:
-                                    st.success("Usuario baneado en Clerk y DB local.")
-                                else:
-                                    st.success("Usuario bloqueado localmente (Fallo en Clerk).")
-                                    
-                                time.sleep(1)
-                                st.rerun()
-                        else:
-                            if st.button("🟢 Desbloquear (Reactivar) Usuario", type="secondary", use_container_width=True):
-                                # 1. Unban in Clerk
-                                clerk_success = True
-                                if target_user.clerk_id:
-                                    if not clerk.unban_user(target_user.clerk_id):
-                                        st.warning("⚠️ No se pudo desbanear en Clerk, pero se activará localmente.")
-                                        clerk_success = False
-                                
-                                # 2. Update DB Local
-                                target_user.is_active = True
-                                db.commit()
-                                
-                                if clerk_success:
-                                    st.success("Usuario reactivado en Clerk y DB local.")
-                                else:
-                                    st.success("Usuario reactivado localmente.")
-                                    
-                                time.sleep(1)
-                                st.rerun()
-            db.close()
+                if target_user:
+                    col_act1, col_act2 = st.columns(2)
+
+                    # Action: Change Password
+                    with col_act1:
+                        with st.container(border=True):
+                            st.markdown("#### 🔐 Cambiar Contraseña")
+                            with st.form("change_pwd_form"):
+                                new_pass = st.text_input("Nueva Contraseña", type="password", help="Mínimo 8 caracteres")
+                                submit_pass = st.form_submit_button("Actualizar Password")
+
+                                if submit_pass:
+                                    if not new_pass or len(new_pass) < 8:
+                                        st.error("La contraseña debe tener al menos 8 caracteres.")
+                                    elif not target_user.clerk_id:
+                                        st.error("❌ Este usuario no tiene Clerk ID vinculado. No se puede cambiar password.")
+                                    else:
+                                        clerk = ClerkService()
+                                        try:
+                                            if clerk.update_user_password(target_user.clerk_id, new_pass):
+                                                st.success("✅ Contraseña actualizada exitosamente en Clerk.")
+                                            else:
+                                                st.error("❌ Error al actualizar en Clerk. Verifique logs (Posible password débil o pwned).")
+                                        except Exception as e:
+                                            st.error(f"❌ Error Clerk: {e}")
+
+                    # Action: Block/Unblock
+                    with col_act2:
+                        with st.container(border=True):
+                            st.markdown("#### 🚫 Gestión de Acceso")
+                            status_label = "Activo" if target_user.is_active else "Bloqueado"
+                            status_color = "green" if target_user.is_active else "red"
+                            st.markdown(f"Estado Actual: :{status_color}[**{status_label}**]")
+
+                            clerk = ClerkService()
+
+                            if target_user.is_active:
+                                if st.button("🔴 Bloquear (Banear) Usuario", type="primary", use_container_width=True):
+                                    # 1. Ban in Clerk
+                                    clerk_success = True
+                                    if target_user.clerk_id:
+                                        if not clerk.ban_user(target_user.clerk_id):
+                                            st.warning("⚠️ No se pudo banear en Clerk (o no existe), pero se bloqueará localmente.")
+                                            clerk_success = False
+
+                                    # 2. Update DB Local
+                                    target_user.is_active = False
+                                    db_actions.commit()
+
+                                    if clerk_success:
+                                        st.success("Usuario baneado en Clerk y DB local.")
+                                    else:
+                                        st.success("Usuario bloqueado localmente (Fallo en Clerk).")
+
+                                    time.sleep(1)
+                                    st.rerun()
+                            else:
+                                if st.button("🟢 Desbloquear (Reactivar) Usuario", type="secondary", use_container_width=True):
+                                    # 1. Unban in Clerk
+                                    clerk_success = True
+                                    if target_user.clerk_id:
+                                        if not clerk.unban_user(target_user.clerk_id):
+                                            st.warning("⚠️ No se pudo desbanear en Clerk, pero se activará localmente.")
+                                            clerk_success = False
+
+                                    # 2. Update DB Local
+                                    target_user.is_active = True
+                                    db_actions.commit()
+
+                                    if clerk_success:
+                                        st.success("Usuario reactivado en Clerk y DB local.")
+                                    else:
+                                        st.success("Usuario reactivado localmente.")
+
+                                    time.sleep(1)
+                                    st.rerun()
+            finally:
+                db_actions.close()
 
     # --- TAB 2: CREATE / ASSIGN USER ---
     with tab_create:
@@ -219,7 +221,7 @@ def render_users_view():
                 new_email = st.text_input("Correo Electrónico (Obligatorio)")
                 new_name = st.text_input("Nombre Completo (Solo para nuevos)")
             with col_new2:
-                new_pass = st.text_input("Contraseña Inicial (Solo para nuevos)", type="password")
+                new_pass = st.text_input("Contraseña Inicial (Solo para nuevos)", type="password", help="Solo aplica al crear usuarios nuevos. Para existentes, use 'Cambiar Contraseña' en la pestaña de usuarios.")
                 new_role = st.selectbox("Rol en este Tenant", ["admin", "member", "viewer"], index=0)
 
             submitted_create = st.form_submit_button("🚀 Crear o Asignar Usuario")
@@ -265,6 +267,10 @@ def render_users_view():
                                             "role": new_role
                                         })
 
+                                    # Warn if admin entered a password — it won't be used for existing users
+                                    if new_pass:
+                                        st.warning("⚠️ La contraseña no se actualizó porque el usuario ya existe. Use la sección 'Cambiar Contraseña' en la pestaña de usuarios.")
+
                                     # Add to Clerk Organization
                                     tenant_model = db.query(Tenant).filter(Tenant.id == selected_tenant_id).first()
                                     if tenant_model and existing_user.clerk_id:
@@ -308,6 +314,9 @@ def render_users_view():
                                             u_clerk = clerk.get_user_by_email(new_email)
                                             if u_clerk:
                                                 created_clerk_id = u_clerk.get("id")
+                                                # Set the password the admin intended
+                                                if new_pass and created_clerk_id:
+                                                    clerk.update_user_password(created_clerk_id, new_pass)
                                         else:
                                             raise e_clerk
 
