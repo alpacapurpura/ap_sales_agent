@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Globe, Upload, Palette, CheckCircle2, Loader2, Sparkles, RefreshCcw } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Globe, Upload, Palette, CheckCircle2, Loader2, Sparkles, RefreshCcw, AlertTriangle, WifiOff } from "lucide-react";
 import { BrandVisuals } from "@/features/brand/types";
 import { brandApi } from "@/features/brand/api";
 import ColorThief from "colorthief";
@@ -41,6 +43,9 @@ export function BrandVisualsWizard({
   const [step, setStep] = useState<"select-source" | "preview">("select-source");
   const [selectedVisuals, setSelectedVisuals] = useState<BrandVisuals>(currentVisuals);
   const [analyzing, setAnalyzing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState<string>("");
+  const [errorState, setErrorState] = useState<{ type: "timeout" | "generic"; message: string } | null>(null);
   const [webUrl, setWebUrl] = useState(websiteUrl || "");
   const { getToken } = useAuth();
 
@@ -52,37 +57,77 @@ export function BrandVisualsWizard({
       toast.error("Ingresa la URL de tu sitio web.");
       return;
     }
-    setAnalyzing(true);
-    
+
+    let progressInterval: NodeJS.Timeout | undefined;
+    const stageTimeouts: NodeJS.Timeout[] = [];
+
     try {
         const token = await getToken();
         if (!token) throw new Error("No auth token");
 
-        toast.info("Analizando sitio web... Esto puede tomar unos segundos.");
+        setAnalyzing(true);
+        setErrorState(null);
+        setProgress(5);
+        setStage("Iniciando escaneo visual...");
+
+        // Asymptotic progress simulation
+        progressInterval = setInterval(() => {
+            setProgress((prev) => {
+                if (prev >= 90) return prev;
+                const increment = Math.max(0.5, (90 - prev) / 50);
+                return Math.min(prev + increment, 90);
+            });
+        }, 800);
+
+        // Stage messages specific to visual extraction
+        stageTimeouts.push(setTimeout(() => setStage("Escaneando sitio web..."), 2000));
+        stageTimeouts.push(setTimeout(() => setStage("Analizando paleta de colores..."), 6000));
+        stageTimeouts.push(setTimeout(() => setStage("Detectando tipografias..."), 12000));
+        stageTimeouts.push(setTimeout(() => setStage("Extrayendo estilo de diseno..."), 18000));
+        stageTimeouts.push(setTimeout(() => setStage("Generando reglas de uso..."), 24000));
+
         const extracted = await brandApi.extractBrandVisuals(urlToScan, token);
-        
-        setSelectedVisuals({
-            ...selectedVisuals,
-            primary_color: extracted.primary_color,
-            accent_color: extracted.accent_color,
-            font_heading: extracted.font_heading || selectedVisuals.font_heading,
-            font_body: extracted.font_body || selectedVisuals.font_body,
-            style_preset: "custom-web",
-            // New fields
-            background_color: extracted.background_color,
-            text_primary_color: extracted.text_primary_color,
-            text_on_primary: extracted.text_on_primary,
-            design_style: extracted.design_style,
-            usage_guidelines: extracted.usage_guidelines
-        });
-        
-        setStep("preview");
-        toast.success("¡Identidad visual detectada!");
-        
-    } catch (error) {
+
+        if (progressInterval) clearInterval(progressInterval);
+        stageTimeouts.forEach(t => clearTimeout(t));
+        setProgress(100);
+        setStage("Identidad visual detectada!");
+
+        setTimeout(() => {
+            setSelectedVisuals({
+                ...selectedVisuals,
+                primary_color: extracted.primary_color,
+                accent_color: extracted.accent_color,
+                font_heading: extracted.font_heading || selectedVisuals.font_heading,
+                font_body: extracted.font_body || selectedVisuals.font_body,
+                style_preset: "custom-web",
+                background_color: extracted.background_color,
+                text_primary_color: extracted.text_primary_color,
+                text_on_primary: extracted.text_on_primary,
+                design_style: extracted.design_style,
+                usage_guidelines: extracted.usage_guidelines
+            });
+            setStep("preview");
+            setAnalyzing(false);
+            setProgress(0);
+            setStage("");
+        }, 800);
+
+    } catch (error: any) {
+        if (progressInterval) clearInterval(progressInterval);
+        stageTimeouts.forEach(t => clearTimeout(t));
         console.error(error);
-        toast.error("Error al analizar el sitio web. Verifica la URL.");
-    } finally {
+
+        const isTimeout = error.message?.includes("Failed to fetch") ||
+            error.message?.includes("Network request failed") ||
+            error.message?.startsWith("TIMEOUT:");
+
+        setErrorState({
+            type: isTimeout ? "timeout" : "generic",
+            message: error.message || "Error desconocido"
+        });
+        setStage("Proceso interrumpido");
+        setProgress(0);
         setAnalyzing(false);
     }
   };
@@ -146,8 +191,8 @@ export function BrandVisualsWizard({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent 
+    <Dialog open={isOpen} onOpenChange={(val) => { if (!analyzing) onOpenChange(val); }}>
+      <DialogContent
         className="max-w-4xl h-[80vh] flex flex-col p-0 overflow-hidden"
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -165,6 +210,46 @@ export function BrandVisualsWizard({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 bg-muted/10">
+                    {/* Error State */}
+                    {errorState && !analyzing && (
+                        <Alert variant="destructive" className="mb-6 animate-in shake">
+                            {errorState.type === "timeout" ? <WifiOff className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+                            <AlertTitle>
+                                {errorState.type === "timeout" ? "El analisis tardo demasiado" : "Error en el analisis visual"}
+                            </AlertTitle>
+                            <AlertDescription className="mt-2 text-sm">
+                                {errorState.type === "timeout" ? (
+                                    <div className="space-y-2">
+                                        <p>El analisis tardo mas de lo esperado y la conexion se cerro.</p>
+                                        <p className="font-semibold">Sugerencia: Intenta de nuevo o verifica la URL.</p>
+                                    </div>
+                                ) : (
+                                    errorState.message
+                                )}
+                            </AlertDescription>
+                            <div className="mt-4">
+                                <Button variant="outline" size="sm" onClick={() => setErrorState(null)} className="bg-background/50">
+                                    Intentar de nuevo
+                                </Button>
+                            </div>
+                        </Alert>
+                    )}
+
+                    {/* Processing State */}
+                    {analyzing ? (
+                        <div className="py-8 space-y-6 text-center flex flex-col items-center justify-center h-full">
+                            <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+                                <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+                                <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                                <Palette className="w-8 h-8 text-primary animate-pulse" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-medium">{stage}</h3>
+                                <Progress value={progress} className="h-2 w-full max-w-xs mx-auto" />
+                                <p className="text-sm text-muted-foreground">Esto puede tomar hasta 1 minuto...</p>
+                            </div>
+                        </div>
+                    ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full items-center">
                         {/* Option 1: Website */}
                         <Card className="cursor-pointer hover:border-primary/50 transition-all hover:shadow-md h-full flex flex-col">
@@ -244,6 +329,7 @@ export function BrandVisualsWizard({
                             </CardContent>
                         </Card>
                     </div>
+                    )}
                 </div>
             </>
         ) : (
