@@ -19,6 +19,17 @@ export interface Asset {
 
 const API_URL = config.api.baseUrl;
 
+async function throwWithDetail(res: Response, fallback: string): Promise<never> {
+  let detail = fallback;
+  try {
+    const body = await res.json();
+    if (body.detail) detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+  } catch {
+    try { const t = await res.text(); if (t) detail = t; } catch { /* ignore */ }
+  }
+  throw new Error(detail);
+}
+
 export const assetsApi = {
   upload: async (token: string, file: File, description?: string, offer_id?: string): Promise<Asset> => {
     const formData = new FormData();
@@ -34,7 +45,7 @@ export const assetsApi = {
       body: formData,
     });
 
-    if (!res.ok) throw new Error("Upload failed");
+    if (!res.ok) await throwWithDetail(res, "Upload failed");
     return res.json();
   },
 
@@ -52,7 +63,7 @@ export const assetsApi = {
       },
     });
 
-    if (!res.ok) throw new Error("Failed to list assets");
+    if (!res.ok) await throwWithDetail(res, "Failed to list assets");
     return res.json();
   },
 
@@ -64,6 +75,6 @@ export const assetsApi = {
       },
     });
 
-    if (!res.ok) throw new Error("Failed to delete asset");
+    if (!res.ok) await throwWithDetail(res, "Failed to delete asset");
   },
 };
