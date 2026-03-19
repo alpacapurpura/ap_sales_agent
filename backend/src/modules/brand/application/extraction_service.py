@@ -442,15 +442,17 @@ class BrandExtractionService:
     ) -> BrandSettings:
         """
         Orchestrates the full brand extraction process.
+        When a URL is provided, visual identity extraction is included as the
+        7th section using CSS-enriched HTML (not stripped text).
         """
         # 1. Get Content
         content = text or ""
-        extracted_visuals = None
+        enriched_visual_content = ""
+        has_url = bool(url)
 
         if url:
             logger.info("starting_crawl", url=url)
 
-            # Parallel Execution: Crawl + Visuals
             t0 = time.time()
 
             async def safe_crawl():
@@ -460,25 +462,23 @@ class BrandExtractionService:
                     logger.error("crawl_failed", error=str(e))
                     return ""
 
-            async def safe_visuals():
-                if not include_visuals:
-                    return None
+            async def safe_crawl_styles():
                 try:
-                    return await asyncio.wait_for(extract_from_url(url, BrandVisuals), timeout=120.0)
-                except asyncio.TimeoutError:
-                    logger.error("visual_extraction_timeout", url=url)
-                    return None
+                    return await self.crawl_content_with_styles(url)
                 except Exception as e:
-                    logger.error("visual_extraction_failed", error=str(e))
-                    return None
+                    logger.error("crawl_styles_failed", error=str(e))
+                    return ""
 
-            crawled_content, extracted_visuals = await asyncio.gather(safe_crawl(), safe_visuals())
+            # Parallel: regular crawl (for text sections) + CSS-enriched crawl (for visuals)
+            crawled_content, enriched_visual_content = await asyncio.gather(
+                safe_crawl(), safe_crawl_styles()
+            )
 
             t1 = time.time()
-            logger.info("parallel_extraction_completed",
+            logger.info("parallel_crawl_completed",
                         duration=t1-t0,
                         crawl_length=len(crawled_content),
-                        visuals_success=bool(extracted_visuals)
+                        enriched_length=len(enriched_visual_content),
             )
 
             if crawled_content:
@@ -503,16 +503,30 @@ class BrandExtractionService:
 
         # 3. Run LLM extractions (wave strategy from profile)
         waves = self.profile.concurrency_waves
-        logger.info("starting_llm_extractions", sections=6, waves=waves, profile=self.profile.name)
+        total_sections = 7 if has_url and enriched_visual_content.strip() else 6
+        logger.info("starting_llm_extractions", sections=total_sections, waves=waves, profile=self.profile.name)
+
+        extracted_visuals = None
 
         if waves >= 2:
-            # Wave 1: identity, story, testimonials (lighter extractions)
-            logger.info("extraction_wave_starting", wave=1, sections=["identity", "story", "testimonials"])
-            identity, story, testimonials_data = await asyncio.gather(
+            # Wave 1: identity, story, testimonials + visuals (lighter extractions)
+            wave1_sections = ["identity", "story", "testimonials"]
+            wave1_coros = [
                 self._extract_identity(content, current_data_str, update_instructions),
                 self._extract_story(content, current_data_str, update_instructions),
                 self._extract_testimonials(content, current_data_str, update_instructions),
-            )
+            ]
+            if has_url and enriched_visual_content.strip():
+                wave1_sections.append("visuals")
+                wave1_coros.append(
+                    self._extract_visuals(enriched_visual_content, current_data_str, update_instructions)
+                )
+
+            logger.info("extraction_wave_starting", wave=1, sections=wave1_sections)
+            wave1_results = await asyncio.gather(*wave1_coros)
+            identity, story, testimonials_data = wave1_results[0], wave1_results[1], wave1_results[2]
+            if len(wave1_results) > 3:
+                extracted_visuals = wave1_results[3]
 
             # Pause between waves to let TPM budget recover
             logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
@@ -526,15 +540,23 @@ class BrandExtractionService:
                 self._extract_authority(content, current_data_str, update_instructions),
             )
         else:
-            # All 6 concurrent (for high-tier rate limits)
-            identity, story, strategy, people_contact, testimonials_data, authority_data = await asyncio.gather(
+            # All concurrent (for high-tier rate limits)
+            coros = [
                 self._extract_identity(content, current_data_str, update_instructions),
                 self._extract_story(content, current_data_str, update_instructions),
                 self._extract_strategy(content, current_data_str, update_instructions),
                 self._extract_people_contact(content, current_data_str, update_instructions),
                 self._extract_testimonials(content, current_data_str, update_instructions),
                 self._extract_authority(content, current_data_str, update_instructions),
-            )
+            ]
+            if has_url and enriched_visual_content.strip():
+                coros.append(
+                    self._extract_visuals(enriched_visual_content, current_data_str, update_instructions)
+                )
+            all_results = await asyncio.gather(*coros)
+            identity, story, strategy, people_contact, testimonials_data, authority_data = all_results[:6]
+            if len(all_results) > 6:
+                extracted_visuals = all_results[6]
 
         # Log extraction results summary
         results = {
@@ -545,11 +567,13 @@ class BrandExtractionService:
             "testimonials": not self._is_empty(testimonials_data),
             "authority": not self._is_empty(authority_data),
         }
+        if extracted_visuals is not None:
+            results["visuals"] = not self._is_empty(extracted_visuals)
         succeeded = sum(1 for v in results.values() if v)
         logger.info("extraction_results_summary",
                      results=results,
                      succeeded=succeeded,
-                     total=6,
+                     total=total_sections,
         )
 
         # 4. Merge & Save
@@ -646,6 +670,14 @@ class BrandExtractionService:
         return await self._run_section("authority", "brand_extract_authority", prompt,
                                        BrandAuthorityExtraction, BrandAuthorityExtraction(),
                                        "Extract Authority elements.")
+
+    async def _extract_visuals(self, content: str, current_data: str, instructions: str) -> BrandVisuals:
+        """Extract visual identity (colors, fonts, design style) from CSS-enriched content."""
+        prompt = self._render_prompt("brand_extract_visuals", content, current_data, instructions, max_chars=40000)
+        return await self._run_section(
+            "visuals", "brand_extract_visuals", prompt,
+            BrandVisuals, BrandVisuals(), "Extract the visual identity (colors, fonts, design style)."
+        )
 
     @staticmethod
     def _is_empty(model: BaseModel) -> bool:

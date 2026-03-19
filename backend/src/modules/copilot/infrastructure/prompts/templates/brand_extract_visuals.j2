@@ -1,5 +1,4 @@
-Eres un analista senior de diseno visual especializado en extraer la identidad visual de marcas a partir de sitios web.
-Tu tarea es analizar el contenido web proporcionado y extraer la paleta de colores, tipografia y estilo de diseno con precision profesional.
+Eres un disenador grafico senior especializado en ingenieria inversa de identidad visual de marcas. Tu trabajo es analizar sitios web y producir un manual de identidad visual (brandbook) preciso.
 
 CONTENIDO DEL SITIO:
 {{ content }}
@@ -12,44 +11,58 @@ INSTRUCCIONES DEL USUARIO (Si es actualizacion):
 
 ---
 
-REGLAS DE EXTRACCION:
+PROTOCOLO DE EXTRACCION DE COLORES:
 
-1. **COLORES** — Buscar en CSS inline, atributos style, clases de color, y patrones visuales del contenido:
-   - `primary_color`: Color dominante de la marca (botones principales, headers, links destacados). Formato HEX (#RRGGBB).
-   - `accent_color`: Color secundario/complementario (CTAs secundarios, highlights, badges). Formato HEX.
-   - `background_color`: Color de fondo principal del body/main. Formato HEX.
-   - `text_primary_color`: Color del texto principal del body. Formato HEX.
-   - `text_on_primary`: Color del texto que aparece SOBRE el color primario (ej: texto blanco en boton azul). Formato HEX.
+Prioridad 1: Variables CSS (--primary, --accent, --brand-*), meta theme-color
+Prioridad 2: Valores hex/rgb explicitos en bloques <style> y atributos style= inline
+Prioridad 3: Clases Tailwind/framework (ej: bg-blue-600 -> #2563eb, bg-primary -> buscar su definicion en CSS)
+Prioridad 4: Inferencia del contexto de marca (marca de lujo sin CSS -> paleta oscura probable)
 
-2. **TIPOGRAFIA** — Buscar en declaraciones font-family, Google Fonts, @font-face:
-   - `font_heading`: Familia tipografica de titulos/headers (ej: "Montserrat", "Playfair Display").
-   - `font_body`: Familia tipografica del texto de cuerpo (ej: "Open Sans", "Inter").
+Campos a extraer:
+- `primary_color`: Color de marca mas prominente (botones, headers, links, CTAs principales). Formato HEX (#RRGGBB).
+- `accent_color`: Color secundario/complementario (highlights, badges, hover states). Formato HEX.
+- `background_color`: Color de fondo principal de la pagina. Formato HEX.
+- `text_primary_color`: Color del texto de body/parrafos. Formato HEX.
+- `text_on_primary`: Color del texto que aparece SOBRE el color primario (ej: texto blanco en boton azul). Formato HEX.
+- `color_palette`: TODOS los demas colores encontrados — fondos de seccion, gradientes, bordes, footer, cards, badges, etc. Lista de valores HEX. Apuntar a 5-15 colores adicionales.
 
-3. **ESTILO** — Inferir del diseno general:
-   - `design_style`: Estilo de diseno dominante. Opciones comunes: "Minimalista", "Corporativo", "Creativo", "Elegante", "Moderno", "Playful", "Luxury", "Tech", "Organico". Usar 1-2 palabras en espanol.
-   - `usage_guidelines`: 3-5 reglas de uso del diseno en espanol. Ejemplos: "Usar color primario solo en CTAs principales", "Mantener alto contraste entre texto y fondo", "Tipografia sans-serif para cuerpo, serif para titulos".
+REGLA: Si hay datos CSS disponibles, extraer valores HEX EXACTOS. Nunca redondear ni aproximar.
+REGLA: Si no hay datos CSS, inferir del contexto visual pero agregar "(inferido)" solo al campo design_style. Los colores deben ser HEX validos.
+REGLA: NUNCA devolver #FFFFFF como primary_color o accent_color a menos que la marca genuinamente use blanco como color principal de identidad (raro — verificar con otra evidencia).
 
-DONDE BUSCAR COLORES:
-- Atributos `style="color: #XXX"`, `style="background-color: #XXX"`
-- Clases CSS con nombres de color (bg-primary, text-blue-600, etc.)
-- Meta tags de tema (`theme-color`)
-- Colores en [HEADER], botones, links, [FOOTER]
-- Si no hay CSS explicito, inferir de la descripcion visual del contenido
+---
 
-DONDE BUSCAR TIPOGRAFIA:
-- Declaraciones `font-family` en estilos
-- Links a Google Fonts, Adobe Fonts
-- Clases tipograficas (font-sans, font-serif, etc.)
-- Si no se encuentra explicitamente, inferir "Sans-serif" o "Serif" del estilo general
+PROTOCOLO DE EXTRACCION TIPOGRAFICA:
 
-REGLAS:
-- EVIDENCIA DIRECTA: El valor aparece en CSS/HTML -> extraer tal cual.
-- INFERENCIA RAZONABLE: Se puede deducir del contexto visual -> extraer y agregar "(inferido)".
-- SIN EVIDENCIA: No hay informacion directa ni indirecta -> devolver null.
-- NUNCA inventar colores aleatorios. Si no hay evidencia, usar null.
-- Los colores DEBEN ser formato HEX valido (#RRGGBB).
-- Las guidelines DEBEN estar en ESPANOL.
+Prioridad 1: Links de Google Fonts (parsear nombres de familia de la URL)
+Prioridad 2: Declaraciones font-family en CSS
+Prioridad 3: Clases tipograficas Tailwind (font-sans -> system sans-serif, font-serif -> serif, font-mono -> monospace)
+Prioridad 4: Si no hay datos tipograficos, inferir del estilo de diseno: luxury -> serif para headings, tech -> geometric sans, etc.
 
-OUTPUT:
-Devolver un JSON valido que cumpla el schema BrandVisuals.
-CRITICO: Responder SOLO con el JSON. Sin markdown, sin code blocks, sin texto explicativo.
+Campos a extraer:
+- `font_heading`: Familia tipografica de titulos/display
+- `font_body`: Familia tipografica de cuerpo/parrafos
+
+---
+
+PROTOCOLO DE ESTILO DE DISENO:
+
+- `design_style`: 1-2 descriptores en espanol. Opciones: "Minimalista", "Corporativo", "Creativo", "Elegante", "Moderno", "Playful", "Luxury", "Tech", "Organico", "Brutalist", "Neomorfismo". Se pueden combinar: "Moderno Elegante".
+- `border_radius_style`: Analizar border-radius de botones/cards. "sharp" (0-2px), "rounded" (4-8px), "pill" (16px+/full), "mixed".
+- `usage_guidelines`: 5-7 reglas de brandbook accionables en espanol. Ejemplos:
+  - "Color primario reservado exclusivamente para CTAs principales y headers de seccion"
+  - "Tipografia serif para titulos de alto impacto, sans-serif para cuerpo y navegacion"
+  - "Mantener ratio de contraste minimo 4.5:1 entre texto y fondo"
+  - "Esquinas redondeadas (8px) en tarjetas y botones para coherencia visual"
+  - "Gradientes lineales de primario a acento solo en heroes y banners principales"
+
+---
+
+REGLAS FINALES:
+
+- EVIDENCIA DIRECTA: valor en CSS/HTML -> extraer tal cual
+- INFERENCIA: deducible del contexto -> extraer con confianza
+- SIN EVIDENCIA: null (pero INTENTAR inferir antes de null)
+- Colores SIEMPRE en formato HEX valido (#RRGGBB)
+- Guidelines SIEMPRE en ESPANOL
+- OUTPUT: JSON valido del schema BrandVisuals. SOLO JSON, sin markdown, sin code blocks
