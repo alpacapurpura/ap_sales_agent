@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 Phase: 9 of 11 (Stages 5-6 Adoption & Expansion)
 Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-03-19 - Completed quick task 260319-mae: Fix testimonials grid to max 2 columns per row
+Last activity: 2026-03-19 - Completed quick task 260319-nzs: Fix logo preview position + gallery URL normalization
 
 Progress: [█████████▊] 97%
 
@@ -228,9 +228,10 @@ None yet.
 | 260319-ls1 | Reorganize Brand Studio preview from 3 blocks to 5 (Voice + Publico independent) | 2026-03-19 | bfac18b, 7cea906 | | [260319-ls1-reorganizar-brand-studio-preview-separar](./quick/260319-ls1-reorganizar-brand-studio-preview-separar/) |
 | 260319-m95 | Remove Roman numeral group titles from Brand Studio nav rail | 2026-03-19 | e2ddcdf | | [260319-m95-elimina-los-t-tulos-en-n-meros-romanos-e](./quick/260319-m95-elimina-los-t-tulos-en-n-meros-romanos-e/) |
 | 260319-mae | Fix testimonials grid to max 2 columns per row | 2026-03-19 | df27385 | | [260319-mae-en-el-preview-de-testimonios-social-proo](./quick/260319-mae-en-el-preview-de-testimonios-social-proo/) |
+| 260319-nzs | Fix Brand Studio preview logo position (below palette/typography) + gallery URL normalization | 2026-03-19 | ab9ebcb, cd06c4d | | [260319-nzs-fix-brand-studio-preview-logo-should-sho](./quick/260319-nzs-fix-brand-studio-preview-logo-should-sho/) |
 
 ## Session Continuity
 
-Last session: 2026-03-19T21:33:48.194Z
-Stopped at: Completed quick-260319-mqz (Fix logo display - awaiting verification)
+Last session: 2026-03-19T22:28:54Z
+Stopped at: Completed quick-260319-nzs (Fix logo preview position + gallery filtering)
 Resume file: None
