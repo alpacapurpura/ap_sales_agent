@@ -5,8 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.brand.application.extraction_service import BrandExtractionService
 from src.modules.brand.domain.aggregates import BrandSettings
-from src.modules.brand.domain.identity import BrandIdentity
-from src.modules.copilot.application.services.web_extractor_adapter import extract_from_url
+from src.modules.brand.domain.identity import BrandVisuals
 
 
 class CopilotBrandAIActionsService:
@@ -15,10 +14,10 @@ class CopilotBrandAIActionsService:
         self.tenant_id = tenant_id
         self.brand_extraction_service = BrandExtractionService(db, tenant_id)
 
-    async def extract_brand_identity(self, url: str, extraction_type: Literal["brand_identity"]) -> Optional[BrandIdentity]:
+    async def extract_brand_identity(self, url: str, extraction_type: Literal["brand_identity"]) -> BrandVisuals:
         if extraction_type != "brand_identity":
             raise ValueError(f"Unsupported extraction type: {extraction_type}")
-        return await extract_from_url(url, BrandIdentity)
+        return await self.brand_extraction_service.extract_visuals_only(url)
 
     async def extract_full_brand(
         self,

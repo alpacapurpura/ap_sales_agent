@@ -198,4 +198,15 @@ export interface FullBrandExtractionRequest {
 }
 
 // Re-export specific types if they are used as standalone in components
-export type ExtractedVisuals = BrandIdentity; // Alias for backward compatibility if needed
+export interface ExtractedVisuals {
+    primary_color?: string;
+    accent_color?: string;
+    background_color?: string;
+    text_primary_color?: string;
+    text_on_primary?: string;
+    font_heading?: string;
+    font_body?: string;
+    style_preset?: string;
+    design_style?: string;
+    usage_guidelines?: string[];
+}
