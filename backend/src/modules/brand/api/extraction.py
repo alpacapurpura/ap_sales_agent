@@ -122,9 +122,9 @@ async def extract_full_brand(
     result_dict = result if isinstance(result, dict) else (result.model_dump(mode='json') if result else {})
     logger.info("extract_full_brand_response",
                 tenant_id=str(current_user.tenant_id),
-                has_identity=bool(result_dict.get("identity", {}).get("brand_name")),
-                has_story=bool(result_dict.get("story", {}).get("origin_story")),
-                has_strategy=bool(result_dict.get("strategy", {}).get("value_proposition")),
+                has_identity=bool((result_dict.get("identity") or {}).get("brand_name")),
+                has_story=bool((result_dict.get("story") or {}).get("origin_story")),
+                has_strategy=bool((result_dict.get("strategy") or {}).get("value_proposition")),
                 team_count=len(result_dict.get("team") or []),
                 testimonials_count=len(result_dict.get("testimonials") or []),
                 authority_count=len(result_dict.get("authority_vault") or []),
