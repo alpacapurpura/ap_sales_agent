@@ -106,73 +106,6 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
       ) : (
         <div className="pl-0 md:pl-14">
 
-            {/* Logos Section */}
-            {(visuals.logos?.primary || visuals.logos?.secondary || visuals.logos?.dark_mode) && (
-                <div className="mb-10">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" /> Kit de Logos
-                    </h4>
-                    <div className="flex flex-wrap gap-6 items-end">
-                        {visuals.logos?.primary && (
-                            <div className="space-y-2">
-                                <div className="relative h-20 px-4 py-2 border rounded-lg bg-[url('/checkerboard.png')] bg-white flex items-center justify-center min-w-[140px]">
-                                    <Image
-                                        src={getFullUrl(visuals.logos.primary)}
-                                        alt="Principal"
-                                        fill
-                                        className="object-contain p-2"
-                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                    />
-                                </div>
-                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Principal</p>
-                            </div>
-                        )}
-                        {visuals.logos?.secondary && (
-                            <div className="space-y-2">
-                                <div className="relative h-20 w-20 p-2 border rounded-lg bg-muted/20 flex items-center justify-center">
-                                    <Image
-                                        src={getFullUrl(visuals.logos.secondary)}
-                                        alt="Icono"
-                                        fill
-                                        className="object-contain p-2"
-                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                    />
-                                </div>
-                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Icono</p>
-                            </div>
-                        )}
-                        {visuals.logos?.dark_mode && (
-                            <div className="space-y-2">
-                                <div className="relative h-20 px-4 py-2 border rounded-lg bg-slate-950 flex items-center justify-center min-w-[140px]">
-                                    <Image
-                                        src={getFullUrl(visuals.logos.dark_mode)}
-                                        alt="Dark Mode"
-                                        fill
-                                        className="object-contain p-2"
-                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                    />
-                                </div>
-                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Fondo Oscuro</p>
-                            </div>
-                        )}
-                        {visuals.logos?.light_mode && (
-                            <div className="space-y-2">
-                                <div className="relative h-20 px-4 py-2 border rounded-lg bg-white flex items-center justify-center min-w-[140px]">
-                                    <Image
-                                        src={getFullUrl(visuals.logos.light_mode)}
-                                        alt="Light Mode"
-                                        fill
-                                        className="object-contain p-2"
-                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                    />
-                                </div>
-                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Fondo Claro</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
             <div className="grid md:grid-cols-2 gap-10">
                 {/* Colors */}
                 <div className="space-y-6">
@@ -266,6 +199,73 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
                             Energia: {visuals.brand_mood.energy}
                         </span>
                     )}
+                </div>
+            )}
+
+            {/* Logos Section */}
+            {(visuals.logos?.primary || visuals.logos?.secondary || visuals.logos?.dark_mode || visuals.logos?.light_mode) && (
+                <div className="mt-10">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" /> Kit de Logos
+                    </h4>
+                    <div className="flex flex-wrap gap-6 items-end">
+                        {visuals.logos?.primary && (
+                            <div className="space-y-2">
+                                <div className="relative h-20 px-4 py-2 border rounded-lg bg-[url('/checkerboard.png')] bg-white flex items-center justify-center min-w-[140px]">
+                                    <Image
+                                        src={getFullUrl(visuals.logos.primary)}
+                                        alt="Principal"
+                                        fill
+                                        className="object-contain p-2"
+                                        sizes="(max-width: 768px) 100vw, 33vw"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Principal</p>
+                            </div>
+                        )}
+                        {visuals.logos?.secondary && (
+                            <div className="space-y-2">
+                                <div className="relative h-20 w-20 p-2 border rounded-lg bg-muted/20 flex items-center justify-center">
+                                    <Image
+                                        src={getFullUrl(visuals.logos.secondary)}
+                                        alt="Icono"
+                                        fill
+                                        className="object-contain p-2"
+                                        sizes="(max-width: 768px) 100vw, 33vw"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Icono</p>
+                            </div>
+                        )}
+                        {visuals.logos?.dark_mode && (
+                            <div className="space-y-2">
+                                <div className="relative h-20 px-4 py-2 border rounded-lg bg-slate-950 flex items-center justify-center min-w-[140px]">
+                                    <Image
+                                        src={getFullUrl(visuals.logos.dark_mode)}
+                                        alt="Dark Mode"
+                                        fill
+                                        className="object-contain p-2"
+                                        sizes="(max-width: 768px) 100vw, 33vw"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Fondo Oscuro</p>
+                            </div>
+                        )}
+                        {visuals.logos?.light_mode && (
+                            <div className="space-y-2">
+                                <div className="relative h-20 px-4 py-2 border rounded-lg bg-white flex items-center justify-center min-w-[140px]">
+                                    <Image
+                                        src={getFullUrl(visuals.logos.light_mode)}
+                                        alt="Light Mode"
+                                        fill
+                                        className="object-contain p-2"
+                                        sizes="(max-width: 768px) 100vw, 33vw"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Fondo Claro</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
