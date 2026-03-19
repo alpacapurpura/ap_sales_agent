@@ -47,14 +47,19 @@ export function SingleImagePicker({ value, onChange, children }: SingleImagePick
     const uploadMutation = useMutation({
         mutationFn: async () => {
             const token = await getToken();
-            if (!token || !uploadFile) return;
+            if (!token || !uploadFile) return null;
             return assetsApi.upload(token, uploadFile, uploadDesc);
         },
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["assets"] });
             setUploadFile(null);
             setUploadDesc("");
-            toast.success("Imagen subida a la galería");
+            if (data?.public_url) {
+                handleSelect(data.public_url);
+                toast.success("Imagen subida y seleccionada");
+            } else {
+                toast.success("Imagen subida a la galería");
+            }
         },
         onError: () => toast.error("Error al subir imagen")
     });

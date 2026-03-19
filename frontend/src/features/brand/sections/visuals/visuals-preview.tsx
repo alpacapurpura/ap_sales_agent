@@ -1,7 +1,6 @@
 import { BrandVisuals } from "@/features/brand/types";
 import { Palette, Type, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { config } from "@/lib/config";
 import Image from "next/image";
 
@@ -19,15 +18,12 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
       return `${API_URL}${path}`;
   };
 
-  // Determine if we have data. Assuming valid hex code implies data.
-  // If it's just empty string or default placeholder (depends on init), we treat as empty.
   const hasData = visuals.primary_color && visuals.primary_color.length > 0 && visuals.primary_color !== "#000000" && visuals.primary_color !== "#ffffff";
 
-  // Helpers
   const ColorSwatch = ({ color, label }: { color: string, label: string }) => (
     <div className="flex flex-col gap-2 group/swatch">
-        <div 
-            className="h-16 w-full rounded-lg shadow-sm border border-border/10 ring-1 ring-border/5 transition-transform group-hover/swatch:scale-105" 
+        <div
+            className="h-16 w-full rounded-lg shadow-sm border border-border/10 ring-1 ring-border/5 transition-transform group-hover/swatch:scale-105"
             style={{ backgroundColor: color }}
         />
         <div className="flex justify-between items-center">
@@ -37,8 +33,15 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
     </div>
   );
 
+  const SmallSwatch = ({ color }: { color: string }) => (
+    <div className="flex flex-col items-center gap-1">
+        <div className="w-8 h-8 rounded-md shadow-sm border border-border/10" style={{ backgroundColor: color }} />
+        <span className="text-[9px] text-muted-foreground font-mono opacity-50">{color}</span>
+    </div>
+  );
+
   return (
-    <section 
+    <section
         onClick={onEdit}
         className="group relative -mx-4 p-6 rounded-xl transition-all duration-300 hover:bg-muted/40 cursor-pointer border border-transparent hover:border-border/50"
     >
@@ -52,9 +55,9 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
         </div>
 
         {hasData && (
-             <Button 
-                variant="outline" 
-                size="sm" 
+             <Button
+                variant="outline"
+                size="sm"
                 className="opacity-0 group-hover:opacity-100 transition-opacity gap-2 bg-background/50 backdrop-blur-sm"
                 onClick={(e) => {
                     e.stopPropagation();
@@ -74,10 +77,10 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
             </div>
             <h3 className="text-lg font-semibold mb-2">Sin Identidad Visual</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
-                No tienes colores ni tipografías definidas. Extrae tu marca automáticamente desde tu web o logo.
+                No tienes colores ni tipografias definidas. Extrae tu marca automaticamente desde tu web o logo.
             </p>
             <div className="flex flex-col gap-3 w-full max-w-xs">
-                <Button 
+                <Button
                     onClick={(e) => {
                         e.stopPropagation();
                         onExtract();
@@ -87,8 +90,8 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
                     <Sparkles className="w-4 h-4 mr-2" />
                     Extraer Identidad
                 </Button>
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     size="sm"
                     className="text-muted-foreground hover:text-foreground"
                     onClick={(e) => {
@@ -102,20 +105,20 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
          </div>
       ) : (
         <div className="pl-0 md:pl-14">
-            
+
             {/* Logos Section */}
             {(visuals.logos?.primary || visuals.logos?.secondary || visuals.logos?.dark_mode) && (
                 <div className="mb-10">
                     <h4 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" /> Activos de Marca
+                        <ImageIcon className="w-4 h-4" /> Kit de Logos
                     </h4>
                     <div className="flex flex-wrap gap-6 items-end">
                         {visuals.logos?.primary && (
                             <div className="space-y-2">
                                 <div className="relative h-20 px-4 py-2 border rounded-lg bg-[url('/checkerboard.png')] bg-white flex items-center justify-center min-w-[140px]">
-                                    <Image 
-                                        src={getFullUrl(visuals.logos.primary)} 
-                                        alt="Principal" 
+                                    <Image
+                                        src={getFullUrl(visuals.logos.primary)}
+                                        alt="Principal"
                                         fill
                                         className="object-contain p-2"
                                         sizes="(max-width: 768px) 100vw, 33vw"
@@ -127,9 +130,9 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
                         {visuals.logos?.secondary && (
                             <div className="space-y-2">
                                 <div className="relative h-20 w-20 p-2 border rounded-lg bg-muted/20 flex items-center justify-center">
-                                    <Image 
-                                        src={getFullUrl(visuals.logos.secondary)} 
-                                        alt="Icono" 
+                                    <Image
+                                        src={getFullUrl(visuals.logos.secondary)}
+                                        alt="Icono"
                                         fill
                                         className="object-contain p-2"
                                         sizes="(max-width: 768px) 100vw, 33vw"
@@ -141,9 +144,9 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
                         {visuals.logos?.dark_mode && (
                             <div className="space-y-2">
                                 <div className="relative h-20 px-4 py-2 border rounded-lg bg-slate-950 flex items-center justify-center min-w-[140px]">
-                                    <Image 
-                                        src={getFullUrl(visuals.logos.dark_mode)} 
-                                        alt="Dark Mode" 
+                                    <Image
+                                        src={getFullUrl(visuals.logos.dark_mode)}
+                                        alt="Dark Mode"
                                         fill
                                         className="object-contain p-2"
                                         sizes="(max-width: 768px) 100vw, 33vw"
@@ -155,9 +158,9 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
                         {visuals.logos?.light_mode && (
                             <div className="space-y-2">
                                 <div className="relative h-20 px-4 py-2 border rounded-lg bg-white flex items-center justify-center min-w-[140px]">
-                                    <Image 
-                                        src={getFullUrl(visuals.logos.light_mode)} 
-                                        alt="Light Mode" 
+                                    <Image
+                                        src={getFullUrl(visuals.logos.light_mode)}
+                                        alt="Light Mode"
                                         fill
                                         className="object-contain p-2"
                                         sizes="(max-width: 768px) 100vw, 33vw"
@@ -172,36 +175,99 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
 
             <div className="grid md:grid-cols-2 gap-10">
                 {/* Colors */}
-                <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Paleta Cromática</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                        <ColorSwatch color={visuals.primary_color ?? "#000000"} label="Primario" />
-                        <ColorSwatch color={visuals.accent_color ?? "#000000"} label="Acento" />
-                        <ColorSwatch color={visuals.background_color || "#ffffff"} label="Fondo" />
+                <div className="space-y-6">
+                    <div>
+                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Paleta Cromatica</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                            <ColorSwatch color={visuals.primary_color ?? "#000000"} label="Primario" />
+                            {visuals.secondary_color && (
+                                <ColorSwatch color={visuals.secondary_color} label="Secundario" />
+                            )}
+                            <ColorSwatch color={visuals.accent_color ?? "#000000"} label="Acento" />
+                            <ColorSwatch color={visuals.background_color || "#ffffff"} label="Fondo" />
+                        </div>
                     </div>
+
+                    {/* Extended Palette */}
+                    {visuals.color_palette && visuals.color_palette.length > 0 && (
+                        <div>
+                            <h4 className="text-xs font-medium text-muted-foreground mb-3">Paleta Extendida</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {visuals.color_palette.map((color, i) => (
+                                    <SmallSwatch key={i} color={color} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Gradients */}
+                    {visuals.gradient_definitions && visuals.gradient_definitions.length > 0 && (
+                        <div>
+                            <h4 className="text-xs font-medium text-muted-foreground mb-3">Gradientes</h4>
+                            <div className="flex gap-2">
+                                {visuals.gradient_definitions.map((grad, i) => (
+                                    <div key={i} className="h-8 flex-1 rounded-md shadow-sm border" style={{ background: grad }} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Typography */}
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
-                        <Type className="w-4 h-4" /> Tipografía
+                        <Type className="w-4 h-4" /> Tipografia
                     </h4>
                     <div className="space-y-6">
                         <div className="border-l-2 border-primary/20 pl-4 transition-colors group-hover:border-primary/40">
                             <p className="text-4xl font-bold text-foreground leading-tight" style={{ fontFamily: visuals.font_heading }}>
                                 Heading Display
                             </p>
-                            <p className="text-xs text-muted-foreground mt-2 font-mono">{visuals.font_heading || "Sin definir"} (Títulos)</p>
+                            <p className="text-xs text-muted-foreground mt-2 font-mono">{visuals.font_heading || "Sin definir"} (Titulos)</p>
                         </div>
                         <div className="border-l-2 border-muted pl-4">
                             <p className="text-lg text-foreground/80 leading-relaxed" style={{ fontFamily: visuals.font_body }}>
-                                El diseño es el embajador silencioso de tu marca. Una buena tipografía establece la jerarquía y el tono de voz visual.
+                                El diseno es el embajador silencioso de tu marca. Una buena tipografia establece la jerarquia y el tono de voz visual.
                             </p>
                             <p className="text-xs text-muted-foreground mt-2 font-mono">{visuals.font_body || "Sin definir"} (Cuerpo)</p>
                         </div>
+                        {visuals.font_accent && (
+                            <div className="border-l-2 border-accent/20 pl-4">
+                                <p className="text-xl italic text-foreground/70" style={{ fontFamily: visuals.font_accent }}>
+                                    Texto decorativo de ejemplo
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-2 font-mono">{visuals.font_accent} (Accent)</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Brand Mood & Design Style badges */}
+            {(visuals.brand_mood?.adjectives?.length || visuals.design_style || visuals.visual_density) && (
+                <div className="mt-8 flex flex-wrap gap-2">
+                    {visuals.design_style && (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                            {visuals.design_style}
+                        </span>
+                    )}
+                    {visuals.visual_density && (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground border">
+                            {visuals.visual_density}
+                        </span>
+                    )}
+                    {visuals.brand_mood?.adjectives?.map((adj, i) => (
+                        <span key={i} className="px-3 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent-foreground border border-accent/20">
+                            {adj}
+                        </span>
+                    ))}
+                    {visuals.brand_mood?.energy && (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground border">
+                            Energia: {visuals.brand_mood.energy}
+                        </span>
+                    )}
+                </div>
+            )}
         </div>
       )}
     </section>
