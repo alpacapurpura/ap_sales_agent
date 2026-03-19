@@ -14,26 +14,39 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # 1. Drop NOT NULL constraint on file_path (idempotent: safe to run if already nullable)
-    op.execute("ALTER TABLE assets ALTER COLUMN file_path DROP NOT NULL;")
-
-    # 2. Backfill any existing rows where file_path is NULL but storage_path has a value
+    # All operations guarded by IF EXISTS to handle environments where assets table doesn't exist yet
     op.execute("""
-        UPDATE assets
-        SET file_path = storage_path
-        WHERE file_path IS NULL AND storage_path IS NOT NULL;
-    """)
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'assets') THEN
+                -- 1. Drop NOT NULL constraint on file_path
+                ALTER TABLE assets ALTER COLUMN file_path DROP NOT NULL;
 
-    # 3. Set default empty string to prevent future issues from legacy code
-    op.execute("ALTER TABLE assets ALTER COLUMN file_path SET DEFAULT '';")
+                -- 2. Backfill any existing rows where file_path is NULL but storage_path has a value
+                UPDATE assets
+                SET file_path = storage_path
+                WHERE file_path IS NULL AND storage_path IS NOT NULL;
+
+                -- 3. Set default empty string to prevent future issues from legacy code
+                ALTER TABLE assets ALTER COLUMN file_path SET DEFAULT '';
+            END IF;
+        END
+        $$;
+    """)
 
 
 def downgrade() -> None:
-    # Backfill NULLs before re-adding NOT NULL constraint
     op.execute("""
-        UPDATE assets
-        SET file_path = COALESCE(file_path, storage_path, '')
-        WHERE file_path IS NULL;
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'assets') THEN
+                UPDATE assets
+                SET file_path = COALESCE(file_path, storage_path, '')
+                WHERE file_path IS NULL;
+
+                ALTER TABLE assets ALTER COLUMN file_path SET NOT NULL;
+                ALTER TABLE assets ALTER COLUMN file_path DROP DEFAULT;
+            END IF;
+        END
+        $$;
     """)
-    op.execute("ALTER TABLE assets ALTER COLUMN file_path SET NOT NULL;")
-    op.execute("ALTER TABLE assets ALTER COLUMN file_path DROP DEFAULT;")
