@@ -37,7 +37,7 @@ export function TestimonialsSection({ testimonials, onEdit }: TestimonialsSectio
         </div>
       ) : (
         <div className="pl-0 md:pl-14">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {testimonials.map((item) => (
                     <div 
                         key={item.id} 
