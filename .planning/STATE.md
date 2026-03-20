@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 Phase: 9 of 11 (Stages 5-6 Adoption & Expansion)
 Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-03-19 - Completed quick task 260319-nzs: Fix logo preview position + gallery URL normalization
+Last activity: 2026-03-20 - Completed quick task 260319-udq: Fix Meta OAuth callback (Clerk auth race + fetchClient silent redirect)
 
 Progress: [█████████▊] 97%
 
