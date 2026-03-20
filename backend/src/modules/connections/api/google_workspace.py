@@ -75,7 +75,11 @@ async def get_auth_url(
     user: User = Depends(get_current_user),
 ):
     """Returns a Google OAuth URL requesting ALL workspace scopes at once."""
-    flow = Flow.from_client_config(_get_client_config(), scopes=WORKSPACE_SCOPES)
+    flow = Flow.from_client_config(
+        _get_client_config(),
+        scopes=WORKSPACE_SCOPES,
+        autogenerate_code_verifier=False,
+    )
     flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
 
     authorization_url, state = flow.authorization_url(
@@ -97,7 +101,11 @@ async def oauth_callback(
     for all 4 Google services (Gmail, Calendar, Analytics, YouTube).
     """
     # Exchange code for credentials
-    flow = Flow.from_client_config(_get_client_config(), scopes=WORKSPACE_SCOPES)
+    flow = Flow.from_client_config(
+        _get_client_config(),
+        scopes=WORKSPACE_SCOPES,
+        autogenerate_code_verifier=False,
+    )
     flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
 
     try:
