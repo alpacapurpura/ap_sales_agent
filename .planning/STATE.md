@@ -229,9 +229,10 @@ None yet.
 | 260319-m95 | Remove Roman numeral group titles from Brand Studio nav rail | 2026-03-19 | e2ddcdf | | [260319-m95-elimina-los-t-tulos-en-n-meros-romanos-e](./quick/260319-m95-elimina-los-t-tulos-en-n-meros-romanos-e/) |
 | 260319-mae | Fix testimonials grid to max 2 columns per row | 2026-03-19 | df27385 | | [260319-mae-en-el-preview-de-testimonios-social-proo](./quick/260319-mae-en-el-preview-de-testimonios-social-proo/) |
 | 260319-nzs | Fix Brand Studio preview logo position (below palette/typography) + gallery URL normalization | 2026-03-19 | ab9ebcb, cd06c4d | | [260319-nzs-fix-brand-studio-preview-logo-should-sho](./quick/260319-nzs-fix-brand-studio-preview-logo-should-sho/) |
+| 260319-rz5 | Simulate CI jobs locally, fix test, deploy brand refactor to production (all 5 jobs pass) | 2026-03-20 | 123878f, a6587ef | Verified | [260319-rz5-revisa-jobs-de-github-actions-simula-loc](./quick/260319-rz5-revisa-jobs-de-github-actions-simula-loc/) |
 
 ## Session Continuity
 
-Last session: 2026-03-19T22:28:54Z
-Stopped at: Completed quick-260319-nzs (Fix logo preview position + gallery filtering)
+Last session: 2026-03-20T01:35:00Z
+Stopped at: Completed quick-260319-rz5 (CI simulation + production deploy)
 Resume file: None
