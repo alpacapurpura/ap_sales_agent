@@ -113,17 +113,56 @@ export interface BrandLogos {
     favicon?: string;
 }
 
+export interface SemanticColors {
+    success?: string;
+    error?: string;
+    warning?: string;
+    info?: string;
+}
+
+export interface BrandMood {
+    adjectives?: string[];
+    energy?: "low" | "medium" | "high";
+}
+
 export interface BrandVisuals {
-    // Colors
+    // Colors (core)
     primary_color?: string;
+    secondary_color?: string;
     accent_color?: string;
     background_color?: string;
+    surface_color?: string;
     text_primary_color?: string;
+    text_secondary_color?: string;
     text_on_primary?: string;
+    text_on_secondary?: string;
+
+    // Colors (extended)
+    color_palette?: string[];
+    neutral_colors?: string[];
+    semantic_colors?: SemanticColors;
+    gradient_definitions?: string[];
+    color_usage_rules?: string;
 
     // Typography
     font_heading?: string;
     font_body?: string;
+    font_accent?: string;
+    font_weights?: Record<string, number[]>;
+    typography_scale?: Record<string, string>;
+
+    // Design System
+    border_radius_style?: string;
+    border_radius_values?: Record<string, string>;
+    shadow_style?: string;
+    spacing_base?: string;
+    visual_density?: string;
+
+    // Visual Personality
+    brand_mood?: BrandMood;
+    visual_references?: string;
+    photography_style?: string;
+    icon_style?: string;
 
     // Style
     style_preset?: string;
@@ -132,7 +171,8 @@ export interface BrandVisuals {
 
     // Assets
     logo_url?: string;
-    images?: string[]; // Made optional to be safe
+    favicon_url?: string;
+    images?: string[];
     logos?: BrandLogos;
 }
 
@@ -197,16 +237,4 @@ export interface FullBrandExtractionRequest {
     update_instructions?: string;
 }
 
-// Re-export specific types if they are used as standalone in components
-export interface ExtractedVisuals {
-    primary_color?: string;
-    accent_color?: string;
-    background_color?: string;
-    text_primary_color?: string;
-    text_on_primary?: string;
-    font_heading?: string;
-    font_body?: string;
-    style_preset?: string;
-    design_style?: string;
-    usage_guidelines?: string[];
-}
+// ExtractedVisuals removed — use BrandVisuals directly

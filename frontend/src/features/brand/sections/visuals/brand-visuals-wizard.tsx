@@ -83,8 +83,9 @@ export function BrandVisualsWizard({
         stageTimeouts.push(setTimeout(() => setStage("Escaneando sitio web..."), 2000));
         stageTimeouts.push(setTimeout(() => setStage("Analizando paleta de colores..."), 6000));
         stageTimeouts.push(setTimeout(() => setStage("Detectando tipografias..."), 12000));
-        stageTimeouts.push(setTimeout(() => setStage("Extrayendo estilo de diseno..."), 18000));
-        stageTimeouts.push(setTimeout(() => setStage("Generando reglas de uso..."), 24000));
+        stageTimeouts.push(setTimeout(() => setStage("Analizando sistema de diseno..."), 18000));
+        stageTimeouts.push(setTimeout(() => setStage("Detectando personalidad visual..."), 22000));
+        stageTimeouts.push(setTimeout(() => setStage("Generando reglas de uso..."), 26000));
 
         const extracted = await brandApi.extractBrandVisuals(urlToScan, token);
 
@@ -96,16 +97,8 @@ export function BrandVisualsWizard({
         setTimeout(() => {
             setSelectedVisuals({
                 ...selectedVisuals,
-                primary_color: extracted.primary_color,
-                accent_color: extracted.accent_color,
-                font_heading: extracted.font_heading || selectedVisuals.font_heading,
-                font_body: extracted.font_body || selectedVisuals.font_body,
+                ...extracted,
                 style_preset: "custom-web",
-                background_color: extracted.background_color,
-                text_primary_color: extracted.text_primary_color,
-                text_on_primary: extracted.text_on_primary,
-                design_style: extracted.design_style,
-                usage_guidelines: extracted.usage_guidelines
             });
             setStep("preview");
             setAnalyzing(false);
@@ -396,6 +389,15 @@ export function BrandVisualsWizard({
                                     <span className="font-mono text-sm font-medium">{selectedVisuals.primary_color}</span>
                                 </div>
                             </div>
+                            {selectedVisuals.secondary_color && (
+                                <div className="p-4 rounded-xl border bg-black/5">
+                                    <span className="text-xs uppercase tracking-wider opacity-60 block mb-2">Secundario</span>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg shadow-sm" style={{ background: selectedVisuals.secondary_color }} />
+                                        <span className="font-mono text-sm font-medium">{selectedVisuals.secondary_color}</span>
+                                    </div>
+                                </div>
+                            )}
                             <div className="p-4 rounded-xl border bg-black/5">
                                 <span className="text-xs uppercase tracking-wider opacity-60 block mb-2">Acento</span>
                                 <div className="flex items-center gap-3">
@@ -418,6 +420,62 @@ export function BrandVisualsWizard({
                                 </div>
                             </div>
                         </div>
+
+                        {/* Extended Color Palette */}
+                        {selectedVisuals.color_palette && selectedVisuals.color_palette.length > 0 && (
+                            <div className="space-y-2">
+                                <h4 className="text-xs uppercase tracking-wider opacity-60">Paleta Extendida</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedVisuals.color_palette.map((color, i) => (
+                                        <div key={i} className="flex flex-col items-center gap-1">
+                                            <div className="w-8 h-8 rounded-md shadow-sm border border-black/10" style={{ background: color }} />
+                                            <span className="font-mono text-[9px] opacity-50">{color}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Gradient Preview */}
+                        {selectedVisuals.gradient_definitions && selectedVisuals.gradient_definitions.length > 0 && (
+                            <div className="space-y-2">
+                                <h4 className="text-xs uppercase tracking-wider opacity-60">Gradientes</h4>
+                                <div className="flex gap-2">
+                                    {selectedVisuals.gradient_definitions.map((grad, i) => (
+                                        <div key={i} className="h-8 flex-1 rounded-md shadow-sm" style={{ background: grad }} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Typography Preview */}
+                        {selectedVisuals.font_accent && (
+                            <div className="p-3 rounded-lg bg-black/5 border">
+                                <span className="text-xs uppercase tracking-wider opacity-60 block mb-1">Font Accent</span>
+                                <p className="text-lg" style={{ fontFamily: selectedVisuals.font_accent }}>
+                                    {selectedVisuals.font_accent}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Brand Mood */}
+                        {selectedVisuals.brand_mood?.adjectives && selectedVisuals.brand_mood.adjectives.length > 0 && (
+                            <div className="space-y-2">
+                                <h4 className="text-xs uppercase tracking-wider opacity-60">Personalidad Visual</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedVisuals.brand_mood.adjectives.map((adj, i) => (
+                                        <span key={i} className="px-3 py-1 rounded-full text-xs font-medium border" style={{ borderColor: selectedVisuals.accent_color, color: selectedVisuals.text_primary_color }}>
+                                            {adj}
+                                        </span>
+                                    ))}
+                                    {selectedVisuals.brand_mood.energy && (
+                                        <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: selectedVisuals.primary_color, color: selectedVisuals.text_on_primary }}>
+                                            Energia: {selectedVisuals.brand_mood.energy}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Usage Guidelines */}
                         {selectedVisuals.usage_guidelines && selectedVisuals.usage_guidelines.length > 0 && (

@@ -20,6 +20,7 @@ import { StrategyManager } from "../../sections/strategy/strategy-manager";
 import { MethodologyManager } from "../../sections/methodology/methodology-manager";
 import { VoiceManager } from "../../sections/voice/voice-manager";
 import { VisualsManager } from "../../sections/visuals/visuals-manager";
+import { LogoKitManager } from "../../sections/logos/logo-kit-manager";
 
 // Existing Components for Complex Types (Team, Authority, Avatars)
 import { TeamManager } from "../../sections/team/team-manager";
@@ -71,6 +72,7 @@ export function EditSheetManager({
           case "avatars": return { title: "Avatares", desc: "Personaliza los avatares para diferentes canales." };
           case "contact": return { title: "Contacto", desc: "Información pública de contacto." };
           case "visuals": return { title: "Identidad Visual", desc: "Colores, tipografía y estilo." };
+          case "logos": return { title: "Kit de Logos", desc: "Gestiona las variantes de tu logo." };
           case "story": return { title: "Historia de Origen", desc: "El relato fundacional de tu marca." };
           case "strategy": return { title: "Estrategia", desc: "Posicionamiento y competencia." };
           case "methodology": return { title: "Metodología", desc: "Tus pilares y métodos únicos." };
@@ -192,6 +194,9 @@ export function EditSheetManager({
 
           case "visuals":
                return <VisualsManager />;
+
+          case "logos":
+               return <LogoKitManager />;
 
           case "testimonials":
               return <TestimonialsManager />;

@@ -17,6 +17,7 @@ import { TeamSection } from "../../sections/team/team-preview";
 import { AvatarsSection } from "../../sections/avatars/avatars-preview";
 import { VisualsSection } from "../../sections/visuals/visuals-preview";
 import { GalleryManager } from "../../sections/gallery/gallery-manager";
+import { LogoKitPreview } from "../../sections/logos/logo-kit-preview";
 import { TestimonialsSection } from "../../sections/testimonials/testimonials-preview";
 
 // Forms & Managers
@@ -41,7 +42,7 @@ interface BrandStudioLayoutProps {
   onUpdateAll?: (data: Partial<BrandSettings>) => Promise<void>;
 }
 
-export type EditMode = "none" | "identity" | "voice" | "legal" | "authority" | "team" | "testimonials" | "contact" | "avatars" | "visuals" | "visuals-wizard" | "story" | "strategy" | "methodology";
+export type EditMode = "none" | "identity" | "voice" | "legal" | "authority" | "team" | "testimonials" | "contact" | "avatars" | "visuals" | "visuals-wizard" | "logos" | "story" | "strategy" | "methodology";
 
 export function BrandStudioLayout({
   settings,
@@ -229,6 +230,10 @@ export function BrandStudioLayout({
                             onEdit={() => openEdit("visuals")}
                             onExtract={() => openEdit("visuals-wizard")}
                         />
+                    </div>
+
+                    <div id="logos">
+                        <LogoKitPreview visuals={settings.visuals ?? {}} onEdit={() => openEdit("logos")} />
                     </div>
 
                     <div id="gallery">

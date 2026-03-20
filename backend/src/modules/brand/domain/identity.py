@@ -1,34 +1,58 @@
-from typing import Optional, List, Dict
+from typing import Any, Optional, List, Dict
 from pydantic import Field, ConfigDict
 from src.shared.domain.base_entity import BaseEntity
 
 
 
 class BrandVisuals(BaseEntity):
-    # Colors
+    # === COLORES (core) ===
     primary_color: Optional[str] = None
+    secondary_color: Optional[str] = None           # 2nd brand color (sections, headers)
     accent_color: Optional[str] = None
     background_color: Optional[str] = None
+    surface_color: Optional[str] = None              # Card/modal background
     text_primary_color: Optional[str] = None
+    text_secondary_color: Optional[str] = None       # Subtitles, captions
     text_on_primary: Optional[str] = None
+    text_on_secondary: Optional[str] = None          # Text on secondary color
 
-    # Typography
+    # === COLORES (extended) ===
+    color_palette: List[str] = Field(default_factory=list)
+    neutral_colors: List[str] = Field(default_factory=list)
+    semantic_colors: Optional[Dict[str, Optional[str]]] = None  # {success, error, warning, info}
+    gradient_definitions: List[str] = Field(default_factory=list)  # CSS gradient strings
+    color_usage_rules: Optional[str] = None          # 60-30-10 distribution rules
+
+    # === TYPOGRAPHY ===
     font_heading: Optional[str] = None
     font_body: Optional[str] = None
+    font_accent: Optional[str] = None                # Decorative/display font
+    font_weights: Optional[Dict[str, Any]] = None    # {heading: [700,600], body: [400]}
+    typography_scale: Optional[Dict[str, str]] = None # {h1: "48px", body: "16px"}
 
-    # Style
+    # === DESIGN SYSTEM ===
+    border_radius_style: Optional[str] = None        # "rounded", "sharp", "pill", "mixed"
+    border_radius_values: Optional[Dict[str, str]] = None  # {sm: "4px", md: "8px"}
+    shadow_style: Optional[str] = None               # none|subtle|moderate|prominent
+    spacing_base: Optional[str] = None               # "8px"
+    visual_density: Optional[str] = None             # compact|comfortable|spacious
+
+    # === VISUAL PERSONALITY ===
+    brand_mood: Optional[Dict[str, Any]] = None      # {adjectives: [...], energy: "high"}
+    visual_references: Optional[str] = None          # "Similar a Apple + Stripe"
+    photography_style: Optional[str] = None          # lifestyle|product|abstract|minimal
+    icon_style: Optional[str] = None                 # outlined|filled|duotone
+
+    # === STYLE ===
     style_preset: Optional[str] = None
     design_style: Optional[str] = None
     usage_guidelines: List[str] = Field(default_factory=list)
 
-    # Extended palette
-    color_palette: List[str] = Field(default_factory=list)  # additional hex colors beyond the 5 primary ones
-    border_radius_style: Optional[str] = None  # "rounded", "sharp", "pill", "mixed"
-
-    # Assets
+    # === ASSETS ===
     logo_url: Optional[str] = None
+    favicon_url: Optional[str] = None
     images: List[str] = Field(default_factory=list)
-    logos: Optional[Dict[str, Optional[str]]] = Field(default_factory=dict) # primary, secondary, etc.
+    logos: Optional[Dict[str, Optional[str]]] = Field(default_factory=dict)
 
     model_config = ConfigDict(extra='allow')
 

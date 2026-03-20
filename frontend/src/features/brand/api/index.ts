@@ -1,7 +1,7 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 import { aiActionsApi } from "@/lib/api/ai-actions";
-import { BrandSettings, ExtractedVisuals, FullBrandExtractionRequest } from "../types";
+import { BrandSettings, BrandVisuals, FullBrandExtractionRequest } from "../types";
 import { MOCK_BRAND_SETTINGS } from "./mock-data";
 import { ENABLE_MOCKS as USE_MOCK_API } from "@/lib/mock-config";
 
@@ -64,12 +64,12 @@ export const brandApi = {
         return res.json() as Promise<BrandSettings>;
     },
 
-    extractBrandVisuals: async (url: string, token: string): Promise<ExtractedVisuals> => {
+    extractBrandVisuals: async (url: string, token: string): Promise<BrandVisuals> => {
         const result = await aiActionsApi.extractBrandIdentity({
             url,
             type: "brand_identity"
         }, token);
-        return result as ExtractedVisuals;
+        return result as BrandVisuals;
     },
 
     extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<BrandSettings> => {

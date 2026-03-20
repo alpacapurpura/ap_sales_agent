@@ -1,7 +1,7 @@
 "use client";
 
 import { BrandLogos } from "@/features/brand/types";
-import { SingleImagePicker } from "./single-image-picker";
+import { SingleImagePicker } from "../visuals/single-image-picker";
 import { Card } from "@/components/ui/card";
 import { Plus, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,9 @@ export function LogoKit({ logos, onChange }: LogoKitProps) {
     };
 
     const updateLogo = (key: keyof BrandLogos, url: string) => {
-        onChange({ ...logos, [key]: url });
+        const updated = { ...logos, [key]: url };
+        console.log("[LogoKit] updateLogo:", key, url, "-> full logos:", updated);
+        onChange(updated);
     };
 
     const slots = [

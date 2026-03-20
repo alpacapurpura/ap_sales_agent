@@ -51,13 +51,16 @@ export function SingleImagePicker({ value, onChange, children }: SingleImagePick
             return assetsApi.upload(token, uploadFile, uploadDesc);
         },
         onSuccess: (data) => {
+            console.log("[SingleImagePicker] Upload success, data:", data);
             queryClient.invalidateQueries({ queryKey: ["assets"] });
             setUploadFile(null);
             setUploadDesc("");
             if (data?.public_url) {
+                console.log("[SingleImagePicker] Calling handleSelect with:", data.public_url);
                 handleSelect(data.public_url);
                 toast.success("Imagen subida y seleccionada");
             } else {
+                console.warn("[SingleImagePicker] No public_url in upload response!", data);
                 toast.success("Imagen subida a la galería");
             }
         },

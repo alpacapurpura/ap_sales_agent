@@ -54,6 +54,7 @@ export function BrandNavRail({ settings, activeSection, onNavigate, className }:
     {
       items: [
         { id: "visuals", label: "Visuales", icon: Palette, status: validateVisuals(settings.visuals ?? {}) },
+        { id: "logos", label: "Logos", icon: ImageIcon, status: { status: "optional", message: "Opcional" } as any },
         { id: "gallery", label: "Galeria", icon: ImageIcon, status: { status: "optional", message: "Opcional" } as any },
       ]
     },
