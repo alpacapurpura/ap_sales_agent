@@ -357,12 +357,24 @@ async def oauth_callback(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
+    logger.info(
+        "meta_oauth_callback_start",
+        tenant_id=str(user.tenant_id),
+        redirect_uri=redirect_uri,
+        code_length=len(code) if code else 0,
+    )
+
     adapter = MetaAdapter()
 
     try:
         creds_data = await adapter.exchange_code(code, redirect_uri)
+        logger.info(
+            "meta_oauth_code_exchange_ok",
+            tenant_id=str(user.tenant_id),
+            has_access_token=bool(creds_data.get("access_token")),
+        )
     except Exception as e:
-        logger.error("meta_oauth_exchange_failed", error=str(e))
+        logger.error("meta_oauth_exchange_failed", error=str(e), tenant_id=str(user.tenant_id))
         raise HTTPException(status_code=400, detail="Error de autenticacion con Meta")
 
     try:
@@ -372,8 +384,14 @@ async def oauth_callback(
         name = profile.get("name")
         if not user_id:
             raise ValueError("User ID not found in profile")
+        logger.info(
+            "meta_oauth_profile_ok",
+            tenant_id=str(user.tenant_id),
+            meta_user_id=user_id,
+            meta_name=name,
+        )
     except Exception as e:
-        logger.error("failed_to_get_meta_profile", error=str(e))
+        logger.error("meta_oauth_profile_failed", error=str(e), tenant_id=str(user.tenant_id))
         raise HTTPException(status_code=400, detail="No se pudo obtener el perfil de Meta.")
 
     # Log and store granted permissions for diagnostics
@@ -395,7 +413,32 @@ async def oauth_callback(
         credentials=creds_data,
         config=config,
     )
-    logger.info("meta_oauth_upsert_complete", tenant_id=str(user.tenant_id), is_active=master.is_active, master_id=str(master.id))
+    logger.info(
+        "meta_oauth_upsert_complete",
+        tenant_id=str(user.tenant_id),
+        is_active=master.is_active,
+        master_id=str(master.id),
+        channel_type=master.channel_type,
+    )
+
+    # Verification read-back: confirm DB write succeeded
+    verification = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
+    if verification:
+        logger.info(
+            "meta_oauth_verify_readback",
+            tenant_id=str(user.tenant_id),
+            readback_is_active=verification.is_active,
+            readback_has_token=bool(
+                verification.credentials.get("access_token") if verification.credentials else False
+            ),
+            readback_id=str(verification.id),
+        )
+    else:
+        logger.error(
+            "meta_oauth_verify_readback_failed",
+            tenant_id=str(user.tenant_id),
+            detail="Connection not found after upsert",
+        )
 
     # Auto-sync business assets after successful OAuth
     assets_synced = False
@@ -419,10 +462,11 @@ async def oauth_callback(
 # Status / Test / Disconnect
 # ---------------------------------------------------------------------------
 
-@router.get("/status", response_model=MetaStatusResponse)
+@router.get("/status")
 async def get_status(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
+    debug: bool = Query(False, description="Include diagnostic info in response"),
 ):
     # Platform credentials from .env — the user never configures these
     is_configured = bool(settings.META_APP_ID and settings.META_APP_SECRET)
@@ -430,16 +474,38 @@ async def get_status(
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
 
     if not connection or not connection.is_active or not connection.credentials:
-        return MetaStatusResponse(is_connected=False, is_configured=is_configured)
+        result: dict = MetaStatusResponse(
+            is_connected=False, is_configured=is_configured
+        ).model_dump()
+        if debug:
+            result["debug"] = {
+                "connection_exists": connection is not None,
+                "is_active": connection.is_active if connection else None,
+                "has_credentials": bool(connection.credentials) if connection else False,
+                "updated_at": str(connection.updated_at) if connection and hasattr(connection, "updated_at") else None,
+            }
+        return result
 
     is_connected = bool(connection.credentials.get("access_token"))
 
-    return MetaStatusResponse(
+    result = MetaStatusResponse(
         is_connected=is_connected,
         is_configured=is_configured,
         name=connection.config.get("name") if connection.config else None,
         account_id=connection.config.get("user_id") if connection.config else None,
-    )
+    ).model_dump()
+
+    if debug:
+        result["debug"] = {
+            "connection_exists": True,
+            "is_active": connection.is_active,
+            "has_credentials": bool(connection.credentials),
+            "has_access_token": bool(connection.credentials.get("access_token")),
+            "updated_at": str(connection.updated_at) if hasattr(connection, "updated_at") else None,
+            "connection_id": str(connection.id),
+        }
+
+    return result
 
 
 @router.delete("/disconnect")
