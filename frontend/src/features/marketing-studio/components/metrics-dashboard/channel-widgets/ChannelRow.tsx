@@ -4,12 +4,12 @@ import { useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { ChannelMetric, CampaignMetric, MetricValue, MetricClickData, StageId } from '../../../types/metrics';
 import { ConnectionBadge } from './ConnectionBadge';
 import { CostLink } from './CostLink';
 import { CampaignDrillDown } from './CampaignDrillDown';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
-import { getConnectionView } from '../../../lib/channelViewMap';
 
 /** Metric name -> Spanish label mapping. */
 const METRIC_LABELS: Record<string, string> = {
@@ -71,6 +71,17 @@ function formatBreakdown(breakdown: Record<string, number>): string {
     .join(', ');
 }
 
+/** Convert hex color to rgba for backgrounds. */
+function hexToRgba(hex: string, alpha: number): string {
+  if (hex.startsWith('hsl')) return hex; // fallback, keep as-is
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ── MetricDisplay ────────────────────────────────────────────────────── */
+
 interface MetricDisplayProps {
   metric: MetricValue;
   channelSlug?: string;
@@ -88,9 +99,9 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick }: MetricDi
   const canClick = onMetricClick && channelSlug && stageId;
 
   const content = (
-    <div className="flex flex-col items-end min-w-[60px]">
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</span>
-      <span className="text-sm font-semibold tabular-nums">{formatted}</span>
+    <div className="flex flex-col items-end min-w-[52px]">
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">{label}</span>
+      <span className="text-sm font-semibold tabular-nums leading-tight">{formatted}</span>
       {metric.breakdown && Object.keys(metric.breakdown).length > 0 && (
         <span className="text-[10px] text-muted-foreground truncate max-w-[180px]">
           {formatBreakdown(metric.breakdown)}
@@ -109,7 +120,7 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick }: MetricDi
           currentValue: metric.value,
           currency: metric.currency,
         })}
-        className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded-md transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
         title={`Ver detalle: ${label}`}
       >
         {content}
@@ -120,17 +131,17 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick }: MetricDi
   return content;
 }
 
+/* ── ChannelRow ────────────────────────────────────────────────────────── */
+
 interface ChannelRowProps {
   channel: ChannelMetric;
   /** Stage context — used for MetricClickData when onMetricClick is provided */
   stageId?: StageId;
   /** Callback when user clicks a metric value to open drill-down sidebar */
   onMetricClick?: (metric: MetricClickData) => void;
-  /** Callback when user clicks "Configurar" on an unconnected channel */
-  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: ChannelRowProps) {
+export function ChannelRow({ channel, stageId, onMetricClick }: ChannelRowProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [cooldown, setCooldown] = useState(false);
 
@@ -155,20 +166,20 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
     }
   }, [channel.slug, refreshing, cooldown]);
 
-  // Available (unconnected) channels: only show name + Configurar badge
+  // Available (unconnected) channels: show name + Configurar badge
   if (!channel.connected) {
-    const hasView = getConnectionView(channel.slug) !== null;
     return (
-      <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors duration-100">
+      <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors duration-100 opacity-60 hover:opacity-80">
         <div className="flex items-center gap-3 min-w-0">
-          <Icon className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} aria-hidden="true" />
+          <div
+            className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+            style={{ backgroundColor: hexToRgba(iconColor, 0.1) }}
+          >
+            <Icon className="w-4 h-4" style={{ color: iconColor }} aria-hidden="true" />
+          </div>
           <p className="text-sm font-medium truncate">{channel.name}</p>
         </div>
-        <ConnectionBadge
-          connected={false}
-          onConfigure={hasView && onConfigure ? () => onConfigure(channel.slug, channel.name) : undefined}
-          comingSoon={!hasView}
-        />
+        <ConnectionBadge connected={false} />
       </div>
     );
   }
@@ -180,15 +191,20 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
     (channel.slug === 'link-enviado' && channel.metrics.length === 0);
   if (isProximamente) {
     return (
-      <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/50 transition-colors duration-100">
+      <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors duration-100">
         <div className="flex items-center gap-3 min-w-0">
-          <Icon className="w-5 h-5 flex-shrink-0" style={{ color: iconColor }} aria-hidden="true" />
+          <div
+            className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
+            style={{ backgroundColor: hexToRgba(iconColor, 0.1) }}
+          >
+            <Icon className="w-4 h-4" style={{ color: iconColor }} aria-hidden="true" />
+          </div>
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">{channel.name}</p>
             <p className="text-xs text-muted-foreground truncate">{channel.sourceLabel}</p>
           </div>
         </div>
-        <Badge variant="secondary">Proximamente</Badge>
+        <Badge variant="secondary" className="text-[11px]">Proximamente</Badge>
       </div>
     );
   }
@@ -235,17 +251,26 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
   const campaigns: CampaignMetric[] = (channel as unknown as Record<string, unknown>).campaigns as CampaignMetric[] ?? [];
 
   const rowContent = (
-    <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-primary/5 transition-all duration-100 ease-out group">
+    <div className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-all duration-100 ease-out group">
+      {/* Left: icon + name + status */}
       <div className="flex items-center gap-3 min-w-0">
-        {/* Brand icon replacing emoji placeholder */}
-        <Icon
-          className="w-5 h-5 flex-shrink-0 transition-transform duration-100 group-hover:scale-110"
-          style={{ color: iconColor }}
-          aria-hidden="true"
-        />
+        <div
+          className={cn(
+            'flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-transform duration-100 group-hover:scale-105',
+          )}
+          style={{ backgroundColor: hexToRgba(iconColor, 0.12) }}
+        >
+          <Icon
+            className="w-4 h-4"
+            style={{ color: iconColor }}
+            aria-hidden="true"
+          />
+        </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium truncate">{channel.name}</p>
+            {/* Connected dot */}
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" title="Conectado" />
             {channel.stale && (
               <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 dark:text-yellow-400 text-[10px] py-0">
                 Desactualizado
@@ -272,7 +297,7 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
               </Badge>
             )}
           </div>
-          <p className="text-xs text-muted-foreground truncate">{channel.sourceLabel}</p>
+          <p className="text-[11px] text-muted-foreground truncate">{channel.sourceLabel}</p>
           {channel.stale && channel.lastUpdated && (
             <p className="text-[10px] text-yellow-600 dark:text-yellow-400">
               Ultima vez: {new Date(channel.lastUpdated).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
@@ -281,7 +306,7 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
         </div>
       </div>
 
-      {/* Metrics area — responsive: flex-col on mobile, flex-row on sm+ */}
+      {/* Right: metrics area */}
       <div className="flex flex-row items-center gap-2 sm:gap-3 shrink-0 flex-wrap justify-end">
         {hasNoData && !hasZeroLeads ? (
           <div className="flex flex-col items-end">
@@ -304,11 +329,11 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
             if (m.name === 'leads' && conversationsMetric) {
               const canClick = onMetricClick && stageId;
               const leadsContent = (
-                <div className="flex flex-col items-end min-w-[60px]">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                <div className="flex flex-col items-end min-w-[52px]">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">
                     {METRIC_LABELS[m.name] ?? m.name}
                   </span>
-                  <span className="text-sm font-semibold tabular-nums">{formatNumber(m.value)}</span>
+                  <span className="text-sm font-semibold tabular-nums leading-tight">{formatNumber(m.value)}</span>
                   <span className="text-[10px] text-muted-foreground">
                     de {conversationsMetric.value.toLocaleString('es-ES')} conversaciones
                   </span>
@@ -324,7 +349,7 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
                       metricName: m.name,
                       currentValue: m.value,
                     })}
-                    className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded-md transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
                     title={`Ver detalle: ${METRIC_LABELS[m.name] ?? m.name}`}
                   >
                     {leadsContent}
