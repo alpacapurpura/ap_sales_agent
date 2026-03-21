@@ -1,0 +1,8 @@
+{
+  "name": "agentic-development/frontend",
+  "version": "0.1.0",
+  "docs": "docs/index.md",
+  "describes": "pkg:npm/visionarias-client@0.1.0",
+  "summary": "AI-powered Sales and Marketing Platform frontend built with Next.js 15 and React 19, providing a multi-tenant dashboard for managing AI sales agents, brand studio, offer studio, marketing analytics, and third-party integrations.",
+  "private": true
+}
