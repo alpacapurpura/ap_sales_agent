@@ -1,197 +1,234 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-03-15
+**Analysis Date:** 2026-03-20
 
-## Naming Patterns
-
-**Backend (Python):**
-- Files: `snake_case` (e.g., `offer_service.py`, `brand_repository.py`, `lead_model.py`)
-- Classes: `PascalCase` (e.g., `OfferService`, `BrandRepository`, `LeadModel`)
-- Functions/Methods: `snake_case` (e.g., `get_settings`, `save_settings`, `patch_offer`)
-- Variables: `snake_case` (e.g., `tenant_id`, `offer_type`, `guarantee_type`)
-- Constants/Module-level maps: `UPPER_SNAKE_CASE` (e.g., `OFFER_TYPE_TO_DETAILS_MAPPING`, `OFFER_METADATA`)
-- Private helpers: prefix with `_` (e.g., `_to_domain`, `_apply_tenant_filter`, `_CHANNEL_CONNECTION_MAP`)
-
-**Frontend (TypeScript):**
-- Files: `kebab-case` (e.g., `brand-validation.ts`, `http-client.ts`, `offer-card.tsx`)
-- React components: `PascalCase` in both file export and file name (e.g., `OfferCard`, `StrategyCanvas`)
-- Hooks: `camelCase` with `use` prefix (e.g., `useBrandSettings`, `useRouter`)
-- Utility functions: `camelCase` (e.g., `validateIdentity`, `backendToFrontend`, `getBrandHealth`)
-- API objects: `camelCase` with `Api` suffix (e.g., `brandApi`, `offerApi`)
-- Constants: `UPPER_SNAKE_CASE` (e.g., `MOCK_BACKEND_RESPONSE`, `ENABLE_MOCKS`, `API_URL`)
-- Types/Interfaces: `PascalCase` (e.g., `BrandSettings`, `OfferFormValues`, `Offer`)
-
-## Code Style
-
-**Backend Formatting:**
-- Tool: Ruff (configured in `backend/pyproject.toml`)
-- Line length: 88 characters (Black-compatible)
-- Indent: 4 spaces
-- Quotes: double quotes for strings
-- Target: Python 3.11+
-- Lint rules: E4, E7, E9, F (Pyflakes + pycodestyle errors)
-- Run: `ruff check src --fix` inside `visionarias_brain_dev` container
-
-**Frontend Formatting:**
-- Linting: ESLint with `next/core-web-vitals` ruleset (`frontend/.eslintrc.json`)
-- TypeScript: strict mode enabled (`tsconfig.json`)
-- No separate Prettier config detected — formatting deferred to ESLint/Next.js defaults
-
-## Import Organization
-
-**Backend (Python):**
-1. Standard library imports (`from typing import`, `from uuid import`, `from datetime import`)
-2. Third-party imports (`from fastapi import`, `from sqlalchemy import`, `from pydantic import`)
-3. Internal imports (`from src.shared.domain import`, `from src.core import`, `from src.modules.X import`)
-4. Relative imports within the same module (rare, prefer absolute)
-
-**Frontend (TypeScript):**
-1. React/Next.js (`import { useAuth } from "@clerk/nextjs"`)
-2. Third-party libs (`import { useQuery } from "@tanstack/react-query"`)
-3. Internal aliased imports via `@/` (`import { brandApi } from "@/features/brand/api"`)
-4. Relative imports within feature (`import { backendToFrontend } from "./adapter"`)
-
-**Path Aliases:**
-- Frontend: `@/` maps to `frontend/src/` (configured in `tsconfig.json`)
-- Do NOT use deep relative imports across FSD layers (e.g., `../../features/X` from a page)
-
-## Backend Architecture Patterns
-
-**Domain Layer (`domain/`):**
-- Pydantic v2 models extending `BaseEntity` (`from src.shared.domain.base_entity import BaseEntity`)
-- `BaseEntity` has `model_config = ConfigDict(from_attributes=True)` for ORM compatibility
-- Domain models are pure data containers with optional `@model_validator` for business rules
-- Optional fields use `Optional[T] = None` or `Optional[T] = Field(None, description="...")`
-- Lists default to `Field(default_factory=list)` not `= []`
-
-```python
-class BrandSettings(BaseEntity):
-    model_config = ConfigDict(extra='ignore')
-    identity: Optional[BrandIdentity] = Field(None, description="Visual identity")
-    team: Optional[List[KeyFigure]] = Field(default_factory=list, description="Team structure")
-```
-
-**Infrastructure Layer (`infrastructure/`):**
-- SQLAlchemy models extend `Base` from `src.shared.domain.base_entity`
-- Model class names: `XModel` suffix (e.g., `LeadModel`, `TenantModel`, `ProductModel`)
-- Table names: `snake_case` plural (e.g., `__tablename__ = "leads"`)
-- UUID primary keys: `Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)`
-- Timestamps: `created_at = Column(DateTime(timezone=True), server_default=func.now())`
-- Soft delete: use `deleted_at` / `is_active` pattern (never hard delete)
-- JSONB columns for semi-structured data (e.g., `profile_data = Column(JSONB, default={})`)
-
-**Repository Pattern:**
-- Constructor injects `db: Session`
-- Method `_to_domain(model: XModel) -> DomainEntity` converts ORM to Pydantic
-- Tenant isolation enforced in every query: `filter(Model.tenant_id == tenant_id)`
-- `BaseRepository` at `src/core/base_repository.py` provides `_apply_tenant_filter` and `_set_tenant`
-- SQLAlchemy 2.0 syntax: use `select(Model)` style (legacy `db.query()` still present in older repos)
-
-**Application Layer (`application/`):**
-- Service classes with `__init__(self, db: Session)` that instantiate repositories
-- Services named `XService` (e.g., `OfferService`, `MetricsService`, `BrandExtractionService`)
-- Business logic lives here, not in API or domain
-
-**API Layer (`api/`):**
-- FastAPI routers using `APIRouter()`
-- Route handlers are `async def`
-- Dependencies injected via `Depends()`: `db: Session = Depends(get_db)`, `user: User = Depends(get_current_user)`
-- DTOs live in `api/dto/` subdirectory
-- Tenant access check: compare `str(resource.tenant_id) != str(user.tenant_id)` before operating
-
-## Frontend Architecture Patterns
-
-**Feature-Sliced Design (FSD):**
-- Layer order (low to high): `shared` → `entities` → `features` → `widgets` → `pages`
-- No upward imports: a `feature` must not import from `widgets` or `pages`
-- Each feature has structure: `components/`, `hooks/`, `api/`, `types/`, `utils/`
-- Barrel exports via `index.ts` at feature root (e.g., `src/features/offer-studio/index.ts`)
-
-**Hooks:**
-- Data fetching hooks use `@tanstack/react-query` (`useQuery`, `useMutation`)
-- Hook returns `{ data, isLoading, error, mutate }` shaped objects
-- Cache keys are string arrays: `queryKey: ['brand-settings']`
-- `staleTime` set to 5 minutes for settings data
-
-**API Client Pattern:**
-- All fetch calls go through `fetchClient` at `src/lib/http-client.ts`
-- `fetchClient` auto-injects `X-Tenant-ID` header from URL path segment
-- `fetchClient` handles 401 (redirect to `/sign-in`) and 403 (redirect to `/forbidden`)
-- Feature-specific API modules export an object (e.g., `brandApi`, `offerApi`) with typed methods
-- Adapter pattern: `backendToFrontend()` and `frontendToBackend()` in `api/adapter.ts` per feature
-
-**Mock Data:**
-- Mock flag: `ENABLE_MOCKS` imported from `src/lib/mock-config.ts`
-- Mock data files: `api/mock-data.ts` within each feature
-- Feature APIs check `USE_MOCK_DATA` before making real requests
-
-## Error Handling
-
-**Backend:**
-- API errors: `raise HTTPException(status_code=X, detail="message")` directly in route handlers
-- 404: resource not found or tenant mismatch (security-conscious — don't reveal existence)
-- 401: invalid auth token or webhook secret
-- 403: tenant inactive or forbidden
-- 500: repository failures (e.g., `"Failed to delete avatar"`)
-- Domain/application errors: `raise ValueError("message")` — caught and converted at API boundary
-- Structlog used for structured logging: `logger = structlog.get_logger()`
-- Context binding: `structlog.contextvars.bind_contextvars(tenant_id=str(tenant.id))`
-
-**Frontend:**
-- API errors caught with `try/catch` in hooks and API modules
-- User-facing errors via `toast.error("message")` from `sonner`
-- Silent catch `try { ... } catch {}` used in mutation callbacks (not recommended but present)
-- `fetchClient` silently handles 401/403 via redirects — no thrown errors
-
-## Logging
-
-**Backend Framework:** `structlog` (configured at `src/core/logger.py`)
-
-**Usage:**
-```python
-import structlog
-logger = structlog.get_logger()
-
-# Bind context vars (per-request)
-structlog.contextvars.bind_contextvars(tenant_id=str(tenant.id))
-
-# Log events
-logger.info("event_name", key="value")
-```
-
-**Frontend:** `console.log` / `console.error` for debug — no structured logging library.
-
-## Comments
-
-**Backend:**
-- Docstrings on class definitions explaining purpose and storage (e.g., `"""Configuration for the Brand Identity..."""`)
-- Inline comments explain non-obvious logic (e.g., `# Fix known legacy types`, `# Scope filtering moved to Repo`)
-- Spanish comments acceptable in domain code (codebase uses both EN/ES)
-
-**Frontend:**
-- JSDoc not consistently used; inline `//` comments for intent
-- Mock flags and debug logs often include emoji (e.g., `"🔸 Using Mock Data"`) — avoid in new code
-
-## Module Design
-
-**Backend:**
-- Each bounded context is a self-contained module under `backend/src/modules/X/`
-- Standard layout: `domain/`, `infrastructure/`, `application/`, `api/`
-- Cross-module imports allowed but should go domain → domain only; never infrastructure → infrastructure across modules
-- `__init__.py` used to re-export key domain entities
-
-**Frontend:**
-- Feature barrels (`index.ts`) export only public API of the feature
-- Internal components not exported from barrel (they are `feature/components/X`)
-- Types exported via `types/index.ts` within each feature
-
-## Tenant Isolation (Critical)
-
-- Every backend query MUST filter by `tenant_id`
-- Every API route that accesses tenant data MUST use `user: User = Depends(get_current_user)` and check `user.tenant_id`
-- Frontend MUST include `X-Tenant-ID` header (handled automatically by `fetchClient`)
-- Context variable `_tenant_id_ctx` at `src/core/context.py` propagates tenant ID across async context
+> This document cross-references actual codebase patterns with the desired standards
+> defined in `.trae/skills/backend-expert/references/standards.md` and
+> `.trae/skills/frontend-expert/references/component-rules.md`.
+> Deviations are marked with ⚠️.
 
 ---
 
-*Convention analysis: 2026-03-15*
+## Backend (Python / FastAPI)
+
+### Language & Runtime
+
+- Python 3.11+, enforced via `pyproject.toml` `target-version = "py311"`.
+- All I/O-bound operations use `async def` (FastAPI endpoints, DB access, external HTTP calls).
+  - Most API layer functions are `async def`. Some service/repo layer functions remain sync
+    (`Session` not `AsyncSession`) — this is an architectural inconsistency (see CONCERNS.md).
+
+### Linting & Formatting
+
+- **Tool:** `ruff`
+- **Config:** `backend/pyproject.toml` — line length 88, Black-style quotes (double), spaces.
+- **Enabled rules:** `E4`, `E7`, `E9`, `F` (Pyflakes + pycodestyle errors).
+- **Run command (in Docker):** `docker exec -it visionarias_brain_dev ruff check src --fix`
+- Stricter rules (isort, type annotation checks) are NOT enabled in ruff yet.
+
+### Naming Patterns
+
+**Files:**
+- `snake_case.py` throughout.
+- Router files: `{noun}.py` (e.g., `leads.py`, `products.py`, `calendar.py`).
+- Service files: `{noun}_service.py`.
+- Repository files: `{noun}_repository.py` or `{noun}_metrics_repository.py`.
+- DTO files live in `api/dto/` subdirectory.
+
+**Functions & Methods:**
+- `snake_case` always.
+- Repository methods: `get_by_*`, `list_*`, `save`, `update`, `delete`.
+- Service methods: verb-first, e.g., `get_sales_metrics`, `create_offer`, `patch_offer`.
+
+**Classes:**
+- `PascalCase` always.
+- Domain models: plain name (e.g., `Lead`, `Offer`, `User`).
+- SQLAlchemy ORM models: `{Name}Model` suffix (e.g., `LeadModel`, `ProductModel`).
+- Pydantic DTOs: descriptive suffix (e.g., `ProductCreate`, `ProductUpdate`, `SalesHeaderKpisDTO`).
+
+**Variables & Constants:**
+- `snake_case` for variables.
+- `UPPER_SNAKE_CASE` for module-level constants (e.g., `EVENT_SCORES`, `LOW_CONVERSION_THRESHOLDS`, `PROFILE_SAFE`).
+
+### Type Hints
+
+- **Desired:** All functions must have return type annotations.
+- **Actual:** Return type annotations are present on most public methods but coverage is incomplete in infrastructure layer.
+  - Correct pattern: `def calculate_score(self, profile_id: UUID) -> int:`
+  - Use native generics (`list[str]`, `dict[str, Any]`) or `Optional`, `List` from `typing` — both styles coexist.
+- ⚠️ **Deviation:** Some infrastructure functions lack return annotations.
+
+### Pydantic V2
+
+- `BaseModel` from Pydantic V2 is used throughout.
+- **Correct pattern:** `model_config = ConfigDict(...)` — used in `brand`, `offer`, and `iam` domain models.
+- ⚠️ **Deviation:** A few legacy files still use `class Config:` inner class:
+  - `backend/src/modules/offer/api/dto/offer_gallery.py`
+  - `backend/src/modules/sales_agent/domain/events.py`
+  - `backend/src/modules/crm/api/dto/cdp.py`
+- `model_dump(exclude_unset=True)` is correctly used for PATCH operations.
+- `model_validate` is used over `from_orm` (no `from_orm` calls found).
+
+### Error Handling
+
+- **API layer:** `HTTPException` from FastAPI is the standard for controlled errors.
+- **Domain exceptions:** Custom exceptions should live in `src/shared/domain/exceptions.py` per the standard — partially implemented.
+- **Pattern for resource not found:**
+  ```python
+  if not product or str(product.tenant_id) != str(user.tenant_id):
+      raise HTTPException(status_code=404, detail="Product not found")
+  ```
+- **Pattern for invalid input:**
+  ```python
+  try:
+      lead = service.get_lead(UUID(lead_id))
+  except ValueError:
+      raise HTTPException(status_code=400, detail="Invalid UUID format")
+  ```
+
+### Logging
+
+- **Desired:** `structlog` exclusively. No `print()`, no `logging.getLogger`.
+- **Actual pattern (correct):**
+  ```python
+  import structlog
+  logger = structlog.get_logger()
+  logger.warning("unknown_extraction_profile", requested=name, fallback="safe")
+  ```
+- ⚠️ **Deviation:** Multiple infrastructure files still use standard `logging` module:
+  - `backend/src/modules/connections/infrastructure/channels/gmail.py`
+  - `backend/src/modules/connections/infrastructure/channels/telegram.py`
+  - `backend/src/modules/connections/infrastructure/channels/youtube.py`
+  - `backend/src/modules/iam/application/auth.py` — uses `logging.getLogger(__name__)`
+  - `backend/src/shared/domain/events.py`
+- ⚠️ **Deviation:** One `print()` call in `backend/src/shared/infrastructure/llm/providers/openai.py:157`.
+- Scripts in `backend/scripts/` use `print()` intentionally (acceptable for CLI scripts).
+
+### Environment & Config
+
+- Centralized in `src/core/config.py` using `pydantic-settings`.
+- Accessed as `from src.core.config import settings`.
+- ⚠️ **Deviation:** `backend/src/modules/iam/application/auth.py` reads `os.getenv()` directly instead of using `settings`.
+
+### Async/Sync Consistency
+
+- **Desired:** All DB access should be async.
+- ⚠️ **Deviation:** Most service and repository layers use synchronous `Session` from `sqlalchemy.orm`,
+  not `AsyncSession`. API endpoints are `async def` but call sync services.
+  This is widespread — see `backend/src/modules/offer/application/offer_service.py`,
+  `backend/src/modules/crm/application/services/lead_service.py`, etc.
+
+---
+
+## Frontend (TypeScript / Next.js)
+
+### Language & Runtime
+
+- TypeScript with strict mode (`frontend/tsconfig.json`).
+- Next.js 14+ App Router.
+- React 18+.
+
+### Linting & Formatting
+
+- **ESLint:** `next/core-web-vitals` (`frontend/.eslintrc.json`).
+- **Pre-commit hook:** `husky` → `lint-staged` runs ESLint fix + `tsc --noEmit` on all `.ts`/`.tsx` files.
+- No Prettier config found — formatting is handled by ESLint rules only.
+- **Lint commands:** `npm run lint` / `npm run lint:fix` (inside container).
+
+### Naming Patterns
+
+**Files:**
+- React components: `kebab-case.tsx` (e.g., `sales-dashboard.tsx`, `brand-nav-rail.tsx`).
+- Hooks: `use-kebab-case.ts` (e.g., `use-offer.ts`, `use-debounce.ts`).
+- Types/utilities: `kebab-case.ts` (e.g., `brand-validation.ts`, `section-helpers.ts`).
+- API modules: `kebab-case.ts` in `src/lib/api/` (e.g., `leads.ts`, `connections.ts`).
+
+**Components & Types:**
+- Component functions: `PascalCase` (e.g., `SalesDashboard`, `BrandNavRail`).
+- Props interfaces: `{ComponentName}Props` convention.
+- Hooks: `use{PascalCase}` (e.g., `useBrandSettings`, `useOfferMetadata`).
+- API objects: `{noun}Api` (e.g., `brandApi`, `offerApi`, `myFeatureApi`).
+
+### Component Structure
+
+- **Preferred export:** Named function exports (e.g., `export function SalesDashboard()`).
+- **`"use client"` directive:** Present on all interactive components — 124 instances in features.
+- ⚠️ **Deviation:** The component template in `.trae/skills/frontend-expert/assets/templates/component.tsx`
+  prescribes `forwardRef` for all feature components. In practice, `forwardRef` is used only in `src/components/ui/`
+  (Shadcn, 81 instances) and NOT in `src/features/` (0 instances). Feature components use simple arrow functions.
+- Props are typed with `interface` or `type` — consistently applied.
+- Desestructuring of props in function signature — generally followed.
+
+### Styling (Tailwind CSS)
+
+- **Tailwind CSS** is the sole styling approach.
+- `cn()` utility (clsx + twMerge) from `@/lib/utils` is used for conditional/dynamic classes — 140+ usages in features.
+- ⚠️ **Deviation:** `style={{...}}` inline styles are used in 84 places, primarily in:
+  - `frontend/src/features/brand/sections/visuals/visuals-preview.tsx` — uses dynamic colors/fonts
+    that cannot be expressed as static Tailwind classes (e.g., `fontFamily`, `backgroundColor` from user data).
+  - This is a legitimate exception for dynamic design tokens, but should be documented.
+- Shadcn UI components from `src/components/ui/` are reused before creating primitives from scratch.
+
+### State & Effects
+
+- `useState` and `useEffect` are used extensively (367 and 108 instances in features, respectively).
+- React Query (`@tanstack/react-query`) is the standard for server state — hooks follow the
+  `useQuery` + `useMutation` pattern with `queryKey`, `queryFn`, `staleTime`.
+- Forms: `react-hook-form` + `zod` schemas (`frontend/src/features/offer-studio/types/schema.ts`).
+- ⚠️ **Deviation vs desired:** Many hooks still sync derived state with `useEffect` in some places.
+  The desired pattern is inline derivation (compute at render time without useEffect).
+
+### Data Fetching & API Layer
+
+- **HTTP client:** `fetchClient` from `@/lib/http-client` — wraps native `fetch` with:
+  - `X-Tenant-ID` auto-injection from URL first segment, localStorage fallback.
+  - 401 → redirect to `/sign-in`.
+  - 403 → redirect to `/forbidden`.
+- ⚠️ **Deviation:** `fetchClient` does NOT inject cache partitioning (`?_t=<tenantId>`) as documented
+  in `api-standards.md`. The actual implementation only injects `X-Tenant-ID` header.
+- **API definition pattern:** `src/lib/api/{feature}.ts` exports a plain object `{noun}Api` with async methods.
+  Each method receives `token: string` as explicit argument and calls `fetchClient`.
+- **Auth pattern:** `useAuth().getToken()` in hooks, token passed explicitly to API functions.
+- **Mock data:** Both `brandApi` and `offerApi` support a `USE_MOCK_API` flag from `@/lib/mock-config` —
+  controlled by `ENABLE_MOCKS` constant. Enables offline UI development.
+
+### Logging (Frontend)
+
+- ⚠️ **Deviation:** 165 `console.log/error/warn` calls exist in `src/features/` (no structured logging).
+  Heavy use of `[BrandAPI]`, `[useBrandSettings]` prefixed console logs for debugging — not removed after development.
+  Should be replaced with a structured logger or removed before production.
+
+### Navigation & Images
+
+- ⚠️ **Partial deviation:** 16 raw `<a>` tags and 13 raw `<img>` tags found in features (should use
+  `next/link` and `next/image`). Only 6 `next/link` imports and 9 `next/image` imports used.
+
+### Import Organization
+
+**Typical order observed:**
+1. React / Next.js core (`react`, `next/link`, `next/image`)
+2. Third-party libraries (`@clerk/nextjs`, `@tanstack/react-query`, `sonner`)
+3. Internal `@/components/ui/` (Shadcn)
+4. Internal `@/features/` or `@/lib/`
+5. Local relative imports
+
+**Path Aliases:**
+- `@/` → `./src/` (configured in `tsconfig.json` and `vitest.config.mts`).
+
+### Module Design
+
+- **Barrel files (`index.ts`):** Present in most features for re-exporting types:
+  - `src/features/offer-studio/index.ts` — re-exports `./types`.
+  - `src/features/brand/types/index.ts` — all brand type exports.
+- Feature API files (`src/features/{feature}/api/index.ts`) export the API object and types.
+- `src/lib/api/` holds cross-feature API modules used by multiple features.
+
+### Comments
+
+- JSDoc comments are used sparingly — mostly on API method objects in `src/lib/api/`.
+- Backend uses inline comments heavily in Spanish for logic explanations.
+- Frontend uses English for JSDoc but Spanish for UI-facing text/labels.
+
+---
+
+*Convention analysis: 2026-03-20*

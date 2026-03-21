@@ -1,152 +1,177 @@
 # Technology Stack
 
-**Analysis Date:** 2026-03-15
+**Analysis Date:** 2026-03-20
 
 ## Languages
 
 **Primary:**
-- Python 3.11 - Backend API, domain logic, AI orchestration (`backend/src/`)
-- TypeScript 5.9 - Frontend application (`frontend/src/`)
+- Python 3.11+ — Backend API, AI agents, ETL workers, admin dashboard
+- TypeScript 5.9+ — Frontend application (strict mode enabled)
 
 **Secondary:**
-- Python 3.11 - Admin dashboard (Streamlit) (`backend/src/admin/`)
+- SQL (raw) — Alembic migrations (idempotent pattern with `IF NOT EXISTS`)
+- Jinja2 — LLM prompt templates (`backend/src/modules/sales_agent/infrastructure/prompts/templates/`)
 
 ## Runtime
 
-**Backend Environment:**
-- Python 3.11-slim (Docker)
-- WSGI/ASGI: Uvicorn (dev), Gunicorn + UvicornWorker (prod, 4 workers)
+**Backend:**
+- Python 3.11-slim (Docker image `python:3.11-slim`)
+- Container: `visionarias_brain_dev`
 
-**Frontend Environment:**
-- Node.js (Docker, version not pinned — derived from Next.js image)
-- Next.js standalone output mode (`output: 'standalone'` in `frontend/next.config.js`)
+**Frontend:**
+- Node.js 22-alpine (Docker image `node:22-alpine`)
+- Container: `visionarias_client_dev`
 
-**Package Manager:**
-- Backend: pip with `requirements.txt` (no lockfile)
-- Frontend: npm with `package-lock.json` (lockfile present)
+**Package Managers:**
+- Backend: `pip` with `requirements-runtime.txt` + `requirements-dev.txt`
+- Frontend: `npm` — lockfile `frontend/package-lock.json` present
 
 ## Frameworks
 
-**Core Backend:**
-- FastAPI 0.109.2 - REST API framework (`backend/src/main.py`)
-- Pydantic v2 (>=2.10.0) - Data validation and settings management
-- pydantic-settings 2.1.0 - Environment-based configuration (`backend/src/core/config.py`)
-- SQLAlchemy 2.0.27 - ORM (sync engine, `backend/src/core/database.py`)
-- Alembic >=1.13.1 - Database migrations (`backend/alembic/`)
+**Backend Core:**
+- FastAPI `0.135.1` — Async HTTP API (ASGI via Uvicorn)
+- Uvicorn `0.34.0` — ASGI server (dev: `--reload`; prod: Gunicorn workers)
+- Pydantic v2 `>=2.10.0` — Schema validation and settings
+- pydantic-settings `>=2.10.1` — Environment config via `BaseSettings` at `backend/src/core/config.py`
 
-**AI / LLM:**
-- LangChain >=0.1.9 + langchain-openai >=0.0.8 + langchain-core >=0.1.26 - LLM orchestration
-- LangGraph 0.0.24 - Stateful agent graph execution (`backend/src/modules/sales_agent/application/`)
-- langchain-google-genai 0.0.9 - Gemini provider support
-- fastembed >=0.2.0 - Local sparse embedding model (BM25/SPLADE)
-- flashrank >=0.2.0 - Local cross-encoder reranker (ms-marco-MiniLM-L-12-v2)
+**AI / Agent Orchestration:**
+- LangChain `1.2.12` — LLM abstraction layer
+- LangGraph `1.1.2` — Stateful agent graph execution (sales agent, copilot agents)
+- langchain-openai `1.1.11` — OpenAI provider
+- langchain-google-genai `4.2.1` — Gemini provider
+- langchain-community `0.4.1` — Community integrations
+- langchain-text-splitters `1.1.1` — Document chunking for RAG
 
-**Core Frontend:**
-- Next.js ^14.2.35 - App Router, server actions, standalone output (`frontend/`)
-- React ^19.2.3 - UI rendering
-- Tailwind CSS ^4.1.18 - Utility-first CSS
-- Shadcn UI - Component system built on Radix UI primitives
-
-**UI Components:**
-- Radix UI - Headless component primitives (accordion, dialog, dropdown, etc.)
-- Framer Motion ^12.35.0 - Animations
-- Lucide React ^0.562.0 - Icon library
-- Sonner ^2.0.7 - Toast notifications
-- cmdk ^1.1.1 - Command palette
-- @puckeditor/core ^0.21.1 - Rich text / page editor
-
-**Data Fetching:**
-- @tanstack/react-query ^5.90.19 - Server state management (`frontend/src/app/providers.tsx`)
-- Native `fetch` with custom wrapper `fetchClient` (`frontend/src/lib/http-client.ts`) — injects `X-Tenant-ID` header automatically
-
-**Form Handling:**
-- react-hook-form ^7.71.1 + @hookform/resolvers ^5.2.2 + zod ^4.3.6 - Forms with schema validation
-
-**Data Visualization:**
-- @visx/sankey, @visx/shape, @visx/group, @visx/tooltip, @visx/gradient, @visx/responsive ^3.12.0 - Funnel / Sankey diagrams (Growth Studio)
+**Frontend Core:**
+- Next.js `15.5.13` — App Router, React Server Components, standalone output
+- React `19.2.3` — UI runtime
+- Tailwind CSS `4.1.18` — Utility-first styling
+- Shadcn UI (Radix Primitives) — Component system via `frontend/components.json`
 
 **Admin Dashboard:**
-- Streamlit >=1.31.0 - Internal admin UI (`backend/src/admin/app.py`)
+- Streamlit `>=1.31.0` — Internal admin UI at port 8501/8502 (`backend/src/admin/app.py`)
 
 **Testing:**
-- Frontend: Vitest ^4.0.17 + @testing-library/react ^16.3.1 + happy-dom
-- Backend: pytest >=8.0.0 + pytest-asyncio >=0.23.5
+- Backend: `pytest >=8.0.0` + `pytest-asyncio >=0.23.5`
+- Frontend: Vitest `4.0.17` + `@testing-library/react 16.3.1`, environment: `happy-dom`
+- Frontend E2E: Not configured
 
 **Build/Dev:**
-- ESLint 8 + eslint-config-next - Frontend linting
-- Husky ^9.1.7 + lint-staged ^16.2.7 - Pre-commit hooks
-- Ruff >=0.3.0 - Python linting + formatting (`backend/pyproject.toml`, line-length 88, py311 target)
-- Docker + Docker Compose - All dev and prod environments
+- Backend linting: `ruff >=0.3.0` (Black-compatible, line-length 88, target `py311`)
+- Frontend linting: ESLint `8.57.1` + `eslint-config-next 15.5.13`
+- Frontend pre-commit: Husky `9.1.7` + lint-staged (ESLint fix + `tsc --noEmit`)
+- Frontend component explorer: Storybook `10.2.19` (port 6006)
+- Container orchestration: Docker Compose (dev/prod profiles)
+- Reverse proxy: Traefik (external network `gateway`)
+- Tunnel: Cloudflare Tunnel for external webhook access
 
 ## Key Dependencies
 
-**Critical Backend:**
-- `langchain` / `langchain-openai` / `langgraph` - Powers the Sales Agent AI orchestrator
-- `qdrant-client 1.7.3` - Vector DB client for RAG/semantic memory
-- `redis 5.0.1` - Session cache, rate limiting, event buffers
-- `sqlalchemy 2.0.27` + `psycopg2-binary 2.9.9` - PostgreSQL ORM
-- `svix >=1.1.1` - Clerk webhook signature verification (`backend/src/modules/iam/api/webhooks.py`)
-- `pyjwt 2.8.0` + `cryptography 42.0.5` - JWT verification and Fernet symmetric encryption
-- `passlib[bcrypt] >=1.7.4` - Password hashing
-- `facebook-business` - Meta/Facebook Ads SDK
-- `boto3 >=1.34.0` - AWS S3 / Cloudflare R2 compatible storage
-- `google-api-python-client >=2.118.0` + `google-auth-oauthlib >=1.2.0` - Google APIs (Calendar, Analytics, Gmail, YouTube)
-- `beautifulsoup4 >=4.12.3` - Web scraping for Brand extraction
-- `structlog >=24.1.0` - Structured logging throughout backend
+**State & Data:**
+- SQLAlchemy `2.0.27` — ORM (sync sessions via `SessionLocal`)
+- Alembic `>=1.13.1` — DB migrations
+- psycopg2-binary `2.9.9` — PostgreSQL driver
+- Redis `5.0.1` — Cache + ARQ job queue
+- Qdrant client `>=1.13.3` — Vector store client
+- fastembed `>=0.2.0` — Local sparse embeddings (BM25)
+- flashrank `>=0.2.0` — Local reranker for RAG pipeline
 
-**Critical Frontend:**
-- `@clerk/nextjs ^6.36.8` - Auth provider (middleware, hooks, components)
-- `@tanstack/react-query ^5.90.19` - All API data fetching
-- `zod ^4.3.6` - Schema validation for forms and API contracts
-- `@visx/sankey` - Bowtie funnel visualization (Growth Studio)
+**Background Jobs:**
+- arq `0.27.0` — Async job queue over Redis. Worker: `WorkerSettings`, Scheduler: `SchedulerSettings` at `backend/src/modules/analytics/workers/settings.py`
 
-**Infrastructure:**
-- `gunicorn 21.2.0` - Production WSGI server (wraps uvicorn workers)
-- `python-multipart >=0.0.9` - File upload support in FastAPI
+**HTTP:**
+- httpx `>=0.26.0` — Async HTTP client (external API calls)
+- requests `>=2.32.5` — Sync HTTP (legacy/scripts)
+
+**File Processing:**
+- pypdf `>=4.0.0` — PDF text extraction
+- python-docx `>=0.8.11` — DOCX parsing
+- beautifulsoup4 `>=4.12.3` — HTML scraping (brand extraction)
+- Pillow `>=12.1.1` — Image processing
+- python-multipart `>=0.0.9` — File upload handling
+
+**Auth & Security:**
+- PyJWT `>=2.12.0` — Clerk JWKS JWT verification at `backend/src/modules/iam/application/auth.py`
+- cryptography `>=46.0.5` — Crypto primitives
+- passlib[bcrypt] `>=1.7.4` — Password hashing (legacy)
+- svix `>=1.1.1` — Clerk webhook signature verification at `backend/src/modules/iam/api/webhooks.py`
+
+**Observability:**
+- structlog `>=24.1.0` — Structured logging (all backend modules use `structlog.get_logger()`)
+- sentry-sdk `>=1.40.0` — Error tracking (ARQ workers + app)
+
+**Storage:**
+- boto3 `>=1.34.0` — Cloudflare R2 via S3-compatible API at `backend/src/modules/assets/infrastructure/storage/r2.py`
+
+**Frontend State & Forms:**
+- TanStack Query `5.90.19` — Server state, caching, and async data fetching
+- React Hook Form `7.71.1` — Form management
+- Zod `4.3.6` — Schema validation (client-side)
+- framer-motion `12.35.0` — Animations
+
+**Frontend Visualization:**
+- visx (gradient, group, responsive, sankey, shape, tooltip) `3.12.0` — Data visualization (funnel/Sankey diagrams for Growth Studio)
+
+**Frontend UI Tools:**
+- @puckeditor/core `0.21.1` — Drag-and-drop landing page editor
+- date-fns `4.1.0` + date-fns-tz `3.2.0` — Date utilities
+- sonner `2.0.7` — Toast notifications
+- lucide-react `0.562.0` — Icon library
+- colorthief `2.6.0` — Brand color extraction from images
+- cmdk `1.1.1` — Command palette (cmdk)
+- next-themes `0.4.6` — Dark/light theme support
 
 ## Configuration
 
 **Backend Environment:**
-- Single `.env` file for dev, `.env.prod` for prod
-- Loaded via `pydantic-settings` in `backend/src/core/config.py`
-- Key required vars: `OPENAI_API_KEY`, `POSTGRES_USER/PASSWORD/DB/HOST/PORT`, `REDIS_URL`, `QDRANT_URL`, `API_SECRET_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, `WHATSAPP_API_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`
-- Optional/feature-gated: `GEMINI_API_KEY`, `SHOPIFY_*`, `META_*`, `TELEGRAM_BOT_TOKEN`, `GOOGLE_*`, `CLOUDFLARE_*` (R2 storage), `EVOLUTION_API_*`
+- Loaded via `pydantic-settings` from `.env` file at `backend/src/core/config.py`
+- Required vars: `OPENAI_API_KEY`, `REDIS_URL`, `QDRANT_URL`, `POSTGRES_*`, `WHATSAPP_*`, `API_SECRET_KEY`
+- Optional vars: `GEMINI_API_KEY`, `SENTRY_DSN`, `SHOPIFY_*`, `META_*`, `TELEGRAM_BOT_TOKEN`, `GOOGLE_*`, `CLERK_*`, `CLOUDFLARE_*`
+- AI provider switchable: `AI_PROVIDER=openai|gemini` (default: `openai`)
+- Storage provider switchable: `STORAGE_PROVIDER=LOCAL|R2` (default: `LOCAL`)
 
 **Frontend Environment:**
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Required at build time (baked into Docker image)
-- `NEXT_PUBLIC_API_URL` - Public API URL for client-side requests
-- `NEXT_PUBLIC_APP_URL` - Application URL
-- `INTERNAL_API_URL` - Docker-internal API URL for SSR (avoids external hop)
-- `SHOPIFY_API_KEY` - Public Shopify key (exposed to client)
-
-**API Routing:**
-- Frontend proxies all `/api/v1/*` and `/api/webhooks/*` to backend via Next.js rewrites (`frontend/next.config.js`)
-- Server-side requests use `INTERNAL_API_URL` (Docker internal), client-side use `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_API_URL` — Public API base URL
+- `NEXT_PUBLIC_APP_URL` — Public app base URL
+- `INTERNAL_API_URL` — Docker-internal API URL for server-side fetching
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk auth (build-time arg)
+- `SHOPIFY_API_KEY` — Shopify OAuth
 
 **Build:**
-- Backend: Multi-stage Docker build (builder → runtime), non-root user, BuildKit cache mounts (`backend/Dockerfile`)
-- Frontend: Multi-stage Docker build with `dev` and standalone prod targets (`frontend/Dockerfile`)
-- CI/CD images: Published to `ghcr.io/alpacapurpura/visionarias-{backend,frontend}:latest`
-
-**TypeScript Paths:**
-- `@/*` → `./src/*` (configured in `frontend/tsconfig.json` and `frontend/vitest.config.mts`)
+- Backend: Multi-stage Dockerfile (`builder` → `dev` → `test` → `final`) at `backend/Dockerfile`
+- Frontend: Multi-stage Dockerfile (`deps` → `dev` → `test` → `build` → `runner`) at `frontend/Dockerfile`
+- Frontend output: `standalone` mode for minimal production image
 
 ## Platform Requirements
 
 **Development:**
-- Docker + Docker Compose
-- `.env` file with all required variables
-- Run via `make dev` or `docker compose up -d`
-- Hot reload enabled: `CHOKIDAR_USEPOLLING=true`, `WATCHPACK_POLLING=true` (WSL2 compatibility)
+- Docker Compose (mandatory — Docker-first philosophy)
+- `.env` file from `.env.example`
+- WSL2 compatible (polling enabled: `CHOKIDAR_USEPOLLING=true`, `WATCHPACK_POLLING=true`)
 
 **Production:**
-- Docker Compose with `docker-compose.prod.yml` + `.env.prod`
-- Traefik reverse proxy (external network required: `${TRAEFIK_NETWORK}`)
-- Let's Encrypt TLS via Traefik cert resolver
-- Cloudflare Tunnel for secure ingress (`cloudflare/cloudflared:latest`)
-- Gunicorn with 4 UvicornWorker processes for backend
-- Evolution API (WhatsApp engine): `atendai/evolution-api:v1.8.2`
+- `docker-compose.prod.yml` with `--env-file .env.prod`
+- Traefik external network (`TRAEFIK_NETWORK`)
+- Optional profiles: `extended` (admin, scheduler, worker, tunnel), `tooling`
+
+## Deviations from Reference Standards
+
+**Backend (vs `.trae/skills/backend-expert/references/standards.md`):**
+- **DEVIATION**: Database uses **synchronous** SQLAlchemy sessions (`SessionLocal`, `create_engine`) instead of the prescribed async SQLAlchemy (`AsyncSession`, `create_async_engine`). The standard requires all I/O to be `async`. This is pervasive across all modules.
+- **DEVIATION**: Some modules still use `logging` instead of `structlog` (e.g., `backend/src/modules/connections/infrastructure/channels/google_calendar.py`, IAM auth).
+- **CONFORMANT**: `ruff` for linting, `pydantic-settings` for config, `structlog` in most modules, `HTTPException` for API errors.
+
+**Database (vs `.trae/skills/backend-expert/references/database.md`):**
+- **DEVIATION**: Standard prescribes async repositories with `AsyncSession`. Actual implementation uses sync `Session` from `SessionLocal` dependency injection.
+- **CONFORMANT**: Module-prefixed table naming (e.g., `iam_users`), repository pattern, cross-module FK isolation (IDs only), Alembic migrations.
+- **ENHANCEMENT**: CLAUDE.md overrides Alembic standard — requires raw SQL with `IF NOT EXISTS` for idempotency (not covered in `.trae` reference).
+
+**Frontend (vs `.trae/skills/frontend-expert/references/tech-stack.md`):**
+- **DEVIATION**: Actual stack uses Next.js **15**, React **19**, Tailwind CSS **v4** — reference specifies Next.js 14+, React 18+, Tailwind CSS v3.4+. The codebase is ahead of the documented standard.
+- **DEVIATION**: Reference lists "Axios" as HTTP option. Actual codebase uses native `fetch` wrapped in `fetchClient` at `frontend/src/lib/http-client.ts` (no Axios).
+- **CONFORMANT**: TanStack Query for server state, Zod for validation, Clerk for auth, ESLint.
+- **ADDITION**: Vitest (not in reference), Storybook (not in reference), Husky/lint-staged, framer-motion, visx for charts.
 
 ---
 
-*Stack analysis: 2026-03-15*
+*Stack analysis: 2026-03-20*

@@ -1,304 +1,281 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-03-15
+**Analysis Date:** 2026-03-20
 
 ## Directory Layout
 
 ```
-AISALESHT/                          # Project root
-├── backend/                        # FastAPI backend (Python)
+AISALESHT/                         # Monorepo root
+├── backend/                       # FastAPI backend (Python)
 │   ├── src/
-│   │   ├── main.py                 # App entry point, router registration
-│   │   ├── core/                   # Shared infrastructure (config, db, context, logging)
-│   │   ├── shared/                 # Cross-module domain + infra primitives
-│   │   ├── modules/                # DDD bounded contexts (13 modules)
-│   │   └── admin/                  # Streamlit admin dashboard
-│   ├── alembic/                    # DB migrations
-│   │   └── versions/               # Migration files
-│   ├── tests/                      # Backend test suite
-│   ├── scripts/                    # Dev/test utility scripts
-│   ├── static/                     # Static file serving
-│   ├── Dockerfile
-│   ├── pyproject.toml
-│   └── requirements.txt
-├── frontend/                       # Next.js 14 frontend (TypeScript)
+│   │   ├── main.py                # FastAPI app factory + all router mounts
+│   │   ├── core/                  # Global config, DB session, logging, enums
+│   │   ├── modules/               # DDD bounded contexts (one per business domain)
+│   │   │   ├── iam/               # Identity & Access Management
+│   │   │   ├── brand/             # Brand DNA capture
+│   │   │   ├── offer/             # Offer Ladder builder
+│   │   │   ├── landing/           # Landing page AI generation
+│   │   │   ├── sales_agent/       # AI SDR (LangGraph agents)
+│   │   │   ├── copilot/           # In-app AI assistant
+│   │   │   ├── crm/               # Leads, CDP, pipeline
+│   │   │   ├── scheduling/        # Event types, availability
+│   │   │   ├── analytics/         # Bowtie funnel metrics + ETL
+│   │   │   ├── connections/       # External integrations (Meta, WA, TG, etc.)
+│   │   │   ├── assets/            # Image gallery and offer assets
+│   │   │   ├── advertising/       # (Stub — no router mounted yet)
+│   │   │   └── social_media/      # (Stub — no router mounted yet)
+│   │   └── shared/                # Cross-module reusable code
+│   │       ├── domain/            # Base entities, EventBus, shared value objects
+│   │       ├── infrastructure/    # DB session, LLM factory, channels, file parsing
+│   │       ├── application/       # AIActionService and shared app utilities
+│   │       └── links/             # Shared link generation utilities
+│   ├── alembic/                   # Database migrations
+│   │   └── versions/              # Migration scripts (idempotent raw SQL)
+│   ├── scripts/                   # One-off admin/seed scripts
+│   ├── tests/                     # Integration tests
+│   ├── pyproject.toml             # Python project config (ruff, pytest)
+│   └── requirements.txt           # Python dependencies
+│
+├── frontend/                      # Next.js 14 frontend (TypeScript)
 │   ├── src/
-│   │   ├── app/                    # Next.js App Router pages
-│   │   ├── features/               # FSD feature slices
-│   │   ├── components/             # Shared/global UI components
-│   │   ├── hooks/                  # Shared React hooks
-│   │   ├── lib/                    # Shared utilities (http-client, config, etc.)
-│   │   └── middleware.ts           # Clerk auth middleware
-│   └── Dockerfile
-├── docs/                           # Product & domain documentation
-│   ├── domains/INDEX.md            # Business domain index (CRITICAL reference)
-│   └── vision/product-vision.md   # Product vision
-├── docker-compose.yml              # Dev Docker Compose
-├── docker-compose.prod.yml         # Prod Docker Compose
-├── CLAUDE.md                       # Project conventions for AI agents
-└── Makefile                        # Dev shortcuts
+│   │   ├── app/                   # Next.js App Router (routing only)
+│   │   │   ├── (main)/            # Authenticated shell
+│   │   │   │   ├── [tenantId]/    # Tenant-scoped routes
+│   │   │   │   │   └── (dashboard)/ # Dashboard layout group
+│   │   │   │   ├── sign-in/       # Clerk auth pages
+│   │   │   │   └── sign-up/
+│   │   │   ├── (landing)/         # Landing page editor shell
+│   │   │   ├── connections/       # OAuth callback pages
+│   │   │   ├── api/               # Next.js API routes (Shopify auth)
+│   │   │   └── playground/        # Dev playground (non-production)
+│   │   ├── features/              # FSD feature slices
+│   │   │   ├── brand/             # Brand Studio
+│   │   │   ├── offer-studio/      # Offer Ladder editor
+│   │   │   ├── marketing-studio/  # Growth Studio (Bowtie metrics dashboard)
+│   │   │   ├── sales/             # Sales Studio (inbox, pipeline)
+│   │   │   ├── settings/          # Tenant/user settings
+│   │   │   ├── connections/       # Integration config UI
+│   │   │   ├── audit/             # AI conversation audit log
+│   │   │   └── admin/             # Super-admin tenant list
+│   │   ├── components/            # Shared UI components
+│   │   │   ├── ui/                # Shadcn/Radix primitives (do not modify)
+│   │   │   ├── shared/layout/     # AppSidebar, SidebarContext, TenantSwitcher
+│   │   │   ├── auth/              # TenantGuard
+│   │   │   └── providers/         # ThemeProvider
+│   │   ├── lib/                   # Client-side infrastructure
+│   │   │   ├── api/               # Per-domain fetch wrapper modules
+│   │   │   ├── http-client.ts     # Fetch interceptor (X-Tenant-ID injection)
+│   │   │   ├── config.ts          # Environment-driven config (API URL)
+│   │   │   ├── utils.ts           # cn() and general utilities
+│   │   │   ├── constants/         # Shared constants (currencies, etc.)
+│   │   │   └── design-system/     # Design tokens
+│   │   ├── hooks/                 # Global shared hooks (useDebounce, etc.)
+│   │   ├── stories/               # Storybook stories (atoms/molecules/organisms)
+│   │   └── test/                  # Test setup files
+│   ├── public/                    # Static assets
+│   ├── next.config.js
+│   ├── tsconfig.json
+│   └── package.json
+│
+├── docker-compose.yml             # Dev environment (all services)
+├── docker-compose.prod.yml        # Production deployment
+├── .env.example                   # Required environment variable template
+└── shopify_app/                   # Shopify app config generation
 ```
 
-## Backend Module Structure
+## Directory Purposes
 
-Every module in `backend/src/modules/{module}/` follows this layout:
+**`backend/src/modules/{module}/`:**
+Each module is a self-contained bounded context with four mandatory sub-layers:
+- `api/` — FastAPI routers + Pydantic DTOs
+- `application/` — Services, AI agents, orchestrators
+- `domain/` — Pure Python/Pydantic entities and enums
+- `infrastructure/` — ORM models, repositories, external clients
 
-```
-{module}/
-├── domain/                         # Pure business logic — no I/O
-│   ├── aggregates.py               # Root aggregates (Pydantic BaseEntity)
-│   ├── entities.py                 # Sub-entities
-│   ├── enums.py                    # Domain enums
-│   └── value_objects.py            # Value objects
-├── infrastructure/
-│   ├── models/                     # SQLAlchemy ORM models
-│   │   └── {entity}_model.py
-│   └── repositories/               # Data access objects
-│       └── {entity}_repository.py
-├── application/
-│   ├── services/                   # Use case services
-│   │   └── {name}_service.py
-│   ├── dto/                        # Internal DTOs (application-level)
-│   │   └── {name}_dto.py
-│   └── agents/                     # LangGraph agent graphs (AI modules only)
-│       └── {name}/
-│           ├── graph.py
-│           └── state.py
-└── api/
-    ├── router.py (or named routes)  # FastAPI APIRouter instances
-    └── dto/                         # Request/response Pydantic models
-        └── {name}_dto.py
-```
+Key files per module:
+- `api/router.py` or `api/{resource}.py` — primary router file
+- `api/dto/` — Pydantic request/response schemas
+- `infrastructure/models/{name}_model.py` — SQLAlchemy ORM model
+- `infrastructure/repositories/{name}_repository.py` — DB access layer
 
-**Active modules:**
-- `backend/src/modules/iam/` — Tenants, Users, Clerk webhooks, auth dependencies
-- `backend/src/modules/brand/` — Brand identity, strategy, story, avatars
-- `backend/src/modules/offer/` — Offer Ladder (products, offer types, definitions)
-- `backend/src/modules/landing/` — Landing page generation and configuration
-- `backend/src/modules/assets/` — Asset gallery (images, generated files)
-- `backend/src/modules/crm/` — Leads, customers (CDP), sales, pipeline
-- `backend/src/modules/sales_agent/` — AI SDR orchestration (LangGraph), audit
-- `backend/src/modules/scheduling/` — Event types, booking, agenda
-- `backend/src/modules/analytics/` — Funnel/Bowtie metrics, Sankey data
-- `backend/src/modules/advertising/` — Ad campaign data (API not yet exposed)
-- `backend/src/modules/social_media/` — Social media data (API not yet exposed)
-- `backend/src/modules/connections/` — External integrations (Meta, WhatsApp, Telegram, Shopify, Gmail, YouTube, MailerLite, ManyChat, Google Analytics, Google Calendar, Google Workspace)
-- `backend/src/modules/copilot/` — AI copilot: web extractor, style analyzer, brand extraction agents
+**`backend/src/shared/`:**
+- `domain/base_entity.py` — SQLAlchemy `Base` declarative base (all models import from here)
+- `domain/events.py` — `EventBus` and `DomainEvent` base class
+- `domain/messages.py` — `IncomingMessage` / `OutgoingMessage` types for agent channels
+- `infrastructure/llm/factory.py` — `LLMFactory` (OpenAI/Gemini abstraction)
+- `infrastructure/database/` — AsyncSession + sync `SessionLocal`, `get_db`, `redis_client`
 
-## Backend Core & Shared
+**`backend/src/core/`:**
+- `main.py` equivalent config/bootstrap: `config.py`, `database.py`, `logger.py`, `context.py`, `enums.py`
+- `context.py` — `ContextVar` for async-safe tenant ID propagation
 
-**`backend/src/core/`** — Infrastructure primitives:
-- `config.py` — Pydantic `Settings` (env-driven config)
-- `database.py` — SQLAlchemy engine, `SessionLocal`, `get_db`, `init_db()`
-- `context.py` — `ContextVar` tenant ID store (`get_tenant_id`, `set_tenant_id`)
-- `base_repository.py` — `BaseRepository` with tenant filter helpers
-- `logger.py` — Structlog setup
-- `security.py` — Auth utilities
-- `exceptions.py` — Custom exceptions
-- `enums.py` — Shared enums
+**`backend/alembic/versions/`:**
+All migrations must be written as idempotent raw SQL:
+- `CREATE TABLE IF NOT EXISTS` (not `op.create_table`)
+- `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` (not `op.add_column`)
+- Enum types referenced by name, never re-created
 
-**`backend/src/shared/`** — Cross-module domain/infra:
-- `domain/base_entity.py` — `BaseEntity` (Pydantic) and SQLAlchemy `Base`
-- `domain/messages.py` — Shared message value objects
-- `domain/value_objects.py` — Shared value objects
-- `infrastructure/llm/` — LLM factory (`base.py`, `factory.py`, `providers/`)
-- `infrastructure/channels/` — Channel abstractions
-- `infrastructure/external/` — External service clients
-- `infrastructure/files/` — File utilities
-- `infrastructure/database/types.py` — Custom DB column types
+**`frontend/src/app/(main)/[tenantId]/(dashboard)/`:**
+All dashboard routes live here. The `[tenantId]` segment is the tenant UUID extracted by `fetchClient` for API calls. Each sub-route maps to a feature:
+- `brand-settings/` → `features/brand`
+- `offer-studio/` → `features/offer-studio`
+- `marketing-studio/` → `features/marketing-studio`
+- `sales/` → `features/sales`
+- `settings/` → `features/settings`
+- `audit/` → `features/audit`
 
-**`backend/src/admin/`** — Streamlit admin dashboard:
-- `app.py` — Streamlit entry point
-- `modules/` — Admin UI module pages
-- `tenants.py`, `users.py` — Admin logic files
+**`frontend/src/features/{domain}/`:**
+- `components/` — All UI components for this feature
+- `hooks/` — Data-fetching and state hooks (TanStack Query wrappers)
+- `api/` — Fetch functions wrapping `fetchClient`; may include `mock-data.ts`
+- `types/` — TypeScript interfaces and Zod schemas
+- `utils/` — Pure helper functions
+- `index.ts` — Public API barrel file (required)
 
-## Frontend App Router Structure
+**`frontend/src/components/ui/`:**
+Shadcn/Radix primitives. Do not modify logic. Add new components via `npx shadcn@latest add <component>`.
 
-```
-frontend/src/app/
-├── (main)/                         # Main route group (auth-gated via middleware)
-│   ├── [tenantId]/                 # Tenant-scoped routes
-│   │   ├── (dashboard)/            # Dashboard route group (shared layout)
-│   │   │   ├── layout.tsx          # Sidebar layout wrapper
-│   │   │   ├── page.tsx            # Dashboard home
-│   │   │   ├── brand-settings/     # Brand Studio page
-│   │   │   ├── marketing-studio/   # Growth Studio (Funnel + Metrics)
-│   │   │   ├── offer-studio/       # Offer Ladder + Landing Editor
-│   │   │   ├── sales/              # Sales Operations Hub
-│   │   │   ├── settings/           # Tenant settings
-│   │   │   ├── onboarding/         # Onboarding wizard
-│   │   │   ├── avatars/            # Buyer persona management
-│   │   │   ├── authority/          # Authority vault
-│   │   │   └── admin/              # Super-admin panel
-│   │   └── preview/[offerId]/      # Landing page preview
-│   ├── (public)/p/[slug]/          # Public landing pages
-│   ├── book/[tenant_slug]/         # Public booking pages
-│   ├── onboarding/                 # First-time onboarding flow
-│   ├── sign-in/[[...sign-in]]/     # Clerk sign-in
-│   ├── sign-up/[[...sign-up]]/     # Clerk sign-up
-│   ├── visit/[token]/              # Token-based visit tracking
-│   └── forbidden/                  # 403 error page
-├── (landing)/[tenantId]/editor/    # Landing page editor (separate route group)
-│   └── [offerId]/
-├── api/auth/shopify/               # Next.js API route for Shopify OAuth
-└── connections/                    # OAuth callback pages (Meta, brand-settings)
-```
+**`frontend/src/lib/api/`:**
+Per-domain API modules (not feature-specific). These are thin wrappers:
+`leads.ts`, `availability.ts`, `avatar.ts`, `booking-links.ts`, `connections.ts`, `event-types.ts`, `offer-gallery.ts`, `public.ts`, `settings.ts`, `whatsapp.ts`, `admin.ts`
 
-## Frontend Feature Slice Structure
+## Key File Locations
 
-```
-frontend/src/features/
-├── brand/                          # Brand Studio
-│   ├── api/index.ts                # brandApi client
-│   ├── api/mock-data.ts
-│   ├── hooks/useBrandSettings.ts   # TanStack Query hook
-│   ├── types/index.ts              # TypeScript types
-│   ├── components/                 # UI components
-│   │   ├── container/              # Layout containers
-│   │   ├── forms/                  # Form components
-│   │   ├── navigation/             # Nav rail
-│   │   └── smart-fill/             # AI auto-fill components
-│   └── sections/                   # Content sections (identity, story, etc.)
-├── marketing-studio/               # Growth Studio (Metrics Dashboard)
-│   ├── api/metrics-api.ts
-│   ├── api/metrics-mock-data.ts
-│   ├── hooks/useMarketingData.ts
-│   ├── hooks/useAttractionDetail.ts
-│   ├── types/                      # Metrics TypeScript types
-│   └── components/
-│       ├── metrics-dashboard/      # Main dashboard components
-│       │   ├── channel-widgets/
-│       │   └── detail-panels/
-│       └── strategy-canvas/        # LangGraph-style canvas UI
-├── offer-studio/                   # Offer Ladder + Landing Pages
-│   ├── api/
-│   ├── hooks/
-│   ├── types/
-│   ├── config/
-│   └── components/
-│       ├── editor/                 # Offer editor (sections, cards, widgets)
-│       ├── landing/                # Landing page builder/preview
-│       └── navigation/
-├── sales/                          # Sales Operations Hub
-│   ├── components/
-│   │   ├── atoms/
-│   │   ├── molecules/
-│   │   ├── organisms/
-│   │   └── dashboard/lanes/        # Kanban pipeline lanes
-│   ├── hooks/
-│   ├── services/
-│   └── types/
-├── connections/                    # Integration connections UI
-├── audit/                          # Sales audit log
-├── settings/                       # Tenant settings
-└── admin/                          # Super-admin components
-```
+**Entry Points:**
+- `backend/src/main.py` — FastAPI app + all router registrations
+- `frontend/src/app/(main)/layout.tsx` — Root authenticated layout (ClerkProvider wraps here)
+- `frontend/src/app/providers.tsx` — QueryClient + ThemeProvider + tenant ID bootstrap
+- `frontend/src/middleware.ts` — Clerk auth middleware (protects all non-public routes)
 
-## Frontend Shared Structure
+**Configuration:**
+- `frontend/src/lib/config.ts` — `API_URL` and feature flags
+- `backend/src/core/config.py` — Settings (Pydantic BaseSettings, reads from env)
+- `docker-compose.yml` — Service definitions for dev
+- `.env.example` — All required environment variables
 
-**`frontend/src/components/`:**
-- `ui/` — Shadcn UI primitives (Button, Card, Dialog, etc.) — never modified directly
-- `shared/layout/app-sidebar.tsx` — Main application sidebar
-- `shared/layout/sidebar-context.tsx` — Sidebar state context
-- `shared/layout/tenant-switcher.tsx` — Tenant selector component
-- `providers/theme-provider.tsx` — Theme provider
-- `auth/` — Auth-related UI components
+**Authentication/Tenancy:**
+- `backend/src/modules/iam/api/dependencies.py` — `get_current_user`, `get_tenant_context`
+- `backend/src/core/context.py` — `ContextVar` for tenant ID
+- `frontend/src/lib/http-client.ts` — `fetchClient` (injects `X-Tenant-ID` + Bearer token)
 
-**`frontend/src/lib/`:**
-- `http-client.ts` — `fetchClient` wrapper (auto-injects `X-Tenant-ID`, handles 401/403)
-- `config.ts` — `config.api.baseUrl` (server: `INTERNAL_API_URL`, client: `NEXT_PUBLIC_API_URL`)
-- `mock-config.ts` — `ENABLE_MOCKS` boolean flag
-- `utils.ts` — `cn()` class name utility (clsx + tailwind-merge)
-- `utils/` — Additional utility modules
-- `constants/` — App-wide constants
+**AI Agents:**
+- `backend/src/modules/sales_agent/application/orchestrator/graph.py` — Main agent LangGraph
+- `backend/src/modules/sales_agent/application/agents/sales/graph.py` — Sales subgraph
+- `backend/src/modules/copilot/application/agents/web_extractor/graph.py` — Web scraping agent
+- `backend/src/modules/sales_agent/infrastructure/prompts/` — Prompt loader + Jinja2 templates
 
-**`frontend/src/hooks/`** — Shared hooks:
-- `use-debounce.ts`, `use-intersection-observer.ts`, `use-local-storage.ts`
+**Database:**
+- `backend/src/shared/infrastructure/database/` — `session.py` (AsyncSession + sync fallback)
+- `backend/alembic/` — Migration config and versions
+
+**Shared Utilities:**
+- `backend/src/shared/domain/events.py` — `EventBus` (cross-module events)
+- `backend/src/shared/infrastructure/llm/factory.py` — `LLMFactory`
+- `frontend/src/lib/utils.ts` — `cn()` (clsx + twMerge)
 
 ## Naming Conventions
 
 **Backend Files:**
-- Module names: `snake_case` (`sales_agent`, `social_media`)
-- Service files: `{name}_service.py` (e.g., `metrics_service.py`, `extraction_service.py`)
-- Model files: `{entity}_model.py` (e.g., `avatar_model.py`, `tenant_model.py`)
-- Repository files: `{entity}_repository.py`
-- Router files: descriptive noun (`metrics.py`, `products.py`, `leads.py`)
+- Modules: `snake_case` directory names (`sales_agent`, `offer`, `iam`)
+- Models: `{Name}Model` class, file `{name}_model.py` (e.g., `LeadModel` in `lead_model.py`)
+- Repositories: `{Name}Repository` class, file `{name}_repository.py`
+- Services: `{Name}Service` class, file `{name}_service.py`
+- Routers: `router.py` (single) or `{resource}.py` (multiple per module)
+- DTOs: Pydantic classes in `api/dto/` or `application/dto/`
 
 **Frontend Files:**
-- Feature directories: `kebab-case` (`marketing-studio`, `offer-studio`)
-- Component files: `PascalCase.tsx` (e.g., `MetricsDashboard.tsx`)
-- Hook files: `use{Name}.ts` (e.g., `useBrandSettings.ts`, `useMarketingData.ts`)
-- API modules: `{name}-api.ts` (e.g., `metrics-api.ts`)
-- Type files: `index.ts` inside `types/` directory, or `{name}.ts`
+- Components: `PascalCase.tsx` for class-style names, `kebab-case.tsx` for most feature components
+- Hooks: `use-{name}.ts` or `use{Name}.ts` (both patterns exist; prefer `use-{name}.ts`)
+- Types: `index.ts` inside `types/` directory, or named `{name}.ts`
+- API modules: `{resource}.ts` in `lib/api/` or `api/index.ts` in features
 
-**API Routes (Backend):**
-- Pattern: `/api/v1/{domain}/{resource}` (e.g., `/api/v1/analytics/metrics/sankey`)
-- All tenant-protected routes registered with `dependencies=[Depends(get_tenant_context)]`
+**Backend Directories:**
+- `snake_case` for all directories
+- Exception: `infrastructure/db/` in `sales_agent` (non-standard — see ARCHITECTURE.md deviations)
+
+**Frontend Directories:**
+- `kebab-case` for all directories
+- Exception: `features/sales/components/atoms|molecules|organisms` (Atomic Design variant)
 
 ## Where to Add New Code
 
-**New Backend Module:**
-1. Create `backend/src/modules/{new_module}/` with the four-layer structure
-2. Add domain entities extending `src/shared/domain/base_entity.BaseEntity`
-3. Add SQLAlchemy model extending `Base` from `src/shared/domain/base_entity`
-4. Add repository extending `src/core/base_repository.BaseRepository`
-5. Register router in `backend/src/main.py` with `dependencies=[Depends(get_tenant_context)]`
-6. Create Alembic migration: `alembic revision --autogenerate -m "description"`
+**New Backend Module (Bounded Context):**
+1. Create `backend/src/modules/{name}/` with four sub-directories: `api/`, `application/`, `domain/`, `infrastructure/`
+2. Add `api/dto/` and `infrastructure/models/`, `infrastructure/repositories/`
+3. Write domain entities in `domain/` (pure Pydantic, no SQLAlchemy)
+4. Write ORM model in `infrastructure/models/{name}_model.py` inheriting from `Base` (`backend/src/shared/domain/base_entity.py`)
+5. Create Alembic migration in `backend/alembic/versions/` using raw SQL with `IF NOT EXISTS`
+6. Create service in `application/services/{name}_service.py`
+7. Create router in `api/{resource}.py`, mount in `backend/src/main.py`
+8. Add module docs to `docs/domains/INDEX.md`
 
-**New Backend Endpoint in Existing Module:**
-1. Add route handler to `backend/src/modules/{module}/api/{router_file}.py`
-2. Add application service method to `backend/src/modules/{module}/application/services/`
-3. Add DTOs to `backend/src/modules/{module}/api/dto/`
-4. No registration needed if using existing router file
+**New Backend Endpoint (Existing Module):**
+1. Add DTO in `backend/src/modules/{module}/api/dto/`
+2. Add service method in `application/services/{name}_service.py`
+3. Add route function in `api/{resource}.py`
+4. If new DB columns needed, create Alembic migration
 
 **New Frontend Feature:**
-1. Create `frontend/src/features/{feature}/` with: `api/`, `hooks/`, `components/`, `types/`
-2. Add API client in `api/index.ts` using `fetchClient` from `@/lib/http-client`
-3. Add TanStack Query hook in `hooks/use{Feature}.ts`
-4. Create page in `frontend/src/app/(main)/[tenantId]/(dashboard)/{feature}/page.tsx`
-5. Page should be minimal — render the feature's top-level component
+1. Create `frontend/src/features/{name}/` with: `components/`, `hooks/`, `types/`, `api/`
+2. Create `frontend/src/features/{name}/index.ts` (barrel file — export only public interface)
+3. Add API functions using `fetchClient` in `frontend/src/features/{name}/api/index.ts`
+4. Create hooks in `hooks/` using TanStack Query (`useQuery`, `useMutation`)
+5. Create page at `frontend/src/app/(main)/[tenantId]/(dashboard)/{name}/page.tsx`
+6. Page should import from feature barrel only: `import { MyComponent } from '@/features/{name}'`
 
-**New Frontend Component:**
-- Feature-specific: `frontend/src/features/{feature}/components/{ComponentName}.tsx`
-- Cross-feature shared UI: `frontend/src/components/shared/{ComponentName}.tsx`
-- Primitive/base UI: `frontend/src/components/ui/` (Shadcn only)
+**New Frontend Component (Within Existing Feature):**
+- Place in `frontend/src/features/{feature}/components/{component-name}.tsx`
+- Export via feature's `index.ts` if needed by other features
+- If shared across multiple features, promote to `frontend/src/components/shared/`
 
-**New API Mock:**
-- Add mock data to `frontend/src/features/{feature}/api/{feature}-mock-data.ts`
-- Guard API calls with `if (ENABLE_MOCKS) return MOCK_DATA` at top of function
+**New UI Primitive:**
+- Run `npx shadcn@latest add <component>` inside the frontend container
+- File lands in `frontend/src/components/ui/` — do not manually edit
 
-**New DB Migration:**
-- Run inside backend container: `alembic revision --autogenerate -m "describe_change"`
-- Apply: `alembic upgrade head`
-- Files land in: `backend/alembic/versions/`
+**New Shared Hook:**
+- Place in `frontend/src/hooks/{use-name}.ts`
+- Export from `frontend/src/hooks/index.ts`
+
+**New API Thin Wrapper (lib-level):**
+- Add to `frontend/src/lib/api/{resource}.ts` for cross-feature or page-level use
+- For feature-specific API calls, keep inside `frontend/src/features/{name}/api/`
 
 ## Special Directories
 
-**`backend/model_cache/`:**
-- Purpose: Cached Qdrant embedding model (multilingual MiniLM)
-- Generated: Yes (downloaded at runtime)
-- Committed: No (excluded from git, mounted via Docker volume)
+**`backend/static/`:**
+- Purpose: Uploaded files (brand gallery images, etc.) served by FastAPI `StaticFiles`
+- Generated: Yes (by upload operations)
+- Committed: No (contains user content)
 
 **`backend/alembic/versions/`:**
-- Purpose: Database schema migration files
-- Generated: Yes (via `alembic revision`)
-- Committed: Yes
+- Purpose: Database migration history
+- Generated: Via `alembic revision` command inside backend container
+- Committed: Yes (required for reproducible deployments)
+
+**`backend/scripts/`:**
+- Purpose: One-off admin scripts (seeding, data migration, DB sync)
+- Not part of app runtime; run manually inside the container
 
 **`frontend/.next/`:**
 - Purpose: Next.js build output
 - Generated: Yes
 - Committed: No
 
-**`docs/domains/`:**
-- Purpose: Business domain documentation — ANTI-HALLUCINATION reference
-- Key file: `docs/domains/INDEX.md` — must be read before coding any domain logic
-- Committed: Yes
+**`frontend/src/stories/`:**
+- Purpose: Storybook stories organized by Atomic Design level (atoms/molecules/organisms/tokens)
+- Generated: No
+- Committed: Yes (design system documentation)
 
-**`.planning/codebase/`:**
-- Purpose: AI agent analysis documents for GSD workflow
-- Generated: Yes (by map-codebase command)
+**`frontend/src/pages/`:**
+- Purpose: Legacy Next.js Pages Router directory (present but appears unused — App Router is primary)
+- Generated: No
+- Committed: Yes (but empty or minimal)
+
+**`.planning/`:**
+- Purpose: GSD planning documents (codebase maps, phase plans, roadmaps)
+- Generated: By GSD tooling
 - Committed: Yes
 
 ---
 
-*Structure analysis: 2026-03-15*
+*Structure analysis: 2026-03-20*

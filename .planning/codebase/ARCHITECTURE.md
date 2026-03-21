@@ -1,193 +1,203 @@
 # Architecture
 
-**Analysis Date:** 2026-03-15
+**Analysis Date:** 2026-03-20
 
 ## Pattern Overview
 
-**Overall:** Modular Monolith with Domain-Driven Design (DDD)
+**Overall:** Modular Monolith with Domain-Driven Design (DDD) + Feature-Sliced Design (FSD)
 
 **Key Characteristics:**
-- Single deployable backend unit (`visionarias_brain_dev`) composed of ~13 bounded-context modules
-- Each module owns its domain layer, application layer, infrastructure layer, and API layer independently
-- Frontend is a Next.js 14 App Router SPA following Feature-Sliced Design (FSD)
-- All API calls are multitenant: every request carries `X-Tenant-ID` header; tenant context propagated via Python `ContextVar`
-- Separate admin Streamlit dashboard (`visionarias_admin_dev`) shares the backend Docker image
+- Single deployable unit (Docker Compose) containing a FastAPI backend and Next.js 14 frontend
+- Backend is partitioned into 13 bounded contexts under `backend/src/modules/`, each enforcing strict layer separation
+- Frontend is partitioned into feature slices under `frontend/src/features/`, each exposing a public API via `index.ts`
+- Multitenancy is mandatory — every authenticated request carries an `X-Tenant-ID` header resolved to a UUID; a Python `ContextVar` propagates it across async boundaries
+- AI agent workflows (LangGraph) are first-class citizens in the `application` layer of relevant modules
 
-## Backend Layers (per module)
+## Backend Layers
 
-**Domain Layer:**
-- Purpose: Pure business logic — entities, aggregates, value objects, enums. No I/O.
-- Location: `backend/src/modules/{module}/domain/`
-- Contains: Pydantic `BaseEntity` subclasses, domain aggregates, enums, identity types
-- Depends on: `src/shared/domain/base_entity.py` (provides `BaseEntity` and SQLAlchemy `Base`)
-- Used by: Application layer, Infrastructure repositories
+The prescribed layer order (outside-in for requests, inside-out for building) is:
 
-**Infrastructure Layer:**
-- Purpose: Persistence adapters — SQLAlchemy ORM models, repositories, external integrations, prompts
-- Location: `backend/src/modules/{module}/infrastructure/`
-- Contains: ORM models (`infrastructure/models/`), repository classes (`infrastructure/repositories/`), external connectors, prompt files
-- Depends on: Domain layer, `src/core/database.py`, `src/shared/infrastructure/`
-- Used by: Application layer
+```
+api/ → application/ → domain/ → infrastructure/
+```
 
-**Application Layer:**
-- Purpose: Use cases, services, AI orchestration. Coordinates domain + infrastructure.
-- Location: `backend/src/modules/{module}/application/`
-- Contains: Service classes, DTOs (`application/dto/`), LangGraph agent graphs (`application/agents/`, `application/orchestrator/`)
-- Depends on: Domain layer, Infrastructure layer
-- Used by: API layer
-
-**API Layer:**
-- Purpose: FastAPI routers — request/response handling, dependency injection, DTO validation
+**`api/` — Interface/Transport Layer:**
+- Purpose: FastAPI routers, Pydantic DTO validation, dependency injection wiring
 - Location: `backend/src/modules/{module}/api/`
-- Contains: FastAPI `APIRouter` instances, Pydantic request/response DTOs (`api/dto/`), route handlers
-- Depends on: Application layer, `src/modules/iam/api/dependencies.py` for auth/tenant
-- Used by: `src/main.py` (router registration)
+- Contains: `router.py` (or resource-named files), `dto/` sub-folder for request/response schemas, `dependencies.py`
+- Depends on: `application/` services and `domain/` types
+- Used by: FastAPI app (`backend/src/main.py`)
+- Rule: No business logic or DB queries here
 
-## Frontend Layers (Feature-Sliced Design)
+**`application/` — Use Cases / Orchestration Layer:**
+- Purpose: Business logic, AI agent graphs, orchestrators
+- Location: `backend/src/modules/{module}/application/`
+- Contains: `services/`, `agents/` (LangGraph), `orchestrators/`
+- Depends on: `domain/` entities, `infrastructure/` repositories (injected)
+- Used by: `api/` layer
 
-**App Layer (Pages/Routing):**
-- Purpose: Next.js App Router pages — thin wrappers that import from features
+**`domain/` — Pure Business Rules:**
+- Purpose: Entities, enums, domain events, exceptions. Zero dependencies on infrastructure.
+- Location: `backend/src/modules/{module}/domain/`
+- Contains: Pydantic models (not ORM), enums, domain event dataclasses
+- Depends on: Nothing (or `shared/domain/`)
+- Used by: All other layers
+
+**`infrastructure/` — Technical Implementations:**
+- Purpose: SQLAlchemy ORM models, repositories, external API clients, prompt loaders
+- Location: `backend/src/modules/{module}/infrastructure/`
+- Contains: `models/`, `repositories/`, `external/`, `prompts/`
+- Depends on: `domain/` (translates to/from ORM)
+- Used by: `application/` layer
+
+## Frontend Layers
+
+**`app/` — Routing Only:**
+- Purpose: Next.js App Router file-system routing. Layouts and page entry points only.
 - Location: `frontend/src/app/`
-- Pattern: Route groups `(main)`, `(landing)` with `[tenantId]` path params. Pages are 10–15 lines; they simply render a feature component.
-- Example: `frontend/src/app/(main)/[tenantId]/(dashboard)/brand-settings/page.tsx` renders `<BrandSettingsPage />` from features
+- Contains: `page.tsx` (entry), `layout.tsx`, route group folders `(main)`, `(landing)`
+- Rule: Minimal logic. Pages import from `features/`, pass data as props.
 
-**Features Layer:**
-- Purpose: Self-contained vertical slices — each feature owns API client, hooks, components, types
-- Location: `frontend/src/features/{feature}/`
-- Subdirectories per feature: `api/`, `hooks/`, `components/`, `types/`, optional `utils/`, `config/`, `sections/`
-- Rule: Features do NOT import from other features (no horizontal coupling)
+**`features/` — Feature Slices:**
+- Purpose: Self-contained business domain implementations. Deleting a feature should not break the build.
+- Location: `frontend/src/features/{domain}/`
+- Contains: `components/`, `hooks/`, `types/`, `api/`, `utils/`
+- Exports: Only via `index.ts` barrel file (public API contract)
+- Rule: Cross-feature imports must go through the barrel `index.ts`, never direct deep imports
 
-**Shared/Components Layer:**
-- Purpose: Cross-cutting UI primitives and layout
-- Location: `frontend/src/components/` — `ui/` (Shadcn), `shared/layout/` (sidebar, app chrome), `providers/`, `auth/`
-- Location: `frontend/src/lib/` — `http-client.ts`, `config.ts`, `mock-config.ts`, `utils/`
+**`components/` — Shared UI:**
+- Purpose: Global UI primitives and layout components
+- Location: `frontend/src/components/`
+- Contains: `ui/` (Shadcn primitives — do not modify), `shared/layout/` (Sidebar, navigation), `auth/`, `providers/`
 
-## Core Shared Backend Infrastructure
-
-**`src/core/`:**
-- `config.py` — Settings (Pydantic BaseSettings, env-driven)
-- `database.py` — SQLAlchemy session factory, `get_db` dependency, `init_db()`
-- `context.py` — `ContextVar[UUID]` for tenant ID propagation (`get_tenant_id`, `set_tenant_id`)
-- `logger.py` — Structlog configuration
-- `base_repository.py` — `BaseRepository` with `_apply_tenant_filter()` and `_set_tenant()` helpers
-- `exceptions.py` — Shared exception types
-- `security.py` — Auth utilities
-
-**`src/shared/`:**
-- `domain/base_entity.py` — `BaseEntity` (Pydantic), SQLAlchemy `Base` (declarative)
-- `infrastructure/llm/` — LLM factory and providers
-- `infrastructure/database/` — DB types
-- `infrastructure/channels/` — Shared channel abstractions
-- `infrastructure/external/` — Shared external service clients
-- `infrastructure/files/` — File handling utilities
+**`lib/` — Infrastructure/Utilities:**
+- Purpose: API clients, config, shared utilities
+- Location: `frontend/src/lib/`
+- Contains: `api/` (per-domain fetch wrappers), `http-client.ts` (fetch interceptor), `config.ts`, `utils/`, `constants/`
 
 ## Data Flow
 
-**Standard API Request (Authenticated):**
+**Authenticated API Request (Backend):**
 
-1. Clerk JWT arrives in `Authorization: Bearer` header; `X-Tenant-ID` in separate header
-2. FastAPI middleware logs request; `get_tenant_context` dependency runs
-3. `get_user_from_token` in `src/modules/iam/api/dependencies.py` verifies JWT with Clerk, resolves `User` from DB
-4. `get_current_user` resolves and validates tenant membership, sets `user.tenant_id`
-5. `get_tenant_context` calls `set_tenant_id(tenant_id)` to store in `ContextVar`
-6. Router handler instantiates Application Service, passes `db` and `user.tenant_id`
-7. Service calls Infrastructure Repository; repository applies tenant filter via `_apply_tenant_filter()`
-8. Domain entities returned to API layer, serialized to Pydantic response DTO
-9. JSON response sent to frontend
+1. HTTP request arrives at FastAPI with `Authorization: Bearer <token>` and `X-Tenant-ID: <uuid>` headers
+2. `get_tenant_context` dependency in `backend/src/modules/iam/api/dependencies.py` verifies the Clerk JWT, resolves the user from the DB, validates user membership in the target tenant, and sets `tenant_id` on the `User` object and in the Python `ContextVar` (`backend/src/core/context.py`)
+3. Router function calls an application service or AI orchestrator, passing `user.tenant_id`
+4. Service applies business rules, calls repositories with `tenant_id` filter
+5. Repository executes SQLAlchemy 2.0 `select(Model)` queries filtered by `tenant_id`
+6. Results travel back as domain entities or Pydantic DTOs; never raw ORM objects past the repository boundary
 
-**Frontend API Call Flow:**
+**Frontend Client Request:**
 
-1. React component calls hook (e.g., `useBrandSettings`)
-2. Hook uses TanStack Query (`useQuery`/`useMutation`) with Clerk token via `getToken()`
-3. Feature API module calls `fetchClient()` from `src/lib/http-client.ts`
-4. `fetchClient` auto-injects `X-Tenant-ID` (extracted from URL pathname segment 0) and `Authorization` header
-5. Response mapped from snake_case (backend) to camelCase (frontend) in API module
-6. `fetchClient` intercepts 401 (redirect to `/sign-in`) and 403 (redirect to `/forbidden`)
+1. User navigates to a tenant-scoped URL `/{tenantId}/...`
+2. `frontend/src/middleware.ts` runs `clerkMiddleware`, protects non-public routes, injects `x-current-path` header
+3. `frontend/src/app/providers.tsx` reads the Clerk user's `tenant_id` from `publicMetadata` and stores it in `localStorage`
+4. Page component (Server Component or Client Component) uses a feature hook (e.g., `useBrandSettings`)
+5. Feature hook calls a `brandApi.*` function from `frontend/src/features/brand/api/index.ts`
+6. API function calls `fetchClient` (`frontend/src/lib/http-client.ts`), which automatically injects `X-Tenant-ID` from the URL path and `Authorization: Bearer <token>` from Clerk
+7. Response is managed via TanStack Query cache; UI updates optimistically or on `onSuccess`
 
-**AI Agent Flow (Sales Agent):**
+**AI Agent Conversation Flow (Sales Agent):**
 
-1. Incoming message arrives via Connections webhook (WhatsApp/Telegram/ManyChat)
-2. `src/modules/connections/` routes to `src/modules/sales_agent/application/orchestrator/graph.py`
-3. LangGraph `StateGraph` supervisor routes to `sales_agent` subgraph
-4. Sales subgraph runs agent nodes, reads memory from Qdrant (RAG), writes to PostgreSQL
-5. Response sent back through originating channel
+1. Incoming webhook (Telegram/WhatsApp/etc.) hits a `connections` router
+2. Router dispatches to `ChatOrchestrator` (`backend/src/modules/sales_agent/application/orchestrator/chat.py`)
+3. Orchestrator resolves the tenant connection, sets tenant context, identifies/creates the lead via CRM `IdentityService`
+4. `LangGraph` compiled graph (`agent_app`) is invoked with `AgentState` (message history, lead profile, tenant knowledge)
+5. Graph nodes execute: supervisor → sales agent subgraph → response nodes
+6. Output is routed back to the correct channel via `OutputManager`
+7. `LeadCapturedEvent` or other domain events are published to `EventBus` (`backend/src/shared/domain/events.py`), which dispatches handlers after DB commit
 
-**State Management (Frontend):**
-- Server state: TanStack Query (React Query) — all API calls use `useQuery`/`useMutation` with query keys
-- Local UI state: React `useState` within components
-- No global state stores (no Redux, no Zustand detected)
+**Cross-Module Communication (EventBus):**
+
+- Modules do NOT import from each other directly
+- Cross-module side effects use `EventBus.publish(event, session=db)` from `backend/src/shared/domain/events.py`
+- Handlers register at startup in `backend/src/main.py` via `register_event_handlers()`
+- Example: `sales_agent` publishes `LeadCapturedEvent`; `analytics` or `crm` module handles it
 
 ## Key Abstractions
 
-**Module (Backend):**
-- Purpose: Bounded context owning all four layers independently
-- Examples: `backend/src/modules/brand/`, `backend/src/modules/analytics/`, `backend/src/modules/sales_agent/`
-- Pattern: Every module has `domain/` → `infrastructure/` → `application/` → `api/`; registered in `src/main.py`
+**Tenant Context (Backend):**
+- `ContextVar[Optional[UUID]]` in `backend/src/core/context.py`
+- Set by `get_tenant_context` FastAPI dependency before any business logic runs
+- All services receive `tenant_id` as an explicit parameter; never read globally
 
-**BaseRepository:**
-- Purpose: Tenant-aware persistence base class
-- Location: `backend/src/core/base_repository.py`
-- Pattern: `_apply_tenant_filter(query, model)` reads from `ContextVar`; all concrete repos extend this
+**`X-Tenant-ID` Header (Frontend):**
+- Injected by `fetchClient` in `frontend/src/lib/http-client.ts` by parsing the first path segment of the URL
+- Falls back to `localStorage` if URL parsing yields a global route name
 
-**BaseEntity:**
-- Purpose: Pydantic model base for all domain objects
-- Location: `backend/src/shared/domain/base_entity.py`
-- Pattern: `ConfigDict(from_attributes=True)` enables ORM → Pydantic conversion
+**LLMFactory (Shared AI):**
+- `backend/src/shared/infrastructure/llm/factory.py`
+- Singleton for platform key; creates per-tenant instances when tenants supply their own OpenAI/Gemini keys
+- All AI-consuming modules call `LLMFactory.get_service_for_tenant(tenant)` — never instantiate providers directly
 
-**Feature Slice (Frontend):**
-- Purpose: Vertical self-contained unit of UI functionality
-- Examples: `frontend/src/features/brand/`, `frontend/src/features/marketing-studio/`, `frontend/src/features/offer-studio/`
-- Pattern: Each slice exports `api/index.ts`, `hooks/`, `components/`, `types/index.ts`; page just renders the top-level feature component
+**EventBus (Cross-Module):**
+- `backend/src/shared/domain/events.py`
+- In-process, class-level handler registry
+- Deferred dispatch after SQLAlchemy session commit (prevents partial-write inconsistencies)
 
-**fetchClient:**
-- Purpose: Tenant-aware HTTP client wrapper
-- Location: `frontend/src/lib/http-client.ts`
-- Pattern: Wraps native `fetch`; reads tenant from URL path[0]; injects `X-Tenant-ID` and handles 401/403 globally
+**TanStack Query Cache (Frontend):**
+- Feature hooks use `useQuery` / `useMutation` from `@tanstack/react-query`
+- `QueryClient` is provided globally in `frontend/src/app/providers.tsx`
+- Cache keys are per-feature (e.g., `['brand-settings']`, `['offers']`)
 
-**LangGraph Agent:**
-- Purpose: AI workflow execution for Sales Agent and Copilot
-- Examples: `backend/src/modules/sales_agent/application/orchestrator/graph.py`, `backend/src/modules/copilot/application/agents/`
-- Pattern: `StateGraph` with typed state, supervisor node routes to sub-agent subgraphs
+**PromptLoader:**
+- `backend/src/modules/copilot/infrastructure/prompts/base.py`
+- Loads Jinja2 prompt templates from `templates/` subdirectories
+- Intended to be the standard mechanism; some modules still have hardcoded prompts (see CONCERNS.md)
 
 ## Entry Points
 
 **Backend:**
-- Location: `backend/src/main.py`
-- Triggers: `uvicorn src.main:app --host 0.0.0.0 --port 8000` (Docker CMD)
-- Responsibilities: Creates FastAPI app, configures CORS/middleware/logging, registers all module routers under `/api/v1/{domain}/`
-
-**Admin Dashboard:**
-- Location: `backend/src/admin/app.py`
-- Triggers: Streamlit run command (separate Docker service `visionarias_admin_dev`)
-- Responsibilities: Internal tenant/user management UI
+- `backend/src/main.py` — FastAPI application factory; mounts all routers under `/api/v1/`; registers startup handlers; configures CORS and structlog middleware
 
 **Frontend:**
-- Location: `frontend/src/app/layout.tsx` (root), `frontend/src/middleware.ts` (auth gate)
-- Triggers: Next.js server; middleware runs on every non-static request
-- Responsibilities: `middleware.ts` protects routes via Clerk; root layout wraps app in providers
+- `frontend/src/app/(main)/layout.tsx` — Root shell for authenticated app
+- `frontend/src/app/(main)/[tenantId]/(dashboard)/layout.tsx` — Dashboard shell: `AppSidebar` + responsive main area
+- `frontend/src/middleware.ts` — Edge middleware: Clerk auth enforcement + header injection
+
+**AI Agents:**
+- `backend/src/modules/sales_agent/application/orchestrator/graph.py` — Compiled LangGraph `agent_app` (supervisor → sales subgraph)
+- `backend/src/modules/copilot/application/agents/web_extractor/graph.py` — Web extraction pipeline for brand auto-fill
 
 ## Error Handling
 
-**Strategy:** HTTP status codes + structured logging (structlog)
+**Backend Strategy:** HTTP exceptions propagated from service or dependency layers; structlog logs every request/response with `request_id` and `tenant_id` context variables.
 
-**Patterns:**
-- 401: Clerk token invalid/expired → `get_user_from_token` raises `HTTPException(401)`; frontend `fetchClient` redirects to `/sign-in`
-- 403: Tenant access denied → `get_current_user` raises `HTTPException(403)`; frontend `fetchClient` redirects to `/forbidden`
-- 404: Resource not found → domain services return `None`; API layer raises `HTTPException(404)`
-- Unhandled exceptions caught by HTTP middleware in `main.py` → structlog `error` with full traceback
+**Frontend Strategy:**
+- `fetchClient` intercepts 403 (redirects to `/forbidden`) and 401 (redirects to `/sign-in`)
+- Feature hooks surface errors through TanStack Query `error` state; pages render inline error UI with retry
 
 ## Cross-Cutting Concerns
 
-**Logging:** Structlog with contextvars. `request_id` and `tenant_id` bound per request via HTTP middleware in `src/main.py`. All service classes use `structlog.get_logger()`.
+**Logging:** `structlog` with context variables (`request_id`, `tenant_id`); configured globally in `backend/src/core/logger.py`
 
-**Validation:** Pydantic v2 at API boundaries (request DTOs, response models). Domain entities are Pydantic `BaseEntity` subclasses.
+**Validation:** Pydantic v2 on backend (DTOs + domain entities); TypeScript interfaces + occasional Zod on frontend
 
-**Authentication:** Clerk JWTs. Backend verifies via `src/modules/iam/application/auth.py`. Frontend uses `@clerk/nextjs` middleware and `useAuth()` hook.
+**Authentication:** Clerk JWT on both sides. Backend verifies via `verify_clerk_token` in `backend/src/modules/iam/application/auth.py`. Frontend uses `@clerk/nextjs` SDK.
 
-**Tenant Isolation:** `ContextVar` in `src/core/context.py`. Set by `get_tenant_context` dependency on every protected router. All queries must call `_apply_tenant_filter()` from `BaseRepository`.
+**Multitenancy Enforcement:** Every protected router includes `Depends(get_tenant_context)` in `backend/src/main.py`. Repositories must filter by `tenant_id` on all queries.
 
-**Mocking:** Frontend has a `ENABLE_MOCKS` flag in `src/lib/mock-config.ts`. Feature API modules check this flag and return local mock data (in `*-mock-data.ts` files). Allows UI development without backend.
+**Soft Deletes:** All persistent models use `deleted_at` or `is_active` — hard deletes are forbidden.
 
 ---
 
-*Architecture analysis: 2026-03-15*
+## Architecture Deviations vs. Reference Standards
+
+The following gaps exist between actual code and the north-star architecture documented in `.trae/skills/`:
+
+1. **Hardcoded prompts in `sales_agent`:** The `infrastructure/prompts/templates/legacy/` directory contains hardcoded `.j2` templates not loaded through the `PromptLoader` system. The reference standard requires all prompts to go through `PromptLoader`. (See `backend/src/modules/sales_agent/infrastructure/prompts/templates/legacy/`)
+
+2. **No barrel files on many features:** `frontend/src/features/offer-studio/index.ts` only exports `./types`, not components or hooks. `frontend/src/features/brand/` has no `index.ts` at all. The FSD standard requires every feature to export only through `index.ts`. Deep imports from pages currently bypass this contract.
+
+3. **Pages use `'use client'` wholesale:** `frontend/src/app/(main)/[tenantId]/(dashboard)/brand-settings/page.tsx` is a full Client Component. The reference standard requires pages to be Server Components by default, pushing `'use client'` down to the smallest interactive boundary.
+
+4. **Legacy SQLAlchemy 1.x queries in dependencies:** `backend/src/modules/iam/api/dependencies.py` uses `db.query(UserModel).filter(...)` — the legacy Session.query() syntax. The standard mandates SQLAlchemy 2.0 syntax (`select(Model)`).
+
+5. **`sales_agent/infrastructure/` has non-standard sub-directories:** Contains `db/models/`, `db/repositories/` alongside `infrastructure/models/` and `infrastructure/repositories/`. The reference standard calls for a flat `models/` and `repositories/` directly under `infrastructure/`.
+
+6. **`analytics` module DTOs live in `application/dto/`:** The reference architecture places DTOs in `api/dto/`. In `analytics`, they are in `application/dto/` which creates an inconsistency with all other modules.
+
+7. **`sales` feature uses Atomic Design internally:** `frontend/src/features/sales/components/atoms/`, `molecules/`, `organisms/`. The FSD cheatsheet explicitly does not enforce these sub-layers, preferring a flat `components/` directory. This is an internally-consistent deviation but non-standard.
+
+---
+
+*Architecture analysis: 2026-03-20*
