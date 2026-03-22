@@ -10,8 +10,7 @@ export default function Page() {
           elements: {
             footerAction: "!hidden",
             footerActionText: "!hidden",
-            footerActionLink: "!hidden",
-            createOrganizationtext: "!hidden"
+            footerActionLink: "!hidden"
           },
           layout: {
              socialButtonsPlacement: "bottom",
@@ -19,7 +18,7 @@ export default function Page() {
           }
         }}
         signUpUrl={undefined}
-        forceRedirectUrl="/"
+        fallbackRedirectUrl="/"
       />
     </div>
   );

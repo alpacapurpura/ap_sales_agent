@@ -4,10 +4,11 @@ import { metricsApi } from '../api/metrics-api';
 import type { CaptureDetail } from '../types/metrics';
 
 export function useCaptureDetail() {
-  const { getToken, orgId } = useAuth();
+  const { getToken } = useAuth();
+  const tenantId = typeof window !== 'undefined' ? localStorage.getItem('x-tenant-id') : null;
 
   return useQuery<CaptureDetail>({
-    queryKey: ['capture-detail', orgId],
+    queryKey: ['capture-detail', tenantId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');

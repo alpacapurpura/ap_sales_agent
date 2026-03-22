@@ -4,10 +4,11 @@ import { metricsApi } from '../api/metrics-api';
 import type { OpportunityDetail } from '../types/metrics';
 
 export function useOpportunityDetail() {
-  const { getToken, orgId } = useAuth();
+  const { getToken } = useAuth();
+  const tenantId = typeof window !== 'undefined' ? localStorage.getItem('x-tenant-id') : null;
 
   return useQuery<OpportunityDetail>({
-    queryKey: ['opportunity-detail', orgId],
+    queryKey: ['opportunity-detail', tenantId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');

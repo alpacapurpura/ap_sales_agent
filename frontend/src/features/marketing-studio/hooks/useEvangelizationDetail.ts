@@ -4,10 +4,11 @@ import { metricsApi } from '../api/metrics-api';
 import type { EvangelizationDetail } from '../types/metrics';
 
 export function useEvangelizationDetail() {
-  const { getToken, orgId } = useAuth();
+  const { getToken } = useAuth();
+  const tenantId = typeof window !== 'undefined' ? localStorage.getItem('x-tenant-id') : null;
 
   return useQuery<EvangelizationDetail>({
-    queryKey: ['evangelization-detail', orgId],
+    queryKey: ['evangelization-detail', tenantId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');

@@ -4,10 +4,11 @@ import { metricsApi } from '../api/metrics-api';
 import type { ExpansionDetailData } from '../types/metrics';
 
 export function useExpansionDetail() {
-  const { getToken, orgId } = useAuth();
+  const { getToken } = useAuth();
+  const tenantId = typeof window !== 'undefined' ? localStorage.getItem('x-tenant-id') : null;
 
   return useQuery<ExpansionDetailData>({
-    queryKey: ['expansion-detail', orgId],
+    queryKey: ['expansion-detail', tenantId],
     queryFn: async () => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');
