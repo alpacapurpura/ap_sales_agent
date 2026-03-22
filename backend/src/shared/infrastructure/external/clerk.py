@@ -1,7 +1,7 @@
 import os
 import httpx
 import structlog
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 logger = structlog.get_logger()
 
