@@ -1,99 +1,76 @@
 ---
 name: frontend-expert
-description: >
-  This skill should be used when the user asks to "create a component", "modify the frontend",
-  "update the UI", "refactor the interface", "add a new page", "create a feature",
-  "fix a frontend bug", "style with Tailwind", or needs guidance on Next.js App Router,
-  React 18+, Tailwind CSS, Shadcn UI, or Feature-Sliced Design (FSD) architecture.
-version: 0.1.0
+description: "Frontend specialist for Next.js 14 App Router + React 18 + Tailwind + Shadcn UI using Feature-Sliced Design Lite (domain-grouped features/, not traditional layers). Use when: creating responsive layouts, building interactive forms/dashboards, implementing dynamic routes, integrating Shadcn UI components, refactoring UI architecture, configuring Tailwind theming, wiring React Query hooks to backend APIs, or solving Server/Client Component boundaries. Triggers: 'nueva funcionalidad', 'modifica el front', 'crea un componente', 'refactoriza la UI', 'implementa layout', 'configura rutas', 'integra con la API', 'arregla el estilo'."
 ---
 
-# Senior Frontend Developer (Next.js / React / FSD)
+# SOP — Flujo de Trabajo
 
-Rol: Senior Frontend Developer experto en Next.js (App Router), React 18+, Tailwind CSS y la arquitectura Feature-Sliced Design (FSD). Escribir codigo limpio, modular, accesible y optimizado, minimizando el uso de `"use client"` a menos que sea estrictamente necesario.
+Sigue este orden para cualquier tarea frontend:
 
-**Stack:** Next.js 14+ (App Router), React 18+, TypeScript (Strict), Tailwind CSS v3.4+, Shadcn UI, Clerk, TanStack Query, Zod.
-
-## Directiva Cero: Contexto antes de Codigo
-
-**NUNCA** asumir la logica del negocio ni inventar textos para la UI sin revisar la documentacion funcional del proyecto.
-
-**[OBLIGATORIO] Antes de proponer o escribir cualquier codigo:**
-
-1. Leer `docs/domains/INDEX.md` en la raiz del proyecto para ubicar a que modulo de negocio pertenece la peticion.
-2. Leer el documento del modulo especifico (ej. `docs/domains/module_offer.md`). Usar solo las secciones de reglas de negocio, restricciones y edge cases — **no** el inventario de archivos.
-3. Listar el directorio real del slice y leer los archivos relevantes directamente del codigo:
-   - Frontend: `ls frontend/src/features/{nombre}/`
-   - Shared: `ls frontend/src/components/`
-4. **[GUARDRAIL ANTI-ALUCINACION]**: Si un componente, hook, tipo o archivo no aparece en el codigo real al explorarlo, **no existe**. Los docs son orientacion de negocio, nunca un inventario tecnico actualizado.
-
-### Protocolo de Fallback
-
-Aplicar este arbol de decision **antes de escribir codigo**:
-
-- **El modulo existe pero no se reconoce el nombre:** Comparar la columna "Proposito del Negocio" del INDEX con la peticion del usuario. Elegir el dominio mas cercano por funcion (no por nombre).
-
-- **El componente es generico/reutilizable:** Ubicarlo en `src/components/shared/` (layouts globales) o `src/components/ui/` (primitivos Shadcn). Consultar directamente el codigo existente en esas carpetas para reutilizar.
-
-- **La UI cruza varios modulos:** Identificar el modulo "dueno" de los datos principales que muestra la pantalla. Crear el componente en ese slice de `features/`. Los datos secundarios de otros modulos se obtienen via sus Public APIs (`import { X } from "@/features/other-module"`).
-
-- **Es una feature genuinamente nueva (no existe en el INDEX):**
-  1. **Detenerse** y comunicar al usuario que el modulo no esta documentado.
-  2. Proponer el nombre del slice FSD y su proposito en una sola oracion.
-  3. Esperar confirmacion antes de ejecutar el scaffold.
-  4. Al finalizar, actualizar `docs/domains/INDEX.md` con el nuevo dominio.
-
-## Flujo de Trabajo Operativo (SOP)
-
-1. **Analisis y Ubicacion:** Comprender el requerimiento y decidir en que capa FSD debe implementarse (leer `/docs/domains/INDEX.md`).
-
-2. **Scaffolding de Nueva Funcionalidad:**
-   Si la solicitud implica una NUEVA feature o entidad, ejecutar en la terminal el script de scaffolding antes de escribir codigo:
+1. **Ubicación:** Lee `docs/domains/INDEX.md` → identifica el feature/dominio destino.
+2. **Explorar código existente:** Lista `frontend/src/features/{nombre}/` y lee archivos relevantes. Consulta `frontend/src/components/` para reutilizar primitivos.
+3. **Scaffold (solo features nuevas):**
    ```bash
-   python .claude/skills/frontend-expert/scripts/scaffold_feature.py <nombre-en-kebab-case> --layer <features|entities|widgets|pages> --path frontend/src
+   python .claude/skills/frontend-expert/scripts/scaffold_feature.py <nombre-en-kebab-case> --layer features --path frontend/src
    ```
-   El script crea automaticamente la subcarpeta de la capa (`frontend/src/<layer>/<nombre>`). No repetir la capa en `--path`.
+   Detente si el módulo no existe en INDEX — propón nombre y propósito, espera confirmación.
+4. **Crear/modificar componentes:** Usa la plantilla [component.tsx](frontend-expert/assets/templates/component.tsx) y las reglas de [component-rules.md](frontend-expert/references/component-rules.md).
+5. **Integrar datos:** Si necesita fetching/mutaciones, sigue [api-standards.md](frontend-expert/references/api-standards.md).
 
-3. **Creacion de Componentes:**
-   - Utilizar la estructura base definida en `assets/templates/component.tsx`.
-   - Consultar `references/component-rules.md` para garantizar las convenciones de React y Tailwind.
-   - Aplicar los colores corporativos y variables de Tailwind ya existentes en el proyecto.
+## Arquitectura (FSD-Lite)
 
-4. **Integracion de Datos y APIs:**
-   Si el componente requiere datos asincronos o mutaciones, consultar `references/api-standards.md` para implementar Server Actions o manejo de cache de forma correcta.
+Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md](frontend-expert/references/fsd-cheatsheet.md).
 
-## Directivas Estrictas
+| Capa | Propósito |
+| ---- | --------- |
+| `src/features/{dominio}/` | Módulo autocontenido de negocio |
+| `src/components/ui/` | Primitivos Shadcn UI |
+| `src/components/shared/` | Layouts y componentes globales |
+| `src/app/` | Solo routing y layouts de alto nivel |
 
-- **No inventar utilidades:** Utilizar la funcion `cn` (clsx + tailwind-merge) proporcionada en `shared/lib/utils.ts` para agrupar clases de Tailwind.
-- **Rutas Relativas:** Para imports dentro del mismo slice, usar rutas relativas (`./ui/MiComponente`). Para imports desde otros slices, usar el alias global o Public API (`@/shared/ui/button`).
-- **Server-First:** Por defecto, todos los componentes son Server Components. Solo agregar `"use client"` a los nodos hoja que requieran estado (`useState`), efectos (`useEffect`) o interactividad del usuario (`onClick`).
+**Reglas de importación:** Public API via `index.ts` — sin deep imports entre features. `shared` nunca importa de `features`.
 
-## Guardrails (NO HACER)
+### Decisión de ubicación
 
-1. **NO** exportar multiples componentes por defecto en el mismo archivo.
-2. **NO** definir sub-componentes dentro del cuerpo de otro componente (causa re-montajes completos).
-3. **NO** ignorar las advertencias de dependencias en `useEffect` o `useMemo` (`exhaustive-deps`).
-4. **NO** usar etiquetas `<a>` nativas para navegacion interna; usar siempre `import Link from 'next/link'`.
-5. **NO** usar `<img>` nativo; usar siempre `import Image from 'next/image'` con `alt`, `width` y `height`.
-6. **NO** usar `useEffect` para sincronizar estado derivado. Calcularlo directamente en el render.
-7. **NO** usar `useEffect` para hacer fetch de datos en el cliente. Usar TanStack Query o Server Components.
+- **Componente de un dominio** → `features/{dominio}/components/`
+- **Componente genérico/reutilizable** → `components/shared/` o `components/ui/`
+- **UI cruza módulos** → Va en el feature "dueño" de los datos principales. Datos secundarios via Public API de otros features.
+- **Feature nueva sin documentar** → Detente, propón nombre, espera confirmación, luego scaffold.
+
+## Referencias (lee solo cuando necesites)
+
+- **Estructura e imports:** [fsd-cheatsheet.md](frontend-expert/references/fsd-cheatsheet.md)
+- **Server vs Client Components:** [component-rules.md](frontend-expert/references/component-rules.md)
+- **Fetching, mutaciones, caché:** [api-standards.md](frontend-expert/references/api-standards.md)
+- **Patrones de arquitectura:** [frontend-patterns.md](frontend-expert/references/frontend-patterns.md)
+- **Documentación AI-optimizada:** [ai-documentation.md](frontend-expert/references/ai-documentation.md)
+- **Estilos y theming Tailwind:** [styling-rules.md](frontend-expert/references/styling-rules.md)
+- **Stack tecnológico:** [tech-stack.md](frontend-expert/references/tech-stack.md) — si hay discrepancia con el código real, el código manda.
+
+## Ejemplos
+
+**1. "Necesito un componente para mostrar el perfil del lead en el dashboard de ventas."**
+- Dominio: `sales` → `features/sales/components/lead-profile.tsx`
+- Exportar en `features/sales/index.ts`
+- No crear `entities/lead` salvo que se use en múltiples features
+
+**2. "Crea un botón que haga scroll hacia arriba."**
+- Genérico → `components/shared/` o `components/ui/`
+- Requiere `onClick` → Client Component (`"use client"`)
+- Usar plantilla `component.tsx` + iconos `lucide-react`
 
 ## Troubleshooting
 
-| Problema | Causa Posible | Solucion |
-|----------|---------------|----------|
-| "Cannot access X from Y" | Deep import en FSD o cruzando capas incorrectamente. | Corregir import al `index.ts` del slice (Public API). |
-| Hydration Mismatch | Renderizado condicional basado en `window` o estado del navegador. | Usar `useEffect` para marcar `isMounted` antes de renderizar UI dependiente del cliente. |
-| Server Action Error | Pasar funciones, Date u objetos no serializables del Server al Client component. | Pasar solo JSON plano a traves del limite Server/Client. |
+| Problema | Solución |
+| -------- | -------- |
+| "Cannot access X from Y" | Importar desde `index.ts` (Public API). Si hay dependencia circular, mover lógica compartida a `shared`. |
+| Hydration Mismatch | Usar `useEffect` con flag `isMounted` antes de renderizar UI dependiente del cliente. |
+| Server Action Error | Solo pasar JSON plano (strings, números, booleanos) a través del límite Server→Client. |
+| ¿Dónde va este componente? | Ante la duda: `features/{dominio}/components/`. Refactorizar después es más barato que sobre-ingenierizar. |
 
-## Referencias
+## Constraints (CRITICAL — read last)
 
-Consultar estos documentos UNICAMENTE si se necesita contexto especifico:
-
-- **Estructura FSD e imports:** `references/fsd-cheatsheet.md`
-- **Server vs Client Components:** `references/component-rules.md`
-- **Mutaciones y llamadas a API:** `references/api-standards.md`
-- **Patrones de arquitectura frontend:** `references/frontend-patterns.md`
-- **Documentacion AI-First (TSDoc, AI-Stop):** `references/ai-documentation.md`
-- **Stack tecnologico:** `references/tech-stack.md`
-- **Reglas de estilos:** `references/styling-rules.md`
+- **Anti-alucinación:** Si un componente, hook o tipo no aparece al explorar el código real, **no existe**. Los docs de dominio son orientación de negocio, nunca inventario técnico.
+- **Server-First:** Todos los componentes son Server Components por defecto. Solo agregar `"use client"` en nodos hoja que usen `useState`, `useEffect`, o event handlers.
+- **No inventar utilidades:** Usar `cn()` de `shared/lib/utils.ts` para clases Tailwind. No crear helpers duplicados.
+- **Imports:** Relativos dentro del mismo slice (`./ui/MiComponente`). Alias global entre slices (`@/features/other`).

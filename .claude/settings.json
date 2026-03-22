@@ -15,7 +15,21 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/gsd-context-monitor.js"
+            "command": "node .claude/hooks/gsd-context-monitor.js",
+            "timeout": 10
+          }
+        ],
+        "matcher": "Bash|Edit|Write|MultiEdit|Agent|Task"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/gsd-prompt-guard.js",
+            "timeout": 5
           }
         ]
       }
@@ -34,5 +48,8 @@
     "skill-creator@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "figma@claude-plugins-official": true
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   }
 }

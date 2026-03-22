@@ -14,9 +14,9 @@ Styling & UI:
 
 Infrastructure & Utilities:
 - Authentication: Clerk (Middleware protection)
-- HTTP Client: Native Fetch / fetchClient wrapper
+- HTTP Client: Native Fetch / Axios
 - Validation: Zod (Schema validation)
-- State Management: React Context / TanStack Query / Zustand (UI-only)
+- State Management: React Context / Server State (TanStack Query optional)
 
 Development Tools:
 - ESLint (Code linting)

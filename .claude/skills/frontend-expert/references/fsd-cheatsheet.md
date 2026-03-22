@@ -1,47 +1,50 @@
-# Feature-Sliced Design (FSD) Cheatsheet
+# Feature-Based Architecture (FSD-Inspired) Cheatsheet
 
-Este proyecto usa una version simplificada de FSD adaptada para Next.js App Router.
+This project uses a pragmactic Feature-Based architecture inspired by FSD principles, but without strict layers like widgets/entities unless necessary.
 
-## 1. Estructura de Directorios
+## 1. Directory Structure
 
 ### `src/features/` (The Core)
-Todo lo relacionado con un dominio de negocio especifico vive aqui.
-**Regla**: Si se elimina `src/features/{domain}`, la funcionalidad del {domain} deberia desaparecer completamente, pero la app deberia seguir compilando (menos las rutas especificas).
+Everything related to a specific business domain lives here.
+**Rule**: If you delete `src/features/{domain}`, the {domain} functionality should completely disappear, but the app should still build (minus the specific routes).
 
-Estructura:
+Structure:
 ```
 src/features/{domain}/
-+-- components/       # UI Components especificos del dominio
-+-- hooks/           # Logica & Estado
-+-- types/           # Domain Interfaces & Zod Schemas
-+-- index.ts         # PUBLIC API (Barrel File)
+├── components/       # UI Components specific to this feature
+├── hooks/           # Logic & State
+├── types/           # Domain Interfaces & Zod Schemas
+├── utils/           # Helper functions
+└── index.ts         # PUBLIC API (Barrel File)
 ```
 
+**Note:** We do NOT strictly enforce `entities` or `widgets` layers. Logic should be kept within the `feature` unless it is genuinely shared across multiple features (in which case, refactor to `shared` or a common feature).
+
 ### `src/components/` (The Shared)
-- **`ui/`**: Primitivos Shadcn (Button, Input). **NO MODIFICAR** logica aqui.
-- **`shared/`**: Componentes de layout globales (Sidebar, Navbar, Footer) usados en multiples features.
+- **`ui/`**: Shadcn primitives (Button, Input). **DO NOT MODIFY** logic here.
+- **`shared/`**: Global layout components (Sidebar, Navbar, Footer) used across multiple features.
 
 ### `src/app/` (The Router)
-Logica minima. Responsable solo de:
-1. Routing (Folders = URLs)
-2. Layouts (`layout.tsx`)
-3. Metadata (`page.tsx`)
-4. Data Fetching (Server Components) -> Pasar datos a Feature Components.
+Minimal logic. Responsible only for:
+1.  Routing (Folders = URLs)
+2.  Layouts (`layout.tsx`)
+3.  Metadata (`page.tsx`)
+4.  Data Fetching (Server Components) -> Passing data to Feature Components.
 
-## 2. La Regla de "Public API"
-Imports cross-feature estan restringidos.
+## 2. The "Public API" Rule
+Cross-feature imports are restricted.
 
-**Correcto:**
-`import { BrandCard } from "@/features/brand";` (Importando del barrel file)
+**✅ Correct:**
+`import { BrandCard } from "@/features/brand";` (Importing from the barrel file)
 
-**Incorrecto:**
+**❌ Incorrect:**
 `import { BrandCard } from "@/features/brand/components/brand-card";` (Deep import violation)
 
-**Por que?**
-Deep imports acoplan el codigo a la estructura interna de otro modulo. El `index.ts` actua como contrato.
+**Why?**
+Deep imports couple your code to the internal structure of another module. The `index.ts` acts as a contract.
 
-## 3. Workflow para Nuevas Features
-1. **Crear Directorio**: `src/features/<name>`
-2. **Scaffold**: Crear `components`, `hooks`, `types`.
-3. **Exportar**: Exponer solo los componentes/hooks necesarios en `index.ts`.
-4. **Ruta**: Crear `src/app/(dashboard)/<name>/page.tsx` y usar los componentes exportados.
+## 3. Workflow for New Features
+1.  **Create Directory**: `src/features/<name>`
+2.  **Scaffold**: Create `components`, `hooks`, `types`.
+3.  **Export**: Expose only the necessary components/hooks in `index.ts`.
+4.  **Route**: Create `src/app/(dashboard)/<name>/page.tsx` and use the exported components.

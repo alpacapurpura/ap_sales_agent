@@ -1,41 +1,52 @@
 ---
 name: frontend-patterns
-description: Patrones de diseno frontend autorizados para Next.js (App Router), React y FSD.
+description: Patrones de diseño frontend autorizados para Next.js (App Router), React y FSD.
+origin: Frontend Expert Skill
 ---
 
-# Patrones de Diseno Frontend (Guia Autorizada)
+# Patrones de Diseño Frontend (Guía Autorizada)
 
-Este documento define los patrones de arquitectura y diseno frontend obligatorios para el desarrollo en Visionarias Brain. Optimizados para **Next.js 14+ (App Router)**, **React 18/19** y **Feature-Sliced Design (FSD)**.
+Este documento define los patrones de arquitectura y diseño frontend obligatorios para el desarrollo en Visionarias Brain. Estos patrones están optimizados para **Next.js 14+ (App Router)**, **React 18/19** y **Feature-Sliced Design (FSD)**.
 
 ## 1. Arquitectura de Componentes (App Router)
 
 ### 1.1. Server Components por Defecto ("Server-First")
-**Principio:** Todo componente es un Server Component (RSC) a menos que requiera interactividad especifica.
-**Beneficio:** Reduccion drastica del bundle size, acceso directo a backend/BD, seguridad mejorada.
+**Principio:** Todo componente es un Server Component (RSC) a menos que requiera interactividad específica.
+**Beneficio:** Reducción drástica del bundle size (código de librerías no viaja al cliente), acceso directo a backend/BD, seguridad mejorada.
 
-**Patron Correcto:**
+**Anti-patrón:**
 ```tsx
+// ❌ MAL: Convertir todo a 'use client' por hábito
+'use client'
+import { db } from '@/shared/lib/db' // Error: No se puede importar backend en cliente
+```
+
+**Patrón Correcto:**
+```tsx
+// ✅ BIEN: Separación de responsabilidades
 // entities/user/ui/user-card.tsx (Server Component)
 import { formatDate } from '@/shared/lib/date'
 
 export async function UserCard({ userId }: { userId: string }) {
-  const user = await fetchUser(userId)
+  const user = await fetchUser(userId) // Fetch directo o vía API interna
   return (
     <div className="card">
       <h1>{user.name}</h1>
       <p>Joined: {formatDate(user.createdAt)}</p>
-      <FollowButton userId={userId} /> {/* Slot para interactividad */}
+      {/* Slot para interactividad */}
+      <FollowButton userId={userId} />
     </div>
   )
 }
 ```
 
-### 1.2. Patron de Composicion ("The Hole Pattern")
-**Problema:** Importar un Server Component dentro de un archivo marcado con `'use client'` lo convierte implicitamente en un Client Module.
-**Solucion:** Pasar los Server Components como `children` o `props` (slots) al Client Component.
+### 1.2. Patrón de Composición ("The Hole Pattern")
+**Problema:** Importar un Server Component dentro de un archivo marcado con `'use client'` lo convierte implícitamente en un Client Module (o lanza error si tiene código de servidor).
+**Solución:** Pasar los Server Components como `children` o `props` (slots) al Client Component.
 
 ```tsx
-// Client Wrapper
+// ✅ BIEN: Client Wrapper
+// features/theme/ui/theme-provider.tsx (Client Component)
 'use client'
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return <Context.Provider>{children}</Context.Provider>
@@ -51,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider>
           <Navigation /> {/* Server Component renderizado en servidor */}
-          {children}
+          {children}     {/* Server Component renderizado en servidor */}
         </ThemeProvider>
       </body>
     </html>
@@ -59,21 +70,44 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-## 2. Gestion de Estado (State Management)
+## 2. Gestión de Estado (State Management)
 
 ### 2.1. URL como Fuente de Verdad (URL State)
-**Contexto:** Filtros, paginacion, busquedas, modales compartibles.
+**Contexto:** Filtros, paginación, búsquedas, modales compartibles.
 **Regla:** Si el estado debe sobrevivir a un refresh o ser compartible, **DEBE** estar en la URL.
 **Herramienta:** `nuqs` (recomendado) o `useSearchParams`.
 
+```tsx
+// ✅ BIEN: Búsqueda vía URL
+// features/search/ui/search-bar.tsx
+'use client'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { useDebouncedCallback } from 'use-debounce'
+
+export function SearchBar() {
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const { replace } = useRouter()
+
+  const handleSearch = useDebouncedCallback((term: string) => {
+    const params = new URLSearchParams(searchParams)
+    if (term) params.set('q', term)
+    else params.delete('q')
+    replace(`${pathname}?${params.toString()}`)
+  }, 300)
+
+  return <input defaultValue={searchParams.get('q')?.toString()} onChange={(e) => handleSearch(e.target.value)} />
+}
+```
+
 ### 2.2. Server State (React Query) vs useEffect
 **Regla:** **PROHIBIDO** usar `useEffect` para hacer fetch de datos en el cliente.
-**Solucion:**
+**Solución:**
 1. **Preferido:** Fetch en Server Component y pasar datos como prop inicial.
 2. **Cliente (Polling/Mutaciones):** Usar TanStack Query.
 
 ```tsx
-// Hydration Boundary
+// ✅ BIEN: Hydration Boundary
 // features/offer/ui/offer-list.tsx (Server Component)
 import { HydrationBoundary, dehydrate, QueryClient } from '@tanstack/react-query'
 import { getOffers } from '../api/get-offers'
@@ -93,13 +127,16 @@ export async function OfferList() {
 
 ### 2.3. Estado Global UI (Zustand)
 **Uso:** Solo para estado global de UI (Sidebar abierto/cerrado, Toast notifications). No para datos de negocio.
+**Librería:** `zustand`.
 
 ## 3. Patrones de Componentes Reutilizables
 
-### 3.1. Componentes Polimorficos (asChild)
-Usar `Slot` de Radix UI (patron `asChild`).
+### 3.1. Componentes Polimórficos (asChild)
+**Contexto:** Construcción de UI Kits (botones que son enlaces, etc.).
+**Solución:** Usar `Slot` de Radix UI (patrón `asChild`).
 
 ```tsx
+// ✅ BIEN: Botón flexible
 import { Slot } from '@radix-ui/react-slot'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -110,12 +147,18 @@ export function Button({ asChild, ...props }: ButtonProps) {
   const Comp = asChild ? Slot : "button"
   return <Comp {...props} />
 }
+
+// Uso
+<Button asChild>
+  <Link href="/login">Login</Link>
+</Button>
 ```
 
-### 3.2. Compound Components
-Componentes complejos con sub-partes que comparten estado implicito.
+### 3.2. Compound Components (Componentes Compuestos)
+**Contexto:** Componentes complejos con sub-partes que comparten estado implícito.
 
 ```tsx
+// ✅ BIEN: Card Component
 export function Card({ children }: { children: React.ReactNode }) {
   return <div className="card-root">{children}</div>
 }
@@ -123,12 +166,18 @@ export function Card({ children }: { children: React.ReactNode }) {
 Card.Header = function CardHeader({ children }: { children: React.ReactNode }) {
   return <div className="card-header">{children}</div>
 }
+
+// Uso
+<Card>
+  <Card.Header>Título</Card.Header>
+</Card>
 ```
 
 ## 4. Patrones de Formularios y Mutaciones
 
 ### 4.1. Server Actions + Zod
-Las mutaciones deben ser Server Actions validadas con Zod.
+**Regla:** Las mutaciones deben ser Server Actions validadas con Zod.
+**Hook:** `useForm` (React Hook Form) para manejo de estado en cliente + integración con Server Action.
 
 ```tsx
 // features/auth/actions/login.ts
@@ -140,42 +189,65 @@ const schema = z.object({ email: z.string().email() })
 export async function loginAction(prevState: any, formData: FormData) {
   const validated = schema.safeParse(Object.fromEntries(formData))
   if (!validated.success) return { errors: validated.error.flatten().fieldErrors }
-  // Logica de backend...
+  // Lógica de backend...
 }
 ```
 
-## 5. Optimizacion y Performance
+## 5. Optimización y Performance
 
 ### 5.1. Optimistic UI
-Feedback instantaneo al usuario antes de que el servidor responda. Usar `useOptimistic`.
+**Contexto:** Feedback instantáneo al usuario antes de que el servidor responda.
+**Hook:** `useOptimistic`.
+
+```tsx
+// ✅ BIEN: Feedback inmediato
+'use client'
+import { useOptimistic } from 'react'
+
+export function LikeButton({ likes, onLike }: { likes: number, onLike: () => void }) {
+  const [optimisticLikes, addOptimisticLike] = useOptimistic(
+    likes,
+    (state, newLike: number) => state + newLike
+  )
+
+  return (
+    <button onClick={async () => {
+      addOptimisticLike(1) // Actualiza UI inmediatamente
+      await onLike()       // Llama al server action
+    }}>
+      Likes: {optimisticLikes}
+    </button>
+  )
+}
+```
 
 ### 5.2. Dynamic Imports (Lazy Loading)
-Componentes pesados (Graficos, Mapas, Editores) que no son visibles inicialmente.
+**Contexto:** Componentes pesados (Gráficos, Mapas, Editores de Texto) que no son visibles inicialmente.
 
 ```tsx
 const HeavyChart = dynamic(() => import('./heavy-chart'), {
   loading: () => <Skeleton className="h-64" />,
-  ssr: false
+  ssr: false // Si depende de window/browser APIs
 })
 ```
 
-## 6. Matriz de Decision Tecnica
+## 6. Matriz de Decisión Técnica
 
-| Escenario | Solucion Recomendada | Por que? |
-|-----------|---------------------|----------|
-| **SEO Critico** | Server Component (RSC) | HTML generado en servidor, indexable. |
-| **Dashboard Privado** | Client Component + React Query | Interactividad alta, cache de cliente. |
-| **Formulario Complejo** | React Hook Form + Zod | Validacion rica en cliente, UX fluida. |
-| **Landing Page** | RSC + SSG (Static Generation) | Velocidad maxima (TTFB bajo). |
+| Escenario | Solución Recomendada | ¿Por qué? |
+|-----------|----------------------|-----------|
+| **SEO Crítico** | Server Component (RSC) | HTML generado en servidor, indexable. |
+| **Dashboard Privado** | Client Component + React Query | Interactividad alta, caché de cliente. |
+| **Formulario Complejo** | React Hook Form + Zod | Validación rica en cliente, UX fluida. |
+| **Landing Page** | RSC + SSG (Static Generation) | Velocidad máxima (TTFB bajo). |
 | **Modal / Dialog** | Parallel Routes (Intercepting Routes) | URL compartible, preserva contexto. |
 
-## 7. Checklist de Calidad
+## 7. Checklist de Calidad (Validación)
 
 Antes de dar por finalizado un componente o feature:
 
-- [ ] **RSC por defecto:** Es un Server Component? Si tiene `'use client'`, es estrictamente necesario?
-- [ ] **Limites de Suspense:** Hay `<Suspense>` envolviendo llamadas de datos lentas?
-- [ ] **Gestion de Errores:** Existe un `error.tsx` o `ErrorBoundary` para fallos controlados?
-- [ ] **Accesibilidad:** Se puede navegar con teclado? Tiene etiquetas ARIA si no es semantico?
-- [ ] **Tipado:** No hay `any`? Las props estan definidas con interfaces claras?
-- [ ] **FSD:** Respeta la jerarquia de capas (shared -> entities -> features -> widgets -> pages)?
+- [ ] **RSC por defecto:** ¿Es un Server Component? Si tiene `'use client'`, ¿es estrictamente necesario?
+- [ ] **Límites de Suspense:** ¿Hay `<Suspense>` envolviendo llamadas de datos lentas?
+- [ ] **Gestión de Errores:** ¿Existe un `error.tsx` o `ErrorBoundary` para fallos controlados?
+- [ ] **Accesibilidad:** ¿Se puede navegar con teclado? ¿Tiene etiquetas ARIA si no es semántico?
+- [ ] **Tipado:** ¿No hay `any`? ¿Las props están definidas con interfaces claras?
+- [ ] **FSD:** ¿Respeta la jerarquía de capas (shared -> entities -> features -> widgets -> pages)?

@@ -1,0 +1,21 @@
+# SESSION SUMMARY GENERATOR
+# Task: Condense the conversation into a brief episodic memory for future context.
+
+CONVERSATION HISTORY:
+{% for msg in messages[-10:] %}
+{{ msg.role.upper() }}: {{ msg.content }}
+{% endfor %}
+
+CURRENT PROFILE:
+{{ user_profile | tojson }}
+
+INSTRUCTIONS:
+Generate a concise 2-sentence summary of this session. Focus on:
+1. The user's main pain point or goal discussed.
+2. The current status/objection/next step.
+3. Emotional tone (e.g., excited, skeptical, worried).
+
+Output Example:
+"Maria is struggling with low sales in her candle business. She is interested but needs to discuss the price with her husband. Tone is anxious but hopeful."
+
+SUMMARY:

@@ -1,0 +1,32 @@
+name: 🔌 Test SSH Connection
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-ssh:
+    name: Test VPS Connectivity
+    runs-on: ubuntu-latest
+    environment: ap_sales_agent
+    steps:
+      - name: Check secrets are present (no values exposed)
+        run: |
+          echo "VPS_HOST set:      ${{ secrets.VPS_HOST != '' && 'YES ✅' || 'NO ❌ — secret missing or empty' }}"
+          echo "VPS_SSH_KEY set:   ${{ secrets.VPS_SSH_KEY != '' && 'YES ✅' || 'NO ❌ — secret missing or empty' }}"
+          echo "VPS_PORT set:      ${{ secrets.VPS_PORT != '' && 'YES ✅' || 'NO ❌ — secret missing or empty' }}"
+          echo "GHCR_TOKEN set:    ${{ secrets.GHCR_TOKEN != '' && 'YES ✅' || 'NO ❌ — secret missing or empty' }}"
+
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          timeout: 15s
+          command_timeout: 1m
+          script: |
+            echo "✅ SSH connection successful"
+            echo "🖥️  Hostname: $(hostname)"
+            echo "🐳 Docker: $(docker --version)"
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u alpacapurpura --password-stdin && echo "✅ GHCR OK" || echo "❌ GHCR FAILED"

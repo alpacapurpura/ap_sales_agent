@@ -1,0 +1,67 @@
+"""Repository for staging_metrics table — raw ETL landing zone.
+
+Staging data is temporary (30-day retention) and gets promoted
+to official_metrics after transformation.
+"""
+
+from datetime import date, datetime, timedelta, timezone
+from typing import List
+from uuid import UUID
+
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
+
+from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+    StagingMetricModel,
+)
+
+
+class StagingMetricsRepository:
+    """CRUD operations for the staging_metrics table."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def bulk_insert(self, metrics: List[StagingMetricModel]) -> int:
+        """Bulk insert staging metrics. Returns the count inserted."""
+        if not metrics:
+            return 0
+        self.db.add_all(metrics)
+        self.db.flush()
+        return len(metrics)
+
+    def get_by_run(self, extraction_run_id: UUID) -> List[StagingMetricModel]:
+        """Get all staging metrics for a specific extraction run."""
+        stmt = select(StagingMetricModel).where(
+            StagingMetricModel.extraction_run_id == extraction_run_id
+        )
+        return list(self.db.execute(stmt).scalars().all())
+
+    def get_by_tenant_provider_date(
+        self,
+        tenant_id: UUID,
+        provider: str,
+        start_date: date,
+        end_date: date,
+    ) -> List[StagingMetricModel]:
+        """Get staging metrics filtered by tenant, provider, and date range."""
+        stmt = select(StagingMetricModel).where(
+            StagingMetricModel.tenant_id == tenant_id,
+            StagingMetricModel.provider == provider,
+            StagingMetricModel.metric_date >= start_date,
+            StagingMetricModel.metric_date <= end_date,
+        )
+        return list(self.db.execute(stmt).scalars().all())
+
+    def delete_older_than(self, days: int = 30) -> int:
+        """Delete staging rows older than N days (retention policy).
+
+        Returns the number of rows deleted.
+        """
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        stmt = delete(StagingMetricModel).where(
+            StagingMetricModel.created_at < cutoff
+        )
+        result = self.db.execute(stmt)
+        self.db.flush()
+        return result.rowcount

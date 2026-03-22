@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trabajo Orgánico - Actual vs Propuesta</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0e1a; color: #e2e8f0; padding: 32px; }
+
+  .container { max-width: 1400px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 24px; margin-bottom: 8px; color: #94a3b8; }
+  .subtitle { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 40px; }
+
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .panel { background: #111827; border-radius: 16px; padding: 24px; }
+  .panel-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; padding: 6px 14px; border-radius: 20px; display: inline-block; }
+  .label-current { background: #1e293b; color: #94a3b8; }
+  .label-proposal { background: #14532d; color: #4ade80; }
+
+  /* ===== CURRENT STATE ===== */
+  .current-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .current-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #334155;
+    background: rgba(255,255,255,0.02);
+  }
+  .current-header h3 { font-size: 15px; font-weight: 600; }
+  .current-header p { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .current-body { padding: 12px; color: #475569; font-size: 13px; text-align: center; padding: 32px; }
+
+  /* ===== PROPOSED STATE ===== */
+  .proposed-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .proposed-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #334155;
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.05));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .proposed-header-left { display: flex; align-items: center; gap: 12px; }
+  .proposed-header-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .proposed-header h3 { font-size: 15px; font-weight: 600; }
+  .proposed-header .summary-chips { display: flex; gap: 8px; }
+  .chip {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chip-reach { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .chip-engagement { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  .proposed-body { padding: 8px; }
+
+  /* Channel rows */
+  .channel-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .channel-row:hover { background: rgba(99,102,241,0.06); }
+  .channel-left { display: flex; align-items: center; gap: 12px; }
+  .channel-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .ig-icon { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+  .yt-icon { background: rgba(255,0,0,0.15); color: #ff4444; }
+  .fb-icon { background: rgba(24,119,242,0.15); color: #1877f2; }
+  .tk-icon { background: rgba(255,255,255,0.08); color: #fff; }
+  .li-icon { background: rgba(10,102,194,0.15); color: #0a66c2; }
+
+  .channel-name { font-size: 13px; font-weight: 500; }
+  .channel-source { font-size: 11px; color: #64748b; }
+
+  .channel-right { display: flex; align-items: center; gap: 16px; }
+  .metric-col { text-align: right; min-width: 55px; }
+  .metric-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-value { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .metric-value.positive { color: #4ade80; }
+  .metric-trend { font-size: 10px; color: #4ade80; }
+  .metric-trend.negative { color: #f87171; }
+
+  .badge-config {
+    font-size: 11px; padding: 4px 12px; border-radius: 6px;
+    border: 1px solid #334155; color: #94a3b8; background: transparent;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .badge-config:hover { border-color: #6366f1; color: #a5b4fc; }
+
+  .badge-soon {
+    font-size: 11px; padding: 4px 10px; border-radius: 6px;
+    background: rgba(255,255,255,0.05); color: #475569;
+  }
+
+  .badge-connected {
+    width: 6px; height: 6px; border-radius: 50%; background: #4ade80; flex-shrink: 0;
+  }
+
+  /* Sparkline placeholder */
+  .sparkline {
+    width: 60px; height: 24px;
+    background: linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.2) 50%, transparent 100%);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sparkline::after {
+    content: '';
+    position: absolute; bottom: 4px; left: 4px; right: 4px;
+    height: 2px;
+    background: linear-gradient(90deg, #6366f1, #a78bfa);
+    border-radius: 2px;
+    clip-path: polygon(0% 80%, 15% 60%, 30% 70%, 45% 30%, 60% 50%, 75% 20%, 90% 40%, 100% 10%, 100% 100%, 0% 100%);
+    height: 16px;
+    opacity: 0.6;
+  }
+
+  /* Separator */
+  .separator { height: 1px; background: #1e293b; margin: 4px 14px; }
+
+  /* Empty state improved */
+  .empty-state {
+    text-align: center;
+    padding: 24px 16px;
+  }
+  .empty-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.3; }
+  .empty-text { font-size: 13px; color: #475569; margin-bottom: 12px; }
+  .empty-cta {
+    font-size: 12px; padding: 8px 20px; border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white; border: none; cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* Available channels section */
+  .available-section {
+    margin-top: 8px;
+    border-top: 1px solid #1e293b;
+    padding-top: 8px;
+  }
+  .available-label {
+    font-size: 10px;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 14px;
+    margin-bottom: 4px;
+  }
+
+  /* Notes section */
+  .notes {
+    margin-top: 32px;
+    padding: 20px;
+    background: #1e293b;
+    border-radius: 12px;
+    border-left: 3px solid #6366f1;
+  }
+  .notes h4 { font-size: 14px; margin-bottom: 12px; color: #a5b4fc; }
+  .notes ul { list-style: none; padding: 0; }
+  .notes li { font-size: 13px; color: #94a3b8; padding: 4px 0; padding-left: 16px; position: relative; }
+  .notes li::before { content: '→'; position: absolute; left: 0; color: #6366f1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Panel "Trabajo Orgánico" — Atracción</h1>
+  <p class="subtitle">Comparación: Estado Actual vs Propuesta de Mejora Visual</p>
+
+  <div class="comparison">
+    <!-- ===== CURRENT STATE ===== -->
+    <div class="panel">
+      <span class="panel-label label-current">Estado Actual</span>
+
+      <div class="current-card">
+        <div class="current-header">
+          <h3>Trabajo Orgánico</h3>
+          <p>Alcance: 0 | Engagement: 0</p>
+        </div>
+        <div class="current-body">
+          <p style="color: #475569">Sin canales conectados</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Problemas identificados:</p>
+        <div style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
+          <p>• Header plano sin jerarquía visual</p>
+          <p>• Sin iconografía que identifique el grupo</p>
+          <p>• Métricas como texto plano sin énfasis</p>
+          <p>• Estado vacío sin CTA ni guía al usuario</p>
+          <p>• Sin micro-trends ni contexto temporal</p>
+          <p>• Sin diferenciación entre conectado/disponible</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROPOSED STATE ===== -->
+    <div class="panel">
+      <span class="panel-label label-proposal">Propuesta de Mejora</span>
+
+      <div class="proposed-card">
+        <div class="proposed-header">
+          <div class="proposed-header-left">
+            <div class="proposed-header-icon">📱</div>
+            <div>
+              <h3>Trabajo Orgánico</h3>
+              <span style="font-size: 11px; color: #64748b;">5 canales · 3 conectados</span>
+            </div>
+          </div>
+          <div class="summary-chips">
+            <span class="chip chip-reach">👁 12.4k alcance</span>
+            <span class="chip chip-engagement">💬 1.8k engage</span>
+          </div>
+        </div>
+
+        <div class="proposed-body">
+          <!-- Connected channel with data -->
+          <div class="channel-row">
+            <div class="channel-left">
+              <div class="channel-icon ig-icon">📷</div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="channel-name">Instagram</span>
+                  <span class="badge-connected"></span>
+                </div>
+                <span class="channel-source">Meta Graph API</span>
+              </div>
+            </div>
+            <div class="channel-right">
+              <div class="sparkline"></div>
+              <div class="metric-col">
+                <div class="metric-label">Alcance</div>
+                <div class="metric-value">8.2k</div>
+                <div class="metric-trend">↑ 12%</div>
+              </div>
+              <div class="metric-col">
+                <div class="metric-label">Engage</div>
+                <div class="metric-value positive">1.2k</div>
+                <div class="metric-trend">↑ 8%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="channel-row">
+            <div class="channel-left">
+              <div class="channel-icon yt-icon">▶</div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="channel-name">YouTube</span>
+                  <span class="badge-connected"></span>
+                </div>
+                <span class="channel-source">YouTube Data API</span>
+              </div>
+            </div>
+            <div class="channel-right">
+              <div class="sparkline"></div>
+              <div class="metric-col">
+                <div class="metric-label">Alcance</div>
+                <div class="metric-value">3.1k</div>
+                <div class="metric-trend negative">↓ 3%</div>
+              </div>
+              <div class="metric-col">
+                <div class="metric-label">Engage</div>
+                <div class="metric-value">480</div>
+                <div class="metric-trend">↑ 15%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="channel-row">
+            <div class="channel-left">
+              <div class="channel-icon fb-icon">f</div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="channel-name">Facebook</span>
+                  <span class="badge-connected"></span>
+                </div>
+                <span class="channel-source">Meta Graph API</span>
+              </div>
+            </div>
+            <div class="channel-right">
+              <div class="sparkline"></div>
+              <div class="metric-col">
+                <div class="metric-label">Alcance</div>
+                <div class="metric-value">1.1k</div>
+                <div class="metric-trend">↑ 5%</div>
+              </div>
+              <div class="metric-col">
+                <div class="metric-label">Engage</div>
+                <div class="metric-value">120</div>
+                <div class="metric-trend negative">↓ 2%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Separator + Available channels -->
+          <div class="available-section">
+            <div class="available-label">Disponibles para conectar</div>
+
+            <div class="channel-row" style="opacity: 0.6;">
+              <div class="channel-left">
+                <div class="channel-icon tk-icon">♪</div>
+                <div>
+                  <span class="channel-name">TikTok</span>
+                  <span class="channel-source" style="display: block;">Proximamente</span>
+                </div>
+              </div>
+              <div class="channel-right">
+                <span class="badge-soon">Pronto</span>
+              </div>
+            </div>
+
+            <div class="channel-row" style="opacity: 0.6;">
+              <div class="channel-left">
+                <div class="channel-icon li-icon">in</div>
+                <div>
+                  <span class="channel-name">LinkedIn</span>
+                  <span class="channel-source" style="display: block;">Proximamente</span>
+                </div>
+              </div>
+              <div class="channel-right">
+                <span class="badge-soon">Pronto</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Improvement Notes -->
+  <div class="notes" style="margin-top: 32px;">
+    <h4>Mejoras Propuestas</h4>
+    <ul>
+      <li><strong>Header enriquecido:</strong> Icono de grupo + chips de métricas totales con color semántico (azul = alcance, púrpura = engagement)</li>
+      <li><strong>Sparklines por canal:</strong> Mini-gráfica de tendencia de los últimos 30 días para contexto temporal inmediato</li>
+      <li><strong>Trends con dirección:</strong> Indicador ↑/↓ con color (verde positivo, rojo negativo) junto a cada métrica</li>
+      <li><strong>Indicador de conexión:</strong> Dot verde junto al nombre del canal para confirmar que está activo</li>
+      <li><strong>Separación visual:</strong> Los canales conectados van arriba, los disponibles abajo con opacidad reducida</li>
+      <li><strong>Iconos de marca:</strong> Cada canal con su icono/color de marca para reconocimiento instantáneo</li>
+      <li><strong>Estado vacío mejorado:</strong> Cuando no hay canales, mostrar CTA claro para configurar el primero</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

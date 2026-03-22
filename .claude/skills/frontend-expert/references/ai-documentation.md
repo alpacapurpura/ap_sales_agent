@@ -1,17 +1,17 @@
 # AI-First Documentation Standards
 
-Para maximizar la eficiencia de agentes AI trabajando en este codebase, todo el codigo debe documentarse con "AI Intent" en mente.
+To maximize the efficiency of AI agents (like Trae, Claude, Copilot) working on this codebase, all code must be documented with "AI Intent" in mind.
 
 ## 1. The "Why" over "What"
-Los agentes AI pueden leer el codigo para saber *que* hace. Necesitan comentarios para entender *por que* existe y *como* encaja en el sistema.
+AI can read the code to know *what* it does. It needs comments to understand *why* it exists and *how* it fits into the larger system.
 
-**Malo:**
+**Bad:**
 ```typescript
 // Returns the user
 function getUser(id: string) { ... }
 ```
 
-**Bueno:**
+**Good:**
 ```typescript
 /**
  * [AI Context] Retrieves the full system user profile enriched with Tenant information.
@@ -22,7 +22,7 @@ function getUser(id: string) { ... }
 ```
 
 ## 2. Component Documentation
-Cada componente exportado en `src/features` o `src/components` DEBE tener un bloque TSDoc.
+Every exported component in `src/features` or `src/components` MUST have a TSDoc block.
 
 **Template:**
 ```typescript
@@ -30,13 +30,24 @@ Cada componente exportado en `src/features` o `src/components` DEBE tener un blo
  * [Component Name]
  * [AI Context] Brief description of business purpose.
  * [Props] Key props that drive logic (optional if Typed clearly).
- * [UI Behavior] What user interaction does this handle?
- * [Dependencies] Key hooks or contexts used.
+ * [UI Behavior] What user interaction does this handle? (e.g., "Opens modal on click").
+ * [Dependencies] Key hooks or contexts used (e.g., "Requires AuthContext").
  */
 ```
 
+**Example:**
+```typescript
+/**
+ * BrandIdentityForm
+ * [AI Context] Primary form for users to configure their AI Agent's persona (name, tone, style).
+ * [UI Behavior] Auto-saves on blur; Blocks navigation if dirty.
+ * [Dependencies] Uses useBrandSettings hook for persistence.
+ */
+export function BrandIdentityForm() { ... }
+```
+
 ## 3. Hook Documentation
-Custom hooks contienen el "Cerebro" de la aplicacion. Documentar el flujo logico.
+Custom hooks contain the "Brain" of the application. Document the state machine or logic flow.
 
 **Template:**
 ```typescript
@@ -45,12 +56,12 @@ Custom hooks contienen el "Cerebro" de la aplicacion. Documentar el flujo logico
  * [AI Context] What logic does this encapsulate?
  * [Input] Parameters.
  * [Output] Returned state and methods.
- * [Invariant] What condition is always true?
+ * [Invariant] What condition is always true? (e.g., "isLoading is true until profile loads").
  */
 ```
 
 ## 4. "AI-Stop" Comments
-Si un bloque de codigo es fragil o tiene edge cases no obvios, usar un warning `AI-Stop`.
+If a specific block of code is fragile or has non-obvious edge cases, use an `AI-Stop` warning.
 
 ```typescript
 // ! AI-STOP: Do not refactor this useEffect.
