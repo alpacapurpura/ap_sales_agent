@@ -11,28 +11,6 @@ from src.shared.infrastructure.external.clerk import ClerkService
 logger = structlog.get_logger()
 
 
-def ensure_tenant_clerk_org(db, tenant: Tenant, clerk: ClerkService) -> str | None:
-    """Ensure a tenant has a Clerk Organization. Creates one if missing. Returns clerk_org_id."""
-    if tenant.clerk_org_id:
-        return tenant.clerk_org_id
-
-    try:
-        org = clerk.create_organization(name=tenant.name, slug=tenant.slug)
-        if org and org.get("id"):
-            tenant.clerk_org_id = org["id"]
-            db.commit()
-            logger.info("clerk_org_created_for_tenant", tenant_id=str(tenant.id), org_id=org["id"])
-            return org["id"]
-    except Exception as e:
-        logger.error("ensure_tenant_clerk_org_failed", tenant_id=str(tenant.id), error=str(e))
-    return None
-
-
-def add_user_to_clerk_org(clerk: ClerkService, clerk_org_id: str, clerk_user_id: str, role: str = "member"):
-    """Add a user to the tenant's Clerk Organization."""
-    clerk_role = "org:admin" if role == "admin" else "org:member"
-    return clerk.add_member_to_organization(clerk_org_id, clerk_user_id, clerk_role)
-
 def get_tenants():
     """Fetch all active tenants for the dropdown."""
     db = SessionLocal()
@@ -271,18 +249,7 @@ def render_users_view():
                                     if new_pass:
                                         st.warning("⚠️ La contraseña no se actualizó porque el usuario ya existe. Use la sección 'Cambiar Contraseña' en la pestaña de usuarios.")
 
-                                    # Add to Clerk Organization
-                                    tenant_model = db.query(Tenant).filter(Tenant.id == selected_tenant_id).first()
-                                    if tenant_model and existing_user.clerk_id:
-                                        clerk_org_id = ensure_tenant_clerk_org(db, tenant_model, clerk)
-                                        if clerk_org_id:
-                                            add_user_to_clerk_org(clerk, clerk_org_id, existing_user.clerk_id, new_role)
-                                            st.success(f"✅ Usuario asignado a {selected_tenant_name} y agregado a Clerk Org!")
-                                        else:
-                                            st.success(f"✅ Usuario asignado a {selected_tenant_name}.")
-                                            st.warning("⚠️ No se pudo crear/encontrar Clerk Organization.")
-                                    else:
-                                        st.success(f"✅ Usuario existente asignado correctamente a {selected_tenant_name}!")
+                                    st.success(f"✅ Usuario existente asignado correctamente a {selected_tenant_name}!")
 
                                     time.sleep(1.5)
                                     st.rerun()
@@ -342,18 +309,7 @@ def render_users_view():
                                         db.add(new_link)
                                         db.commit()
 
-                                        # 4. Add to Clerk Organization
-                                        tenant_model = db.query(Tenant).filter(Tenant.id == selected_tenant_id).first()
-                                        if tenant_model:
-                                            clerk_org_id = ensure_tenant_clerk_org(db, tenant_model, clerk)
-                                            if clerk_org_id:
-                                                add_user_to_clerk_org(clerk, clerk_org_id, created_clerk_id, new_role)
-                                                st.success(f"✅ Usuario {new_name} creado, asignado y agregado a Clerk Org!")
-                                            else:
-                                                st.success(f"✅ Usuario {new_name} creado y asignado.")
-                                                st.warning("⚠️ No se pudo crear Clerk Organization para el tenant.")
-                                        else:
-                                            st.success(f"✅ Usuario {new_name} creado y asignado exitosamente!")
+                                        st.success(f"✅ Usuario {new_name} creado y asignado exitosamente!")
 
                                         time.sleep(1.5)
                                         st.rerun()

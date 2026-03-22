@@ -7,7 +7,6 @@ class Tenant(BaseEntity):
     id: UUID
     name: str
     slug: str
-    clerk_org_id: Optional[str] = None
     config_json: Dict[str, Any] = {}
     openai_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None

@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Optional, Union
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -22,7 +22,6 @@ class TenantService:
         can_use_keys: bool,
         company_name: str,
         agent_persona: str,
-        clerk_org_id: Optional[str] = None
     ) -> Tuple[Optional[Tenant], Optional[str]]:
         """
         Crea un nuevo tenant.
@@ -38,7 +37,6 @@ class TenantService:
                 id=uuid.uuid4(),
                 name=name,
                 slug=slug,
-                clerk_org_id=clerk_org_id,
                 can_use_platform_keys=can_use_keys,
                 config_json=config,
                 is_active=True

@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 from src.core.database import SessionLocal
 from src.modules.iam.application.services.tenant_service import TenantService
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
-from src.modules.iam.infrastructure.models.user_model import UserModel
-from src.shared.infrastructure.external.clerk import ClerkService
 
 def get_tenants():
     db = SessionLocal()
@@ -17,21 +13,9 @@ def get_tenants():
 
 def create_tenant(name, slug, can_use_keys, company_name, agent_persona):
     db = SessionLocal()
-    clerk = ClerkService()
     try:
-        # 1. Create Clerk Organization first
-        clerk_org_id = None
-        try:
-            org = clerk.create_organization(name=name, slug=slug)
-            if org:
-                clerk_org_id = org.get("id")
-        except Exception as e:
-            return None, f"Error creando Org en Clerk: {e}"
-
-        # 2. Create tenant in DB with clerk_org_id
         service = TenantService(db)
-        tenant, error = service.create_tenant(name, slug, can_use_keys, company_name, agent_persona, clerk_org_id=clerk_org_id)
-        return tenant, error
+        return service.create_tenant(name, slug, can_use_keys, company_name, agent_persona)
     finally:
         db.close()
 
@@ -45,17 +29,17 @@ def update_tenant(tenant_id, name, slug, can_use_keys, is_active):
 
 def render_tenants_view():
     st.title("🏢 Gestión de Tenants")
-    
+
     # Cargar tenants al inicio para usar en todas las pestañas
     tenants = get_tenants()
 
     # Tabs para organizar
-    tab_list, tab_create, tab_edit, tab_sync = st.tabs(["📋 Listado", "➕ Crear Nuevo", "✏️ Editar", "🔄 Sync Clerk Orgs"])
+    tab_list, tab_create, tab_edit = st.tabs(["📋 Listado", "➕ Crear Nuevo", "✏️ Editar"])
 
     # --- TAB 1: LISTADO ---
     with tab_list:
         st.header("Tenants Registrados")
-        
+
         if not tenants:
             st.info("No hay tenants registrados aún.")
         else:
@@ -66,12 +50,11 @@ def render_tenants_view():
                     "ID": str(t.id),
                     "Nombre": t.name,
                     "Slug": t.slug,
-                    "Clerk Org ID": t.clerk_org_id or "⚠️ Sin Org",
                     "Activo": t.is_active,
                     "Usa Keys Plataforma": t.can_use_platform_keys,
                     "Creado": t.created_at
                 })
-            
+
             df = pd.DataFrame(data)
             st.dataframe(
                 df,
@@ -95,7 +78,7 @@ def render_tenants_view():
     # --- TAB 2: CREAR ---
     with tab_create:
         st.header("Nuevo Tenant")
-        
+
         # Check for success message from previous run
         if "tenant_created_success" in st.session_state:
             st.success(st.session_state.tenant_created_success)
@@ -110,9 +93,9 @@ def render_tenants_view():
             with col2:
                 new_company = st.text_input("Nombre de la Empresa (Config)")
                 new_persona = st.text_input("Persona del Agente (Config)", placeholder="Asistente útil y profesional")
-            
+
             new_use_keys = st.checkbox("¿Permitir uso de Keys de Plataforma?", value=False)
-            
+
             submitted = st.form_submit_button("Crear Tenant")
             if submitted:
                 if not new_name or not new_slug:
@@ -125,7 +108,7 @@ def render_tenants_view():
                         company_name=new_company,
                         agent_persona=new_persona or "Asistente útil y profesional"
                     )
-                    
+
                     if new_tenant:
                         st.session_state.tenant_created_success = f"✅ Tenant '{new_name}' creado exitosamente!"
                         st.rerun()
@@ -136,30 +119,30 @@ def render_tenants_view():
     with tab_edit:
         st.header("Editar Tenant")
         tenants_opts = {t.name: t.id for t in tenants} if tenants else {}
-        
+
         if not tenants_opts:
             st.warning("No hay tenants para editar.")
         else:
             selected_name = st.selectbox("Seleccionar Tenant", list(tenants_opts.keys()))
             selected_id = tenants_opts[selected_name]
-            
+
             # Usamos la lista ya cargada en memoria en lugar de hacer query directa
             # Esto mantiene la consistencia y evita consultas directas a DB desde la vista
             current_tenant = next((t for t in tenants if t.id == selected_id), None)
-            
+
             if current_tenant:
                 with st.form("edit_tenant_form"):
                     edit_name = st.text_input("Nombre", value=current_tenant.name)
                     edit_slug = st.text_input("Slug", value=current_tenant.slug)
-                    
+
                     col_e1, col_e2 = st.columns(2)
                     with col_e1:
                         edit_use_keys = st.checkbox("Usa Keys Plataforma", value=current_tenant.can_use_platform_keys)
                     with col_e2:
                         edit_active = st.checkbox("Activo", value=current_tenant.is_active)
-                    
+
                     submitted_edit = st.form_submit_button("Guardar Cambios")
-                    
+
                     if submitted_edit:
                         updated, error = update_tenant(selected_id, edit_name, edit_slug, edit_use_keys, edit_active)
                         if updated:
@@ -167,83 +150,3 @@ def render_tenants_view():
                             st.rerun()
                         else:
                             st.error(f"Error al actualizar: {error}")
-
-    # --- TAB 4: SYNC CLERK ORGS ---
-    with tab_sync:
-        st.header("Sincronizar Clerk Organizations")
-        st.info(
-            "Este proceso crea Clerk Organizations para tenants que no tienen una, "
-            "y agrega a los usuarios a su Clerk Organization correspondiente."
-        )
-
-        # Show current state
-        tenants_without_org = [t for t in tenants if not t.clerk_org_id]
-        if tenants_without_org:
-            st.warning(f"⚠️ {len(tenants_without_org)} tenant(s) sin Clerk Organization:")
-            for t in tenants_without_org:
-                st.write(f"  - **{t.name}** ({t.slug})")
-        else:
-            st.success("✅ Todos los tenants tienen Clerk Organization asignada.")
-
-        if st.button("🔄 Ejecutar Sincronización Completa", type="primary"):
-            db = SessionLocal()
-            clerk = ClerkService()
-            try:
-                results = {"orgs_created": 0, "members_added": 0, "errors": []}
-
-                # Step 1: Create Clerk Orgs for tenants without one
-                all_tenant_models = db.query(TenantModel).filter(TenantModel.is_active.is_(True)).all()
-
-                for tenant_model in all_tenant_models:
-                    if not tenant_model.clerk_org_id:
-                        try:
-                            org = clerk.create_organization(name=tenant_model.name, slug=tenant_model.slug)
-                            if org and org.get("id"):
-                                tenant_model.clerk_org_id = org["id"]
-                                db.commit()
-                                results["orgs_created"] += 1
-                                st.write(f"  ✅ Org creada para **{tenant_model.name}**: `{org['id']}`")
-                            else:
-                                results["errors"].append(f"No se pudo crear org para {tenant_model.name}")
-                        except Exception as e:
-                            results["errors"].append(f"Error org {tenant_model.name}: {e}")
-                            st.write(f"  ❌ Error para **{tenant_model.name}**: {e}")
-
-                # Step 2: Add users to their tenant's Clerk Org
-                st.write("---")
-                st.write("**Sincronizando membresías de usuarios...**")
-
-                user_tenant_links = db.query(UserTenantModel, UserModel, TenantModel)\
-                    .join(UserModel, UserTenantModel.user_id == UserModel.id)\
-                    .join(TenantModel, UserTenantModel.tenant_id == TenantModel.id)\
-                    .filter(TenantModel.clerk_org_id.isnot(None))\
-                    .filter(UserModel.clerk_id.isnot(None))\
-                    .all()
-
-                for link, user, tenant in user_tenant_links:
-                    role = "org:admin" if link.role == "admin" else "org:member"
-                    success = clerk.add_member_to_organization(
-                        org_id=tenant.clerk_org_id,
-                        user_id=user.clerk_id,
-                        role=role
-                    )
-                    if success:
-                        results["members_added"] += 1
-                        st.write(f"  ✅ **{user.full_name or user.email}** → {tenant.name} ({role})")
-                    else:
-                        results["errors"].append(f"No se pudo agregar {user.email} a {tenant.name}")
-                        st.write(f"  ❌ Error: **{user.email}** → {tenant.name}")
-
-                # Summary
-                st.write("---")
-                st.success(
-                    f"**Sincronización completa:** {results['orgs_created']} org(s) creadas, "
-                    f"{results['members_added']} membresía(s) agregadas."
-                )
-                if results["errors"]:
-                    st.warning(f"Errores ({len(results['errors'])}): " + "; ".join(results["errors"]))
-
-            except Exception as e:
-                st.error(f"Error en sincronización: {e}")
-            finally:
-                db.close()

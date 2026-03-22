@@ -21,12 +21,6 @@ class TenantRepository:
             return Tenant.model_validate(model)
         return None
     
-    def get_by_clerk_org_id(self, clerk_org_id: str) -> Optional[Tenant]:
-        model = self.db.query(TenantModel).filter(TenantModel.clerk_org_id == clerk_org_id).first()
-        if model:
-            return Tenant.model_validate(model)
-        return None
-
     def get_all(self) -> List[Tenant]:
         models = self.db.query(TenantModel).order_by(TenantModel.created_at.desc()).all()
         return [Tenant.model_validate(m) for m in models]
@@ -37,7 +31,6 @@ class TenantRepository:
             id=tenant.id,
             name=tenant.name,
             slug=tenant.slug,
-            clerk_org_id=tenant.clerk_org_id,
             config_json=tenant.config_json,
             openai_api_key=tenant.openai_api_key,
             gemini_api_key=tenant.gemini_api_key,
@@ -55,7 +48,6 @@ class TenantRepository:
         if db_tenant:
             db_tenant.name = tenant.name
             db_tenant.slug = tenant.slug
-            db_tenant.clerk_org_id = tenant.clerk_org_id
             db_tenant.config_json = tenant.config_json
             db_tenant.openai_api_key = tenant.openai_api_key
             db_tenant.gemini_api_key = tenant.gemini_api_key
