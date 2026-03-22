@@ -133,15 +133,17 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick }: MetricDi
 
 /* ── ChannelRow ────────────────────────────────────────────────────────── */
 
-interface ChannelRowProps {
+export interface ChannelRowProps {
   channel: ChannelMetric;
   /** Stage context — used for MetricClickData when onMetricClick is provided */
   stageId?: StageId;
   /** Callback when user clicks a metric value to open drill-down sidebar */
   onMetricClick?: (metric: MetricClickData) => void;
+  /** Callback when user clicks "Configurar" on an unconnected channel */
+  onConfigure?: (slug: string, name: string) => void;
 }
 
-export function ChannelRow({ channel, stageId, onMetricClick }: ChannelRowProps) {
+export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: ChannelRowProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [cooldown, setCooldown] = useState(false);
 
@@ -179,7 +181,7 @@ export function ChannelRow({ channel, stageId, onMetricClick }: ChannelRowProps)
           </div>
           <p className="text-sm font-medium truncate">{channel.name}</p>
         </div>
-        <ConnectionBadge connected={false} />
+        <ConnectionBadge connected={false} onConfigure={onConfigure ? () => onConfigure(channel.slug, channel.name) : undefined} />
       </div>
     );
   }
