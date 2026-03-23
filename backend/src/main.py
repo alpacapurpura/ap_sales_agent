@@ -5,6 +5,7 @@ from src.core.config import settings
 from src.core.database import init_db
 from src.core.logger import configure_logging
 from src.modules.iam.api.dependencies import get_tenant_context
+from arq.connections import create_pool, RedisSettings
 import structlog
 import uuid
 import time
@@ -107,6 +108,17 @@ def on_startup():
     # Register CRM domain event handlers (EventBus wiring)
     from src.modules.crm.application.event_handlers import register_event_handlers
     register_event_handlers()
+
+@app.on_event("startup")
+async def startup_arq_pool():
+    """Create shared ARQ connection pool for job dispatch."""
+    app.state.arq_pool = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
+
+@app.on_event("shutdown")
+async def shutdown_arq_pool():
+    """Close ARQ connection pool."""
+    if hasattr(app.state, "arq_pool") and app.state.arq_pool:
+        await app.state.arq_pool.close()
 
 @app.get("/health")
 def health_check():
