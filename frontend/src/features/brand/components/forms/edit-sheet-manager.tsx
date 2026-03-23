@@ -16,11 +16,15 @@ import { IdentityManager } from "../../sections/identity/identity-manager";
 import { LegalManager } from "../legal/legal-manager";
 import { ContactManager } from "../../sections/contact/contact-manager";
 import { StoryManager } from "../../sections/story/story-manager";
-import { StrategyManager } from "../../sections/strategy/strategy-manager";
+
 import { MethodologyManager } from "../../sections/methodology/methodology-manager";
 import { VoiceManager } from "../../sections/voice/voice-manager";
 import { VisualsManager } from "../../sections/visuals/visuals-manager";
 import { LogoKitManager } from "../../sections/logos/logo-kit-manager";
+import { PositioningManager } from "../../sections/positioning/positioning-manager";
+import { ValuesEssenceManager } from "../../sections/positioning/values-essence-manager";
+import { NarrativeManager } from "../../sections/narrative/narrative-manager";
+import { AssetsManager } from "../../sections/communication-assets/assets-manager";
 
 // Existing Components for Complex Types (Team, Authority, Avatars)
 import { TeamManager } from "../../sections/team/team-manager";
@@ -74,8 +78,11 @@ export function EditSheetManager({
           case "visuals": return { title: "Identidad Visual", desc: "Colores, tipografía y estilo." };
           case "logos": return { title: "Kit de Logos", desc: "Gestiona las variantes de tu logo." };
           case "story": return { title: "Historia de Origen", desc: "El relato fundacional de tu marca." };
-          case "strategy": return { title: "Estrategia", desc: "Posicionamiento y competencia." };
-          case "methodology": return { title: "Metodología", desc: "Tus pilares y métodos únicos." };
+          case "methodology": return { title: "Metodologia", desc: "Tus pilares y metodos unicos." };
+          case "positioning": return { title: "Posicionamiento", desc: "Entorno competitivo, insight y beneficios (Brand Love Key)." };
+          case "values-essence": return { title: "Valores & Esencia", desc: "Valores, personalidad, RTBs y esencia de marca." };
+          case "storybrand": return { title: "Narrativa StoryBrand", desc: "El viaje del héroe de tu marca." };
+          case "communication-assets": return { title: "Activos de Comunicación", desc: "Conceptos creativos y piezas por etapa de funnel." };
           default: return { title: "Editar", desc: "Realiza cambios en tu marca." };
       }
   };
@@ -183,9 +190,6 @@ export function EditSheetManager({
           case "story":
               return <StoryManager />;
           
-          case "strategy":
-              return <StrategyManager />;
-          
           case "methodology":
               return <MethodologyManager />;
           
@@ -200,6 +204,18 @@ export function EditSheetManager({
 
           case "testimonials":
               return <TestimonialsManager />;
+
+          case "positioning":
+              return <PositioningManager />;
+
+          case "values-essence":
+              return <ValuesEssenceManager />;
+
+          case "storybrand":
+              return <NarrativeManager />;
+
+          case "communication-assets":
+              return <AssetsManager />;
 
           default:
               return <PlaceholderForm name={mode} />;

@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  validateIdentity, 
-  validateStrategy, 
-  validateStory, 
-  validateVisuals, 
-  validateTeam, 
-  validateContact, 
+import {
+  validateIdentity,
+  validateStrategy,
+  validateStory,
+  validateVisuals,
+  validateTeam,
+  validateContact,
   validateAuthority,
-  getBrandHealth
+  getBrandHealth,
+  getChapterHealthMap
 } from './brand-validation';
 import { BrandSettings } from '@/features/brand/types';
 
@@ -52,19 +53,16 @@ describe('Brand Validation Utils', () => {
     });
 
     it('should identify missing strategy fields', () => {
-      const strategy = { unique_value_proposition: 'Best value' } as any;
+      const strategy = {} as any;
       const result = validateStrategy(strategy);
-      expect(result.status).toBe('partial');
-      expect(result.missingFields).toContain('Nombre de Metodología');
-      expect(result.missingFields).toContain('Competidores');
-      expect(result.missingFields).toContain('Pilares de Metodología');
+      expect(result.status).toBe('empty');
+      expect(result.missingFields).toContain('Nombre de Metodologia');
+      expect(result.missingFields).toContain('Pilares de Metodologia');
     });
 
     it('should return complete for full strategy', () => {
       const strategy = {
-        unique_value_proposition: 'Value',
         methodology_name: 'Method',
-        competitors: [{ id: '1', name: 'Comp' }],
         methodology_pillars: [{ id: '1', title: 'Pillar' }]
       } as any;
       const result = validateStrategy(strategy);
@@ -173,6 +171,52 @@ describe('Brand Validation Utils', () => {
     });
   });
 
+  describe('getChapterHealthMap', () => {
+    it('should return 10 items (9 chapters + contacto)', () => {
+      const settings = {} as BrandSettings;
+      const chapters = getChapterHealthMap(settings);
+      expect(chapters).toHaveLength(10);
+      expect(chapters.map(c => c.id)).toEqual([
+        'origen', 'diferenciacion', 'mercado', 'personalidad',
+        'historia', 'voz', 'publico', 'imagen', 'credibilidad', 'contacto'
+      ]);
+    });
+
+    it('should aggregate Cap 1 (Origen) from 3 validators', () => {
+      const settings: BrandSettings = {
+        identity: { brand_name: 'Test', website: 'https://t.com', industry: 'Tech', logo_url: 'logo.png', language: 'es' },
+        story: { origin_story: 'Story', milestones: [{ id: '1', year: '2024', title: 'M1' }] },
+        strategy: { methodology_name: 'M', methodology_pillars: [{ id: '1', title: 'P1' }] },
+      };
+      const chapters = getChapterHealthMap(settings);
+      const origen = chapters.find(c => c.id === 'origen')!;
+      expect(origen.score).toBe(100);
+      expect(origen.status).toBe('complete');
+    });
+
+    it('should return status "complete" when all children complete', () => {
+      const settings: BrandSettings = {
+        team: [{ id: '1', name: 'A', role: 'CEO', headshot_url: 'img.jpg', is_primary_voice: true }],
+        authority_vault: [{ id: '1', entity_name: 'Forbes', type: 'Article', context: 'Featured', proof_url: 'http://x.com' }],
+      };
+      const chapters = getChapterHealthMap(settings);
+      const credibilidad = chapters.find(c => c.id === 'credibilidad')!;
+      expect(credibilidad.status).toBe('complete');
+      expect(credibilidad.score).toBe(100);
+    });
+
+    it('should return status "partial" with mixed children', () => {
+      const settings: BrandSettings = {
+        team: [], // empty
+        authority_vault: [{ id: '1', entity_name: 'Forbes', type: 'Article', context: 'Featured', proof_url: 'http://x.com' }],
+      };
+      const chapters = getChapterHealthMap(settings);
+      const credibilidad = chapters.find(c => c.id === 'credibilidad')!;
+      expect(credibilidad.status).toBe('partial');
+      expect(credibilidad.score).toBe(50);
+    });
+  });
+
   describe('getBrandHealth', () => {
     it('should calculate 100% score for perfect brand', () => {
       const settings: BrandSettings = {
@@ -184,9 +228,7 @@ describe('Brand Validation Utils', () => {
           language: 'Español'
         },
         strategy: {
-          unique_value_proposition: 'UVP',
           methodology_name: 'Method',
-          competitors: [{ id: '1', name: 'Comp 1' }],
           methodology_pillars: [{ id: '1', title: 'Pillar 1' }]
         },
         story: {
@@ -220,9 +262,9 @@ describe('Brand Validation Utils', () => {
       };
 
       const score = getBrandHealth(settings);
-      // Max achievable is 89: validateVoice always marks "Tono de Voz" missing (50/100)
-      // and validateAvatars is a stub returning 50/100 until avatar API integration
-      expect(score).toBe(89);
+      // Score includes 12 validators. positioning/narrative/communicationAssets are empty (0),
+      // validateVoice marks "Tono de Voz" missing (50), validateAvatars stub (50) => 800/12 = 67
+      expect(score).toBe(67);
     });
   });
 });

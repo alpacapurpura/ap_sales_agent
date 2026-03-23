@@ -1,7 +1,9 @@
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { 
-  BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStrategy, BrandStory, TestimonialItem } from "@/features/brand/types";
+import {
+  BrandSettings, BrandIdentity, KeyFigure, AuthorityItem, ContactData, BrandVisuals, BrandStrategy, BrandStory, TestimonialItem,
+  BrandPositioning, BrandNarrative, CommunicationAssets
+} from "@/features/brand/types";
 import { brandApi } from "@/features/brand/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -36,11 +38,9 @@ export function useBrandSettings() {
       // Initialize strategy with safe defaults for arrays
       if (!data.strategy) {
         data.strategy = {
-            competitors: [],
             methodology_pillars: []
         };
       } else {
-        if (!data.strategy.competitors) data.strategy.competitors = [];
         if (!data.strategy.methodology_pillars) data.strategy.methodology_pillars = [];
       }
 
@@ -149,6 +149,33 @@ export function useBrandSettings() {
     } catch {}
   };
 
+  const updatePositioning = async (positioning: BrandPositioning) => {
+    if (!settings) return;
+    const newSettings = { ...settings, positioning };
+    try {
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Posicionamiento actualizado.");
+    } catch {}
+  };
+
+  const updateNarrative = async (narrative: BrandNarrative) => {
+    if (!settings) return;
+    const newSettings = { ...settings, narrative };
+    try {
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Narrativa actualizada.");
+    } catch {}
+  };
+
+  const updateCommunicationAssets = async (communication_assets: CommunicationAssets) => {
+    if (!settings) return;
+    const newSettings = { ...settings, communication_assets };
+    try {
+        await updateMutation.mutateAsync(newSettings);
+        toast.success("Activos de comunicación actualizados.");
+    } catch {}
+  };
+
   const updateAllSettings = async (partialSettings: Partial<BrandSettings>) => {
     if (!settings) return;
     const newSettings = { 
@@ -161,7 +188,7 @@ export function useBrandSettings() {
             logos: { ...settings.visuals?.logos, ...partialSettings.visuals?.logos }
         },
         story: { ...settings.story, ...partialSettings.story },
-        strategy: { competitors: [], methodology_pillars: [], ...settings.strategy, ...partialSettings.strategy },
+        strategy: { methodology_pillars: [], ...settings.strategy, ...partialSettings.strategy },
         contact: { ...settings.contact, ...partialSettings.contact },
         team: partialSettings.team || settings.team,
         testimonials: partialSettings.testimonials || settings.testimonials,
@@ -187,6 +214,9 @@ export function useBrandSettings() {
     updateStrategy,
     updateStory,
     updateTestimonials,
+    updatePositioning,
+    updateNarrative,
+    updateCommunicationAssets,
     updateAllSettings,
     refetch
   };

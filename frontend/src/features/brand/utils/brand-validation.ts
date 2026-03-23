@@ -1,4 +1,4 @@
-import { BrandSettings, BrandIdentity, BrandStrategy, BrandStory, KeyFigure, ContactData, BrandVisuals, AuthorityItem } from "@/features/brand/types";
+import { BrandSettings, BrandIdentity, BrandStrategy, BrandStory, KeyFigure, ContactData, BrandVisuals, AuthorityItem, BrandPositioning, BrandNarrative, CommunicationAssets } from "@/features/brand/types";
 import { Avatar } from "@/lib/api/avatar";
 
 export type ValidationStatus = "complete" | "partial" | "empty";
@@ -46,16 +46,14 @@ export const validateIdentity = (identity: BrandIdentity): StatusResult => {
 
 export const validateStrategy = (strategy: BrandStrategy): StatusResult => {
   const missing: string[] = [];
-  if (!strategy) return { status: "empty", label: "Pendiente", missingFields: ["Estrategia General"], score: 0 };
-  
-  if (!strategy.unique_value_proposition) missing.push("Propuesta de Valor");
-  if (!strategy.methodology_name) missing.push("Nombre de Metodología");
-  if (!strategy.competitors || strategy.competitors.length === 0) missing.push("Competidores");
-  if (!strategy.methodology_pillars || strategy.methodology_pillars.length === 0) missing.push("Pilares de Metodología");
+  if (!strategy) return { status: "empty", label: "Pendiente", missingFields: ["Metodologia"], score: 0 };
 
-  const criticalMissing = !strategy.unique_value_proposition;
-  
-  return calculateStatus(missing, 4, criticalMissing);
+  if (!strategy.methodology_name) missing.push("Nombre de Metodologia");
+  if (!strategy.methodology_pillars || strategy.methodology_pillars.length === 0) missing.push("Pilares de Metodologia");
+
+  const criticalMissing = !strategy.methodology_name;
+
+  return calculateStatus(missing, 2, criticalMissing);
 };
 
 export const validateStory = (story: BrandStory): StatusResult => {
@@ -162,17 +160,118 @@ export const validateAvatar = (avatar: Avatar): StatusResult => {
   return calculateStatus(missing, 4, !avatar.name);
 };
 
+export const validatePositioning = (positioning?: BrandPositioning): StatusResult => {
+  if (!positioning) return { status: "empty", label: "Pendiente", missingFields: ["Posicionamiento"], score: 0 };
+
+  const missing: string[] = [];
+  if (!positioning.unique_value_proposition) missing.push("Propuesta de Valor Unica");
+  if (!positioning.brand_essence) missing.push("Esencia de Marca");
+  if (!positioning.discriminator) missing.push("Diferenciador");
+  if (!positioning.insight?.tension) missing.push("Insight del Consumidor");
+  if (!positioning.benefits?.functional_benefits?.length && !positioning.benefits?.emotional_benefits?.length) missing.push("Beneficios");
+
+  const criticalMissing = !positioning.unique_value_proposition || !positioning.brand_essence;
+  return calculateStatus(missing, 5, criticalMissing);
+};
+
+export const validateNarrative = (narrative?: BrandNarrative): StatusResult => {
+  if (!narrative) return { status: "empty", label: "Pendiente", missingFields: ["Narrativa StoryBrand"], score: 0 };
+
+  const missing: string[] = [];
+  if (!narrative.hero?.identity) missing.push("Héroe");
+  if (!narrative.problem?.villain) missing.push("Problema/Villano");
+  if (!narrative.guide?.empathy_statement) missing.push("Guía");
+  if (!narrative.one_liner) missing.push("One-Liner");
+
+  const criticalMissing = !narrative.hero?.identity;
+  return calculateStatus(missing, 4, criticalMissing);
+};
+
+export const validateCommunicationAssets = (assets?: CommunicationAssets): StatusResult => {
+  if (!assets) return { status: "empty", label: "Pendiente", missingFields: ["Activos de Comunicación"], score: 0 };
+
+  const missing: string[] = [];
+  if (!assets.creative_concepts?.length) missing.push("Conceptos Creativos");
+  if (!assets.assets?.length) missing.push("Activos por Funnel");
+
+  return calculateStatus(missing, 2, missing.length === 2);
+};
+
+// --- Chapter-level aggregation ---
+
+export interface ChapterHealth {
+  id: string;
+  label: string;
+  scrollTo: string;
+  score: number;
+  status: ValidationStatus;
+  missingFields: string[];
+}
+
+export const getChapterHealthMap = (settings: BrandSettings): ChapterHealth[] => {
+  const aggregate = (results: StatusResult[]): Pick<ChapterHealth, "score" | "status" | "missingFields"> => {
+    const score = Math.round(results.reduce((a, r) => a + r.score, 0) / results.length);
+    const allComplete = results.every(r => r.status === "complete");
+    const allEmpty = results.every(r => r.status === "empty");
+    const status: ValidationStatus = allComplete ? "complete" : allEmpty ? "empty" : "partial";
+    const missingFields = results.flatMap(r => r.missingFields);
+    return { score, status, missingFields };
+  };
+
+  const chapters: ChapterHealth[] = [
+    { id: "origen", label: "Origen", scrollTo: "identity", ...aggregate([
+      validateIdentity(settings.identity ?? {}),
+      validateStory(settings.story ?? {}),
+      validateStrategy(settings.strategy ?? { methodology_pillars: [] }),
+    ]) },
+    { id: "diferenciacion", label: "Diferenciacion", scrollTo: "positioning", ...aggregate([
+      validatePositioning(settings.positioning),
+    ]) },
+    { id: "mercado", label: "El Mercado", scrollTo: "market", ...aggregate([
+      validatePositioning(settings.positioning),
+    ]) },
+    { id: "personalidad", label: "Personalidad", scrollTo: "values-essence", ...aggregate([
+      validatePositioning(settings.positioning),
+    ]) },
+    { id: "historia", label: "La Historia", scrollTo: "storybrand", ...aggregate([
+      validateNarrative(settings.narrative),
+    ]) },
+    { id: "voz", label: "La Voz", scrollTo: "voice", ...aggregate([
+      validateVoice(settings.identity ?? {}),
+      validateCommunicationAssets(settings.communication_assets),
+    ]) },
+    { id: "publico", label: "El Publico", scrollTo: "avatars", ...aggregate([
+      validateAvatars(settings.visuals ?? {}),
+    ]) },
+    { id: "imagen", label: "La Imagen", scrollTo: "visuals", ...aggregate([
+      validateVisuals(settings.visuals ?? {}),
+    ]) },
+    { id: "credibilidad", label: "Credibilidad", scrollTo: "team", ...aggregate([
+      validateTeam(settings.team ?? []),
+      validateAuthority(settings.authority_vault ?? []),
+    ]) },
+    { id: "contacto", label: "Contacto", scrollTo: "contact", ...aggregate([
+      validateContact(settings.contact ?? {}),
+    ]) },
+  ];
+
+  return chapters;
+};
+
 export const getBrandHealth = (settings: BrandSettings): number => {
   const scores = [
     validateIdentity(settings.identity ?? {}).score,
-    validateStrategy(settings.strategy ?? { competitors: [], methodology_pillars: [] }).score,
+    validateStrategy(settings.strategy ?? { methodology_pillars: [] }).score,
     validateStory(settings.story ?? {}).score,
     validateVoice(settings.identity ?? {}).score,
     validateAvatars(settings.visuals ?? {}).score,
     validateVisuals(settings.visuals ?? {}).score,
     validateTeam(settings.team ?? []).score,
     validateContact(settings.contact ?? {}).score,
-    validateAuthority(settings.authority_vault ?? []).score
+    validateAuthority(settings.authority_vault ?? []).score,
+    validatePositioning(settings.positioning).score,
+    validateNarrative(settings.narrative).score,
+    validateCommunicationAssets(settings.communication_assets).score,
   ];
 
   return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);

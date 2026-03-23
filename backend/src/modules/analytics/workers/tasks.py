@@ -6,7 +6,6 @@ to avoid import-time issues when dependent modules haven't been executed yet.
 
 import json
 import logging
-from datetime import date, timedelta
 from uuid import UUID
 
 from arq import Retry

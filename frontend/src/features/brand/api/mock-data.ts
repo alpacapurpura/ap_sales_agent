@@ -6,26 +6,13 @@ export const MOCK_BRAND_SETTINGS: BrandSettings = {
         industry: "Tecnología e Innovación"
     },
     strategy: {
-        value_proposition: "Transformamos negocios mediante soluciones de IA ética y sostenible.",
-        target_audience: "Empresas medianas y grandes en sector financiero y salud.",
-        differentiation: "Enfoque propietario en IA explicable y soporte 24/7.",
-        offerings: [
-            "Consultoría de IA",
-            "Automatización de Procesos",
-            "Análisis Predictivo"
-        ],
-        unique_value_proposition: "IA que puedes entender y controlar.",
-        competitors: [
-            { id: "1", name: "Legacy Corp", differentiation: "Más lentos, tecnología antigua" },
-            { id: "2", name: "FastAI Inc", differentiation: "Rápidos pero sin soporte personalizado" }
-        ],
         methodology_name: "Ciclo Nova",
         methodology_description: "Un proceso iterativo de 4 pasos para garantizar resultados.",
         methodology_pillars: [
             { id: "1", title: "Descubrimiento", description: "Entendemos tu negocio a fondo." },
             { id: "2", title: "Diseño", description: "Arquitectura a medida." },
-            { id: "3", title: "Implementación", description: "Desarrollo ágil y seguro." },
-            { id: "4", title: "Optimización", description: "Mejora continua basada en datos." }
+            { id: "3", title: "Implementacion", description: "Desarrollo agil y seguro." },
+            { id: "4", title: "Optimizacion", description: "Mejora continua basada en datos." }
         ]
     },
     story: {

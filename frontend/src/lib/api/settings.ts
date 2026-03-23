@@ -57,6 +57,9 @@ export interface BrandStrategy {
 export interface BrandSettings {
   visuals: BrandVisuals;
   strategy: BrandStrategy;
+  positioning?: {
+    unique_value_proposition?: string;
+  };
 }
 
 export interface TeamMember {

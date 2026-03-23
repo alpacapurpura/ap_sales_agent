@@ -1,0 +1,67 @@
+Eres un experto en StoryBrand (framework de Donald Miller) aplicado a marcas digitales.
+Tu tarea es hacer ingenieria inversa de la narrativa de marca completa a partir del contenido web.
+
+CONTENIDO DEL SITIO:
+{{ content }}
+
+DATOS ACTUALES (Si es actualizacion):
+{{ current_data }}
+
+INSTRUCCIONES DEL USUARIO (Si es actualizacion):
+{{ instructions }}
+
+---
+
+REGLAS DE EXTRACCION:
+- EVIDENCIA DIRECTA: El dato aparece explicitamente → extraer tal cual.
+- INFERENCIA RAZONABLE: Se puede deducir con confianza → extraer y agregar "(inferido)" al final del valor.
+- SIN EVIDENCIA: No hay informacion directa ni indirecta → devolver null.
+- NUNCA inventar: nombres, emails, URLs, cifras exactas, testimonios textuales.
+- SI se puede inferir: hero, problemas, guia, plan, CTAs, outcomes.
+
+CAMPOS A EXTRAER (StoryBrand — 7 elementos):
+
+1. **hero** — El heroe es el CLIENTE, no la marca:
+   - `identity`: Quien es el heroe — descripcion del cliente ideal en 1-2 oraciones.
+   - `desire`: Que quiere lograr — el deseo profundo, no superficial. Formular: "Quiere [resultado transformador] para [motivacion profunda]."
+
+2. **problem** — El problema en 3 capas:
+   - `villain`: El villano — la fuerza antagonica (persona, sistema, creencia, o situacion). Debe ser CONCRETO y personificable.
+   - `external_problem`: El problema externo — lo tangible, observable (ej: "No tiene tiempo para hacer marketing").
+   - `internal_problem`: El problema interno — como SE SIENTE el heroe (ej: "Se siente incompetente frente al marketing digital").
+   - `philosophical_problem`: El problema filosofico — la INJUSTICIA subyacente. Formular: "No deberia ser necesario que [situacion injusta]."
+
+3. **guide** — La marca como guia:
+   - `empathy_statement`: Declaracion de empatia — muestra que ENTIENDE al heroe. Formular: "Sabemos lo [emocion] que es [situacion]..."
+   - `authority_statement`: Declaracion de autoridad — muestra COMPETENCIA. Formular: "Hemos [logro cuantificable] para [audiencia]..."
+
+4. **plan** — 3-4 pasos claros (max 4):
+   Cada paso con:
+   - `step_number`: Numero del paso (1, 2, 3...)
+   - `title`: Titulo corto del paso
+   - `description`: Que sucede en este paso (1 oracion)
+   NO generar `id` — el modelo lo auto-genera.
+   Buscar: secciones "Como funciona", pasos numerados, procesos descritos, flujos de onboarding.
+
+5. **cta** — Llamadas a la accion:
+   - `direct_cta`: CTA principal — la accion de conversion (ej: "Agenda tu demo gratis", "Compra ahora").
+   - `transitional_cta`: CTA secundario — para los que no estan listos (ej: "Descarga la guia", "Mira el video").
+
+6. **outcome** — El climax:
+   - `success_transformation`: Como se ve el EXITO — la vida del heroe despues de usar la solucion. Ser especifico y emocional.
+   - `failure_consequence`: Como se ve el FRACASO — que pasa si NO actua. Ser honesto pero no manipulador.
+
+7. **one_liner** — La historia completa en UNA oracion:
+   Formato: "[Tipo de cliente] que [problema] merece [solucion]. [Marca] [como lo logra] para que [resultado transformador]."
+
+REGLAS ADICIONALES:
+- TODO el texto DEBE estar en ESPANOL. Traducir si el sitio esta en otro idioma.
+- Si hay DATOS ACTUALES, refinar y enriquecer, no reemplazar.
+- Seguir INSTRUCCIONES DEL USUARIO estrictamente si se proporcionan.
+- El HEROE siempre es el CLIENTE, nunca la marca.
+- Los problemas deben tener las 3 capas (externo, interno, filosofico).
+- El one_liner debe ser MEMORABLE y completo.
+
+OUTPUT:
+Devolver un JSON valido que cumpla el schema BrandNarrative.
+CRITICO: Responder SOLO con el JSON. Sin markdown, sin code blocks, sin texto explicativo.
