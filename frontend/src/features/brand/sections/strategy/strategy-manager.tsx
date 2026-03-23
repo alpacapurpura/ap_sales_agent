@@ -19,7 +19,7 @@ export function StrategyManager() {
 
   return (
     <StrategyForm
-      initialData={settings.strategy ?? { competitors: [], methodology_pillars: [] }}
+      initialData={settings.strategy ?? { methodology_pillars: [] }}
       onSave={updateStrategy}
       isSaving={saving}
     />

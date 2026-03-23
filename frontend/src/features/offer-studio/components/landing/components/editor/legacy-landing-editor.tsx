@@ -372,11 +372,11 @@ export function LegacyLandingPageEditor({
                                         </div>
                                     </div>
 
-                                    {brandSettings.strategy.unique_value_proposition && (
+                                    {brandSettings.positioning?.unique_value_proposition && (
                                         <div className="pt-2 border-t border-slate-200">
                                             <span className="text-slate-400 block mb-1 text-[10px] uppercase tracking-wider">Propuesta de Valor (UVP)</span>
                                             <p className="text-slate-600 italic leading-snug text-[11px]">
-                                                &quot;{brandSettings.strategy.unique_value_proposition}&quot;
+                                                &quot;{brandSettings.positioning.unique_value_proposition}&quot;
                                             </p>
                                         </div>
                                     )}

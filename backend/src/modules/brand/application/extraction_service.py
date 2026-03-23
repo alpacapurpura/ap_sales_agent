@@ -10,7 +10,8 @@ from pydantic import BaseModel, Field
 
 from src.modules.brand.domain import (
     BrandSettings, BrandIdentity, BrandStory, BrandStrategy, BrandVisuals,
-    BrandContact, BrandTestimonial, BrandAuthorityItem, KeyFigure, BrandTeam
+    BrandContact, BrandTestimonial, BrandAuthorityItem, KeyFigure, BrandTeam,
+    BrandPositioning, BrandNarrative, CommunicationAssets,
 )
 from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
@@ -86,12 +87,15 @@ def _summarize_settings(settings: BrandSettings) -> dict:
     return {
         "identity": bool(settings.identity and settings.identity.brand_name),
         "story": bool(settings.story and settings.story.origin_story),
-        "strategy": bool(settings.strategy and settings.strategy.value_proposition),
+        "strategy": bool(settings.strategy and settings.strategy.methodology_name),
         "team_count": len(settings.team or []),
         "contact": bool(settings.contact and (settings.contact.support_email or settings.contact.phone)),
         "testimonials_count": len(settings.testimonials or []),
         "authority_count": len(settings.authority_vault or []),
         "visuals": bool(settings.visuals and settings.visuals.primary_color),
+        "positioning": bool(settings.positioning and settings.positioning.brand_essence),
+        "narrative": bool(settings.narrative and settings.narrative.hero),
+        "communication_assets_count": len((settings.communication_assets or CommunicationAssets()).assets),
     }
 
 
@@ -668,10 +672,14 @@ class BrandExtractionService:
 
         # 3. Run LLM extractions (wave strategy from profile)
         waves = self.profile.concurrency_waves
-        total_sections = 7 if has_url and enriched_visual_content.strip() else 6
+        base_sections = 8  # identity, story, strategy, people_contact, testimonials, authority, positioning, narrative
+        total_sections = base_sections + (1 if has_url and enriched_visual_content.strip() else 0) + 1  # +1 for communication_assets (wave 3)
         logger.info("starting_llm_extractions", sections=total_sections, waves=waves, profile=self.profile.name)
 
         extracted_visuals = None
+        positioning = BrandPositioning()
+        narrative = BrandNarrative()
+        communication_assets = CommunicationAssets()
 
         if waves >= 2:
             # Wave 1: identity, story, testimonials + visuals (lighter extractions)
@@ -697,15 +705,31 @@ class BrandExtractionService:
             logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
             await asyncio.sleep(self.profile.wave_delay_seconds)
 
-            # Wave 2: strategy, people_contact, authority (heavier extractions)
-            logger.info("extraction_wave_starting", wave=2, sections=["strategy", "people_contact", "authority"])
-            strategy, people_contact, authority_data = await asyncio.gather(
+            # Wave 2: strategy, people_contact, authority, positioning, narrative
+            wave2_sections = ["strategy", "people_contact", "authority", "positioning", "narrative"]
+            logger.info("extraction_wave_starting", wave=2, sections=wave2_sections)
+            strategy, people_contact, authority_data, positioning, narrative = await asyncio.gather(
                 self._extract_strategy(content, current_data_str, update_instructions),
                 self._extract_people_contact(content, current_data_str, update_instructions),
                 self._extract_authority(content, current_data_str, update_instructions),
+                self._extract_positioning(content, current_data_str, update_instructions),
+                self._extract_narrative(content, current_data_str, update_instructions),
+            )
+
+            # Wave 3: communication_assets (depends on positioning + narrative)
+            logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
+            await asyncio.sleep(self.profile.wave_delay_seconds)
+
+            positioning_ctx = json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not self._is_empty(positioning) else ""
+            narrative_ctx = json.dumps(narrative.model_dump(exclude_none=True), indent=2) if not self._is_empty(narrative) else ""
+
+            logger.info("extraction_wave_starting", wave=3, sections=["communication_assets"])
+            communication_assets = await self._extract_communication_assets(
+                content, current_data_str, update_instructions,
+                positioning_ctx, narrative_ctx,
             )
         else:
-            # All concurrent (for high-tier rate limits)
+            # All concurrent (for high-tier rate limits) — except communication_assets which needs positioning/narrative
             coros = [
                 self._extract_identity(content, current_data_str, update_instructions),
                 self._extract_story(content, current_data_str, update_instructions),
@@ -713,6 +737,8 @@ class BrandExtractionService:
                 self._extract_people_contact(content, current_data_str, update_instructions),
                 self._extract_testimonials(content, current_data_str, update_instructions),
                 self._extract_authority(content, current_data_str, update_instructions),
+                self._extract_positioning(content, current_data_str, update_instructions),
+                self._extract_narrative(content, current_data_str, update_instructions),
             ]
             if has_url and enriched_visual_content.strip():
                 coros.append(
@@ -720,8 +746,17 @@ class BrandExtractionService:
                 )
             all_results = await asyncio.gather(*coros)
             identity, story, strategy, people_contact, testimonials_data, authority_data = all_results[:6]
-            if len(all_results) > 6:
-                extracted_visuals = all_results[6]
+            positioning, narrative = all_results[6], all_results[7]
+            if len(all_results) > 8:
+                extracted_visuals = all_results[8]
+
+            # Communication assets depend on positioning + narrative
+            positioning_ctx = json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not self._is_empty(positioning) else ""
+            narrative_ctx = json.dumps(narrative.model_dump(exclude_none=True), indent=2) if not self._is_empty(narrative) else ""
+            communication_assets = await self._extract_communication_assets(
+                content, current_data_str, update_instructions,
+                positioning_ctx, narrative_ctx,
+            )
 
         # Log extraction results summary
         results = {
@@ -731,6 +766,9 @@ class BrandExtractionService:
             "people_contact": not self._is_empty(people_contact),
             "testimonials": not self._is_empty(testimonials_data),
             "authority": not self._is_empty(authority_data),
+            "positioning": not self._is_empty(positioning),
+            "narrative": not self._is_empty(narrative),
+            "communication_assets": not self._is_empty(communication_assets),
         }
         if extracted_visuals is not None:
             results["visuals"] = not self._is_empty(extracted_visuals)
@@ -745,7 +783,11 @@ class BrandExtractionService:
         return self._merge_and_save(
             identity, story, strategy, people_contact,
             testimonials_data, authority_data,
-            extracted_visuals, dry_run=dry_run
+            extracted_visuals,
+            new_positioning=positioning,
+            new_narrative=narrative,
+            new_communication_assets=communication_assets,
+            dry_run=dry_run,
         )
 
     async def _run_section(self, section_name: str, action_name: str, prompt: str,
@@ -848,6 +890,55 @@ class BrandExtractionService:
             policy=self._visuals_policy(),
         )
 
+    async def _extract_positioning(self, content: str, current_data: str, instructions: str) -> BrandPositioning:
+        """Extract Brand Love Key positioning from content."""
+        prompt = self._render_prompt("brand_extract_positioning", content, current_data, instructions, max_chars=65000)
+        return await self._run_section("positioning", "brand_extract_positioning", prompt,
+                                       BrandPositioning, BrandPositioning(), "Extract Brand Love Key positioning.")
+
+    async def _extract_narrative(self, content: str, current_data: str, instructions: str) -> BrandNarrative:
+        """Extract StoryBrand narrative from content."""
+        prompt = self._render_prompt("brand_extract_narrative", content, current_data, instructions, max_chars=65000)
+        return await self._run_section("narrative", "brand_extract_narrative", prompt,
+                                       BrandNarrative, BrandNarrative(), "Extract StoryBrand narrative.")
+
+    def _communication_assets_policy(self) -> AIActionPolicy:
+        """Policy for communication assets — needs more tokens and higher temperature."""
+        return AIActionPolicy(
+            retries=self.profile.retries,
+            retry_delay_seconds=self.profile.retry_delay_seconds,
+            model=AIModelPolicy(
+                model_type=self.profile.model_type,
+                temperature=0.3,
+                max_output_tokens=6000,
+            ),
+        )
+
+    async def _extract_communication_assets(
+        self, content: str, current_data: str, instructions: str,
+        positioning_ctx: str, narrative_ctx: str
+    ) -> CommunicationAssets:
+        """Generate communication assets using positioning + narrative as context."""
+        try:
+            rendered = prompt_loader.render(
+                "brand_extract_communication_assets",
+                content=self._truncate_at_page_boundary(content, max_chars=30000),
+                positioning_context=positioning_ctx or "No disponible",
+                narrative_context=narrative_ctx or "No disponible",
+                current_data=current_data or "None",
+                instructions=instructions or "None",
+            )
+        except Exception as e:
+            logger.error("prompt_render_failed", template="brand_extract_communication_assets", error=str(e))
+            return CommunicationAssets()
+
+        return await self._run_section(
+            "communication_assets", "brand_extract_communication_assets", rendered,
+            CommunicationAssets, CommunicationAssets(),
+            "Generate strategic communication assets for the brand.",
+            policy=self._communication_assets_policy(),
+        )
+
     @staticmethod
     def _is_empty(model: BaseModel) -> bool:
         """Check if a pydantic model has only default/empty values."""
@@ -876,6 +967,9 @@ class BrandExtractionService:
         new_testimonials: BrandTestimonialsExtraction,
         new_authority: BrandAuthorityExtraction,
         new_visuals: Optional[BrandVisuals] = None,
+        new_positioning: Optional[BrandPositioning] = None,
+        new_narrative: Optional[BrandNarrative] = None,
+        new_communication_assets: Optional[CommunicationAssets] = None,
         dry_run: bool = False
     ) -> BrandSettings:
 
@@ -954,6 +1048,60 @@ class BrandExtractionService:
             new_visuals_dict = new_visuals.model_dump(exclude_unset=True, exclude_none=True)
             updated_visuals.update(new_visuals_dict)
 
+        # Merge Positioning (deep merge — preserve existing if new is None/empty)
+        updated_positioning = current_settings.positioning
+        if new_positioning and not self._is_empty(new_positioning):
+            if updated_positioning:
+                existing_pos = updated_positioning.model_dump()
+                new_pos = new_positioning.model_dump(exclude_unset=True, exclude_none=True)
+                # Lists replace if non-empty
+                for list_field in ("reasons_to_believe",):
+                    if list_field in new_pos and new_pos[list_field]:
+                        existing_pos[list_field] = new_pos.pop(list_field)
+                # Nested objects: deep merge
+                for nested in ("competitive_environment", "insight", "benefits", "values"):
+                    if nested in new_pos and new_pos[nested]:
+                        existing_nested = existing_pos.get(nested) or {}
+                        existing_nested.update(new_pos.pop(nested))
+                        existing_pos[nested] = existing_nested
+                existing_pos.update(new_pos)
+                updated_positioning = BrandPositioning(**existing_pos)
+            else:
+                updated_positioning = new_positioning
+
+        # Merge Narrative (deep merge)
+        updated_narrative = current_settings.narrative
+        if new_narrative and not self._is_empty(new_narrative):
+            if updated_narrative:
+                existing_narr = updated_narrative.model_dump()
+                new_narr = new_narrative.model_dump(exclude_unset=True, exclude_none=True)
+                if "plan" in new_narr and new_narr["plan"]:
+                    existing_narr["plan"] = new_narr.pop("plan")
+                for nested in ("hero", "problem", "guide", "cta", "outcome"):
+                    if nested in new_narr and new_narr[nested]:
+                        existing_nested = existing_narr.get(nested) or {}
+                        existing_nested.update(new_narr.pop(nested))
+                        existing_narr[nested] = existing_nested
+                existing_narr.update(new_narr)
+                updated_narrative = BrandNarrative(**existing_narr)
+            else:
+                updated_narrative = new_narrative
+
+        # Merge Communication Assets (replace concepts and assets if non-empty)
+        updated_comm_assets = current_settings.communication_assets
+        if new_communication_assets and not self._is_empty(new_communication_assets):
+            if updated_comm_assets:
+                existing_ca = updated_comm_assets.model_dump()
+                if new_communication_assets.creative_concepts:
+                    existing_ca["creative_concepts"] = new_communication_assets.model_dump()["creative_concepts"]
+                if new_communication_assets.assets:
+                    existing_ca["assets"] = new_communication_assets.model_dump()["assets"]
+                if new_communication_assets.custom_asset_types:
+                    existing_ca["custom_asset_types"] = new_communication_assets.model_dump()["custom_asset_types"]
+                updated_comm_assets = CommunicationAssets(**existing_ca)
+            else:
+                updated_comm_assets = new_communication_assets
+
         # Construct new Settings
         final_settings = current_settings.model_copy(update={
             "identity": BrandIdentity(**updated_identity),
@@ -964,7 +1112,10 @@ class BrandExtractionService:
             "contact": updated_contact,
             "testimonials": updated_testimonials,
             "authority_vault": updated_authority,
-            "visuals": BrandVisuals(**updated_visuals)
+            "visuals": BrandVisuals(**updated_visuals),
+            "positioning": updated_positioning,
+            "narrative": updated_narrative,
+            "communication_assets": updated_comm_assets,
         })
 
         logger.info("merge_completed", tenant_id=str(self.tenant_id), summary=_summarize_settings(final_settings))

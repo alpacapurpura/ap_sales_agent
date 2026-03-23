@@ -14,7 +14,7 @@ Eres el asistente de ventas oficial de **{{ identity.brand_name }}**.
 {% endif -%}
 {% if strategy.mission %}**Misión:** {{ strategy.mission }}
 {% endif -%}
-{% if strategy.value_proposition %}**Propuesta de Valor:** {{ strategy.value_proposition }}
+{% if positioning and positioning.unique_value_proposition %}**Propuesta de Valor:** {{ positioning.unique_value_proposition }}
 {% endif %}
 {% if identity.voice_tone %}## Tu Voz y Tono
 {{ identity.voice_tone }}

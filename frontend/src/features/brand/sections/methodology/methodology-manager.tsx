@@ -19,7 +19,7 @@ export function MethodologyManager() {
 
   return (
     <MethodologyForm
-      initialData={settings.strategy ?? { competitors: [], methodology_pillars: [] }}
+      initialData={settings.strategy ?? { methodology_pillars: [] }}
       onSave={updateStrategy}
       isSaving={saving}
     />

@@ -60,6 +60,7 @@ class TenantKnowledgeBuilder:
             team = brand_data.get("team", []) or []
             contact = brand_data.get("contact", {}) or {}
             testimonials = brand_data.get("testimonials", []) or []
+            positioning = brand_data.get("positioning", {}) or {}
 
             # Default avatar (the primary ICP)
             default_avatar = next(
@@ -87,6 +88,7 @@ class TenantKnowledgeBuilder:
                 team=team,
                 contact=contact,
                 testimonials=testimonials,
+                positioning=positioning,
                 default_avatar=default_avatar,
                 # Counts for conditional rendering
                 has_brand=bool(identity.get("brand_name")),

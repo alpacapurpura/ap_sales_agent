@@ -47,15 +47,6 @@ export interface BrandCompetitor {
 }
 
 export interface BrandStrategy {
-    value_proposition?: string;
-    target_audience?: string;
-    differentiation?: string;
-    offerings?: string[];
-
-    // Active fields (DB Sync)
-    unique_value_proposition?: string;
-    competitors: BrandCompetitor[];
-    
     methodology_name?: string;
     methodology_description?: string;
     methodology_pillars: BrandMethodologyPillar[];
@@ -211,20 +202,144 @@ export interface AuthorityItem {
     logo_url?: string;
 }
 
+// --- Brand Love Key (Positioning) ---
+
+export interface CompetitiveEnvironment {
+    technical_enemy?: string;
+    philosophical_enemy?: string;
+    direct_competitors: BrandCompetitor[];
+    indirect_competitors: BrandCompetitor[];
+}
+
+export interface ConsumerInsight {
+    tension?: string;
+    observation?: string;
+    implication?: string;
+}
+
+export interface BrandBenefits {
+    functional_benefits: string[];
+    emotional_benefits: string[];
+}
+
+export interface BrandValues {
+    core_values: string[];
+    personality_traits: string[];
+    archetype?: string;
+}
+
+export interface ReasonToBelieve {
+    id: string;
+    type?: string;
+    statement?: string;
+    proof_url?: string;
+}
+
+export interface BrandPositioning {
+    unique_value_proposition?: string;
+    competitive_environment?: CompetitiveEnvironment;
+    insight?: ConsumerInsight;
+    benefits?: BrandBenefits;
+    values?: BrandValues;
+    reasons_to_believe: ReasonToBelieve[];
+    discriminator?: string;
+    brand_essence?: string;
+}
+
+// --- StoryBrand (Narrative) ---
+
+export interface StoryBrandHero {
+    identity?: string;
+    desire?: string;
+}
+
+export interface StoryBrandProblem {
+    villain?: string;
+    external_problem?: string;
+    internal_problem?: string;
+    philosophical_problem?: string;
+}
+
+export interface StoryBrandGuide {
+    empathy_statement?: string;
+    authority_statement?: string;
+}
+
+export interface StoryBrandPlanStep {
+    id: string;
+    step_number: number;
+    title?: string;
+    description?: string;
+}
+
+export interface StoryBrandCTA {
+    direct_cta?: string;
+    transitional_cta?: string;
+}
+
+export interface StoryBrandOutcome {
+    success_transformation?: string;
+    failure_consequence?: string;
+}
+
+export interface BrandNarrative {
+    hero?: StoryBrandHero;
+    problem?: StoryBrandProblem;
+    guide?: StoryBrandGuide;
+    plan: StoryBrandPlanStep[];
+    cta?: StoryBrandCTA;
+    outcome?: StoryBrandOutcome;
+    one_liner?: string;
+}
+
+// --- Communication Assets ---
+
+export interface CreativeConcept {
+    id: string;
+    name?: string;
+    description?: string;
+    tone?: string;
+}
+
+export interface FunnelAsset {
+    id: string;
+    funnel_stage?: string;
+    asset_type?: string;
+    title?: string;
+    idea?: string;
+    copy_draft?: string;
+    objective?: string;
+    concept_id?: string;
+    status?: string;
+}
+
+export interface CommunicationAssets {
+    creative_concepts: CreativeConcept[];
+    assets: FunnelAsset[];
+    custom_asset_types: string[];
+}
+
+// --- BrandSettings ---
+
 export interface BrandSettings {
     identity?: BrandIdentity;
     strategy?: BrandStrategy;
     story?: BrandStory;
-    
+
     // Updated to reflect current usage in TeamManager
-    team?: KeyFigure[]; 
-    
+    team?: KeyFigure[];
+
     // Extended fields
     visuals?: BrandVisuals;
     contact?: ContactData;
     testimonials?: TestimonialItem[];
     authority_vault?: AuthorityItem[];
-    
+
+    // Strategic frameworks
+    positioning?: BrandPositioning;
+    narrative?: BrandNarrative;
+    communication_assets?: CommunicationAssets;
+
     // Legacy field support (optional)
     team_metadata?: BrandTeam;
 }
