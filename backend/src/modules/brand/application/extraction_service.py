@@ -1,4 +1,4 @@
-from typing import Optional, Literal, List
+from typing import Optional, Literal, List, Callable
 from uuid import UUID
 from dataclasses import dataclass
 from sqlalchemy.orm import Session
@@ -607,7 +607,8 @@ class BrandExtractionService:
         mode: Literal["initial", "update"] = "initial",
         update_instructions: Optional[str] = None,
         dry_run: bool = False,
-        include_visuals: bool = False
+        include_visuals: bool = False,
+        progress_callback: Optional[Callable[[int, str], None]] = None,
     ) -> BrandSettings:
         """
         Orchestrates the full brand extraction process.
@@ -649,6 +650,8 @@ class BrandExtractionService:
                         crawl_length=len(crawled_content),
                         enriched_length=len(enriched_visual_content),
             )
+            if progress_callback:
+                progress_callback(10, "Escaneando sitio web...")
 
             if crawled_content:
                 content = f"{content}\n\n{crawled_content}"
@@ -700,6 +703,8 @@ class BrandExtractionService:
             identity, story, testimonials_data = wave1_results[0], wave1_results[1], wave1_results[2]
             if len(wave1_results) > 3:
                 extracted_visuals = wave1_results[3]
+            if progress_callback:
+                progress_callback(45, "Analizando identidad y visual...")
 
             # Pause between waves to let TPM budget recover
             logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
@@ -715,6 +720,8 @@ class BrandExtractionService:
                 self._extract_positioning(content, current_data_str, update_instructions),
                 self._extract_narrative(content, current_data_str, update_instructions),
             )
+            if progress_callback:
+                progress_callback(80, "Extrayendo estrategia y posicionamiento...")
 
             # Wave 3: communication_assets (depends on positioning + narrative)
             logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
@@ -728,6 +735,8 @@ class BrandExtractionService:
                 content, current_data_str, update_instructions,
                 positioning_ctx, narrative_ctx,
             )
+            if progress_callback:
+                progress_callback(95, "Generando activos de comunicación...")
         else:
             # All concurrent (for high-tier rate limits) — except communication_assets which needs positioning/narrative
             coros = [
@@ -749,6 +758,8 @@ class BrandExtractionService:
             positioning, narrative = all_results[6], all_results[7]
             if len(all_results) > 8:
                 extracted_visuals = all_results[8]
+            if progress_callback:
+                progress_callback(80, "Extrayendo secciones...")
 
             # Communication assets depend on positioning + narrative
             positioning_ctx = json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not self._is_empty(positioning) else ""
@@ -757,6 +768,8 @@ class BrandExtractionService:
                 content, current_data_str, update_instructions,
                 positioning_ctx, narrative_ctx,
             )
+            if progress_callback:
+                progress_callback(95, "Generando activos de comunicación...")
 
         # Log extraction results summary
         results = {

@@ -27,6 +27,7 @@ class CopilotBrandAIActionsService:
         update_instructions: Optional[str] = None,
         dry_run: bool = False,
         include_visuals: bool = False,
+        progress_callback=None,
     ) -> BrandSettings:
         return await self.brand_extraction_service.extract_all(
             url=url,
@@ -35,4 +36,5 @@ class CopilotBrandAIActionsService:
             update_instructions=update_instructions,
             dry_run=dry_run,
             include_visuals=include_visuals,
+            progress_callback=progress_callback,
         )
