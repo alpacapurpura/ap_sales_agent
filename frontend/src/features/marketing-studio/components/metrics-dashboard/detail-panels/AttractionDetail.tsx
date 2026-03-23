@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAttractionDetail } from '../../../hooks/useAttractionDetail';
+import { useMetaInitialLoad } from '../../../hooks/useMetaInitialLoad';
 import { ChannelGroupCard } from '../channel-widgets/ChannelGroupCard';
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import DetailSkeleton from '../ui/DetailSkeleton';
@@ -10,7 +11,7 @@ import DetailError from '../ui/DetailError';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, Download, Loader2, CheckCircle2 } from 'lucide-react';
 
 const ATRACCION_STAGE: StageSummary = {
   id: 'ATRACCION',
@@ -43,6 +44,7 @@ interface AttractionDetailProps {
 
 export function AttractionDetail({ onMetricClick, onConfigure }: AttractionDetailProps) {
   const { data, isLoading, error, refetch } = useAttractionDetail();
+  const { trigger: triggerLoad, isLoading: isLoadingMeta, result: loadResult, error: loadError } = useMetaInitialLoad();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   if (isLoading) {
@@ -173,6 +175,30 @@ export function AttractionDetail({ onMetricClick, onConfigure }: AttractionDetai
 
         {/* Right Column (Sidebar) - 33% */}
         <div className="space-y-6">
+          <Button
+            variant="default"
+            className="w-full"
+            onClick={() => triggerLoad(30)}
+            disabled={isLoadingMeta}
+          >
+            {isLoadingMeta ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Cargando datos Meta...</>
+            ) : loadResult ? (
+              <><CheckCircle2 className="mr-2 h-4 w-4" />Datos Meta cargados</>
+            ) : (
+              <><Download className="mr-2 h-4 w-4" />Cargar datos Meta</>
+            )}
+          </Button>
+          {loadResult && (
+            <p className="text-xs text-muted-foreground">
+              {loadResult.loaded_days} días cargados, {loadResult.skipped_days} ya existían
+            </p>
+          )}
+          {loadError && (
+            <p className="text-xs text-destructive">
+              {loadError instanceof Error ? loadError.message : 'Error al cargar datos'}
+            </p>
+          )}
           <Button
             variant="outline"
             className="w-full"

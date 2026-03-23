@@ -444,4 +444,33 @@ export const metricsApi = {
     if (!res.ok) throw new Error('Failed to create survey');
     return res.json();
   },
+
+  triggerMetaInitialLoad: async (token: string, days: number = 30): Promise<{
+    status: string;
+    total_days: number;
+    loaded_days: number;
+    skipped_days: number;
+  }> => {
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/meta/initial-load?days=${days}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Initial load failed (${res.status})`);
+    }
+    return res.json();
+  },
+
+  getMetaInitialLoadStatus: async (token: string): Promise<{
+    status: string;
+    total_days?: number;
+    completed_days?: number;
+  }> => {
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/meta/initial-load/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return { status: 'idle' };
+    return res.json();
+  },
 };

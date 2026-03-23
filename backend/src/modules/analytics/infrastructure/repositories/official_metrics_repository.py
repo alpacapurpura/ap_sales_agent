@@ -93,6 +93,26 @@ class OfficialMetricsRepository:
         stmt = stmt.order_by(OfficialMetricModel.metric_date.desc())
         return list(self.db.execute(stmt).scalars().all())
 
+    def get_existing_dates(
+        self,
+        tenant_id: UUID,
+        provider: str,
+        start_date: date,
+        end_date: date,
+    ) -> set[date]:
+        """Return dates that already have data for this tenant+provider."""
+        stmt = (
+            select(OfficialMetricModel.metric_date)
+            .where(
+                OfficialMetricModel.tenant_id == tenant_id,
+                OfficialMetricModel.provider == provider,
+                OfficialMetricModel.metric_date >= start_date,
+                OfficialMetricModel.metric_date <= end_date,
+            )
+            .distinct()
+        )
+        return {row for row in self.db.execute(stmt).scalars().all()}
+
     def get_channel_summary(
         self,
         tenant_id: UUID,

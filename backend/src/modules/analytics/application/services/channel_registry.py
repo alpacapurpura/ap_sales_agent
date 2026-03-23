@@ -46,7 +46,7 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "direct", "name": "Direct Traffic", "channel_type": "direct", "source_label": "Direct", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
         {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
         # Paid: reach + clicks + conversions + spend
-        {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "clicks", "conversions", "spend"]},
+        {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "impressions", "clicks", "ctr", "cpm", "frequency", "conversions", "spend"]},
         {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend"]},
         {"slug": "tiktok-ads", "name": "TikTok Ads", "channel_type": "paid", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "conversions", "spend"]},
         {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend"]},

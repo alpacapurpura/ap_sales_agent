@@ -6,8 +6,10 @@ Provides high-level operations for the API and scheduler layers:
 """
 
 import logging
+import time
+import uuid
 from datetime import date, timedelta
-from typing import Optional
+from typing import Callable, Optional
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -15,6 +17,17 @@ from sqlalchemy.orm import Session
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
+from src.modules.analytics.application.cost_type_mapping import get_cost_type
+from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
+from src.modules.analytics.infrastructure.etl.transformers import (
+    transform_staging_to_official,
+)
+from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+    MetricAggregationModel,
+)
+from src.modules.analytics.infrastructure.models.staging_metrics_model import (
+    StagingMetricModel,
+)
 from src.modules.analytics.infrastructure.providers.registry import get_provider
 from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
@@ -127,3 +140,131 @@ class ETLService:
                 )
 
         return results
+
+    async def run_initial_load(
+        self,
+        tenant_id: UUID,
+        provider_name: str,
+        days: int = 30,
+        progress_callback: Optional[Callable[[int, int, str], None]] = None,
+    ) -> dict:
+        """Load historical daily metrics, skipping days already in DB.
+
+        Returns dict with total, loaded, skipped counts.
+        """
+        end_date = date.today() - timedelta(days=1)
+        start_date = date.today() - timedelta(days=days)
+
+        # Gap detection: find days already loaded
+        official_repo = OfficialMetricsRepository(self.db)
+        existing = official_repo.get_existing_dates(
+            tenant_id, provider_name, start_date, end_date
+        )
+        all_days = {start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)}
+        missing_days = all_days - existing
+
+        total = len(all_days)
+        if not missing_days:
+            if progress_callback:
+                progress_callback(total, total, "completed")
+            return {"total": total, "loaded": 0, "skipped": len(existing)}
+
+        min_missing = min(missing_days)
+        max_missing = max(missing_days)
+
+        if progress_callback:
+            progress_callback(0, total, "extracting")
+
+        # Extract daily metrics from provider
+        provider = get_provider(provider_name)
+        creds = await self.connection_port.get_credentials(tenant_id, provider_name)
+        extracted = await provider.extract_metrics_daily(
+            tenant_id=tenant_id,
+            credentials=creds.credentials,
+            start_date=min_missing,
+            end_date=max_missing,
+        )
+
+        # Filter to only missing days
+        extracted = [m for m in extracted if m.date in missing_days]
+
+        if not extracted:
+            if progress_callback:
+                progress_callback(total, total, "completed")
+            return {"total": total, "loaded": 0, "skipped": len(existing)}
+
+        if progress_callback:
+            progress_callback(len(existing), total, "loading")
+
+        # Run through staging → transform → upsert → aggregate pipeline
+        staging_repo = StagingMetricsRepository(self.db)
+        run_repo = ExtractionRunRepository(self.db)
+
+        run = run_repo.create(tenant_id, provider_name)
+        run_id = run.id
+
+        staging_models = [
+            StagingMetricModel(
+                id=uuid.uuid4(),
+                tenant_id=tenant_id,
+                provider=m.provider,
+                channel_slug=m.channel_slug,
+                metric_name=m.metric_name,
+                value=m.value,
+                unit=m.unit,
+                currency=m.currency,
+                metric_date=m.date,
+                campaign_id=m.campaign_id,
+                ad_set_id=m.ad_set_id,
+                ad_id=m.ad_id,
+                extra=m.extra,
+                extraction_run_id=run_id,
+            )
+            for m in extracted
+        ]
+        staging_repo.bulk_insert(staging_models)
+
+        official_dicts = transform_staging_to_official(
+            staging_rows=staging_models,
+            cost_type_fn=get_cost_type,
+            extraction_run_id=run_id,
+        )
+        official_repo.upsert_from_staging(official_dicts)
+
+        agg_dicts = compute_aggregations(
+            official_rows=official_dicts,
+            tenant_id=tenant_id,
+            extraction_run_id=run_id,
+        )
+        if agg_dicts:
+            agg_models = [
+                MetricAggregationModel(
+                    id=uuid.uuid4(),
+                    tenant_id=agg["tenant_id"],
+                    channel_slug=agg["channel_slug"],
+                    metric_name=agg["metric_name"],
+                    period_type=agg["period_type"],
+                    period_start=agg["period_start"],
+                    period_end=agg["period_end"],
+                    value=agg["value"],
+                    unit=agg["unit"],
+                    currency=agg.get("currency"),
+                    cost_type=agg.get("cost_type"),
+                    extraction_run_id=agg.get("extraction_run_id"),
+                )
+                for agg in agg_dicts
+            ]
+            self.db.add_all(agg_models)
+
+        self.db.commit()
+        await self.cache.invalidate_tenant(str(tenant_id))
+
+        loaded = len({m.date for m in extracted})
+        if progress_callback:
+            progress_callback(total, total, "completed")
+
+        logger.info(
+            "Initial load completed: tenant=%s provider=%s loaded=%d skipped=%d",
+            tenant_id, provider_name, loaded, len(existing),
+        )
+        return {"total": total, "loaded": loaded, "skipped": len(existing)}

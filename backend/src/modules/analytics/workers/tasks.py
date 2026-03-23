@@ -4,6 +4,7 @@ All service imports are done lazily inside function bodies (late binding)
 to avoid import-time issues when dependent modules haven't been executed yet.
 """
 
+import json
 import logging
 from datetime import date, timedelta
 from uuid import UUID
@@ -34,8 +35,13 @@ async def run_tenant_extraction(
     try:
         # Late imports to avoid circular/missing imports during development
         from src.modules.analytics.application.services.etl_service import ETLService
+        from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+        from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 
-        etl_service = ETLService(db=db)
+        redis = ctx.get("redis")
+        cache = MetricsCache(redis)
+        connection_port = ConnectionPortImpl(db)
+        etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
         await etl_service.run_extraction(UUID(tenant_id), provider)
 
         logger.info(
@@ -91,37 +97,50 @@ async def run_initial_load(
 
     db_factory = ctx["db_factory"]
     db = db_factory()
+    redis = ctx.get("redis")
+    progress_key = f"initial_load:{tenant_id}:{provider}"
 
     try:
         from src.modules.analytics.application.services.etl_service import ETLService
+        from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+        from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 
-        etl_service = ETLService(db=db)
-        start_date = date.today() - timedelta(days=initial_days)
+        cache = MetricsCache(redis)
+        connection_port = ConnectionPortImpl(db)
+        etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
 
-        await etl_service.run_extraction(
-            UUID(tenant_id), provider, start_date=start_date
+        def on_progress(loaded, total, status):
+            if redis:
+                redis.setex(
+                    progress_key, 3600,
+                    json.dumps({"status": status, "total_days": total, "completed_days": loaded}),
+                )
+
+        on_progress(0, initial_days, "running")
+        result = await etl_service.run_initial_load(
+            UUID(tenant_id), provider, days=initial_days, progress_callback=on_progress,
         )
+        on_progress(result["loaded"], result["total"], "completed")
 
         logger.info(
             "Initial load completed for tenant=%s provider=%s (last %d days)",
-            tenant_id,
-            provider,
-            initial_days,
+            tenant_id, provider, initial_days,
         )
         return {
             "status": "success",
             "tenant_id": tenant_id,
             "provider": provider,
             "initial_days": initial_days,
+            **result,
         }
 
     except ConnectionRevokedException as exc:
         logger.error(
             "Connection revoked during initial load for tenant=%s provider=%s: %s",
-            tenant_id,
-            provider,
-            str(exc),
+            tenant_id, provider, str(exc),
         )
+        if redis:
+            redis.setex(progress_key, 3600, json.dumps({"status": "failed", "error": str(exc)}))
         return {"status": "revoked", "tenant_id": tenant_id, "error": str(exc)}
 
     except Exception as exc:
@@ -132,12 +151,10 @@ async def run_initial_load(
         logger.warning(
             "Initial load failed for tenant=%s provider=%s (attempt %d), "
             "retrying in %d seconds: %s",
-            tenant_id,
-            provider,
-            job_try,
-            defer_seconds,
-            str(exc),
+            tenant_id, provider, job_try, defer_seconds, str(exc),
         )
+        if redis:
+            redis.setex(progress_key, 3600, json.dumps({"status": "failed", "error": str(exc)}))
         raise Retry(defer=defer_seconds) from exc
 
     finally:

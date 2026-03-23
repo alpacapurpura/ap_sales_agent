@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db, redis_client
@@ -264,3 +264,75 @@ async def refresh_channel_metrics(
             status_code=500,
             detail=f"Extraction failed: {str(exc)}",
         )
+
+
+@router.post("/meta/initial-load")
+async def trigger_meta_initial_load(
+    days: int = Query(default=30, ge=1, le=90),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Load historical Meta metrics day-by-day, skipping already-loaded days.
+
+    Idempotent: repeated calls only fetch missing days.
+    Applies same 15-min cooldown as channel refresh.
+    """
+    provider_name = "meta"
+
+    # Cooldown check
+    from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
+        ExtractionRunRepository,
+    )
+
+    run_repo = ExtractionRunRepository(db)
+    latest_run = run_repo.get_latest(user.tenant_id, provider_name)
+
+    if latest_run and latest_run.started_at:
+        elapsed = datetime.now(timezone.utc) - latest_run.started_at
+        if elapsed < _REFRESH_COOLDOWN:
+            remaining = _REFRESH_COOLDOWN - elapsed
+            remaining_min = int(remaining.total_seconds() // 60) + 1
+            raise HTTPException(
+                status_code=429,
+                detail=f"Disponible en {remaining_min} min",
+            )
+
+    from src.modules.analytics.application.services.etl_service import ETLService
+
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    etl = ETLService(db, connection_port=connection_port, cache=cache)
+
+    try:
+        result = await etl.run_initial_load(user.tenant_id, provider_name, days=days)
+        return {
+            "status": "ok",
+            "total_days": result["total"],
+            "loaded_days": result["loaded"],
+            "skipped_days": result["skipped"],
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Initial load failed: {str(exc)}",
+        )
+
+
+@router.get("/meta/initial-load/status")
+async def get_meta_initial_load_status(
+    user: User = Depends(get_current_user),
+):
+    """Check progress of a Meta initial load (reads from Redis)."""
+    import json
+
+    progress_key = f"initial_load:{user.tenant_id}:meta"
+    raw = redis_client.get(progress_key) if redis_client else None
+
+    if not raw:
+        return {"status": "idle"}
+
+    try:
+        data = json.loads(raw)
+        return data
+    except (json.JSONDecodeError, TypeError):
+        return {"status": "idle"}
