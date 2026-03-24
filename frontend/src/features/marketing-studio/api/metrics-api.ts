@@ -169,17 +169,19 @@ function mapSalesResponse(raw: any): SalesDetail {
     },
     miniFunnel: {
       sourceLabel: raw.mini_funnel?.source_label ?? 'Oportunidades',
-      sourceValue: raw.mini_funnel?.source_count ?? 0,
+      sourceValue: raw.mini_funnel?.source_value ?? 0,
       targetLabel: raw.mini_funnel?.target_label ?? 'Ventas',
-      targetValue: raw.mini_funnel?.target_count ?? 0,
+      targetValue: raw.mini_funnel?.target_value ?? 0,
       conversionRate: raw.mini_funnel?.conversion_rate ?? 0,
     },
     adquisicion: mapRevenueGroup(raw.adquisicion),
     expansion: mapRevenueGroup(raw.expansion),
     bottlenecks: (raw.bottlenecks ?? []).map((b: any) => ({
       type: b.type,
+      metricLabel: b.metric_label,
+      currentRate: b.current_rate,
       severity: b.severity,
-      message: b.message,
+      threshold: b.threshold,
       tip: b.tip,
     })),
     period: raw.period ?? 'last_30_days',
@@ -344,6 +346,25 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
   };
 }
 
+// --- Product Mapping Types ---
+export interface UnmatchedProduct {
+  external_id: string;
+  external_name: string | null;
+  total_price: number | null;
+  currency: string | null;
+  event_count: number;
+}
+
+export interface ProductMapping {
+  id: string;
+  tenant_id: string;
+  offer_id: string;
+  source: string;
+  external_id: string;
+  external_name: string | null;
+  metadata_info: Record<string, unknown>;
+}
+
 export const metricsApi = {
   getAttractionDetail: async (token: string): Promise<AttractionDetail> => {
     if (ENABLE_MOCKS) return MOCK_ATTRACTION_DETAIL;
@@ -445,13 +466,49 @@ export const metricsApi = {
     return res.json();
   },
 
-  triggerMetaInitialLoad: async (token: string, days: number = 30): Promise<{
+  getUnmatchedProducts: async (token: string, source: string = 'shopify'): Promise<UnmatchedProduct[]> => {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/product-mappings/unmatched?source=${source}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  getProductMappings: async (token: string, source: string = 'shopify'): Promise<ProductMapping[]> => {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/product-mappings?source=${source}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  },
+
+  createProductMapping: async (token: string, payload: { offer_id: string; source: string; external_id: string; external_name?: string }): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/product-mappings`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Failed to create mapping');
+    }
+  },
+
+  deleteProductMapping: async (token: string, mappingId: string): Promise<void> => {
+    const res = await fetchClient(`${API_URL}/api/v1/offer/product-mappings/${mappingId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('Failed to delete mapping');
+  },
+
+  triggerInitialLoad: async (token: string, provider: string, days: number = 30): Promise<{
     status: string;
     total_days: number;
     loaded_days: number;
     skipped_days: number;
   }> => {
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/meta/initial-load?days=${days}`, {
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/${provider}/initial-load?days=${days}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -462,12 +519,12 @@ export const metricsApi = {
     return res.json();
   },
 
-  getMetaInitialLoadStatus: async (token: string): Promise<{
+  getInitialLoadStatus: async (token: string, provider: string): Promise<{
     status: string;
     total_days?: number;
     completed_days?: number;
   }> => {
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/meta/initial-load/status`, {
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/${provider}/initial-load/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return { status: 'idle' };

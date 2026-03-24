@@ -25,7 +25,7 @@ const STAGE_NAMES: Record<StageId, string> = {
   NUTRICION: 'Nutricion',
   OPORTUNIDAD: 'Oportunidad',
   VENTAS: 'Ventas',
-  ADOPCION: 'Adopcion',
+  ADOPCION: 'Adopción',
   EXPANSION: 'Expansión',
   EVANGELIZACION: 'Evangelización',
   EXPANSION_EVANGELIZACION: 'Expansión & Evangelización',

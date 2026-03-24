@@ -6,12 +6,13 @@ import { Activity, Calendar, Clock, CornerDownLeft, Layers, Settings } from 'luc
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import { useAdoptionDetail } from '../../../hooks/useAdoptionDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
-import { HealthBar } from '../channel-widgets/HealthBar';
-import { OfferHealthCard } from '../channel-widgets/OfferHealthCard';
+import { HealthBar } from '../offer-widgets/HealthBar';
+import { OfferHealthCard } from '../offer-widgets/OfferHealthCard';
 import { BottleneckBanner } from './BottleneckBanner';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
+import { formatLastUpdated, formatDualCurrency } from '../utils/format';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
 
 const ADOPCION_STAGE: StageSummary = {
@@ -23,34 +24,6 @@ const ADOPCION_STAGE: StageSummary = {
   secondaryKpi: { label: 'activos', value: 0 },
   hasDetail: true,
 };
-
-function formatLastUpdated(isoDate: string): string {
-  const d = new Date(isoDate);
-  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-    + ', ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatDualCurrency(amount: number, currency: string, usdAmount: number | null): string {
-  const fmt = new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-  const main = fmt.format(amount);
-
-  if (currency === 'USD') return main;
-  if (usdAmount != null) {
-    const usdFmt = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    return `${main} (~${usdFmt.format(usdAmount)} USD)`;
-  }
-  return main;
-}
 
 interface AdoptionDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;

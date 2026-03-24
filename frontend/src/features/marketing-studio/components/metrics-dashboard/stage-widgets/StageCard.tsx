@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import type { StageSummary } from '../../types/metrics';
+import type { StageSummary } from '../../../types/metrics';
 
 interface StageCardProps {
   stage: StageSummary;

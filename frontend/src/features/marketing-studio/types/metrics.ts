@@ -245,19 +245,12 @@ export interface SalesHeaderKpis {
   cacIncomplete: boolean;
 }
 
-export interface SalesBottleneck {
-  type: string;
-  severity: 'warning' | 'critical';
-  message: string;
-  tip: string;
-}
-
 export interface SalesDetail {
   headerKpis: SalesHeaderKpis;
   miniFunnel: MiniFunnelData;
   adquisicion: RevenueGroupData;
   expansion: RevenueGroupData;
-  bottlenecks: SalesBottleneck[];
+  bottlenecks: BottleneckData[];
   period: string;
   lastUpdated?: string;
 }

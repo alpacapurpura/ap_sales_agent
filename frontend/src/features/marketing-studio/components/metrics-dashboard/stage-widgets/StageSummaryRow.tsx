@@ -1,6 +1,6 @@
 'use client';
 
-import type { StageId, StageSummary, MetricClickData } from '../../types/metrics';
+import type { StageId, StageSummary, MetricClickData } from '../../../types/metrics';
 import { StageCard } from './StageCard';
 import { cn } from '@/lib/utils';
 

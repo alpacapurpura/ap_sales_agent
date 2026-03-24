@@ -3,15 +3,18 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Banknote, Calendar, Crosshair, Settings, TrendingUp } from 'lucide-react';
+import { Banknote, Calendar, Crosshair, Settings } from 'lucide-react';
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import { useSalesDetail } from '../../../hooks/useSalesDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
-import { OfferLadder } from '../channel-widgets/OfferLadder';
+import { OfferLadder } from '../offer-widgets/OfferLadder';
+import { UnmatchedProducts } from '../offer-widgets/UnmatchedProducts';
+import { BottleneckBanner } from './BottleneckBanner';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
-import type { SalesBottleneck, RevenueGroupData, MetricClickData, StageSummary } from '../../../types/metrics';
+import { formatLastUpdated, formatDualCurrency } from '../utils/format';
+import type { MetricClickData, StageSummary } from '../../../types/metrics';
 
 const VENTAS_STAGE: StageSummary = {
   id: 'VENTAS',
@@ -22,66 +25,6 @@ const VENTAS_STAGE: StageSummary = {
   secondaryKpi: { label: 'nuevos clientes', value: 0 },
   hasDetail: true,
 };
-
-function formatLastUpdated(isoDate: string): string {
-  const d = new Date(isoDate);
-  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-    + ', ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatDualCurrency(amount: number, currency: string, usdAmount: number | null): string {
-  const fmt = new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-  const main = fmt.format(amount);
-
-  if (currency === 'USD') return main;
-  if (usdAmount != null) {
-    const usdFmt = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    return `${main} (~${usdFmt.format(usdAmount)} USD)`;
-  }
-  return main;
-}
-
-function SalesBottleneckBanner({ bottleneck }: { bottleneck: SalesBottleneck }) {
-  const { severity, message, tip } = bottleneck;
-
-  const bgColor = severity === 'critical'
-    ? 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900'
-    : 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900';
-  const textColor = severity === 'critical'
-    ? 'text-red-900 dark:text-red-200'
-    : 'text-amber-900 dark:text-amber-200';
-  const iconColor = severity === 'critical'
-    ? 'text-red-500'
-    : 'text-amber-500';
-  const btnColor = severity === 'critical'
-    ? 'bg-red-100 hover:bg-red-200 text-red-700 border-red-200 dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300 dark:border-red-800'
-    : 'bg-amber-100 hover:bg-amber-200 text-amber-700 border-amber-200 dark:bg-amber-900/50 dark:hover:bg-amber-900 dark:text-amber-300 dark:border-amber-800';
-
-  return (
-    <div className={`rounded-lg border p-3 flex gap-3 items-center shadow-sm ${bgColor}`} role="alert">
-      <AlertTriangle className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
-      <div className="flex-1">
-        <p className="text-sm font-medium">
-          <strong className={textColor}>Cuello de Botella Detectado:</strong> <span className={textColor}>{message}</span>
-        </p>
-        <p className={`text-xs mt-0.5 ${textColor} opacity-80`}>{tip}</p>
-      </div>
-      <Button variant="outline" size="sm" className={`h-8 ${btnColor}`}>
-        Solucionar
-      </Button>
-    </div>
-  );
-}
 
 interface SalesDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
@@ -225,17 +168,20 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
       {bottlenecks.length > 0 && (
         <div className="space-y-2">
           {bottlenecks.map((b) => (
-            <SalesBottleneckBanner key={b.type} bottleneck={b} />
+            <BottleneckBanner key={`${b.type}-${b.metricLabel}`} bottleneck={b} />
           ))}
         </div>
       )}
 
       {/* Offer Ladder Layout */}
-      <OfferLadder 
-        adquisicion={adquisicion} 
-        expansion={expansion} 
-        onMetricClick={onMetricClick} 
+      <OfferLadder
+        adquisicion={adquisicion}
+        expansion={expansion}
+        onMetricClick={onMetricClick}
       />
+
+      {/* Unmatched Shopify Products */}
+      <UnmatchedProducts source="shopify" />
     </div>
   );
 }

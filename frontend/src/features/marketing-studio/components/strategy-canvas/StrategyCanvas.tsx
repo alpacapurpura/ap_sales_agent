@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Sankey, SankeyGraph } from '@visx/sankey';
 import { ParentSize } from '@visx/responsive';
 import { sankeyJustify } from 'd3-sankey';
@@ -18,14 +18,6 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
   const data = adaptStrategyToVisx(config);
   const [selectedLink, setSelectedLink] = useState<MarketingActionLink | null>(null);
 
-  useEffect(() => {
-    console.log('[StrategyCanvas] input', {
-      nodes: data.nodes.length,
-      links: data.links.length,
-      firstNode: data.nodes[0]?.id,
-      firstLink: data.links[0] ? { source: data.links[0].source, target: data.links[0].target, value: data.links[0].value } : null,
-    });
-  }, [data]);
 
   return (
     <div className="w-full h-full min-h-[600px] bg-slate-50 rounded-xl border border-slate-200 shadow-sm p-6 overflow-hidden relative flex flex-col">
@@ -52,13 +44,6 @@ const StrategyCanvas: React.FC<StrategyCanvasProps> = ({ config }) => {
                   {({ graph, createPath }) => {
                     const links = graph?.links ?? [];
                     const nodes = graph?.nodes ?? [];
-
-                    console.log('[StrategyCanvas] layout', {
-                      width,
-                      height,
-                      nodes: nodes.length,
-                      links: links.length,
-                    });
 
                     if (!nodes.length) {
                       return (
