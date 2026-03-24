@@ -25,4 +25,4 @@ class AppointmentModel(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    lead = relationship("src.modules.crm.infrastructure.models.lead_model.LeadModel", back_populates="appointments")
+    lead = relationship("LeadModel", back_populates="appointments")

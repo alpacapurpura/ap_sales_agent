@@ -29,4 +29,4 @@ class AgentTrace(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
-    llm_logs = relationship("src.modules.sales_agent.infrastructure.models.llm_log_model.LLMLog", back_populates="trace", cascade="all, delete-orphan")
+    llm_logs = relationship("LLMLog", back_populates="trace", cascade="all, delete-orphan")

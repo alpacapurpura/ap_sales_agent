@@ -34,5 +34,5 @@ class SaleModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    customer = relationship("src.modules.crm.infrastructure.models.customer_model.CustomerProfileModel", backref="sales")
-    offer = relationship("src.modules.offer.infrastructure.models.product_model.ProductModel")
+    customer = relationship("CustomerProfileModel", backref="sales")
+    offer = relationship("ProductModel")

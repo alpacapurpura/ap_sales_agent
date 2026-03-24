@@ -50,6 +50,6 @@ class LeadModel(Base):
     tenant = relationship("TenantModel", back_populates="leads")
     
     # Relationships
-    messages = relationship("src.modules.sales_agent.infrastructure.models.message_model.MessageModel", back_populates="lead", cascade="all, delete-orphan")
-    appointments = relationship("src.modules.scheduling.infrastructure.models.appointment_model.AppointmentModel", back_populates="lead", cascade="all, delete-orphan")
+    messages = relationship("MessageModel", back_populates="lead", cascade="all, delete-orphan")
+    appointments = relationship("AppointmentModel", back_populates="lead", cascade="all, delete-orphan")
     # agent_traces = relationship("src.shared.infrastructure.models.agent_trace_model.AgentTrace", back_populates="lead", cascade="all, delete-orphan")

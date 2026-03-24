@@ -54,6 +54,9 @@ from src.modules.connections.api import calendar as conn_calendar, gmail as conn
 # 13. Assets
 from src.modules.assets.api import router as assets_gallery, offer_gallery as assets_offers
 
+# --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
+import src.shared.infrastructure.model_registry  # noqa: F401
+
 # --- App Initialization ---
 
 # Configure Logging (Structlog)

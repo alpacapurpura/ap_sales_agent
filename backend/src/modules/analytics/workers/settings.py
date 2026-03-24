@@ -10,18 +10,20 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from src.core.config import settings
+import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.modules.analytics.workers.tasks import (
     run_initial_load,
     run_inactivity_detection,
     run_mailerlite_etl_sync,
     run_tenant_extraction,
 )
+from src.modules.brand.workers.tasks import run_brand_extraction
 
 
 class WorkerSettings:
     """ARQ worker that processes ETL extraction jobs and CRM batch tasks."""
 
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -29,8 +31,8 @@ class WorkerSettings:
 
     @staticmethod
     async def on_startup(ctx):
-        """Initialize DB session factory and Sentry for worker."""
-        from src.core.database import SessionLocal
+        """Initialize DB session factory, Redis, and Sentry for worker."""
+        from src.core.database import SessionLocal, redis_client
 
         import sentry_sdk
 
@@ -41,6 +43,7 @@ class WorkerSettings:
                 traces_sample_rate=0.1,
             )
         ctx["db_factory"] = SessionLocal
+        ctx["redis"] = redis_client
 
     @staticmethod
     async def on_shutdown(ctx):
@@ -58,7 +61,7 @@ class SchedulerSettings:
     from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -83,8 +86,8 @@ class SchedulerSettings:
 
     @staticmethod
     async def on_startup(ctx):
-        """Initialize DB session factory and Sentry for scheduler."""
-        from src.core.database import SessionLocal
+        """Initialize DB session factory, Redis, and Sentry for scheduler."""
+        from src.core.database import SessionLocal, redis_client
 
         import sentry_sdk
 
@@ -95,6 +98,7 @@ class SchedulerSettings:
                 traces_sample_rate=0.1,
             )
         ctx["db_factory"] = SessionLocal
+        ctx["redis"] = redis_client
 
     @staticmethod
     async def on_shutdown(ctx):

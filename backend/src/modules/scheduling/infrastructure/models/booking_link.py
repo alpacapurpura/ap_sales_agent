@@ -16,4 +16,4 @@ class BookingLink(Base):
     event_slug = Column(String, nullable=True)
     
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True)
-    lead = relationship("src.modules.crm.infrastructure.models.lead_model.LeadModel")
+    lead = relationship("LeadModel")
