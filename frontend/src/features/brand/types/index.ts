@@ -11,6 +11,7 @@ export interface BrandIdentity {
     founding_year?: string;
     timezone?: string;
     language?: string;
+    voice_tone?: string;
 
     // Legal Fields
     legal_name?: string;
@@ -173,7 +174,6 @@ export interface ContactData {
     phone?: string;
     whatsapp?: string;
     address?: string;
-    website?: string;
     social_instagram?: string;
     social_linkedin?: string;
     social_youtube?: string;

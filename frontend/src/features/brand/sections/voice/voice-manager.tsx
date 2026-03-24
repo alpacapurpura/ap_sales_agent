@@ -6,17 +6,24 @@ import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
 import { VoiceForm } from "./voice-form";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Save, Loader2 } from "lucide-react";
 
 export function VoiceManager() {
   const { getToken } = useAuth();
-  // Although we don't use settings directly, we might in the future.
-  // The user requested usage of useBrandSettings for consistency.
-  const { loading: settingsLoading } = useBrandSettings();
+  const { settings, loading: settingsLoading, updateIdentity } = useBrandSettings();
 
   const [analyzing, setAnalyzing] = useState(false);
   const [step, setStep] = useState<"upload" | "result">("upload");
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
+  const [voiceTone, setVoiceTone] = useState<string | null>(null);
+  const [savingTone, setSavingTone] = useState(false);
+
+  // Derive current voice_tone from settings or local state
+  const currentVoiceTone = voiceTone ?? settings?.identity?.voice_tone ?? "";
 
   const handleAnalyze = async (text?: string, file?: File) => {
     setAnalyzing(true);
@@ -44,6 +51,11 @@ export function VoiceManager() {
       const data = await res.json();
       setResult(data);
       setStep("result");
+
+      // Auto-update voice_tone with detected tone
+      if (data.style_profile?.tone) {
+        setVoiceTone(data.style_profile.tone);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -57,16 +69,58 @@ export function VoiceManager() {
     setError("");
   };
 
-  if (settingsLoading) return null; // Or a loader
+  const handleSaveVoiceTone = async () => {
+    setSavingTone(true);
+    try {
+      await updateIdentity({
+        ...settings?.identity,
+        voice_tone: currentVoiceTone,
+      });
+    } finally {
+      setSavingTone(false);
+    }
+  };
+
+  if (settingsLoading) return null;
 
   return (
-    <VoiceForm
-      onAnalyze={handleAnalyze}
-      onReset={handleReset}
-      loading={analyzing}
-      error={error}
-      result={result}
-      step={step}
-    />
+    <div className="space-y-8">
+      {/* Voice Tone Field */}
+      <div className="space-y-3">
+        <Label htmlFor="voice_tone" className="text-base font-semibold">Tono de Voz</Label>
+        <Textarea
+          id="voice_tone"
+          value={currentVoiceTone}
+          onChange={(e) => setVoiceTone(e.target.value)}
+          placeholder="Ej: Conversacional, aspiracional, directo con toques de humor"
+          className="min-h-[80px]"
+        />
+        <p className="text-xs text-muted-foreground">
+          Describe como habla tu marca. El SDR usara este tono en todas sus conversaciones. Si ejecutas la Clonacion de Estilo abajo, este campo se actualiza automaticamente.
+        </p>
+        {voiceTone !== null && voiceTone !== (settings?.identity?.voice_tone ?? "") && (
+          <Button
+            onClick={handleSaveVoiceTone}
+            disabled={savingTone}
+            size="sm"
+          >
+            {savingTone ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            Guardar Tono
+          </Button>
+        )}
+      </div>
+
+      {/* Voice Cloning */}
+      <div className="border-t pt-6">
+        <VoiceForm
+          onAnalyze={handleAnalyze}
+          onReset={handleReset}
+          loading={analyzing}
+          error={error}
+          result={result}
+          step={step}
+        />
+      </div>
+    </div>
   );
 }

@@ -145,16 +145,16 @@ export function HeaderSection({ identity, visuals, contact, onEdit, onEditVisual
               </Badge>
             )}
             
-            {contact?.website && (
-              <a 
-                href={contact.website} 
-                target="_blank" 
+            {identity?.website && (
+              <a
+                href={identity.website}
+                target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-muted/50 border border-border hover:bg-muted/80 transition-colors"
                 style={isCustomBrand ? { borderColor: 'currentColor', color: 'currentColor', opacity: 0.9 } : {}}
               >
                 <Globe className="h-3 w-3 mr-1" />
-                {contact.website.replace(/^https?:\/\//, '')}
+                {identity.website.replace(/^https?:\/\//, '')}
               </a>
             )}
           </div>

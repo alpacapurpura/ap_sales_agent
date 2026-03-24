@@ -69,6 +69,30 @@ export function StoryForm({ initialData, onSave, isSaving = false }: StoryFormPr
                     <p className="text-xs text-muted-foreground">Una buena historia conecta emocionalmente con tu audiencia.</p>
                 </div>
 
+                <div className="space-y-2">
+                    <Label htmlFor="mission">Mision</Label>
+                    <Textarea
+                        id="mission"
+                        value={story.mission || ""}
+                        onChange={(e) => setStory({...story, mission: e.target.value})}
+                        placeholder="Para que existe tu marca? Ej: Existimos para empoderar a emprendedoras mediante IA para que vendan sin equipo."
+                        className="min-h-[100px]"
+                    />
+                    <p className="text-xs text-muted-foreground">El proposito actual de tu marca — por que existes hoy.</p>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="vision">Vision</Label>
+                    <Textarea
+                        id="vision"
+                        value={story.vision || ""}
+                        onChange={(e) => setStory({...story, vision: e.target.value})}
+                        placeholder="Que mundo quieres crear? Ej: Un mundo donde cualquier experto puede vivir de su conocimiento."
+                        className="min-h-[100px]"
+                    />
+                    <p className="text-xs text-muted-foreground">El futuro aspiracional — el mundo que tu marca quiere construir.</p>
+                </div>
+
                 <div className="space-y-4 pt-4 border-t">
                     <div className="flex items-center justify-between">
                         <Label className="text-base font-medium flex items-center gap-2">

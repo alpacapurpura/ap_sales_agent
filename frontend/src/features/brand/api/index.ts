@@ -1,6 +1,6 @@
 import { config } from "@/lib/config";
 import { fetchClient } from "@/lib/http-client";
-import { aiActionsApi } from "@/lib/api/ai-actions";
+import { aiActionsApi, ExtractionStatus } from "@/lib/api/ai-actions";
 import { BrandSettings, BrandVisuals, FullBrandExtractionRequest } from "../types";
 import { MOCK_BRAND_SETTINGS } from "./mock-data";
 import { ENABLE_MOCKS as USE_MOCK_API } from "@/lib/mock-config";
@@ -72,18 +72,11 @@ export const brandApi = {
         return result as BrandVisuals;
     },
 
-    extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<BrandSettings> => {
-        const result = await aiActionsApi.extractFullBrand(data, token);
-        const brandResult = result as BrandSettings;
-        console.log("[BrandAPI] extractFullBrand response:", {
-            hasIdentity: !!brandResult?.identity?.brand_name,
-            hasStory: !!(brandResult?.story as any)?.origin_story,
-            hasStrategy: !!(brandResult?.strategy as any)?.value_proposition,
-            teamCount: brandResult?.team?.length || 0,
-            testimonialsCount: brandResult?.testimonials?.length || 0,
-            authorityCount: brandResult?.authority_vault?.length || 0,
-            keys: Object.keys(brandResult || {}),
-        });
-        return brandResult;
-    }
+    extractFullBrand: async (data: FullBrandExtractionRequest | FormData, token: string): Promise<{ job_id: string }> => {
+        return aiActionsApi.extractFullBrand(data, token);
+    },
+
+    pollExtractionStatus: async (jobId: string, token: string): Promise<ExtractionStatus> => {
+        return aiActionsApi.pollExtractionStatus(jobId, token);
+    },
 };

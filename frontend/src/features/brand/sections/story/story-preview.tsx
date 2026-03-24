@@ -9,7 +9,7 @@ interface StorySectionProps {
 
 export function StorySection({ story, visuals, onEdit }: StorySectionProps) {
     const milestones = story?.milestones || [];
-    const hasContent = story?.origin_story || milestones.length > 0;
+    const hasContent = story?.origin_story || story?.mission || story?.vision || milestones.length > 0;
 
     return (
         <section 
@@ -41,6 +41,22 @@ export function StorySection({ story, visuals, onEdit }: StorySectionProps) {
                         <p className="text-sm leading-relaxed text-foreground whitespace-pre-line font-serif">
                             {story.origin_story}
                         </p>
+                        {story.mission && (
+                            <div className="mt-4 pt-4 border-t border-border/50">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Mision</h4>
+                                <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
+                                    {story.mission}
+                                </p>
+                            </div>
+                        )}
+                        {story.vision && (
+                            <div className="mt-4 pt-4 border-t border-border/50">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Vision</h4>
+                                <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
+                                    {story.vision}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Timeline (Right side) */}

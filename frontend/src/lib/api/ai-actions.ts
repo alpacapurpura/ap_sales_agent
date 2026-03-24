@@ -21,6 +21,13 @@ export interface BrandExtractPayload {
   type: "brand_identity";
 }
 
+export interface ExtractionStatus {
+  status: "queued" | "processing" | "completed" | "failed";
+  progress: number;
+  stage?: string;
+  error?: string;
+}
+
 export type FullBrandExtractInput = FormData | {
   url?: string;
   text?: string;
@@ -28,6 +35,7 @@ export type FullBrandExtractInput = FormData | {
   update_instructions?: string;
   dry_run?: boolean;
   include_visuals?: boolean;
+  include_assets?: boolean;
 };
 
 function toFormData(input: FullBrandExtractInput): FormData {
@@ -41,6 +49,7 @@ function toFormData(input: FullBrandExtractInput): FormData {
   if (input.update_instructions) form.append("update_instructions", input.update_instructions);
   if (typeof input.dry_run === "boolean") form.append("dry_run", String(input.dry_run));
   if (typeof input.include_visuals === "boolean") form.append("include_visuals", String(input.include_visuals));
+  if (typeof input.include_assets === "boolean") form.append("include_assets", String(input.include_assets));
   return form;
 }
 
@@ -60,36 +69,31 @@ export const aiActionsApi = {
     return response.json();
   },
 
-  async extractFullBrand(input: FullBrandExtractInput, token: string): Promise<unknown> {
+  async extractFullBrand(input: FullBrandExtractInput, token: string): Promise<{ job_id: string }> {
     const body = toFormData(input);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 480000);
+    const response = await fetchClient(`${API_URL}/api/v1/brand/tools/extract-full-brand`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body,
+    });
 
-    try {
-      const response = await fetchClient(`${API_URL}/api/v1/brand/tools/extract-full-brand`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        if (response.status === 504) {
-          throw new Error("TIMEOUT:La extracción tardó demasiado. Intenta con menos contenido o sube la información como texto.");
-        }
-        throw new Error(`Failed to extract full brand data: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      if (error.name === "AbortError") {
-        throw new Error("La solicitud excedió el tiempo límite de 8 minutos.");
-      }
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed to start extraction: ${response.status} ${response.statusText}`);
     }
+    return response.json();
+  },
+
+  async pollExtractionStatus(jobId: string, token: string): Promise<ExtractionStatus> {
+    const response = await fetchClient(
+      `${API_URL}/api/v1/brand/tools/extract-full-brand/status/${jobId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
+    return response.json();
   },
 
   async generateOfferPsychology(data: OfferPsychologyPayload, token: string): Promise<OfferPsychologyResult> {

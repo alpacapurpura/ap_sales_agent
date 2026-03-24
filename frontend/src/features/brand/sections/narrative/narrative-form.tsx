@@ -122,6 +122,9 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
             placeholder="Ej: Emprendedoras que venden cursos online y quieren escalar..."
             className="h-20"
           />
+          <p className="text-xs text-muted-foreground">
+            Si tienes avatares definidos en El Publico (Cap 7), tu heroe es tu avatar principal.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="hero_desire">Deseo Principal</Label>
@@ -155,7 +158,7 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
             placeholder="Ej: La complejidad del marketing digital"
           />
           <p className="text-xs text-muted-foreground">
-            El antagonista que causa la frustracion de tu cliente.
+            El antagonista que causa la frustracion de tu cliente. Si ya definiste enemigos en Diferenciacion (Cap 2), tu villano suele ser una combinacion de ambos.
           </p>
         </div>
         <div className="space-y-2">
@@ -220,6 +223,9 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
             placeholder="Ej: Hemos ayudado a mas de 500 emprendedoras a duplicar sus ventas..."
             className="h-20"
           />
+          <p className="text-xs text-muted-foreground">
+            Usa tus mejores datos del Vault de Autoridad (Cap 9) para construir esta declaracion.
+          </p>
         </div>
       </section>
 
@@ -232,7 +238,7 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
           <h3 className="font-medium">4. El Plan</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Define los pasos claros que tu cliente debe seguir. Maximo 4 pasos.
+          Define los pasos claros que tu cliente debe seguir. Maximo 4 pasos. Si tu marca tiene una metodologia (Cap 1), tus pasos suelen alinearse con sus pilares — pero redactalos desde la perspectiva del CLIENTE.
         </p>
 
         <div className="space-y-4">
@@ -363,7 +369,7 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
           <h3 className="font-medium">7. One-Liner</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Resume toda tu narrativa en una sola frase poderosa. Formato: Problema + Solucion + Resultado.
+          Tu pitch de venta en 1 oracion. Formato: Problema + Solucion + Resultado. El SDR lo usa para abrir conversaciones.
         </p>
         <div className="space-y-2">
           <Label htmlFor="one_liner">Tu One-Liner</Label>

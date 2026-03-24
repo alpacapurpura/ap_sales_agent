@@ -134,6 +134,7 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
           placeholder="Que te hace unico y diferente en el mercado? Completa: 'Solo nosotros [capacidad] porque [razon]'"
           className="min-h-[100px]"
         />
+        <p className="text-xs text-muted-foreground">Tu promesa defensible. Completa: &apos;Somos los unicos que [X] porque [Y]&apos;</p>
       </div>
 
       {/* Enemies */}

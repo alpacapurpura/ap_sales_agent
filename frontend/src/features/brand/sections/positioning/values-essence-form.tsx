@@ -234,7 +234,7 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
           className="min-h-[80px]"
         />
         <p className="text-xs text-muted-foreground">
-          El factor decisivo que te hace diferente e irremplazable.
+          La razon #1 por la que te eligen a TI. No es un beneficio generico — es algo que SOLO tu tienes.
         </p>
       </div>
 
@@ -249,7 +249,7 @@ export function ValuesEssenceForm({ positioning, onSave, isSaving }: ValuesEssen
           className="text-lg font-medium"
         />
         <p className="text-xs text-muted-foreground">
-          Una frase corta (2-4 palabras) que captura el alma de tu marca.
+          El alma de tu marca en 2-3 palabras. Solo uso interno. Ej: Nike &rarr; &apos;Athletic Excellence&apos;
         </p>
       </div>
 

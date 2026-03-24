@@ -102,7 +102,7 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                             <FormControl>
                             <Input placeholder="Ej: Transformando el futuro..." {...field} />
                             </FormControl>
-                            <FormDescription>Frase corta que define tu marca.</FormDescription>
+                            <FormDescription>La frase que va debajo de tu logo. Ej: Nike &rarr; &apos;Just Do It&apos;</FormDescription>
                             <FormMessage />
                         </FormItem>
                         )}
@@ -114,7 +114,7 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                     name="description"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Descripción (Elevator Pitch)</FormLabel>
+                        <FormLabel>Bio de Marca</FormLabel>
                         <FormControl>
                         <Textarea 
                             placeholder="Describe brevemente qué hace tu empresa y para quién..." 
@@ -122,6 +122,7 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                             {...field} 
                         />
                         </FormControl>
+                        <FormDescription>Para perfiles de redes, SEO y presentaciones rapidas.</FormDescription>
                         <FormMessage />
                     </FormItem>
                     )}

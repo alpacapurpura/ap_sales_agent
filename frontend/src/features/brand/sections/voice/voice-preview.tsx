@@ -31,12 +31,17 @@ export function VoiceSection({ identity, onEdit }: VoiceSectionProps) {
                  </p>
              </div>
 
-             {/* Placeholder for Tone/Style */}
-             <div className="md:col-span-3 space-y-2 opacity-50">
+             <div className="md:col-span-3 space-y-2">
                  <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Tono de Voz</h4>
-                 <p className="text-lg text-muted-foreground italic">
-                     &quot;Cercano, profesional y directo.&quot; (Ejemplo)
-                 </p>
+                 {identity.voice_tone ? (
+                     <p className="text-lg text-foreground italic">
+                         &quot;{identity.voice_tone}&quot;
+                     </p>
+                 ) : (
+                     <p className="text-lg text-muted-foreground italic opacity-50">
+                         &quot;Cercano, profesional y directo.&quot; (Sin definir)
+                     </p>
+                 )}
              </div>
          </div>
       </div>

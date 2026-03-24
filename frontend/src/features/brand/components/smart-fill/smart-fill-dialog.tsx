@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    Loader2, AlertTriangle, CheckCircle2, Globe, Wand2, ArrowRight, FileText, UploadCloud, File as FileIcon, X, Sparkles, WifiOff,
+    Loader2, AlertTriangle, CheckCircle2, Globe, Wand2, ArrowRight, FileText, UploadCloud, File as FileIcon, X, Sparkles,
 } from "lucide-react";
 import { BrandSettings } from "@/features/brand/types";
 import { brandApi } from "@/features/brand/api";
@@ -46,7 +46,17 @@ export function SmartFillDialog({
     const [isProcessing, setIsProcessing] = useState(false);
     const [progress, setProgress] = useState(0);
     const [stage, setStage] = useState<string>("");
-    const [errorState, setErrorState] = useState<{ type: "timeout" | "generic", message: string } | null>(null);
+    const [errorState, setErrorState] = useState<{ type: "generic", message: string } | null>(null);
+    const activeJobRef = useRef<string | null>(null);
+    const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Cleanup polling on unmount
+    useEffect(() => {
+        return () => {
+            activeJobRef.current = null;
+            if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+        };
+    }, []);
 
     const resetForm = () => {
         setErrorState(null);
@@ -65,8 +75,6 @@ export function SmartFillDialog({
             return;
         }
 
-        let progressInterval: NodeJS.Timeout | undefined;
-
         try {
             const token = await getToken();
             if (!token) {
@@ -76,27 +84,10 @@ export function SmartFillDialog({
 
             setIsProcessing(true);
             setErrorState(null);
-            setProgress(5);
-            setStage("Iniciando asistente de marca...");
+            setProgress(0);
+            setStage("Iniciando análisis...");
 
-            // Simulation of progress
-            progressInterval = setInterval(() => {
-                setProgress((prev) => {
-                    if (prev >= 90) return prev;
-                    const increment = Math.max(0.5, (90 - prev) / 50);
-                    return Math.min(prev + increment, 90);
-                });
-            }, 800);
-
-            // Dynamic Stage Messages
-            setTimeout(() => setStage(sourceType === "web" ? "Escaneando sitio web..." : "Leyendo documentos..."), 2000);
-            setTimeout(() => setStage("Analizando identidad y tono de voz..."), 8000);
-            setTimeout(() => setStage("Extrayendo estrategia y equipo..."), 14000);
-            setTimeout(() => setStage("Buscando testimonios y autoridad..."), 20000);
-            setTimeout(() => setStage("Recopilando datos de contacto..."), 26000);
-            setTimeout(() => setStage("Consolidando resultados..."), 32000);
-
-            // Prepare FormData — NEVER dry_run, always save to DB
+            // Prepare FormData
             const formData = new FormData();
             formData.append("mode", mode);
 
@@ -109,45 +100,69 @@ export function SmartFillDialog({
 
             if (instructions) formData.append("update_instructions", instructions);
 
-            // API Call — saves directly to DB
-            const extractionResult = await brandApi.extractFullBrand(formData, token);
-            console.log("[SmartFill] Extraction result:", {
-                hasIdentity: !!(extractionResult as any)?.identity?.brand_name,
-                hasStory: !!(extractionResult as any)?.story?.origin_story,
-                hasStrategy: !!(extractionResult as any)?.strategy?.value_proposition,
-                teamCount: (extractionResult as any)?.team?.length || 0,
-                keys: Object.keys(extractionResult || {}),
-            });
+            // 1. Start async job
+            const { job_id } = await brandApi.extractFullBrand(formData, token);
+            activeJobRef.current = job_id;
 
-            if (progressInterval) clearInterval(progressInterval);
-            setProgress(100);
-            setStage("¡Análisis completado!");
+            // 2. Poll with setTimeout chain (avoids overlapping requests)
+            const poll = async () => {
+                if (activeJobRef.current !== job_id) return;
 
-            toast.success(mode === "initial"
-                ? "¡Marca generada exitosamente!"
-                : "¡Marca actualizada exitosamente!");
+                try {
+                    // Re-fetch token on each poll — Clerk tokens expire in ~60s
+                    // and extractions can take 2-3 minutes
+                    const freshToken = await getToken();
+                    if (!freshToken) {
+                        console.warn("[SmartFill] Token refresh failed, retrying...");
+                        pollTimerRef.current = setTimeout(poll, 3000);
+                        return;
+                    }
+                    const status = await brandApi.pollExtractionStatus(job_id, freshToken);
+                    if (activeJobRef.current !== job_id) return;
 
-            // Close dialog and notify parent to reload from DB
-            setTimeout(() => {
-                resetForm();
-                onOpenChange(false);
-                onSuccess();
-            }, 800);
+                    setProgress(status.progress);
+                    if (status.stage) setStage(status.stage);
+
+                    if (status.status === "completed") {
+                        toast.success(mode === "initial"
+                            ? "¡Marca generada exitosamente!"
+                            : "¡Marca actualizada exitosamente!");
+
+                        setTimeout(() => {
+                            resetForm();
+                            onOpenChange(false);
+                            onSuccess();
+                        }, 800);
+                        return;
+                    }
+
+                    if (status.status === "failed") {
+                        setErrorState({
+                            type: "generic",
+                            message: status.error || "Error desconocido en la extracción"
+                        });
+                        setStage("Proceso interrumpido");
+                        setProgress(0);
+                        setIsProcessing(false);
+                        return;
+                    }
+                } catch (err) {
+                    console.warn("[SmartFill] Poll error, retrying:", err);
+                }
+
+                pollTimerRef.current = setTimeout(poll, 3000);
+            };
+
+            pollTimerRef.current = setTimeout(poll, 1000);
 
         } catch (error: any) {
-            if (progressInterval) clearInterval(progressInterval);
-            console.error("[SmartFill] Error:", error);
-
-            const isTimeout = error.message?.includes("Failed to fetch") || error.message?.includes("Network request failed") || error.message?.startsWith("TIMEOUT:");
-
+            console.error("[SmartFill] Error starting extraction:", error);
             setErrorState({
-                type: isTimeout ? "timeout" : "generic",
-                message: error.message || "Error desconocido"
+                type: "generic",
+                message: error.message || "Error al iniciar la extracción"
             });
-
             setStage("Proceso interrumpido");
             setProgress(0);
-        } finally {
             setIsProcessing(false);
         }
     };
@@ -180,19 +195,10 @@ export function SmartFillDialog({
                         {/* Error State */}
                         {errorState && (
                             <Alert variant="destructive" className="animate-in shake">
-                                {errorState.type === "timeout" ? <WifiOff className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
-                                <AlertTitle>
-                                    {errorState.type === "timeout" ? "El análisis tardó demasiado" : "Error en el análisis"}
-                                </AlertTitle>
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Error en el análisis</AlertTitle>
                                 <AlertDescription className="mt-2 text-sm">
-                                    {errorState.type === "timeout" ? (
-                                        <div className="space-y-2">
-                                            <p>El análisis tardó más de lo esperado y la conexión se cerró.</p>
-                                            <p className="font-semibold">Sugerencia: Intenta de nuevo o sube la información como texto.</p>
-                                        </div>
-                                    ) : (
-                                        errorState.message
-                                    )}
+                                    {errorState.message}
                                 </AlertDescription>
                                 <div className="mt-4">
                                     <Button variant="outline" size="sm" onClick={() => setErrorState(null)} className="bg-background/50">

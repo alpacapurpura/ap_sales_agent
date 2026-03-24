@@ -158,7 +158,7 @@ export function BrandStudioLayout({
                     handleSmartFillSuccess();
                     setHasDismissedEmptyState(true);
                 }}
-                currentUrl={settings.contact?.website}
+                currentUrl={settings.identity?.website}
             />
         </div>
     );
@@ -358,7 +358,7 @@ export function BrandStudioLayout({
         onOpenChange={(open) => !open && closeSheet()}
         currentVisuals={settings.visuals ?? {}}
         logoUrl={settings.visuals?.logo_url}
-        websiteUrl={settings.contact?.website}
+        websiteUrl={settings.identity?.website}
         onSave={handleUpdateVisuals}
       />
 
@@ -370,7 +370,7 @@ export function BrandStudioLayout({
             handleSmartFillSuccess();
             setHasDismissedEmptyState(true);
         }}
-        currentUrl={settings.contact?.website}
+        currentUrl={settings.identity?.website}
       />
     </div>
   );
