@@ -1,14 +1,17 @@
-import asyncio
+import json
+from datetime import datetime, timezone
+from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, Request
+from fastapi.responses import JSONResponse
 from typing import Literal, Optional
 from sqlalchemy.orm import Session
 from src.modules.copilot.application.services.brand_ai_actions_service import CopilotBrandAIActionsService
 from src.shared.infrastructure.files.file_parsing_service import FileParsingService
-from src.modules.brand.domain.aggregates import BrandSettings
 from src.modules.iam.api.dependencies import get_current_user, get_db
 from src.modules.iam.domain.user import User
 from src.modules.brand.api.dto.extraction import ExtractRequest
+from src.core.database import redis_client
 import structlog
 
 logger = structlog.get_logger()
@@ -43,42 +46,49 @@ async def extract_data(
         
     return data
 
-@router.post("/extract-full-brand", response_model=BrandSettings)
+@router.post("/extract-full-brand")
 async def extract_full_brand(
+    request: Request,
     url: Optional[str] = Form(None),
     text: Optional[str] = Form(None),
     mode: Literal["initial", "update"] = Form("initial"),
     update_instructions: Optional[str] = Form(None),
     dry_run: bool = Form(False),
     include_visuals: bool = Form(False),
+    include_assets: bool = Form(False),
     files: list[UploadFile] = File(default_factory=list),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Extracts full Brand Settings (Identity, Story, Team) from URL, Text, or Files.
-    Updates the Tenant's config_json with the merged results.
+    Dispatches full brand extraction as an async job.
+    Returns 202 with job_id for polling via GET /extract-full-brand/status/{job_id}.
     """
-    
-    # Parse uploaded files
+    # Parse uploaded files (UploadFile can't be serialized to ARQ)
     extracted_file_text = ""
     for file in files:
         content = await FileParsingService.parse_file(file)
         if content:
             extracted_file_text += f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
-    
-    # Combine with raw text
+
     combined_text = (text or "") + "\n" + extracted_file_text
     combined_text = combined_text.strip()
 
     if not url and not combined_text and not update_instructions:
         raise HTTPException(status_code=400, detail="Either 'url', 'text', 'files', or 'update_instructions' must be provided.")
-        
+
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
 
+    if not redis_client:
+        raise HTTPException(status_code=503, detail="Servicio temporalmente no disponible. Intenta en un momento.")
+
+    job_id = str(uuid4())
+    tenant_id = str(current_user.tenant_id)
+
     logger.info("extract_full_brand_request",
-                tenant_id=str(current_user.tenant_id),
+                tenant_id=tenant_id,
+                job_id=job_id,
                 has_url=bool(url),
                 url=url,
                 mode=mode,
@@ -88,46 +98,157 @@ async def extract_full_brand(
                 has_instructions=bool(update_instructions),
                 dry_run=dry_run)
 
-    service = CopilotBrandAIActionsService(db, current_user.tenant_id)
+    # Set initial status in Redis BEFORE enqueue (prevents race condition)
+    redis_client.setex(
+        f"brand_extract:{tenant_id}:{job_id}",
+        3600,
+        json.dumps({
+            "status": "queued",
+            "progress": 0,
+            "stage": "Iniciando análisis...",
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        })
+    )
+
+    # Enqueue ARQ job
+    arq_pool = request.app.state.arq_pool
+    await arq_pool.enqueue_job(
+        "run_brand_extraction",
+        job_id=job_id,
+        tenant_id=tenant_id,
+        url=url,
+        text=combined_text if combined_text else None,
+        mode=mode,
+        update_instructions=update_instructions,
+        include_visuals=include_visuals,
+        include_assets=include_assets,
+        dry_run=dry_run,
+    )
+
+    logger.info("extract_full_brand_dispatched", tenant_id=tenant_id, job_id=job_id)
+
+    return JSONResponse(status_code=202, content={"job_id": job_id, "status": "queued"})
+
+
+@router.get("/extract-full-brand/status/{job_id}")
+async def get_extraction_status(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Poll extraction job progress. Returns status, progress %, and current stage."""
+    from uuid import UUID as UUIDType
+
+    # Validate job_id format
     try:
-        result = await asyncio.wait_for(
-            service.extract_full_brand(
-                url=url,
-                text=combined_text if combined_text else None,
-                mode=mode,
-                update_instructions=update_instructions,
-                dry_run=dry_run,
-                include_visuals=include_visuals,
-            ),
-            timeout=480.0
-        )
-    except asyncio.TimeoutError:
-        raise HTTPException(
-            status_code=504,
-            detail="La extracción tardó demasiado. Intenta con menos contenido o sube la información como texto."
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("extract_full_brand_error",
-                     tenant_id=str(current_user.tenant_id),
-                     error=str(e),
-                     error_type=type(e).__name__)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error interno en la extracción: {type(e).__name__}: {str(e)[:200]}"
-        )
+        UUIDType(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
 
-    # Log response summary
-    result_dict = result if isinstance(result, dict) else (result.model_dump(mode='json') if result else {})
-    logger.info("extract_full_brand_response",
-                tenant_id=str(current_user.tenant_id),
-                has_identity=bool((result_dict.get("identity") or {}).get("brand_name")),
-                has_story=bool((result_dict.get("story") or {}).get("origin_story")),
-                has_strategy=bool((result_dict.get("strategy") or {}).get("value_proposition")),
-                team_count=len(result_dict.get("team") or []),
-                testimonials_count=len(result_dict.get("testimonials") or []),
-                authority_count=len(result_dict.get("authority_vault") or []),
-                response_keys=list(result_dict.keys()))
+    progress_key = f"brand_extract:{current_user.tenant_id}:{job_id}"
+    raw = redis_client.get(progress_key) if redis_client else None
 
-    return result
+    if not raw:
+        raise HTTPException(status_code=404, detail="Job not found or expired")
+
+    data = json.loads(raw)
+
+    # Stale job detection: if no progress for >3 minutes, mark as failed
+    if data.get("status") in ("processing", "queued") and data.get("started_at"):
+        try:
+            started = datetime.fromisoformat(data["started_at"])
+            if (datetime.now(timezone.utc) - started).total_seconds() > 180:
+                data["status"] = "failed"
+                data["error"] = "El análisis tardó demasiado o no pudo completarse. Intenta de nuevo."
+        except (ValueError, TypeError):
+            pass
+
+    return data
+
+
+@router.get("/extraction-traces")
+async def list_extraction_traces(
+    limit: int = 20,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List recent brand extraction traces for the current tenant."""
+    from sqlalchemy import select, desc
+    from src.modules.brand.infrastructure.models.extraction_trace_model import BrandExtractionTrace
+
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
+
+    stmt = (
+        select(BrandExtractionTrace)
+        .where(BrandExtractionTrace.tenant_id == current_user.tenant_id)
+        .order_by(desc(BrandExtractionTrace.created_at))
+        .limit(min(limit, 50))
+    )
+    rows = db.execute(stmt).scalars().all()
+
+    return [
+        {
+            "id": str(r.id),
+            "job_id": r.job_id,
+            "mode": r.mode,
+            "profile_name": r.profile_name,
+            "url": r.url,
+            "status": r.status,
+            "sections_total": r.sections_total,
+            "sections_succeeded": r.sections_succeeded,
+            "total_duration_s": r.total_duration_s,
+            "content_length": r.content_length,
+            "error_message": r.error_message,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+
+
+@router.get("/extraction-traces/{trace_id}")
+async def get_extraction_trace(
+    trace_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get full trace detail including all events."""
+    from uuid import UUID as UUIDType
+    from sqlalchemy import select
+    from src.modules.brand.infrastructure.models.extraction_trace_model import BrandExtractionTrace
+
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
+
+    try:
+        UUIDType(trace_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid trace ID format")
+
+    stmt = (
+        select(BrandExtractionTrace)
+        .where(
+            BrandExtractionTrace.id == trace_id,
+            BrandExtractionTrace.tenant_id == current_user.tenant_id,
+        )
+    )
+    row = db.execute(stmt).scalar_one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Trace not found")
+
+    return {
+        "id": str(row.id),
+        "job_id": row.job_id,
+        "mode": row.mode,
+        "profile_name": row.profile_name,
+        "url": row.url,
+        "include_visuals": row.include_visuals,
+        "include_assets": row.include_assets,
+        "status": row.status,
+        "sections_total": row.sections_total,
+        "sections_succeeded": row.sections_succeeded,
+        "total_duration_s": row.total_duration_s,
+        "content_length": row.content_length,
+        "error_message": row.error_message,
+        "events": row.events or [],
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+    }

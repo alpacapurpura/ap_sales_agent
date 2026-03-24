@@ -14,6 +14,10 @@ def _build_client(tenant_id):
     app.include_router(router, prefix="/api/v1/brand/tools")
     app.dependency_overrides[get_db] = lambda: MagicMock()
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(id=uuid4(), tenant_id=tenant_id)
+    # Provide a mock ARQ pool so the endpoint can enqueue jobs without a real Redis connection
+    mock_pool = MagicMock()
+    mock_pool.enqueue_job = AsyncMock(return_value=None)
+    app.state.arq_pool = mock_pool
     return TestClient(app)
 
 
@@ -64,5 +68,8 @@ def test_brand_extract_full_endpoint_delegates_to_copilot_service():
             files={"url": (None, "https://visionarias.ai")},
         )
 
-    assert response.status_code == 200
-    service_instance.extract_full_brand.assert_awaited_once()
+    # The endpoint dispatches an async ARQ job and returns 202 Accepted
+    assert response.status_code == 202
+    body = response.json()
+    assert "job_id" in body
+    assert body["status"] == "queued"

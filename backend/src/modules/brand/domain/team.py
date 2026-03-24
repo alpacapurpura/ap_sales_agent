@@ -43,7 +43,6 @@ class BrandContact(BaseEntity):
     
     # Legacy fields fallback
     email: Optional[str] = None
-    website: Optional[str] = None
     social: Optional[Dict[str, Any]] = Field(default_factory=dict)
     
     model_config = ConfigDict(extra='allow')
@@ -73,9 +72,6 @@ class BrandContact(BaseEntity):
                 for key, target_field in mapping.items():
                     if not data.get(target_field) and social_data.get(key):
                         data[target_field] = social_data[key]
-            
-            # 3. Migrate website -> specialized fields if applicable?
-            # For now, keep website as fallback if needed, but no direct mapping to testimonials_url
             
         return data
 

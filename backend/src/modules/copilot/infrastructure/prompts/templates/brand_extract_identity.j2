@@ -17,7 +17,7 @@ REGLAS DE EXTRACCION:
 - INFERENCIA RAZONABLE: Se puede deducir con confianza del contexto, tono, tipo de negocio → extraer y agregar "(inferido)" al final del valor.
 - SIN EVIDENCIA: No hay informacion directa ni indirecta → devolver null o [].
 - NUNCA inventar: nombres de personas, emails, telefonos, URLs, testimonios textuales, cifras exactas, fechas especificas, nombres de empresas/instituciones.
-- SI se puede inferir: industria, target audience, tono de voz, archetype, tagline del hero, language del contenido, description del posicionamiento.
+- SI se puede inferir: industria, target audience, tono de voz, tagline del hero, language del contenido, description del posicionamiento.
 
 CAMPOS A EXTRAER (todos obligatorios si hay evidencia):
 
@@ -37,13 +37,9 @@ CAMPOS A EXTRAER (todos obligatorios si hay evidencia):
 
 8. **timezone** — Zona horaria operativa si se detecta (ej: "America/Lima", "America/Mexico_City"). Buscar en footer, contacto, o inferir de pais de operacion. Si no se puede determinar, dejar null.
 
-9. **archetype** — SIEMPRE inferir el arquetipo Jungiano dominante analizando: tono de voz, valores declarados, posicionamiento emocional, tipo de contenido. Opciones: Hero, Sage, Creator, Explorer, Ruler, Caregiver, Magician, Rebel, Lover, Jester, Innocent, Everyman. Agregar "(inferido)" si no hay declaracion explicita.
+9. **voice_tone** — Analizar patrones REALES del copy: es autoritario, conversacional, aspiracional, tecnico, emocional, informal, academico? Devolver 2-3 adjetivos separados por coma. SIEMPRE inferir del tono del contenido.
 
-10. **keywords** — 5-8 conceptos estrategicos que la marca repite con mayor frecuencia. NO palabras genericas como "calidad" o "servicio" salvo que sean centrales al posicionamiento. SIEMPRE extraer al menos 3 keywords del contenido visible.
-
-11. **voice_tone** — Analizar patrones REALES del copy: es autoritario, conversacional, aspiracional, tecnico, emocional, informal, academico? Devolver 2-3 adjetivos separados por coma. SIEMPRE inferir del tono del contenido.
-
-12. **Campos legales** (buscar en footer, paginas legales, pie de pagina):
+10. **Campos legales** (buscar en footer, paginas legales, pie de pagina):
     - `legal_name` — Razon social si aparece
     - `tax_id` — RFC, NIF, CUIT, EIN si aparece
     - `fiscal_address` — Direccion fiscal si aparece

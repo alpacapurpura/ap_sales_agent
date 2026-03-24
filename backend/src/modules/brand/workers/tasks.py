@@ -2,10 +2,25 @@
 
 import json
 import logging
+import traceback
 from datetime import datetime, timezone
 from uuid import UUID
 
 logger = logging.getLogger(__name__)
+
+
+def _fail_progress(redis, progress_key: str, error_msg: str, log_detail: str):
+    """Write a user-friendly failure to Redis and log the full detail for debugging."""
+    logger.error("Brand extraction task error: %s", log_detail)
+    if redis:
+        redis.setex(
+            progress_key, 3600,
+            json.dumps({
+                "status": "failed",
+                "progress": 0,
+                "error": error_msg,
+            }),
+        )
 
 
 async def run_brand_extraction(
@@ -16,18 +31,42 @@ async def run_brand_extraction(
     text: str | None,
     mode: str,
     update_instructions: str | None,
-    include_visuals: bool,
+    include_visuals: bool = False,
+    include_assets: bool = False,
     dry_run: bool = False,
+    **_extra_kwargs,
 ) -> dict:
     """Execute brand extraction as a background job.
 
     Writes progress to Redis at each extraction wave so the frontend
     can poll for real-time updates.
+
+    The **_extra_kwargs catch-all prevents TypeError crashes when the API
+    sends new parameters that this worker version doesn't know about yet
+    (e.g. after a deploy where the API reloaded but the worker didn't).
     """
-    db_factory = ctx["db_factory"]
-    db = db_factory()
     redis = ctx.get("redis")
     progress_key = f"brand_extract:{tenant_id}:{job_id}"
+
+    if _extra_kwargs:
+        logger.warning(
+            "Brand extraction received unexpected kwargs (API/worker version mismatch?): %s",
+            list(_extra_kwargs.keys()),
+        )
+
+    db = None
+    try:
+        db_factory = ctx["db_factory"]
+        db = db_factory()
+    except Exception as exc:
+        _fail_progress(
+            redis, progress_key,
+            "Error interno al conectar con la base de datos. Intenta de nuevo.",
+            f"DB factory failed for tenant={tenant_id} job={job_id}: {exc}\n{traceback.format_exc()}",
+        )
+        return {"status": "failed", "tenant_id": tenant_id, "error": str(exc)}
+
+    started_at = datetime.now(timezone.utc).isoformat()
 
     def on_progress(progress_pct: int, stage: str):
         if redis:
@@ -41,10 +80,24 @@ async def run_brand_extraction(
                 }),
             )
 
-    started_at = datetime.now(timezone.utc).isoformat()
+    # Create trace collector for this job
+    trace = None
+    try:
+        from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
+        trace = ExtractionTraceCollector(
+            db=db,
+            tenant_id=UUID(tenant_id),
+            job_id=job_id,
+            mode=mode,
+            profile_name="safe",  # will be overridden by service profile
+            url=url,
+            include_visuals=include_visuals,
+            include_assets=include_assets,
+        )
+    except Exception as exc:
+        logger.warning("Could not create trace collector: %s", exc)
 
     try:
-        # Late imports to avoid circular dependencies
         from src.modules.copilot.application.services.brand_ai_actions_service import (
             CopilotBrandAIActionsService,
         )
@@ -52,6 +105,11 @@ async def run_brand_extraction(
         on_progress(5, "Iniciando análisis...")
 
         service = CopilotBrandAIActionsService(db, UUID(tenant_id))
+
+        # Update trace with actual profile name from service
+        if trace:
+            trace._profile_name = service.brand_extraction_service.profile.name
+
         await service.extract_full_brand(
             url=url,
             text=text,
@@ -59,10 +117,11 @@ async def run_brand_extraction(
             update_instructions=update_instructions,
             dry_run=dry_run,
             include_visuals=include_visuals,
+            include_assets=include_assets,
             progress_callback=on_progress,
+            trace=trace,
         )
 
-        # Mark completed
         if redis:
             redis.setex(
                 progress_key, 3600,
@@ -80,20 +139,20 @@ async def run_brand_extraction(
         return {"status": "success", "tenant_id": tenant_id, "job_id": job_id}
 
     except Exception as exc:
-        logger.error(
-            "Brand extraction failed for tenant=%s job=%s: %s",
-            tenant_id, job_id, str(exc),
+        # Save trace even on failure
+        if trace:
+            try:
+                trace.finish(status="failed", error_message=str(exc))
+            except Exception:
+                logger.warning("Could not save failure trace", exc_info=True)
+
+        _fail_progress(
+            redis, progress_key,
+            "Ocurrió un error durante el análisis. Intenta de nuevo.",
+            f"Brand extraction failed for tenant={tenant_id} job={job_id}: {exc}\n{traceback.format_exc()}",
         )
-        if redis:
-            redis.setex(
-                progress_key, 3600,
-                json.dumps({
-                    "status": "failed",
-                    "progress": 0,
-                    "error": f"{type(exc).__name__}: {str(exc)[:200]}",
-                }),
-            )
         return {"status": "failed", "tenant_id": tenant_id, "error": str(exc)}
 
     finally:
-        db.close()
+        if db:
+            db.close()

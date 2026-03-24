@@ -70,8 +70,6 @@ class BrandIdentity(BaseEntity):
     website: Optional[str] = Field(None, description="Canonical website URL.")
     language: Optional[str] = Field(None, description="Primary language code (e.g. 'es', 'en').")
     timezone: Optional[str] = Field(None, description="Operational timezone (e.g. 'America/Mexico_City').")
-    archetype: Optional[str] = Field(None, description="Jungian archetype (Hero, Sage, Creator, etc.).")
-    keywords: List[str] = Field(default_factory=list, description="5-8 strategic brand keywords.")
     voice_tone: Optional[str] = Field(None, description="Voice tone descriptors (e.g. 'conversacional, aspiracional').")
     legal_name: Optional[str] = Field(None, description="Legal entity name.")
     tax_id: Optional[str] = Field(None, description="Tax ID (RFC, NIF, CUIT, EIN).")

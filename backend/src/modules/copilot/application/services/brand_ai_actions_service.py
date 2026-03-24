@@ -1,4 +1,6 @@
-from typing import Literal, Optional
+from __future__ import annotations
+
+from typing import Literal, Optional, TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -6,6 +8,9 @@ from sqlalchemy.orm import Session
 from src.modules.brand.application.extraction_service import BrandExtractionService
 from src.modules.brand.domain.aggregates import BrandSettings
 from src.modules.brand.domain.identity import BrandVisuals
+
+if TYPE_CHECKING:
+    from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
 
 
 class CopilotBrandAIActionsService:
@@ -27,7 +32,9 @@ class CopilotBrandAIActionsService:
         update_instructions: Optional[str] = None,
         dry_run: bool = False,
         include_visuals: bool = False,
+        include_assets: bool = False,
         progress_callback=None,
+        trace: Optional[ExtractionTraceCollector] = None,
     ) -> BrandSettings:
         return await self.brand_extraction_service.extract_all(
             url=url,
@@ -36,5 +43,7 @@ class CopilotBrandAIActionsService:
             update_instructions=update_instructions,
             dry_run=dry_run,
             include_visuals=include_visuals,
+            include_assets=include_assets,
             progress_callback=progress_callback,
+            trace=trace,
         )

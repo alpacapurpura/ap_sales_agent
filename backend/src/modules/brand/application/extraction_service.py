@@ -1,4 +1,6 @@
-from typing import Optional, Literal, List, Callable
+from __future__ import annotations
+
+from typing import Optional, Literal, List, Callable, TYPE_CHECKING
 from uuid import UUID
 from dataclasses import dataclass
 from sqlalchemy.orm import Session
@@ -7,6 +9,9 @@ import json
 import asyncio
 import time
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
 
 from src.modules.brand.domain import (
     BrandSettings, BrandIdentity, BrandStory, BrandStrategy, BrandVisuals,
@@ -42,16 +47,17 @@ class ExtractionProfile:
     wave_delay_seconds: float # pause between waves (only when waves > 1)
 
 
-# "safe" — conservative with 2 waves. Now uses gpt-4o-mini (200K+ TPM)
-# so waves are less critical but kept as safety margin.
+# "safe" — conservative with 3 waves and longer delays.
+# gpt-4-turbo-preview has 30k TPM — 4+ concurrent sections will 429.
+# gpt-4o-mini has 200k+ TPM — waves are less critical but kept as safety.
 PROFILE_SAFE = ExtractionProfile(
     name="safe",
     model_type="smart",
     max_output_tokens=4000,
-    retries=2,
-    retry_delay_seconds=2.0,
-    concurrency_waves=2,
-    wave_delay_seconds=2.0,
+    retries=3,
+    retry_delay_seconds=5.0,
+    concurrency_waves=3,
+    wave_delay_seconds=5.0,
 )
 
 # "fast" — all 6 concurrent, minimal delays. Safe with gpt-4o-mini (200K+ TPM).
@@ -142,6 +148,7 @@ class BrandExtractionService:
         self.tenant_id = tenant_id
         self.repository = BrandRepository(db)
         self.ai_action_service = AIActionService()
+        self._trace: Optional[ExtractionTraceCollector] = None
 
         # Resolve extraction profile from env
         self.profile = _get_active_profile()
@@ -165,14 +172,15 @@ class BrandExtractionService:
     def _visuals_policy(self) -> AIActionPolicy:
         """Policy override for visuals extraction — needs more output tokens
         because the expanded BrandVisuals schema has ~20 additional fields
-        with dicts/lists that produce larger JSON responses."""
+        with dicts/lists that produce larger JSON responses.
+        Capped to profile max to avoid exceeding model limits (e.g. gpt-4-turbo = 4096)."""
         return AIActionPolicy(
             retries=self.profile.retries,
             retry_delay_seconds=self.profile.retry_delay_seconds,
             model=AIModelPolicy(
                 model_type=self.profile.model_type,
                 temperature=0,
-                max_output_tokens=6000,
+                max_output_tokens=self.profile.max_output_tokens,
             ),
         )
 
@@ -608,13 +616,18 @@ class BrandExtractionService:
         update_instructions: Optional[str] = None,
         dry_run: bool = False,
         include_visuals: bool = False,
+        include_assets: bool = False,
         progress_callback: Optional[Callable[[int, str], None]] = None,
+        trace: Optional[ExtractionTraceCollector] = None,
     ) -> BrandSettings:
         """
         Orchestrates the full brand extraction process.
-        When a URL is provided, visual identity extraction is included as the
-        7th section using CSS-enriched HTML (not stripped text).
+        include_visuals=True adds visual identity extraction (colors, fonts, design).
+        include_assets=True adds communication assets extraction (taglines, CTAs).
         """
+        # Store trace on instance so _run_section can access it
+        self._trace = trace
+
         # 1. Get Content
         content = text or ""
         enriched_visual_content = ""
@@ -622,6 +635,8 @@ class BrandExtractionService:
 
         if url:
             logger.info("starting_crawl", url=url)
+            if trace:
+                trace.crawl_start(url)
 
             t0 = time.time()
 
@@ -639,17 +654,24 @@ class BrandExtractionService:
                     logger.error("crawl_styles_failed", error=str(e))
                     return ""
 
-            # Parallel: regular crawl (for text sections) + CSS-enriched crawl (for visuals)
-            crawled_content, enriched_visual_content = await asyncio.gather(
-                safe_crawl(), safe_crawl_styles()
-            )
+            # Parallel: regular crawl (for text sections) + CSS-enriched crawl (only when visuals requested)
+            if include_visuals:
+                crawled_content, enriched_visual_content = await asyncio.gather(
+                    safe_crawl(), safe_crawl_styles()
+                )
+            else:
+                crawled_content = await safe_crawl()
 
             t1 = time.time()
+            crawl_dur = t1 - t0
             logger.info("parallel_crawl_completed",
-                        duration=t1-t0,
+                        duration=crawl_dur,
                         crawl_length=len(crawled_content),
                         enriched_length=len(enriched_visual_content),
             )
+            if trace:
+                trace.crawl_end(crawl_dur, content_len=len(crawled_content),
+                                visual_len=len(enriched_visual_content))
             if progress_callback:
                 progress_callback(10, "Escaneando sitio web...")
 
@@ -675,9 +697,13 @@ class BrandExtractionService:
 
         # 3. Run LLM extractions (wave strategy from profile)
         waves = self.profile.concurrency_waves
-        base_sections = 8  # identity, story, strategy, people_contact, testimonials, authority, positioning, narrative
-        total_sections = base_sections + (1 if has_url and enriched_visual_content.strip() else 0) + 1  # +1 for communication_assets (wave 3)
+        base_sections = 6  # identity, story, strategy, people_contact, testimonials, authority
+        want_visuals = include_visuals and has_url and enriched_visual_content.strip()
+        total_sections = base_sections + 2 + (1 if want_visuals else 0) + (1 if include_assets else 0)  # +2 positioning/narrative, optional visuals & assets
         logger.info("starting_llm_extractions", sections=total_sections, waves=waves, profile=self.profile.name)
+        if trace:
+            trace.set_content_length(len(content))
+            trace.set_sections_total(total_sections)
 
         extracted_visuals = None
         positioning = BrandPositioning()
@@ -692,53 +718,85 @@ class BrandExtractionService:
                 self._extract_story(content, current_data_str, update_instructions),
                 self._extract_testimonials(content, current_data_str, update_instructions),
             ]
-            if has_url and enriched_visual_content.strip():
+            if want_visuals:
                 wave1_sections.append("visuals")
                 wave1_coros.append(
                     self._extract_visuals(enriched_visual_content, current_data_str, update_instructions)
                 )
 
             logger.info("extraction_wave_starting", wave=1, sections=wave1_sections)
+            if trace:
+                trace.wave_start(1, wave1_sections)
             wave1_results = await asyncio.gather(*wave1_coros)
             identity, story, testimonials_data = wave1_results[0], wave1_results[1], wave1_results[2]
             if len(wave1_results) > 3:
                 extracted_visuals = wave1_results[3]
             if progress_callback:
-                progress_callback(45, "Analizando identidad y visual...")
+                progress_callback(45, "Analizando identidad y narrativa...")
 
             # Pause between waves to let TPM budget recover
             logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
+            if trace:
+                trace.wave_pause(1, self.profile.wave_delay_seconds)
             await asyncio.sleep(self.profile.wave_delay_seconds)
 
-            # Wave 2: strategy, people_contact, authority, positioning, narrative
-            wave2_sections = ["strategy", "people_contact", "authority", "positioning", "narrative"]
+            # Wave 2: strategy, people_contact, authority (3 sections — fits 30k TPM)
+            wave2_sections = ["strategy", "people_contact", "authority"]
             logger.info("extraction_wave_starting", wave=2, sections=wave2_sections)
-            strategy, people_contact, authority_data, positioning, narrative = await asyncio.gather(
+            if trace:
+                trace.wave_start(2, wave2_sections)
+            strategy, people_contact, authority_data = await asyncio.gather(
                 self._extract_strategy(content, current_data_str, update_instructions),
                 self._extract_people_contact(content, current_data_str, update_instructions),
                 self._extract_authority(content, current_data_str, update_instructions),
+            )
+            if progress_callback:
+                progress_callback(65, "Extrayendo estrategia...")
+
+            # Wave 3: positioning, narrative (2 sections — fits 30k TPM)
+            logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
+            if trace:
+                trace.wave_pause(2, self.profile.wave_delay_seconds)
+            await asyncio.sleep(self.profile.wave_delay_seconds)
+
+            wave3_sections = ["positioning", "narrative"]
+            logger.info("extraction_wave_starting", wave=3, sections=wave3_sections)
+            if trace:
+                trace.wave_start(3, wave3_sections)
+            positioning, narrative = await asyncio.gather(
                 self._extract_positioning(content, current_data_str, update_instructions),
                 self._extract_narrative(content, current_data_str, update_instructions),
             )
             if progress_callback:
-                progress_callback(80, "Extrayendo estrategia y posicionamiento...")
+                progress_callback(85, "Extrayendo posicionamiento y narrativa...")
 
-            # Wave 3: communication_assets (depends on positioning + narrative)
-            logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
-            await asyncio.sleep(self.profile.wave_delay_seconds)
+            # Wave 4: communication_assets (depends on positioning + narrative) — only if requested
+            if include_assets:
+                logger.info("extraction_wave_pause", delay=self.profile.wave_delay_seconds)
+                if trace:
+                    trace.wave_pause(3, self.profile.wave_delay_seconds)
+                await asyncio.sleep(self.profile.wave_delay_seconds)
 
-            positioning_ctx = json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not self._is_empty(positioning) else ""
-            narrative_ctx = json.dumps(narrative.model_dump(exclude_none=True), indent=2) if not self._is_empty(narrative) else ""
+                positioning_ctx = json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not self._is_empty(positioning) else ""
+                narrative_ctx = json.dumps(narrative.model_dump(exclude_none=True), indent=2) if not self._is_empty(narrative) else ""
 
-            logger.info("extraction_wave_starting", wave=3, sections=["communication_assets"])
-            communication_assets = await self._extract_communication_assets(
-                content, current_data_str, update_instructions,
-                positioning_ctx, narrative_ctx,
-            )
+                logger.info("extraction_wave_starting", wave=4, sections=["communication_assets"])
+                if trace:
+                    trace.wave_start(4, ["communication_assets"])
+                communication_assets = await self._extract_communication_assets(
+                    content, current_data_str, update_instructions,
+                    positioning_ctx, narrative_ctx,
+                )
             if progress_callback:
-                progress_callback(95, "Generando activos de comunicación...")
+                progress_callback(95, "Finalizando extracción...")
         else:
             # All concurrent (for high-tier rate limits) — except communication_assets which needs positioning/narrative
+            all_sections = ["identity", "story", "strategy", "people_contact",
+                            "testimonials", "authority", "positioning", "narrative"]
+            if want_visuals:
+                all_sections.append("visuals")
+            if trace:
+                trace.wave_start(1, all_sections)
             coros = [
                 self._extract_identity(content, current_data_str, update_instructions),
                 self._extract_story(content, current_data_str, update_instructions),
@@ -749,7 +807,7 @@ class BrandExtractionService:
                 self._extract_positioning(content, current_data_str, update_instructions),
                 self._extract_narrative(content, current_data_str, update_instructions),
             ]
-            if has_url and enriched_visual_content.strip():
+            if want_visuals:
                 coros.append(
                     self._extract_visuals(enriched_visual_content, current_data_str, update_instructions)
                 )
@@ -761,15 +819,16 @@ class BrandExtractionService:
             if progress_callback:
                 progress_callback(80, "Extrayendo secciones...")
 
-            # Communication assets depend on positioning + narrative
-            positioning_ctx = json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not self._is_empty(positioning) else ""
-            narrative_ctx = json.dumps(narrative.model_dump(exclude_none=True), indent=2) if not self._is_empty(narrative) else ""
-            communication_assets = await self._extract_communication_assets(
-                content, current_data_str, update_instructions,
-                positioning_ctx, narrative_ctx,
-            )
+            # Communication assets depend on positioning + narrative — only if requested
+            if include_assets:
+                positioning_ctx = json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not self._is_empty(positioning) else ""
+                narrative_ctx = json.dumps(narrative.model_dump(exclude_none=True), indent=2) if not self._is_empty(narrative) else ""
+                communication_assets = await self._extract_communication_assets(
+                    content, current_data_str, update_instructions,
+                    positioning_ctx, narrative_ctx,
+                )
             if progress_callback:
-                progress_callback(95, "Generando activos de comunicación...")
+                progress_callback(95, "Finalizando extracción...")
 
         # Log extraction results summary
         results = {
@@ -781,8 +840,9 @@ class BrandExtractionService:
             "authority": not self._is_empty(authority_data),
             "positioning": not self._is_empty(positioning),
             "narrative": not self._is_empty(narrative),
-            "communication_assets": not self._is_empty(communication_assets),
         }
+        if include_assets:
+            results["communication_assets"] = not self._is_empty(communication_assets)
         if extracted_visuals is not None:
             results["visuals"] = not self._is_empty(extracted_visuals)
         succeeded = sum(1 for v in results.values() if v)
@@ -793,7 +853,10 @@ class BrandExtractionService:
         )
 
         # 4. Merge & Save
-        return self._merge_and_save(
+        if trace:
+            trace.merge_start()
+        merge_t0 = time.time()
+        result = self._merge_and_save(
             identity, story, strategy, people_contact,
             testimonials_data, authority_data,
             extracted_visuals,
@@ -802,6 +865,11 @@ class BrandExtractionService:
             new_communication_assets=communication_assets,
             dry_run=dry_run,
         )
+        if trace:
+            trace.merge_end(time.time() - merge_t0)
+            trace.finish(status="completed", sections_succeeded=succeeded)
+
+        return result
 
     async def _run_section(self, section_name: str, action_name: str, prompt: str,
                            response_model, default_result, user_prompt: str,
@@ -809,9 +877,12 @@ class BrandExtractionService:
                            policy: Optional[AIActionPolicy] = None):
         """Generic wrapper for running a single extraction section with timing and timeout."""
         effective_policy = policy or self.default_policy
+        trace = self._trace
         t0 = time.time()
         try:
             logger.info(f"extract_{section_name}_starting", prompt_length=len(prompt))
+            if trace:
+                trace.section_start(section_name, prompt_length=len(prompt))
             result = await asyncio.wait_for(
                 asyncio.to_thread(
                     self.ai_action_service.run_structured_action,
@@ -831,11 +902,17 @@ class BrandExtractionService:
                         fields_extracted=list(extracted.keys()),
                         field_count=len(extracted),
                         duration_s=round(elapsed, 2))
+            if trace:
+                trace.section_success(section_name, elapsed,
+                                      field_count=len(extracted),
+                                      fields=list(extracted.keys()))
             return result
         except asyncio.TimeoutError:
             elapsed = time.time() - t0
             logger.error(f"extract_{section_name}_timeout",
                          timeout=per_call_timeout, duration_s=round(elapsed, 2))
+            if trace:
+                trace.section_timeout(section_name, elapsed, timeout_limit=per_call_timeout)
             return default_result
         except Exception as e:
             elapsed = time.time() - t0
@@ -843,6 +920,9 @@ class BrandExtractionService:
                          error=str(e), error_type=type(e).__name__,
                          duration_s=round(elapsed, 2),
                          traceback=traceback.format_exc())
+            if trace:
+                trace.section_failed(section_name, elapsed,
+                                     error=str(e), error_type=type(e).__name__)
             return default_result
 
     async def _extract_identity(self, content: str, current_data: str, instructions: str) -> BrandIdentity:
@@ -916,14 +996,15 @@ class BrandExtractionService:
                                        BrandNarrative, BrandNarrative(), "Extract StoryBrand narrative.")
 
     def _communication_assets_policy(self) -> AIActionPolicy:
-        """Policy for communication assets — needs more tokens and higher temperature."""
+        """Policy for communication assets — needs more tokens and higher temperature.
+        Capped to profile max to avoid exceeding model limits (e.g. gpt-4-turbo = 4096)."""
         return AIActionPolicy(
             retries=self.profile.retries,
             retry_delay_seconds=self.profile.retry_delay_seconds,
             model=AIModelPolicy(
                 model_type=self.profile.model_type,
                 temperature=0.3,
-                max_output_tokens=6000,
+                max_output_tokens=self.profile.max_output_tokens,
             ),
         )
 
