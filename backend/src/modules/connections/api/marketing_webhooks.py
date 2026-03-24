@@ -101,6 +101,19 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
     if not profile.lead_source:
         profile.lead_source = "shopify"
 
+    # Extract line_items for unmatched product detection
+    line_items_raw = payload.get("line_items", [])
+    line_items_data = [
+        {
+            "product_id": str(item.get("product_id", "")),
+            "variant_id": str(item.get("variant_id", "")),
+            "title": item.get("title", ""),
+            "price": float(item.get("price", 0)),
+            "quantity": int(item.get("quantity", 1)),
+        }
+        for item in line_items_raw
+    ]
+
     # Create journey_event
     journey_event = JourneyEventModel(
         profile_id=profile.id,
@@ -112,7 +125,8 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
             "checkout_token": checkout_token,
             "total_price": float(payload.get("total_price", 0)),
             "currency": payload.get("currency", "USD"),
-            "line_items_count": len(payload.get("line_items", [])),
+            "line_items_count": len(line_items_raw),
+            "line_items": line_items_data,
         },
     )
     db.add(journey_event)
@@ -131,7 +145,7 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
 
 
 async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> None:
-    """Process orders/create webhook: journey_event + SaleCompletedEvent."""
+    """Process orders/create webhook: journey_event + per-line-item SaleCompletedEvents."""
     from src.modules.crm.application.services.customer_service import CustomerService
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
 
@@ -172,7 +186,29 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
 
     total_price = float(payload.get("total_price", 0))
 
-    # Create journey_event
+    # Extract and resolve line_items
+    line_items_raw = payload.get("line_items", [])
+    line_items_data = [
+        {
+            "product_id": str(item.get("product_id", "")),
+            "variant_id": str(item.get("variant_id", "")),
+            "title": item.get("title", ""),
+            "price": float(item.get("price", 0)),
+            "quantity": int(item.get("quantity", 1)),
+        }
+        for item in line_items_raw
+    ]
+
+    # Bulk resolve product_id → offer_id mappings
+    from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
+        ExternalProductMappingRepository,
+    )
+
+    mapping_repo = ExternalProductMappingRepository(db)
+    product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
+    resolved_mappings = mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids)
+
+    # Create journey_event with full line_items
     journey_event = JourneyEventModel(
         profile_id=profile.id,
         tenant_id=tenant_id,
@@ -184,25 +220,44 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
             "checkout_token": checkout_token,
             "total_price": total_price,
             "currency": payload.get("currency", "USD"),
-            "line_items_count": len(payload.get("line_items", [])),
+            "line_items_count": len(line_items_raw),
+            "line_items": line_items_data,
         },
     )
     db.add(journey_event)
 
-    # Publish SaleCompletedEvent for Stage 4 (Ventas)
+    # Publish one SaleCompletedEvent per line_item
     from src.shared.domain.events import EventBus
     from src.modules.crm.domain.events import SaleCompletedEvent
-    import uuid
+    import uuid as uuid_mod
 
-    sale_event = SaleCompletedEvent.create(
-        tenant_id=tenant_id,
-        sale_id=uuid.uuid4(),
-        customer_id=profile.id,
-        stage="CONVERSION",
-        amount=total_price,
-        offer_id=uuid.UUID(int=0),  # No offer context from Shopify
-    )
-    EventBus.publish(sale_event, session=db)
+    for item in line_items_data:
+        product_id = item["product_id"]
+        offer_id = resolved_mappings.get(product_id, uuid_mod.UUID(int=0))
+        line_amount = item["price"] * item["quantity"]
+
+        sale_event = SaleCompletedEvent.create(
+            tenant_id=tenant_id,
+            sale_id=uuid_mod.uuid4(),
+            customer_id=profile.id,
+            stage="CONVERSION",
+            amount=line_amount,
+            offer_id=offer_id,
+        )
+        EventBus.publish(sale_event, session=db)
+
+    # Fallback: if no line_items, publish single event with total
+    if not line_items_data:
+        sale_event = SaleCompletedEvent.create(
+            tenant_id=tenant_id,
+            sale_id=uuid_mod.uuid4(),
+            customer_id=profile.id,
+            stage="CONVERSION",
+            amount=total_price,
+            offer_id=uuid_mod.UUID(int=0),
+        )
+        EventBus.publish(sale_event, session=db)
+
     db.commit()
 
     logger.info(
@@ -210,6 +265,8 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
         tenant_id=str(tenant_id),
         profile_id=str(profile.id),
         order_id=order_id,
+        line_items=len(line_items_data),
+        resolved_offers=len(resolved_mappings),
     )
 
 

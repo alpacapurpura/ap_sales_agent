@@ -48,6 +48,14 @@ GOOGLE_CHANNEL_TYPES = {
 EXPIRY_BUFFER_SECONDS = 300
 
 
+# Provider name → actual ChannelType value for credential resolution.
+# Some providers (e.g. google_ads) share OAuth credentials with another
+# channel type (google_analytics). This map resolves the alias before lookup.
+PROVIDER_TO_CHANNEL_TYPE_ALIAS = {
+    "google_ads": "google_analytics",  # Google Ads uses same Google OAuth as GA4
+}
+
+
 class ConnectionPortImpl(ConnectionPort):
     """Adapter implementing ConnectionPort for the connections bounded context.
 
@@ -63,8 +71,10 @@ class ConnectionPortImpl(ConnectionPort):
         self, tenant_id: UUID, channel_type: str
     ) -> ConnectionCredentials:
         """Retrieve credentials for a specific channel, refreshing expired tokens."""
+        # Resolve provider alias → actual ChannelType value
+        resolved = PROVIDER_TO_CHANNEL_TYPE_ALIAS.get(channel_type, channel_type)
         try:
-            channel_enum = ChannelType(channel_type)
+            channel_enum = ChannelType(resolved)
         except ValueError:
             raise ConnectionRevokedException(
                 f"Unknown channel type: {channel_type}",
