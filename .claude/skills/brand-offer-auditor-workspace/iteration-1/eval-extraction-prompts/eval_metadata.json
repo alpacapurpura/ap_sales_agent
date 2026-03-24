@@ -1,0 +1,32 @@
+{
+  "eval_id": 3,
+  "eval_name": "extraction-prompts-audit",
+  "prompt": "Revisa los prompts de extracción del Brand Studio. Quiero saber si cuando extraemos la marca de un sitio web, los prompts capturan la información al nivel atómico correcto o si producen datos demasiado genéricos.",
+  "assertions": [
+    {
+      "id": "reads_all_prompts",
+      "text": "Reads and analyzes all 10 brand_extract_*.j2 templates (identity, story, positioning, narrative, strategy, authority, people_contact, testimonials, visuals, communication_assets)",
+      "type": "content"
+    },
+    {
+      "id": "evaluates_specificity",
+      "text": "For each prompt, evaluates whether it produces specific, usable data vs vague/generic output. Gives concrete examples of what 'too generic' looks like.",
+      "type": "quality"
+    },
+    {
+      "id": "framework_alignment",
+      "text": "Cross-references each prompt against the marketing framework it should serve (e.g., positioning prompt vs Brand Love Key, narrative prompt vs StoryBrand)",
+      "type": "content"
+    },
+    {
+      "id": "identifies_prompt_weaknesses",
+      "text": "Identifies concrete weaknesses in at least 3 prompts — not just 'could be better' but specific instructions that are missing or poorly framed",
+      "type": "content"
+    },
+    {
+      "id": "translation_audit",
+      "text": "Evaluates whether prompts use plain language that would produce user-friendly output while internally mapping to methodology concepts",
+      "type": "content"
+    }
+  ]
+}

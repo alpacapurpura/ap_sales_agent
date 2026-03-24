@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "run_type": "with_skill",
+  "expectations": [
+    {"text": "has_report_structure", "passed": true, "evidence": "Has Executive Summary, Findings (CRITICAL/HIGH/MEDIUM sections), Deduplication Opportunities, Methodology Coverage Matrix, SDR Readiness Score, Brand Essence Bridge, Next Steps"},
+    {"text": "has_severity_levels", "passed": true, "evidence": "CRITICAL: 2 items (C-01, C-02), HIGH: 5 items (H-01 through H-05), MEDIUM: 6 items (M-01 through M-06) — all with detailed sub-fields"},
+    {"text": "references_frameworks", "passed": true, "evidence": "References all 6 primary: Aaker (Brand Identity, Brand-as-Person, Value Proposition), Keller (Resonance pyramid, Feelings, Judgments), Gad (4D Social, Mental, Spiritual), Neumeier (Onliness Statement), Brand Love Key (full), StoryBrand (full)"},
+    {"text": "reads_actual_code", "passed": true, "evidence": "Cites knowledge_builder.py lines 63/78-98, agent_identity.j2 lines 10-27, Avatar entity lines 11-23, specific field names (voice_tone, discriminator, etc.), exact file paths"},
+    {"text": "identifies_gaps", "passed": true, "evidence": "13 genuine gaps: SDR not consuming positioning/narrative, shallow avatar, no community/social dimension, no feelings taxonomy, voice_tone too shallow, no purchase trigger moments, strategy/mission disconnect, no brand code synthesis, no self-expressive benefits, no core vs extended identity, etc."},
+    {"text": "sdr_readiness_table", "passed": true, "evidence": "Full 9-row table with Answerable? (YES/PARTIAL/NO), Source Fields, and Gap columns. Score: 1.5/9. Key insight: fixing C-01 alone jumps to ~5/9"},
+    {"text": "actionable_recommendations", "passed": true, "evidence": "Names exact files, provides Jinja2 template code examples (e.g., '{% if positioning.discriminator %}...'), specifies field types to add (e.g., 'purchase_trigger_moments: List[str]'), references line numbers"}
+  ]
+}

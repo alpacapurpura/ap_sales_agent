@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { BrandVisuals } from "@/features/brand/types";
-import { Users, Star, Plus } from "lucide-react";
+import { Users, Star, Plus, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { avatarApi } from "@/lib/api/avatar";
@@ -15,9 +16,10 @@ import { cn } from "@/lib/utils";
 interface AvatarsSectionProps {
   visuals: BrandVisuals;
   onEdit: (avatar?: any) => void;
+  onExtract?: () => void;
 }
 
-export function AvatarsSection({ visuals, onEdit }: AvatarsSectionProps) {
+export function AvatarsSection({ visuals, onEdit, onExtract }: AvatarsSectionProps) {
   const { getToken } = useAuth();
 
   const { data: avatars, isLoading } = useQuery({
@@ -70,14 +72,41 @@ export function AvatarsSection({ visuals, onEdit }: AvatarsSectionProps) {
       </div>
 
       {!hasContent ? (
-        <div className="pl-0 md:pl-14 cursor-pointer" onClick={() => onEdit()}>
-            <p className="text-lg text-muted-foreground italic mb-2">
-                &quot;Si le hablas a todos, no le hablas a nadie. Define a tu cliente ideal.&quot;
+        <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-4 shadow-sm">
+                <Sparkles className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Sin Target & Buyer Personas</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm leading-relaxed">
+                No tienes perfiles de clientes definidos. Extrae la información de tu buyer persona automáticamente desde tus documentos.
             </p>
-            <span className="text-sm text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Definir Buyer Persona
-            </span>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+                <Button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (onExtract) {
+                            onExtract();
+                        } else {
+                            onEdit();
+                        }
+                    }}
+                    className="w-full shadow-lg shadow-purple-500/20 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-none"
+                >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Extraer de Documentos
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={(e) => {
+                         e.stopPropagation();
+                         onEdit();
+                    }}
+                >
+                    Crearlo Juntos.
+                </Button>
+            </div>
         </div>
       ) : (
         <div className="pl-0 md:pl-14">

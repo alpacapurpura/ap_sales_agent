@@ -1,0 +1,47 @@
+{
+  "skill_name": "brand-offer-auditor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Audita el Brand Studio completo. Quiero saber qué gaps tiene para que el SDR pueda vender con la marca.",
+      "expected_output": "Audit report with CRITICAL/HIGH/MEDIUM findings covering brand schema, extraction prompts, and SDR readiness. Should apply Aaker, Keller, Gad, Neumeier as primary frameworks. Must include methodology coverage matrix and SDR readiness score.",
+      "files": [],
+      "assertions": [
+        {"id": "has_report_structure", "text": "Output contains the required report sections: Executive Summary, Findings (with severity levels), Methodology Coverage Matrix, and SDR Readiness Score"},
+        {"id": "has_severity_levels", "text": "Findings are categorized as CRITICAL, HIGH, or MEDIUM with specific items under each"},
+        {"id": "references_frameworks", "text": "References at least 4 of the 6 primary brand frameworks: Aaker, Keller, Gad, Neumeier, Brand Love Key, StoryBrand"},
+        {"id": "reads_actual_code", "text": "Cites real file paths, field names, and model structures from the codebase"},
+        {"id": "identifies_gaps", "text": "Identifies at least 3 genuine gaps in the brand schema"},
+        {"id": "sdr_readiness_table", "text": "Includes an SDR readiness evaluation table"},
+        {"id": "actionable_recommendations", "text": "Recommendations name exact files, fields, and changes"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Audita el tipo de oferta COHORT_BASED_COURSE. Tenemos varios cursos en cohorte y quiero asegurarme de que el sistema captura todo lo que necesita el SDR para vender este tipo de programa.",
+      "expected_output": "Type-specific audit for COHORT_BASED_COURSE with Hormozi/WbD/Casel as primary frameworks. Must examine ProgramDetails and include Product Blueprint validation.",
+      "files": [],
+      "assertions": [
+        {"id": "type_specific_focus", "text": "Focuses on COHORT_BASED_COURSE, mentioning ProgramDetails, curriculum, cohort_limit, schedule"},
+        {"id": "examines_program_details", "text": "Analyzes ProgramDetails model including curriculum, schedule, cohort settings, community"},
+        {"id": "applies_correct_frameworks", "text": "Applies Hormozi, WbD, and Casel as primary — not primarily brand-level frameworks"},
+        {"id": "product_blueprint_validation", "text": "Validates complete Product Blueprint: Target/ICP, Critical Event, Promise, Process, Guarantee"},
+        {"id": "sdr_type_questions", "text": "Includes program-specific SDR questions: duration, start date, waitlist, curriculum, live interaction"},
+        {"id": "brand_essence_bridge", "text": "Checks brand-to-offer data inheritance (voice, story, positioning, proof)"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Revisa los prompts de extracción del Brand Studio. Quiero saber si cuando extraemos la marca de un sitio web, los prompts capturan la información al nivel atómico correcto o si producen datos demasiado genéricos.",
+      "expected_output": "Prompt-by-prompt analysis of all brand_extract_*.j2 templates evaluating specificity, framework alignment, and translation quality.",
+      "files": [],
+      "assertions": [
+        {"id": "reads_all_prompts", "text": "Analyzes all 10 brand_extract_*.j2 templates"},
+        {"id": "evaluates_specificity", "text": "Evaluates specific vs generic output with concrete examples"},
+        {"id": "framework_alignment", "text": "Cross-references each prompt against its target framework"},
+        {"id": "identifies_prompt_weaknesses", "text": "Identifies concrete weaknesses in at least 3 prompts"},
+        {"id": "translation_audit", "text": "Evaluates plain language vs methodology jargon mapping"}
+      ]
+    }
+  ]
+}

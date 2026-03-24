@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propuesta UI: Bowtie Funnel Tabs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+    }
+    body {
+      background-color: #0f172a; /* bg-slate-900 */
+      color: white;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+    }
+
+    /* 
+      Bowtie Shapes via clip-path 
+      We use precise polygon coordinates to create the "perspective" effect.
+    */
+    
+    .bowtie-container {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 0.25rem;
+      height: 120px;
+      position: relative;
+    }
+
+    /* Left Side: Gets smaller towards the right */
+    .bowtie-tab-l1 {
+      clip-path: polygon(0 0, 100% 15%, 100% 85%, 0 100%);
+    }
+    .bowtie-tab-l2 {
+      clip-path: polygon(0 15%, 100% 30%, 100% 70%, 0 85%);
+    }
+
+    /* Center: Circle/Diamond shape */
+    .bowtie-tab-center {
+      /* Circular shape that overlaps */
+      border-radius: 50%;
+      width: 140px;
+      height: 140px;
+      margin-top: -10px; /* pull up slightly */
+      z-index: 10;
+      position: relative;
+      border: 4px solid #0f172a; /* Match background to create separation */
+    }
+
+    /* Right Side: Gets larger towards the right */
+    .bowtie-tab-r1 {
+      clip-path: polygon(0 30%, 100% 15%, 100% 85%, 0 70%);
+    }
+    .bowtie-tab-r2 {
+      clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 85%);
+    }
+
+    /* Base styles for all tabs */
+    .bowtie-tab {
+      flex: 1;
+      min-width: 140px;
+      background-color: #1e293b; /* bg-slate-800 */
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+      display: flex;
+      flex-col;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .bowtie-tab:hover {
+      background-color: #334155; /* hover:bg-slate-700 */
+    }
+
+    .bowtie-tab.active {
+      background-color: #2563eb; /* bg-blue-600 */
+      color: white;
+    }
+
+    /* Special styling for the active state to ensure text remains readable */
+    .bowtie-tab.active .metric-value {
+      color: white;
+    }
+    .bowtie-tab.active .metric-label {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .bowtie-tab.active .conversion-pill {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Growth Studio</h1>
+      <p class="text-slate-400">Entiende tu negocio de un vistazo</p>
+    </div>
+
+    <!-- The Bowtie Funnel -->
+    <div class="bowtie-container">
+      
+      <!-- Tab 1: Atracción & Captura (Left Outermost) -->
+      <div class="bowtie-tab bowtie-tab-l1 active" onclick="setActive(this)">
+        <div class="flex flex-col items-center">
+          <span class="text-[10px] font-medium text-slate-300 uppercase tracking-widest metric-label">Atracción</span>
+          <span class="text-2xl font-bold mt-1 metric-value">254k</span>
+          <span class="text-[10px] text-slate-400 mt-0.5 metric-label">visitantes</span>
+          <div class="text-[8px] text-slate-800 bg-white px-2 py-0.5 rounded-full mt-2 font-medium conversion-pill">
+            10 canales
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Nutrición & Oportunidad (Left Inner) -->
+      <div class="bowtie-tab bowtie-tab-l2" onclick="setActive(this)">
+        <div class="flex flex-col items-center">
+          <span class="text-[10px] font-medium text-slate-400 uppercase tracking-widest metric-label">Nutrición</span>
+          <span class="text-xl font-bold mt-1 text-slate-200 metric-value">185</span>
+          <span class="text-[10px] text-slate-400 mt-0.5 metric-label">MQLs</span>
+          <div class="text-[8px] text-slate-800 bg-white px-2 py-0.5 rounded-full mt-2 font-medium conversion-pill">
+            31.0% Conversión
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Ventas (Center Hub) -->
+      <div class="bowtie-tab bowtie-tab-center bg-slate-800" onclick="setActive(this)">
+        <div class="flex flex-col items-center justify-center h-full">
+          <span class="text-[10px] font-medium text-slate-400 uppercase tracking-widest metric-label">Ventas</span>
+          <span class="text-2xl font-bold mt-1 text-emerald-400 metric-value">$74,757</span>
+          <span class="text-[10px] text-slate-400 mt-0.5 metric-label">revenue</span>
+          <div class="text-[8px] text-slate-800 bg-white px-2 py-0.5 rounded-full mt-2 font-medium conversion-pill">
+            52.8% Conversión
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Adopción (Right Inner) -->
+      <div class="bowtie-tab bowtie-tab-r1" onclick="setActive(this)">
+        <div class="flex flex-col items-center">
+          <span class="text-[10px] font-medium text-slate-400 uppercase tracking-widest metric-label">Adopción</span>
+          <span class="text-xl font-bold mt-1 text-slate-200 metric-value">100%</span>
+          <span class="text-[10px] text-slate-400 mt-0.5 metric-label">salud %</span>
+          <div class="text-[8px] text-slate-800 bg-white px-2 py-0.5 rounded-full mt-2 font-medium conversion-pill">
+            100% Conversión
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: Expansión & Evangelización (Right Outermost) -->
+      <div class="bowtie-tab bowtie-tab-r2" onclick="setActive(this)">
+        <div class="flex flex-col items-center">
+          <span class="text-[10px] font-medium text-slate-400 uppercase tracking-widest metric-label">Expansión</span>
+          <span class="text-2xl font-bold mt-1 text-slate-200 metric-value">$6,150</span>
+          <span class="text-[10px] text-slate-400 mt-0.5 metric-label">net MRR</span>
+          <div class="text-[8px] text-slate-800 bg-white px-2 py-0.5 rounded-full mt-2 font-medium conversion-pill">
+            13.2% Conversión
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <!-- Info Note -->
+    <div class="mt-12 bg-slate-800/50 p-6 rounded-lg border border-slate-700">
+      <h3 class="text-lg font-semibold flex items-center gap-2 mb-2">
+        <i data-lucide="info" class="w-5 h-5 text-blue-400"></i> Sobre esta propuesta visual
+      </h3>
+      <p class="text-sm text-slate-300 leading-relaxed mb-4">
+        He utilizado CSS <code>clip-path</code> para crear la forma de "moño" (bowtie). Esta técnica permite mantener el código HTML semántico y accesible (siguen siendo divs clickeables estándar) mientras visualmente se adaptan a la forma del embudo.
+      </p>
+      <ul class="text-sm text-slate-400 list-disc pl-5 space-y-2">
+        <li><strong>Forma de Embudo:</strong> Los nodos de la izquierda se estrechan hacia el centro, representando cómo el tráfico masivo se filtra.</li>
+        <li><strong>El Nodo Central (Ventas):</strong> Es el punto de inflexión. Pasa de un polígono a un círculo superpuesto para destacar el evento de conversión principal (el pago).</li>
+        <li><strong>Forma Inversa:</strong> Los nodos de la derecha se ensanchan, representando el crecimiento del LTV y el alcance viral (boca a boca).</li>
+        <li><strong>Fusión de Etapas:</strong> En esta versión, tenemos 5 tabs principales, lo que agrupa perfectamente "Atracción & Captura" (Tab 1), "Nutrición & Oportunidad" (Tab 2), "Ventas" (Centro), "Adopción" (Tab 4) y "Expansión & Evangelización" (Tab 5).</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function setActive(element) {
+      // Remove active class from all tabs
+      document.querySelectorAll('.bowtie-tab').forEach(tab => {
+        tab.classList.remove('active');
+        // Reset colors
+        if(tab.classList.contains('bowtie-tab-center')) {
+            tab.classList.add('bg-slate-800');
+        }
+      });
+      
+      // Add active class to clicked tab
+      element.classList.add('active');
+      if(element.classList.contains('bowtie-tab-center')) {
+            element.classList.remove('bg-slate-800');
+        }
+    }
+  </script>
+</body>
+</html>

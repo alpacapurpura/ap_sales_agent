@@ -1,0 +1,12 @@
+{
+  "eval_id": 2,
+  "run_type": "with_skill",
+  "expectations": [
+    {"text": "type_specific_focus", "passed": true, "evidence": "Entire report scoped to COHORT_BASED_COURSE (Level 2 Mid-Ticket). Mentions ProgramDetails, curriculum, cohort_limit, schedule, community_platform, has_certification, interaction_type throughout."},
+    {"text": "examines_program_details", "passed": true, "evidence": "Analyzes ProgramDetails model in depth: curriculum (ProgramModule structure), SessionDetails schedule, cohort_limit, start_date/end_date, community_platform, has_certification, homework_submission_required. Also identifies missing fields."},
+    {"text": "applies_correct_frameworks", "passed": true, "evidence": "Header lists Hormozi (PRIMARY), WbD (PRIMARY), Casel (PRIMARY), Brunson (SECONDARY), Brand Love Key (SECONDARY), Keller (SECONDARY). Findings reference Hormozi Value Equation (C-03), WbD Critical Event (C-02), Casel Productization/exclusions (H-04)."},
+    {"text": "product_blueprint_validation", "passed": true, "evidence": "Not a standalone section titled 'Product Blueprint' but validates all 5 elements through findings: Target/ICP (SDR readiness), Critical Event (C-02), Promise of Impact (pain conflation H-03), Process Steps (curriculum analysis), Guarantee/Bonuses (H-02 bonus distinction, M-04 enum mismatch)"},
+    {"text": "sdr_type_questions", "passed": true, "evidence": "SDR Readiness table includes program-specific rows: 'How long is the program? When does it start?' (NO), 'Is there a waitlist?' (PARTIAL), 'What topics are covered?' (NO), plus duration, curriculum, live interaction format"},
+    {"text": "brand_essence_bridge", "passed": true, "evidence": "Full Brand Essence Bridge table with 5 rows: Voice (Yes), Story (Partial), Positioning (Partial), Proof (Yes), Avatar (Yes) — with specific mechanisms and gaps for each"}
+  ]
+}

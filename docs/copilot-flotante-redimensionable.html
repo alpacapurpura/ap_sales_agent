@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alt 3: Copilot Flotante Redimensionable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .ai-hover-wrapper { position: relative; }
+        .ai-hover-btn {
+            position: absolute; top: -14px; right: 12px; opacity: 0;
+            transform: translateY(4px); transition: all 0.2s ease; z-index: 60;
+        }
+        .ai-hover-wrapper:hover .ai-hover-btn { opacity: 1; transform: translateY(0); }
+
+        /* Copilot Bubble & Window Transitions */
+        #copilot-window {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: bottom right;
+        }
+        .window-hidden { opacity: 0; transform: scale(0.9) translateY(20px); pointer-events: none; }
+        .window-visible { opacity: 1; transform: scale(1) translateY(0); }
+        
+        /* Modos del Copilot */
+        .mode-floating { bottom: 80px; right: 24px; height: 500px; width: 380px; border-radius: 1rem; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.2); }
+        .mode-sidebar { bottom: 0; right: 0; height: 100vh; width: 350px; border-radius: 0; box-shadow: -5px 0 30px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden text-slate-900">
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shrink-0 z-10">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800">
+            <i data-lucide="triangle" class="w-6 h-6 text-blue-500"></i>
+            <span class="ml-2 font-bold text-lg">Visionarias</span>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative min-w-0 bg-white z-0">
+        <header class="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white shrink-0">
+            <h1 class="text-lg font-semibold">Brand Studio</h1>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8 bg-gray-50">
+            <div class="max-w-3xl mx-auto space-y-12">
+                <div class="border-b pb-2 mb-6 flex justify-between items-end">
+                    <h2 class="text-2xl font-bold">Origen y Estrategia</h2>
+                    <!-- Aquí se abriría tu formulario actual de Shadcn, no lo mockeo para enfocarnos en el Copilot -->
+                    <button class="flex items-center gap-2 text-sm bg-white border border-gray-200 font-medium px-4 py-2 rounded-md">
+                        <i data-lucide="pencil" class="w-4 h-4"></i> Editar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- COPILOT FAB (Floating Action Button) -->
+    <button id="copilot-fab" class="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-purple-700 transition-transform hover:scale-105 z-40" onclick="toggleWindow()">
+        <i data-lucide="sparkles" class="w-6 h-6"></i>
+    </button>
+
+    <!-- COPILOT WINDOW (Puede ser flotante o sidebar) -->
+    <div id="copilot-window" class="fixed z-50 bg-white border border-gray-200 flex flex-col window-hidden mode-floating overflow-hidden">
+        
+        <!-- Header -->
+        <div class="h-14 px-4 bg-purple-600 text-white flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2 font-semibold">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> Copilot
+            </div>
+            <div class="flex gap-1">
+                <!-- Botón para alternar modos -->
+                <button class="p-1.5 hover:bg-purple-500 rounded" onclick="toggleMode()" title="Cambiar vista">
+                    <i id="mode-icon" data-lucide="panel-right" class="w-4 h-4"></i>
+                </button>
+                <button class="p-1.5 hover:bg-purple-500 rounded" onclick="toggleWindow()">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-1 p-4 bg-gray-50 overflow-y-auto text-sm">
+            <div class="bg-white border border-gray-200 p-3 rounded-xl shadow-sm mb-3">
+                <p>Estoy en modo <strong id="mode-text">Flotante</strong>. Usa el ícono superior para anclarme como un Sidebar permanente.</p>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="p-3 bg-white border-t border-gray-200">
+            <div class="relative">
+                <input type="text" class="w-full bg-gray-100 border-none rounded-xl pl-3 pr-10 py-2.5 text-sm outline-none" placeholder="Pregunta...">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        let isOpen = false;
+        let isSidebarMode = false;
+
+        function toggleWindow() {
+            isOpen = !isOpen;
+            const win = document.getElementById('copilot-window');
+            if (isOpen) {
+                win.classList.remove('window-hidden');
+                win.classList.add('window-visible');
+            } else {
+                win.classList.add('window-hidden');
+                win.classList.remove('window-visible');
+            }
+        }
+
+        function toggleMode() {
+            isSidebarMode = !isSidebarMode;
+            const win = document.getElementById('copilot-window');
+            const icon = document.getElementById('mode-icon');
+            const text = document.getElementById('mode-text');
+            
+            if (isSidebarMode) {
+                win.classList.remove('mode-floating');
+                win.classList.add('mode-sidebar');
+                text.innerText = "Sidebar Anclado";
+                icon.setAttribute('data-lucide', 'minimize-2');
+            } else {
+                win.classList.add('mode-floating');
+                win.classList.remove('mode-sidebar');
+                text.innerText = "Flotante";
+                icon.setAttribute('data-lucide', 'panel-right');
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visionarias Copilot - Veredicto Final (Alt 2)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .ai-hover-wrapper { position: relative; }
+        .ai-hover-btn {
+            position: absolute; top: -14px; right: 12px; opacity: 0;
+            transform: translateY(4px); transition: all 0.2s ease; z-index: 60;
+        }
+        .ai-hover-wrapper:hover .ai-hover-btn { opacity: 1; transform: translateY(0); }
+        
+        .ai-highlight { animation: pulse-bg 2.5s ease; }
+        @keyframes pulse-bg { 
+            0%, 100% { background-color: transparent; border-color: #d1d5db; } 
+            20%, 80% { background-color: #f5f3ff; border-color: #8b5cf6; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2); } 
+        }
+
+        /* Layout Transitions */
+        #main-content-area { transition: padding-right 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        #copilot-panel { transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        #form-sidebar { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), right 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .context-scroll::-webkit-scrollbar { height: 4px; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden text-slate-900">
+
+    <!-- COLUMNA 1: NAV IZQUIERDO -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shrink-0 z-20">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800">
+            <i data-lucide="triangle" class="w-6 h-6 text-blue-500"></i>
+            <span class="ml-2 font-bold text-lg">Visionarias</span>
+        </div>
+        <nav class="p-4 space-y-2">
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-blue-600 text-white font-medium text-sm"><i data-lucide="building-2" class="w-4 h-4"></i> Brand Studio</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-300 hover:bg-slate-800 text-sm"><i data-lucide="briefcase" class="w-4 h-4"></i> Offer Studio</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-300 hover:bg-slate-800 text-sm"><i data-lucide="megaphone" class="w-4 h-4"></i> Growth Studio</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-slate-300 hover:bg-slate-800 text-sm"><i data-lucide="calendar-check" class="w-4 h-4"></i> Closer Studio</a>
+        </nav>
+    </aside>
+
+    <!-- WRAPPER CENTRAL (Main + Formularios + Copilot) -->
+    <div class="flex-1 flex relative overflow-hidden bg-white">
+        
+        <!-- COLUMNA 2: MAIN CONTENT (Brand Studio Preview) -->
+        <main id="main-content-area" class="flex-1 flex flex-col h-full relative transition-all duration-300 pr-[60px]">
+            <header class="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white shrink-0">
+                <div>
+                    <h1 class="text-lg font-semibold">Brand Studio</h1>
+                    <p class="text-xs text-gray-500">El ADN de tu negocio</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">Auditar Marca</button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-8 bg-gray-50/50">
+                <div class="max-w-4xl mx-auto space-y-12 pb-20">
+                    
+                    <!-- CAPITULO 1: ORIGEN -->
+                    <div class="space-y-6">
+                        <div class="border-b border-gray-200 pb-2 flex justify-between items-end">
+                            <div>
+                                <span class="text-blue-600 font-bold text-xs tracking-wider uppercase">CAPÍTULO 1</span>
+                                <h2 class="text-2xl font-bold mt-1">Origen y Estrategia</h2>
+                                <p class="text-sm text-gray-500 mt-1">Identidad, Historia y Metodología.</p>
+                            </div>
+                            <button class="flex items-center gap-2 text-sm bg-white border border-gray-200 font-medium hover:bg-gray-50 px-4 py-2 rounded-md shadow-sm transition-colors" onclick="openForm('story')">
+                                <i data-lucide="pencil" class="w-4 h-4 text-gray-500"></i> Editar Historia
+                            </button>
+                        </div>
+
+                        <!-- Preview: Historia -->
+                        <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm flex gap-8">
+                            <div class="flex-1 space-y-4">
+                                <div>
+                                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">El Origen</h3>
+                                    <p class="text-gray-800 text-sm leading-relaxed">Fundada en 2020 para democratizar la IA en ventas High Ticket. Todo comenzó cuando notamos que los coaches perdían el 80% de su tiempo en tareas operativas.</p>
+                                </div>
+                                <div>
+                                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Misión</h3>
+                                    <p class="text-gray-800 text-sm leading-relaxed">Hacer que la inteligencia artificial sea accesible para estructurar, lanzar y escalar negocios digitales sin sacrificar la vida personal.</p>
+                                </div>
+                            </div>
+                            <div class="w-1/3 bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Hitos</h3>
+                                <ul class="space-y-3 relative before:absolute before:inset-y-0 before:left-[7px] before:w-[2px] before:bg-gray-200">
+                                    <li class="relative pl-6">
+                                        <div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-500"></div>
+                                        <p class="text-xs font-bold">2020</p>
+                                        <p class="text-xs text-gray-600">Fundación de la agencia</p>
+                                    </li>
+                                    <li class="relative pl-6">
+                                        <div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-500"></div>
+                                        <p class="text-xs font-bold">2023</p>
+                                        <p class="text-xs text-gray-600">Lanzamiento del Software</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAPITULO 2: POSICIONAMIENTO -->
+                    <div class="space-y-6 pt-6">
+                        <div class="border-b border-gray-200 pb-2 flex justify-between items-end">
+                            <div>
+                                <span class="text-blue-600 font-bold text-xs tracking-wider uppercase">CAPÍTULO 2</span>
+                                <h2 class="text-2xl font-bold mt-1">Posicionamiento</h2>
+                                <p class="text-sm text-gray-500 mt-1">Propuesta de valor y diferenciación.</p>
+                            </div>
+                            <button class="flex items-center gap-2 text-sm bg-white border border-gray-200 font-medium hover:bg-gray-50 px-4 py-2 rounded-md shadow-sm transition-colors" onclick="openForm('positioning')">
+                                <i data-lucide="pencil" class="w-4 h-4 text-gray-500"></i> Editar Posicionamiento
+                            </button>
+                        </div>
+
+                        <!-- Preview: Posicionamiento -->
+                        <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6">
+                            <div class="p-6 bg-blue-50 border border-blue-100 rounded-lg text-center">
+                                <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Unique Value Proposition</h3>
+                                <p class="text-lg font-medium text-blue-900">"Estructura, Lanza y Escala tu Negocio Digital High Ticket en 90 días sin sacrificar tu vida personal."</p>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Razones para Creer (RTBs)</h3>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="p-4 border border-gray-100 rounded-lg shadow-sm">
+                                        <i data-lucide="shield-check" class="w-5 h-5 text-blue-500 mb-2"></i>
+                                        <h4 class="text-sm font-semibold mb-1">Tecnología Propia</h4>
+                                        <p class="text-xs text-gray-500">No dependemos de terceros, infraestructura sólida.</p>
+                                    </div>
+                                    <div class="p-4 border border-gray-100 rounded-lg shadow-sm">
+                                        <i data-lucide="users" class="w-5 h-5 text-blue-500 mb-2"></i>
+                                        <h4 class="text-sm font-semibold mb-1">+500 Casos de Éxito</h4>
+                                        <p class="text-xs text-gray-500">Metodología probada en múltiples nichos B2B.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- OVERLAY OSCURO SOLO PARA EL MAIN CONTENT -->
+            <div id="main-overlay" class="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px] opacity-0 pointer-events-none transition-opacity duration-300 z-10" onclick="closeForm()"></div>
+        </main>
+
+        <!-- FORMULARIO SIDEBAR (Sheet) -->
+        <aside id="form-sidebar" class="absolute right-[60px] top-0 bottom-0 w-[450px] bg-white border-l border-gray-200 shadow-2xl z-20 transform translate-x-[450px] flex flex-col">
+            <div class="h-16 flex items-center justify-between px-5 border-b border-gray-200 shrink-0 bg-white">
+                <div>
+                    <h3 class="font-semibold text-gray-900" id="form-title">Editar Posicionamiento</h3>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Capítulo 2</p>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button class="px-2 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-md flex items-center gap-1.5 transition-colors border border-purple-100" onclick="openCopilot()">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Usar IA
+                    </button>
+                    <button class="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md ml-1" onclick="closeForm()"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 space-y-8 bg-white">
+                
+                <!-- Sección UVP -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <h4 class="font-semibold text-gray-900">Propuesta de Valor (UVP)</h4>
+                    </div>
+                    
+                    <div class="space-y-1.5 ai-hover-wrapper">
+                        <label class="text-sm font-medium text-slate-700">Declaración Principal</label>
+                        <textarea id="uvp_text" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors">Estructura, Lanza y Escala tu Negocio Digital High Ticket en 90 días sin sacrificar tu vida personal.</textarea>
+                        <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-white border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-50 shadow-sm" onclick="addContext('uvp_text', 'Propuesta de Valor')">
+                            <i data-lucide="plus" class="w-3 h-3"></i> a Copilot
+                        </button>
+                        <p class="text-xs text-gray-500">¿Qué haces, para quién y qué beneficio principal obtienen?</p>
+                    </div>
+                </div>
+
+                <!-- Sección Diferenciación -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <h4 class="font-semibold text-gray-900">Diferenciación</h4>
+                    </div>
+                    
+                    <div class="space-y-1.5 ai-hover-wrapper">
+                        <label class="text-sm font-medium text-slate-700">El "Enemigo" (Problema Común)</label>
+                        <input type="text" id="enemy_text" value="La pérdida de tiempo en tareas manuales y seguimientos en frío." class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors">
+                        <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-white border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-50 shadow-sm" onclick="addContext('enemy_text', 'El Enemigo')">
+                            <i data-lucide="plus" class="w-3 h-3"></i> a Copilot
+                        </button>
+                    </div>
+
+                    <div class="space-y-1.5 ai-hover-wrapper">
+                        <label class="text-sm font-medium text-slate-700">Nuestro Ángulo (La Solución)</label>
+                        <textarea id="angle_text" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors">Sistemas impulsados por IA que actúan como un equipo de ventas 24/7.</textarea>
+                        <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-white border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-50 shadow-sm" onclick="addContext('angle_text', 'Nuestro Ángulo')">
+                            <i data-lucide="plus" class="w-3 h-3"></i> a Copilot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sección RTBs -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <h4 class="font-semibold text-gray-900">Razones para Creer (RTBs)</h4>
+                        <button class="text-xs text-blue-600 font-medium hover:underline flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3"></i> Agregar</button>
+                    </div>
+                    
+                    <!-- RTB 1 -->
+                    <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3 relative group">
+                        <button class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <div class="space-y-1.5 ai-hover-wrapper">
+                            <label class="text-xs font-medium text-slate-700">Título del Pilar</label>
+                            <input type="text" id="rtb1_title" value="Tecnología Propia" class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors">
+                            <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-white border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-50 shadow-sm" onclick="addContext('rtb1_title', 'RTB 1 Título')">
+                                <i data-lucide="plus" class="w-3 h-3"></i> a Copilot
+                            </button>
+                        </div>
+                        <div class="space-y-1.5 ai-hover-wrapper">
+                            <label class="text-xs font-medium text-slate-700">Descripción</label>
+                            <input type="text" id="rtb1_desc" value="No dependemos de terceros, infraestructura sólida." class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors">
+                            <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-white border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-50 shadow-sm" onclick="addContext('rtb1_desc', 'RTB 1 Desc')">
+                                <i data-lucide="plus" class="w-3 h-3"></i> a Copilot
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RTB 2 -->
+                    <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3 relative group">
+                        <button class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <div class="space-y-1.5 ai-hover-wrapper">
+                            <label class="text-xs font-medium text-slate-700">Título del Pilar</label>
+                            <input type="text" id="rtb2_title" value="+500 Casos de Éxito" class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors">
+                            <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-white border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-50 shadow-sm" onclick="addContext('rtb2_title', 'RTB 2 Título')">
+                                <i data-lucide="plus" class="w-3 h-3"></i> a Copilot
+                            </button>
+                        </div>
+                        <div class="space-y-1.5 ai-hover-wrapper">
+                            <label class="text-xs font-medium text-slate-700">Descripción</label>
+                            <input type="text" id="rtb2_desc" value="Metodología probada en múltiples nichos B2B." class="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors">
+                            <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-white border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-50 shadow-sm" onclick="addContext('rtb2_desc', 'RTB 2 Desc')">
+                                <i data-lucide="plus" class="w-3 h-3"></i> a Copilot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-200 bg-gray-50 shrink-0">
+                <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 shadow-sm transition-colors">Guardar Cambios</button>
+            </div>
+        </aside>
+
+        <!-- COLUMNA 3: COPILOT PANEL (Anclado a la derecha absoluta) -->
+        <!-- Inicia colapsado a 60px -->
+        <aside id="copilot-panel" class="absolute right-0 top-0 bottom-0 w-[60px] bg-white border-l border-gray-200 shadow-[-4px_0_20px_rgba(0,0,0,0.04)] z-30 flex flex-col">
+            
+            <!-- Vista Colapsada (Rail de Iconos) -->
+            <div id="copilot-collapsed" class="flex-1 flex flex-col items-center py-4 space-y-6 bg-gray-50/50">
+                <button class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center hover:bg-purple-200 hover:scale-105 transition-all shadow-sm ring-1 ring-purple-200/50" onclick="openCopilot()" title="Abrir Copilot">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </button>
+                <div class="w-6 h-[1px] bg-gray-200"></div>
+                <button class="w-8 h-8 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors" title="Historial">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                </button>
+                <button class="w-8 h-8 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors" title="Prompts Guardados">
+                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Vista Expandida (Chat Multi-Contexto) -->
+            <div id="copilot-expanded" class="hidden flex-1 flex-col w-[380px]">
+                
+                <div class="h-16 px-4 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
+                    <div>
+                        <div class="flex items-center gap-2 text-purple-700">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span class="font-bold text-sm">Copilot</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            <span class="text-[10px] text-gray-500 font-medium">Conectado a Visionarias</span>
+                        </div>
+                    </div>
+                    <button class="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md transition-colors" onclick="closeCopilot()" title="Ocultar panel">
+                        <i data-lucide="panel-right-close" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Chat History -->
+                <div id="chat-history" class="flex-1 overflow-y-auto p-4 space-y-5 text-sm bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMTM5LCA5MiwgMjQ2LCAwLjA1KSIvPjwvc3ZnPg==')] bg-gray-50/50">
+                    <div class="flex gap-3 max-w-[90%]">
+                        <div class="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i></div>
+                        <div class="bg-white border border-gray-200 p-3.5 rounded-2xl rounded-tl-none shadow-sm text-gray-700 leading-relaxed">
+                            <p>¡Hola! Soy tu asistente de estrategia. Puedo ayudarte a refinar tu posicionamiento.</p>
+                            <p class="mt-2 text-xs text-gray-500">Haz clic en <strong>"+ a Copilot"</strong> en cualquier campo del formulario para que trabajemos sobre él.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area & Multi-Context Bar -->
+                <div class="bg-white border-t border-gray-200 shrink-0 shadow-[0_-4px_15px_rgba(0,0,0,0.03)] z-10">
+                    
+                    <!-- Context Area (Dynamic) -->
+                    <div id="context-area" class="px-3 pt-3 pb-0 hidden">
+                        <div class="flex items-center justify-between mb-2 px-1">
+                            <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1"><i data-lucide="target" class="w-3 h-3"></i> Foco Actual</span>
+                            <button onclick="clearAllContext()" class="text-[10px] text-gray-400 hover:text-gray-700 font-medium">Limpiar</button>
+                        </div>
+                        <div class="flex gap-2 overflow-x-auto context-scroll pb-2" id="context-chips">
+                            <!-- Chips inyectados via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Input Form -->
+                    <div class="p-3">
+                        <div class="relative flex items-end gap-2 bg-gray-50 border border-gray-300 rounded-xl focus-within:bg-white focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-50 transition-all shadow-inner">
+                            <textarea id="chat-input" rows="1" placeholder="Ej: Haz que la UVP suene más premium..." class="w-full bg-transparent border-none rounded-xl pl-3 pr-2 py-3 text-sm outline-none resize-none max-h-32 placeholder:text-gray-400"></textarea>
+                            <div class="p-1.5 pb-2">
+                                <button class="w-8 h-8 flex items-center justify-center bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm" onclick="simulateAI()" id="send-btn">
+                                    <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-between px-1">
+                            <span class="text-[9px] text-gray-400">Modelo: GPT-4o</span>
+                            <span class="text-[9px] text-gray-400">↵ Enter para enviar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        let isFormOpen = false;
+        let isCopilotOpen = false;
+        let selectedFields = new Map(); // id -> label
+        
+        const formW = 450;
+        const copilotMin = 60;
+        const copilotMax = 380;
+
+        // ---- LAYOUT MANAGEMENT ----
+        function updateLayout() {
+            const main = document.getElementById('main-content-area');
+            const form = document.getElementById('form-sidebar');
+            const copilot = document.getElementById('copilot-panel');
+            const overlay = document.getElementById('main-overlay');
+            const copilotExpanded = document.getElementById('copilot-expanded');
+            const copilotCollapsed = document.getElementById('copilot-collapsed');
+
+            let currentCopilotW = isCopilotOpen ? copilotMax : copilotMin;
+            
+            // 1. Ajustar Copilot Panel
+            copilot.style.width = `${currentCopilotW}px`;
+            if (isCopilotOpen) {
+                copilotCollapsed.classList.add('hidden');
+                copilotExpanded.classList.remove('hidden');
+                copilotExpanded.classList.add('flex');
+            } else {
+                copilotCollapsed.classList.remove('hidden');
+                copilotExpanded.classList.add('hidden');
+                copilotExpanded.classList.remove('flex');
+            }
+
+            // 2. Ajustar Formulario (Su posición "right" depende del ancho del Copilot)
+            form.style.right = `${currentCopilotW}px`;
+            if (isFormOpen) {
+                form.classList.remove(`translate-x-[${formW}px]`);
+                form.style.transform = `translateX(0)`;
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                form.style.transform = `translateX(${formW}px)`;
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            // 3. Ajustar Padding del Main Content para que el Copilot lo empuje
+            main.style.paddingRight = `${currentCopilotW}px`;
+        }
+
+        function openForm(type) { 
+            if(type === 'positioning') document.getElementById('form-title').innerText = 'Editar Posicionamiento';
+            else document.getElementById('form-title').innerText = 'Editar Historia';
+            isFormOpen = true; 
+            updateLayout(); 
+        }
+        function closeForm() { isFormOpen = false; updateLayout(); }
+        
+        function openCopilot() { isCopilotOpen = true; updateLayout(); document.getElementById('chat-input').focus(); }
+        function closeCopilot() { isCopilotOpen = false; updateLayout(); }
+
+        // ---- CONTEXT MANAGEMENT ----
+        function addContext(fieldId, label) {
+            if (!isCopilotOpen) openCopilot();
+
+            if(!selectedFields.has(fieldId)) {
+                selectedFields.set(fieldId, label);
+                renderContextChips();
+            }
+            
+            // Visual feedback en form
+            const field = document.getElementById(fieldId);
+            field.classList.remove('ai-highlight');
+            void field.offsetWidth;
+            field.classList.add('ai-highlight');
+            
+            document.getElementById('chat-input').focus();
+        }
+
+        function removeContext(fieldId) {
+            selectedFields.delete(fieldId);
+            renderContextChips();
+        }
+
+        function clearAllContext() {
+            selectedFields.clear();
+            renderContextChips();
+        }
+
+        function renderContextChips() {
+            const contextArea = document.getElementById('context-area');
+            const contextChips = document.getElementById('context-chips');
+            const chatInput = document.getElementById('chat-input');
+
+            if (selectedFields.size === 0) {
+                contextArea.classList.add('hidden');
+                chatInput.placeholder = "Haz una pregunta general...";
+                return;
+            }
+            
+            contextArea.classList.remove('hidden');
+            chatInput.placeholder = `Instrucciones para ${selectedFields.size} campo(s)...`;
+            
+            let html = '';
+            selectedFields.forEach((label, id) => {
+                html += `
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-purple-100 border border-purple-200 rounded-md text-purple-800 text-[11px] font-medium whitespace-nowrap shrink-0 shadow-sm">
+                        <i data-lucide="file-text" class="w-3 h-3 opacity-60"></i>
+                        ${label}
+                        <button onclick="removeContext('${id}')" class="ml-1 opacity-50 hover:opacity-100 hover:text-red-600 transition-opacity">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            contextChips.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // ---- CHAT SIMULATION ----
+        const chatInput = document.getElementById('chat-input');
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        chatInput.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                simulateAI();
+            }
+        });
+
+        function simulateAI() {
+            const text = chatInput.value.trim();
+            const history = document.getElementById('chat-history');
+            if(!text) return;
+
+            // User msg
+            history.innerHTML += `
+                <div class="flex gap-3 justify-end ml-auto max-w-[90%]">
+                    <div class="bg-blue-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-sm text-sm">${text}</div>
+                </div>
+            `;
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            history.scrollTop = history.scrollHeight;
+
+            const targetFields = Array.from(selectedFields.keys());
+            
+            // Bot msg delay
+            setTimeout(() => {
+                let responseText = "";
+                
+                if (targetFields.length > 0) {
+                    responseText = `¡Excelente! He refinado los ${targetFields.length} campos seleccionados basándome en tu petición. Revisa el formulario para ver los cambios.`;
+                    
+                    targetFields.forEach(id => {
+                        const el = document.getElementById(id);
+                        if(el) {
+                            if(id === 'uvp_text') el.value = "Domina el mercado High Ticket B2B con automatización inteligente. Escala tu facturación a 6 cifras en 90 días mientras recuperas 20 horas a la semana.";
+                            if(id === 'enemy_text') el.value = "La dependencia absoluta del fundador en el cierre de ventas y la entrega del servicio.";
+                            if(id === 'angle_text') el.value = "Sistemas operativos de IA que clonan el cerebro del fundador y automatizan el 80% del ciclo de vida del cliente.";
+                            
+                            el.classList.remove('ai-highlight');
+                            void el.offsetWidth;
+                            el.classList.add('ai-highlight');
+                        }
+                    });
+                    
+                    clearAllContext();
+                } else {
+                    responseText = `Entendido. Te recomiendo que selecciones la **Propuesta de Valor (UVP)** y el **Enemigo** en el formulario para que pueda reescribirlos juntos y asegurar coherencia en el mensaje.`;
+                }
+
+                history.innerHTML += `
+                    <div class="flex gap-3 max-w-[90%]">
+                        <div class="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i></div>
+                        <div class="bg-white border border-gray-200 p-3.5 rounded-2xl rounded-tl-none shadow-sm text-gray-700 text-sm leading-relaxed">
+                            ${responseText}
+                        </div>
+                    </div>
+                `;
+                history.scrollTop = history.scrollHeight;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

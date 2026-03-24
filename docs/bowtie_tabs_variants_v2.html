@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propuesta UI: Bowtie Funnel Tabs - Variantes Gradiente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+    }
+    body {
+      background-color: #0f172a; /* bg-slate-900 */
+      color: white;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+    }
+
+    /* Common layout for all variants */
+    .bowtie-container {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      position: relative;
+    }
+
+    .bowtie-tab {
+      flex: 1;
+      min-width: 140px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      display: flex;
+      flex-col;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+      position: relative;
+    }
+
+    /* Helper for the lines */
+    .separator-line {
+      width: 1px;
+      height: 60%;
+      background-color: rgba(255,255,255,0.1);
+      position: absolute;
+      right: 0;
+      top: 20%;
+      z-index: 10;
+      transition: opacity 0.3s;
+    }
+    .bowtie-tab.active .separator-line,
+    .bowtie-tab:has(+ .bowtie-tab.active) .separator-line {
+      opacity: 0; /* Hide separator next to active tab */
+    }
+
+
+    /* =========================================
+       VARIANTE 5.1: GRADIENTE CON BORDES DEFINIDOS
+       ========================================= */
+    .v5-1-container {
+      height: 110px;
+      background: linear-gradient(90deg, #3b82f6, #6366f1, #10b981, #f59e0b, #ec4899);
+      padding: 2px; /* acts as border */
+      border-radius: 12px;
+      /* Adjusted clip path for a less aggressive bowtie */
+      clip-path: polygon(0 0, 50% 15%, 100% 0, 100% 100%, 50% 85%, 0 100%);
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    }
+    .v5-1-tab {
+      background-color: #0f172a; /* inner color hides gradient */
+      border-radius: 0;
+    }
+    .v5-1-l1 { border-radius: 10px 0 0 10px; }
+    .v5-1-r2 { border-radius: 0 10px 10px 0; }
+    
+    .v5-1-tab:hover { background-color: rgba(15, 23, 42, 0.85); }
+    .v5-1-tab.active {
+      background-color: transparent; /* fully reveal gradient behind this tab */
+    }
+    
+    .v5-1-tab .metric-value { font-size: 1.25rem; font-weight: 700; color: #f8fafc; transition: all 0.3s; }
+    .v5-1-tab .metric-name { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s; margin-bottom: 0.25rem;}
+    .v5-1-tab .metric-sub { font-size: 0.65rem; color: #64748b; transition: all 0.3s; margin-top: 0.25rem;}
+    
+    .v5-1-tab.active .metric-value { font-size: 1.5rem; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .v5-1-tab.active .metric-name { color: rgba(255,255,255,0.95); text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+    .v5-1-tab.active .metric-sub { color: rgba(255,255,255,0.8); }
+
+    /* =========================================
+       VARIANTE 5.2: GRADIENTE SUAVE CON OVERLAY
+       ========================================= */
+    .v5-2-container {
+      height: 120px;
+      /* Softer gradient */
+      background: linear-gradient(90deg, #2563eb, #7c3aed, #059669, #d97706, #dc2626);
+      border-radius: 16px;
+      clip-path: polygon(0 0, 50% 12%, 100% 0, 100% 100%, 50% 88%, 0 100%);
+      overflow: hidden;
+    }
+    .v5-2-tab {
+      /* Base is dark, but slightly transparent to let gradient peek through always */
+      background-color: rgba(15, 23, 42, 0.92); 
+    }
+    .v5-2-tab:hover { background-color: rgba(15, 23, 42, 0.75); }
+    .v5-2-tab.active {
+      /* Active tab gets a bright semi-transparent white overlay to pop over the gradient */
+      background-color: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+    }
+    
+    .v5-2-tab .metric-value { font-size: 1.125rem; font-weight: 700; color: #e2e8f0; }
+    .v5-2-tab .metric-name { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;}
+    .v5-2-tab .metric-sub { font-size: 0.65rem; color: #64748b; margin-top: 0.25rem;}
+    
+    .v5-2-tab.active .metric-value { font-size: 1.5rem; color: white; }
+    .v5-2-tab.active .metric-name { color: white; font-weight: 700; }
+    .v5-2-tab.active .metric-sub { color: rgba(255,255,255,0.9); }
+
+    /* =========================================
+       VARIANTE 5.3: ACTIVE GLOW (Sin fondo transparente total)
+       ========================================= */
+    .v5-3-container {
+      height: 110px;
+      background: #1e293b; /* Base container background */
+      padding: 1px;
+      border-radius: 12px;
+      clip-path: polygon(0 0, 50% 15%, 100% 0, 100% 100%, 50% 85%, 0 100%);
+      border: 1px solid #334155;
+    }
+    .v5-3-tab {
+      background-color: transparent;
+    }
+    .v5-3-tab:hover { background-color: rgba(255,255,255,0.03); }
+    
+    /* Active states map to their specific gradient color based on position */
+    .v5-3-tab.active:nth-child(1) { background: linear-gradient(180deg, rgba(59, 130, 246, 0.2), transparent); border-top: 2px solid #3b82f6; }
+    .v5-3-tab.active:nth-child(2) { background: linear-gradient(180deg, rgba(139, 92, 246, 0.2), transparent); border-top: 2px solid #8b5cf6; }
+    .v5-3-tab.active:nth-child(3) { background: linear-gradient(180deg, rgba(16, 185, 129, 0.2), transparent); border-top: 2px solid #10b981; }
+    .v5-3-tab.active:nth-child(4) { background: linear-gradient(180deg, rgba(245, 158, 11, 0.2), transparent); border-top: 2px solid #f59e0b; }
+    .v5-3-tab.active:nth-child(5) { background: linear-gradient(180deg, rgba(236, 72, 153, 0.2), transparent); border-top: 2px solid #ec4899; }
+    
+    .v5-3-tab .metric-value { font-size: 1.125rem; font-weight: 700; color: #cbd5e1; }
+    .v5-3-tab .metric-name { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;}
+    .v5-3-tab .metric-sub { font-size: 0.65rem; color: #475569; margin-top: 0.25rem;}
+    
+    .v5-3-tab.active .metric-value { font-size: 1.25rem; color: white; }
+    .v5-3-tab.active:nth-child(1) .metric-name { color: #60a5fa; }
+    .v5-3-tab.active:nth-child(2) .metric-name { color: #a78bfa; }
+    .v5-3-tab.active:nth-child(3) .metric-name { color: #34d399; }
+    .v5-3-tab.active:nth-child(4) .metric-name { color: #fbbf24; }
+    .v5-3-tab.active:nth-child(5) .metric-name { color: #f472b6; }
+    .v5-3-tab.active .metric-sub { color: #94a3b8; }
+
+
+    /* =========================================
+       VARIANTE 5.4: SEPARADORES DIAGONALES (Efecto Chevron)
+       ========================================= */
+    .v5-4-container {
+      height: 110px;
+      background: #0f172a;
+      clip-path: polygon(0 0, 50% 15%, 100% 0, 100% 100%, 50% 85%, 0 100%);
+      border: 1px solid #1e293b;
+      gap: 0; /* No gap, we use clip paths to separate */
+    }
+    .v5-4-tab {
+      background-color: #1e293b;
+      margin-right: -10px; /* Overlap to hide gaps */
+      padding-left: 20px; /* Compensate for overlap */
+    }
+    .v5-4-tab:nth-child(1) { clip-path: polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%); z-index: 5; }
+    .v5-4-tab:nth-child(2) { clip-path: polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%, 5% 50%); z-index: 4; }
+    .v5-4-tab:nth-child(3) { clip-path: polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%, 5% 50%); z-index: 3; }
+    .v5-4-tab:nth-child(4) { clip-path: polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%, 5% 50%); z-index: 2; }
+    .v5-4-tab:nth-child(5) { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 5% 50%); z-index: 1; margin-right: 0;}
+
+    .v5-4-tab:hover { background-color: #334155; }
+    
+    .v5-4-tab.active { background: linear-gradient(90deg, #3b82f6, #6366f1); }
+    .v5-4-tab.active:nth-child(3) { background: linear-gradient(90deg, #10b981, #059669); }
+    .v5-4-tab.active:nth-child(4), .v5-4-tab.active:nth-child(5) { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+
+    .v5-4-tab .metric-value { font-size: 1.125rem; font-weight: 700; color: #cbd5e1; }
+    .v5-4-tab .metric-name { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;}
+    .v5-4-tab .metric-sub { font-size: 0.65rem; color: #475569; margin-top: 0.25rem;}
+    
+    .v5-4-tab.active .metric-value { font-size: 1.25rem; color: white; }
+    .v5-4-tab.active .metric-name { color: rgba(255,255,255,0.9); }
+    .v5-4-tab.active .metric-sub { color: rgba(255,255,255,0.7); }
+
+    /* =========================================
+       VARIANTE 5.5: MODO OSCURO PREMIUM (Texto con gradiente)
+       ========================================= */
+    .v5-5-container {
+      height: 110px;
+      background: #0b0f19;
+      clip-path: polygon(0 0, 50% 15%, 100% 0, 100% 100%, 50% 85%, 0 100%);
+      padding: 1px;
+      background-image: linear-gradient(90deg, rgba(59, 130, 246, 0.5), rgba(16, 185, 129, 0.5), rgba(236, 72, 153, 0.5));
+    }
+    .v5-5-inner {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+      clip-path: polygon(0 0, 50% 15%, 100% 0, 100% 100%, 50% 85%, 0 100%);
+    }
+    .v5-5-tab {
+      background-color: transparent;
+    }
+    .v5-5-tab:hover { background-color: rgba(255,255,255,0.02); }
+    .v5-5-tab.active { background-color: rgba(255,255,255,0.05); }
+
+    .v5-5-tab .metric-name { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;}
+    .v5-5-tab .metric-value { font-size: 1.125rem; font-weight: 700; color: #cbd5e1; transition: all 0.3s;}
+    .v5-5-tab .metric-sub { font-size: 0.65rem; color: #475569; margin-top: 0.25rem;}
+
+    .v5-5-tab.active .metric-name { color: white; }
+    
+    /* Gradient text for active values based on position */
+    .v5-5-tab.active:nth-child(1) .metric-value { background: linear-gradient(90deg, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; }
+    .v5-5-tab.active:nth-child(2) .metric-value { background: linear-gradient(90deg, #a78bfa, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; }
+    .v5-5-tab.active:nth-child(3) .metric-value { background: linear-gradient(90deg, #34d399, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; }
+    .v5-5-tab.active:nth-child(4) .metric-value { background: linear-gradient(90deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; }
+    .v5-5-tab.active:nth-child(5) .metric-value { background: linear-gradient(90deg, #f472b6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; }
+
+
+  </style>
+</head>
+<body>
+
+  <div class="max-w-6xl mx-auto space-y-20 pb-20">
+    <div class="mb-12">
+      <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Growth Studio: Evolución del Bowtie</h1>
+      <p class="text-slate-400">5 variaciones enfocadas en mejorar la legibilidad (nombres más grandes, números balanceados) y refinar la técnica del gradiente (Variante 5 original).</p>
+    </div>
+
+    <!-- VARIANTE 5.1: Borde Fino con Fondo Transparente -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4 text-slate-200">
+        Variante 5.1: Revelación de Gradiente (Mejorada)
+      </h2>
+      <p class="text-sm text-slate-400 mb-6">El gradiente base funciona como borde. Al activar un tab, se revela el color puro. Los nombres de las etapas tienen mayor peso visual y los números se amplían al estar activos. Las líneas separadoras desaparecen elegantemente junto al tab activo.</p>
+      
+      <div class="bowtie-container v5-1-container">
+        <div class="bowtie-tab v5-1-tab v5-1-l1 active" onclick="setActive(this, 'v5-1-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Atracción & Captura</span>
+            <span class="metric-value">254k</span>
+            <span class="metric-sub">Visitantes Totales</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-1-tab" onclick="setActive(this, 'v5-1-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Nutrición & Oportunidad</span>
+            <span class="metric-value">185</span>
+            <span class="metric-sub">Leads MQLs</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-1-tab" onclick="setActive(this, 'v5-1-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Ventas</span>
+            <span class="metric-value">$74,757</span>
+            <span class="metric-sub">Revenue Total</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-1-tab" onclick="setActive(this, 'v5-1-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Adopción</span>
+            <span class="metric-value">100%</span>
+            <span class="metric-sub">Salud del Cliente</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-1-tab v5-1-r2" onclick="setActive(this, 'v5-1-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Expansión & Evangelización</span>
+            <span class="metric-value">$6,150</span>
+            <span class="metric-sub">Ingreso Recurrente Neto</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VARIANTE 5.2: Overlay Translúcido -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4 text-slate-200">
+        Variante 5.2: Base Translúcida (Glass)
+      </h2>
+      <p class="text-sm text-slate-400 mb-6">El gradiente siempre se insinúa de fondo. El tab activo aplica un efecto "glassmorphism" blanco para resaltar. Muy elegante y suave.</p>
+      
+      <div class="bowtie-container v5-2-container">
+        <div class="bowtie-tab v5-2-tab active" onclick="setActive(this, 'v5-2-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Atracción & Captura</span>
+            <span class="metric-value">254k</span>
+            <span class="metric-sub">Visitantes Totales</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-2-tab" onclick="setActive(this, 'v5-2-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Nutrición & Oportunidad</span>
+            <span class="metric-value">185</span>
+            <span class="metric-sub">Leads MQLs</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-2-tab" onclick="setActive(this, 'v5-2-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Ventas</span>
+            <span class="metric-value">$74,757</span>
+            <span class="metric-sub">Revenue Total</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-2-tab" onclick="setActive(this, 'v5-2-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Adopción</span>
+            <span class="metric-value">100%</span>
+            <span class="metric-sub">Salud del Cliente</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-2-tab" onclick="setActive(this, 'v5-2-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Expansión & Evangelización</span>
+            <span class="metric-value">$6,150</span>
+            <span class="metric-sub">Ingreso Recurrente Neto</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VARIANTE 5.3: Brillo Superior (Glow Line) -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4 text-slate-200">
+        Variante 5.3: Indicador de Brillo Superior
+      </h2>
+      <p class="text-sm text-slate-400 mb-6">Mantiene el fondo oscuro pero el tab activo se ilumina desde arriba con el color correspondiente a su etapa. Los nombres se colorean sutilmente al activar.</p>
+      
+      <div class="bowtie-container v5-3-container">
+        <div class="bowtie-tab v5-3-tab active" onclick="setActive(this, 'v5-3-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Atracción & Captura</span>
+            <span class="metric-value">254k</span>
+            <span class="metric-sub">Visitantes Totales</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-3-tab" onclick="setActive(this, 'v5-3-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Nutrición & Oportunidad</span>
+            <span class="metric-value">185</span>
+            <span class="metric-sub">Leads MQLs</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-3-tab" onclick="setActive(this, 'v5-3-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Ventas</span>
+            <span class="metric-value">$74,757</span>
+            <span class="metric-sub">Revenue Total</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-3-tab" onclick="setActive(this, 'v5-3-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Adopción</span>
+            <span class="metric-value">100%</span>
+            <span class="metric-sub">Salud del Cliente</span>
+          </div>
+          <div class="separator-line"></div>
+        </div>
+        <div class="bowtie-tab v5-3-tab" onclick="setActive(this, 'v5-3-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Expansión & Evangelización</span>
+            <span class="metric-value">$6,150</span>
+            <span class="metric-sub">Ingreso Recurrente Neto</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VARIANTE 5.4: Chevron (Flechas) -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4 text-slate-200">
+        Variante 5.4: Formas de Flecha (Chevron)
+      </h2>
+      <p class="text-sm text-slate-400 mb-6">Combina el recorte general de moño con cortes individuales en forma de flecha para indicar dirección/flujo. El color activo llena toda la flecha.</p>
+      
+      <div class="bowtie-container v5-4-container">
+        <div class="bowtie-tab v5-4-tab active" onclick="setActive(this, 'v5-4-tab')">
+          <div class="flex flex-col items-center">
+            <span class="metric-name">Atracción & Captura</span>
+            <span class="metric-value">254k</span>
+            <span class="metric-sub">Visitantes Totales</span>
+          </div>
+        </div>
+        <div class="bowtie-tab v5-4-tab" onclick="setActive(this, 'v5-4-tab')">
+          <div class="flex flex-col items-center pl-6">
+            <span class="metric-name">Nutrición & Oportunidad</span>
+            <span class="metric-value">185</span>
+            <span class="metric-sub">Leads MQLs</span>
+          </div>
+        </div>
+        <div class="bowtie-tab v5-4-tab" onclick="setActive(this, 'v5-4-tab')">
+          <div class="flex flex-col items-center pl-6">
+            <span class="metric-name">Ventas</span>
+            <span class="metric-value">$74,757</span>
+            <span class="metric-sub">Revenue Total</span>
+          </div>
+        </div>
+        <div class="bowtie-tab v5-4-tab" onclick="setActive(this, 'v5-4-tab')">
+          <div class="flex flex-col items-center pl-6">
+            <span class="metric-name">Adopción</span>
+            <span class="metric-value">100%</span>
+            <span class="metric-sub">Salud del Cliente</span>
+          </div>
+        </div>
+        <div class="bowtie-tab v5-4-tab" onclick="setActive(this, 'v5-4-tab')">
+          <div class="flex flex-col items-center pl-6">
+            <span class="metric-name">Expansión & Evangelización</span>
+            <span class="metric-value">$6,150</span>
+            <span class="metric-sub">Ingreso Recurrente Neto</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VARIANTE 5.5: Texto con Gradiente -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4 text-slate-200">
+        Variante 5.5: Texto con Gradiente Activo
+      </h2>
+      <p class="text-sm text-slate-400 mb-6">La aproximación más "Limpia/Premium". Mantiene fondos oscuros uniformes, pero el número de la métrica activa se rellena con el gradiente de su etapa. Borde exterior muy sutil.</p>
+      
+      <div class="v5-5-container">
+        <div class="bowtie-container v5-5-inner">
+          <div class="bowtie-tab v5-5-tab active" onclick="setActive(this, 'v5-5-tab')">
+            <div class="flex flex-col items-center">
+              <span class="metric-name">Atracción & Captura</span>
+              <span class="metric-value">254k</span>
+              <span class="metric-sub">Visitantes Totales</span>
+            </div>
+            <div class="separator-line"></div>
+          </div>
+          <div class="bowtie-tab v5-5-tab" onclick="setActive(this, 'v5-5-tab')">
+            <div class="flex flex-col items-center">
+              <span class="metric-name">Nutrición & Oportunidad</span>
+              <span class="metric-value">185</span>
+              <span class="metric-sub">Leads MQLs</span>
+            </div>
+            <div class="separator-line"></div>
+          </div>
+          <div class="bowtie-tab v5-5-tab" onclick="setActive(this, 'v5-5-tab')">
+            <div class="flex flex-col items-center">
+              <span class="metric-name">Ventas</span>
+              <span class="metric-value">$74,757</span>
+              <span class="metric-sub">Revenue Total</span>
+            </div>
+            <div class="separator-line"></div>
+          </div>
+          <div class="bowtie-tab v5-5-tab" onclick="setActive(this, 'v5-5-tab')">
+            <div class="flex flex-col items-center">
+              <span class="metric-name">Adopción</span>
+              <span class="metric-value">100%</span>
+              <span class="metric-sub">Salud del Cliente</span>
+            </div>
+            <div class="separator-line"></div>
+          </div>
+          <div class="bowtie-tab v5-5-tab" onclick="setActive(this, 'v5-5-tab')">
+            <div class="flex flex-col items-center">
+              <span class="metric-name">Expansión & Evangelización</span>
+              <span class="metric-value">$6,150</span>
+              <span class="metric-sub">Ingreso Recurrente Neto</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function setActive(element, className) {
+      // Find the parent container to scope the query
+      const container = element.closest('.bowtie-container') || element.closest('.v5-5-inner');
+      
+      // Remove active class from all tabs in this specific variant
+      container.querySelectorAll(`.${className}`).forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Add active class to clicked tab
+      element.classList.add('active');
+    }
+  </script>
+</body>
+</html>

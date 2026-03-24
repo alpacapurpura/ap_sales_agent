@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propuesta UI: Panel de Ventas (Sales Detail)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(222.2 47.4% 11.2%)",
+              foreground: "hsl(210 40% 98%)",
+            },
+            muted: {
+              DEFAULT: "hsl(210 40% 96.1%)",
+              foreground: "hsl(215.4 16.3% 46.9%)",
+            },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+    }
+    body {
+      background-color: #f8fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 1);
+      border: 1px solid rgba(226, 232, 240, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    .metric-clickable {
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      border-radius: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      margin: -0.25rem -0.5rem;
+    }
+    .metric-clickable:hover {
+      background-color: rgba(16, 185, 129, 0.08); /* Emerald hover */
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+    }
+    .metric-clickable::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0.5rem;
+      right: 0.5rem;
+      height: 1px;
+      background-color: currentColor;
+      opacity: 0.3;
+      border-bottom: 1px dashed currentColor;
+    }
+    .metric-clickable:hover::after {
+      opacity: 1;
+      border-bottom: 1px solid currentColor;
+    }
+
+    /* Accordion animation */
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+      opacity: 0;
+    }
+    .accordion-content.open {
+      max-height: 800px;
+      opacity: 1;
+    }
+    .accordion-icon {
+      transition: transform 0.3s ease;
+    }
+    .accordion-icon.open {
+      transform: rotate(180deg);
+    }
+
+  </style>
+</head>
+<body class="p-6 md:p-12 text-slate-900 overflow-x-hidden relative">
+
+  <div class="max-w-7xl mx-auto space-y-12">
+    
+    <div class="scenario-container space-y-8 animate-fade-in block">
+      
+      <!-- HEADER -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            Ventas
+            <span class="px-2 py-0.5 mt-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium tracking-wide">ETAPA 4</span>
+          </h1>
+          <p class="text-slate-500 text-sm mt-1">Ingresos generados (Revenue), clientes nuevos y costo de adquisición por oferta.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="text-xs text-slate-400 italic mr-2">Actualizado: 23 mar 2026, 12:05</p>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-200 bg-white hover:bg-slate-100 h-9 px-4 py-2 shadow-sm text-slate-700">
+            <i data-lucide="calendar" class="w-4 h-4 mr-2"></i> Últimos 30 días
+          </button>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700 h-9 px-4 py-2 shadow-sm">
+            <i data-lucide="settings" class="w-4 h-4 mr-2"></i> Gestionar Etapa
+          </button>
+        </div>
+      </div>
+
+      <!-- VISIÓN GLOBAL: KPIs y Mini Funnel -->
+      <div class="glass-card rounded-xl p-6 relative overflow-hidden bg-white">
+        <h2 class="text-lg font-semibold mb-6 flex items-center text-slate-800">
+          <i data-lucide="banknote" class="w-5 h-5 mr-2 text-emerald-600"></i> Rendimiento de Ventas
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+          <!-- Líneas conectoras -->
+          <div class="hidden md:block absolute top-[40%] left-[20%] w-[10%] h-[2px] bg-gradient-to-r from-slate-200 to-slate-400 z-0"></div>
+          <div class="hidden md:block absolute top-[40%] left-[45%] w-[10%] h-[2px] bg-gradient-to-r from-emerald-200 to-emerald-400 z-0"></div>
+          <div class="hidden md:block absolute top-[40%] left-[70%] w-[10%] h-[2px] bg-gradient-to-r from-emerald-400 to-emerald-600 z-0"></div>
+          
+          <!-- Bloque 1: Pipeline Inicial -->
+          <div class="bg-white p-5 rounded-lg border border-slate-100 shadow-sm relative z-10 flex flex-col justify-center items-center text-center">
+            <span class="text-[10px] text-slate-500 font-bold uppercase mb-1">Oportunidades (SQLs)</span>
+            <div class="text-3xl font-black text-slate-800">850</div>
+            <span class="text-xs text-slate-500 mt-1">Leads Listos para Comprar</span>
+          </div>
+
+          <!-- Bloque 2: Nuevos Clientes -->
+          <div class="bg-white p-5 rounded-lg border border-emerald-100 shadow-sm relative z-10 flex flex-col justify-center items-center text-center ring-1 ring-emerald-50">
+            <span class="text-[10px] text-emerald-600 font-bold uppercase mb-1">Nuevos Clientes</span>
+            <div class="text-4xl font-black text-emerald-600">138</div>
+            <span class="text-xs text-emerald-600/70 mt-1 font-medium">Conversiones Exitosas</span>
+            <div class="mt-3 text-[10px] text-slate-400 font-medium text-emerald-600">
+              <i data-lucide="crosshair" class="w-3 h-3 mr-1 inline"></i> CAC Promedio: MXN $450
+            </div>
+          </div>
+
+          <!-- Bloque 3: Tasa de Conversión -->
+          <div class="flex flex-col items-center justify-center relative z-10 bg-white/0">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 text-white flex items-center justify-center shadow-md border-4 border-white">
+              <span class="font-bold text-lg">52.9%</span>
+            </div>
+            <span class="text-[10px] text-slate-500 font-bold uppercase mt-3 text-center">Tasa de Cierre</span>
+          </div>
+
+          <!-- Bloque 4: Revenue Total -->
+          <div class="bg-emerald-950 p-5 rounded-lg border border-emerald-900 shadow-md relative z-10 flex flex-col justify-center items-center text-center text-white">
+            <span class="text-[10px] text-emerald-300 font-bold uppercase mb-1">Revenue Total</span>
+            <div class="text-4xl font-black text-white">MXN $130k</div>
+            <span class="text-xs text-emerald-200 mt-1">Ingresos Generados</span>
+            <div class="mt-3 text-xs font-medium text-emerald-300 border-0">
+              <i data-lucide="globe" class="w-3 h-3 mr-1 inline"></i> (~$7,540 USD)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-8 border-b border-slate-200">
+        <h2 class="text-2xl font-bold text-slate-800">Propuestas de Organización Visual</h2>
+        <p class="text-slate-500 mt-2 pb-6">Aquí tienes 3 opciones para organizar el <strong>Desglose por Offer Ladder</strong>, con las mejoras solicitadas (claridad en adquisición/retención y tooltips para plataformas de cierre).</p>
+      </div>
+
+      <!-- ===================================================================================== -->
+      <!-- PROPUESTA 1: EVOLUCIÓN DEL DISEÑO ACTUAL (Nuevos Clientes vs Retención) -->
+      <!-- ===================================================================================== -->
+      <div class="space-y-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-200">
+        <div class="flex items-end justify-between">
+          <div>
+            <span class="px-2 py-1 rounded bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Propuesta 1</span>
+            <h3 class="font-semibold text-xl flex items-center text-slate-800">
+              <i data-lucide="split-square-horizontal" class="w-5 h-5 mr-2 text-emerald-600"></i> Agrupación por Journey (Nuevos vs Recurrentes)
+            </h3>
+            <p class="text-sm text-slate-500 mt-1">Ideal para entender de dónde viene el dinero: si de la captación de nuevos o de la fidelización.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- COLUMNA IZQUIERDA: NUEVOS CLIENTES -->
+          <div class="space-y-4">
+            <div class="bg-white rounded-lg p-4 border border-emerald-200 shadow-sm relative overflow-hidden">
+              <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="font-bold text-slate-800 text-lg">Nuevos Clientes</h4>
+                  <p class="text-[11px] text-slate-500 mt-1 leading-tight max-w-[200px]">Ingresos provenientes de personas que compran por primera vez en tu negocio.</p>
+                </div>
+                <div class="text-right">
+                  <div class="text-xl font-black text-emerald-600">MXN $85,000</div>
+                  <p class="text-xs text-slate-500">138 clientes | 65.4%</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- TIER: Low Ticket -->
+            <div class="border border-slate-200 rounded-lg bg-white overflow-hidden shadow-sm">
+              <button class="w-full flex items-center justify-between p-3 bg-slate-50/50 hover:bg-slate-50 transition-colors" onclick="toggleAccordion('p1-tier-low')">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-400">$</span>
+                  <span class="font-semibold text-sm text-slate-700 uppercase tracking-wide">Iniciación (Low Ticket)</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-p1-tier-low" class="w-4 h-4 text-slate-400 accordion-icon open"></i>
+              </button>
+              <div id="p1-tier-low" class="accordion-content open border-t border-slate-100">
+                <div class="p-2 space-y-2">
+                  <!-- Offer Card -->
+                  <div class="group border border-slate-100 rounded-md p-3 hover:border-emerald-200 hover:shadow-sm transition-all bg-white relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-emerald-400 transition-colors"></div>
+                    <div class="flex justify-between items-start mb-2">
+                      <div class="pl-2">
+                        <h5 class="font-semibold text-sm text-slate-800">Curso Intensivo</h5>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-wider">Pago Único • Self Paced</p>
+                      </div>
+                      <div class="text-right">
+                        <span class="text-sm font-bold metric-clickable text-emerald-600" onclick="openSidebar('Revenue: Curso Intensivo', 'MXN $45,000', '120 Ventas')">MXN $45,000</span>
+                      </div>
+                    </div>
+                    <div class="pl-2 flex items-center justify-between border-t border-slate-50 pt-2 mt-1">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase">Vía:</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100 cursor-help" title="Cierre automático procesado por Shopify">Shopify: 60</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-100 cursor-help" title="Cierre conversacional gestionado por el AI Agent">Agent: 15</span>
+                      </div>
+                      <span class="text-xs font-medium text-slate-500">120 ventas</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMNA DERECHA: RETENCIÓN Y EXPANSIÓN -->
+          <div class="space-y-4">
+            <div class="bg-white rounded-lg p-4 border border-blue-200 shadow-sm relative overflow-hidden">
+              <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="font-bold text-slate-800 text-lg">Retención y Expansión</h4>
+                  <p class="text-[11px] text-slate-500 mt-1 leading-tight max-w-[200px]">Ingresos por compras recurrentes, renovaciones o ventas adicionales (upsells) a clientes actuales.</p>
+                </div>
+                <div class="text-right">
+                  <div class="text-xl font-black text-blue-600">MXN $45,000</div>
+                  <p class="text-xs text-slate-500">35 clientes | 34.6%</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- TIER: Recurrente -->
+            <div class="border border-slate-200 rounded-lg bg-white overflow-hidden shadow-sm">
+              <button class="w-full flex items-center justify-between p-3 bg-slate-50/50 hover:bg-slate-50 transition-colors" onclick="toggleAccordion('p1-tier-rec')">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-slate-400"></i>
+                  <span class="font-semibold text-sm text-slate-700 uppercase tracking-wide">Membresías (MRR)</span>
+                </div>
+                <i data-lucide="chevron-down" id="icon-p1-tier-rec" class="w-4 h-4 text-slate-400 accordion-icon open"></i>
+              </button>
+              <div id="p1-tier-rec" class="accordion-content open border-t border-slate-100">
+                <div class="p-2 space-y-2">
+                  <!-- Offer Card -->
+                  <div class="group border border-slate-100 rounded-md p-3 hover:border-blue-200 hover:shadow-sm transition-all bg-white relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-blue-400 transition-colors"></div>
+                    <div class="flex justify-between items-start mb-2">
+                      <div class="pl-2">
+                        <h5 class="font-semibold text-sm text-slate-800">Comunidad Premium</h5>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-wider">Suscripción • Nivel 1</p>
+                      </div>
+                      <div class="text-right">
+                        <span class="text-sm font-bold metric-clickable text-blue-600" onclick="openSidebar('Revenue: Comunidad', 'MXN $45,000', '35 Activas')">MXN $45,000</span>
+                      </div>
+                    </div>
+                    <div class="pl-2 flex items-center justify-between border-t border-slate-50 pt-2 mt-1">
+                      <div class="flex items-center gap-1.5">
+                         <span class="text-[10px] font-semibold text-slate-400 uppercase">Vía:</span>
+                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100 cursor-help" title="Cierre automático procesado por Shopify">Shopify: 35</span>
+                      </div>
+                      <span class="text-xs font-medium text-slate-500">35 activas</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================================== -->
+      <!-- PROPUESTA 2: ALINEACIÓN 1:1 CON OFFER STUDIO (Columnas por Nivel de Transformación) -->
+      <!-- ===================================================================================== -->
+      <div class="space-y-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-200 mt-12">
+        <div class="flex items-end justify-between">
+          <div>
+            <span class="px-2 py-1 rounded bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Propuesta 2</span>
+            <h3 class="font-semibold text-xl flex items-center text-slate-800">
+              <i data-lucide="kanban" class="w-5 h-5 mr-2 text-indigo-600"></i> Alineación Estricta con Offer Studio
+            </h3>
+            <p class="text-sm text-slate-500 mt-1">Refleja exactamente las 3 columnas del Offer Ladder (Iniciación, Transformación, Delegación), con una fila dedicada al ingreso recurrente en la base.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Col 1 -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col">
+            <div class="mb-4 pb-3 border-b flex items-center gap-2">
+              <div class="p-1.5 rounded bg-blue-50 text-blue-600"><i data-lucide="zap" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-slate-800 text-sm">Iniciación (DIY)</h4>
+            </div>
+            <div class="space-y-3 flex-1">
+              <div class="border border-slate-100 rounded-md p-3 hover:border-slate-300 transition-colors">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h5 class="font-semibold text-sm text-slate-800">Curso Intensivo</h5>
+                    <div class="mt-2 flex items-center gap-1">
+                      <span class="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-100 cursor-help" title="Cierre por Agent">A: 15</span>
+                      <span class="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-100 cursor-help" title="Cierre por Shopify">S: 60</span>
+                    </div>
+                  </div>
+                  <span class="text-sm font-bold text-slate-800">MXN $45k</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 2 -->
+          <div class="bg-white rounded-xl border border-indigo-200 p-4 shadow-sm flex flex-col relative">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-t-xl"></div>
+            <div class="mb-4 pb-3 border-b flex items-center gap-2">
+              <div class="p-1.5 rounded bg-indigo-50 text-indigo-600"><i data-lucide="rocket" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-slate-800 text-sm">Transformación (DWY)</h4>
+            </div>
+            <div class="space-y-3 flex-1">
+              <div class="border border-slate-100 rounded-md p-3 hover:border-slate-300 transition-colors">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h5 class="font-semibold text-sm text-slate-800">Mentoría Grupal</h5>
+                    <div class="mt-2 flex items-center gap-1">
+                      <span class="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-100 cursor-help" title="Cierre por Agent">A: 10</span>
+                    </div>
+                  </div>
+                  <span class="text-sm font-bold text-slate-800">MXN $28k</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 3 -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col">
+            <div class="mb-4 pb-3 border-b flex items-center gap-2">
+              <div class="p-1.5 rounded bg-amber-50 text-amber-600"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-slate-800 text-sm">Delegación (DFY)</h4>
+            </div>
+            <div class="space-y-3 flex-1 flex items-center justify-center border border-dashed border-slate-200 rounded-md p-4 text-center">
+              <span class="text-xs text-slate-400">Sin ventas en este periodo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila Inferior: Recurrencia -->
+        <div class="mt-4 bg-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-6 items-center justify-between text-white shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-emerald-500/20 rounded-full text-emerald-400">
+              <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-lg">Ingreso Recurrente (MRR)</h4>
+              <p class="text-xs text-slate-400">Membresías y Retainers activos</p>
+            </div>
+          </div>
+          <div class="flex-1 flex gap-4 px-4 border-x border-slate-700">
+            <div class="bg-slate-700/50 rounded p-2 flex-1 flex justify-between items-center">
+              <span class="text-sm text-slate-300">Comunidad Premium</span>
+              <span class="font-bold text-emerald-400">MXN $45,000</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-black text-emerald-400">MXN $45k</div>
+            <p class="text-xs text-slate-400">35 Suscripciones</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================================== -->
+      <!-- PROPUESTA 3: VISTA MATRIZ (Tipo de Ingreso vs Nivel) -->
+      <!-- ===================================================================================== -->
+      <div class="space-y-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-200 mt-12">
+        <div class="flex items-end justify-between">
+          <div>
+            <span class="px-2 py-1 rounded bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Propuesta 3</span>
+            <h3 class="font-semibold text-xl flex items-center text-slate-800">
+              <i data-lucide="layout-grid" class="w-5 h-5 mr-2 text-violet-600"></i> Matriz de Tipo de Ingreso
+            </h3>
+            <p class="text-sm text-slate-500 mt-1">Separa visualmente el ingreso One-off (transaccional) del Recurrente en filas, y las columnas representan el Offer Ladder.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th class="p-3 border-b border-slate-200 bg-slate-100/50 w-1/4"></th>
+                <th class="p-3 border-b border-slate-200 bg-slate-100/50 text-xs font-bold text-slate-500 uppercase">Iniciación (L1)</th>
+                <th class="p-3 border-b border-slate-200 bg-slate-100/50 text-xs font-bold text-slate-500 uppercase">Transformación (L2/L3)</th>
+                <th class="p-3 border-b border-slate-200 bg-slate-100/50 text-xs font-bold text-slate-500 uppercase">Delegación (L4/L5)</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white">
+              <!-- Fila: Transaccional -->
+              <tr>
+                <td class="p-4 border-b border-slate-100 border-r align-top bg-slate-50/30">
+                  <div class="font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-4 h-4 text-slate-400"></i> Transaccional
+                  </div>
+                  <p class="text-[10px] text-slate-500 mt-1">Pagos únicos (Nuevos clientes)</p>
+                  <div class="mt-3 text-lg font-black text-slate-700">MXN $85,000</div>
+                </td>
+                <td class="p-4 border-b border-slate-100 border-r align-top">
+                  <div class="space-y-2">
+                    <div class="bg-slate-50 p-2 rounded border border-slate-100">
+                      <div class="flex justify-between text-sm font-semibold"><span>Curso</span> <span class="text-slate-800">$45k</span></div>
+                      <div class="text-[10px] text-slate-400 mt-1">Shopify / Agent</div>
+                    </div>
+                    <div class="bg-slate-50 p-2 rounded border border-slate-100">
+                      <div class="flex justify-between text-sm font-semibold"><span>Guía</span> <span class="text-slate-800">$12k</span></div>
+                      <div class="text-[10px] text-slate-400 mt-1">Shopify</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-slate-100 border-r align-top">
+                  <div class="bg-indigo-50/50 p-2 rounded border border-indigo-100">
+                    <div class="flex justify-between text-sm font-semibold text-indigo-900"><span>Mentoría</span> <span>$28k</span></div>
+                    <div class="text-[10px] text-indigo-400 mt-1">Agent / Manual</div>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-slate-100 align-top text-center text-xs text-slate-400 italic pt-6">
+                  Sin ventas
+                </td>
+              </tr>
+              <!-- Fila: Recurrente -->
+              <tr>
+                <td class="p-4 border-b border-slate-100 border-r align-top bg-emerald-50/30">
+                  <div class="font-bold text-emerald-800 flex items-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-500"></i> Recurrente (MRR)
+                  </div>
+                  <p class="text-[10px] text-emerald-600/70 mt-1">Suscripciones y retainers</p>
+                  <div class="mt-3 text-lg font-black text-emerald-600">MXN $45,000</div>
+                </td>
+                <td class="p-4 border-b border-slate-100 border-r align-top">
+                  <div class="bg-emerald-50 p-2 rounded border border-emerald-100 border-l-2 border-l-emerald-500">
+                    <div class="flex justify-between text-sm font-semibold text-emerald-900"><span>Comunidad</span> <span>$45k</span></div>
+                    <div class="text-[10px] text-emerald-600 mt-1">Shopify (35 act.)</div>
+                  </div>
+                </td>
+                <td class="p-4 border-b border-slate-100 border-r align-top text-center text-xs text-slate-400 italic pt-6">
+                  Sin ventas
+                </td>
+                <td class="p-4 border-b border-slate-100 align-top text-center text-xs text-slate-400 italic pt-6">
+                  Sin ventas
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DEMO DEL SIDEBAR (Mock) -->
+  <div id="demo-sidebar-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-50 flex justify-end opacity-0 pointer-events-none transition-opacity" onclick="closeSidebar()">
+    <div id="demo-sidebar" class="bg-white w-full max-w-sm h-full shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col" onclick="event.stopPropagation()">
+      <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+        <div>
+          <h3 id="sb-title" class="font-bold text-slate-800 text-lg">Nombre de Métrica</h3>
+          <p class="text-xs text-slate-500">Ventas — Revenue y clientes nuevos por oferta</p>
+        </div>
+        <button onclick="closeSidebar()" class="p-2 hover:bg-slate-200 rounded-md text-slate-500 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <div class="p-6 flex-1 space-y-6">
+        <div>
+          <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-1">Status Actual</p>
+          <div class="flex items-end gap-2">
+            <span id="sb-value" class="text-4xl font-black text-slate-800">12,000</span>
+          </div>
+          <p id="sb-desc" class="text-xs text-slate-500 mt-1">Ventas registradas</p>
+        </div>
+
+        <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-emerald-900 border-b border-emerald-200 pb-2 mb-2 flex items-center"><i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> Análisis de oportunidad</h4>
+          <p class="text-xs text-slate-600 mb-4">La inteligencia del sistema ha detectado que existe una gran oportunidad de optimización realizando las siguientes acciones para este producto.</p>
+        </div>
+
+        <div>
+          <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Acciones para mejorar</p>
+          <div class="space-y-2">
+            <button class="w-full text-left font-medium bg-emerald-600 text-white hover:bg-emerald-700 p-3 rounded-lg text-sm transition-colors flex items-center shadow-md justify-between">
+              Crear Campaña de Upsell <i data-lucide="sparkles" class="w-4 h-4 ml-2"></i>
+            </button>
+            <button class="w-full text-left bg-white border border-slate-200 hover:bg-slate-50 p-3 rounded-lg text-sm transition-colors flex items-center text-slate-600 text-center justify-center">
+              Ir a Offer Studio
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Accordion Logic
+    function toggleAccordion(id) {
+      const content = document.getElementById(id);
+      const icon = document.getElementById('icon-' + id);
+      
+      if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        icon.classList.remove('open');
+      } else {
+        content.classList.add('open');
+        icon.classList.add('open');
+      }
+    }
+
+    // Sidebar Logic
+    function openSidebar(title, value, desc) {
+      document.getElementById('sb-title').innerText = title;
+      document.getElementById('sb-value').innerText = value;
+      document.getElementById('sb-desc').innerText = desc;
+      
+      const overlay = document.getElementById('demo-sidebar-overlay');
+      const panel = document.getElementById('demo-sidebar');
+      
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      panel.classList.remove('translate-x-full');
+    }
+
+    function closeSidebar() {
+      const overlay = document.getElementById('demo-sidebar-overlay');
+      const panel = document.getElementById('demo-sidebar');
+      
+      panel.classList.add('translate-x-full');
+      setTimeout(() => {
+        overlay.classList.add('opacity-0', 'pointer-events-none');
+      }, 300); 
+    }
+  </script>
+</body>
+</html>

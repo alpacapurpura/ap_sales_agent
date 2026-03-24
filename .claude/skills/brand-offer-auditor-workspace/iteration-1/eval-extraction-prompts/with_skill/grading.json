@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "run_type": "with_skill",
+  "expectations": [
+    {"text": "reads_all_prompts", "passed": true, "evidence": "All 10 prompts analyzed with a Prompt-by-Prompt Atomic Verdict table. Each prompt gets Framework Alignment, Atomic Level assessment, and Verdict."},
+    {"text": "evaluates_specificity", "passed": true, "evidence": "Gives concrete bad/good examples: voice_tone '2-3 adjectives' is too shallow (C-01), consumer insight 'quieren crecer pero no tienen recursos' is too generic vs 'coaches quieren escalar mas alla de 1-a-1 pero sienten que al masificar pierden la conexion personal' (H-01), success_transformation 'tendra un negocio exitoso' is bad vs 'Abre su laptop el lunes y ve 3 ventas cerradas mientras dormia' (H-02)"},
+    {"text": "framework_alignment", "passed": true, "evidence": "Systematically cross-references: identity prompt → Aaker Brand-as-Person (gap), positioning prompt → Brand Love Key (strong), narrative prompt → StoryBrand (strong), strategy prompt → Gad Mental (missing), authority → Keller Judgments (partial). Coverage Matrix shows all 10 frameworks with per-framework element counts."},
+    {"text": "identifies_prompt_weaknesses", "passed": true, "evidence": "3 CRITICAL (voice_tone shallow, no Social dimension, no self-expressive benefits) + 5 HIGH (consumer insight allows generic, success/failure lack vivid examples, archetype too shallow, strategy too narrow, communication assets lack voice constraints) — all with specific prompt text citations"},
+    {"text": "translation_audit", "passed": true, "evidence": "Evaluates mapping throughout: 'What does your customer hate doing?' → Hormozi Effort & Sacrifice, emotional_benefits conflation with self-expressive benefits, voice_tone as flat string vs structured Brand-as-Person profile. The Translation Audit perspective is woven into findings rather than being a standalone section."}
+  ]
+}

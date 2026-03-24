@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alt 2: Panel Desplegable Integrado (Empuja Contenido)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .ai-hover-wrapper { position: relative; }
+        .ai-hover-btn {
+            position: absolute; top: -14px; right: 12px; opacity: 0;
+            transform: translateY(4px); transition: all 0.2s ease; z-index: 60;
+        }
+        .ai-hover-wrapper:hover .ai-hover-btn { opacity: 1; transform: translateY(0); }
+        
+        /* Layout Transitions */
+        #main-content-area { transition: padding-right 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        #copilot-panel { transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        #form-sidebar { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden text-slate-900">
+
+    <!-- COLUMNA 1: NAV IZQUIERDO -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shrink-0 z-20">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800">
+            <i data-lucide="triangle" class="w-6 h-6 text-blue-500"></i>
+            <span class="ml-2 font-bold text-lg">Visionarias</span>
+        </div>
+        <nav class="p-4 space-y-2">
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"><i data-lucide="building-2" class="w-4 h-4"></i> Brand Studio</a>
+        </nav>
+    </aside>
+
+    <!-- WRAPPER CENTRAL (Main + Formularios + Copilot) -->
+    <div class="flex-1 flex relative overflow-hidden bg-white">
+        
+        <!-- COLUMNA 2: MAIN CONTENT -->
+        <!-- Su padding derecho cambia dinámicamente según lo que esté abierto -->
+        <main id="main-content-area" class="flex-1 flex flex-col h-full relative transition-all duration-300 pr-[50px]">
+            <header class="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white shrink-0">
+                <h1 class="text-lg font-semibold">Brand Studio</h1>
+            </header>
+            <div class="flex-1 overflow-y-auto p-8 bg-gray-50">
+                <div class="max-w-3xl mx-auto space-y-12">
+                    <div class="border-b pb-2 mb-6 flex justify-between items-end">
+                        <div>
+                            <span class="text-blue-600 font-bold text-sm tracking-wider uppercase">CAPÍTULO 1</span>
+                            <h2 class="text-2xl font-bold mt-1">Origen y Estrategia</h2>
+                        </div>
+                        <button class="flex items-center gap-2 text-sm bg-white border border-gray-200 font-medium hover:bg-gray-50 px-4 py-2 rounded-md" onclick="openForm()">
+                            <i data-lucide="pencil" class="w-4 h-4"></i> Editar
+                        </button>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6">
+                        <h3 class="text-sm text-gray-500 font-semibold uppercase tracking-wider mb-2">Metodología</h3>
+                        <p class="text-xl font-medium text-slate-900">Ciclo Nova</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OVERLAY OSCURO SOLO PARA EL MAIN CONTENT CUANDO SE ABRE EL FORM -->
+            <div id="main-overlay" class="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px] opacity-0 pointer-events-none transition-opacity duration-300 z-10"></div>
+        </main>
+
+        <!-- FORMULARIO SIDEBAR (Empuja al Main, pero está a la izquierda del Copilot) -->
+        <aside id="form-sidebar" class="absolute right-[50px] top-0 bottom-0 w-[450px] bg-white border-l border-gray-200 shadow-2xl z-20 transform translate-x-[450px]">
+            <div class="h-16 flex items-center justify-between px-4 border-b border-gray-200">
+                <h3 class="font-semibold">Editar Metodología</h3>
+                <button class="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md" onclick="closeForm()"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="space-y-1.5 ai-hover-wrapper">
+                    <label class="text-sm font-medium text-slate-700">Nombre de Metodología</label>
+                    <input type="text" value="Ciclo Nova" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <button class="ai-hover-btn flex items-center gap-1.5 px-2 py-1 bg-purple-100 border border-purple-200 rounded-full text-[10px] font-medium text-purple-700 hover:bg-purple-200" onclick="openCopilot()">
+                        <i data-lucide="sparkles" class="w-3 h-3"></i> a Copilot
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- COLUMNA 3: COPILOT PANEL (Anclado a la derecha absoluta) -->
+        <!-- Inicia colapsado a 50px -->
+        <aside id="copilot-panel" class="absolute right-0 top-0 bottom-0 w-[50px] bg-white border-l border-gray-200 shadow-[-4px_0_15px_rgba(0,0,0,0.03)] z-30 flex flex-col">
+            
+            <!-- Vista Colapsada (Solo Iconos) -->
+            <div id="copilot-collapsed" class="flex-1 flex flex-col items-center py-4 space-y-4">
+                <button class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center hover:bg-purple-200 transition-colors" onclick="openCopilot()" title="Abrir Copilot">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Vista Expandida (Chat) -->
+            <div id="copilot-expanded" class="hidden flex-1 flex-col w-[350px]">
+                <div class="h-16 px-4 border-b border-gray-200 bg-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2 text-purple-700">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <h3 class="font-semibold text-sm">Copilot</h3>
+                    </div>
+                    <button class="p-1 text-gray-400 hover:bg-gray-100 rounded" onclick="closeCopilot()">
+                        <i data-lucide="panel-right-close" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="flex-1 p-4 bg-purple-50/30">
+                    <div class="bg-white border border-purple-100 p-3 rounded-xl shadow-sm text-sm text-gray-700">
+                        He empujado el contenido hacia la izquierda para hacerte espacio. Si abres un formulario, aparecerá a mi lado.
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        let isFormOpen = false;
+        let isCopilotOpen = false;
+        const formW = 450;
+        const copilotMin = 50;
+        const copilotMax = 350;
+
+        function updateLayout() {
+            const main = document.getElementById('main-content-area');
+            const form = document.getElementById('form-sidebar');
+            const copilot = document.getElementById('copilot-panel');
+            const overlay = document.getElementById('main-overlay');
+            const copilotExpanded = document.getElementById('copilot-expanded');
+            const copilotCollapsed = document.getElementById('copilot-collapsed');
+
+            let currentCopilotW = isCopilotOpen ? copilotMax : copilotMin;
+            
+            // 1. Ajustar Copilot
+            copilot.style.width = `${currentCopilotW}px`;
+            if (isCopilotOpen) {
+                copilotCollapsed.classList.add('hidden');
+                copilotExpanded.classList.remove('hidden');
+                copilotExpanded.classList.add('flex');
+            } else {
+                copilotCollapsed.classList.remove('hidden');
+                copilotExpanded.classList.add('hidden');
+                copilotExpanded.classList.remove('flex');
+            }
+
+            // 2. Ajustar Formulario (se mueve dependiendo del tamaño del Copilot)
+            form.style.right = `${currentCopilotW}px`;
+            if (isFormOpen) {
+                form.classList.remove(`translate-x-[${formW}px]`);
+                form.style.transform = `translateX(0)`;
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                form.style.transform = `translateX(${formW}px)`;
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            // 3. Ajustar Padding del Main Content
+            let mainPadding = currentCopilotW;
+            if (isFormOpen) mainPadding += formW;
+            // No cambiamos el padding si está el overlay para evitar reflows bruscos, 
+            // en la realidad de SaaS, cuando se abre un drawer, el main no se encoge, se oscurece.
+            // Pero el copilot SÍ encoge el main.
+            main.style.paddingRight = `${currentCopilotW}px`;
+        }
+
+        function openForm() { isFormOpen = true; updateLayout(); }
+        function closeForm() { isFormOpen = false; updateLayout(); }
+        function openCopilot() { isCopilotOpen = true; updateLayout(); }
+        function closeCopilot() { isCopilotOpen = false; updateLayout(); }
+    </script>
+</body>
+</html>

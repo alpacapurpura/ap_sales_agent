@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propuesta UI Final: Panel de Ventas (Visionarias)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(222.2 47.4% 11.2%)",
+              foreground: "hsl(210 40% 98%)",
+            },
+            muted: {
+              DEFAULT: "hsl(210 40% 96.1%)",
+              foreground: "hsl(215.4 16.3% 46.9%)",
+            },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+    }
+    body {
+      background-color: #f8fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 1);
+      border: 1px solid rgba(226, 232, 240, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Entire Row Clickable Styles */
+    .row-clickable {
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .row-clickable:hover {
+      background-color: rgba(16, 185, 129, 0.04); /* Emerald hover */
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+      transform: translateY(-1px);
+    }
+    .row-clickable-blue:hover {
+      background-color: rgba(59, 130, 246, 0.04);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    .row-clickable-indigo:hover {
+      background-color: rgba(99, 102, 241, 0.04);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+    .row-clickable-amber:hover {
+      background-color: rgba(245, 158, 11, 0.04);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    /* Sidebar logic */
+    .sidebar-overlay {
+      background-color: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sidebar-panel {
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar-panel.open {
+      transform: translateX(0);
+    }
+  </style>
+</head>
+<body class="p-6 md:p-12 text-slate-900 overflow-x-hidden relative">
+
+  <div class="max-w-7xl mx-auto space-y-12">
+    
+    <div class="scenario-container space-y-8 animate-fade-in block">
+      
+      <!-- HEADER UNIFICADO -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            Ventas
+            <span class="px-2 py-0.5 mt-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium tracking-wide">ETAPA 4</span>
+          </h1>
+          <p class="text-slate-500 text-sm mt-1">Ingresos generados (Revenue), clientes nuevos y costo de adquisición por oferta.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="text-xs text-slate-400 italic mr-2">Actualizado: 23 mar 2026, 12:05</p>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-200 bg-white hover:bg-slate-100 h-9 px-4 py-2 shadow-sm text-slate-700">
+            <i data-lucide="calendar" class="w-4 h-4 mr-2"></i> Últimos 30 días
+          </button>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700 h-9 px-4 py-2 shadow-sm">
+            <i data-lucide="settings" class="w-4 h-4 mr-2"></i> Gestionar Etapa
+          </button>
+        </div>
+      </div>
+
+      <!-- VISIÓN GLOBAL: FUNNEL -->
+      <div class="glass-card rounded-xl p-6 relative overflow-hidden bg-white">
+        <h2 class="text-lg font-semibold mb-6 flex items-center text-slate-800">
+          <i data-lucide="banknote" class="w-5 h-5 mr-2 text-emerald-600"></i> Rendimiento de Ventas
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+          <!-- Líneas conectoras -->
+          <div class="hidden md:block absolute top-[40%] left-[20%] w-[10%] h-[2px] bg-gradient-to-r from-slate-200 to-slate-400 z-0"></div>
+          <div class="hidden md:block absolute top-[40%] left-[45%] w-[10%] h-[2px] bg-gradient-to-r from-emerald-200 to-emerald-400 z-0"></div>
+          <div class="hidden md:block absolute top-[40%] left-[70%] w-[10%] h-[2px] bg-gradient-to-r from-emerald-400 to-emerald-600 z-0"></div>
+          
+          <!-- Bloque 1: Pipeline Inicial -->
+          <div class="bg-white p-5 rounded-lg border border-slate-100 shadow-sm relative z-10 flex flex-col justify-center items-center text-center">
+            <span class="text-[10px] text-slate-500 font-bold uppercase mb-1">Oportunidades (SQLs)</span>
+            <div class="text-3xl font-black text-slate-800">72</div>
+            <span class="text-xs text-slate-500 mt-1">Leads Listos para Comprar</span>
+          </div>
+
+          <!-- Bloque 2: Nuevos Clientes -->
+          <div class="bg-white p-5 rounded-lg border border-emerald-100 shadow-sm relative z-10 flex flex-col justify-center items-center text-center ring-1 ring-emerald-50">
+            <span class="text-[10px] text-emerald-600 font-bold uppercase mb-1">Nuevos Clientes</span>
+            <div class="text-4xl font-black text-emerald-600">38</div>
+            <span class="text-xs text-emerald-600/70 mt-1 font-medium">Conversiones Exitosas</span>
+            <div class="mt-3 text-[10px] text-slate-400 font-medium text-emerald-600">
+              <i data-lucide="crosshair" class="w-3 h-3 mr-1 inline"></i> CAC Promedio: USD $48.68
+            </div>
+          </div>
+
+          <!-- Bloque 3: Tasa de Conversión -->
+          <div class="flex flex-col items-center justify-center relative z-10 bg-white/0">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 text-white flex items-center justify-center shadow-md border-4 border-white">
+              <span class="font-bold text-lg">52.7%</span>
+            </div>
+            <span class="text-[10px] text-slate-500 font-bold uppercase mt-3 text-center">Tasa de Cierre</span>
+          </div>
+
+          <!-- Bloque 4: Revenue Total -->
+          <div class="bg-emerald-950 p-5 rounded-lg border border-emerald-900 shadow-md relative z-10 flex flex-col justify-center items-center text-center text-white">
+            <span class="text-[10px] text-emerald-300 font-bold uppercase mb-1">Revenue Total</span>
+            <div class="text-4xl font-black text-white">USD $40k</div>
+            <span class="text-xs text-emerald-200 mt-1">Ingresos Generados</span>
+            <div class="mt-3 text-xs font-medium text-emerald-300 border-0">
+              <i data-lucide="trending-up" class="w-3 h-3 mr-1 inline"></i> +12% vs mes anterior
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas y Embudos (Bottlenecks) -->
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-3 text-amber-900 items-center shadow-sm">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500 flex-shrink-0"></i>
+        <div class="flex-1">
+          <p class="text-sm font-medium"><strong>Cuello de Botella Detectado:</strong> 3 leads en "Programa: De Propósito a Prosperidad" abandonaron el checkout. Envía un recordatorio.</p>
+        </div>
+        <button class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-3 py-1.5 rounded-md font-medium transition-colors">
+          Solucionar
+        </button>
+      </div>
+
+      <!-- DESGLOSE POR OFFER LADDER -->
+      <div class="pt-4 space-y-6">
+        <div class="flex items-end justify-between border-b border-slate-200 pb-2">
+          <div>
+            <h3 class="font-semibold text-xl flex items-center text-slate-800">
+              <i data-lucide="layers" class="w-5 h-5 mr-2 text-emerald-600"></i> Desglose por Offer Ladder
+            </h3>
+            <p class="text-sm text-slate-500 mt-1">Ingresos organizados por la jerarquía de tus productos (Alineado con Offer Studio).</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Col 1: Iniciación (DIY) -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col">
+            <div class="mb-4 pb-3 border-b flex items-center gap-2">
+              <div class="p-1.5 rounded bg-blue-50 text-blue-600"><i data-lucide="zap" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-slate-800 text-sm">Iniciación (DIY)</h4>
+            </div>
+            
+            <div class="space-y-3 flex-1">
+              <!-- Clickable Row para N1 -->
+              <div 
+                class="border border-slate-100 rounded-md p-3 bg-white row-clickable row-clickable-blue relative overflow-hidden group"
+                onclick="openSidebar('Revenue: Pack Meditaciones', 'USD $1,620', '60 Ventas (Nivel 1)')"
+              >
+                <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-blue-400 transition-colors"></div>
+                <div class="flex justify-between items-start">
+                  <div class="pl-2">
+                    <h5 class="font-semibold text-sm text-slate-800 leading-tight">Pack Meditaciones: Abundancia</h5>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Tripwire • Pago Único</p>
+                    
+                    <div class="mt-2 flex items-center gap-1.5">
+                      <span class="text-[9px] font-semibold text-slate-400 uppercase">Vía:</span>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-100 cursor-help" title="Cierre automático procesado por Shopify">S: 45</span>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-100 cursor-help" title="Cierre conversacional gestionado por el AI Agent">A: 15</span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-sm font-bold text-slate-800">USD $1.6k</span>
+                    <p class="text-[10px] text-slate-500 mt-1">60 ventas</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 2: Transformación (DWY) -->
+          <div class="bg-white rounded-xl border border-indigo-200 p-4 shadow-sm flex flex-col relative">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-t-xl"></div>
+            <div class="mb-4 pb-3 border-b flex items-center gap-2">
+              <div class="p-1.5 rounded bg-indigo-50 text-indigo-600"><i data-lucide="rocket" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-slate-800 text-sm">Transformación (DWY)</h4>
+            </div>
+            
+            <div class="space-y-3 flex-1">
+              <!-- Clickable Row para N2 -->
+              <div 
+                class="border border-slate-100 rounded-md p-3 bg-white row-clickable row-clickable-indigo relative overflow-hidden group"
+                onclick="openSidebar('Revenue: De Propósito a Prosperidad', 'USD $7,455', '15 Ventas (Nivel 2)')"
+              >
+                <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-indigo-400 transition-colors"></div>
+                <div class="flex justify-between items-start">
+                  <div class="pl-2">
+                    <h5 class="font-semibold text-sm text-slate-800 leading-tight">De Propósito a Prosperidad</h5>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Programa Grupal • Pago Único</p>
+                    
+                    <div class="mt-2 flex items-center gap-1.5">
+                      <span class="text-[9px] font-semibold text-slate-400 uppercase">Vía:</span>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700 border border-blue-100 cursor-help" title="Cierre automático procesado por Shopify">S: 10</span>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-50 text-purple-700 border border-purple-100 cursor-help" title="Cierre conversacional gestionado por el AI Agent">A: 5</span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-sm font-bold text-slate-800">USD $7.4k</span>
+                    <p class="text-[10px] text-slate-500 mt-1">15 ventas</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Clickable Row para N3 -->
+              <div 
+                class="border border-slate-100 rounded-md p-3 bg-white row-clickable row-clickable-indigo relative overflow-hidden group"
+                onclick="openSidebar('Revenue: Mentoría Visión Clara', 'USD $10,000', '4 Ventas (Nivel 3)')"
+              >
+                <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-indigo-400 transition-colors"></div>
+                <div class="flex justify-between items-start">
+                  <div class="pl-2">
+                    <h5 class="font-semibold text-sm text-slate-800 leading-tight">Mentoría Privada: Visión Clara</h5>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">1 a 1 • Pago Único</p>
+                    
+                    <div class="mt-2 flex items-center gap-1.5">
+                      <span class="text-[9px] font-semibold text-slate-400 uppercase">Vía:</span>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-700 border border-slate-200 cursor-help" title="Cierre manual o llamada de ventas">M: 4</span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-sm font-bold text-slate-800">USD $10k</span>
+                    <p class="text-[10px] text-slate-500 mt-1">4 ventas</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 3: Delegación (DFY) -->
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col">
+            <div class="mb-4 pb-3 border-b flex items-center gap-2">
+              <div class="p-1.5 rounded bg-amber-50 text-amber-600"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
+              <h4 class="font-bold text-slate-800 text-sm">Delegación (DFY / Corp)</h4>
+            </div>
+            
+            <div class="space-y-3 flex-1">
+              <!-- Clickable Row para N4 -->
+              <div 
+                class="border border-slate-100 rounded-md p-3 bg-white row-clickable row-clickable-amber relative overflow-hidden group"
+                onclick="openSidebar('Revenue: Agencia Visionarias DFY', 'USD $10,000', '2 Ventas (Nivel 4)')"
+              >
+                <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-amber-400 transition-colors"></div>
+                <div class="flex justify-between items-start">
+                  <div class="pl-2">
+                    <h5 class="font-semibold text-sm text-slate-800 leading-tight">Agencia Visionarias DFY</h5>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Servicio • Pago Único</p>
+                    
+                    <div class="mt-2 flex items-center gap-1.5">
+                      <span class="text-[9px] font-semibold text-slate-400 uppercase">Vía:</span>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-700 border border-slate-200 cursor-help" title="Cierre manual o llamada de ventas">M: 2</span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-sm font-bold text-slate-800">USD $10k</span>
+                    <p class="text-[10px] text-slate-500 mt-1">2 ventas</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Clickable Row para N5 -->
+              <div 
+                class="border border-slate-100 rounded-md p-3 bg-white row-clickable row-clickable-amber relative overflow-hidden group"
+                onclick="openSidebar('Revenue: Círculo Visionarias Elite', 'USD $10,000', '1 Venta (Nivel 5)')"
+              >
+                <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-amber-400 transition-colors"></div>
+                <div class="flex justify-between items-start">
+                  <div class="pl-2">
+                    <h5 class="font-semibold text-sm text-slate-800 leading-tight">Círculo Visionarias Elite</h5>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Mastermind • Pago Único</p>
+                    
+                    <div class="mt-2 flex items-center gap-1.5">
+                      <span class="text-[9px] font-semibold text-slate-400 uppercase">Vía:</span>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-700 border border-slate-200 cursor-help" title="Cierre manual o llamada de ventas">M: 1</span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-sm font-bold text-slate-800">USD $10k</span>
+                    <p class="text-[10px] text-slate-500 mt-1">1 venta</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila Inferior: Recurrencia (Expansión) -->
+        <div 
+          class="mt-6 bg-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-6 items-center justify-between text-white shadow-md border border-slate-700 row-clickable hover:bg-slate-800/90 transition-all cursor-pointer"
+          onclick="openSidebar('MRR: Comunidad Visionarias', 'USD $1,645', '35 Suscripciones Activas')"
+        >
+          <div class="flex items-center gap-4 md:w-1/3">
+            <div class="p-2.5 bg-emerald-500/20 rounded-full text-emerald-400 flex-shrink-0">
+              <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-lg leading-tight">Ingreso Recurrente (MRR)</h4>
+              <p class="text-xs text-slate-400 mt-0.5">Suscripciones y retainers (Expansión)</p>
+            </div>
+          </div>
+          
+          <div class="flex-1 flex gap-4 w-full md:w-auto px-0 md:px-6 md:border-x md:border-slate-700">
+            <div class="bg-slate-700/50 rounded p-3 flex-1 flex justify-between items-center group-hover:bg-slate-700/80 transition-colors">
+              <div>
+                <span class="text-sm font-medium text-slate-200">Comunidad Visionarias</span>
+                <p class="text-[10px] text-slate-400 mt-1">Renovaciones Vía: <span class="text-blue-300">Shopify (35)</span></p>
+              </div>
+              <span class="font-bold text-emerald-400">USD $1,645</span>
+            </div>
+          </div>
+          
+          <div class="text-right md:w-1/4">
+            <div class="text-2xl font-black text-emerald-400">USD $1.6k</div>
+            <p class="text-xs text-slate-400 mt-1">35 Suscripciones Activas</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR (Se activa al hacer click en las rows) -->
+  <div id="demo-sidebar-overlay" class="fixed inset-0 sidebar-overlay z-50 flex justify-end" onclick="closeSidebar()">
+    <div id="demo-sidebar" class="bg-white w-full max-w-sm h-full shadow-2xl sidebar-panel overflow-y-auto flex flex-col" onclick="event.stopPropagation()">
+      <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+        <div>
+          <h3 id="sb-title" class="font-bold text-slate-800 text-lg">Nombre de Métrica</h3>
+          <p class="text-xs text-slate-500">Contexto de acción</p>
+        </div>
+        <button onclick="closeSidebar()" class="p-2 hover:bg-slate-200 rounded-md text-slate-500 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <div class="p-6 flex-1 space-y-6">
+        <div>
+          <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-1">Status Actual</p>
+          <div class="flex items-end gap-2">
+            <span id="sb-value" class="text-4xl font-black text-slate-800">12,000</span>
+          </div>
+          <p id="sb-desc" class="text-xs text-slate-500 mt-1">Ventas registradas</p>
+        </div>
+
+        <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-emerald-900 border-b border-emerald-200 pb-2 mb-2 flex items-center"><i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> Análisis de oportunidad</h4>
+          <p class="text-xs text-slate-600 mb-4">La inteligencia del sistema ha detectado que existe una gran oportunidad de optimización realizando las siguientes acciones para este producto.</p>
+        </div>
+
+        <div>
+          <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Acciones para mejorar</p>
+          <div class="space-y-2">
+            <button class="w-full text-left font-medium bg-emerald-600 text-white hover:bg-emerald-700 p-3 rounded-lg text-sm transition-colors flex items-center shadow-md justify-between">
+              Crear Campaña de Upsell <i data-lucide="sparkles" class="w-4 h-4 ml-2"></i>
+            </button>
+            <button class="w-full text-left bg-white border border-slate-200 hover:bg-slate-50 p-3 rounded-lg text-sm transition-colors flex items-center text-slate-600 text-center justify-center">
+              Ver detalle en Offer Studio
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function openSidebar(title, value, desc) {
+      document.getElementById('sb-title').innerText = title;
+      document.getElementById('sb-value').innerText = value;
+      document.getElementById('sb-desc').innerText = desc;
+      
+      const overlay = document.getElementById('demo-sidebar-overlay');
+      const panel = document.getElementById('demo-sidebar');
+      
+      overlay.classList.add('open');
+      panel.classList.add('open');
+    }
+
+    function closeSidebar() {
+      const overlay = document.getElementById('demo-sidebar-overlay');
+      const panel = document.getElementById('demo-sidebar');
+      
+      overlay.classList.remove('open');
+      setTimeout(() => {
+        panel.classList.remove('open');
+      }, 300); 
+    }
+  </script>
+</body>
+</html>

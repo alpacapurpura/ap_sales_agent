@@ -272,6 +272,10 @@ export function BrandStudioLayout({
                     <AvatarsSection
                         visuals={settings.visuals ?? {}}
                         onEdit={(item) => openEdit("avatars", item)}
+                        onExtract={() => {
+                            setSmartFillMode("update");
+                            setIsSmartFillOpen(true);
+                        }}
                     />
                 </div>
 

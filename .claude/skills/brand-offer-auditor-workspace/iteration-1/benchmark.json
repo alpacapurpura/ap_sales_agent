@@ -1,0 +1,89 @@
+{
+  "skill_name": "brand-offer-auditor",
+  "iteration": 1,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "results": [
+        {
+          "eval_name": "brand-studio-full-audit",
+          "pass_rate": 1.0,
+          "passed": 7,
+          "total": 7,
+          "tokens": 81849,
+          "duration_seconds": 272.9
+        },
+        {
+          "eval_name": "cohort-course-type-audit",
+          "pass_rate": 1.0,
+          "passed": 6,
+          "total": 6,
+          "tokens": 87525,
+          "duration_seconds": 225.9
+        },
+        {
+          "eval_name": "extraction-prompts-audit",
+          "pass_rate": 1.0,
+          "passed": 5,
+          "total": 5,
+          "tokens": 57038,
+          "duration_seconds": 254.7
+        }
+      ],
+      "aggregate": {
+        "mean_pass_rate": 1.0,
+        "stddev_pass_rate": 0.0,
+        "mean_tokens": 75470.7,
+        "mean_duration_seconds": 251.2
+      }
+    },
+    {
+      "name": "without_skill",
+      "results": [
+        {
+          "eval_name": "brand-studio-full-audit",
+          "pass_rate": 0.57,
+          "passed": 4,
+          "total": 7,
+          "tokens": 54942,
+          "duration_seconds": 136.6
+        },
+        {
+          "eval_name": "cohort-course-type-audit",
+          "pass_rate": 0.33,
+          "passed": 2,
+          "total": 6,
+          "tokens": 67316,
+          "duration_seconds": 161.6
+        },
+        {
+          "eval_name": "extraction-prompts-audit",
+          "pass_rate": 0.6,
+          "passed": 3,
+          "total": 5,
+          "tokens": 44367,
+          "duration_seconds": 157.0
+        }
+      ],
+      "aggregate": {
+        "mean_pass_rate": 0.5,
+        "stddev_pass_rate": 0.145,
+        "mean_tokens": 55541.7,
+        "mean_duration_seconds": 151.7
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate": "+50.0%",
+    "tokens": "+35.9%",
+    "duration": "+65.6%"
+  },
+  "analyst_observations": [
+    "The skill achieves 100% assertion pass rate across all 3 evals vs 50% baseline — the biggest gains are in framework application and structured output.",
+    "WITHOUT skill, the model finds real bugs (enum coercion, legacy field names, SDR template gaps) but misses the WHY — it audits code structure, not marketing methodology coverage.",
+    "WITH skill, every finding is grounded in a named framework with atomic elements, producing findings the baseline never surfaces: Gad Social dimension, Keller Feelings taxonomy, Hormozi Effort/Sacrifice, WbD Critical Event, self-expressive benefits.",
+    "The skill costs ~36% more tokens and ~66% more time. This is expected — the model reads references/frameworks.md and produces richer, structured output.",
+    "The cohort course eval shows the biggest skill delta (33% → 100%): without skill, the model has zero framework awareness for offer-type audits. With skill, it correctly weights Hormozi/WbD/Casel as PRIMARY.",
+    "Both with and without skill correctly identify the #1 finding: agent_identity.j2 doesn't consume brand/offer data. The skill adds the methodology WHY and structured SDR readiness scoring."
+  ]
+}

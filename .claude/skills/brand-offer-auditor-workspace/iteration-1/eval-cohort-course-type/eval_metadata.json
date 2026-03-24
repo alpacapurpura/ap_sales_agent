@@ -1,0 +1,37 @@
+{
+  "eval_id": 2,
+  "eval_name": "cohort-course-type-audit",
+  "prompt": "Audita el tipo de oferta COHORT_BASED_COURSE. Tenemos varios cursos en cohorte y quiero asegurarme de que el sistema captura todo lo que necesita el SDR para vender este tipo de programa.",
+  "assertions": [
+    {
+      "id": "type_specific_focus",
+      "text": "Report focuses specifically on COHORT_BASED_COURSE, not generic offer advice. Mentions ProgramDetails, curriculum, cohort_limit, schedule, etc.",
+      "type": "content"
+    },
+    {
+      "id": "examines_program_details",
+      "text": "Reads and analyzes the ProgramDetails model including curriculum (ProgramModule), schedule (SessionDetails), cohort settings, and community fields",
+      "type": "content"
+    },
+    {
+      "id": "applies_correct_frameworks",
+      "text": "Applies Hormozi (Grand Slam Offer), WbD (Critical Event), and Casel (Productization) as primary frameworks — not primarily brand-level frameworks",
+      "type": "content"
+    },
+    {
+      "id": "product_blueprint_validation",
+      "text": "Validates whether a complete Product Blueprint (Ficha Tecnica) can be assembled: Target/ICP, Critical Event, Promise of Impact, Process Steps, Guarantee/Bonuses",
+      "type": "structural"
+    },
+    {
+      "id": "sdr_type_questions",
+      "text": "Includes program-specific SDR questions: duration, start date, waitlist, curriculum structure, live interaction format",
+      "type": "content"
+    },
+    {
+      "id": "brand_essence_bridge",
+      "text": "Checks whether the offer inherits brand data (voice, story, positioning, proof) and flags gaps in the brand-to-offer data bridge",
+      "type": "content"
+    }
+  ]
+}

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propuesta UI Final: Panel de Adopción (Visionarias)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(222.2 47.4% 11.2%)",
+              foreground: "hsl(210 40% 98%)",
+            },
+            muted: {
+              DEFAULT: "hsl(210 40% 96.1%)",
+              foreground: "hsl(215.4 16.3% 46.9%)",
+            },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --border: 214.3 31.8% 91.4%;
+      --card: 0 0% 100%;
+    }
+    
+    body {
+      background-color: #f8fafc;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    
+    .bg-card {
+      background-color: rgba(255, 255, 255, 1);
+    }
+    
+    .border-border {
+      border-color: rgba(226, 232, 240, 1);
+    }
+
+    /* Entire Row Clickable Styles */
+    .row-clickable {
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .row-clickable:hover {
+      background-color: rgba(16, 185, 129, 0.04); /* Emerald hover */
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+      transform: translateY(-1px);
+    }
+
+    /* Sidebar logic */
+    .sidebar-overlay {
+      background-color: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sidebar-panel {
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar-panel.open {
+      transform: translateX(0);
+    }
+  </style>
+</head>
+<body class="p-6 md:p-12 overflow-x-hidden relative text-slate-900">
+
+  <div class="max-w-7xl mx-auto space-y-12">
+    
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm animate-fade-in block">
+      
+      <!-- HEADER UNIFICADO -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            Adopción
+            <span class="px-2 py-0.5 mt-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium tracking-wide">ETAPA 5</span>
+          </h1>
+          <p class="text-slate-500 text-sm mt-1">Salud y activación de clientes existentes post-venta.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="text-xs text-slate-400 italic mr-2">Actualizado: 17 mar 2026, 17:28</p>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-200 bg-white hover:bg-slate-100 h-9 px-4 py-2 shadow-sm text-slate-700">
+            <i data-lucide="calendar" class="w-4 h-4 mr-2"></i> Últimos 30 días
+          </button>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700 h-9 px-4 py-2 shadow-sm">
+            <i data-lucide="settings" class="w-4 h-4 mr-2"></i> Gestionar Etapa
+          </button>
+        </div>
+      </div>
+
+      <!-- VISIÓN GLOBAL: KPIs y Mini Funnel -->
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 relative overflow-hidden mb-8">
+        <h2 class="text-lg font-semibold mb-6 flex items-center text-slate-800">
+          <i data-lucide="activity" class="w-5 h-5 mr-2 text-emerald-600"></i> Estado de la Base de Clientes
+        </h2>
+        
+        <div class="relative mb-2">
+          <!-- Horizontal Lines (Background Layer) -->
+          <div class="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-emerald-200 to-emerald-400 top-[40%] left-[20%] z-0"></div>
+          <div class="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-emerald-400 to-emerald-500 top-[40%] left-[45%] z-0"></div>
+          <div class="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-600 top-[40%] left-[70%] z-0"></div>
+          
+          <!-- Metrics Row (Foreground Layer) -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10 w-full">
+            
+            <!-- Bloque 1: Ventas (Input) -->
+            <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col items-center justify-center relative text-center">
+              <span class="text-[10px] text-slate-500 font-bold uppercase mb-1">Ventas Generadas</span>
+              <span class="text-3xl font-black text-slate-800">38</span>
+              <span class="text-xs text-slate-500 mt-1">Clientes Nuevos</span>
+            </div>
+
+            <!-- Bloque 2: Clientes Activos -->
+            <div class="bg-white p-5 rounded-lg border border-emerald-200 shadow-sm flex flex-col items-center justify-center relative text-center ring-1 ring-emerald-50">
+              <span class="text-[10px] text-emerald-600 font-bold uppercase mb-1">Clientes Activos</span>
+              <span class="text-4xl font-black text-emerald-600">38</span>
+              <span class="text-xs text-emerald-600/80 mt-1 font-medium">Consumiendo el producto</span>
+              <div class="mt-3 text-[10px] text-slate-500 font-medium flex items-center justify-center">
+                <i data-lucide="clock" class="w-3 h-3 mr-1 text-emerald-600"></i>
+                <span>Activación Promedio: 2 días</span>
+              </div>
+            </div>
+
+            <!-- Bloque 3: Tasa de Salud -->
+            <div class="flex flex-col items-center justify-center relative">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 text-white flex items-center justify-center shadow-md border-4 border-white">
+                <span class="font-bold text-lg">100%</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-bold uppercase mt-3 text-center">Tasa de Salud</span>
+            </div>
+
+            <!-- Bloque 4: Clientes Inactivos -->
+            <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col items-center justify-center relative text-center">
+              <span class="text-[10px] text-slate-500 font-bold uppercase mb-1">Clientes Inactivos</span>
+              <span class="text-4xl font-black text-slate-400">0</span>
+              <span class="text-xs text-slate-400 mt-1">Requieren atención</span>
+              <div class="mt-3 text-[10px] text-slate-500 font-medium flex items-center justify-center">
+                <i data-lucide="corner-down-left" class="w-3 h-3 mr-1 text-slate-400"></i>
+                <span>Devoluciones: 0</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Bar -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+        <div class="flex justify-between items-end mb-4">
+          <div>
+            <h3 class="font-semibold text-slate-800 text-sm">Distribución de Salud General</h3>
+            <p class="text-xs text-slate-500 mt-1">Proporción de clientes activos vs inactivos en toda tu cartera.</p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Excelente</span>
+          </div>
+        </div>
+        <div class="w-full h-4 rounded-full bg-slate-100 overflow-hidden flex shadow-inner">
+          <div class="h-full bg-emerald-500 transition-all duration-500" style="width: 100%"></div>
+          <div class="h-full bg-amber-400 transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between mt-3 text-xs font-medium">
+          <span class="text-emerald-600 flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span> 38 Activos (100%)</span>
+          <span class="text-amber-600 flex items-center"><span class="w-2 h-2 rounded-full bg-amber-400 mr-1.5"></span> 0 Inactivos (0%)</span>
+        </div>
+      </div>
+
+      <!-- DESGLOSE POR OFERTA -->
+      <div class="space-y-4">
+        <div class="flex items-end justify-between border-b border-slate-200 pb-2 mb-4">
+          <div>
+            <h3 class="font-semibold text-xl flex items-center text-slate-800">
+              <i data-lucide="layers" class="w-5 h-5 mr-2 text-emerald-600"></i> Desglose de Adopción por Oferta
+            </h3>
+            <p class="text-sm text-slate-500 mt-1">Métricas de salud y activación específicas para cada producto o servicio.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Offer Card 1 -->
+          <div 
+            class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+            onclick="openSidebar('Adopción: Agencia DFY', '100%', '3 Clientes Activos')"
+          >
+            <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-emerald-400 transition-colors"></div>
+            <div class="flex justify-between items-start mb-3">
+              <div class="pl-2">
+                <h5 class="font-semibold text-sm text-slate-800">Agencia Visionarias DFY</h5>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">3 Clientes Totales</p>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                Saludable
+              </span>
+            </div>
+            
+            <div class="pl-2 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex gap-3">
+                  <span class="text-emerald-600 font-medium">3 Activos</span>
+                  <span class="text-slate-400">0 Inactivos</span>
+                </div>
+                <span class="font-bold text-slate-700">100% Salud</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="h-full bg-emerald-500" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offer Card 2 -->
+          <div 
+            class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+            onclick="openSidebar('Adopción: Mentoría Privada', '100%', '5 Clientes Activos')"
+          >
+            <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-emerald-400 transition-colors"></div>
+            <div class="flex justify-between items-start mb-3">
+              <div class="pl-2">
+                <h5 class="font-semibold text-sm text-slate-800">Mentoría Privada: Visión Clara</h5>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">5 Clientes Totales</p>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                Saludable
+              </span>
+            </div>
+            
+            <div class="pl-2 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex gap-3">
+                  <span class="text-emerald-600 font-medium">5 Activos</span>
+                  <span class="text-slate-400">0 Inactivos</span>
+                </div>
+                <span class="font-bold text-slate-700">100% Salud</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="h-full bg-emerald-500" style="width: 100%"></div>
+              </div>
+              <div class="pt-2 border-t border-slate-50">
+                <p class="text-[10px] text-slate-500 flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1"></i> Tiempo de activación: 0 días</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offer Card 3 -->
+          <div 
+            class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          >
+            <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-emerald-400 transition-colors"></div>
+            <div class="flex justify-between items-start mb-3">
+              <div class="pl-2">
+                <h5 class="font-semibold text-sm text-slate-800">Programa: De Propósito a Prosperidad</h5>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">8 Clientes Totales</p>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                Saludable
+              </span>
+            </div>
+            
+            <div class="pl-2 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex gap-3">
+                  <span class="text-emerald-600 font-medium">8 Activos</span>
+                  <span class="text-slate-400">0 Inactivos</span>
+                </div>
+                <span class="font-bold text-slate-700">100% Salud</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="h-full bg-emerald-500" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offer Card 4 -->
+          <div 
+            class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          >
+            <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-emerald-400 transition-colors"></div>
+            <div class="flex justify-between items-start mb-3">
+              <div class="pl-2">
+                <h5 class="font-semibold text-sm text-slate-800">Pack Meditaciones: Abundancia</h5>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">18 Clientes Totales</p>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                Saludable
+              </span>
+            </div>
+            
+            <div class="pl-2 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex gap-3">
+                  <span class="text-emerald-600 font-medium">18 Activos</span>
+                  <span class="text-slate-400">0 Inactivos</span>
+                </div>
+                <span class="font-bold text-slate-700">100% Salud</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="h-full bg-emerald-500" style="width: 100%"></div>
+              </div>
+              <div class="pt-2 border-t border-slate-50">
+                <p class="text-[10px] text-slate-500 flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1"></i> Tiempo de activación: 3 días</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offer Card 5 -->
+          <div 
+            class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          >
+            <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-emerald-400 transition-colors"></div>
+            <div class="flex justify-between items-start mb-3">
+              <div class="pl-2">
+                <h5 class="font-semibold text-sm text-slate-800">Retiro Visionarias: Tulum 2026</h5>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">2 Clientes Totales</p>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                Saludable
+              </span>
+            </div>
+            
+            <div class="pl-2 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex gap-3">
+                  <span class="text-emerald-600 font-medium">2 Activos</span>
+                  <span class="text-slate-400">0 Inactivos</span>
+                </div>
+                <span class="font-bold text-slate-700">100% Salud</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="h-full bg-emerald-500" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offer Card 6 -->
+          <div 
+            class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          >
+            <div class="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-emerald-400 transition-colors"></div>
+            <div class="flex justify-between items-start mb-3">
+              <div class="pl-2">
+                <h5 class="font-semibold text-sm text-slate-800">Círculo Visionarias Elite</h5>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">2 Clientes Totales</p>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                Saludable
+              </span>
+            </div>
+            
+            <div class="pl-2 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex gap-3">
+                  <span class="text-emerald-600 font-medium">2 Activos</span>
+                  <span class="text-slate-400">0 Inactivos</span>
+                </div>
+                <span class="font-bold text-slate-700">100% Salud</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="h-full bg-emerald-500" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SIDEBAR (Se activa al hacer click en las rows) -->
+  <div id="demo-sidebar-overlay" class="fixed inset-0 sidebar-overlay z-50 flex justify-end" onclick="closeSidebar()">
+    <div id="demo-sidebar" class="bg-white w-full max-w-sm h-full shadow-2xl sidebar-panel overflow-y-auto flex flex-col" onclick="event.stopPropagation()">
+      <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+        <div>
+          <h3 id="sb-title" class="font-bold text-slate-800 text-lg">Nombre de Métrica</h3>
+          <p class="text-xs text-slate-500">Contexto de acción</p>
+        </div>
+        <button onclick="closeSidebar()" class="p-2 hover:bg-slate-200 rounded-md text-slate-500 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <div class="p-6 flex-1 space-y-6">
+        <div>
+          <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-1">Status Actual</p>
+          <div class="flex items-end gap-2">
+            <span id="sb-value" class="text-4xl font-black text-slate-800">100%</span>
+          </div>
+          <p id="sb-desc" class="text-xs text-slate-500 mt-1">Salud del cliente</p>
+        </div>
+
+        <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-emerald-900 border-b border-emerald-200 pb-2 mb-2 flex items-center"><i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> Análisis de oportunidad</h4>
+          <p class="text-xs text-slate-600 mb-4">La inteligencia del sistema ha detectado que los clientes de esta oferta tienen una excelente salud. Es un buen momento para pedir un testimonio.</p>
+        </div>
+
+        <div>
+          <p class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Acciones para mejorar</p>
+          <div class="space-y-2">
+            <button class="w-full text-left font-medium bg-emerald-600 text-white hover:bg-emerald-700 p-3 rounded-lg text-sm transition-colors flex items-center shadow-md justify-between">
+              Solicitar Testimonio <i data-lucide="sparkles" class="w-4 h-4 ml-2"></i>
+            </button>
+            <button class="w-full text-left bg-white border border-slate-200 hover:bg-slate-50 p-3 rounded-lg text-sm transition-colors flex items-center text-slate-600 text-center justify-center">
+              Ver detalle en Offer Studio
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function openSidebar(title, value, desc) {
+      document.getElementById('sb-title').innerText = title;
+      document.getElementById('sb-value').innerText = value;
+      document.getElementById('sb-desc').innerText = desc;
+      
+      const overlay = document.getElementById('demo-sidebar-overlay');
+      const panel = document.getElementById('demo-sidebar');
+      
+      overlay.classList.add('open');
+      panel.classList.add('open');
+    }
+
+    function closeSidebar() {
+      const overlay = document.getElementById('demo-sidebar-overlay');
+      const panel = document.getElementById('demo-sidebar');
+      
+      overlay.classList.remove('open');
+      setTimeout(() => {
+        panel.classList.remove('open');
+      }, 300); 
+    }
+  </script>
+</body>
+</html>
