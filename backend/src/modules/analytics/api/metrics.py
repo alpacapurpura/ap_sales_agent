@@ -38,6 +38,9 @@ _SLUG_TO_PROVIDER: dict[str, str] = {
     "ai-search-organic": "google_analytics",
     "google-ads": "google_ads",
     "cold-contact": "manual",
+    "checkout-init": "shopify",
+    "abandoned-cart": "shopify",
+    "shopify": "shopify",
 }
 
 
@@ -266,18 +269,23 @@ async def refresh_channel_metrics(
         )
 
 
-@router.post("/meta/initial-load")
-async def trigger_meta_initial_load(
+_VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify"}
+
+
+@router.post("/{provider}/initial-load")
+async def trigger_initial_load(
+    provider: str,
     days: int = Query(default=30, ge=1, le=90),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Load historical Meta metrics day-by-day, skipping already-loaded days.
+    """Load historical metrics day-by-day for any provider, skipping already-loaded days.
 
     Idempotent: repeated calls only fetch missing days.
     Applies same 15-min cooldown as channel refresh.
     """
-    provider_name = "meta"
+    if provider not in _VALID_PROVIDERS:
+        raise HTTPException(status_code=404, detail=f"Unknown provider: {provider}")
 
     # Cooldown check
     from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
@@ -285,7 +293,7 @@ async def trigger_meta_initial_load(
     )
 
     run_repo = ExtractionRunRepository(db)
-    latest_run = run_repo.get_latest(user.tenant_id, provider_name)
+    latest_run = run_repo.get_latest(user.tenant_id, provider)
 
     if latest_run and latest_run.started_at:
         elapsed = datetime.now(timezone.utc) - latest_run.started_at
@@ -304,7 +312,7 @@ async def trigger_meta_initial_load(
     etl = ETLService(db, connection_port=connection_port, cache=cache)
 
     try:
-        result = await etl.run_initial_load(user.tenant_id, provider_name, days=days)
+        result = await etl.run_initial_load(user.tenant_id, provider, days=days)
         return {
             "status": "ok",
             "total_days": result["total"],
@@ -318,14 +326,18 @@ async def trigger_meta_initial_load(
         )
 
 
-@router.get("/meta/initial-load/status")
-async def get_meta_initial_load_status(
+@router.get("/{provider}/initial-load/status")
+async def get_initial_load_status(
+    provider: str,
     user: User = Depends(get_current_user),
 ):
-    """Check progress of a Meta initial load (reads from Redis)."""
+    """Check progress of an initial load (reads from Redis)."""
+    if provider not in _VALID_PROVIDERS:
+        raise HTTPException(status_code=404, detail=f"Unknown provider: {provider}")
+
     import json
 
-    progress_key = f"initial_load:{user.tenant_id}:meta"
+    progress_key = f"initial_load:{user.tenant_id}:{provider}"
     raw = redis_client.get(progress_key) if redis_client else None
 
     if not raw:

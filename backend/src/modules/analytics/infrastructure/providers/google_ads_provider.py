@@ -34,7 +34,28 @@ GAQL_CAMPAIGN_METRICS = """
         metrics.impressions,
         metrics.clicks,
         metrics.conversions,
-        metrics.cost_micros
+        metrics.cost_micros,
+        metrics.ctr,
+        metrics.average_cpc,
+        metrics.conversions_value
+    FROM campaign
+    WHERE segments.date BETWEEN '{start}' AND '{end}'
+        AND campaign.status = 'ENABLED'
+"""
+
+GAQL_CAMPAIGN_METRICS_DAILY = """
+    SELECT
+        campaign.id,
+        campaign.name,
+        campaign.advertising_channel_type,
+        segments.date,
+        metrics.impressions,
+        metrics.clicks,
+        metrics.conversions,
+        metrics.cost_micros,
+        metrics.ctr,
+        metrics.average_cpc,
+        metrics.conversions_value
     FROM campaign
     WHERE segments.date BETWEEN '{start}' AND '{end}'
         AND campaign.status = 'ENABLED'
@@ -104,34 +125,45 @@ class GoogleAdsProvider(BaseMetricsProvider):
     ) -> List[ExtractedMetric]:
         """Aggregate remarketing campaign rows into google-retargeting slug.
 
-        TODO: Google Ads remarketing detection differs from Meta -- uses UserList
-        criterion at ad group level. Current implementation is best-effort: filters
-        campaigns with 'remarketing' or 'retargeting' in name. Full ad_group_criterion
-        filtering requires additional GAQL query with ad_group_criterion.type = USER_LIST.
+        Filters campaigns with 'remarketing' or 'retargeting' in name.
         """
-        data = {"reach": 0.0, "clicks": 0.0, "spend": 0.0}
+        total_impressions = 0.0
+        total_clicks = 0.0
+        total_spend = 0.0
 
         for row in rows:
             campaign_name = (row.get("campaign_name", "") or "").lower()
             if "remarketing" in campaign_name or "retargeting" in campaign_name:
-                data["reach"] += float(row.get("impressions", 0))
-                data["clicks"] += float(row.get("clicks", 0))
-                data["spend"] += float(row.get("cost_micros", 0)) / 1_000_000
+                total_impressions += float(row.get("impressions", 0))
+                total_clicks += float(row.get("clicks", 0))
+                total_spend += float(row.get("cost_micros", 0)) / 1_000_000
 
-        if all(v == 0.0 for v in data.values()):
+        if total_impressions == 0.0 and total_clicks == 0.0 and total_spend == 0.0:
             return []
+
+        # Compute derived metrics
+        ctr = (total_clicks / total_impressions) if total_impressions > 0 else 0.0
+        cpc = (total_spend / total_clicks) if total_clicks > 0 else 0.0
+
+        metric_tuples = [
+            ("reach", total_impressions, "count", None),
+            ("clicks", total_clicks, "count", None),
+            ("spend", total_spend, "currency", "USD"),
+            ("ctr", ctr, "percentage", None),
+            ("cpc", cpc, "currency", "USD"),
+        ]
 
         return [
             ExtractedMetric(
                 provider="google_ads",
                 channel_slug="google-retargeting",
-                metric_name=metric_name,
+                metric_name=name,
                 value=value,
-                unit="currency" if metric_name == "spend" else "count",
-                currency="USD" if metric_name == "spend" else None,
+                unit=unit,
+                currency=currency,
                 date=metric_date,
             )
-            for metric_name, value in data.items()
+            for name, value, unit, currency in metric_tuples
         ]
 
     def _aggregate_by_channel(
@@ -139,8 +171,14 @@ class GoogleAdsProvider(BaseMetricsProvider):
     ) -> List[ExtractedMetric]:
         """Aggregate campaign rows into google-ads and yt-ads slugs."""
         channel_data: Dict[str, Dict[str, float]] = {
-            "google-ads": {"reach": 0.0, "clicks": 0.0, "conversions": 0.0, "spend": 0.0},
-            "yt-ads": {"reach": 0.0, "clicks": 0.0, "conversions": 0.0, "spend": 0.0},
+            "google-ads": {
+                "reach": 0.0, "clicks": 0.0, "conversions": 0.0,
+                "spend": 0.0, "conversion_value": 0.0,
+            },
+            "yt-ads": {
+                "reach": 0.0, "clicks": 0.0, "conversions": 0.0,
+                "spend": 0.0, "conversion_value": 0.0,
+            },
         }
 
         for row in rows:
@@ -152,23 +190,105 @@ class GoogleAdsProvider(BaseMetricsProvider):
             channel_data[slug]["conversions"] += float(row.get("conversions", 0))
             # CRITICAL: divide cost_micros by 1_000_000
             channel_data[slug]["spend"] += float(row.get("cost_micros", 0)) / 1_000_000
+            channel_data[slug]["conversion_value"] += float(
+                row.get("conversions_value", 0)
+            )
 
         metrics: List[ExtractedMetric] = []
         for slug, data in channel_data.items():
             # Skip slugs with zero activity
             if all(v == 0.0 for v in data.values()):
                 continue
-            for metric_name, value in data.items():
+
+            # Compute derived metrics from aggregated totals
+            impressions = data["reach"]
+            clicks = data["clicks"]
+            ctr = (clicks / impressions) if impressions > 0 else 0.0
+            cpc = (data["spend"] / clicks) if clicks > 0 else 0.0
+
+            metric_tuples = [
+                ("reach", data["reach"], "count", None),
+                ("clicks", data["clicks"], "count", None),
+                ("conversions", data["conversions"], "count", None),
+                ("spend", data["spend"], "currency", "USD"),
+                ("ctr", ctr, "percentage", None),
+                ("cpc", cpc, "currency", "USD"),
+                ("conversion_value", data["conversion_value"], "currency", "USD"),
+            ]
+
+            for metric_name, value, unit, currency in metric_tuples:
                 metrics.append(
                     ExtractedMetric(
                         provider="google_ads",
                         channel_slug=slug,
                         metric_name=metric_name,
                         value=value,
-                        unit="currency" if metric_name == "spend" else "count",
-                        currency="USD" if metric_name == "spend" else None,
+                        unit=unit,
+                        currency=currency,
                         date=metric_date,
                     )
                 )
 
         return metrics
+
+    async def extract_metrics_daily(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+        stage: str = "attraction",
+    ) -> List[ExtractedMetric]:
+        """Optimized daily extraction — GAQL with segments.date."""
+        customer_id = credentials.get("customer_id")
+        developer_token = credentials.get(
+            "developer_token",
+            os.environ.get("GOOGLE_ADS_DEVELOPER_TOKEN", ""),
+        )
+
+        if not customer_id or not developer_token:
+            return []
+
+        try:
+            adapter = GoogleAdsAdapter()
+            rows = await adapter.run_gaql_query(
+                customer_id=customer_id,
+                developer_token=developer_token,
+                credentials=credentials,
+                query=GAQL_CAMPAIGN_METRICS_DAILY,
+                start_date=start_date,
+                end_date=end_date,
+            )
+
+            if not rows:
+                return []
+
+            # Group rows by date, then aggregate
+            from collections import defaultdict
+            by_date: Dict[str, List[dict]] = defaultdict(list)
+            for row in rows:
+                date_str = row.get("segments_date", row.get("date", ""))
+                by_date[date_str].append(row)
+
+            metrics: List[ExtractedMetric] = []
+            for date_str, day_rows in by_date.items():
+                try:
+                    metric_date = date.fromisoformat(date_str)
+                except (ValueError, AttributeError):
+                    continue
+
+                if stage == "nurturing":
+                    metrics.extend(
+                        self._aggregate_retargeting(day_rows, metric_date)
+                    )
+                else:
+                    metrics.extend(
+                        self._aggregate_by_channel(day_rows, metric_date)
+                    )
+
+            return metrics
+        except Exception:
+            logger.exception(
+                "google_ads_provider_extract_daily_failed tenant=%s", tenant_id
+            )
+            return []

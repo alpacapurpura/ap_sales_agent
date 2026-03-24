@@ -64,6 +64,7 @@ class ETLService:
         provider_name: str,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
+        stage: str = "attraction",
     ):
         """Run ETL extraction for a single provider.
 
@@ -106,7 +107,7 @@ class ETLService:
             tenant_id, provider_name, start_date, end_date,
         )
 
-        return await pipeline.run(tenant_id, start_date, end_date)
+        return await pipeline.run(tenant_id, start_date, end_date, stage=stage)
 
     async def run_all_providers(self, tenant_id: UUID):
         """Run ETL extraction for all active provider connections.
@@ -145,6 +146,7 @@ class ETLService:
         tenant_id: UUID,
         provider_name: str,
         days: int = 30,
+        stage: str = "attraction",
         progress_callback: Optional[Callable[[int, int, str], None]] = None,
     ) -> dict:
         """Load historical daily metrics, skipping days already in DB.
@@ -177,11 +179,13 @@ class ETLService:
         # Extract daily metrics from provider
         provider = get_provider(provider_name)
         creds = await self.connection_port.get_credentials(tenant_id, provider_name)
+        provider_creds = {**creds.credentials, **creds.config}
         extracted = await provider.extract_metrics_daily(
             tenant_id=tenant_id,
-            credentials=creds.credentials,
+            credentials=provider_creds,
             start_date=min_missing,
             end_date=max_missing,
+            stage=stage,
         )
 
         # Filter to only missing days

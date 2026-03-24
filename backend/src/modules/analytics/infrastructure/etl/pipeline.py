@@ -73,6 +73,7 @@ class ETLPipeline:
         tenant_id: UUID,
         start_date: date,
         end_date: date,
+        stage: str = "attraction",
     ):
         """Execute the full ETL pipeline for a tenant and date range.
 
@@ -110,11 +111,15 @@ class ETLPipeline:
             )
 
             # Step 3: Extract metrics from provider API
+            # Merge config into credentials so providers have access to
+            # connection-level config (e.g. shop_domain for Shopify)
+            provider_creds = {**creds.credentials, **creds.config}
             extracted = await self.provider.extract_metrics(
                 tenant_id=tenant_id,
-                credentials=creds.credentials,
+                credentials=provider_creds,
                 start_date=start_date,
                 end_date=end_date,
+                stage=stage,
             )
 
             # Step 4: Convert to staging models and bulk insert

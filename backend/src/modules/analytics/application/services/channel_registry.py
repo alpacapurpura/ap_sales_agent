@@ -42,14 +42,14 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["reach", "engagement"]},
         {"slug": "linkedin-organic", "name": "LinkedIn Organic", "channel_type": "social", "source_label": "LinkedIn", "provider_name": "linkedin", "metric_names": ["reach", "engagement"]},
         # GA4 search: sessions + users
-        {"slug": "google-organic", "name": "Google Organic", "channel_type": "search", "source_label": "Google Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
-        {"slug": "direct", "name": "Direct Traffic", "channel_type": "direct", "source_label": "Direct", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
-        {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users"]},
+        {"slug": "google-organic", "name": "Google Organic", "channel_type": "search", "source_label": "Google Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
+        {"slug": "direct", "name": "Direct Traffic", "channel_type": "direct", "source_label": "Direct", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
+        {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
         # Paid: reach + clicks + conversions + spend
         {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "impressions", "clicks", "ctr", "cpm", "frequency", "conversions", "spend"]},
-        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend"]},
+        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
         {"slug": "tiktok-ads", "name": "TikTok Ads", "channel_type": "paid", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "conversions", "spend"]},
-        {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend"]},
+        {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
         # Outbound: contacts + responses
         {"slug": "cold-contact", "name": "Cold Contact", "channel_type": "outbound", "source_label": "Cold Outreach", "provider_name": "manual", "metric_names": ["contacts", "responses"]},
     ],
@@ -64,7 +64,7 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "nurture": [
         # Retargeting Omnichannel
         {"slug": "meta-retargeting", "name": "Meta Retargeting", "channel_type": "retargeting", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "clicks", "spend"]},
-        {"slug": "google-retargeting", "name": "Google Retargeting", "channel_type": "retargeting", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "spend"]},
+        {"slug": "google-retargeting", "name": "Google Retargeting", "channel_type": "retargeting", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "spend", "ctr", "cpc"]},
         {"slug": "tiktok-retargeting", "name": "TikTok Retargeting", "channel_type": "retargeting", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "spend"]},
         # Automatizacion
         {"slug": "mailerlite", "name": "Mailerlite", "channel_type": "email", "source_label": "MailerLite", "provider_name": "mailerlite", "metric_names": ["emails_sent", "open_rate", "click_rate"]},

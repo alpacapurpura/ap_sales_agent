@@ -53,6 +53,24 @@ class OfferReadDTO(BaseModel):
     currency: str = "USD"
 
 
+class ProductMappingPort(ABC):
+    """Port for resolving external product IDs to internal offer IDs."""
+
+    @abstractmethod
+    async def resolve_offer_id(
+        self, tenant_id: UUID, source: str, external_product_id: str
+    ) -> Optional[UUID]:
+        """Resolve a single external product ID to an offer ID."""
+        ...
+
+    @abstractmethod
+    async def bulk_resolve(
+        self, tenant_id: UUID, source: str, external_ids: List[str]
+    ) -> dict:
+        """Batch resolve: {external_id: offer_id}."""
+        ...
+
+
 class OfferReadPort(ABC):
     """Port for accessing offer data across bounded contexts.
 

@@ -44,6 +44,9 @@ class TestCampaignSeparation:
                 "clicks": 200,
                 "conversions": 10.0,
                 "cost_micros": 50_000_000,  # $50.00
+                "ctr": 0.04,
+                "average_cpc": 250_000,  # $0.25
+                "conversions_value": 500.0,
             },
             {
                 "campaign_id": "2",
@@ -53,6 +56,9 @@ class TestCampaignSeparation:
                 "clicks": 800,
                 "conversions": 5.0,
                 "cost_micros": 30_000_000,  # $30.00
+                "ctr": 0.04,
+                "average_cpc": 37_500,
+                "conversions_value": 200.0,
             },
         ]
 
@@ -68,17 +74,23 @@ class TestCampaignSeparation:
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
-        # Google Ads (SEARCH)
+        # Google Ads (SEARCH) — now 7 metrics
         ga_metrics = [m for m in metrics if m.channel_slug == "google-ads"]
-        assert len(ga_metrics) == 4
+        assert len(ga_metrics) == 7
         ga_spend = next(m for m in ga_metrics if m.metric_name == "spend")
-        assert ga_spend.value == 50.0  # 50_000_000 / 1_000_000
+        assert ga_spend.value == 50.0
+        ga_ctr = next(m for m in ga_metrics if m.metric_name == "ctr")
+        assert ga_ctr.value == pytest.approx(200 / 5000)  # clicks/impressions
+        ga_cpc = next(m for m in ga_metrics if m.metric_name == "cpc")
+        assert ga_cpc.value == pytest.approx(50.0 / 200)  # spend/clicks
+        ga_cv = next(m for m in ga_metrics if m.metric_name == "conversion_value")
+        assert ga_cv.value == 500.0
 
-        # YouTube Ads (VIDEO)
+        # YouTube Ads (VIDEO) — also 7 metrics
         yt_metrics = [m for m in metrics if m.channel_slug == "yt-ads"]
-        assert len(yt_metrics) == 4
+        assert len(yt_metrics) == 7
         yt_spend = next(m for m in yt_metrics if m.metric_name == "spend")
-        assert yt_spend.value == 30.0  # 30_000_000 / 1_000_000
+        assert yt_spend.value == 30.0
 
     @pytest.mark.asyncio
     async def test_cost_micros_conversion(self):
@@ -92,6 +104,9 @@ class TestCampaignSeparation:
                 "clicks": 10,
                 "conversions": 1.0,
                 "cost_micros": 5_230_000,  # $5.23
+                "ctr": 0.10,
+                "average_cpc": 523_000,
+                "conversions_value": 50.0,
             },
         ]
 
@@ -109,6 +124,183 @@ class TestCampaignSeparation:
 
         spend = next(m for m in metrics if m.metric_name == "spend")
         assert spend.value == 5.23
+
+    @pytest.mark.asyncio
+    async def test_cpc_derived_from_spend_and_clicks(self):
+        """CPC is computed as spend/clicks, not from average_cpc."""
+        mock_rows = [
+            {
+                "campaign_id": "1",
+                "campaign_name": "Campaign A",
+                "advertising_channel_type": "SEARCH",
+                "impressions": 1000,
+                "clicks": 50,
+                "conversions": 2.0,
+                "cost_micros": 25_000_000,  # $25.00
+                "ctr": 0.05,
+                "average_cpc": 500_000,
+                "conversions_value": 100.0,
+            },
+        ]
+
+        with patch(
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+        ) as MockAdapter:
+            adapter_instance = MagicMock()
+            adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            MockAdapter.return_value = adapter_instance
+
+            provider = GoogleAdsProvider()
+            metrics = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+
+        cpc = next(m for m in metrics if m.metric_name == "cpc")
+        assert cpc.value == pytest.approx(25.0 / 50)  # $0.50
+        assert cpc.unit == "currency"
+
+
+class TestRetargetingExtraction:
+    @pytest.mark.asyncio
+    async def test_stage_nurturing_extracts_retargeting(self):
+        mock_rows = [
+            {
+                "campaign_id": "1",
+                "campaign_name": "Remarketing - Leads",
+                "advertising_channel_type": "DISPLAY",
+                "impressions": 10000,
+                "clicks": 500,
+                "conversions": 0,
+                "cost_micros": 15_000_000,
+                "ctr": 0.05,
+                "average_cpc": 30_000,
+                "conversions_value": 0,
+            },
+            {
+                "campaign_id": "2",
+                "campaign_name": "Search Campaign",
+                "advertising_channel_type": "SEARCH",
+                "impressions": 5000,
+                "clicks": 200,
+                "conversions": 10,
+                "cost_micros": 50_000_000,
+                "ctr": 0.04,
+                "average_cpc": 250_000,
+                "conversions_value": 500,
+            },
+        ]
+
+        with patch(
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+        ) as MockAdapter:
+            adapter_instance = MagicMock()
+            adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            MockAdapter.return_value = adapter_instance
+
+            provider = GoogleAdsProvider()
+            metrics = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15),
+                stage="nurturing",
+            )
+
+        # Only retargeting campaigns should appear
+        assert all(m.channel_slug == "google-retargeting" for m in metrics)
+        reach = next(m for m in metrics if m.metric_name == "reach")
+        assert reach.value == 10000.0
+        ctr = next(m for m in metrics if m.metric_name == "ctr")
+        assert ctr.value == pytest.approx(500 / 10000)
+        cpc = next(m for m in metrics if m.metric_name == "cpc")
+        assert cpc.value == pytest.approx(15.0 / 500)
+
+
+class TestDailyExtraction:
+    @pytest.mark.asyncio
+    async def test_extract_metrics_daily_groups_by_date(self):
+        mock_rows = [
+            {
+                "campaign_id": "1",
+                "campaign_name": "Search",
+                "advertising_channel_type": "SEARCH",
+                "segments_date": "2026-03-01",
+                "impressions": 1000,
+                "clicks": 50,
+                "conversions": 2.0,
+                "cost_micros": 10_000_000,
+                "ctr": 0.05,
+                "average_cpc": 200_000,
+                "conversions_value": 100.0,
+            },
+            {
+                "campaign_id": "1",
+                "campaign_name": "Search",
+                "advertising_channel_type": "SEARCH",
+                "segments_date": "2026-03-02",
+                "impressions": 2000,
+                "clicks": 100,
+                "conversions": 5.0,
+                "cost_micros": 20_000_000,
+                "ctr": 0.05,
+                "average_cpc": 200_000,
+                "conversions_value": 250.0,
+            },
+        ]
+
+        with patch(
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+        ) as MockAdapter:
+            adapter_instance = MagicMock()
+            adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            MockAdapter.return_value = adapter_instance
+
+            provider = GoogleAdsProvider()
+            metrics = await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
+            )
+
+        mar1 = [m for m in metrics if m.date == date(2026, 3, 1)]
+        mar2 = [m for m in metrics if m.date == date(2026, 3, 2)]
+        assert len(mar1) == 7  # 7 metrics per slug
+        assert len(mar2) == 7
+
+        spend_mar1 = next(m for m in mar1 if m.metric_name == "spend")
+        assert spend_mar1.value == 10.0
+        spend_mar2 = next(m for m in mar2 if m.metric_name == "spend")
+        assert spend_mar2.value == 20.0
+
+    @pytest.mark.asyncio
+    async def test_extract_metrics_daily_nurturing(self):
+        """Daily extraction with nurturing stage only returns retargeting."""
+        mock_rows = [
+            {
+                "campaign_id": "1",
+                "campaign_name": "Retargeting Warm",
+                "advertising_channel_type": "DISPLAY",
+                "segments_date": "2026-03-01",
+                "impressions": 5000,
+                "clicks": 250,
+                "conversions": 0,
+                "cost_micros": 8_000_000,
+                "ctr": 0.05,
+                "average_cpc": 32_000,
+                "conversions_value": 0,
+            },
+        ]
+
+        with patch(
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+        ) as MockAdapter:
+            adapter_instance = MagicMock()
+            adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            MockAdapter.return_value = adapter_instance
+
+            provider = GoogleAdsProvider()
+            metrics = await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1),
+                stage="nurturing",
+            )
+
+        assert all(m.channel_slug == "google-retargeting" for m in metrics)
+        assert len(metrics) == 5  # reach, clicks, spend, ctr, cpc
 
 
 class TestGoogleAdsErrorHandling:

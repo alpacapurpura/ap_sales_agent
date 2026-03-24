@@ -6,7 +6,7 @@ source through a uniform interface.
 """
 
 from abc import ABC, abstractmethod
-from datetime import date
+from datetime import date, timedelta
 from typing import Dict, List, Optional
 from uuid import UUID
 
@@ -47,9 +47,33 @@ class BaseMetricsProvider(ABC):
         credentials: dict,
         start_date: date,
         end_date: date,
+        stage: str = "attraction",
     ) -> List[ExtractedMetric]:
         """Extract metrics from the provider API for the given date range."""
         ...
+
+    async def extract_metrics_daily(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+        stage: str = "attraction",
+    ) -> List[ExtractedMetric]:
+        """Extract metrics with per-day granularity.
+
+        Default implementation iterates day-by-day calling extract_metrics.
+        Providers should override for optimized daily queries (e.g. date dimension).
+        """
+        metrics: List[ExtractedMetric] = []
+        current = start_date
+        while current <= end_date:
+            day_metrics = await self.extract_metrics(
+                tenant_id, credentials, current, current, stage=stage
+            )
+            metrics.extend(day_metrics)
+            current += timedelta(days=1)
+        return metrics
 
     @abstractmethod
     def provider_name(self) -> str:

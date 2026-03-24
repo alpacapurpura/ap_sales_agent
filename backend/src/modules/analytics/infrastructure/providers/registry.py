@@ -56,6 +56,7 @@ def _register_all() -> None:
     from src.modules.analytics.infrastructure.providers.tiktok_provider import TikTokProvider
     from src.modules.analytics.infrastructure.providers.youtube_provider import YouTubeProvider
     from src.modules.analytics.infrastructure.providers.crm_internal_provider import CRMInternalProvider
+    from src.modules.analytics.infrastructure.providers.shopify_provider import ShopifyProvider
 
     register_provider("meta", MetaProvider)
     register_provider("google_analytics", GoogleAnalyticsProvider)
@@ -63,6 +64,7 @@ def _register_all() -> None:
     register_provider("tiktok", TikTokProvider)
     register_provider("youtube", YouTubeProvider)
     register_provider("crm_internal", CRMInternalProvider)
+    register_provider("shopify", ShopifyProvider)
 
 
 _register_all()

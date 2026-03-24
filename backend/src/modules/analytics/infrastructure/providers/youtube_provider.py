@@ -39,6 +39,7 @@ class YouTubeProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
+        stage: str = "attraction",
     ) -> List[ExtractedMetric]:
         if not credentials.get("token") and not credentials.get("refresh_token"):
             logger.warning(

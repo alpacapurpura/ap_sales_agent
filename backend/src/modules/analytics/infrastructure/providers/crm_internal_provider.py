@@ -54,6 +54,7 @@ class CRMInternalProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
+        stage: str = "attraction",
     ) -> List[ExtractedMetric]:
         db = credentials.get("db_session")
         if db is None:
