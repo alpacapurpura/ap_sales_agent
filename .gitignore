@@ -95,3 +95,4 @@ backend/cloudflare/cloudflared*
 .agents/
 .trae/
 skills-lock.json
+.superpowers/
