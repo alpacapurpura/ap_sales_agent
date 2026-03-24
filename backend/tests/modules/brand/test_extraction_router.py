@@ -49,7 +49,9 @@ def test_brand_extract_full_endpoint_delegates_to_copilot_service():
     tenant_id = uuid4()
     client = _build_client(tenant_id)
 
-    with patch("src.modules.brand.api.extraction.CopilotBrandAIActionsService") as service_cls:
+    with patch("src.modules.brand.api.extraction.redis_client") as mock_redis, \
+         patch("src.modules.brand.api.extraction.CopilotBrandAIActionsService") as service_cls:
+        mock_redis.setex = MagicMock(return_value=True)
         service_instance = MagicMock()
         service_instance.extract_full_brand = AsyncMock(
             return_value={
