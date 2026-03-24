@@ -43,3 +43,7 @@ from src.modules.brand.infrastructure.models.extraction_trace_model import Brand
 
 # --- Offer ---
 from src.modules.offer.infrastructure.models.product_model import ProductModel  # noqa: F401
+from src.modules.offer.infrastructure.models.external_product_mapping_model import ExternalProductMappingModel  # noqa: F401
+
+# --- Copilot ---
+from src.modules.copilot.infrastructure.models.conversation_model import CopilotConversationModel  # noqa: F401

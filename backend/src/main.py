@@ -21,7 +21,7 @@ from src.modules.brand.api import style as brand_style, avatars as brand_avatars
 from src.modules.brand.api import router as brand_settings, extraction as brand_tools
 
 # 3. Offer
-from src.modules.offer.api import products as offer_products, offer_ai, definitions as offer_definitions
+from src.modules.offer.api import products as offer_products, offer_ai, definitions as offer_definitions, product_mappings as offer_product_mappings
 
 # 4. Landing
 from src.modules.landing.api import landing as landing_ai
@@ -31,6 +31,7 @@ from src.modules.sales_agent.api import audit as sales_audit
 
 # 6. Copilot
 from src.modules.copilot.api import actions as copilot_actions
+from src.modules.copilot.api import chat as copilot_chat
 
 # 7. CRM
 from src.modules.crm.api import leads as crm_leads, cdp as crm_cdp, sales as crm_sales, pipeline as crm_pipeline
@@ -145,6 +146,7 @@ app.include_router(brand_tools.router, prefix="/api/v1/brand/tools", tags=["Bran
 app.include_router(offer_products.router, prefix="/api/v1/offer/products", tags=["Offer - Products"], dependencies=[Depends(get_tenant_context)])
 app.include_router(offer_ai.router, prefix="/api/v1/offer/ai", tags=["Offer - AI"], dependencies=[Depends(get_tenant_context)])
 app.include_router(offer_definitions.router, prefix="/api/v1/offer/definitions", tags=["Offer - Definitions"])
+app.include_router(offer_product_mappings.router, prefix="/api/v1/offer", tags=["Offer - Product Mappings"], dependencies=[Depends(get_tenant_context)])
 
 # 4. Landing
 app.include_router(landing_ai.router, prefix="/api/v1/landings", tags=["Landing"], dependencies=[Depends(get_tenant_context)])
@@ -154,6 +156,7 @@ app.include_router(sales_audit.router, prefix="/api/v1/admin/audit", tags=["Sale
 
 # 6. Copilot
 app.include_router(copilot_actions.router, prefix="/api/v1/copilot/actions", tags=["Copilot - Actions"], dependencies=[Depends(get_tenant_context)])
+app.include_router(copilot_chat.router, prefix="/api/v1/copilot", tags=["Copilot - Chat"], dependencies=[Depends(get_tenant_context)])
 
 # 7. CRM
 app.include_router(crm_leads.router, prefix="/api/v1/crm/leads", tags=["CRM - Leads"], dependencies=[Depends(get_tenant_context)])
