@@ -23,6 +23,7 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface NarrativeFormProps {
   narrative: BrandNarrative;
@@ -115,26 +116,30 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="hero_identity">Identidad del Heroe</Label>
-          <Textarea
-            id="hero_identity"
-            value={form.hero?.identity ?? ""}
-            onChange={(e) => updateHero("identity", e.target.value)}
-            placeholder="Ej: Emprendedoras que venden cursos online y quieren escalar..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="hero_identity" fieldLabel="Identidad del Héroe" getValue={() => form.hero?.identity ?? ""}>
+            <Textarea
+              id="hero_identity"
+              value={form.hero?.identity ?? ""}
+              onChange={(e) => updateHero("identity", e.target.value)}
+              placeholder="Ej: Emprendedoras que venden cursos online y quieren escalar..."
+              className="h-20"
+            />
+          </WithCopilot>
           <p className="text-xs text-muted-foreground">
             Si tienes avatares definidos en El Publico (Cap 7), tu heroe es tu avatar principal.
           </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="hero_desire">Deseo Principal</Label>
-          <Textarea
-            id="hero_desire"
-            value={form.hero?.desire ?? ""}
-            onChange={(e) => updateHero("desire", e.target.value)}
-            placeholder="Ej: Quiere automatizar sus ventas para tener mas tiempo libre..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="hero_desire" fieldLabel="Deseo Principal" getValue={() => form.hero?.desire ?? ""}>
+            <Textarea
+              id="hero_desire"
+              value={form.hero?.desire ?? ""}
+              onChange={(e) => updateHero("desire", e.target.value)}
+              placeholder="Ej: Quiere automatizar sus ventas para tener mas tiempo libre..."
+              className="h-20"
+            />
+          </WithCopilot>
         </div>
       </section>
 
@@ -151,45 +156,53 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="villain">Villano</Label>
-          <Input
-            id="villain"
-            value={form.problem?.villain ?? ""}
-            onChange={(e) => updateProblem("villain", e.target.value)}
-            placeholder="Ej: La complejidad del marketing digital"
-          />
+          <WithCopilot fieldId="villain" fieldLabel="Villano" getValue={() => form.problem?.villain ?? ""}>
+            <Input
+              id="villain"
+              value={form.problem?.villain ?? ""}
+              onChange={(e) => updateProblem("villain", e.target.value)}
+              placeholder="Ej: La complejidad del marketing digital"
+            />
+          </WithCopilot>
           <p className="text-xs text-muted-foreground">
             El antagonista que causa la frustracion de tu cliente. Si ya definiste enemigos en Diferenciacion (Cap 2), tu villano suele ser una combinacion de ambos.
           </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="external_problem">Problema Externo</Label>
-          <Textarea
-            id="external_problem"
-            value={form.problem?.external_problem ?? ""}
-            onChange={(e) => updateProblem("external_problem", e.target.value)}
-            placeholder="Ej: No tienen tiempo ni equipo para gestionar campanas..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="external_problem" fieldLabel="Problema Externo" getValue={() => form.problem?.external_problem ?? ""}>
+            <Textarea
+              id="external_problem"
+              value={form.problem?.external_problem ?? ""}
+              onChange={(e) => updateProblem("external_problem", e.target.value)}
+              placeholder="Ej: No tienen tiempo ni equipo para gestionar campanas..."
+              className="h-20"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="internal_problem">Problema Interno</Label>
-          <Textarea
-            id="internal_problem"
-            value={form.problem?.internal_problem ?? ""}
-            onChange={(e) => updateProblem("internal_problem", e.target.value)}
-            placeholder="Ej: Se sienten abrumadas y con miedo de gastar dinero sin resultados..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="internal_problem" fieldLabel="Problema Interno" getValue={() => form.problem?.internal_problem ?? ""}>
+            <Textarea
+              id="internal_problem"
+              value={form.problem?.internal_problem ?? ""}
+              onChange={(e) => updateProblem("internal_problem", e.target.value)}
+              placeholder="Ej: Se sienten abrumadas y con miedo de gastar dinero sin resultados..."
+              className="h-20"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="philosophical_problem">Problema Filosofico</Label>
-          <Textarea
-            id="philosophical_problem"
-            value={form.problem?.philosophical_problem ?? ""}
-            onChange={(e) => updateProblem("philosophical_problem", e.target.value)}
-            placeholder="Ej: No deberia ser tan dificil vender algo que transforma vidas..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="philosophical_problem" fieldLabel="Problema Filosófico" getValue={() => form.problem?.philosophical_problem ?? ""}>
+            <Textarea
+              id="philosophical_problem"
+              value={form.problem?.philosophical_problem ?? ""}
+              onChange={(e) => updateProblem("philosophical_problem", e.target.value)}
+              placeholder="Ej: No deberia ser tan dificil vender algo que transforma vidas..."
+              className="h-20"
+            />
+          </WithCopilot>
         </div>
       </section>
 
@@ -206,23 +219,27 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="empathy_statement">Declaracion de Empatia</Label>
-          <Textarea
-            id="empathy_statement"
-            value={form.guide?.empathy_statement ?? ""}
-            onChange={(e) => updateGuide("empathy_statement", e.target.value)}
-            placeholder="Ej: Sabemos lo frustrante que es invertir en marketing y no ver resultados..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="empathy_statement" fieldLabel="Declaración de Empatía" getValue={() => form.guide?.empathy_statement ?? ""}>
+            <Textarea
+              id="empathy_statement"
+              value={form.guide?.empathy_statement ?? ""}
+              onChange={(e) => updateGuide("empathy_statement", e.target.value)}
+              placeholder="Ej: Sabemos lo frustrante que es invertir en marketing y no ver resultados..."
+              className="h-20"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="authority_statement">Declaracion de Autoridad</Label>
-          <Textarea
-            id="authority_statement"
-            value={form.guide?.authority_statement ?? ""}
-            onChange={(e) => updateGuide("authority_statement", e.target.value)}
-            placeholder="Ej: Hemos ayudado a mas de 500 emprendedoras a duplicar sus ventas..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="authority_statement" fieldLabel="Declaración de Autoridad" getValue={() => form.guide?.authority_statement ?? ""}>
+            <Textarea
+              id="authority_statement"
+              value={form.guide?.authority_statement ?? ""}
+              onChange={(e) => updateGuide("authority_statement", e.target.value)}
+              placeholder="Ej: Hemos ayudado a mas de 500 emprendedoras a duplicar sus ventas..."
+              className="h-20"
+            />
+          </WithCopilot>
           <p className="text-xs text-muted-foreground">
             Usa tus mejores datos del Vault de Autoridad (Cap 9) para construir esta declaracion.
           </p>
@@ -309,21 +326,25 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="direct_cta">CTA Directo</Label>
-          <Input
-            id="direct_cta"
-            value={form.cta?.direct_cta ?? ""}
-            onChange={(e) => updateCta("direct_cta", e.target.value)}
-            placeholder="Ej: Agenda tu demo gratis"
-          />
+          <WithCopilot fieldId="direct_cta" fieldLabel="CTA Directo" getValue={() => form.cta?.direct_cta ?? ""}>
+            <Input
+              id="direct_cta"
+              value={form.cta?.direct_cta ?? ""}
+              onChange={(e) => updateCta("direct_cta", e.target.value)}
+              placeholder="Ej: Agenda tu demo gratis"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="transitional_cta">CTA Transicional</Label>
-          <Input
-            id="transitional_cta"
-            value={form.cta?.transitional_cta ?? ""}
-            onChange={(e) => updateCta("transitional_cta", e.target.value)}
-            placeholder="Ej: Descarga la guia gratuita"
-          />
+          <WithCopilot fieldId="transitional_cta" fieldLabel="CTA Transicional" getValue={() => form.cta?.transitional_cta ?? ""}>
+            <Input
+              id="transitional_cta"
+              value={form.cta?.transitional_cta ?? ""}
+              onChange={(e) => updateCta("transitional_cta", e.target.value)}
+              placeholder="Ej: Descarga la guia gratuita"
+            />
+          </WithCopilot>
         </div>
       </section>
 
@@ -340,23 +361,27 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="success_transformation">Transformacion de Exito</Label>
-          <Textarea
-            id="success_transformation"
-            value={form.outcome?.success_transformation ?? ""}
-            onChange={(e) => updateOutcome("success_transformation", e.target.value)}
-            placeholder="Ej: Ventas en piloto automatico, mas tiempo para crear contenido..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="success_transformation" fieldLabel="Transformación de Éxito" getValue={() => form.outcome?.success_transformation ?? ""}>
+            <Textarea
+              id="success_transformation"
+              value={form.outcome?.success_transformation ?? ""}
+              onChange={(e) => updateOutcome("success_transformation", e.target.value)}
+              placeholder="Ej: Ventas en piloto automatico, mas tiempo para crear contenido..."
+              className="h-20"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="failure_consequence">Consecuencia del Fracaso</Label>
-          <Textarea
-            id="failure_consequence"
-            value={form.outcome?.failure_consequence ?? ""}
-            onChange={(e) => updateOutcome("failure_consequence", e.target.value)}
-            placeholder="Ej: Seguir perdiendo clientes y quemando presupuesto sin resultados..."
-            className="h-20"
-          />
+          <WithCopilot fieldId="failure_consequence" fieldLabel="Consecuencia del Fracaso" getValue={() => form.outcome?.failure_consequence ?? ""}>
+            <Textarea
+              id="failure_consequence"
+              value={form.outcome?.failure_consequence ?? ""}
+              onChange={(e) => updateOutcome("failure_consequence", e.target.value)}
+              placeholder="Ej: Seguir perdiendo clientes y quemando presupuesto sin resultados..."
+              className="h-20"
+            />
+          </WithCopilot>
         </div>
       </section>
 
@@ -373,13 +398,15 @@ export function NarrativeForm({ narrative, onSave, isSaving }: NarrativeFormProp
         </p>
         <div className="space-y-2">
           <Label htmlFor="one_liner">Tu One-Liner</Label>
-          <Textarea
-            id="one_liner"
-            value={form.one_liner ?? ""}
-            onChange={(e) => setForm({ ...form, one_liner: e.target.value })}
-            placeholder="Ej: La mayoria de emprendedoras pierden clientes por no dar seguimiento. Nicolify automatiza tu cierre de ventas para que vendas mas sin contratar equipo."
-            className="h-24"
-          />
+          <WithCopilot fieldId="one_liner" fieldLabel="One-Liner" getValue={() => form.one_liner ?? ""}>
+            <Textarea
+              id="one_liner"
+              value={form.one_liner ?? ""}
+              onChange={(e) => setForm({ ...form, one_liner: e.target.value })}
+              placeholder="Ej: La mayoria de emprendedoras pierden clientes por no dar seguimiento. Nicolify automatiza tu cierre de ventas para que vendas mas sin contratar equipo."
+              className="h-24"
+            />
+          </WithCopilot>
         </div>
       </section>
 

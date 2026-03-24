@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CreateAvatarDTO } from "@/lib/api/avatar";
 import { Loader2, Save } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface AvatarFormProps {
   initialData?: Partial<CreateAvatarDTO>;
@@ -37,34 +38,40 @@ export function AvatarForm({ initialData, onSubmit, isSubmitting = false, embedd
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre del Avatar</Label>
-        <Input
-          id="name"
-          placeholder="Ej: Emprendedores Tech"
-          value={formData.name}
-          onChange={(e) => handleChange("name", e.target.value)}
-          required
-        />
+        <WithCopilot fieldId="avatar_name" fieldLabel="Nombre del Avatar" getValue={() => formData.name || ""}>
+          <Input
+            id="name"
+            placeholder="Ej: Emprendedores Tech"
+            value={formData.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+            required
+          />
+        </WithCopilot>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="icp">Descripción del Cliente Ideal (ICP)</Label>
-        <Textarea
-          id="icp"
-          placeholder="Describe al cliente perfecto: demografía, dolores, deseos..."
-          className="min-h-[150px]"
-          value={formData.icp_description}
-          onChange={(e) => handleChange("icp_description", e.target.value)}
-        />
+        <WithCopilot fieldId="icp_description" fieldLabel="Descripción del ICP" getValue={() => formData.icp_description || ""}>
+          <Textarea
+            id="icp"
+            placeholder="Describe al cliente perfecto: demografía, dolores, deseos..."
+            className="min-h-[150px]"
+            value={formData.icp_description}
+            onChange={(e) => handleChange("icp_description", e.target.value)}
+          />
+        </WithCopilot>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="anti_avatar">Anti-Avatar</Label>
-        <Textarea
-          id="anti_avatar"
-          placeholder="¿A quién NO queremos venderle?"
-          value={formData.anti_avatar}
-          onChange={(e) => handleChange("anti_avatar", e.target.value)}
-        />
+        <WithCopilot fieldId="anti_avatar" fieldLabel="Anti-Avatar" getValue={() => formData.anti_avatar || ""}>
+          <Textarea
+            id="anti_avatar"
+            placeholder="¿A quién NO queremos venderle?"
+            value={formData.anti_avatar}
+            onChange={(e) => handleChange("anti_avatar", e.target.value)}
+          />
+        </WithCopilot>
       </div>
     </div>
   );

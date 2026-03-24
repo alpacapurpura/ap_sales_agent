@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { DialogFooter } from "@/components/ui/dialog";
 
 interface TestimonialItemFormProps {
@@ -130,12 +131,14 @@ export function TestimonialItemForm({ initialData, onSave, onCancel, isSaving = 
                         placeholder="https://youtube.com/watch?v=..."
                     />
                 ) : (
-                    <Textarea 
-                        value={currentItem.content} 
-                        onChange={(e) => setCurrentItem({...currentItem, content: e.target.value})}
-                        placeholder="Escribe lo que dijo el cliente..."
-                        className="min-h-[100px]"
-                    />
+                    <WithCopilot fieldId="testimonial_content" fieldLabel="Cita del Testimonio" getValue={() => currentItem.content || ""}>
+                      <Textarea
+                          value={currentItem.content}
+                          onChange={(e) => setCurrentItem({...currentItem, content: e.target.value})}
+                          placeholder="Escribe lo que dijo el cliente..."
+                          className="min-h-[100px]"
+                      />
+                    </WithCopilot>
                 )}
             </div>
 

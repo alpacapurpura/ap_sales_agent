@@ -11,6 +11,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+import { useCopilotFieldSync } from "@/features/copilot/hooks/useCopilotFieldSync";
 
 const formSchema = z.object({
   support_email: z.string().email("Email inválido").optional().or(z.literal("")),
@@ -68,6 +70,8 @@ export function ContactForm({ initialData, onSave, isSaving }: ContactFormProps)
       testimonials_url: initialData.testimonials_url || "",
     });
   }, [initialData, form]);
+
+  useCopilotFieldSync(form.setValue as any);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     onSave(values);

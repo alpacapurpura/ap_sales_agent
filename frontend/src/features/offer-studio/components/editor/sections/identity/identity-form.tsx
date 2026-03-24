@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OfferDeliveryModel as DeliveryModel, OfferType } from "../../../../types";
 import { OFFER_TYPE_METADATA } from "../../../../types/offer-metadata";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 // Define partial schema for Identity
 const IdentitySchema = OfferSchema.pick({
@@ -42,9 +43,11 @@ function IdentityContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nombre Público</FormLabel>
-              <FormControl>
-                <Input placeholder="Agency Accelerator 3.0" {...field} />
-              </FormControl>
+              <WithCopilot fieldId="public_name" fieldLabel="Nombre Público" getValue={() => field.value || ""}>
+                <FormControl>
+                  <Input placeholder="Agency Accelerator 3.0" {...field} />
+                </FormControl>
+              </WithCopilot>
               <FormMessage />
             </FormItem>
           )}

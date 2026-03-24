@@ -12,6 +12,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
+import { useCopilotFieldSync } from "@/features/copilot/hooks/useCopilotFieldSync";
 
 const formSchema = z.object({
   brand_name: z.string().min(1, "El nombre de marca es requerido"),
@@ -61,6 +63,9 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
     });
   }, [initialData, form]);
 
+  // Sync copilot field updates with form
+  useCopilotFieldSync(form.setValue as any);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Preserve existing legal fields that are not in this form
     const finalData = {
@@ -85,9 +90,11 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                         render={({ field }) => (
                         <FormItem>
                             <FormLabel>Nombre de Marca</FormLabel>
-                            <FormControl>
-                            <Input placeholder="Ej: Visionarias AI" {...field} />
-                            </FormControl>
+                            <WithCopilot fieldId="brand_name" fieldLabel="Nombre de Marca" getValue={() => field.value || ""}>
+                              <FormControl>
+                                <Input placeholder="Ej: Visionarias AI" {...field} />
+                              </FormControl>
+                            </WithCopilot>
                             <FormDescription>El nombre comercial público.</FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -99,9 +106,11 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                         render={({ field }) => (
                         <FormItem>
                             <FormLabel>Slogan / Tagline</FormLabel>
-                            <FormControl>
-                            <Input placeholder="Ej: Transformando el futuro..." {...field} />
-                            </FormControl>
+                            <WithCopilot fieldId="tagline" fieldLabel="Slogan / Tagline" getValue={() => field.value || ""}>
+                              <FormControl>
+                                <Input placeholder="Ej: Transformando el futuro..." {...field} />
+                              </FormControl>
+                            </WithCopilot>
                             <FormDescription>La frase que va debajo de tu logo. Ej: Nike &rarr; &apos;Just Do It&apos;</FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -115,13 +124,15 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Bio de Marca</FormLabel>
-                        <FormControl>
-                        <Textarea 
-                            placeholder="Describe brevemente qué hace tu empresa y para quién..." 
-                            className="resize-none"
-                            {...field} 
-                        />
-                        </FormControl>
+                        <WithCopilot fieldId="description" fieldLabel="Bio de Marca" getValue={() => field.value || ""}>
+                          <FormControl>
+                            <Textarea
+                                placeholder="Describe brevemente qué hace tu empresa y para quién..."
+                                className="resize-none"
+                                {...field}
+                            />
+                          </FormControl>
+                        </WithCopilot>
                         <FormDescription>Para perfiles de redes, SEO y presentaciones rapidas.</FormDescription>
                         <FormMessage />
                     </FormItem>
@@ -137,9 +148,11 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>Sitio Web Principal</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://..." {...field} />
-                    </FormControl>
+                    <WithCopilot fieldId="website" fieldLabel="Sitio Web Principal" getValue={() => field.value || ""}>
+                      <FormControl>
+                        <Input placeholder="https://..." {...field} />
+                      </FormControl>
+                    </WithCopilot>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -150,9 +163,11 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Año de Fundación</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: 2023" {...field} />
-                    </FormControl>
+                    <WithCopilot fieldId="founding_year" fieldLabel="Año de Fundación" getValue={() => field.value || ""}>
+                      <FormControl>
+                        <Input placeholder="Ej: 2023" {...field} />
+                      </FormControl>
+                    </WithCopilot>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -217,9 +232,11 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>Zona Horaria Base</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Ej: America/Lima" {...field} />
-                    </FormControl>
+                    <WithCopilot fieldId="timezone" fieldLabel="Zona Horaria Base" getValue={() => field.value || ""}>
+                      <FormControl>
+                        <Input placeholder="Ej: America/Lima" {...field} />
+                      </FormControl>
+                    </WithCopilot>
                     <FormDescription>Para saludos y agenda.</FormDescription>
                     <FormMessage />
                 </FormItem>

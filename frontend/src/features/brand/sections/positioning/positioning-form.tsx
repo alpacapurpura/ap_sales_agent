@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Save, Loader2 } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface PositioningFormProps {
   positioning: BrandPositioning;
@@ -127,13 +128,15 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
       {/* UVP */}
       <div className="space-y-2">
         <Label htmlFor="uvp">Propuesta de Valor Unica (UVP)</Label>
-        <Textarea
-          id="uvp"
-          value={data.unique_value_proposition || ""}
-          onChange={(e) => setData({ ...data, unique_value_proposition: e.target.value })}
-          placeholder="Que te hace unico y diferente en el mercado? Completa: 'Solo nosotros [capacidad] porque [razon]'"
-          className="min-h-[100px]"
-        />
+        <WithCopilot fieldId="unique_value_proposition" fieldLabel="Propuesta de Valor (UVP)" getValue={() => data.unique_value_proposition || ""}>
+          <Textarea
+            id="uvp"
+            value={data.unique_value_proposition || ""}
+            onChange={(e) => setData({ ...data, unique_value_proposition: e.target.value })}
+            placeholder="Que te hace unico y diferente en el mercado? Completa: 'Solo nosotros [capacidad] porque [razon]'"
+            className="min-h-[100px]"
+          />
+        </WithCopilot>
         <p className="text-xs text-muted-foreground">Tu promesa defensible. Completa: &apos;Somos los unicos que [X] porque [Y]&apos;</p>
       </div>
 
@@ -142,23 +145,27 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
         <h4 className="text-base font-semibold">Enemigos de Marca</h4>
         <div className="space-y-2">
           <Label htmlFor="technical_enemy">Enemigo Técnico</Label>
-          <Textarea
-            id="technical_enemy"
-            value={env.technical_enemy || ""}
-            onChange={(e) => updateEnv({ technical_enemy: e.target.value })}
-            placeholder="El problema concreto que tu marca combate (ej: la desinformación, los procesos manuales...)"
-            className="min-h-[80px]"
-          />
+          <WithCopilot fieldId="technical_enemy" fieldLabel="Enemigo Técnico" getValue={() => env.technical_enemy || ""}>
+            <Textarea
+              id="technical_enemy"
+              value={env.technical_enemy || ""}
+              onChange={(e) => updateEnv({ technical_enemy: e.target.value })}
+              placeholder="El problema concreto que tu marca combate (ej: la desinformación, los procesos manuales...)"
+              className="min-h-[80px]"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="philosophical_enemy">Enemigo Filosófico</Label>
-          <Textarea
-            id="philosophical_enemy"
-            value={env.philosophical_enemy || ""}
-            onChange={(e) => updateEnv({ philosophical_enemy: e.target.value })}
-            placeholder="La creencia o sistema contra el que luchas (ej: que el marketing tiene que ser complicado...)"
-            className="min-h-[80px]"
-          />
+          <WithCopilot fieldId="philosophical_enemy" fieldLabel="Enemigo Filosófico" getValue={() => env.philosophical_enemy || ""}>
+            <Textarea
+              id="philosophical_enemy"
+              value={env.philosophical_enemy || ""}
+              onChange={(e) => updateEnv({ philosophical_enemy: e.target.value })}
+              placeholder="La creencia o sistema contra el que luchas (ej: que el marketing tiene que ser complicado...)"
+              className="min-h-[80px]"
+            />
+          </WithCopilot>
         </div>
       </div>
 
@@ -257,33 +264,39 @@ export function PositioningForm({ positioning, onSave, isSaving }: PositioningFo
         <h4 className="text-base font-semibold">Consumer Insight</h4>
         <div className="space-y-2">
           <Label htmlFor="tension">Tensión</Label>
-          <Textarea
-            id="tension"
-            value={insight.tension || ""}
-            onChange={(e) => updateInsight({ tension: e.target.value })}
-            placeholder="La fricción o conflicto interno que siente tu consumidor ideal..."
-            className="min-h-[80px]"
-          />
+          <WithCopilot fieldId="tension" fieldLabel="Tensión del Consumidor" getValue={() => insight.tension || ""}>
+            <Textarea
+              id="tension"
+              value={insight.tension || ""}
+              onChange={(e) => updateInsight({ tension: e.target.value })}
+              placeholder="La fricción o conflicto interno que siente tu consumidor ideal..."
+              className="min-h-[80px]"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="observation">Observación</Label>
-          <Textarea
-            id="observation"
-            value={insight.observation || ""}
-            onChange={(e) => updateInsight({ observation: e.target.value })}
-            placeholder="Lo que observas en su comportamiento o contexto..."
-            className="min-h-[80px]"
-          />
+          <WithCopilot fieldId="observation" fieldLabel="Observación" getValue={() => insight.observation || ""}>
+            <Textarea
+              id="observation"
+              value={insight.observation || ""}
+              onChange={(e) => updateInsight({ observation: e.target.value })}
+              placeholder="Lo que observas en su comportamiento o contexto..."
+              className="min-h-[80px]"
+            />
+          </WithCopilot>
         </div>
         <div className="space-y-2">
           <Label htmlFor="implication">Implicación</Label>
-          <Textarea
-            id="implication"
-            value={insight.implication || ""}
-            onChange={(e) => updateInsight({ implication: e.target.value })}
-            placeholder="Lo que eso significa para tu marca y cómo respondes..."
-            className="min-h-[80px]"
-          />
+          <WithCopilot fieldId="implication" fieldLabel="Implicación" getValue={() => insight.implication || ""}>
+            <Textarea
+              id="implication"
+              value={insight.implication || ""}
+              onChange={(e) => updateInsight({ implication: e.target.value })}
+              placeholder="Lo que eso significa para tu marca y cómo respondes..."
+              className="min-h-[80px]"
+            />
+          </WithCopilot>
         </div>
       </div>
 

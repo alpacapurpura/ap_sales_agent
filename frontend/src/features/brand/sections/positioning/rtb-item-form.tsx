@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface RtbItemFormProps {
   rtb: ReasonToBelieve;
@@ -46,12 +47,14 @@ export function RtbItemForm({ rtb, onChange, onRemove }: RtbItemFormProps) {
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Declaración</Label>
-            <Input
-              value={rtb.statement || ""}
-              onChange={(e) => onChange({ ...rtb, statement: e.target.value })}
-              placeholder="Ej: +500 clientes atendidos en 12 meses"
-              className="h-9"
-            />
+            <WithCopilot fieldId={`rtb_${rtb.id}_statement`} fieldLabel="RTB Declaración" getValue={() => rtb.statement || ""}>
+              <Input
+                value={rtb.statement || ""}
+                onChange={(e) => onChange({ ...rtb, statement: e.target.value })}
+                placeholder="Ej: +500 clientes atendidos en 12 meses"
+                className="h-9"
+              />
+            </WithCopilot>
           </div>
         </div>
         <div className="space-y-1">

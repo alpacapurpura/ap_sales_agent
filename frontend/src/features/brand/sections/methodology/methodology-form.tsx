@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Save, Loader2, Lightbulb } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface MethodologyFormProps {
     initialData: BrandStrategy;
@@ -63,24 +64,28 @@ export function MethodologyForm({ initialData, onSave, isSaving = false }: Metho
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="methodology_name">Nombre de la Metodología</Label>
-                    <Input 
-                        id="methodology_name"
-                        value={strategy.methodology_name || ""}
-                        onChange={(e) => setStrategy({...strategy, methodology_name: e.target.value})}
-                        placeholder="Ej: Método 3C, Sistema Growth..."
-                    />
+                    <WithCopilot fieldId="methodology_name" fieldLabel="Nombre de Metodología" getValue={() => strategy.methodology_name || ""}>
+                      <Input
+                          id="methodology_name"
+                          value={strategy.methodology_name || ""}
+                          onChange={(e) => setStrategy({...strategy, methodology_name: e.target.value})}
+                          placeholder="Ej: Método 3C, Sistema Growth..."
+                      />
+                    </WithCopilot>
                     <p className="text-xs text-muted-foreground">Ponle nombre a tu proceso para aumentar su valor percibido.</p>
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="methodology_description">Descripción General</Label>
-                    <Textarea 
-                        id="methodology_description"
-                        value={strategy.methodology_description || ""}
-                        onChange={(e) => setStrategy({...strategy, methodology_description: e.target.value})}
-                        placeholder="Describe en qué consiste tu metodología en líneas generales..."
-                        className="h-24"
-                    />
+                    <WithCopilot fieldId="methodology_description" fieldLabel="Descripción de Metodología" getValue={() => strategy.methodology_description || ""}>
+                      <Textarea
+                          id="methodology_description"
+                          value={strategy.methodology_description || ""}
+                          onChange={(e) => setStrategy({...strategy, methodology_description: e.target.value})}
+                          placeholder="Describe en qué consiste tu metodología en líneas generales..."
+                          className="h-24"
+                      />
+                    </WithCopilot>
                 </div>
             </div>
 

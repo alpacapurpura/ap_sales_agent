@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { User, Save, Loader2, X } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ImageGalleryPicker } from "./image-gallery-picker";
 
@@ -47,20 +48,24 @@ export function TeamMemberForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                     <Label>Nombre</Label>
-                    <Input 
-                        value={currentMember.name} 
-                        onChange={(e) => setCurrentMember({...currentMember, name: e.target.value})}
-                        placeholder="Nombre completo"
-                        required
-                    />
+                    <WithCopilot fieldId="team_member_name" fieldLabel="Nombre del Miembro" getValue={() => currentMember.name || ""}>
+                      <Input
+                          value={currentMember.name}
+                          onChange={(e) => setCurrentMember({...currentMember, name: e.target.value})}
+                          placeholder="Nombre completo"
+                          required
+                      />
+                    </WithCopilot>
                 </div>
                 <div className="flex flex-col gap-2">
                     <Label>Rol / Título</Label>
-                    <Input 
-                        value={currentMember.role || ""} 
-                        onChange={(e) => setCurrentMember({...currentMember, role: e.target.value})}
-                        placeholder="Ej. Fundador, CEO"
-                    />
+                    <WithCopilot fieldId="team_member_role" fieldLabel="Rol del Miembro" getValue={() => currentMember.role || ""}>
+                      <Input
+                          value={currentMember.role || ""}
+                          onChange={(e) => setCurrentMember({...currentMember, role: e.target.value})}
+                          placeholder="Ej. Fundador, CEO"
+                      />
+                    </WithCopilot>
                 </div>
             </div>
 

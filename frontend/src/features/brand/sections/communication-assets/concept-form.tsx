@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, Loader2, ArrowLeft } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface ConceptFormProps {
     concept: CreativeConcept;
@@ -47,13 +48,15 @@ export function ConceptForm({ concept, onSave, onCancel, isSaving }: ConceptForm
                 </div>
                 <div className="grid grid-cols-4 items-start gap-4">
                     <Label className="text-right text-sm pt-2">Descripción</Label>
-                    <Textarea
-                        value={current.description || ""}
-                        onChange={(e) => setCurrent({ ...current, description: e.target.value })}
-                        className="col-span-3"
-                        placeholder="Describe el concepto creativo, su propósito y contexto..."
-                        rows={4}
-                    />
+                    <WithCopilot fieldId="concept_description" fieldLabel="Descripción del Concepto" getValue={() => current.description || ""}>
+                      <Textarea
+                          value={current.description || ""}
+                          onChange={(e) => setCurrent({ ...current, description: e.target.value })}
+                          className="col-span-3"
+                          placeholder="Describe el concepto creativo, su propósito y contexto..."
+                          rows={4}
+                      />
+                    </WithCopilot>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right text-sm">Tono</Label>

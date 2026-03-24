@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save, Loader2 } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface AuthorityItemFormProps {
     initialData: AuthorityItem;
@@ -28,13 +29,15 @@ export function AuthorityItemForm({ initialData, onSave, onCancel, isSaving = fa
             <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right">Entidad</Label>
-                    <Input 
-                        value={currentItem.entity_name} 
-                        onChange={(e) => setCurrentItem({...currentItem, entity_name: e.target.value})}
-                        className="col-span-3" 
-                        placeholder="Ej: Forbes"
-                        required
-                    />
+                    <WithCopilot fieldId="authority_entity" fieldLabel="Entidad de Autoridad" getValue={() => currentItem.entity_name || ""}>
+                      <Input
+                          value={currentItem.entity_name}
+                          onChange={(e) => setCurrentItem({...currentItem, entity_name: e.target.value})}
+                          className="col-span-3"
+                          placeholder="Ej: Forbes"
+                          required
+                      />
+                    </WithCopilot>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right">Tipo</Label>
@@ -55,12 +58,14 @@ export function AuthorityItemForm({ initialData, onSave, onCancel, isSaving = fa
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right">Contexto</Label>
-                    <Input 
-                        value={currentItem.context || ""} 
-                        onChange={(e) => setCurrentItem({...currentItem, context: e.target.value})}
-                        className="col-span-3" 
-                        placeholder="Ej: Nombrada Top Agency 2024"
-                    />
+                    <WithCopilot fieldId="authority_context" fieldLabel="Contexto de Autoridad" getValue={() => currentItem.context || ""}>
+                      <Input
+                          value={currentItem.context || ""}
+                          onChange={(e) => setCurrentItem({...currentItem, context: e.target.value})}
+                          className="col-span-3"
+                          placeholder="Ej: Nombrada Top Agency 2024"
+                      />
+                    </WithCopilot>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label className="text-right">URL Prueba</Label>

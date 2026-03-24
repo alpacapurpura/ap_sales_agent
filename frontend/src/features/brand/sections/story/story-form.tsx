@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Save, Loader2, Flag } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 interface StoryFormProps {
     initialData: BrandStory;
@@ -59,37 +60,43 @@ export function StoryForm({ initialData, onSave, isSaving = false }: StoryFormPr
             <div className="space-y-4">
                 <div className="space-y-2">
                     <Label htmlFor="origin_story">Historia de Origen</Label>
-                    <Textarea 
-                        id="origin_story"
-                        value={story.origin_story || ""}
-                        onChange={(e) => setStory({...story, origin_story: e.target.value})}
-                        placeholder="Cuenta cómo nació tu marca..."
-                        className="min-h-[150px]"
-                    />
+                    <WithCopilot fieldId="origin_story" fieldLabel="Historia de Origen" getValue={() => story.origin_story || ""}>
+                      <Textarea
+                          id="origin_story"
+                          value={story.origin_story || ""}
+                          onChange={(e) => setStory({...story, origin_story: e.target.value})}
+                          placeholder="Cuenta cómo nació tu marca..."
+                          className="min-h-[150px]"
+                      />
+                    </WithCopilot>
                     <p className="text-xs text-muted-foreground">Una buena historia conecta emocionalmente con tu audiencia.</p>
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="mission">Mision</Label>
-                    <Textarea
-                        id="mission"
-                        value={story.mission || ""}
-                        onChange={(e) => setStory({...story, mission: e.target.value})}
-                        placeholder="Para que existe tu marca? Ej: Existimos para empoderar a emprendedoras mediante IA para que vendan sin equipo."
-                        className="min-h-[100px]"
-                    />
+                    <WithCopilot fieldId="mission" fieldLabel="Misión" getValue={() => story.mission || ""}>
+                      <Textarea
+                          id="mission"
+                          value={story.mission || ""}
+                          onChange={(e) => setStory({...story, mission: e.target.value})}
+                          placeholder="Para que existe tu marca? Ej: Existimos para empoderar a emprendedoras mediante IA para que vendan sin equipo."
+                          className="min-h-[100px]"
+                      />
+                    </WithCopilot>
                     <p className="text-xs text-muted-foreground">El proposito actual de tu marca — por que existes hoy.</p>
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="vision">Vision</Label>
-                    <Textarea
-                        id="vision"
-                        value={story.vision || ""}
-                        onChange={(e) => setStory({...story, vision: e.target.value})}
-                        placeholder="Que mundo quieres crear? Ej: Un mundo donde cualquier experto puede vivir de su conocimiento."
-                        className="min-h-[100px]"
-                    />
+                    <WithCopilot fieldId="vision" fieldLabel="Visión" getValue={() => story.vision || ""}>
+                      <Textarea
+                          id="vision"
+                          value={story.vision || ""}
+                          onChange={(e) => setStory({...story, vision: e.target.value})}
+                          placeholder="Que mundo quieres crear? Ej: Un mundo donde cualquier experto puede vivir de su conocimiento."
+                          className="min-h-[100px]"
+                      />
+                    </WithCopilot>
                     <p className="text-xs text-muted-foreground">El futuro aspiracional — el mundo que tu marca quiere construir.</p>
                 </div>
 

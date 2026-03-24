@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RichSelect } from "@/components/ui/rich-select";
 import { Target, ShieldCheck } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { OnboardingMechanism, GuaranteeType } from "../../../../types";
 import { eventTypesApi, EventType } from "@/lib/api/event-types";
 

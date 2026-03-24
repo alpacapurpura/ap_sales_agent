@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { RichSelect } from "@/components/ui/rich-select";
 import { OFFER_TYPE_METADATA } from "../../../../types/offer-metadata";
 import { Target } from "lucide-react";
+import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { avatarApi, Avatar } from "@/lib/api/avatar";
 
 // Define partial schema for Strategy
@@ -58,7 +59,9 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
             <FormField control={form.control} name="public_name" render={({ field }) => (
                 <FormItem>
                     <FormLabel>Nombre Público</FormLabel>
-                    <FormControl><Input {...field} value={field.value || ''} className="bg-background" /></FormControl>
+                    <WithCopilot fieldId="offer_public_name" fieldLabel="Nombre de la Oferta" getValue={() => field.value || ""}>
+                      <FormControl><Input {...field} value={field.value || ''} className="bg-background" /></FormControl>
+                    </WithCopilot>
                     <FormMessage />
                 </FormItem>
             )} />
