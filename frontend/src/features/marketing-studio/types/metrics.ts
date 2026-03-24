@@ -1,6 +1,6 @@
 export type StageId =
-  | 'ATRACCION' | 'CAPTURA' | 'NUTRICION' | 'OPORTUNIDAD'
-  | 'VENTAS' | 'ADOPCION' | 'EXPANSION' | 'EVANGELIZACION';
+  | 'ATRACCION_CAPTURA' | 'ATRACCION' | 'CAPTURA' | 'NUTRICION_OPORTUNIDAD' | 'NUTRICION' | 'OPORTUNIDAD'
+  | 'VENTAS' | 'ADOPCION' | 'EXPANSION_EVANGELIZACION' | 'EXPANSION' | 'EVANGELIZACION';
 
 /**
  * Single KPI header entry used in the 3-KPI header row of every detail panel.
@@ -26,6 +26,10 @@ export interface MetricClickData {
   /** Human-readable metric name, e.g. "visitors", "leads", "impressions" */
   metricName: string;
   currentValue: number;
+  /** All metrics associated with the channel, useful for detailed sidebars */
+  channelMetrics?: MetricValue[];
+  /** Optional channel name for display */
+  channelName?: string;
   /** ISO 4217 currency code when the metric is a monetary value */
   currency?: string;
   lastUpdated?: Date;

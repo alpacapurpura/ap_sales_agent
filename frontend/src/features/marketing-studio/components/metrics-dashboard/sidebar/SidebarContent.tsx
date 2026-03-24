@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ExternalLink, PlusCircle, Settings } from 'lucide-react';
+import { ExternalLink, PlusCircle, Settings, TrendingUp } from 'lucide-react';
 import type { MetricClickData, StageId } from '../../../types/metrics';
 import { getChannelColor, getChannelIcon } from '../../../lib/channelIcons';
 
@@ -18,14 +18,17 @@ interface SidebarContentProps {
 // ─── Stage label mapping ───────────────────────────────────────────────────────
 
 const STAGE_NAMES: Record<StageId, string> = {
+  ATRACCION_CAPTURA: 'Atraccion & Captura',
   ATRACCION: 'Atraccion',
   CAPTURA: 'Captura',
+  NUTRICION_OPORTUNIDAD: 'Nutricion & Oportunidad',
   NUTRICION: 'Nutricion',
   OPORTUNIDAD: 'Oportunidad',
   VENTAS: 'Ventas',
   ADOPCION: 'Adopcion',
-  EXPANSION: 'Expansion',
-  EVANGELIZACION: 'Evangelizacion',
+  EXPANSION: 'Expansión',
+  EVANGELIZACION: 'Evangelización',
+  EXPANSION_EVANGELIZACION: 'Expansión & Evangelización',
 };
 
 const METRIC_LABELS: Record<string, string> = {
@@ -164,6 +167,8 @@ function ChannelInfoCard({ channelSlug }: ChannelInfoCardProps) {
 // ─── Stage-specific content adapters ──────────────────────────────────────────
 
 function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
+  const hasMetrics = metric.channelMetrics && metric.channelMetrics.length > 0;
+
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3">
@@ -171,9 +176,32 @@ function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
           Atraccion — Trafico y alcance de canales organicos y pagados
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide el volumen de personas que llegan a tu ecosistema a traves de {metric.channelSlug}.
+          Esta metrica mide el volumen de personas que llegan a tu ecosistema a traves de {metric.channelName || metric.channelSlug}.
         </p>
       </div>
+
+      {hasMetrics && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Métricas del Canal
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {metric.channelMetrics?.map((m, idx) => (
+              <Card key={idx} className="border-muted bg-card shadow-sm">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+                  <span className="text-xl font-bold text-foreground">
+                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mt-1">
+                    {METRIC_LABELS[m.name] || m.name}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
           <p className="text-xs text-muted-foreground font-medium mb-2">Detalles de campana</p>
@@ -189,6 +217,8 @@ function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function CaptureMetricDetail({ metric }: { metric: MetricClickData }) {
+  const hasMetrics = metric.channelMetrics && metric.channelMetrics.length > 0;
+
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 p-3">
@@ -196,9 +226,32 @@ function CaptureMetricDetail({ metric }: { metric: MetricClickData }) {
           Captura — Leads generados desde formularios y agentes conversacionales
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide cuantos visitantes se convirtieron en contactos capturados via {metric.channelSlug}.
+          Esta metrica mide cuantos visitantes se convirtieron en contactos capturados via {metric.channelName || metric.channelSlug}.
         </p>
       </div>
+
+      {hasMetrics && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Métricas del Canal
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {metric.channelMetrics?.map((m, idx) => (
+              <Card key={idx} className="border-muted bg-card shadow-sm">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+                  <span className="text-xl font-bold text-foreground">
+                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mt-1">
+                    {METRIC_LABELS[m.name] || m.name}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
           <p className="text-xs text-muted-foreground font-medium mb-2">Leads por fuente</p>
@@ -214,6 +267,8 @@ function CaptureMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
+  const hasMetrics = metric.channelMetrics && metric.channelMetrics.length > 0;
+  
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-pink-50 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-800 p-3">
@@ -221,9 +276,32 @@ function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
           Nutricion — MQLs calificados por retargeting y automatizaciones
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide leads que alcanzaron calificacion de marketing (MQL) via {metric.channelSlug}.
+          Esta metrica mide leads que alcanzaron calificacion de marketing (MQL) via {metric.channelName || metric.channelSlug}.
         </p>
       </div>
+      
+      {hasMetrics && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Métricas del Canal
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {metric.channelMetrics?.map((m, idx) => (
+              <Card key={idx} className="border-muted bg-card shadow-sm">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+                  <span className="text-xl font-bold text-foreground">
+                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mt-1">
+                    {METRIC_LABELS[m.name] || m.name}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
           <p className="text-xs text-muted-foreground font-medium mb-2">Campanas de retargeting</p>
@@ -239,6 +317,8 @@ function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function OpportunityMetricDetail({ metric }: { metric: MetricClickData }) {
+  const hasMetrics = metric.channelMetrics && metric.channelMetrics.length > 0;
+
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 p-3">
@@ -246,9 +326,32 @@ function OpportunityMetricDetail({ metric }: { metric: MetricClickData }) {
           Oportunidad — SQLs listos para decision de compra
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide leads que llegaron a checkout o calificacion via {metric.channelSlug}.
+          Esta metrica mide leads que llegaron a checkout o calificacion via {metric.channelName || metric.channelSlug}.
         </p>
       </div>
+
+      {hasMetrics && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Métricas del Canal
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {metric.channelMetrics?.map((m, idx) => (
+              <Card key={idx} className="border-muted bg-card shadow-sm">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+                  <span className="text-xl font-bold text-foreground">
+                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mt-1">
+                    {METRIC_LABELS[m.name] || m.name}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
           <p className="text-xs text-muted-foreground font-medium mb-2">Detalle de checkout</p>
@@ -312,48 +415,98 @@ function AdoptionMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function ExpansionMetricDetail({ metric }: { metric: MetricClickData }) {
+  let title = 'Expansion — Ingreso recurrente, upsell y cancelaciones';
+  let desc = 'Esta metrica refleja el movimiento neto de MRR en el periodo actual.';
+  let analysisTitle = 'Análisis de oportunidad';
+  let analysisDesc = 'La inteligencia del sistema ha detectado que existe una gran oportunidad de optimización realizando acciones de retención o upsell.';
+  
+  if (metric.metricName === 'retencion') {
+    title = 'Optimizar Retención';
+    desc = 'Mantén la fidelidad de tus clientes activos.';
+    analysisDesc = 'Enviar correo de agradecimiento y contenido exclusivo a los retenidos para asegurar el próximo mes.';
+  } else if (metric.metricName === 'crecimiento') {
+    title = 'Lanzar Campaña de Upsell';
+    desc = 'Aumenta el LTV ofreciendo productos de mayor valor.';
+    analysisDesc = 'Lanzar un correo promocional automatizado a la base de clientes actuales para ofrecer este producto adicional.';
+  } else if (metric.metricName === 'cancelaciones') {
+    title = 'Entrevistas de Salida';
+    desc = 'Descubre por qué tus clientes están cancelando.';
+    analysisDesc = 'Configurar un flujo automático por WhatsApp con la IA para preguntar por qué cancelaron y ofrecer un downsell.';
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-3">
         <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
-          Expansion — Ingreso recurrente, upsell y cancelaciones
+          {title}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica refleja el movimiento neto de MRR en el periodo actual.
+          {desc}
         </p>
       </div>
-      <Card className="border-dashed">
-        <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Detalle de MRR por producto</p>
-          <p className="text-xs text-muted-foreground italic">
-            Detalle de expansion — proxima version
-          </p>
-        </CardContent>
-      </Card>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200 border-b border-emerald-200 dark:border-emerald-800 pb-2 mb-2 flex items-center">
+          <TrendingUp className="w-4 h-4 mr-1" /> {analysisTitle}
+        </h4>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+          {analysisDesc}
+        </p>
+      </div>
+
       <ActionButtons stageId="EXPANSION" channelSlug={metric.channelSlug} />
     </div>
   );
 }
 
 function EvangelizationMetricDetail({ metric }: { metric: MetricClickData }) {
+  let title = 'Evangelizacion — K-Factor, referidos y NPS';
+  let desc = 'Esta metrica mide el impacto viral de tus clientes mas satisfechos.';
+  let analysisTitle = 'Análisis de oportunidad';
+  let analysisDesc = 'Identifica a tus promotores para generar referidos y contenido UGC.';
+  
+  if (metric.metricName === 'setup_nps') {
+    title = 'Configurar NPS';
+    desc = 'Aún no tienes información de referidos.';
+    analysisDesc = 'Lanza tu primera encuesta NPS a tus clientes activos para conocer su satisfacción.';
+  } else if (metric.metricName === 'promotores') {
+    title = 'Solicitar Testimonios';
+    desc = 'Aprovecha la alta satisfacción de tus clientes.';
+    analysisDesc = 'Envía un flujo automático por WhatsApp pidiendo un video testimonio a cambio de un bonus.';
+  } else if (metric.metricName === 'ugc_count') {
+    title = 'Aprovechar UGC';
+    desc = 'Utiliza el contenido generado por tus usuarios.';
+    analysisDesc = 'Recopila estas menciones y reseñas en redes para inyectarlas en tus Ads de retargeting.';
+  } else if (metric.metricName === 'conversions') {
+    title = 'Optimizar Referidos';
+    desc = 'Mejora el rendimiento de tus enlaces compartidos.';
+    analysisDesc = 'Mejora la recompensa por referir. Ofrece comisión recurrente para subir el K-Factor a más de 1.0.';
+  } else if (metric.metricName === 'count') {
+    title = 'Obtener Candidatos / Activar Evangelistas';
+    desc = 'Invita a tus promotores a unirse al programa de referidos.';
+    analysisDesc = 'La IA puede invitarles a unirse al programa de referidos de forma automatizada.';
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-fuchsia-50 dark:bg-fuchsia-950/20 border border-fuchsia-200 dark:border-fuchsia-800 p-3">
         <p className="text-xs text-fuchsia-700 dark:text-fuchsia-300 font-medium">
-          Evangelizacion — K-Factor, referidos y NPS
+          {title}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide el impacto viral de tus clientes mas satisfechos.
+          {desc}
         </p>
       </div>
-      <Card className="border-dashed">
-        <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Detalle de evangelistas</p>
-          <p className="text-xs text-muted-foreground italic">
-            Historial de referidos — proxima version
-          </p>
-        </CardContent>
-      </Card>
+
+      <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200 border-b border-emerald-200 dark:border-emerald-800 pb-2 mb-2 flex items-center">
+          <TrendingUp className="w-4 h-4 mr-1" /> {analysisTitle}
+        </h4>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+          {analysisDesc}
+        </p>
+      </div>
+
       <ActionButtons stageId="EVANGELIZACION" channelSlug={metric.channelSlug} />
     </div>
   );
@@ -404,11 +557,11 @@ export function SidebarContent({ metric, stageId }: SidebarContentProps) {
       {/* Metric context header */}
       <div className="space-y-1">
         <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-          Metrica
+          {metric.channelName ? 'Canal' : 'Metrica'}
         </p>
-        <p className="text-sm font-semibold">{metricLabel}</p>
+        <p className="text-sm font-semibold">{metric.channelName || metricLabel}</p>
         <p className="text-xs text-muted-foreground">
-          Canal: {metric.channelSlug} &mdash; Etapa: {STAGE_NAMES[stageId]}
+          {metric.channelName ? `Metrica principal: ${metricLabel}` : `Canal: ${metric.channelSlug}`} &mdash; Etapa: {STAGE_NAMES[stageId]}
         </p>
       </div>
 

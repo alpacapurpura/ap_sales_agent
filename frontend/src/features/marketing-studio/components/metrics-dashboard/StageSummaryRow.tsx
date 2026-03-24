@@ -2,6 +2,7 @@
 
 import type { StageId, StageSummary, MetricClickData } from '../../types/metrics';
 import { StageCard } from './StageCard';
+import { cn } from '@/lib/utils';
 
 interface StageSummaryRowProps {
   stages: StageSummary[];
@@ -16,10 +17,7 @@ interface StageSummaryRowProps {
 }
 
 /**
- * Horizontal scrolling row of StageCard components.
- *
- * Passes isLoading and isMock through to each StageCard for progressive loading UI.
- * The onMetricClick prop is threaded through for use in Plan 11-02 detail panel wiring.
+ * Horizontal scrolling row of StageCard components formatted as a Bowtie Funnel.
  */
 export function StageSummaryRow({
   stages,
@@ -30,17 +28,41 @@ export function StageSummaryRow({
   mockMap = {},
 }: StageSummaryRowProps) {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
-      {stages.map((stage) => (
-        <StageCard
-          key={stage.id}
-          stage={stage}
-          isActive={activeStage === stage.id}
-          onClick={() => onStageClick(stage.id)}
-          isLoading={loadingMap[stage.id] ?? false}
-          isMock={mockMap[stage.id] ?? false}
-        />
-      ))}
+    <div className="w-full overflow-x-auto pb-4 scrollbar-thin">
+      <div 
+        className={cn(
+          "min-w-[800px] flex items-stretch justify-center relative rounded-2xl overflow-hidden h-[120px]",
+          "bg-gradient-to-r from-blue-600 via-violet-600 via-emerald-600 via-amber-500 to-rose-600"
+        )}
+        style={{
+          clipPath: "polygon(0 0, 50% 12%, 100% 0, 100% 100%, 50% 88%, 0 100%)"
+        }}
+      >
+        {stages.map((stage, index) => {
+          const isActive = activeStage === stage.id;
+          const isNextActive = stages[index + 1] && activeStage === stages[index + 1].id;
+          const isLast = index === stages.length - 1;
+          
+          return (
+            <div 
+              key={stage.id} 
+              className="flex-1 relative flex"
+            >
+              <StageCard
+                stage={stage}
+                isActive={isActive}
+                onClick={() => onStageClick(stage.id)}
+                isLoading={loadingMap[stage.id] ?? false}
+                isMock={mockMap[stage.id] ?? false}
+              />
+              {/* Separator Line */}
+              {!isLast && !isActive && !isNextActive && (
+                <div className="absolute right-0 top-[20%] w-[1px] h-[60%] bg-white/10 z-10 pointer-events-none transition-opacity duration-300" />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

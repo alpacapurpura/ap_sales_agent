@@ -50,72 +50,64 @@ export function StageCard({ stage, isActive, onClick, isLoading = false, isMock 
     : formatKpiValue(stage.secondaryKpi.value, stage.secondaryKpi.unit);
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Card
-            onClick={onClick}
-            className={cn(
-              'relative flex flex-col items-center justify-center p-4 min-w-[120px] cursor-pointer',
-              'transition-all duration-150 ease-out select-none snap-center',
-              'bg-[#1e293b] border-[#1e293b] rounded-lg shadow-sm',
-              'hover:scale-[1.02]',
-              isActive
-                ? 'ring-2 ring-primary/50 shadow-md'
-                : 'hover:ring-1 hover:ring-slate-500/50 hover:shadow-md'
-            )}
-          >
-            {/* Stage label */}
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-[0.6px]">
-              {stage.label}
-            </span>
+    <div
+      onClick={onClick}
+      className={cn(
+        'w-full flex flex-col items-center justify-center p-4 cursor-pointer transition-all duration-300 ease-in-out relative',
+        // Default state (Dark base, slightly transparent to show gradient behind)
+        !isActive && 'bg-slate-900/95 hover:bg-slate-900/75 dark:bg-slate-950/95 dark:hover:bg-slate-950/75 text-slate-400',
+        // Active state (White glass overlay)
+        isActive && 'bg-white/15 dark:bg-white/10 backdrop-blur-[4px] text-white'
+      )}
+    >
+      {/* Stage label */}
+      <span 
+        className={cn(
+          "text-[10px] font-semibold uppercase tracking-[0.05em] mb-1 transition-colors duration-300",
+          isActive ? "text-white drop-shadow-sm" : "text-slate-400"
+        )}
+      >
+        {stage.label}
+      </span>
 
-            {/* Main KPI value */}
-            {isLoading ? (
-              <div className="mt-1 space-y-1 w-full flex flex-col items-center">
-                <Skeleton className="h-7 w-16 bg-slate-600" />
-                <Skeleton className="h-3 w-12 bg-slate-600" />
-              </div>
-            ) : (
-              <>
-                <span className="text-2xl font-bold mt-1 tabular-nums text-slate-50">
-                  {formatKpiValue(stage.mainKpi.value, stage.mainKpi.unit)}
-                </span>
-                <span className="text-xs text-slate-400 mt-0.5">
-                  {stage.mainKpi.label}
-                </span>
-              </>
-            )}
+      {/* Main KPI value */}
+      {isLoading ? (
+        <div className="space-y-1 w-full flex flex-col items-center">
+          <Skeleton className="h-7 w-16 bg-slate-600/50" />
+          <Skeleton className="h-3 w-12 bg-slate-600/50" />
+        </div>
+      ) : (
+        <span 
+          className={cn(
+            "text-2xl font-bold tabular-nums transition-colors duration-300",
+            isActive ? "text-white drop-shadow-md" : "text-slate-200"
+          )}
+        >
+          {formatKpiValue(stage.mainKpi.value, stage.mainKpi.unit)}
+        </span>
+      )}
 
-            {/* Secondary KPI: conversion pill */}
-            {!isLoading && (
-              <div className="text-[8px] text-slate-800/70 bg-white px-2.5 py-0.5 rounded-full mt-2 tabular-nums font-medium">
-                {secondaryText}
-              </div>
-            )}
+      {/* Metric Label */}
+      {!isLoading && (
+        <span 
+          className={cn(
+            "text-[10px] mt-0.5 transition-colors duration-300",
+            isActive ? "text-white/90 font-medium" : "text-slate-500"
+          )}
+        >
+          {stage.mainKpi.label}
+        </span>
+      )}
 
-            {/* Detail indicator when active */}
-            {stage.hasDetail && isActive && !isLoading && (
-              <span className="text-[10px] text-primary mt-1 font-medium">
-                ▼ detalle
-              </span>
-            )}
-
-            {/* Mock data badge — shown when data is fallback/simulated */}
-            {isMock && !isLoading && (
-              <Badge
-                variant="secondary"
-                className="absolute top-1 right-1 text-[8px] px-1 py-0 h-4 bg-slate-700 text-slate-300 font-normal"
-              >
-                datos simulados
-              </Badge>
-            )}
-          </Card>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{stage.description}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+      {/* Mock data badge — shown when data is fallback/simulated */}
+      {isMock && !isLoading && (
+        <Badge
+          variant="secondary"
+          className="absolute top-1 right-1 text-[8px] px-1 py-0 h-4 bg-slate-800/50 text-slate-400 font-normal border-none"
+        >
+          simulado
+        </Badge>
+      )}
+    </div>
   );
 }

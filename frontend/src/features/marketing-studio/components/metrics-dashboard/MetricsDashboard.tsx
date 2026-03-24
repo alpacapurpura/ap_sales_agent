@@ -5,14 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { StageId, StageSummary, MetricClickData } from '../../types/metrics';
 import { STAGE_SUMMARIES } from '../../api/metrics-mock-data';
 import { StageSummaryRow } from './StageSummaryRow';
-import { AttractionDetail } from './detail-panels/AttractionDetail';
-import { CaptureDetail } from './detail-panels/CaptureDetail';
-import { NurtureDetail } from './detail-panels/NurtureDetail';
-import { OpportunityDetail } from './detail-panels/OpportunityDetail';
+import { AttractionCaptureDetail } from './detail-panels/AttractionCaptureDetail';
+import { NurtureOpportunityDetail } from './detail-panels/NurtureOpportunityDetail';
 import { SalesDetail } from './detail-panels/SalesDetail';
 import { AdoptionDetail } from './detail-panels/AdoptionDetail';
-import { ExpansionDetail } from './detail-panels/ExpansionDetail';
-import { EvangelizationDetail } from './detail-panels/EvangelizationDetail';
+import { ExpansionEvangelizationDetail } from './detail-panels/ExpansionEvangelizationDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 import MetricSidebar from './MetricSidebar';
 import { SidebarContent } from './sidebar/SidebarContent';
@@ -162,7 +159,7 @@ function mergeStageData(
 }
 
 export function MetricsDashboard() {
-  const [activeStage, setActiveStage] = useState<StageId | null>('ATRACCION');
+  const [activeStage, setActiveStage] = useState<StageId | null>('ATRACCION_CAPTURA');
 
   // Sidebar state — metric drill-down wired to detail panels
   const [sidebarMetric, setSidebarMetric] = useState<MetricClickData | null>(null);
@@ -201,31 +198,67 @@ export function MetricsDashboard() {
   const { summary: evangelizacionSummary, isLoading: evangelizacionIsLoading, isMock: evangelizacionIsMock } =
     mergeStageData(baseSummaries[7], evangelizationData, evangelizationLoading, !!evangelizationError);
 
+  const atraccionCapturaSummary: StageSummary = {
+    id: 'ATRACCION_CAPTURA',
+    order: 0,
+    label: 'Atracción & Captura',
+    description: 'Etapa 1 y 2 - Tráfico y visitantes convertidos a leads',
+    mainKpi: atraccionSummary.mainKpi,
+    secondaryKpi: { label: 'leads', value: capturaSummary.mainKpi.value, unit: capturaSummary.mainKpi.unit },
+    hasDetail: true,
+  };
+
+  const nutricionOportunidadSummary: StageSummary = {
+    id: 'NUTRICION_OPORTUNIDAD',
+    order: 1,
+    label: 'Nutrición & Oportunidad',
+    description: 'Etapa 3 y 4 - Calentamiento de leads y generación de intenciones de compra',
+    mainKpi: nutricionSummary.mainKpi,
+    secondaryKpi: { label: 'SQLs', value: oportunidadSummary.mainKpi.value, unit: oportunidadSummary.mainKpi.unit },
+    hasDetail: true,
+  };
+
+  const expansionEvangelizacionSummary: StageSummary = {
+    id: 'EXPANSION_EVANGELIZACION',
+    order: 4,
+    label: 'Expansión & Evangelización',
+    description: 'Etapa 5 y 6 - Retención, crecimiento de LTV y referidos',
+    mainKpi: expansionSummary.mainKpi,
+    secondaryKpi: { label: 'k-factor', value: evangelizacionSummary.mainKpi.value, unit: evangelizacionSummary.mainKpi.unit },
+    hasDetail: true,
+  };
+
   const enrichedSummaries = [
-    atraccionSummary, capturaSummary, nutricionSummary, oportunidadSummary,
-    ventasSummary, adopcionSummary, expansionSummary, evangelizacionSummary,
+    atraccionCapturaSummary, nutricionOportunidadSummary,
+    ventasSummary, adopcionSummary, expansionEvangelizacionSummary,
   ];
 
   const loadingMap: Record<StageId, boolean> = {
-    ATRACCION: atraccionIsLoading,
-    CAPTURA: capturaIsLoading,
-    NUTRICION: nutricionIsLoading,
-    OPORTUNIDAD: oportunidadIsLoading,
+    ATRACCION_CAPTURA: atraccionIsLoading || capturaIsLoading,
+    ATRACCION: false,
+    CAPTURA: false,
+    NUTRICION_OPORTUNIDAD: nutricionIsLoading || oportunidadIsLoading,
+    NUTRICION: false,
+    OPORTUNIDAD: false,
     VENTAS: ventasIsLoading,
     ADOPCION: adopcionIsLoading,
-    EXPANSION: expansionIsLoading,
-    EVANGELIZACION: evangelizacionIsLoading,
+    EXPANSION_EVANGELIZACION: expansionIsLoading || evangelizacionIsLoading,
+    EXPANSION: false,
+    EVANGELIZACION: false,
   };
 
   const mockMap: Record<StageId, boolean> = {
-    ATRACCION: atraccionIsMock,
-    CAPTURA: capturaIsMock,
-    NUTRICION: nutricionIsMock,
-    OPORTUNIDAD: oportunidadIsMock,
+    ATRACCION_CAPTURA: atraccionIsMock && capturaIsMock,
+    ATRACCION: false,
+    CAPTURA: false,
+    NUTRICION_OPORTUNIDAD: nutricionIsMock && oportunidadIsMock,
+    NUTRICION: false,
+    OPORTUNIDAD: false,
     VENTAS: ventasIsMock,
     ADOPCION: adopcionIsMock,
-    EXPANSION: expansionIsMock,
-    EVANGELIZACION: evangelizacionIsMock,
+    EXPANSION_EVANGELIZACION: expansionIsMock && evangelizacionIsMock,
+    EXPANSION: false,
+    EVANGELIZACION: false,
   };
 
   const handleStageClick = (id: StageId) => {
@@ -263,36 +296,18 @@ export function MetricsDashboard() {
         />
 
         {activeStageData && (
-          activeStage === 'ATRACCION' ? (
-            <AttractionDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
-          ) : (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
-                  Detalle: {activeStageData.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {activeStage === 'CAPTURA' ? (
-                  <CaptureDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
-                ) : activeStage === 'NUTRICION' ? (
-                  <NurtureDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
-                ) : activeStage === 'OPORTUNIDAD' ? (
-                  <OpportunityDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
-                ) : activeStage === 'VENTAS' ? (
-                  <SalesDetail onMetricClick={handleMetricClick} />
-                ) : activeStage === 'ADOPCION' ? (
-                  <AdoptionDetail onMetricClick={handleMetricClick} />
-                ) : activeStage === 'EXPANSION' ? (
-                  <ExpansionDetail onMetricClick={handleMetricClick} />
-                ) : activeStage === 'EVANGELIZACION' ? (
-                  <EvangelizationDetail onMetricClick={handleMetricClick} />
-                ) : (
-                  <PlaceholderDetail stage={activeStageData} />
-                )}
-              </CardContent>
-            </Card>
-          )
+          activeStage === 'ATRACCION_CAPTURA' ? (
+            <AttractionCaptureDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
+          ) : activeStage === 'NUTRICION_OPORTUNIDAD' ? (
+            <NurtureOpportunityDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />
+          ) : activeStage === 'EXPANSION_EVANGELIZACION' ? (
+            <ExpansionEvangelizationDetail onMetricClick={handleMetricClick} />
+          ) : activeStage === 'VENTAS' ? (
+            <SalesDetail onMetricClick={handleMetricClick} />
+          ) : activeStage === 'ADOPCION' ? (
+            <AdoptionDetail onMetricClick={handleMetricClick} />
+                ) 
+            : (<PlaceholderDetail stage={activeStageData} />)
         )}
       </div>
 
@@ -302,7 +317,7 @@ export function MetricsDashboard() {
         onClose={handleSidebarClose}
         metric={sidebarMetric}
       >
-        <SidebarContent metric={sidebarMetric} stageId={activeStage} />
+        <SidebarContent metric={sidebarMetric} stageId={sidebarMetric?.stageId ?? activeStage} />
       </MetricSidebar>
 
       <ChannelConnectionModal

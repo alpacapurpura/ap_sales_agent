@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, Banknote, Calendar, Crosshair, Settings, TrendingUp } from 'lucide-react';
+import { ActionPanel } from '../action-widgets/ActionPanel';
 import { useSalesDetail } from '../../../hooks/useSalesDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
-import { RevenueGroupHeader } from '../channel-widgets/RevenueGroupHeader';
-import { TierGroup } from '../channel-widgets/TierGroup';
+import { OfferLadder } from '../channel-widgets/OfferLadder';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
@@ -49,64 +51,34 @@ function formatDualCurrency(amount: number, currency: string, usdAmount: number 
   return main;
 }
 
-const GROUP_SUBTITLES: Record<string, string> = {
-  adquisicion: 'Clientes nuevos (CONVERSION)',
-  expansion: 'Ventas recurrentes y upsell (EXPANSION)',
-};
-
 function SalesBottleneckBanner({ bottleneck }: { bottleneck: SalesBottleneck }) {
   const { severity, message, tip } = bottleneck;
 
   const bgColor = severity === 'critical'
-    ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800'
-    : 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800';
+    ? 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900'
+    : 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900';
   const textColor = severity === 'critical'
-    ? 'text-red-800 dark:text-red-200'
-    : 'text-yellow-800 dark:text-yellow-200';
+    ? 'text-red-900 dark:text-red-200'
+    : 'text-amber-900 dark:text-amber-200';
+  const iconColor = severity === 'critical'
+    ? 'text-red-500'
+    : 'text-amber-500';
+  const btnColor = severity === 'critical'
+    ? 'bg-red-100 hover:bg-red-200 text-red-700 border-red-200 dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300 dark:border-red-800'
+    : 'bg-amber-100 hover:bg-amber-200 text-amber-700 border-amber-200 dark:bg-amber-900/50 dark:hover:bg-amber-900 dark:text-amber-300 dark:border-amber-800';
 
   return (
-    <div className={`rounded-lg border p-3 ${bgColor}`} role="alert">
-      <div className="flex items-center gap-2">
-        <AlertTriangle className={`h-4 w-4 ${textColor}`} />
-        <span className={`text-sm font-semibold ${textColor}`}>{message}</span>
+    <div className={`rounded-lg border p-3 flex gap-3 items-center shadow-sm ${bgColor}`} role="alert">
+      <AlertTriangle className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />
+      <div className="flex-1">
+        <p className="text-sm font-medium">
+          <strong className={textColor}>Cuello de Botella Detectado:</strong> <span className={textColor}>{message}</span>
+        </p>
+        <p className={`text-xs mt-0.5 ${textColor} opacity-80`}>{tip}</p>
       </div>
-      <p className="text-xs text-muted-foreground mt-1">{tip}</p>
-    </div>
-  );
-}
-
-function RevenueSection({ group, onMetricClick }: { group: RevenueGroupData; onMetricClick?: (metric: MetricClickData) => void }) {
-  const nonEmptyTiers = group.tiers.filter((t) => t.offers.length > 0);
-  if (nonEmptyTiers.length === 0) return null;
-
-  return (
-    <div>
-      <RevenueGroupHeader
-        groupLabel={group.groupLabel}
-        subtitle={GROUP_SUBTITLES[group.groupKey] ?? ''}
-        totalRevenue={group.totalRevenue}
-        totalRevenueUsd={group.totalRevenueUsd}
-        currency={group.currency}
-        customerCount={group.customerCount}
-        revenuePercentage={group.revenuePercentage}
-      />
-      {nonEmptyTiers.map((tier) => (
-        <TierGroup
-          key={tier.tierKey}
-          tierKey={tier.tierKey}
-          tierLabel={tier.tierLabel}
-          offers={tier.offers}
-          onOfferClick={onMetricClick ? (offerId, publicName, revenue) => {
-            onMetricClick({
-              stageId: 'VENTAS',
-              channelSlug: offerId,
-              metricName: 'revenue',
-              currentValue: revenue,
-              currency: group.currency,
-            });
-          } : undefined}
-        />
-      ))}
+      <Button variant="outline" size="sm" className={`h-8 ${btnColor}`}>
+        Solucionar
+      </Button>
     </div>
   );
 }
@@ -117,6 +89,7 @@ interface SalesDetailProps {
 
 export function SalesDetail({ onMetricClick }: SalesDetailProps) {
   const { data, isLoading, error, refetch } = useSalesDetail();
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -161,46 +134,92 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
     );
   }
 
-  return (
-    <div className="space-y-4 animate-fade-in">
-      {/* Timestamp */}
-      {data.lastUpdated && (
-        <p className="text-xs text-muted-foreground italic">
-          Actualizado: {formatLastUpdated(data.lastUpdated)}
-        </p>
-      )}
+  // Compute funnel metrics if not present explicitly
+  const oppToSalesConvRate = miniFunnel?.conversionRate || (headerKpis.newCustomers > 0 && miniFunnel.sourceValue > 0 ? (headerKpis.newCustomers / miniFunnel.sourceValue) * 100 : 0);
 
-      {/* Header KPIs — responsive 3-column grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">REVENUE TOTAL</span>
-          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
-            {formatDualCurrency(headerKpis.totalRevenue, headerKpis.currency, headerKpis.totalRevenueUsd)}
-          </span>
+  return (
+    <div className="space-y-12 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
+      
+      {/* Title & Actions Row */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            Ventas
+            <span className="px-2 py-0.5 mt-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium tracking-wide">ETAPA 4</span>
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Ingresos generados (Revenue), clientes nuevos y costo de adquisición por oferta.</p>
         </div>
-        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">NUEVOS CLIENTES</span>
-          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
-            {headerKpis.newCustomers.toLocaleString('es-ES')}
-          </span>
-        </div>
-        <div className="flex flex-col bg-muted/30 rounded-lg p-3">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">CAC</span>
-          <span className="text-xl sm:text-2xl font-semibold tabular-nums mt-1">
-            {headerKpis.cac != null
-              ? `${new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.cac)}${headerKpis.cacIncomplete ? '*' : ''}`
-              : '--'}
-          </span>
-          {headerKpis.cacIncomplete && (
-            <span className="text-[10px] text-muted-foreground mt-0.5">
-              Costos incompletos — configurar en Growth Settings
-            </span>
-          )}
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-muted-foreground italic mr-2">
+            Actualizado: {data.lastUpdated ? formatLastUpdated(data.lastUpdated) : 'Hoy'}
+          </p>
+          <Button variant="outline" onClick={() => setIsPanelOpen(true)}>
+            <Calendar className="mr-2 h-4 w-4" /> Últimos 30 días
+          </Button>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => setIsPanelOpen(true)}>
+            <Settings className="mr-2 h-4 w-4" /> Gestionar Etapa
+          </Button>
         </div>
       </div>
 
-      {/* MiniFunnel */}
-      <MiniFunnel data={miniFunnel} />
+      <ActionPanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
+
+      {/* Global Performance Header (Funnel visual) */}
+      <div className="bg-card rounded-xl p-6 shadow-sm border border-border relative overflow-hidden">
+        <h2 className="text-lg font-semibold mb-6 flex items-center text-foreground/90">
+          <Banknote className="w-5 h-5 mr-2 text-emerald-600 dark:text-emerald-500" /> Rendimiento de Ventas
+        </h2>
+        
+        <div className="relative mb-2">
+          {/* Horizontal Lines (Background Layer) */}
+          <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-slate-200 to-slate-400 dark:from-slate-800 dark:to-slate-600 top-[40%] left-[20%] z-0"></div>
+          <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-emerald-200 to-emerald-400 dark:from-emerald-900 dark:to-emerald-700 top-[40%] left-[45%] z-0"></div>
+          <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-emerald-400 to-emerald-600 dark:from-emerald-700 dark:to-emerald-500 top-[40%] left-[70%] z-0"></div>
+          
+          {/* Metrics Row (Foreground Layer) */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10 w-full">
+            {/* Bloque 1: Pipeline Inicial */}
+            <div className="bg-background p-5 rounded-lg border border-border shadow-sm flex flex-col items-center justify-center relative text-center">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase mb-1">Oportunidades (SQLs)</span>
+              <span className="text-3xl font-black text-foreground">{miniFunnel.sourceValue.toLocaleString('es-ES')}</span>
+              <span className="text-xs text-muted-foreground mt-1">Leads Listos para Comprar</span>
+            </div>
+
+            {/* Bloque 2: Nuevos Clientes */}
+            <div className="bg-background p-5 rounded-lg border border-emerald-500/20 shadow-sm flex flex-col items-center justify-center relative text-center ring-1 ring-emerald-500/10">
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase mb-1">Nuevos Clientes</span>
+              <span className="text-4xl font-black text-emerald-600 dark:text-emerald-500">{headerKpis.newCustomers.toLocaleString('es-ES')}</span>
+              <span className="text-xs text-emerald-600/80 dark:text-emerald-500/80 mt-1 font-medium">Conversiones Exitosas</span>
+              <div className="mt-3 text-[10px] text-muted-foreground font-medium flex items-center justify-center">
+                <Crosshair className="w-3 h-3 mr-1 text-emerald-600 dark:text-emerald-500" /> 
+                <span>
+                  CAC Promedio: {headerKpis.cac != null ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.cac) : '--'}
+                </span>
+              </div>
+            </div>
+
+            {/* Bloque 3: Tasa de Conversión */}
+            <div className="flex flex-col items-center justify-center relative">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-emerald-600 dark:to-emerald-500 text-white flex items-center justify-center shadow-md border-4 border-background">
+                <span className="font-bold text-lg">{oppToSalesConvRate.toFixed(1)}%</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase mt-3 text-center">Tasa de Cierre</span>
+            </div>
+
+            {/* Bloque 4: Revenue Total */}
+            <div className="bg-emerald-950 dark:bg-emerald-950/50 p-5 rounded-lg border border-emerald-900 shadow-md flex flex-col items-center justify-center relative text-center text-white">
+              <span className="text-[10px] text-emerald-300 font-bold uppercase mb-1">Revenue Total</span>
+              <span className="text-4xl font-black text-white">{formatDualCurrency(headerKpis.totalRevenue, headerKpis.currency, headerKpis.totalRevenueUsd).replace(/ \(.+\)/, '')}</span>
+              <span className="text-xs text-emerald-200 mt-1">Ingresos Generados</span>
+              {headerKpis.totalRevenueUsd && headerKpis.currency !== 'USD' && (
+                <div className="mt-3 text-xs font-medium text-emerald-300">
+                  (~{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.totalRevenueUsd)} USD)
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Bottleneck Banners */}
       {bottlenecks.length > 0 && (
@@ -211,9 +230,12 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
         </div>
       )}
 
-      {/* Revenue Groups */}
-      <RevenueSection group={adquisicion} onMetricClick={onMetricClick} />
-      <RevenueSection group={expansion} onMetricClick={onMetricClick} />
+      {/* Offer Ladder Layout */}
+      <OfferLadder 
+        adquisicion={adquisicion} 
+        expansion={expansion} 
+        onMetricClick={onMetricClick} 
+      />
     </div>
   );
 }
