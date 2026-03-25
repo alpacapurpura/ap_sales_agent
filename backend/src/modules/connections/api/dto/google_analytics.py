@@ -1,6 +1,34 @@
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
+
+
+class GA4PropertySummary(BaseModel):
+    property_id: str
+    display_name: str
+    account_name: str = ""
+
+
+class PropertySelectRequest(BaseModel):
+    property_id: str
+
+
+class SelectedProperty(BaseModel):
+    property_id: str
+    display_name: str
+
 
 class GoogleAnalyticsStatusResponse(BaseModel):
     is_connected: bool
-    account_summary: Optional[List[Dict[str, Any]]] = None
+    is_configured: bool = False
+    selected_property: Optional[SelectedProperty] = None
+
+
+class GoogleAnalyticsCallbackResponse(BaseModel):
+    status: str
+    properties: List[GA4PropertySummary] = []
+
+
+class PropertySelectResponse(BaseModel):
+    status: str
+    property_id: str
+    display_name: str
