@@ -101,6 +101,31 @@ class GoogleAnalyticsAdapter:
             logger.error(f"Error fetching account summaries: {e}")
             raise
 
+    def get_flat_properties(self) -> list[dict[str, str]]:
+        """Fetch account summaries and return a flat list of properties.
+
+        Returns:
+            [{"property_id": "123", "display_name": "My Site", "account_name": "My Account"}, ...]
+        """
+        try:
+            summaries = self.get_account_summaries()
+        except Exception as e:
+            logger.warning(f"Could not fetch account summaries: {e}")
+            return []
+
+        properties = []
+        for account in summaries:
+            account_name = account.get("displayName", "")
+            for prop in account.get("propertySummaries", []):
+                raw_property = prop.get("property", "")
+                property_id = raw_property.split("/")[-1] if "/" in raw_property else raw_property
+                properties.append({
+                    "property_id": property_id,
+                    "display_name": prop.get("displayName", property_id),
+                    "account_name": account_name,
+                })
+        return properties
+
     def _get_data_client(self) -> BetaAnalyticsDataClient:
         """Returns a GA4 Data API client using current credentials."""
         if not self.creds:
