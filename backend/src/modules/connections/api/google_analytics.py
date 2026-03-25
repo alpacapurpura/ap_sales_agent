@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 import structlog
 
@@ -13,7 +13,14 @@ from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
 from src.modules.connections.infrastructure.models import ChannelConnectionModel
 from src.modules.connections.infrastructure.channels.google_analytics import GoogleAnalyticsAdapter
-from src.modules.connections.api.dto.google_analytics import GoogleAnalyticsStatusResponse
+from src.modules.connections.api.dto.google_analytics import (
+    GoogleAnalyticsStatusResponse,
+    GoogleAnalyticsCallbackResponse,
+    GA4PropertySummary,
+    PropertySelectRequest,
+    PropertySelectResponse,
+    SelectedProperty,
+)
 
 router = APIRouter(tags=["google_analytics"])
 logger = structlog.get_logger()
@@ -26,6 +33,16 @@ class GoogleAnalyticsConfig(BaseModel):
 
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
     return ChannelConnectionRepository(db)
+
+
+def _build_adapter(connection: ChannelConnectionModel, with_creds: bool = False) -> GoogleAnalyticsAdapter:
+    """Build a GoogleAnalyticsAdapter from a connection model."""
+    client_config = {
+        "client_id": connection.credentials.get("client_id"),
+        "client_secret": connection.credentials.get("client_secret"),
+    }
+    creds = dict(connection.credentials) if with_creds else None
+    return GoogleAnalyticsAdapter(client_config=client_config, credentials_data=creds)
 
 
 @router.put("/config")
@@ -76,17 +93,12 @@ async def get_auth_url(
             detail="Configuracion de cliente no encontrada. Configure client_id y client_secret primero.",
         )
 
-    client_config = {
-        "client_id": connection.credentials["client_id"],
-        "client_secret": connection.credentials["client_secret"],
-    }
-
-    adapter = GoogleAnalyticsAdapter(client_config=client_config)
+    adapter = _build_adapter(connection)
     url, state = adapter.get_authorization_url(redirect_uri)
     return {"url": url, "state": state}
 
 
-@router.post("/callback")
+@router.post("/callback", response_model=GoogleAnalyticsCallbackResponse)
 async def oauth_callback(
     code: str = Body(..., embed=True),
     redirect_uri: Optional[str] = Body(None, embed=True),
@@ -103,37 +115,34 @@ async def oauth_callback(
     ):
         raise HTTPException(status_code=400, detail="Configuracion de cliente no encontrada.")
 
-    client_config = {
-        "client_id": connection.credentials["client_id"],
-        "client_secret": connection.credentials["client_secret"],
-    }
-
+    # Exchange code for tokens
     try:
-        adapter = GoogleAnalyticsAdapter(client_config=client_config)
+        adapter = _build_adapter(connection)
         token_data = await asyncio.to_thread(adapter.exchange_code, code, redirect_uri)
     except Exception as e:
         logger.error("google_analytics_oauth_exchange_failed", error=str(e))
         raise HTTPException(status_code=400, detail="Error de autenticacion con Google")
 
+    # Save credentials FIRST (don't block on Admin API)
     full_creds = dict(connection.credentials)
     full_creds.update(token_data)
-
-    try:
-        adapter = GoogleAnalyticsAdapter(client_config=client_config, credentials_data=full_creds)
-        summaries = await asyncio.to_thread(adapter.get_account_summaries)
-    except Exception as e:
-        logger.error("failed_to_get_google_analytics_summaries", error=str(e))
-        raise HTTPException(
-            status_code=400,
-            detail="No se pudo obtener informacion de Google Analytics. Verifica los permisos.",
-        )
-
     connection.credentials = full_creds
-    connection.config = {"account_count": len(summaries)}
     connection.is_active = True
     repo.db.commit()
 
-    return {"status": "connected", "account_count": len(summaries)}
+    # Try to fetch properties (graceful fallback)
+    properties: List[GA4PropertySummary] = []
+    try:
+        adapter = _build_adapter(connection, with_creds=True)
+        flat = await asyncio.to_thread(adapter.get_flat_properties)
+        properties = [GA4PropertySummary(**p) for p in flat]
+
+        # Update config with account count
+        repo.update_config(connection, {"account_count": len(flat)})
+    except Exception as e:
+        logger.warning("google_analytics_properties_fetch_failed", error=str(e), tenant_id=str(user.tenant_id))
+
+    return GoogleAnalyticsCallbackResponse(status="connected", properties=properties)
 
 
 @router.get("/status", response_model=GoogleAnalyticsStatusResponse)
@@ -141,12 +150,90 @@ async def get_status(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
-    connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
+    connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
 
     if not connection:
-        return GoogleAnalyticsStatusResponse(is_connected=False)
+        return GoogleAnalyticsStatusResponse(is_connected=False, is_configured=False)
 
-    return GoogleAnalyticsStatusResponse(is_connected=True, account_summary=[])
+    has_client_id = bool(connection.credentials and connection.credentials.get("client_id"))
+    is_connected = bool(connection.is_active and connection.credentials and connection.credentials.get("refresh_token"))
+
+    # Read selected property from config (fast, no API call)
+    selected = None
+    config = connection.config or {}
+    if config.get("property_id"):
+        selected = SelectedProperty(
+            property_id=config["property_id"],
+            display_name=config.get("property_display_name", config["property_id"]),
+        )
+
+    return GoogleAnalyticsStatusResponse(
+        is_connected=is_connected,
+        is_configured=has_client_id,
+        selected_property=selected,
+    )
+
+
+@router.get("/properties", response_model=List[GA4PropertySummary])
+async def get_properties(
+    user: User = Depends(get_current_user),
+    repo: ChannelConnectionRepository = Depends(_get_repo),
+):
+    connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
+
+    if not connection or not connection.credentials:
+        raise HTTPException(status_code=400, detail="Google Analytics no conectado")
+
+    try:
+        adapter = _build_adapter(connection, with_creds=True)
+        flat = await asyncio.to_thread(adapter.get_flat_properties)
+        return [GA4PropertySummary(**p) for p in flat]
+    except Exception as e:
+        logger.error("google_analytics_properties_failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Error al obtener propiedades de Google Analytics")
+
+
+@router.put("/properties/select", response_model=PropertySelectResponse)
+async def select_property(
+    body: PropertySelectRequest,
+    user: User = Depends(get_current_user),
+    repo: ChannelConnectionRepository = Depends(_get_repo),
+):
+    connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
+
+    if not connection or not connection.credentials:
+        raise HTTPException(status_code=400, detail="Google Analytics no conectado")
+
+    # Try to validate + get display_name from Admin API
+    display_name = body.property_id
+    try:
+        adapter = _build_adapter(connection, with_creds=True)
+        flat = await asyncio.to_thread(adapter.get_flat_properties)
+        match = next((p for p in flat if p["property_id"] == body.property_id), None)
+        if match:
+            display_name = match["display_name"]
+    except Exception as e:
+        logger.warning("property_validation_skipped", error=str(e))
+        # Allow saving anyway (manual input fallback)
+
+    # Save property_id in credentials (for ETL provider)
+    creds = dict(connection.credentials)
+    creds["property_id"] = body.property_id
+    repo.update_credentials(connection, creds)
+
+    # Save display info in config (for UI, no decryption needed)
+    repo.update_config(connection, {
+        "property_id": body.property_id,
+        "property_display_name": display_name,
+    })
+
+    logger.info("ga4_property_selected", tenant_id=str(user.tenant_id), property_id=body.property_id)
+
+    return PropertySelectResponse(
+        status="ok",
+        property_id=body.property_id,
+        display_name=display_name,
+    )
 
 
 @router.delete("/disconnect")
@@ -170,45 +257,10 @@ async def test_connection(
     if not connection or not connection.credentials:
         raise HTTPException(status_code=400, detail="Google Analytics no conectado")
 
-    client_config = {
-        "client_id": connection.credentials.get("client_id"),
-        "client_secret": connection.credentials.get("client_secret"),
-    }
-
-    if not client_config["client_id"] or not client_config["client_secret"]:
-        raise HTTPException(status_code=400, detail="Configuracion incompleta")
-
     try:
-        adapter = GoogleAnalyticsAdapter(client_config=client_config, credentials_data=connection.credentials)
+        adapter = _build_adapter(connection, with_creds=True)
         summaries = await asyncio.to_thread(adapter.get_account_summaries)
         return {"status": "ok", "message": "Conexion exitosa", "data": summaries}
     except Exception as e:
         logger.error("google_analytics_test_failed", error=str(e))
         return {"status": "error", "message": str(e)}
-
-
-@router.get("/properties")
-async def get_properties(
-    user: User = Depends(get_current_user),
-    repo: ChannelConnectionRepository = Depends(_get_repo),
-):
-    connection = repo.get_active(user.tenant_id, ChannelType.GOOGLE_ANALYTICS)
-
-    if not connection or not connection.credentials:
-        raise HTTPException(status_code=400, detail="Google Analytics no conectado")
-
-    client_config = {
-        "client_id": connection.credentials.get("client_id"),
-        "client_secret": connection.credentials.get("client_secret"),
-    }
-
-    if not client_config["client_id"] or not client_config["client_secret"]:
-        raise HTTPException(status_code=400, detail="Configuracion incompleta")
-
-    try:
-        adapter = GoogleAnalyticsAdapter(client_config=client_config, credentials_data=connection.credentials)
-        summaries = await asyncio.to_thread(adapter.get_account_summaries)
-        return summaries
-    except Exception as e:
-        logger.error("google_analytics_properties_failed", error=str(e))
-        raise HTTPException(status_code=500, detail="Error al obtener propiedades")
