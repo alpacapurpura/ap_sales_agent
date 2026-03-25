@@ -43,6 +43,7 @@ import {
   AlertTriangle,
   MessageCircle,
   Phone,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -231,6 +232,23 @@ export function MetaView() {
   const [syncing, setSyncing] = useState(false);
   const [syncWarnings, setSyncWarnings] = useState<string[]>([]);
   const [togglingAsset, setTogglingAsset] = useState<string | null>(null);
+  const [settingPrimary, setSettingPrimary] = useState<string | null>(null);
+
+  const handleSetPrimary = async (assetType: string, assetId: string) => {
+    const key = `${assetType}:${assetId}`;
+    try {
+      setSettingPrimary(key);
+      const token = await getToken();
+      if (!token) return;
+      await connectionsApi.setMetaPrimaryAsset(assetType, assetId, token);
+      toast.success("Activo primario actualizado para analytics");
+      await fetchStatus();
+    } catch (e: any) {
+      toast.error(e.message || "Error configurando activo primario");
+    } finally {
+      setSettingPrimary(null);
+    }
+  };
 
   const fetchStatus = useCallback(async () => {
     const token = await getToken();
@@ -574,6 +592,11 @@ export function MetaView() {
                               Activa
                             </Badge>
                           )}
+                          {page.is_active && status?.config?.tracked_page_id === page.page_id && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200">
+                              <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Analytics
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground flex-wrap">
                           {page.category && <span>{page.category}</span>}
@@ -591,12 +614,29 @@ export function MetaView() {
                           )}
                         </div>
                       </div>
-                      <AssetToggleRow
-                        isActive={page.is_active}
-                        hasCredentials={page.has_credentials}
-                        isToggling={isToggling}
-                        onToggle={(val) => handleToggle("facebook_page", page.page_id, val)}
-                      />
+                      <div className="flex items-center gap-2">
+                        {page.is_active && assets.pages.length > 1 && status?.config?.tracked_page_id !== page.page_id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[10px] h-7 px-2"
+                            disabled={settingPrimary === `facebook_page:${page.page_id}`}
+                            onClick={() => handleSetPrimary("facebook_page", page.page_id)}
+                          >
+                            {settingPrimary === `facebook_page:${page.page_id}` ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <><Star className="h-3 w-3 mr-1" /> Usar para Analytics</>
+                            )}
+                          </Button>
+                        )}
+                        <AssetToggleRow
+                          isActive={page.is_active}
+                          hasCredentials={page.has_credentials}
+                          isToggling={isToggling}
+                          onToggle={(val) => handleToggle("facebook_page", page.page_id, val)}
+                        />
+                      </div>
                     </div>
                   );
                 })
@@ -650,6 +690,11 @@ export function MetaView() {
                               Activa
                             </Badge>
                           )}
+                          {ig.is_active && status?.config?.tracked_ig_id === ig.ig_account_id && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200">
+                              <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Analytics
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
                           {ig.follower_count != null && (
@@ -666,12 +711,29 @@ export function MetaView() {
                           )}
                         </div>
                       </div>
-                      <AssetToggleRow
-                        isActive={ig.is_active}
-                        hasCredentials={ig.has_credentials}
-                        isToggling={isToggling}
-                        onToggle={(val) => handleToggle("instagram_account", ig.ig_account_id, val)}
-                      />
+                      <div className="flex items-center gap-2">
+                        {ig.is_active && assets.instagram_accounts.length > 1 && status?.config?.tracked_ig_id !== ig.ig_account_id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[10px] h-7 px-2"
+                            disabled={settingPrimary === `instagram_account:${ig.ig_account_id}`}
+                            onClick={() => handleSetPrimary("instagram_account", ig.ig_account_id)}
+                          >
+                            {settingPrimary === `instagram_account:${ig.ig_account_id}` ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <><Star className="h-3 w-3 mr-1" /> Usar para Analytics</>
+                            )}
+                          </Button>
+                        )}
+                        <AssetToggleRow
+                          isActive={ig.is_active}
+                          hasCredentials={ig.has_credentials}
+                          isToggling={isToggling}
+                          onToggle={(val) => handleToggle("instagram_account", ig.ig_account_id, val)}
+                        />
+                      </div>
                     </div>
                   );
                 })
@@ -724,6 +786,11 @@ export function MetaView() {
                               Activa
                             </Badge>
                           )}
+                          {ad.is_active && status?.config?.tracked_ad_account_id === ad.ad_account_id && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 text-amber-700 bg-amber-100 border-amber-200">
+                              <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Analytics
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
                           {ad.currency && <span>{ad.currency}</span>}
@@ -733,12 +800,29 @@ export function MetaView() {
                           <span className="text-muted-foreground/60">ID: {ad.ad_account_id}</span>
                         </div>
                       </div>
-                      <AssetToggleRow
-                        isActive={ad.is_active}
-                        hasCredentials={ad.has_credentials}
-                        isToggling={isToggling}
-                        onToggle={(val) => handleToggle("meta_ads_account", ad.ad_account_id, val)}
-                      />
+                      <div className="flex items-center gap-2">
+                        {ad.is_active && assets.ads_accounts.length > 1 && status?.config?.tracked_ad_account_id !== ad.ad_account_id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[10px] h-7 px-2"
+                            disabled={settingPrimary === `meta_ads_account:${ad.ad_account_id}`}
+                            onClick={() => handleSetPrimary("meta_ads_account", ad.ad_account_id)}
+                          >
+                            {settingPrimary === `meta_ads_account:${ad.ad_account_id}` ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <><Star className="h-3 w-3 mr-1" /> Usar para Analytics</>
+                            )}
+                          </Button>
+                        )}
+                        <AssetToggleRow
+                          isActive={ad.is_active}
+                          hasCredentials={ad.has_credentials}
+                          isToggling={isToggling}
+                          onToggle={(val) => handleToggle("meta_ads_account", ad.ad_account_id, val)}
+                        />
+                      </div>
                     </div>
                   );
                 })

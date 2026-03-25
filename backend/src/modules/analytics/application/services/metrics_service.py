@@ -154,6 +154,14 @@ _ERROR_MESSAGES: Dict[str, str] = {
     "http_5xx": "Servicio no disponible",
 }
 
+# Maps provider_name -> config key that holds the display name
+_DISPLAY_NAME_MAP: Dict[str, str] = {
+    "google_analytics": "property_display_name",
+    "youtube": "channel_title",
+    "meta": "tracked_ig_username",
+    "google_ads": "property_display_name",
+}
+
 
 class MetricsService:
     """Provides dashboard metrics for marketing funnel stages.
@@ -380,6 +388,11 @@ class MetricsService:
                         stale = True
                         error_message = self._classify_error(latest_run.error)
 
+            # Resolve display name from connection config
+            conn_config = ch.get("connection_config", {})
+            display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
+            source_display = conn_config.get(display_name_key) if display_name_key else None
+
             dto = ChannelMetricDTO(
                 slug=slug,
                 name=ch["name"],
@@ -391,6 +404,8 @@ class MetricsService:
                 last_updated=last_updated,
                 stale=stale,
                 error_message=error_message,
+                source_display_name=source_display,
+                provider_name=provider_name,
             )
 
             groups[group_key].append(dto)
@@ -571,6 +586,12 @@ class MetricsService:
                     MetricValueDTO(name="conversations", value=float(conv_count))
                 )
 
+            # Resolve display name from connection config
+            provider_name = ch.get("provider_name", "")
+            conn_config = ch.get("connection_config", {})
+            display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
+            source_display = conn_config.get(display_name_key) if display_name_key else None
+
             dto = ChannelMetricDTO(
                 slug=slug,
                 name=ch["name"],
@@ -579,6 +600,8 @@ class MetricsService:
                 source_label=ch["source_label"],
                 connected=True,
                 cost_type="EXPENSE",
+                source_display_name=source_display,
+                provider_name=provider_name,
             )
             groups[group_key].append(dto)
 
@@ -771,6 +794,12 @@ class MetricsService:
                         breakdown=breakdown,
                     ))
 
+            # Resolve display name from connection config
+            provider_name = ch.get("provider_name", "")
+            conn_config = ch.get("connection_config", {})
+            display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
+            source_display = conn_config.get(display_name_key) if display_name_key else None
+
             dto = ChannelMetricDTO(
                 slug=slug,
                 name=ch["name"],
@@ -778,6 +807,8 @@ class MetricsService:
                 metrics=metrics,
                 source_label=ch["source_label"],
                 connected=True,
+                source_display_name=source_display,
+                provider_name=provider_name,
             )
             groups[group_key].append(dto)
 
@@ -967,6 +998,12 @@ class MetricsService:
                     MetricValueDTO(name="rescheduled", value=float(meeting_rescheduled)),
                 ]
 
+            # Resolve display name from connection config
+            provider_name = ch.get("provider_name", "")
+            conn_config = ch.get("connection_config", {})
+            display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
+            source_display = conn_config.get(display_name_key) if display_name_key else None
+
             dto = ChannelMetricDTO(
                 slug=slug,
                 name=ch["name"],
@@ -974,6 +1011,8 @@ class MetricsService:
                 metrics=metrics,
                 source_label=ch["source_label"],
                 connected=True,
+                source_display_name=source_display,
+                provider_name=provider_name,
             )
             groups[group_key].append(dto)
 

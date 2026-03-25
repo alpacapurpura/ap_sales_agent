@@ -9,6 +9,7 @@ import { AdoptionDetail } from './detail-panels/AdoptionDetail';
 import { ExpansionEvangelizationDetail } from './detail-panels/ExpansionEvangelizationDetail';
 import { PlaceholderDetail } from './detail-panels/PlaceholderDetail';
 import MetricSidebar from './sidebar/MetricSidebar';
+import ChannelDetailSidebar from './sidebar/ChannelDetailSidebar';
 import { SidebarContent } from './sidebar/SidebarContent';
 import { ChannelConnectionModal } from './channel-widgets/ChannelConnectionModal';
 import { useMetricsDashboard } from './hooks/useMetricsDashboard';
@@ -22,10 +23,14 @@ export function MetricsDashboard() {
     mockMap,
     sidebarMetric,
     sidebarOpen,
+    selectedChannel,
+    channelSidebarOpen,
     configureChannel,
     handleStageClick,
     handleMetricClick,
     handleSidebarClose,
+    handleChannelClick,
+    handleChannelSidebarClose,
     handleConfigure,
     handleCloseConfigure,
   } = useMetricsDashboard();
@@ -79,10 +84,16 @@ export function MetricsDashboard() {
         <SidebarContent metric={sidebarMetric} stageId={sidebarMetric?.stageId ?? activeStage} />
       </MetricSidebar>
 
+      <ChannelDetailSidebar
+        isOpen={channelSidebarOpen}
+        onClose={handleChannelSidebarClose}
+        channel={selectedChannel}
+      />
+
       <ChannelConnectionModal
         channelSlug={configureChannel?.slug ?? null}
         channelName={configureChannel?.name ?? ''}
-        onClose={handleCloseConfigure} 
+        onClose={handleCloseConfigure}
       />
     </>
   );

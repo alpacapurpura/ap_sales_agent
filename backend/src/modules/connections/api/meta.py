@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Body, Query
+from pydantic import BaseModel as PydanticBaseModel
 from sqlalchemy.orm import Session
 from typing import Optional
 import structlog
@@ -220,6 +221,101 @@ async def _sync_assets_for_tenant(
         )
 
     return raw, warnings
+
+
+def _flatten_asset_ids_to_master(
+    repo: ChannelConnectionRepository,
+    tenant_id,
+    master: ChannelConnectionModel,
+) -> dict:
+    """Resolve primary assets and flatten their IDs into the master META connection.
+
+    Reads primary_page_id/primary_ig_id/primary_ad_account_id from master.config,
+    falls back to first active asset of each type.
+    Returns dict with resolved display info.
+    """
+    master_config = master.config or {}
+
+    # Get all child assets
+    children = repo.get_all_by_tenant_and_types(tenant_id, [
+        ChannelType.FACEBOOK_PAGE,
+        ChannelType.INSTAGRAM_ACCOUNT,
+        ChannelType.META_ADS_ACCOUNT,
+    ])
+
+    # Group by type
+    pages = [c for c in children if c.channel_type == ChannelType.FACEBOOK_PAGE.value and c.is_active]
+    ig_accounts = [c for c in children if c.channel_type == ChannelType.INSTAGRAM_ACCOUNT.value and c.is_active]
+    ad_accounts = [c for c in children if c.channel_type == ChannelType.META_ADS_ACCOUNT.value and c.is_active]
+
+    creds_update = {}
+    config_update = {}
+
+    # Resolve primary page
+    primary_page_id = master_config.get("primary_page_id")
+    page = None
+    if primary_page_id:
+        page = next((p for p in pages if (p.config or {}).get("asset_id") == primary_page_id), None)
+    if not page and pages:
+        page = pages[0]
+
+    if page:
+        page_cfg = page.config or {}
+        page_creds = page.credentials or {}
+        creds_update["page_id"] = page_cfg.get("asset_id")
+        creds_update["page_access_token"] = page_creds.get("access_token", master.credentials.get("access_token"))
+        config_update["tracked_page_name"] = page_cfg.get("page_name")
+        config_update["tracked_page_id"] = page_cfg.get("asset_id")
+
+    # Resolve primary IG account
+    primary_ig_id = master_config.get("primary_ig_id")
+    ig = None
+    if primary_ig_id:
+        ig = next((i for i in ig_accounts if (i.config or {}).get("asset_id") == primary_ig_id), None)
+    if not ig and ig_accounts:
+        ig = ig_accounts[0]
+
+    if ig:
+        ig_cfg = ig.config or {}
+        creds_update["instagram_account_id"] = ig_cfg.get("asset_id")
+        config_update["tracked_ig_username"] = ig_cfg.get("ig_username")
+        config_update["tracked_ig_id"] = ig_cfg.get("asset_id")
+
+    # Resolve primary ad account
+    primary_ad_id = master_config.get("primary_ad_account_id")
+    ad = None
+    if primary_ad_id:
+        ad = next((a for a in ad_accounts if (a.config or {}).get("asset_id") == primary_ad_id), None)
+    if not ad and ad_accounts:
+        ad = ad_accounts[0]
+
+    if ad:
+        ad_cfg = ad.config or {}
+        creds_update["ad_account_id"] = ad_cfg.get("asset_id")
+        config_update["tracked_ad_account_name"] = ad_cfg.get("ad_account_name")
+        config_update["tracked_ad_account_id"] = ad_cfg.get("asset_id")
+        if ad_cfg.get("currency"):
+            creds_update["currency"] = ad_cfg["currency"]
+
+    # Merge into master credentials
+    if creds_update:
+        existing_creds = dict(master.credentials) if master.credentials else {}
+        existing_creds.update(creds_update)
+        repo.update_credentials(master, existing_creds)
+
+    # Merge into master config
+    if config_update:
+        repo.update_config(master, config_update)
+
+    logger.info(
+        "meta_flatten_asset_ids",
+        tenant_id=str(tenant_id),
+        page_id=creds_update.get("page_id"),
+        ig_id=creds_update.get("instagram_account_id"),
+        ad_id=creds_update.get("ad_account_id"),
+    )
+
+    return config_update
 
 
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
@@ -455,7 +551,55 @@ async def oauth_callback(
     except Exception as e:
         logger.warning("meta_oauth_auto_sync_failed", error=str(e), tenant_id=str(user.tenant_id))
 
+    # Flatten primary asset IDs to master for ETL
+    try:
+        _flatten_asset_ids_to_master(repo, user.tenant_id, master)
+    except Exception as e:
+        logger.warning("meta_flatten_after_oauth_failed", error=str(e))
+
     return {"status": "connected", "is_connected": True, "profile": profile, "assets_synced": assets_synced}
+
+
+# ---------------------------------------------------------------------------
+# Primary Asset Selection
+# ---------------------------------------------------------------------------
+
+
+class SetPrimaryAssetRequest(PydanticBaseModel):
+    asset_type: str  # "facebook_page", "instagram_account", "meta_ads_account"
+    asset_id: str
+
+
+@router.put("/primary-asset")
+async def set_primary_asset(
+    body: SetPrimaryAssetRequest,
+    user: User = Depends(get_current_user),
+    repo: ChannelConnectionRepository = Depends(_get_repo),
+):
+    """Set the primary asset for analytics tracking."""
+    type_map = {
+        "facebook_page": "primary_page_id",
+        "instagram_account": "primary_ig_id",
+        "meta_ads_account": "primary_ad_account_id",
+    }
+    config_key = type_map.get(body.asset_type)
+    if not config_key:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tipo de activo inválido: {body.asset_type}. Válidos: {list(type_map.keys())}",
+        )
+
+    master = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
+    if not master:
+        raise HTTPException(status_code=404, detail="Conecta tu cuenta de Meta primero.")
+
+    # Save primary selection to master config
+    repo.update_config(master, {config_key: body.asset_id})
+
+    # Re-flatten with new primary
+    _flatten_asset_ids_to_master(repo, user.tenant_id, master)
+
+    return {"status": "primary_set", "asset_type": body.asset_type, "asset_id": body.asset_id}
 
 
 # ---------------------------------------------------------------------------
@@ -493,6 +637,7 @@ async def get_status(
         is_configured=is_configured,
         name=connection.config.get("name") if connection.config else None,
         account_id=connection.config.get("user_id") if connection.config else None,
+        config=connection.config,
     ).model_dump()
 
     if debug:
@@ -662,6 +807,12 @@ async def sync_assets(
         logger.error("meta_sync_assets_failed", error=str(e))
         raise HTTPException(status_code=502, detail=f"Error consultando activos de Meta: {e}")
 
+    # Flatten primary asset IDs to master for ETL
+    try:
+        _flatten_asset_ids_to_master(repo, user.tenant_id, master)
+    except Exception as e:
+        logger.warning("meta_flatten_after_sync_failed", error=str(e))
+
     # Return the refreshed asset list with warnings
     response = await get_assets(user=user, repo=repo)
     if warnings:
@@ -693,5 +844,13 @@ async def toggle_asset(
         repo.activate(conn)
     else:
         repo.deactivate(conn)
+
+    # Re-flatten if toggling might affect primary selection
+    try:
+        master = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
+        if master:
+            _flatten_asset_ids_to_master(repo, user.tenant_id, master)
+    except Exception as e:
+        logger.warning("meta_flatten_after_toggle_failed", error=str(e))
 
     return {"status": "updated", "channel_type": channel_type, "asset_id": asset_id, "is_active": body.is_active}

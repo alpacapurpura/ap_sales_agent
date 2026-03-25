@@ -90,6 +90,35 @@ export interface YoutubeStatusResponse extends ChannelStatusResponse {
   channel_data?: Record<string, any>;
 }
 
+export interface ChannelInfoResponse {
+  provider: string;
+  is_connected: boolean;
+  is_configured: boolean;
+  display_name?: string;
+  account_name?: string;
+  details: Record<string, any>;
+  children: Array<{
+    channel_type: string;
+    asset_id?: string;
+    name?: string;
+    is_active: boolean;
+    details: Record<string, any>;
+  }>;
+  last_extraction?: {
+    status: string;
+    started_at?: string;
+    completed_at?: string;
+    metrics_count?: number;
+    error?: string;
+    duration_seconds?: number;
+  };
+  data_range?: {
+    min_date: string;
+    max_date: string;
+    total_records: number;
+  };
+}
+
 export const connectionsApi = {
   // ... existing methods ...
 
@@ -726,5 +755,31 @@ export const connectionsApi = {
         throw new Error(err.detail || "Error configurando YouTube");
     }
     return res.json();
-  }
+  },
+
+  // Channel Info (Growth Studio source attribution)
+  getChannelInfo: async (provider: string, token: string): Promise<ChannelInfoResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/channel-info/${provider}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo info del canal");
+    return res.json();
+  },
+
+  // Meta Primary Asset Selection
+  setMetaPrimaryAsset: async (assetType: string, assetId: string, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/meta/primary-asset`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ asset_type: assetType, asset_id: assetId }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Error configurando activo primario");
+    }
+    return res.json();
+  },
 };

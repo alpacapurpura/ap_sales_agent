@@ -51,6 +51,10 @@ class ChannelMetricDTO(BaseModel):
     stale: bool = False
     error_message: Optional[str] = None
 
+    # Source attribution — display which specific property/channel/page data comes from
+    source_display_name: Optional[str] = None  # "Visionarias_Lat", "Visionarias Latam"
+    provider_name: Optional[str] = None         # "google_analytics", "youtube", "meta"
+
     @computed_field  # type: ignore[misc]
     @property
     def value(self) -> float:

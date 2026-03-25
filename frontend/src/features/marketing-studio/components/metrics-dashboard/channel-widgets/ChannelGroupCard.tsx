@@ -21,6 +21,8 @@ interface ChannelGroupCardProps {
   stageId?: StageId;
   /** Callback forwarded to ChannelRow when user clicks a metric value */
   onMetricClick?: (metric: MetricClickData) => void;
+  /** Callback forwarded to ChannelRow when the entire connected channel row is clicked */
+  onChannelClick?: (channel: ChannelMetric) => void;
   /** Callback forwarded to ChannelRow when user clicks "Configurar" */
   onConfigure?: (slug: string, name: string) => void;
 }
@@ -88,7 +90,7 @@ function getMetricChips(groupType: GroupType, totals: Record<string, number>) {
 
 /* ── component ────────────────────────────────────────────────────────── */
 
-export function ChannelGroupCard({ title, totals, channels, groupType, stageId, onMetricClick, onConfigure }: ChannelGroupCardProps) {
+export function ChannelGroupCard({ title, totals, channels, groupType, stageId, onMetricClick, onChannelClick, onConfigure }: ChannelGroupCardProps) {
   const { Icon, accent, bg } = getGroupMeta(groupType);
   const chips = getMetricChips(groupType, totals);
 
@@ -152,6 +154,7 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
                 channel={ch}
                 stageId={stageId}
                 onMetricClick={onMetricClick}
+                onChannelClick={onChannelClick}
                 onConfigure={onConfigure}
               />
             ))}
@@ -177,6 +180,7 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
                 channel={ch}
                 stageId={stageId}
                 onMetricClick={onMetricClick}
+                onChannelClick={onChannelClick}
                 onConfigure={onConfigure}
               />
             ))}

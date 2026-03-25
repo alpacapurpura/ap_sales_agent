@@ -139,11 +139,13 @@ export interface ChannelRowProps {
   stageId?: StageId;
   /** Callback when user clicks a metric value to open drill-down sidebar */
   onMetricClick?: (metric: MetricClickData) => void;
+  /** Callback when the entire connected channel row is clicked */
+  onChannelClick?: (channel: ChannelMetric) => void;
   /** Callback when user clicks "Configurar" on an unconnected channel */
   onConfigure?: (slug: string, name: string) => void;
 }
 
-export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: ChannelRowProps) {
+export function ChannelRow({ channel, stageId, onMetricClick, onChannelClick, onConfigure }: ChannelRowProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [cooldown, setCooldown] = useState(false);
 
@@ -253,7 +255,13 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
   const campaigns: CampaignMetric[] = (channel as unknown as Record<string, unknown>).campaigns as CampaignMetric[] ?? [];
 
   const rowContent = (
-    <div className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-all duration-100 ease-out group">
+    <div
+      className={cn(
+        "flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-all duration-100 ease-out group",
+        onChannelClick && "cursor-pointer"
+      )}
+      onClick={onChannelClick ? () => onChannelClick(channel) : undefined}
+    >
       {/* Left: icon + name + status */}
       <div className="flex items-center gap-3 min-w-0">
         <div
@@ -299,7 +307,11 @@ export function ChannelRow({ channel, stageId, onMetricClick, onConfigure }: Cha
               </Badge>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground truncate">{channel.sourceLabel}</p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {channel.sourceDisplayName
+              ? `${channel.sourceLabel} · ${channel.sourceDisplayName}`
+              : channel.sourceLabel}
+          </p>
           {channel.stale && channel.lastUpdated && (
             <p className="text-[10px] text-yellow-600 dark:text-yellow-400">
               Ultima vez: {new Date(channel.lastUpdated).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}

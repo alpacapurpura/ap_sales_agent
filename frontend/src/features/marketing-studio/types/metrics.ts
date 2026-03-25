@@ -91,6 +91,10 @@ export interface ChannelMetric {
   lastUpdated?: string;
   stale?: boolean;
   errorMessage?: string;
+  /** Display name of the specific property/channel/page the data comes from */
+  sourceDisplayName?: string;
+  /** Provider identifier (e.g., "google_analytics", "youtube", "meta") */
+  providerName?: string;
   /** @deprecated use metrics array instead */
   value?: number;
 }

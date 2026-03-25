@@ -176,7 +176,13 @@ class ChannelRegistry:
 
             # Check if any of the provider's channel types are connected
             if provider_types & connected_channel_types:
-                connected.append({**ch, "connected": True})
+                # Find matching connection to include config for source attribution
+                matching_conn = next(
+                    (c for c in active_connections if c.channel_type in provider_types),
+                    None,
+                )
+                conn_config = matching_conn.config if matching_conn else {}
+                connected.append({**ch, "connected": True, "connection_config": conn_config})
             else:
                 available.append(
                     {**ch, "connected": False, "badge_type": "configurar"}

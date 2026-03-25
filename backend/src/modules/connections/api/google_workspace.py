@@ -21,6 +21,7 @@ from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
+from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
 
 # Allow OAuth scope changes (e.g. if user granted extra scopes previously)
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
@@ -126,7 +127,7 @@ async def oauth_callback(
         logger.warning("google_workspace_profile_fetch_failed", error=str(e))
         email = ""
 
-    # Store the SAME credentials for all 4 services
+    # Store the SAME credentials for all 5 services
     for service_slug, channel_type in SERVICE_MAP.items():
         service_config: dict = {}
         if service_slug == "gmail":
@@ -141,8 +142,50 @@ async def oauth_callback(
             config=service_config,
         )
 
+    # YouTube auto-discovery: fetch channel info and enrich config
+    youtube_channel = None
+    try:
+        yt_adapter = YoutubeAdapter(
+            client_config={
+                "client_id": settings.GOOGLE_CLIENT_ID,
+                "client_secret": settings.GOOGLE_CLIENT_SECRET,
+            },
+            credentials_data=creds_data.copy(),
+        )
+        channel_info = yt_adapter.get_channel_info()
+        if channel_info and channel_info.get("id"):
+            youtube_channel = {
+                "channel_id": channel_info["id"],
+                "channel_title": channel_info.get("title"),
+                "customUrl": channel_info.get("customUrl"),
+                "statistics": channel_info.get("statistics"),
+            }
+
+            # Update YOUTUBE connection config
+            yt_conn = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.YOUTUBE)
+            if yt_conn:
+                repo.update_config(yt_conn, youtube_channel)
+
+            # Update YOUTUBE_ANALYTICS connection config with same channel data
+            yta_conn = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.YOUTUBE_ANALYTICS)
+            if yta_conn:
+                repo.update_config(yta_conn, youtube_channel)
+
+            logger.info(
+                "google_workspace_youtube_discovered",
+                tenant_id=str(user.tenant_id),
+                channel_id=channel_info["id"],
+                channel_title=channel_info.get("title"),
+            )
+    except Exception as e:
+        logger.warning(
+            "google_workspace_youtube_discovery_failed",
+            tenant_id=str(user.tenant_id),
+            error=str(e),
+        )
+
     logger.info("google_workspace_connected", tenant_id=str(user.tenant_id), email=email)
-    return {"status": "connected", "email": email}
+    return {"status": "connected", "email": email, "youtube_channel": youtube_channel}
 
 
 @router.get("/status")

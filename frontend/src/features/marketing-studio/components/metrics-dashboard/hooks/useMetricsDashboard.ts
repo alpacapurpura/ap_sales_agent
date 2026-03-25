@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { StageId, StageSummary, MetricClickData } from '../../../types/metrics';
+import type { StageId, StageSummary, MetricClickData, ChannelMetric } from '../../../types/metrics';
 import { STAGE_SUMMARIES } from '../../../api/metrics-mock-data';
 import { mergeStageData } from '../utils/stage-data-mapper';
 
@@ -19,6 +19,10 @@ export function useMetricsDashboard() {
   // Sidebar state — metric drill-down wired to detail panels
   const [sidebarMetric, setSidebarMetric] = useState<MetricClickData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Channel detail sidebar state
+  const [selectedChannel, setSelectedChannel] = useState<ChannelMetric | null>(null);
+  const [channelSidebarOpen, setChannelSidebarOpen] = useState(false);
 
   // Channel connection modal state
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
@@ -121,6 +125,8 @@ export function useMetricsDashboard() {
   };
 
   const handleMetricClick = (metric: MetricClickData) => {
+    setChannelSidebarOpen(false);
+    setSelectedChannel(null);
     setSidebarMetric(metric);
     setSidebarOpen(true);
   };
@@ -128,6 +134,19 @@ export function useMetricsDashboard() {
   const handleSidebarClose = () => {
     setSidebarOpen(false);
     setSidebarMetric(null);
+  };
+
+  const handleChannelClick = (channel: ChannelMetric) => {
+    if (!channel.connected || !channel.providerName) return;
+    setSidebarOpen(false);
+    setSidebarMetric(null);
+    setSelectedChannel(channel);
+    setChannelSidebarOpen(true);
+  };
+
+  const handleChannelSidebarClose = () => {
+    setChannelSidebarOpen(false);
+    setSelectedChannel(null);
   };
 
   const handleConfigure = (slug: string, name: string) => {
@@ -150,10 +169,14 @@ export function useMetricsDashboard() {
     mockMap,
     sidebarMetric,
     sidebarOpen,
+    selectedChannel,
+    channelSidebarOpen,
     configureChannel,
     handleStageClick,
     handleMetricClick,
     handleSidebarClose,
+    handleChannelClick,
+    handleChannelSidebarClose,
     handleConfigure,
     handleCloseConfigure,
   };

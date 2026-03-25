@@ -54,6 +54,7 @@ from src.modules.analytics.api import etl_admin as analytics_etl_admin
 # 12. Connections
 from src.modules.connections.api import webhook as conn_webhook, telegram as conn_telegram, whatsapp as conn_whatsapp
 from src.modules.connections.api import calendar as conn_calendar, gmail as conn_gmail, marketing_webhooks as conn_marketing, shopify as conn_shopify, mailerlite as conn_mailerlite, manychat as conn_manychat, google_analytics as conn_google_analytics, meta as conn_meta, youtube as conn_youtube, youtube_analytics as conn_youtube_analytics, google_workspace as conn_google_workspace, shopify_compliance
+from src.modules.connections.api import channel_info as conn_channel_info
 
 # 13. Assets
 from src.modules.assets.api import router as assets_gallery, offer_gallery as assets_offers
@@ -199,6 +200,7 @@ app.include_router(conn_manychat.router, prefix="/api/v1/connections/manychat", 
 app.include_router(conn_youtube.router, prefix="/api/v1/connections/youtube", tags=["Connections - YouTube"], dependencies=[Depends(get_tenant_context)])
 app.include_router(conn_youtube_analytics.router, prefix="/api/v1/connections/youtube-analytics", tags=["Connections - YouTube Analytics"], dependencies=[Depends(get_tenant_context)])
 app.include_router(conn_google_workspace.router, prefix="/api/v1/connections/google/workspace", tags=["Connections - Google Workspace"], dependencies=[Depends(get_tenant_context)])
+app.include_router(conn_channel_info.router, prefix="/api/v1/connections/channel-info", tags=["Connections - Channel Info"], dependencies=[Depends(get_tenant_context)])
 
 # 13. Assets
 app.include_router(assets_gallery.router, prefix="/api/v1/assets/gallery", tags=["Assets - Gallery"], dependencies=[Depends(get_tenant_context)])
