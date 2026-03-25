@@ -2,20 +2,28 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Send, Square } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { useCopilotStore } from "../store/copilot-store";
 import { useCopilotChat } from "../hooks/useCopilotChat";
+import { useProactiveNudges } from "../hooks/useProactiveNudges";
+import { reportCopilotEvent } from "../api/copilot-api";
 import { UserMessage } from "./messages/UserMessage";
 import { AssistantMessage } from "./messages/AssistantMessage";
 import { SuggestedActions } from "./SuggestedActions";
 import { ContextChips } from "./ContextChips";
+import { ProcedureProgress } from "./ProcedureProgress";
+import { NudgeBanner } from "./NudgeBanner";
 
 export function CopilotChat() {
-  const { messages, status } = useCopilotStore();
+  const { messages, status, activeProcedure, isOpen, clearActiveProcedure } = useCopilotStore();
   const { sendMessage, stopStreaming } = useCopilotChat();
+  const { nudges, dismissNudge } = useProactiveNudges();
+  const { getToken } = useAuth();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const prevOpenRef = useRef(isOpen);
 
   const isLoading = status === "thinking" || status === "streaming";
 
@@ -30,6 +38,27 @@ export function CopilotChat() {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Detect procedure_abandoned when panel closes mid-procedure
+  useEffect(() => {
+    if (prevOpenRef.current && !isOpen && activeProcedure) {
+      const allCompleted = activeProcedure.steps.every((s) => s.status === "completed");
+      if (!allCompleted) {
+        getToken().then((token) => {
+          if (token) {
+            reportCopilotEvent("procedure_abandoned", {
+              procedure_id: activeProcedure.id,
+              procedure_name: activeProcedure.name,
+              abandoned_at_step: activeProcedure.currentStepIndex,
+              total_steps: activeProcedure.steps.length,
+            }, token);
+          }
+        });
+        clearActiveProcedure();
+      }
+    }
+    prevOpenRef.current = isOpen;
+  }, [isOpen, activeProcedure, getToken, clearActiveProcedure]);
 
   const handleSubmit = () => {
     if (!input.trim() || isLoading) return;
@@ -46,6 +75,9 @@ export function CopilotChat() {
 
   return (
     <div className="flex h-full flex-col">
+      {/* Procedure stepper */}
+      {activeProcedure && <ProcedureProgress />}
+
       {/* Messages area */}
       <div
         ref={scrollRef}
@@ -53,10 +85,26 @@ export function CopilotChat() {
       >
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center text-center text-sm text-slate-400">
-            <p className="font-medium">Hola, soy tu Copilot</p>
-            <p className="mt-1 text-xs">
-              Pregúntame sobre tu marca, ofertas, o cualquier cosa de tu negocio.
-            </p>
+            {/* Nudge banners when no messages */}
+            {nudges.length > 0 ? (
+              <div className="w-full space-y-2">
+                {nudges.map((nudge) => (
+                  <NudgeBanner
+                    key={nudge.id}
+                    nudge={nudge}
+                    onAction={sendMessage}
+                    onDismiss={dismissNudge}
+                  />
+                ))}
+              </div>
+            ) : (
+              <>
+                <p className="font-medium">Hola, soy tu Copilot</p>
+                <p className="mt-1 text-xs">
+                  Pregúntame sobre tu marca, ofertas, o cualquier cosa de tu negocio.
+                </p>
+              </>
+            )}
           </div>
         )}
 

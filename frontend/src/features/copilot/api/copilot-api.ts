@@ -1,4 +1,5 @@
 import { config } from "@/lib/config";
+import { useCopilotStore } from "../store/copilot-store";
 
 const API_URL = config.api.baseUrl;
 
@@ -30,25 +31,11 @@ export interface SSEEventData {
 }
 
 /**
- * Streams a copilot chat response via SSE.
- * Uses native fetch + ReadableStream (no external lib needed).
+ * Build standard headers with tenant ID and auth for copilot API calls.
  */
-export async function streamCopilotChat(
-  payload: CopilotChatPayload,
-  callbacks: {
-    onTextChunk: (content: string) => void;
-    onToolStart?: (tool: string, args: Record<string, unknown>) => void;
-    onToolResult?: (tool: string, result: string) => void;
-    onUIAction?: (action: Record<string, unknown>) => void;
-    onStatus: (state: string) => void;
-    onDone: (conversationId: string) => void;
-    onError: (message: string) => void;
-  },
-  signal?: AbortSignal,
-): Promise<void> {
-  // Build headers with tenant ID
+export function getCopilotHeaders(token: string): Record<string, string> {
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
   };
 
   if (typeof window !== "undefined") {
@@ -68,6 +55,57 @@ export async function streamCopilotChat(
       headers["X-Tenant-ID"] = stored;
     }
   }
+
+  return headers;
+}
+
+/**
+ * Fire-and-forget event reporting to the copilot events API.
+ * Auto-reads conversationId and currentRoute from the store.
+ */
+export function reportCopilotEvent(
+  eventType: string,
+  eventData: Record<string, unknown>,
+  token: string,
+): void {
+  const state = useCopilotStore.getState();
+  const headers = getCopilotHeaders(token);
+  headers["Content-Type"] = "application/json";
+
+  fetch(`${API_URL}/api/v1/copilot/events/record`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      event_type: eventType,
+      event_data: eventData,
+      conversation_id: state.conversationId || undefined,
+      route: state.currentRoute || undefined,
+    }),
+  }).catch(() => {
+    // Best-effort — don't block UI on event tracking failures
+  });
+}
+
+/**
+ * Streams a copilot chat response via SSE.
+ * Uses native fetch + ReadableStream (no external lib needed).
+ */
+export async function streamCopilotChat(
+  payload: CopilotChatPayload,
+  callbacks: {
+    onTextChunk: (content: string) => void;
+    onToolStart?: (tool: string, args: Record<string, unknown>) => void;
+    onToolResult?: (tool: string, result: string) => void;
+    onUIAction?: (action: Record<string, unknown>) => void;
+    onStatus: (state: string) => void;
+    onDone: (conversationId: string) => void;
+    onError: (message: string) => void;
+  },
+  token: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const headers = getCopilotHeaders(token);
+  headers["Content-Type"] = "application/json";
 
   const response = await fetch(`${API_URL}/api/v1/copilot/chat`, {
     method: "POST",

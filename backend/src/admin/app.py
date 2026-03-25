@@ -33,22 +33,48 @@ def main():
     st.sidebar.caption(f"Env: {os.getenv('PROFILE', 'dev')}")
     st.sidebar.divider()
 
-    # Navigation
     menu_options = {
+        "🎯 Comando Central": "home",
+        "🏥 Salud de Tenants": "health",
+        "🧠 Inteligencia Copilot": "events",
+        "💬 Conversaciones": "conversations",
+        "🔍 Auditoría Sales Agent": "sales_audit",
+        "📚 Knowledge Base": "knowledge",
+        "🔧 Capacidades Copilot": "capabilities",
         "🏢 Tenants (Clientes)": "tenants",
-        "👥 Usuarios": "users"
+        "👥 Usuarios": "users",
     }
-    
+
     selection = st.sidebar.radio(
         "Navegación",
         list(menu_options.keys()),
-        index=0
+        index=0,
     )
-    
+
     page = menu_options[selection]
 
-    # Router
-    if page == "tenants":
+    if page == "home":
+        from src.admin.modules.home_dashboard import render_home_dashboard
+        render_home_dashboard()
+    elif page == "health":
+        from src.admin.modules.tenant_health import render_tenant_health
+        render_tenant_health()
+    elif page == "events":
+        from src.admin.modules.events import render_events_page
+        render_events_page()
+    elif page == "conversations":
+        from src.admin.modules.conversations import render_conversations_page
+        render_conversations_page()
+    elif page == "sales_audit":
+        from src.admin.modules.sales_audit import render_sales_audit_page
+        render_sales_audit_page()
+    elif page == "knowledge":
+        from src.admin.modules.knowledge import render_knowledge_page
+        render_knowledge_page()
+    elif page == "capabilities":
+        from src.admin.modules.capability_catalog import render_capability_catalog
+        render_capability_catalog()
+    elif page == "tenants":
         render_tenants_view()
     elif page == "users":
         render_users_view()

@@ -1,66 +1,56 @@
 """
-Awareness tools — allow the copilot to understand the current state of the app.
+Awareness tools — check completion status across modules dynamically.
 
-These tools check completion status across modules so the copilot can guide
-the user through setup and identify gaps.
+Uses MODULE_REGISTRY + schema_introspection to discover fields at runtime.
+NEVER hardcodes field names — if you add a section to BrandSettings,
+the copilot detects it automatically.
 """
 
+import json
 from typing import Optional
 from uuid import UUID
 
 from langchain_core.tools import tool
+from sqlalchemy import text
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
+from src.modules.copilot.domain.module_registry import get_module_registry
+from src.modules.copilot.domain.schema_introspection import (
+    check_section_completion,
+    format_completion_markdown,
+    get_model_sections,
+)
+
+import structlog
+
+logger = structlog.get_logger()
 
 
-def _check_brand_completion(db, tenant_id: UUID) -> dict:
-    """Check which brand sections have data."""
-    from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
-
-    repo = BrandRepository(db)
+def _check_introspectable_module(db, tenant_id: UUID, descriptor) -> dict:
+    """Check completion for a module that has a Pydantic model_class."""
     try:
-        settings = repo.get_settings(tenant_id)
-    except Exception:
-        return {"configured": False, "sections": {}, "message": "Sin datos de marca"}
+        repo = descriptor.repo_factory(db)
+        data = descriptor.read_fn(repo, tenant_id)
+    except Exception as e:
+        logger.warning("awareness_read_error", module=descriptor.module_id, error=str(e))
+        return {"configured": False, "message": f"Error leyendo {descriptor.label}"}
 
-    if not settings:
-        return {"configured": False, "sections": {}, "message": "Sin datos de marca"}
+    if not data:
+        return {"configured": False, "message": f"Sin datos de {descriptor.label}"}
 
-    data = settings.model_dump() if hasattr(settings, "model_dump") else {}
-
-    section_checks = {
-        "identity": ["brand_name", "industry", "tagline"],
-        "story": ["origin_story", "mission", "vision"],
-        "positioning": ["uvp", "brand_essence", "discriminator"],
-        "narrative": ["storybrand"],
-        "visuals": ["colors", "typography"],
-        "voice": ["voice_tone", "communication_style"],
-        "testimonials": ["testimonials"],
-        "authority": ["authority_vault"],
-    }
-
-    sections = {}
-    for section, fields in section_checks.items():
-        has_data = any(
-            data.get(f) not in (None, "", [], {}) for f in fields
-        )
-        sections[section] = "configurado" if has_data else "pendiente"
-
-    configured_count = sum(1 for v in sections.values() if v == "configurado")
-    total = len(sections)
+    raw = data.model_dump(mode="json") if hasattr(data, "model_dump") else {}
+    sections = get_model_sections(descriptor.model_class)
+    completion = check_section_completion(raw, sections)
 
     return {
-        "configured": configured_count > 0,
-        "completion": f"{configured_count}/{total}",
-        "sections": sections,
+        "configured": any(s.is_configured for s in completion.values()),
+        "markdown": format_completion_markdown(descriptor.label, completion, sections),
     }
 
 
 def _check_offer_completion(db, tenant_id: UUID) -> dict:
-    """Check offer configuration status."""
-    from sqlalchemy import text
-
+    """Check offer configuration status via SQL count."""
     try:
         count = db.execute(
             text("SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true"),
@@ -69,80 +59,143 @@ def _check_offer_completion(db, tenant_id: UUID) -> dict:
     except Exception:
         count = 0
 
+    configured = count > 0
     return {
-        "configured": count > 0,
-        "offer_count": count,
-        "message": f"{count} oferta(s) configurada(s)" if count else "Sin ofertas configuradas",
+        "configured": configured,
+        "markdown": f"### {'✅' if configured else '⚠️'} Offer Studio\n  {count} oferta(s) configurada(s)" if count else "### ⚠️ Offer Studio\n  Sin ofertas configuradas",
     }
 
 
 def _check_connections_completion(db, tenant_id: UUID) -> dict:
     """Check which integrations are connected."""
-    from sqlalchemy import text
-
     try:
         rows = db.execute(
-            text("SELECT channel_type, is_active FROM connections WHERE tenant_id = :tid"),
+            text("SELECT channel_type, is_active FROM channel_connections WHERE tenant_id = :tid"),
             {"tid": str(tenant_id)},
         ).mappings().all()
     except Exception:
         rows = []
 
     connected = [r["channel_type"] for r in rows if r.get("is_active")]
-    return {
-        "configured": len(connected) > 0,
-        "connected_channels": connected,
-        "count": len(connected),
-        "message": f"{len(connected)} conexión(es) activa(s): {', '.join(connected)}"
-        if connected
-        else "Sin conexiones configuradas",
-    }
+    configured = len(connected) > 0
+
+    if connected:
+        channels_str = ", ".join(connected)
+        markdown = f"### ✅ Conexiones\n  {len(connected)} activa(s): {channels_str}"
+    else:
+        markdown = "### ⚠️ Conexiones\n  Sin conexiones configuradas"
+
+    return {"configured": configured, "markdown": markdown}
+
+
+def _check_landing_completion(db, tenant_id: UUID) -> dict:
+    """Check landing page status."""
+    try:
+        total = db.execute(
+            text("SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid"),
+            {"tid": str(tenant_id)},
+        ).scalar() or 0
+        published = db.execute(
+            text("SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid AND is_published = true"),
+            {"tid": str(tenant_id)},
+        ).scalar() or 0
+    except Exception:
+        total, published = 0, 0
+
+    configured = total > 0
+    markdown = f"### {'✅' if published > 0 else '⚠️'} Landing Pages\n  {total} total, {published} publicada(s)"
+    return {"configured": configured, "markdown": markdown}
+
+
+def _check_crm_completion(db, tenant_id: UUID) -> dict:
+    """Check CRM data status."""
+    try:
+        lead_count = db.execute(
+            text("SELECT COUNT(*) FROM leads WHERE tenant_id = :tid"),
+            {"tid": str(tenant_id)},
+        ).scalar() or 0
+        sale_count = db.execute(
+            text("SELECT COUNT(*) FROM sales WHERE tenant_id = :tid"),
+            {"tid": str(tenant_id)},
+        ).scalar() or 0
+    except Exception:
+        lead_count, sale_count = 0, 0
+
+    configured = lead_count > 0
+    markdown = f"### {'✅' if configured else '⚠️'} CRM\n  {lead_count} lead(s), {sale_count} venta(s)"
+    return {"configured": configured, "markdown": markdown}
+
+
+# Map of module_id -> checker function for modules without Pydantic model_class
+_SPECIAL_CHECKERS = {
+    "offer": _check_offer_completion,
+    "connections": _check_connections_completion,
+    "landing": _check_landing_completion,
+    "crm": _check_crm_completion,
+}
 
 
 @tool
 def get_module_completion_status(module: Optional[str] = None) -> str:
-    """Check the configuration/completion status of app modules.
+    """Verifica el estado de configuración de los módulos del sistema.
 
     Args:
-        module: Optional specific module to check. One of: "brand", "offer", "connections", "all".
-               If not provided or "all", checks all modules.
+        module: Módulo específico a verificar. Uno de: "brand", "offer",
+                "connections", "landing", "crm", "all".
+                Si no se proporciona o es "all", verifica todos.
 
     Returns:
-        A summary of what is configured and what is pending across modules.
+        Resumen de qué está configurado y qué falta, por módulo.
     """
     tenant_id = get_tenant_id()
     if not tenant_id:
         return "Error: No se pudo determinar el tenant. Asegúrate de estar autenticado."
 
+    registry = get_module_registry()
     db = SessionLocal()
     try:
-        results = {}
+        # Determine which modules to check
+        checkable_modules = ["brand", "offer", "connections", "landing", "crm"]
+        if module and module != "all":
+            modules_to_check = [module] if module in checkable_modules else []
+        else:
+            modules_to_check = checkable_modules
 
-        if module in (None, "all", "brand"):
-            results["Brand Studio"] = _check_brand_completion(db, tenant_id)
+        if not modules_to_check:
+            return f"Módulo '{module}' no reconocido. Disponibles: {', '.join(checkable_modules)}"
 
-        if module in (None, "all", "offer"):
-            results["Offer Studio"] = _check_offer_completion(db, tenant_id)
-
-        if module in (None, "all", "connections"):
-            results["Conexiones"] = _check_connections_completion(db, tenant_id)
-
-        # Format for LLM consumption
         lines = ["## Estado de Configuración\n"]
-        for name, status in results.items():
-            emoji = "✅" if status.get("configured") else "⚠️"
-            lines.append(f"### {emoji} {name}")
-            if "sections" in status:
-                for section, state in status["sections"].items():
-                    icon = "✓" if state == "configurado" else "✗"
-                    lines.append(f"  {icon} {section}: {state}")
-                if "completion" in status:
-                    lines.append(f"  Progreso: {status['completion']}")
-            elif "message" in status:
-                lines.append(f"  {status['message']}")
+        checklist_items = []
+
+        for mod_id in modules_to_check:
+            descriptor = registry.get(mod_id)
+            if not descriptor:
+                continue
+
+            # Use special checker if module has no Pydantic model_class
+            if mod_id in _SPECIAL_CHECKERS:
+                result = _SPECIAL_CHECKERS[mod_id](db, tenant_id)
+            elif descriptor.model_class and descriptor.repo_factory:
+                result = _check_introspectable_module(db, tenant_id, descriptor)
+            else:
+                continue
+
+            lines.append(result["markdown"])
             lines.append("")
 
-        return "\n".join(lines)
+            checklist_items.append({
+                "label": descriptor.label,
+                "done": result["configured"],
+                "route": f"/{{tenantId}}/{descriptor.route_prefix}",
+            })
+
+        return json.dumps({
+            "text": "\n".join(lines),
+            "ui_action": {
+                "type": "checklist",
+                "items": checklist_items,
+            },
+        })
     finally:
         db.close()
 

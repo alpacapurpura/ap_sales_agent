@@ -1,7 +1,7 @@
 # Nicolify
 
 **Context:** Multitenant SaaS (AaaS) automating marketing/sales for creators.
-**Stack:** FastAPI (Async/SQLAlchemy 2.0), Next.js 14 (App Router/FSD), Clerk (Auth), Qdrant (RAG).
+**Stack:** FastAPI (Async/SQLAlchemy 2.0), Next.js 15 (App Router/FSD), Clerk (Auth), Qdrant (RAG).
 **Pattern:** Modular Monolith (DDD) + Docker-First.
 
 ## Core Domains (if you are unsure about the domain, refer to the `docs/domains/INDEX.md` file)
@@ -56,5 +56,13 @@ docker exec -t visionarias_postgres psql -U postgres -c "DROP DATABASE migration
 4.  **Data:** Soft deletes only (`deleted_at`). SQLAlchemy 2.0 syntax (`select(Model)`).
 5.  **UX:** AI-first. Auto-fill buttons, guided flows.
 
-## Product Vision 
+## Copilot Resilience Rules
+- NEVER hardcode field names in copilot tools — use Pydantic model introspection (`schema_introspection.py`)
+- New modules: add `ModuleDescriptor` to `copilot/domain/module_registry.py`
+- New routes: update `navigation_map.py` + `tools/registry.py` ROUTE_TOOL_MAP
+- New fields/sections in existing models: NO copilot changes needed (auto-discovered via `model_fields`)
+- Tools use `MODULE_REGISTRY` for data access, not direct repo imports
+- Route-based tool selection in `tools/registry.py` — only relevant tools are bound per route
+
+## Product Vision
 - If you need to take a decision and need to know about the product vision: `docs/vision/product-vision.md`.

@@ -50,54 +50,12 @@ NAVIGATION_MAP: List[AppPage] = [
         description="Identidad de marca: nombre, historia, posicionamiento, narrativa, identidad visual, voz, equipo, testimonios, autoridad",
         keywords=["marca", "brand", "identidad", "logo", "colores", "tipografía", "voz", "tono"],
         sections=[
-            AppSection(
-                section_id="identity",
-                label="Identidad",
-                description="Nombre de marca, industria, tagline, descripción, datos legales",
-                fields=[
-                    AppField("brand_name", "Nombre de marca", "El nombre comercial de la marca"),
-                    AppField("industry", "Industria", "Sector o industria principal"),
-                    AppField("tagline", "Tagline", "Frase corta que define la marca"),
-                    AppField("description", "Descripción", "Descripción general de la marca"),
-                ],
-            ),
-            AppSection(
-                section_id="story",
-                label="Historia",
-                description="Historia de origen, misión, visión, hitos importantes",
-                fields=[
-                    AppField("origin_story", "Historia de origen", "Cómo nació la marca"),
-                    AppField("mission", "Misión", "Propósito fundamental"),
-                    AppField("vision", "Visión", "Hacia dónde se dirige"),
-                ],
-            ),
-            AppSection(
-                section_id="positioning",
-                label="Posicionamiento (Brand Love Key)",
-                description="Entorno competitivo, insight, beneficios, valores, razones para creer, discriminador, esencia, UVP",
-                fields=[
-                    AppField("competitive_environment", "Entorno competitivo", "Categoría y competencia"),
-                    AppField("insight", "Insight", "Verdad profunda del consumidor"),
-                    AppField("functional_benefits", "Beneficios funcionales", "Qué resuelve el producto"),
-                    AppField("emotional_benefits", "Beneficios emocionales", "Cómo hace sentir al usuario"),
-                    AppField("brand_values", "Valores de marca", "Principios fundamentales"),
-                    AppField("discriminator", "Discriminador", "Lo que hace única a la marca"),
-                    AppField("brand_essence", "Esencia de marca", "La verdad central de la marca"),
-                    AppField("uvp", "UVP", "Propuesta de Valor Única"),
-                ],
-            ),
-            AppSection(
-                section_id="narrative",
-                label="Narrativa (StoryBrand)",
-                description="Estructura narrativa: héroe, problema, guía, plan, CTAs, resultado",
-                fields=[
-                    AppField("hero", "Héroe", "El cliente como protagonista"),
-                    AppField("problem", "Problema", "Villano, externo, interno, filosófico"),
-                    AppField("guide", "Guía", "La marca como mentor"),
-                    AppField("plan", "Plan", "Pasos claros para el cliente"),
-                    AppField("cta", "CTAs", "Llamadas a la acción"),
-                ],
-            ),
+            # Fields within each section are discovered dynamically via Pydantic
+            # introspection (schema_introspection.py). Only routes and labels live here.
+            AppSection("identity", "Identidad", "Nombre de marca, industria, tagline, descripción, datos legales"),
+            AppSection("story", "Historia", "Historia de origen, misión, visión, hitos importantes"),
+            AppSection("positioning", "Posicionamiento (Brand Love Key)", "Entorno competitivo, insight, beneficios, valores, razones para creer, discriminador, esencia, UVP"),
+            AppSection("narrative", "Narrativa (StoryBrand)", "Estructura narrativa: héroe, problema, guía, plan, CTAs, resultado"),
             AppSection("methodology", "Metodología", "Framework o método propio de la marca"),
             AppSection("visuals", "Identidad Visual", "Colores, tipografía, sistema de diseño"),
             AppSection("voice", "Voz y Tono", "Estilo de comunicación de la marca"),

@@ -10,8 +10,23 @@ export interface ProposalUpdate {
   reason?: string;
 }
 
+export interface ProcedureStepStatus {
+  id: string;
+  label: string;
+  status: "completed" | "current" | "pending";
+  routeHint?: string;
+}
+
+export interface ActiveProcedure {
+  id: string;
+  name: string;
+  steps: ProcedureStepStatus[];
+  currentStepIndex: number;
+}
+
 export interface UIAction {
-  type: "navigate" | "scroll_to_field" | "open_form" | "proposal";
+  type: "navigate" | "scroll_to_field" | "open_form" | "proposal" | "procedure_progress"
+       | "metric_summary" | "comparison" | "checklist" | "multi_option";
   route?: string;
   page_label?: string;
   section_id?: string;
@@ -19,6 +34,18 @@ export interface UIAction {
   form_id?: string;
   prefill_data?: Record<string, unknown>;
   updates?: ProposalUpdate[];
+  // Procedure progress fields
+  procedure_id?: string;
+  procedure_name?: string;
+  steps?: ProcedureStepStatus[];
+  current_step_index?: number;
+  // Generative UI fields (Phase 3)
+  metrics?: Array<{ label: string; value: string; trend?: "up" | "down" | "flat"; delta?: string }>;
+  columns?: string[];
+  rows?: Array<Record<string, string>>;
+  recommended?: string;
+  items?: Array<{ label: string; done: boolean; route?: string }>;
+  options?: Array<{ id: string; title: string; content: string }>;
 }
 
 export interface SelectedField {
@@ -73,10 +100,16 @@ interface CopilotState {
   enqueuUIAction: (action: UIAction) => void;
   dequeuUIAction: () => UIAction | undefined;
 
+  // Active procedure (set by procedure_progress UIAction)
+  activeProcedure: ActiveProcedure | null;
+  setActiveProcedure: (proc: ActiveProcedure) => void;
+  clearActiveProcedure: () => void;
+
   // Selected fields context (for WithCopilot wrapper)
   selectedFields: SelectedField[];
   addSelectedField: (field: SelectedField) => void;
   removeSelectedField: (fieldId: string) => void;
+  updateFieldValue: (fieldId: string, value: string) => void;
   clearSelectedFields: () => void;
 }
 
@@ -140,6 +173,11 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
     return first;
   },
 
+  // Active procedure
+  activeProcedure: null,
+  setActiveProcedure: (proc) => set({ activeProcedure: proc }),
+  clearActiveProcedure: () => set({ activeProcedure: null }),
+
   // Selected fields context
   selectedFields: [],
   addSelectedField: (field) =>
@@ -153,6 +191,12 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
   removeSelectedField: (fieldId) =>
     set((s) => ({
       selectedFields: s.selectedFields.filter((f) => f.fieldId !== fieldId),
+    })),
+  updateFieldValue: (fieldId, value) =>
+    set((s) => ({
+      selectedFields: s.selectedFields.map((f) =>
+        f.fieldId === fieldId ? { ...f, fieldValue: value } : f
+      ),
     })),
   clearSelectedFields: () => set({ selectedFields: [] }),
 }));

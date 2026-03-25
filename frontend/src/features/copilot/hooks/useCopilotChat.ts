@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useCopilotStore, type UIAction } from "../store/copilot-store";
-import { streamCopilotChat } from "../api/copilot-api";
+import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
 
 export function useCopilotChat() {
   const {
     conversationId,
     currentRoute,
-    selectedFields,
     addMessage,
     appendToLastAssistant,
     addUIActionToLastAssistant,
@@ -16,7 +16,10 @@ export function useCopilotChat() {
     setStatus,
     setConversationId,
     openPanel,
+    setActiveProcedure,
   } = useCopilotStore();
+
+  const { getToken } = useAuth();
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -53,13 +56,33 @@ export function useCopilotChat() {
       setStatus("thinking");
 
       try {
+        // Get Clerk auth token
+        const token = await getToken();
+        if (!token) {
+          appendToLastAssistant("\n\n_Error: No se pudo obtener el token de autenticación._");
+          setStatus("idle");
+          return;
+        }
+
+        // Collect fresh field values from mounted WithCopilot components
+        window.dispatchEvent(new CustomEvent("copilot:collect-values"));
+        const freshFields = useCopilotStore.getState().selectedFields;
+        const currentMessages = useCopilotStore.getState().messages;
+
+        // Track message_sent event
+        reportCopilotEvent("message_sent", {
+          message_length: text.trim().length,
+          has_selected_fields: freshFields.length > 0,
+          is_first_message: currentMessages.length <= 2, // user + assistant placeholder
+        }, token);
+
         await streamCopilotChat(
           {
             message: text.trim(),
             conversation_id: conversationId,
             context: {
               current_route: currentRoute,
-              selected_fields: selectedFields.map((f) => ({
+              selected_fields: freshFields.map((f) => ({
                 field_id: f.fieldId,
                 field_label: f.fieldLabel,
                 field_value: f.fieldValue,
@@ -96,8 +119,18 @@ export function useCopilotChat() {
               if (uiAction.type === "navigate") {
                 enqueuUIAction(uiAction);
               }
+              // Procedure progress → update store for stepper
+              if (uiAction.type === "procedure_progress" && uiAction.procedure_id && uiAction.steps) {
+                setActiveProcedure({
+                  id: uiAction.procedure_id,
+                  name: uiAction.procedure_name || uiAction.procedure_id,
+                  steps: uiAction.steps,
+                  currentStepIndex: uiAction.current_step_index ?? 0,
+                });
+              }
             },
           },
+          token,
           controller.signal,
         );
       } catch (err) {
@@ -107,7 +140,7 @@ export function useCopilotChat() {
         }
       }
     },
-    [conversationId, currentRoute, selectedFields, addMessage, appendToLastAssistant, addUIActionToLastAssistant, enqueuUIAction, setStatus, setConversationId, openPanel],
+    [conversationId, currentRoute, getToken, addMessage, appendToLastAssistant, addUIActionToLastAssistant, enqueuUIAction, setStatus, setConversationId, openPanel, setActiveProcedure],
   );
 
   const stopStreaming = useCallback(() => {

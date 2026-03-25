@@ -32,6 +32,9 @@ from src.modules.sales_agent.api import audit as sales_audit
 # 6. Copilot
 from src.modules.copilot.api import actions as copilot_actions
 from src.modules.copilot.api import chat as copilot_chat
+from src.modules.copilot.api import nudge as copilot_nudge
+from src.modules.copilot.api import knowledge as copilot_knowledge
+from src.modules.copilot.api import events as copilot_events
 
 # 7. CRM
 from src.modules.crm.api import leads as crm_leads, cdp as crm_cdp, sales as crm_sales, pipeline as crm_pipeline
@@ -157,6 +160,9 @@ app.include_router(sales_audit.router, prefix="/api/v1/admin/audit", tags=["Sale
 # 6. Copilot
 app.include_router(copilot_actions.router, prefix="/api/v1/copilot/actions", tags=["Copilot - Actions"], dependencies=[Depends(get_tenant_context)])
 app.include_router(copilot_chat.router, prefix="/api/v1/copilot", tags=["Copilot - Chat"], dependencies=[Depends(get_tenant_context)])
+app.include_router(copilot_nudge.router, prefix="/api/v1/copilot", tags=["Copilot - Nudges"], dependencies=[Depends(get_tenant_context)])
+app.include_router(copilot_knowledge.router, prefix="/api/v1/copilot/knowledge", tags=["Copilot - Knowledge"], dependencies=[Depends(get_tenant_context)])
+app.include_router(copilot_events.router, prefix="/api/v1/copilot/events", tags=["Copilot - Events"], dependencies=[Depends(get_tenant_context)])
 
 # 7. CRM
 app.include_router(crm_leads.router, prefix="/api/v1/crm/leads", tags=["CRM - Leads"], dependencies=[Depends(get_tenant_context)])

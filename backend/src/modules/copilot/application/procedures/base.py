@@ -1,0 +1,91 @@
+"""
+Procedure Engine — schema-driven multi-step workflows for the copilot.
+
+Procedures are declared with steps that reference MODULE_REGISTRY modules.
+Completion is checked dynamically via schema_introspection — no hardcoded fields.
+"""
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from uuid import UUID
+
+from src.core.database import SessionLocal
+from src.modules.copilot.domain.module_registry import get_module_registry
+from src.modules.copilot.domain.schema_introspection import (
+    check_section_completion,
+    get_model_sections,
+)
+
+
+@dataclass
+class ProcedureStep:
+    step_id: str
+    module_id: str  # "brand", "offer" → lookup in MODULE_REGISTRY
+    section_id: Optional[str]  # Section in the Pydantic model (auto-discovered)
+    instruction: str  # What to tell the user
+    validation: str  # "has_any_data" | "has_required_fields" | "custom"
+    tips: List[str] = field(default_factory=list)
+    route_hint: Optional[str] = None  # Suggested navigation route
+
+
+@dataclass
+class Procedure:
+    procedure_id: str
+    name: str
+    description: str
+    steps: List[ProcedureStep]
+
+    def get_current_step_index(self, tenant_id: UUID) -> int:
+        """Find the first incomplete step. Uses MODULE_REGISTRY + schema_introspection."""
+        db = SessionLocal()
+        try:
+            registry = get_module_registry()
+            for i, step in enumerate(self.steps):
+                if not self._is_step_complete(step, tenant_id, db, registry):
+                    return i
+            return len(self.steps)  # All complete
+        finally:
+            db.close()
+
+    def get_completion_summary(self, tenant_id: UUID) -> Dict[str, bool]:
+        """Return {step_id: bool} indicating completion of each step."""
+        db = SessionLocal()
+        try:
+            registry = get_module_registry()
+            return {
+                step.step_id: self._is_step_complete(step, tenant_id, db, registry)
+                for step in self.steps
+            }
+        finally:
+            db.close()
+
+    @staticmethod
+    def _is_step_complete(step: ProcedureStep, tenant_id: UUID, db, registry) -> bool:
+        descriptor = registry.get(step.module_id)
+        if not descriptor or not descriptor.repo_factory:
+            return False
+
+        try:
+            repo = descriptor.repo_factory(db)
+            data = descriptor.read_fn(repo, tenant_id)
+        except Exception:
+            return False
+
+        if not data:
+            return False
+
+        # For modules without model_class (offer, connections), "has_any_data" = has data
+        if step.validation == "has_any_data":
+            if isinstance(data, list):
+                return len(data) > 0
+            return True
+
+        # For modules with model_class, verify specific section
+        if step.section_id and descriptor.model_class:
+            raw = data.model_dump(mode="json") if hasattr(data, "model_dump") else {}
+            sections = get_model_sections(descriptor.model_class)
+            completion = check_section_completion(raw, sections)
+            section_status = completion.get(step.section_id)
+            return section_status.is_configured if section_status else False
+
+        return True

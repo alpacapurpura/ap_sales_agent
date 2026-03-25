@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Check, X, Pencil } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import type { ProposalUpdate } from "../../store/copilot-store";
+import { reportCopilotEvent } from "../../api/copilot-api";
 
 interface ProposalCardProps {
   updates: ProposalUpdate[];
@@ -18,6 +20,9 @@ type ProposalStatus = "pending" | "applied" | "rejected";
  */
 export function ProposalCard({ updates }: ProposalCardProps) {
   const [status, setStatus] = useState<ProposalStatus>("pending");
+  const { getToken } = useAuth();
+
+  const fieldIds = updates.map((u) => u.field_id);
 
   const handleApply = () => {
     for (const update of updates) {
@@ -28,10 +33,20 @@ export function ProposalCard({ updates }: ProposalCardProps) {
       );
     }
     setStatus("applied");
+    getToken().then((token) => {
+      if (token) {
+        reportCopilotEvent("proposal_accepted", { field_count: updates.length, field_ids: fieldIds }, token);
+      }
+    });
   };
 
   const handleReject = () => {
     setStatus("rejected");
+    getToken().then((token) => {
+      if (token) {
+        reportCopilotEvent("proposal_rejected", { field_count: updates.length, field_ids: fieldIds }, token);
+      }
+    });
   };
 
   return (

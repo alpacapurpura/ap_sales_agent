@@ -89,3 +89,69 @@ class ConversationRepository:
             .offset(offset)
         )
         return list(self.db.execute(stmt).scalars().all())
+
+    # ── Cross-tenant methods (admin) ─────────────────────────────────────
+
+    def list_by_tenant(
+        self,
+        tenant_id: UUID,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> List[CopilotConversationModel]:
+        """List conversations for a tenant (all users)."""
+        stmt = (
+            select(CopilotConversationModel)
+            .where(CopilotConversationModel.tenant_id == tenant_id)
+            .order_by(CopilotConversationModel.updated_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        return list(self.db.execute(stmt).scalars().all())
+
+    def list_all_paginated(
+        self,
+        tenant_id: Optional[UUID] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[CopilotConversationModel]:
+        """List conversations, optionally filtered by tenant."""
+        stmt = (
+            select(CopilotConversationModel)
+            .order_by(CopilotConversationModel.updated_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        if tenant_id:
+            stmt = stmt.where(CopilotConversationModel.tenant_id == tenant_id)
+        return list(self.db.execute(stmt).scalars().all())
+
+    def count_all(self, tenant_id: Optional[UUID] = None) -> int:
+        """Count conversations, optionally filtered by tenant."""
+        from sqlalchemy import func
+        stmt = select(func.count()).select_from(CopilotConversationModel)
+        if tenant_id:
+            stmt = stmt.where(CopilotConversationModel.tenant_id == tenant_id)
+        return self.db.execute(stmt).scalar() or 0
+
+    def get_global_stats(self, days: int = 30) -> dict:
+        """Global conversation stats for admin dashboard."""
+        from sqlalchemy import func
+        from datetime import datetime, timedelta, timezone
+
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+        total = self.db.execute(
+            select(func.count())
+            .select_from(CopilotConversationModel)
+            .where(CopilotConversationModel.created_at >= cutoff)
+        ).scalar() or 0
+
+        tenants_with_convs = self.db.execute(
+            select(func.count(func.distinct(CopilotConversationModel.tenant_id)))
+            .where(CopilotConversationModel.created_at >= cutoff)
+        ).scalar() or 0
+
+        return {
+            "total": total,
+            "tenants_with_conversations": tenants_with_convs,
+        }

@@ -2,7 +2,11 @@
 
 import { Sparkles } from "lucide-react";
 import type { CopilotMessage } from "../../store/copilot-store";
+import { ComparisonTable } from "./ComparisonTable";
+import { MetricSummaryCard } from "./MetricSummaryCard";
+import { MultiOptionSelector } from "./MultiOptionSelector";
 import { NavigationCard } from "./NavigationCard";
+import { ProgressChecklist } from "./ProgressChecklist";
 import { ProposalCard } from "./ProposalCard";
 
 interface AssistantMessageProps {
@@ -34,18 +38,45 @@ export function AssistantMessage({ message, isStreaming }: AssistantMessageProps
           </div>
         </div>
 
-        {/* Render navigation/action cards and proposals */}
+        {/* Render navigation/action cards, proposals, and generative UI */}
         {hasUIActions &&
-          message.uiActions!.map((action, idx) =>
-            action.type === "proposal" && action.updates ? (
-              <ProposalCard
-                key={`proposal-${idx}`}
-                updates={action.updates}
-              />
-            ) : (
-              <NavigationCard key={`${action.type}-${idx}`} action={action} />
-            ),
-          )}
+          message.uiActions!.map((action, idx) => {
+            switch (action.type) {
+              case "proposal":
+                return action.updates ? (
+                  <ProposalCard key={`proposal-${idx}`} updates={action.updates} />
+                ) : null;
+              case "metric_summary":
+                return action.metrics ? (
+                  <MetricSummaryCard key={`metric-${idx}`} metrics={action.metrics} />
+                ) : null;
+              case "comparison":
+                return action.columns && action.rows ? (
+                  <ComparisonTable
+                    key={`comparison-${idx}`}
+                    columns={action.columns}
+                    rows={action.rows}
+                    recommended={action.recommended}
+                  />
+                ) : null;
+              case "checklist":
+                return action.items ? (
+                  <ProgressChecklist key={`checklist-${idx}`} items={action.items} />
+                ) : null;
+              case "multi_option":
+                return action.options && action.field_id ? (
+                  <MultiOptionSelector
+                    key={`option-${idx}`}
+                    options={action.options}
+                    fieldId={action.field_id}
+                  />
+                ) : null;
+              default:
+                return (
+                  <NavigationCard key={`${action.type}-${idx}`} action={action} />
+                );
+            }
+          })}
       </div>
     </div>
   );

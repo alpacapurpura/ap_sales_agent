@@ -47,3 +47,4 @@ from src.modules.offer.infrastructure.models.external_product_mapping_model impo
 
 # --- Copilot ---
 from src.modules.copilot.infrastructure.models.conversation_model import CopilotConversationModel  # noqa: F401
+from src.modules.copilot.infrastructure.models.event_model import CopilotEventModel  # noqa: F401

@@ -42,6 +42,17 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
     }
   }, [isSelected, fieldId, fieldLabel, getValue, addSelectedField, removeSelectedField, openPanel]);
 
+  // Listen for copilot:collect-values — refresh field value in store before send
+  useEffect(() => {
+    const collectHandler = () => {
+      if (selectedFields.some((f) => f.fieldId === fieldId)) {
+        useCopilotStore.getState().updateFieldValue(fieldId, getValue());
+      }
+    };
+    window.addEventListener("copilot:collect-values", collectHandler);
+    return () => window.removeEventListener("copilot:collect-values", collectHandler);
+  }, [fieldId, getValue, selectedFields]);
+
   // Listen for copilot:field-update events targeting this field
   useEffect(() => {
     const handler = (e: Event) => {

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - Estilo Columnas (Mac Finder)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos para el scroll tipo Mac */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        body {
+            /* Evitar scroll global, todo ocurre dentro de las columnas */
+            overflow: hidden; 
+        }
+
+        .miller-container {
+            display: flex;
+            height: calc(100vh - 64px); /* Restamos el header */
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .column-sidebar {
+            min-width: 220px;
+            width: 220px;
+            background-color: #f8fafc; /* slate-50 */
+            border-right: 1px solid #e2e8f0; /* slate-200 */
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .column-list {
+            min-width: 240px;
+            width: 240px;
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .column-preview {
+            flex-grow: 1;
+            min-width: 400px;
+            background-color: #ffffff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            margin: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #334155; /* slate-700 */
+            font-size: 0.875rem; /* 14px */
+            transition: all 0.15s ease;
+        }
+
+        .list-item:hover:not(.active) {
+            background-color: #f1f5f9; /* slate-100 */
+        }
+
+        .list-item.active {
+            background-color: #2563eb; /* blue-600 */
+            color: #ffffff;
+        }
+
+        .list-item i.icon-main {
+            width: 20px;
+            text-align: center;
+            margin-right: 10px;
+            color: #64748b; /* slate-500 */
+        }
+
+        .list-item.active i.icon-main {
+            color: #ffffff;
+        }
+
+        .list-item i.icon-chevron {
+            font-size: 0.75rem;
+            color: #94a3b8; /* slate-400 */
+        }
+
+        .list-item.active i.icon-chevron {
+            color: #bfdbfe; /* blue-200 */
+        }
+
+        .sidebar-header {
+            padding: 12px 16px 4px 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col font-sans">
+
+    <!-- Top Bar (Header simulado) -->
+    <header class="h-16 bg-white border-b border-gray-200 flex items-center px-6 justify-between shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="flex gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <h1 class="font-semibold text-gray-800 ml-4">Configuración del Sistema</h1>
+        </div>
+        <div class="flex gap-2 text-gray-400">
+            <button class="p-2 hover:bg-gray-100 rounded-md"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="p-2 hover:bg-gray-100 rounded-md"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Miller Columns Container -->
+    <div id="miller-container" class="miller-container">
+        <!-- Las columnas se generarán aquí mediante JavaScript -->
+    </div>
+
+    <script>
+        // Estructura de datos basada en SettingsView.tsx actual
+        const configData = {
+            id: "root",
+            type: "root",
+            children: [
+                {
+                    id: "principal",
+                    title: "Principal",
+                    icon: "fa-solid fa-layer-group",
+                    children: [
+                        { id: "general", title: "General", icon: "fa-solid fa-gear", type: "form", desc: "Configuración global del tenant." },
+                        { id: "perfil", title: "Perfil", icon: "fa-solid fa-user", type: "form", desc: "Información personal del usuario." },
+                        { id: "equipo", title: "Equipo", icon: "fa-solid fa-users", type: "form", desc: "Gestión de miembros y roles." },
+                        { id: "ai-keys", title: "LLM API Key's", icon: "fa-solid fa-key", type: "form", desc: "Credenciales de IA (OpenAI, Anthropic)." }
+                    ]
+                },
+                {
+                    id: "integraciones",
+                    title: "Integraciones",
+                    icon: "fa-solid fa-plug",
+                    children: [
+                        {
+                            id: "canales",
+                            title: "Canales de Venta",
+                            icon: "fa-solid fa-comments",
+                            children: [
+                                { id: "whatsapp", title: "WhatsApp", icon: "fa-brands fa-whatsapp", type: "form", desc: "Conecta tu número de WhatsApp Business." },
+                                { id: "meta", title: "Meta Business Suite", icon: "fa-brands fa-meta", type: "form", desc: "Integración con FB Messenger e Instagram." },
+                                { id: "manychat", title: "ManyChat", icon: "fa-solid fa-robot", type: "form", desc: "Flujos automatizados de ManyChat." },
+                                { id: "shopify", title: "Shopify", icon: "fa-brands fa-shopify", type: "form", desc: "Catálogo y eventos de compra." },
+                                { id: "google", title: "Google Workspace", icon: "fa-brands fa-google", type: "form", desc: "Sincronización con Gmail y Calendar." },
+                                { id: "tiktok", title: "TikTok", icon: "fa-brands fa-tiktok", type: "form", desc: "Leads y mensajes de TikTok." },
+                                { id: "telegram", title: "Telegram", icon: "fa-brands fa-telegram", type: "form", desc: "Bots y canales de Telegram." },
+                                { id: "webwidget", title: "Web Widget", icon: "fa-solid fa-code", type: "form", desc: "Chat en vivo para tu sitio web." }
+                            ]
+                        },
+                        {
+                            id: "marketing",
+                            title: "Marketing",
+                            icon: "fa-solid fa-bullhorn",
+                            children: [
+                                { id: "mailerlite", title: "MailerLite", icon: "fa-solid fa-envelope", type: "form", desc: "Campañas de email y automatizaciones." }
+                            ]
+                        },
+                        {
+                            id: "cierre",
+                            title: "Cierre de Ventas",
+                            icon: "fa-solid fa-handshake",
+                            children: [
+                                { id: "crm", title: "CRM", icon: "fa-solid fa-users-gear", type: "form", desc: "Sincronización con tu CRM externo." },
+                                { id: "payments", title: "Payments", icon: "fa-solid fa-credit-card", type: "form", desc: "Pasarelas de pago (Stripe, PayPal)." }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: "desarrolladores",
+                    title: "Desarrolladores",
+                    icon: "fa-solid fa-terminal",
+                    children: [
+                        { id: "webhooks", title: "Webhooks", icon: "fa-solid fa-network-wired", type: "form", desc: "Configura endpoints para recibir eventos en tiempo real." }
+                    ]
+                }
+            ]
+        };
+
+        // Estado actual de las columnas
+        let currentPath = [];
+
+        function renderColumns() {
+            const container = document.getElementById('miller-container');
+            container.innerHTML = '';
+
+            // 1. Renderizar Sidebar (Nivel 0)
+            const sidebar = document.createElement('div');
+            sidebar.className = 'column-sidebar';
+            
+            const sidebarTitle = document.createElement('div');
+            sidebarTitle.className = 'sidebar-header mt-2';
+            sidebarTitle.textContent = 'Favoritos';
+            sidebar.appendChild(sidebarTitle);
+
+            configData.children.forEach(node => {
+                const isActive = currentPath[0] && currentPath[0].id === node.id;
+                const item = createListItem(node, isActive, () => handleItemClick(node, 0));
+                sidebar.appendChild(item);
+            });
+            container.appendChild(sidebar);
+
+            // 2. Renderizar columnas dinámicas basadas en la ruta seleccionada
+            let currentNode = configData;
+            for (let i = 0; i < currentPath.length; i++) {
+                currentNode = currentPath[i];
+                
+                if (currentNode.children && currentNode.children.length > 0) {
+                    // Es una categoría con hijos, renderizamos la columna
+                    const column = document.createElement('div');
+                    column.className = 'column-list';
+                    
+                    currentNode.children.forEach(childNode => {
+                        const isActive = currentPath[i+1] && currentPath[i+1].id === childNode.id;
+                        const item = createListItem(childNode, isActive, () => handleItemClick(childNode, i + 1));
+                        column.appendChild(item);
+                    });
+                    container.appendChild(column);
+                } else if (currentNode.type === 'form') {
+                    // Es un nodo final (formulario), renderizamos el preview
+                    const preview = createPreviewPanel(currentNode);
+                    container.appendChild(preview);
+                }
+            }
+
+            // Scroll al final horizontalmente si hay muchas columnas
+            container.scrollLeft = container.scrollWidth;
+        }
+
+        function createListItem(node, isActive, onClick) {
+            const div = document.createElement('div');
+            div.className = `list-item ${isActive ? 'active' : ''}`;
+            div.onclick = onClick;
+
+            const leftContent = document.createElement('div');
+            leftContent.className = 'flex items-center';
+            leftContent.innerHTML = `<i class="${node.icon} icon-main"></i> <span>${node.title}</span>`;
+
+            div.appendChild(leftContent);
+
+            // Si tiene hijos, mostramos el chevron (flecha)
+            if (node.children && node.children.length > 0) {
+                const chevron = document.createElement('i');
+                chevron.className = 'fa-solid fa-chevron-right icon-chevron';
+                div.appendChild(chevron);
+            }
+
+            return div;
+        }
+
+        function createPreviewPanel(node) {
+            const panel = document.createElement('div');
+            panel.className = 'column-preview p-8';
+
+            panel.innerHTML = `
+                <div class="max-w-2xl">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-3xl shadow-sm border border-blue-100">
+                            <i class="${node.icon}"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">${node.title}</h2>
+                            <p class="text-gray-500">${node.desc}</p>
+                        </div>
+                    </div>
+                    
+                    <hr class="border-gray-200 mb-8">
+
+                    <!-- Formulario Dummy -->
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="p-6 space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la conexión</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="${node.title} Principal">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                        <input type="checkbox" name="toggle" id="toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 top-0 left-0" checked/>
+                                        <label for="toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-blue-500 cursor-pointer"></label>
+                                    </div>
+                                    <span class="text-sm text-gray-600">Activo</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <h3 class="text-sm font-semibold text-slate-800 mb-2">Detalles técnicos</h3>
+                                <p class="text-xs text-slate-500 mb-1">ID: <code>${node.id}_847294</code></p>
+                                <p class="text-xs text-slate-500">Última sincronización: Hace 2 horas</p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                            <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
+                            <button class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return panel;
+        }
+
+        function handleItemClick(node, level) {
+            // Recortar la ruta actual hasta el nivel seleccionado
+            currentPath = currentPath.slice(0, level);
+            // Añadir el nuevo nodo a la ruta
+            currentPath.push(node);
+            // Re-renderizar todo
+            renderColumns();
+        }
+
+        // Inicialización: Seleccionamos el primer elemento por defecto
+        currentPath = [configData.children[0]]; // Selecciona "Principal"
+        renderColumns();
+
+    </script>
+</body>
+</html>

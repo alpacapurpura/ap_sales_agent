@@ -18,12 +18,13 @@ from src.modules.analytics.workers.tasks import (
     run_tenant_extraction,
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
+from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
 
 
 class WorkerSettings:
     """ARQ worker that processes ETL extraction jobs and CRM batch tasks."""
 
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -43,7 +44,7 @@ class WorkerSettings:
                 traces_sample_rate=0.1,
             )
         ctx["db_factory"] = SessionLocal
-        ctx["redis"] = redis_client
+        ctx["redis_cache"] = redis_client
 
     @staticmethod
     async def on_shutdown(ctx):
@@ -61,7 +62,7 @@ class SchedulerSettings:
     from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -82,6 +83,11 @@ class SchedulerSettings:
             hour={0, 6, 12, 18},
             minute=15,  # Every 6 hours at :15
         ),
+        cron(
+            cleanup_old_events,
+            hour=3,
+            minute=30,  # Daily at 3:30am UTC
+        ),
     ]
 
     @staticmethod
@@ -98,7 +104,7 @@ class SchedulerSettings:
                 traces_sample_rate=0.1,
             )
         ctx["db_factory"] = SessionLocal
-        ctx["redis"] = redis_client
+        ctx["redis_cache"] = redis_client
 
     @staticmethod
     async def on_shutdown(ctx):

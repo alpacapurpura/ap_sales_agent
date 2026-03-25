@@ -37,11 +37,15 @@ async def run_tenant_extraction(
         from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
         from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 
-        redis = ctx.get("redis")
+        redis = ctx.get("redis_cache")
         cache = MetricsCache(redis)
         connection_port = ConnectionPortImpl(db)
         etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
-        await etl_service.run_extraction(UUID(tenant_id), provider)
+
+        if provider == "all":
+            await etl_service.run_all_providers(UUID(tenant_id))
+        else:
+            await etl_service.run_extraction(UUID(tenant_id), provider)
 
         logger.info(
             "Extraction completed for tenant=%s provider=%s",
@@ -96,7 +100,7 @@ async def run_initial_load(
 
     db_factory = ctx["db_factory"]
     db = db_factory()
-    redis = ctx.get("redis")
+    redis = ctx.get("redis_cache")
     progress_key = f"initial_load:{tenant_id}:{provider}"
 
     try:

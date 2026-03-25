@@ -1,7 +1,8 @@
-from typing import TypedDict, List, Dict, Any, Optional
+from typing import Annotated, TypedDict, List, Dict, Any, Optional
 from uuid import UUID
 
 from langchain_core.messages import BaseMessage
+from langgraph.graph.message import add_messages
 
 
 class ClientContext(TypedDict, total=False):
@@ -18,7 +19,8 @@ class CopilotState(TypedDict):
     Uses LangChain message objects for compatibility with tool-calling.
     """
     # LangChain messages (HumanMessage, AIMessage, ToolMessage, etc.)
-    messages: List[BaseMessage]
+    # add_messages reducer appends instead of replacing, preserving the full chain.
+    messages: Annotated[List[BaseMessage], add_messages]
 
     # User / Tenant
     user_id: UUID
@@ -32,6 +34,12 @@ class CopilotState(TypedDict):
 
     # UI actions queued for the frontend
     pending_ui_actions: List[Dict[str, Any]]
+
+    # Tool names active for this request (route-based selection)
+    active_tool_names: List[str]
+
+    # Active procedure (set by procedure tools)
+    active_procedure: Optional[Dict[str, Any]]
 
     # Error tracking
     error: Optional[str]
@@ -50,5 +58,7 @@ def create_initial_copilot_state(
         "client_context": client_context or {},
         "conversation_id": conversation_id,
         "pending_ui_actions": [],
+        "active_tool_names": [],
+        "active_procedure": None,
         "error": None,
     }

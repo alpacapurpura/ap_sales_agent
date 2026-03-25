@@ -1,9 +1,11 @@
 "use client";
 
 import { ArrowRight, MapPin } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import type { UIAction } from "../../store/copilot-store";
 import { useCopilotNavigator } from "../../hooks/useCopilotNavigator";
+import { reportCopilotEvent } from "../../api/copilot-api";
 
 interface NavigationCardProps {
   action: UIAction;
@@ -11,6 +13,7 @@ interface NavigationCardProps {
 
 export function NavigationCard({ action }: NavigationCardProps) {
   const { executeAction } = useCopilotNavigator();
+  const { getToken } = useAuth();
 
   const label =
     action.page_label ??
@@ -19,10 +22,23 @@ export function NavigationCard({ action }: NavigationCardProps) {
 
   const sublabel = action.section_id ? `> ${action.section_id}` : undefined;
 
+  const handleClick = () => {
+    executeAction(action);
+    getToken().then((token) => {
+      if (token) {
+        reportCopilotEvent("navigation_clicked", {
+          route: action.route || "",
+          page_label: label,
+          section_id: action.section_id || "",
+        }, token);
+      }
+    });
+  };
+
   return (
     <Button
       variant="outline"
-      onClick={() => executeAction(action)}
+      onClick={handleClick}
       className="my-1 flex w-full items-center justify-between gap-2 rounded-xl border-purple-200 bg-purple-50/50 px-3 py-2.5 text-left text-sm hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/20 dark:hover:bg-purple-900/40"
     >
       <div className="flex items-center gap-2">

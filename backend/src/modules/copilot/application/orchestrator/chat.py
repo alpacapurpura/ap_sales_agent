@@ -8,7 +8,7 @@ from typing import AsyncGenerator, Optional
 from uuid import UUID
 
 import structlog
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from sqlalchemy.orm import Session
 
 from src.core.database import redis_client
@@ -88,6 +88,8 @@ class CopilotOrchestrator:
 
         # 5. Stream the graph execution
         full_response = ""
+        accumulated_messages: list = []  # Collect LangChain messages for persistence
+        last_tool_call_ids: dict[str, str] = {}  # tool_name -> tool_call_id
         try:
             yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
 
@@ -107,6 +109,15 @@ class CopilotOrchestrator:
                             data={"content": chunk.content},
                         ).to_sse()
 
+                # Capture complete AIMessages (with tool_calls)
+                elif kind == "on_chat_model_end":
+                    output = event.get("data", {}).get("output")
+                    if isinstance(output, AIMessage):
+                        accumulated_messages.append(output)
+                        if output.tool_calls:
+                            for tc in output.tool_calls:
+                                last_tool_call_ids[tc["name"]] = tc["id"]
+
                 # Tool execution events
                 elif kind == "on_tool_start":
                     tool_name = event.get("name", "unknown")
@@ -119,6 +130,16 @@ class CopilotOrchestrator:
                 elif kind == "on_tool_end":
                     tool_name = event.get("name", "unknown")
                     tool_output = event.get("data", {}).get("output", "")
+
+                    # Capture ToolMessage for persistence
+                    if isinstance(tool_output, ToolMessage):
+                        accumulated_messages.append(tool_output)
+                    elif isinstance(tool_output, str):
+                        tool_call_id = last_tool_call_ids.pop(tool_name, "")
+                        accumulated_messages.append(
+                            ToolMessage(content=tool_output, name=tool_name, tool_call_id=tool_call_id)
+                        )
+
                     yield SSEEvent(
                         event="tool_result",
                         data={
@@ -131,9 +152,7 @@ class CopilotOrchestrator:
                     parsed = tool_output if isinstance(tool_output, dict) else None
                     if not parsed and isinstance(tool_output, str):
                         try:
-                            parsed = json.loads(
-                                tool_output.replace("'", '"')
-                            )
+                            parsed = json.loads(tool_output)
                         except (json.JSONDecodeError, ValueError):
                             parsed = None
                     if isinstance(parsed, dict) and "ui_action" in parsed:
@@ -149,13 +168,20 @@ class CopilotOrchestrator:
                 data={"message": "Ocurrió un error procesando tu mensaje. Intenta de nuevo."},
             ).to_sse()
             full_response = ""
+            accumulated_messages = []
 
-        # 6. Persist messages
-        if full_response:
-            new_messages = [
-                {"role": "user", "content": message},
-                {"role": "assistant", "content": full_response},
-            ]
+        # 6. Persist messages (full chain including tool_calls)
+        if full_response or accumulated_messages:
+            new_messages = self._serialize_messages(
+                [HumanMessage(content=message)] + accumulated_messages
+            )
+            # Fallback: if no accumulated messages, persist simple format
+            if not accumulated_messages:
+                new_messages = [
+                    {"role": "user", "content": message},
+                    {"role": "assistant", "content": full_response},
+                ]
+
             self.conv_repo.append_messages(conv_uuid, tenant_id, new_messages)
 
             # Auto-title on first message
@@ -215,10 +241,40 @@ class CopilotOrchestrator:
             logger.debug("redis_cache_error", error=str(e))
 
     @staticmethod
-    def _deserialize_messages(raw_messages: list) -> list:
-        """Convert persisted dict messages to LangChain message objects."""
-        from langchain_core.messages import AIMessage
+    def _serialize_messages(messages: list) -> list[dict]:
+        """Convert LangChain message objects to persistable dicts.
 
+        Preserves tool_calls on AIMessages and ToolMessages for full
+        conversation replay.
+        """
+        result = []
+        for msg in messages:
+            if isinstance(msg, HumanMessage):
+                result.append({"role": "user", "content": msg.content})
+            elif isinstance(msg, AIMessage):
+                d: dict = {"role": "assistant", "content": msg.content}
+                if msg.tool_calls:
+                    d["tool_calls"] = [
+                        {"id": tc["id"], "name": tc["name"], "args": tc["args"]}
+                        for tc in msg.tool_calls
+                    ]
+                result.append(d)
+            elif isinstance(msg, ToolMessage):
+                result.append({
+                    "role": "tool",
+                    "content": msg.content,
+                    "tool_call_id": msg.tool_call_id,
+                    "name": msg.name,
+                })
+        return result
+
+    @staticmethod
+    def _deserialize_messages(raw_messages: list) -> list:
+        """Convert persisted dict messages to LangChain message objects.
+
+        Backward compatible: messages without tool_calls or tool role
+        are handled as before.
+        """
         result = []
         for msg in raw_messages:
             role = msg.get("role", "")
@@ -226,5 +282,14 @@ class CopilotOrchestrator:
             if role == "user":
                 result.append(HumanMessage(content=content))
             elif role == "assistant":
-                result.append(AIMessage(content=content))
+                if msg.get("tool_calls"):
+                    result.append(AIMessage(content=content, tool_calls=msg["tool_calls"]))
+                else:
+                    result.append(AIMessage(content=content))
+            elif role == "tool":
+                result.append(ToolMessage(
+                    content=content,
+                    tool_call_id=msg.get("tool_call_id", ""),
+                    name=msg.get("name", ""),
+                ))
         return result

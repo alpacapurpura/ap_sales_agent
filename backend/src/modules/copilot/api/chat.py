@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from src.core.context import set_user_id
 from src.core.database import get_db
 from src.modules.copilot.api.dto import CopilotChatRequest
 from src.modules.copilot.application.orchestrator.chat import CopilotOrchestrator
@@ -34,6 +35,8 @@ async def copilot_chat(
         raise HTTPException(status_code=401, detail="Tenant ID required")
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User not associated with a tenant")
+
+    set_user_id(current_user.id)
 
     orchestrator = CopilotOrchestrator(db)
 
