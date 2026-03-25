@@ -1,7 +1,0 @@
-- [x] IdentityPreview uses "Hero" style (Large Name, Badges) without duplicate title.
-- [x] StrategyPreview uses "Persona" style (Avatar Card, Tags) without duplicate title.
-- [x] All `Card` wrappers are removed from preview components.
-- [x] PricingPreview shows price clearly/visually without duplicate title.
-- [x] InstructorsPreview shows avatars without duplicate title.
-- [x] Visual style resembles Brand Studio (clean, spacious, visual).
-- [x] No duplicate titles ("Identidad", "Estrategia") are visible in the UI.

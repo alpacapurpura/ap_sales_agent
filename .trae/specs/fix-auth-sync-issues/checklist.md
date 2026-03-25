@@ -1,4 +1,0 @@
-- [x] Frontend `fetchClient` ignores `onboarding` path segment
-- [x] Backend `get_user_from_token` updates existing users with Clerk data
-- [x] User `nicolify.ai@gmail.com` exists in the database
-- [x] User can log in and view organizations/settings without 400/403 errors

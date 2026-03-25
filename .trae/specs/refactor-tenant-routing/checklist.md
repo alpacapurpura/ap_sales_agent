@@ -1,8 +1,0 @@
-- [x] Root `/` redirects to `/[tenantId]/...`
-- [x] Navigating to `/[tenantId]/brand-settings` loads the page correctly
-- [x] Switching tenants changes the URL to `/[newTenantId]/...`
-- [x] Switching tenants updates the data displayed without a full page reload (or with a fast client transition)
-- [x] API requests include `X-Tenant-ID` header matching the URL tenant
-- [x] API GET requests include `_t` query parameter
-- [x] Sidebar links point to the correct `/[tenantId]/...` paths
-- [x] Browser back/forward buttons work correctly between tenants

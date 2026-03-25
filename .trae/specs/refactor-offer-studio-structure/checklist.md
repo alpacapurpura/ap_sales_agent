@@ -1,5 +1,0 @@
-- [x] All files in `features/offer-studio/components/editor/sections` are named using `kebab-case`.
-- [x] `offer-builder-config.ts` correctly imports components from the new paths.
-- [x] Complex sections (`instructors`, `resources`, `gallery`) use a `Manager` component pattern if external data is required.
-- [x] No build errors or import errors remain in the project.
-- [x] The application runs and the Offer Studio editor loads correctly without regressions.

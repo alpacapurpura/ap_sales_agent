@@ -1,5 +1,0 @@
-- [x] Marketing Studio Dashboard shows no hardcoded numbers (e.g., no $45k revenue).
-- [x] Marketing Studio Profiles list is empty or shows real DB users (if any).
-- [x] Sales Studio Inbox is empty (no fake "Alice" or "Bob" chats).
-- [x] Sales Studio Activity Feed is empty.
-- [x] Application compiles and runs without errors after removing mocks.

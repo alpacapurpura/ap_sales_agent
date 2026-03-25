@@ -1,7 +1,0 @@
-- [x] Frontend: `ConnectionsView` uses `key={tenantId}`
-- [x] Frontend: Mock data test confirms data refresh on tenant switch
-- [x] Backend: `backend/src/modules/integration` exists
-- [x] Backend: `WhatsAppChannel` is in `integration/infrastructure/channels`
-- [x] Backend: `whatsapp.py` (API) is in `integration/api`
-- [x] Backend: Imports are updated and server starts without errors
-- [x] Backend: `ChatOrchestrator` successfully imports `WhatsAppChannel` from new location

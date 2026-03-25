@@ -1,8 +1,0 @@
-- [x] `useDebounce` hook is implemented and exported.
-- [x] `useLocalStorage` hook is implemented and exported.
-- [x] `useIntersectionObserver` hook is implemented and exported.
-- [x] `ErrorBoundary` component is implemented and handles errors gracefully.
-- [x] `OfferEditor` is wrapped in `ErrorBoundary`.
-- [x] `HeroSection` uses Compound Components pattern (`Hero.Content`, etc.).
-- [x] `OfferSectionWrapper` uses Compound Components pattern (`OfferSection.Header`, etc.).
-- [x] All refactored components compile and render correctly.

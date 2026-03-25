@@ -1,9 +1,0 @@
-- [x] Shopify Connection: Working (Connect, Test, Disconnect, Logs).
-- [x] MailerLite Connection: Working (Connect, Test, Disconnect, Logs).
-- [x] ManyChat Connection: Working (Connect, Test, Disconnect, Logs).
-- [x] Google Analytics Connection: Working (Connect, Test, Disconnect, Logs).
-- [x] Meta Connection: Working (Connect, Test, Disconnect, Logs).
-- [x] YouTube Connection: Working (Connect, Test, Disconnect, Logs).
-- [x] All connections have "Test Connection" button in UI.
-- [x] Error logs are structured and contain tenant context.
-- [x] Documentation for each service was verified before implementation.

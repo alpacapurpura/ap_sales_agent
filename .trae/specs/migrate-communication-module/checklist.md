@@ -1,5 +1,0 @@
-- [x] `backend/src/modules/communication` directory does not exist.
-- [x] `backend/src/modules/scheduling` contains all scheduling logic.
-- [x] `backend/src/modules/connections` contains `ChannelConnection` and `ChannelType`.
-- [x] Application starts without `ImportError`.
-- [x] `main.py` registers routers from `scheduling`.

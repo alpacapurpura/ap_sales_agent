@@ -1,4 +1,0 @@
-- [x] `OfferCard` component renders correctly in isolation with real data fixture
-- [x] Dashboard filtering logic covers all edge cases (null names, mismatched types) in tests
-- [x] Adapter function normalizes all Enums correctly (case-insensitive)
-- [x] No "technical debt" comments or disabled code blocks remain in the source

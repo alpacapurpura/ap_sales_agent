@@ -1,4 +1,0 @@
-- [x] Backend endpoint `GET /api/v1/brand/settings` exists
-- [x] Backend endpoint `PATCH /api/v1/brand/settings` exists
-- [x] Frontend `brandApi.getBrandSettings` calls correct URL
-- [x] Frontend `settingsApi.getBrandSettings` calls correct URL

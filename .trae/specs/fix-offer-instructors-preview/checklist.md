@@ -1,2 +1,0 @@
-- [x] Instructors preview shows real names and avatars
-- [x] Instructors section is marked as complete in sidebar when instructors are added

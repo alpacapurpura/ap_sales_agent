@@ -1,5 +1,0 @@
-- [x] `MOCK_BRAND_SETTINGS` covers all sections (Identity, Strategy, Team, Visuals, Contact, Vault).
-- [x] Brand Studio loads without errors in Mock Mode.
-- [x] Backend API `/api/v1/settings/brand` is reachable and returns 200 OK.
-- [x] Backend data matches the structure expected by the frontend.
-- [x] Updates to Brand Settings persist correctly (Mock Mode: simulated; Real Mode: persisted to DB).

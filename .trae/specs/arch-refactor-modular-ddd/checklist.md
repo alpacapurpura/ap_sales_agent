@@ -1,4 +1,0 @@
-- [x] `back-structure.md` clearly describes the Modular Monolith structure.
-- [x] `back-structure.md` explains the 4 layers (Domain, Application, Infra, API) within a module.
-- [x] `visionarias-stack.md` is updated to remove references to the old `src/core` / `src/services` split.
-- [x] `visionarias-stack.md` includes guidelines for Agentic DDD (State purity, Node determinism).

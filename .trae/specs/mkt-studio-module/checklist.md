@@ -1,7 +1,0 @@
-- [x] Backend models (`CustomerProfile`, `CustomerIdentity`, `JourneyEvent`) exist and follow strict taxonomy.
-- [x] Backend repositories (`CustomerRepository`, `JourneyEventRepository`) are implemented using DAO pattern.
-- [x] Backend services structure (`engines`, `connectors`) is created and uses repositories.
-- [x] Backend API routers (`cdp`, `webhooks_cdp`) are created and registered.
-- [x] Frontend types (`types/index.ts`) are defined.
-- [x] Frontend views (`ConnectionsView`, `PipelineView`, `JourneyExplorer`, `GrowthDashboard`) are created as placeholders/scaffolds.
-- [x] Project compiles/runs without errors (linting check).

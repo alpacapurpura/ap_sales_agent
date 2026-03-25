@@ -1,7 +1,0 @@
-- [x] "Resumen" item is removed from the sidebar.
-- [x] Root path `/` redirects to `/brand-settings`.
-- [x] Frontend feature `frontend/src/features/dashboard` is deleted.
-- [x] Backend router `dashboard` is unregistered in `main.py`.
-- [x] Backend implementation files are deleted.
-- [x] Frontend builds successfully (`npm run build` or `npm run lint`).
-- [x] Backend starts successfully (`uvicorn backend.src.main:app`).

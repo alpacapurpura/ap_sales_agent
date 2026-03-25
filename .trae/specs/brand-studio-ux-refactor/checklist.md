@@ -1,9 +1,0 @@
-- [x] **Scenario 1 (New User)**: `BrandEmptyState` appears for new brands.
-- [x] **Scenario 1**: "Autocompletar con IA" opens the `SmartFillSheet`.
-- [x] **Scenario 1**: "Configurar Manualmente" dismisses the empty state.
-- [x] **Scenario 2 (In Progress)**: Main layout visible with empty placeholders.
-- [x] **Scenario 3 (Completed)**: Clean layout with no inline forms.
-- [x] **Scenario 4 (Returning)**: "Refinar con IA" button visible in Header.
-- [x] **Scenario 4**: Clicking "Refinar" opens `SmartFillSheet` in update mode.
-- [x] **Technical**: `SmartFillCard` code removed from main layout flow.
-- [x] **Mobile**: Sheet and Empty State are responsive.

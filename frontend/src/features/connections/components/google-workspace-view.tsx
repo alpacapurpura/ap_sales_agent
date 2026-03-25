@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi } from "@/lib/api/connections";
+import { connectionsApi, GA4Property, GoogleAnalyticsStatusResponse } from "@/lib/api/connections";
+import { PropertyPicker } from "@/features/connections/components/property-picker";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -226,6 +229,12 @@ export function GoogleWorkspaceView() {
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [togglingService, setTogglingService] = useState<ServiceKey | null>(null);
 
+  // GA4 Property Picker State
+  const [gaStatus, setGaStatus] = useState<GoogleAnalyticsStatusResponse | null>(null);
+  const [ga4Properties, setGa4Properties] = useState<GA4Property[]>([]);
+  const [showGaPropertyPicker, setShowGaPropertyPicker] = useState(false);
+  const [loadingGaProperties, setLoadingGaProperties] = useState(false);
+
   const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
@@ -246,32 +255,43 @@ export function GoogleWorkspaceView() {
   }, [fetchStatus]);
 
   // Listen for the OAuth code sent by the popup callback page
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      if (event.data?.type !== "GOOGLE_OAUTH_SUCCESS" || !event.data?.code) return;
-
+  useGoogleOAuthListener({
+    onSuccess: async (code) => {
       try {
         setIsConnecting(true);
         const token = await getToken();
         if (!token) return;
 
         toast.info("Conectando tu cuenta de Google...");
-        await connectionsApi.connectGoogleWorkspace(event.data.code, token);
+        await connectionsApi.connectGoogleWorkspace(code, token);
         toast.success("Google Workspace conectado. Todos los servicios están activos.");
 
         await fetchStatus();
+
+        // Check if GA needs property selection
+        try {
+          const gaData = await connectionsApi.getGoogleAnalyticsStatus(token!);
+          setGaStatus(gaData);
+          if (gaData.is_connected && !gaData.selected_property) {
+            const wsResult = await connectionsApi.getGoogleAnalyticsProperties(token!);
+            setGa4Properties(wsResult);
+            setShowGaPropertyPicker(true);
+          }
+        } catch (e) {
+          console.error("Could not check GA status after workspace connect", e);
+        }
       } catch (error: any) {
         console.error(error);
         toast.error(error.message || "Error al conectar Google");
       } finally {
         setIsConnecting(false);
       }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [getToken, fetchStatus]);
+    },
+    onError: () => {
+      toast.error("Error en autenticación de Google");
+      setIsConnecting(false);
+    },
+  });
 
   const handleConnect = async () => {
     try {
@@ -281,16 +301,7 @@ export function GoogleWorkspaceView() {
 
       const { url } = await connectionsApi.getGoogleWorkspaceAuthUrl(token);
 
-      const width = 520;
-      const height = 640;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2;
-
-      window.open(
-        url,
-        "GoogleWorkspaceAuth",
-        `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,status=no`
-      );
+      openOAuthPopup({ url, name: "GoogleWorkspaceAuth" });
 
       // Safety timeout: reset button if popup is closed without completing
       setTimeout(() => setIsConnecting(false), 90_000);
@@ -347,6 +358,50 @@ export function GoogleWorkspaceView() {
       toast.error(error.message || "Error al desconectar");
     } finally {
       setIsDisconnecting(false);
+    }
+  };
+
+  // Check GA property status when workspace is connected
+  useEffect(() => {
+    if (status?.is_connected) {
+      const checkGa = async () => {
+        try {
+          const token = await getToken();
+          if (!token) return;
+          const gaData = await connectionsApi.getGoogleAnalyticsStatus(token);
+          setGaStatus(gaData);
+        } catch (e) {
+          // Silently ignore — GA status is supplementary
+        }
+      };
+      checkGa();
+    }
+  }, [status?.is_connected]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleChangeGaProperty = async () => {
+    try {
+      setLoadingGaProperties(true);
+      const token = await getToken();
+      if (!token) return;
+      const props = await connectionsApi.getGoogleAnalyticsProperties(token);
+      setGa4Properties(props);
+      setShowGaPropertyPicker(true);
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Error al obtener propiedades de GA4");
+      setGa4Properties([]);
+      setShowGaPropertyPicker(true);
+    } finally {
+      setLoadingGaProperties(false);
+    }
+  };
+
+  const handleGaPropertySelected = async () => {
+    setShowGaPropertyPicker(false);
+    const token = await getToken();
+    if (token) {
+      const gaData = await connectionsApi.getGoogleAnalyticsStatus(token);
+      setGaStatus(gaData);
     }
   };
 
@@ -435,6 +490,57 @@ export function GoogleWorkspaceView() {
             onToggle={handleToggleService}
           />
         ))}
+
+        {/* GA4 Property Picker */}
+        {showGaPropertyPicker && (
+          <>
+            <Separator className="my-4" />
+            <PropertyPicker
+              properties={ga4Properties}
+              onSelected={handleGaPropertySelected}
+              isChangeMode={!!gaStatus?.selected_property}
+            />
+          </>
+        )}
+
+        {/* GA4 Property Status (when connected but picker not open) */}
+        {!showGaPropertyPicker && gaStatus?.is_connected && !gaStatus?.selected_property && (
+          <>
+            <Separator className="my-4" />
+            <Alert className="bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-800">
+              <BarChart className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Google Analytics esta conectado pero falta seleccionar una propiedad.{" "}
+                <button
+                  type="button"
+                  onClick={handleChangeGaProperty}
+                  className="underline font-medium hover:text-foreground"
+                >
+                  Seleccionar ahora
+                </button>
+              </AlertDescription>
+            </Alert>
+          </>
+        )}
+
+        {!showGaPropertyPicker && gaStatus?.selected_property && (
+          <>
+            <Separator className="my-4" />
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                GA4: <strong className="text-foreground">{gaStatus.selected_property.display_name}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={handleChangeGaProperty}
+                disabled={loadingGaProperties}
+                className="text-muted-foreground underline hover:text-foreground"
+              >
+                {loadingGaProperties ? "Cargando..." : "Cambiar"}
+              </button>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

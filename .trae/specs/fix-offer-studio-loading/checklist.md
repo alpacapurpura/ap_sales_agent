@@ -1,3 +1,0 @@
-- [x] Backend API `GET /api/v1/offer/products/` returns 200 OK for tenant "visionarias"
-- [x] Frontend Offer Studio Dashboard displays offers without error
-- [x] Sequence diagram/Analysis is provided to the user

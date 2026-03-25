@@ -1,4 +1,0 @@
-- [x] La estructura del módulo Gallery es genérica (no específica de Offer)
-- [x] Los endpoints de Offer siguen funcionando correctamente (Prueba de Regresión)
-- [x] La entidad `GalleryImage` (o equivalente) y el Repositorio están preparados para `tenant_id`
-- [x] No existen referencias circulares o importaciones innecesarias a Offer dentro del Dominio de Gallery

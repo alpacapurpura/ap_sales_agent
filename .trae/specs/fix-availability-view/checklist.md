@@ -1,5 +1,0 @@
-- [x] `AvailabilityService` correctly handles `tenant.config_json` being None or empty.
-- [x] `list_schedules` returns a default schedule if none exists, and persists it.
-- [x] Integration tests for `AvailabilityService` pass.
-- [x] API tests for `/api/v1/connections/calendar/schedules` pass. (Verified via logic test)
-- [x] The manual verification script confirms the API returns valid JSON matching the frontend interface. (Verified via logic test)

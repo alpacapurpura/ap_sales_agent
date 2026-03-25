@@ -1,5 +1,0 @@
-- [x] Identity Header uses Visionarias "Purple & Gold" theme.
-- [x] Icon container has a distinct "Glow" effect.
-- [x] Typography is elegant and matches brand "Editorial" feel.
-- [x] Badges are styled as "Brand Pills" (Purple/Gold).
-- [x] Background is "Mystic" or "Clean Premium" (not default card).

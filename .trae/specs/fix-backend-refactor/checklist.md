@@ -1,7 +1,0 @@
-- [ ] `Product` model exists in `backend/src/modules/content/infrastructure/models/product.py`
-- [ ] `PromptVersion` model exists in `backend/src/shared/infrastructure/db/models/prompt.py`
-- [ ] `backend/src/shared/infrastructure/db/database.py` imports `Product` from `src.modules.content.infrastructure.models.product`
-- [ ] `backend/src/shared/infrastructure/db/database.py` imports `PromptVersion` from `src.shared.infrastructure.db.models.prompt`
-- [ ] `backend/src/modules/content/infrastructure/product.py` imports `Product` from `src.modules.content.infrastructure.models.product`
-- [ ] Backend container starts without `ModuleNotFoundError`
-- [ ] Database seeding completes successfully (check logs)

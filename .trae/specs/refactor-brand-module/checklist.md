@@ -1,7 +1,0 @@
-- [x] `src/modules/brand/domain/brand.py` ha sido eliminado
-- [x] `BrandIdentity` usa Enums para `industry` y tiene validaciones de campos requeridos
-- [x] `BrandStrategy` migra automáticamente `competitors_legacy` y no expone el campo legacy
-- [x] `BrandStory` migra automáticamente `milestones_legacy`
-- [x] `BrandSettings` importa correctamente todos los submódulos
-- [x] El proyecto pasa el chequeo de linter (`ruff check`) sin errores de importación
-- [x] La aplicación puede iniciar (simulado mediante verificación estática de imports)

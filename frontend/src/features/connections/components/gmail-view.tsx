@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
-import { useSearchParams, useRouter } from "next/navigation";
 import { connectionsApi } from "@/lib/api/connections";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,8 +22,6 @@ import {
 
 export function GmailView() {
   const { getToken } = useAuth();
-  const searchParams = useSearchParams();
-  const router = useRouter();
   
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<{ is_connected: boolean; email?: string } | null>(null);
@@ -51,40 +50,34 @@ export function GmailView() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle OAuth Callback (Popup Listener)
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      
-      if (event.data?.type === "GOOGLE_OAUTH_SUCCESS" && event.data?.code) {
-         try {
-          setConnecting(true);
-          const token = await getToken();
-          if (!token) return;
+  useGoogleOAuthListener({
+    onSuccess: async (code) => {
+      try {
+        setConnecting(true);
+        const token = await getToken();
+        if (!token) return;
 
-          toast.info("Finalizando conexión con Gmail...");
-          
-          // Must match the redirect URI registered in Google Cloud Console
-          const redirectUri = window.location.origin + "/connections/brand-settings";
-          
-          await connectionsApi.connectGmail(event.data.code, token, redirectUri);
-          toast.success("Gmail conectado exitosamente");
-          
-          await fetchStatus();
-        } catch (error: any) {
-          console.error(error);
-          toast.error(error.message || "Error al conectar Gmail");
-        } finally {
-          setConnecting(false);
-        }
-      } else if (event.data?.type === "GOOGLE_OAUTH_ERROR") {
-          toast.error("Error en autenticación de Google");
-          setConnecting(false);
+        toast.info("Finalizando conexión con Gmail...");
+
+        // Must match the redirect URI registered in Google Cloud Console
+        const redirectUri = window.location.origin + "/connections/brand-settings";
+
+        await connectionsApi.connectGmail(code, token, redirectUri);
+        toast.success("Gmail conectado exitosamente");
+
+        await fetchStatus();
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.message || "Error al conectar Gmail");
+      } finally {
+        setConnecting(false);
       }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    },
+    onError: () => {
+      toast.error("Error en autenticación de Google");
+      setConnecting(false);
+    },
+  });
 
   const handleConnect = async () => {
     try {
@@ -96,17 +89,7 @@ export function GmailView() {
       const redirectUri = window.location.origin + "/connections/brand-settings";
       const { url } = await connectionsApi.getGmailAuthUrl(token, redirectUri);
       
-      // Open Popup
-      const width = 500;
-      const height = 600;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2;
-      
-      window.open(
-        url,
-        "GoogleAuth",
-        `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,status=no`
-      );
+      openOAuthPopup({ url, name: "GmailAuth" });
 
       setTimeout(() => setConnecting(false), 60000); // 1 min timeout
 

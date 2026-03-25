@@ -1,6 +1,0 @@
-- [ ] `shopify.app.toml` has `application_url` set to `https://laptopchris.alpacapurpura.lat`
-- [ ] `shopify.app.toml` includes `https://laptopchris.alpacapurpura.lat/api/auth/shopify/callback` in `redirect_urls`
-- [ ] Backend `generate_auth_url` returns a URL with `redirect_uri` pointing to the Frontend callback
-- [ ] Backend `POST /exchange` endpoint successfully exchanges code for token and saves connection
-- [ ] Frontend `GET /api/auth/shopify/callback` successfully proxies to Backend and redirects user
-- [ ] `shopify app config push` executed successfully (or manual update confirmed)

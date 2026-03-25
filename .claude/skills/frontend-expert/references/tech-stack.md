@@ -1,7 +1,7 @@
 # Frontend Technology Stack
 
 Core Framework:
-- Next.js 14+ (App Router, React Server Components)
+- Next.js 15+ (App Router, React Server Components)
 - React 18+ (Hooks, Context)
 
 Language:

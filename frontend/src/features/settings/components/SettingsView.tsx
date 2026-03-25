@@ -31,6 +31,7 @@ import {
 } from "lucide-react"
 import { useSearchParams, useRouter, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
+import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 function PlaceholderContent({ title, icon: Icon }: { title: string, icon: any }) {
@@ -297,42 +298,13 @@ function SettingsContent() {
 
 function SettingsViewInner() {
   const searchParams = useSearchParams()
-  const [isPopupCallback, setIsPopupCallback] = useState(false)
-
-  useEffect(() => {
-    // Check if we are in a popup and have a code/error from Google or Meta
-    if (window.opener && (searchParams?.get("code") || searchParams?.get("error"))) {
-        setIsPopupCallback(true);
-        const code = searchParams?.get("code");
-        const error = searchParams?.get("error");
-        const state = searchParams?.get("state");
-
-        if (code) {
-            if (state && state.startsWith("meta")) {
-                window.opener.postMessage({ type: "META_OAUTH_SUCCESS", code }, window.location.origin);
-            } else {
-                window.opener.postMessage({ type: "GOOGLE_OAUTH_SUCCESS", code }, window.location.origin);
-            }
-        } else if (error) {
-            if (state && state.startsWith("meta")) {
-                window.opener.postMessage({ type: "META_OAUTH_ERROR", error }, window.location.origin);
-            } else {
-                window.opener.postMessage({ type: "GOOGLE_OAUTH_ERROR", error }, window.location.origin);
-            }
-        }
-
-        // Close after a brief delay
-        setTimeout(() => window.close(), 1000);
-    }
-  }, [searchParams]);
+  const isPopupCallback =
+    typeof window !== "undefined" &&
+    !!window.opener &&
+    !!(searchParams?.get("code") || searchParams?.get("error"))
 
   if (isPopupCallback) {
-      return (
-          <div className="h-screen w-full flex flex-col items-center justify-center bg-background">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-              <p className="text-muted-foreground">Autenticando...</p>
-          </div>
-      );
+    return <OAuthCallbackHandler provider="auto" />
   }
 
   return (

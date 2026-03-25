@@ -1,7 +1,0 @@
-- [x] AI Services moved to `src/core/services` and imports updated.
-- [x] Channels moved to `src/services/channels` and imports updated.
-- [x] `src/api/routers/telegram.py` exists and handles all Telegram routes.
-- [x] `src/api/routers/whatsapp.py` handles all WhatsApp routes.
-- [x] `src/api/routes.py` is removed.
-- [x] `main.py` runs without import errors.
-- [x] `ruff check` passes.

@@ -1,3 +1,0 @@
-- [x] `backend/scripts/verify_calendar_status.py` runs successfully and returns 200 OK.
-- [x] `GET /status` returns correct JSON structure (`is_connected`, `email`, `booking_link`).
-- [x] Backend code imports all necessary models (`ChannelConnection`, `ShareableLink`) to avoid `NoReferencedTableError` or `CompileError`.

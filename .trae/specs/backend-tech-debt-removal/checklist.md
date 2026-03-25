@@ -1,9 +1,0 @@
-- [x] Directory `backend/src/api/dto` exists and contains DTOs.
-- [x] Domain models in `backend/src/core/domain` do not import `sqlalchemy`.
-- [x] `api/routers/users.py` contains no direct `db.query` calls.
-- [x] `api/routers/telegram.py` contains no `httpx` or direct DB calls.
-- [x] WhatsApp v1 and v2 providers inherit from a common base class.
-- [x] No `except: pass` blocks found in `offer_gallery.py` or `telegram.py`.
-- [x] `get_my_tenants` endpoint is verified safe.
-- [x] Return types are present in key router functions.
-- [x] `ruff check backend/src` returns no critical errors.

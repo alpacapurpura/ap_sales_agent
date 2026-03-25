@@ -1,7 +1,0 @@
-- [x] "Conocimiento" link removed from Sidebar
-- [x] `/knowledge` page returns 404 (or redirects) (Verified by deletion)
-- [x] `/api/v1/knowledge` endpoints return 404 (Verified by deletion)
-- [x] `KnowledgeService` and `DocumentService` files deleted
-- [x] `Document` model removed from `business.py`
-- [x] `MarketingAsset` no longer has `documents` relationship
-- [x] `Admin` API no longer has `sync_knowledge_base` endpoint

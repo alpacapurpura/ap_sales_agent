@@ -1,7 +1,0 @@
-- [x] Database migration applied successfully (user_tenants table exists, users.tenant_id removed)
-- [x] Existing users can still log in and access their original tenant (migration verification)
-- [x] `GET /api/v1/users/me/tenants` returns correct list of tenants for a user
-- [x] `X-Tenant-ID` header correctly switches context in `get_current_user`
-- [x] Admin panel allows adding an existing user to a second tenant
-- [x] Frontend Sidebar shows the Tenant Switcher
-- [x] Switching tenant in Frontend updates the UI and data immediately

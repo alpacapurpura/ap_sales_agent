@@ -1,6 +1,0 @@
-- [x] Directory `despliegue/` exists and contains `local/` and `github_actions/`
-- [x] `.gitignore` includes `despliegue/`
-- [x] `despliegue/local/deploy_local.sh` exists and is executable
-- [x] `despliegue/local/README.md` documents the local process clearly
-- [x] `despliegue/github_actions/deploy.sh` exists
-- [x] `despliegue/github_actions/README.md` documents the CI/CD process clearly

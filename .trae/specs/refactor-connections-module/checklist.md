@@ -1,7 +1,0 @@
-- [x] Las credenciales en `channel_connections` están cifradas en la base de datos.
-- [x] La lectura de conexiones devuelve las credenciales descifradas correctamente para su uso interno.
-- [x] `InstagramChannel` implementa correctamente `BaseChannel`.
-- [x] `ChatOrchestrator` puede enviar mensajes a través de Instagram.
-- [x] Los webhooks de Shopify y Meta validan firmas correctamente usando la dependencia centralizada.
-- [x] `ShopifyConnector` y `GoogleCalendarAdapter` implementan `BaseConnector`.
-- [x] Todos los endpoints de conexiones (`/status`, `/callback`, `/config`) funcionan correctamente tras los cambios.

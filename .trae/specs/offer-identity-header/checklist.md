@@ -1,5 +1,0 @@
-- [x] IdentityPreview renders as a centered header
-- [x] Correct Icon is displayed based on `OfferType`
-- [x] Public Name is displayed as H1
-- [x] Type and Delivery Model are displayed as badges
-- [x] Fallback states (no name, no type) render correctly

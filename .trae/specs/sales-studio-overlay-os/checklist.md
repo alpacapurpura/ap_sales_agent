@@ -1,7 +1,0 @@
-- [x] Sales Dashboard renders with Bento Grid layout
-- [x] Payment Gateway Configuration opens in a modal/sheet
-- [x] Sandbox/Production toggle for payments works visually
-- [x] Sales Inbox opens in an overlay without page reload
-- [x] Appointment details open in a Sheet when clicked from the dashboard
-- [x] Availability settings are accessible via a modal from the dashboard
-- [x] No regression in existing appointment fetching logic (mock or real)

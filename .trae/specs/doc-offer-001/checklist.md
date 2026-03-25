@@ -1,4 +1,0 @@
-- [x] File `docs/domains/module_offer.md` exists
-- [x] File follows the required Frontmatter template
-- [x] File contains Business Rules section
-- [x] File contains Code Map section

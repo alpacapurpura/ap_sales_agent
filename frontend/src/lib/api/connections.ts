@@ -50,9 +50,26 @@ export interface ManyChatStatusResponse extends ChannelStatusResponse {
   account_info?: Record<string, any>;
 }
 
+export interface GA4Property {
+  property_id: string;
+  display_name: string;
+  account_name: string;
+}
+
+export interface SelectedProperty {
+  property_id: string;
+  display_name: string;
+}
+
 export interface GoogleAnalyticsStatusResponse extends ChannelStatusResponse {
   account_summary?: any[];
   is_configured?: boolean;
+  selected_property?: SelectedProperty | null;
+}
+
+export interface GoogleAnalyticsCallbackResponse {
+  status: string;
+  properties: GA4Property[];
 }
 
 export interface GoogleAnalyticsConfigRequest {
@@ -172,7 +189,7 @@ export const connectionsApi = {
     return res.json();
   },
 
-  connectGoogleAnalytics: async (code: string, token: string, redirectUri?: string): Promise<any> => {
+  connectGoogleAnalytics: async (code: string, token: string, redirectUri?: string): Promise<GoogleAnalyticsCallbackResponse> => {
      const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/callback`, {
       method: "POST",
       headers: { 
@@ -210,6 +227,29 @@ export const connectionsApi = {
     return res.json();
   },
 
+  getGoogleAnalyticsProperties: async (token: string): Promise<GA4Property[]> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/properties`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo propiedades de GA4");
+    return res.json();
+  },
+
+  selectGoogleAnalyticsProperty: async (propertyId: string, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google-analytics/properties/select`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ property_id: propertyId }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Error seleccionando propiedad");
+    }
+    return res.json();
+  },
 
   // Shopify
   getShopifyStatus: async (token: string): Promise<ShopifyStatusResponse> => {

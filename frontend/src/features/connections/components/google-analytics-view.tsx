@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useSearchParams } from "next/navigation";
-import { connectionsApi, GoogleAnalyticsStatusResponse } from "@/lib/api/connections";
+import { connectionsApi, GoogleAnalyticsStatusResponse, GA4Property } from "@/lib/api/connections";
+import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
+import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
+import { PropertyPicker } from "@/features/connections/components/property-picker";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -23,8 +25,7 @@ import {
 
 export function GoogleAnalyticsView() {
   const { getToken } = useAuth();
-  const searchParams = useSearchParams();
-  
+
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<GoogleAnalyticsStatusResponse | null>(null);
   const [connecting, setConnecting] = useState(false);
@@ -38,6 +39,11 @@ export function GoogleAnalyticsView() {
   const [clientSecret, setClientSecret] = useState("");
   const [savingConfig, setSavingConfig] = useState(false);
 
+  // Property Picker State
+  const [properties, setProperties] = useState<GA4Property[]>([]);
+  const [showPropertyPicker, setShowPropertyPicker] = useState(false);
+  const [loadingProperties, setLoadingProperties] = useState(false);
+
   const fetchStatus = async () => {
     try {
       setLoading(true);
@@ -45,8 +51,7 @@ export function GoogleAnalyticsView() {
       if (!token) return;
       const data = await connectionsApi.getGoogleAnalyticsStatus(token);
       setStatus(data);
-      
-      // If not configured, automatically enter config mode
+
       if (data && !data.is_configured) {
           setConfigMode(true);
       }
@@ -62,65 +67,60 @@ export function GoogleAnalyticsView() {
     fetchStatus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle OAuth Callback (Popup Listener)
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      
-      if (event.data?.type === "GOOGLE_OAUTH_SUCCESS" && event.data?.code) {
-         try {
-          setConnecting(true);
-          const token = await getToken();
-          if (!token) return;
+  // Handle OAuth Callback
+  useGoogleOAuthListener({
+    onSuccess: async (code) => {
+      try {
+        setConnecting(true);
+        const token = await getToken();
+        if (!token) return;
 
-          toast.info("Finalizando conexión con Google Analytics...");
-          
-          // Use the callback route as redirect URI - must match what is configured in Google Cloud Console
-          const redirectUri = window.location.origin + "/connections";
-          
-          await connectionsApi.connectGoogleAnalytics(event.data.code, token, redirectUri);
-          toast.success("Google Analytics conectado exitosamente");
-          
-          await fetchStatus();
-        } catch (error: any) {
-          console.error(error);
-          toast.error(error.message || "Error al conectar Google Analytics");
-        } finally {
-          setConnecting(false);
+        toast.info("Finalizando conexion con Google Analytics...");
+        const redirectUri = window.location.origin + "/connections";
+        const result = await connectionsApi.connectGoogleAnalytics(code, token, redirectUri);
+
+        toast.success("Google Analytics conectado");
+
+        // Show property picker with returned properties
+        if (result.properties && result.properties.length > 0) {
+          setProperties(result.properties);
+          setShowPropertyPicker(true);
+        } else {
+          // No properties returned — show picker with empty state (manual input)
+          setProperties([]);
+          setShowPropertyPicker(true);
         }
-      } else if (event.data?.type === "GOOGLE_OAUTH_ERROR") {
-          toast.error("Error en autenticación de Google");
-          setConnecting(false);
-      }
-    };
 
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        await fetchStatus();
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.message || "Error al conectar Google Analytics");
+      } finally {
+        setConnecting(false);
+      }
+    },
+    onError: () => {
+      toast.error("Error en autenticacion de Google");
+      setConnecting(false);
+    },
+  });
 
   const handleSaveConfig = async () => {
       if (!clientId || !clientSecret) {
           toast.error("Por favor completa todos los campos");
           return;
       }
-
       try {
           setSavingConfig(true);
           const token = await getToken();
           if (!token) return;
-
-          await connectionsApi.configureGoogleAnalytics({
-              client_id: clientId,
-              client_secret: clientSecret
-          }, token);
-
-          toast.success("Configuración guardada exitosamente");
+          await connectionsApi.configureGoogleAnalytics({ client_id: clientId, client_secret: clientSecret }, token);
+          toast.success("Configuracion guardada exitosamente");
           setConfigMode(false);
-          // Refresh status to update is_configured
           await fetchStatus();
       } catch (error: any) {
           console.error(error);
-          toast.error(error.message || "Error al guardar configuración");
+          toast.error(error.message || "Error al guardar configuracion");
       } finally {
           setSavingConfig(false);
       }
@@ -131,28 +131,39 @@ export function GoogleAnalyticsView() {
       setConnecting(true);
       const token = await getToken();
       if (!token) return;
-
       const redirectUri = window.location.origin + "/connections";
       const { url } = await connectionsApi.getGoogleAnalyticsAuthUrl(token, redirectUri);
-      
-      const width = 500;
-      const height = 600;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2;
-      
-      window.open(
-        url,
-        "GoogleAuth",
-        `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,status=no`
-      );
-
-      setTimeout(() => setConnecting(false), 60000); 
-
+      openOAuthPopup({ url, name: "GoogleAnalyticsAuth" });
+      setTimeout(() => setConnecting(false), 60000);
     } catch (error: any) {
       console.error(error);
-      toast.error("No se pudo iniciar la conexión. Verifica tu configuración.");
+      toast.error("No se pudo iniciar la conexion. Verifica tu configuracion.");
       setConnecting(false);
     }
+  };
+
+  const handleChangeProperty = async () => {
+    try {
+      setLoadingProperties(true);
+      const token = await getToken();
+      if (!token) return;
+      const props = await connectionsApi.getGoogleAnalyticsProperties(token);
+      setProperties(props);
+      setShowPropertyPicker(true);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Error al obtener propiedades");
+      // Show picker with empty properties (manual fallback)
+      setProperties([]);
+      setShowPropertyPicker(true);
+    } finally {
+      setLoadingProperties(false);
+    }
+  };
+
+  const handlePropertySelected = () => {
+    setShowPropertyPicker(false);
+    fetchStatus();
   };
 
   const handleTest = async () => {
@@ -161,10 +172,9 @@ export function GoogleAnalyticsView() {
           setTestResult(null);
           const token = await getToken();
           if (!token) return;
-          
           const res = await connectionsApi.testGoogleAnalytics(token);
           setTestResult(res);
-          toast.success("Prueba de conexión exitosa");
+          toast.success("Prueba de conexion exitosa");
       } catch (error: any) {
           console.error(error);
           toast.error(error.message || "Error en la prueba");
@@ -179,11 +189,11 @@ export function GoogleAnalyticsView() {
       setDisconnecting(true);
       const token = await getToken();
       if (!token) return;
-
       await connectionsApi.disconnectGoogleAnalytics(token);
       toast.success("Google Analytics desconectado");
-      setStatus((prev) => prev ? ({ ...prev, is_connected: false }) : null);
+      setStatus((prev) => prev ? ({ ...prev, is_connected: false, selected_property: null }) : null);
       setTestResult(null);
+      setShowPropertyPicker(false);
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Error al desconectar");
@@ -192,6 +202,7 @@ export function GoogleAnalyticsView() {
     }
   };
 
+  // -- Loading --
   if (loading) {
     return (
       <Card>
@@ -202,17 +213,17 @@ export function GoogleAnalyticsView() {
     );
   }
 
-  // Configuration Mode
+  // -- Configuration Mode --
   if (configMode) {
       return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Settings className="h-6 w-6 text-gray-500" />
-                    Configuración de Google Analytics
+                    Configuracion de Google Analytics
                 </CardTitle>
                 <CardDescription>
-                    Ingresa las credenciales de tu aplicación Google Cloud (OAuth 2.0 Client ID).
+                    Ingresa las credenciales de tu aplicacion Google Cloud (OAuth 2.0 Client ID).
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -222,26 +233,26 @@ export function GoogleAnalyticsView() {
                     <AlertDescription>
                         1. Ve a Google Cloud Console.<br/>
                         2. Crea credenciales OAuth 2.0.<br/>
-                        3. Añade <code>{typeof window !== 'undefined' ? window.location.origin : ''}</code> como Origen Autorizado.<br/>
-                        4. Añade <code>{typeof window !== 'undefined' ? window.location.origin : ''}/connections</code> como URI de redirección.
+                        3. Anade <code>{typeof window !== 'undefined' ? window.location.origin : ''}</code> como Origen Autorizado.<br/>
+                        4. Anade <code>{typeof window !== 'undefined' ? window.location.origin : ''}/connections</code> como URI de redireccion.
                     </AlertDescription>
                 </Alert>
                 <div className="space-y-2">
                     <Label htmlFor="client_id">Client ID</Label>
-                    <Input 
-                        id="client_id" 
-                        value={clientId} 
-                        onChange={(e) => setClientId(e.target.value)} 
+                    <Input
+                        id="client_id"
+                        value={clientId}
+                        onChange={(e) => setClientId(e.target.value)}
                         placeholder="apps.googleusercontent.com"
                     />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="client_secret">Client Secret</Label>
-                    <Input 
-                        id="client_secret" 
+                    <Input
+                        id="client_secret"
                         type="password"
-                        value={clientSecret} 
-                        onChange={(e) => setClientSecret(e.target.value)} 
+                        value={clientSecret}
+                        onChange={(e) => setClientSecret(e.target.value)}
                         placeholder="Tu secreto de cliente"
                     />
                 </div>
@@ -250,17 +261,18 @@ export function GoogleAnalyticsView() {
                 {status?.is_configured ? (
                     <Button variant="ghost" onClick={() => setConfigMode(false)}>Cancelar</Button>
                 ) : (
-                    <div></div> // Spacer
+                    <div></div>
                 )}
                 <Button onClick={handleSaveConfig} disabled={savingConfig}>
                     {savingConfig ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Guardar Configuración
+                    Guardar Configuracion
                 </Button>
             </CardFooter>
         </Card>
       );
   }
 
+  // -- Not Connected --
   if (!status?.is_connected) {
     return (
       <Card>
@@ -270,7 +282,7 @@ export function GoogleAnalyticsView() {
             Conectar Google Analytics
           </CardTitle>
           <CardDescription>
-            Vincula tu cuenta de Google Analytics 4 para ver métricas de tráfico y conversión.
+            Vincula tu cuenta de Google Analytics 4 para ver metricas de trafico y conversion.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -282,9 +294,9 @@ export function GoogleAnalyticsView() {
                 </AlertDescription>
             </Alert>
             <div className="text-sm text-muted-foreground">
-                <p>Al conectar, permitirás que el sistema:</p>
+                <p>Al conectar, permitiras que el sistema:</p>
                 <ul className="list-disc list-inside mt-2 space-y-1 ml-2">
-                    <li>Leer propiedades y métricas de GA4.</li>
+                    <li>Leer propiedades y metricas de GA4.</li>
                     <li>Generar reportes de rendimiento.</li>
                 </ul>
             </div>
@@ -303,6 +315,33 @@ export function GoogleAnalyticsView() {
     );
   }
 
+  // -- Connected but no property selected → Property Picker --
+  if (!status.selected_property || showPropertyPicker) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart className="h-6 w-6 text-orange-500" />
+            {status.selected_property ? "Cambiar propiedad" : "Configura tu propiedad GA4"}
+          </CardTitle>
+          <CardDescription>
+            {status.selected_property
+              ? `Actualmente: ${status.selected_property.display_name}`
+              : "Un ultimo paso: selecciona que sitio web quieres monitorear."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PropertyPicker
+            properties={properties}
+            onSelected={handlePropertySelected}
+            isChangeMode={!!status.selected_property}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // -- Connected + property selected → Full status --
   return (
     <div className="space-y-6">
         <Card>
@@ -317,16 +356,23 @@ export function GoogleAnalyticsView() {
                         Activo
                     </div>
                 </CardTitle>
-                <CardDescription>
-                    Tu cuenta de Google Analytics está conectada.
+                <CardDescription className="flex items-center gap-1.5">
+                    Propiedad: <strong>{status.selected_property.display_name}</strong>
+                    <button
+                      type="button"
+                      onClick={handleChangeProperty}
+                      disabled={loadingProperties}
+                      className="text-xs text-muted-foreground underline hover:text-foreground ml-1"
+                    >
+                      {loadingProperties ? "Cargando..." : "Cambiar"}
+                    </button>
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                
                 {testResult && (
                     <Alert variant={testResult.status === "ok" ? "default" : "destructive"} className={testResult.status === "ok" ? "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20" : ""}>
                         <Activity className="h-4 w-4" />
-                        <AlertTitle>{testResult.status === "ok" ? "Conexión Estable" : "Error de Conexión"}</AlertTitle>
+                        <AlertTitle>{testResult.status === "ok" ? "Conexion Estable" : "Error de Conexion"}</AlertTitle>
                         <AlertDescription>
                             {testResult.message}
                             {testResult.data && Array.isArray(testResult.data) && (
@@ -363,15 +409,15 @@ export function GoogleAnalyticsView() {
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>¿Desvincular Google Analytics?</DialogTitle>
+                            <DialogTitle>Desvincular Google Analytics?</DialogTitle>
                             <DialogDescription>
-                                Dejarás de recibir métricas de esta cuenta.
+                                Dejaras de recibir metricas de esta cuenta.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                             <Button variant="outline">Cancelar</Button>
                             <Button variant="destructive" onClick={handleDisconnect} disabled={disconnecting}>
-                                {disconnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Sí, desconectar"}
+                                {disconnecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Si, desconectar"}
                             </Button>
                         </DialogFooter>
                     </DialogContent>

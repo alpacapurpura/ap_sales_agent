@@ -1,4 +1,0 @@
-- [x] `shopify_compliance.py` exists with 3 endpoints.
-- [x] Endpoints are mounted at `/api/v1/connections/shopify/compliance/...`.
-- [x] Endpoints return 200 OK and log the request.
-- [x] Documentation includes the new URLs.

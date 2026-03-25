@@ -1,5 +1,0 @@
-- [x] Database schema updated (email constraint removed, composite added)
-- [x] `get_current_user` enforces `X-Tenant-ID` match
-- [x] Frontend sends `X-Tenant-ID` in all API calls
-- [x] Cross-tenant data access returns 403 Forbidden (Verified via Code Review)
-- [x] Same email can be registered in two different tenants (Verified via Migration)

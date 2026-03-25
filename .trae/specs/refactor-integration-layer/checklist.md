@@ -1,6 +1,0 @@
-- [x] Webhook logic (`webhooks_cdp.py`) removed from `communication/api`.
-- [x] Webhook logic (`marketing_webhooks.py`) implemented in `integration/api`.
-- [x] `main.py` router updated to point to `integration` for marketing webhooks.
-- [x] Connectors (`mailerlite.py`, `shopify.py`, `base.py`) removed from `marketing/infrastructure/connectors`.
-- [x] Connectors implemented in `integration/infrastructure/marketing_connectors`.
-- [x] Imports updated and no `ImportError` in `main.py` or moved files.

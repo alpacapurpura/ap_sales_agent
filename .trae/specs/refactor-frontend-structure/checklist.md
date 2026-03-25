@@ -1,3 +1,0 @@
-- [x] Marketing Studio page exists at `src/app/(main)/[tenantId]/(dashboard)/marketing-studio/page.tsx`
-- [x] Root `src/app/(dashboard)` directory does not exist
-- [x] Sidebar navigation includes a link to Marketing Studio with the correct tenant ID

@@ -1,6 +1,0 @@
-- [x] Copilot module directory structure exists.
-- [x] `web_extractor` agent moved to `copilot/application/agents/web_extractor`.
-- [x] `web_extractor_adapter.py`, `file_parsing_service.py`, `image_analysis.py` moved to `copilot/application/services`.
-- [x] Brand extraction prompts moved to `copilot/infrastructure/prompts/brand_extraction`.
-- [x] Imports in `brand` module updated to reference `copilot`.
-- [x] Copilot orchestrator files created.

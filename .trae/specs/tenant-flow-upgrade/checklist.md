@@ -1,9 +1,0 @@
-- [x] User model has `clerk_id` column
-- [x] ClerkService has `update_user_metadata` method
-- [x] Streamlit App creates user, saves clerk_id, and updates Clerk Metadata
-- [x] Middleware redirects users without tenant_id to /no-permission
-- [x] /no-permission page exists and shows contact info
-- [x] Tenant Admin can create a new user via API (if under limit)
-- [x] Tenant Admin cannot create user if limit (3) reached
-- [x] Frontend Team Settings page works (List & Create)
-- [x] PRODUCTION_ACCESS.md guide is accurate and complete

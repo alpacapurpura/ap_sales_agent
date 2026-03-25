@@ -96,3 +96,15 @@ backend/cloudflare/cloudflared*
 .trae/
 skills-lock.json
 .superpowers/
+
+# --- GSD / Planning State (ephemeral, not application code) ---
+.planning/
+
+# --- Claude Code worktrees (auto-generated, never commit) ---
+.claude/worktrees/
+
+# --- Documentation artifacts (not needed for app to function) ---
+docs/superpowers/
+docs/temp/
+docs/mockupsHTML/
+docs/plans/

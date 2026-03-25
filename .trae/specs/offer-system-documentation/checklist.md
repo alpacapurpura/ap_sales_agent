@@ -1,2 +1,0 @@
-- [x] Documentation created in `docs/functional/offer-structure.md`
-- [x] Developer guide included
