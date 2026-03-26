@@ -41,7 +41,7 @@ class CustomerRepository:
             identities=identities
         )
 
-    def find_by_identity(self, identity_value: str, identity_type: IdentityType, tenant_id: UUID) -> Optional[CustomerProfile]:
+    def find_by_identity(self, identity_type: IdentityType, identity_value: str, tenant_id: UUID) -> Optional[CustomerProfile]:
         """
         Find a profile by one of its identities.
         Uses case-insensitive comparison on type to handle legacy lowercase
@@ -84,7 +84,7 @@ class CustomerRepository:
             )
             self.db.add(i_model)
 
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(model)
         return self._to_domain(model)
 

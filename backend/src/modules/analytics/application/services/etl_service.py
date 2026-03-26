@@ -451,7 +451,10 @@ class ETLService:
                 if existing_sale:
                     continue
 
-                offer_id = resolved_mappings.get(product_id, uuid.UUID(int=0))
+                offer_id = resolved_mappings.get(product_id)
+                if not offer_id:
+                    # No product→offer mapping — skip SaleModel (FK requires valid offer)
+                    continue
                 line_amount = item["price"] * item["quantity"]
 
                 sale = SaleModel(
