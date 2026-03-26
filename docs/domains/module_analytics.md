@@ -13,7 +13,7 @@ core_files: []
 
 ## 3. Mapa de Código (Rutas relativas a Front y Back para este módulo)
 - Backend: backend/src/modules/analytics/ (Contiene endpoints de reportes y workers/cron jobs para agregar data).
-- Frontend: frontend/src/features/marketing-studio/
+- Frontend: frontend/src/features/growth-studio/
 
 ## 4. Casos Borde Conocidos (Edge Cases)
 - Inconsistencia de Datos Temporales (Lag): Si los cron jobs de agregación fallan silenciosamente, el usuario verá el funnel con los datos exactos pero del día anterior, causando confusión.

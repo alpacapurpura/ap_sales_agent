@@ -1,4 +1,4 @@
-import { ExpansionEvangelizacionStage } from '@/features/marketing-studio/components/metrics-dashboard/stages/ExpansionEvangelizacionStage';
+import { ExpansionEvangelizacionStage } from '@/features/growth-studio/components/metrics-dashboard/stages/ExpansionEvangelizacionStage';
 
 export const metadata = {
   title: 'Expansion & Evangelizacion | Growth Studio',

@@ -12,7 +12,7 @@
   - Conectores de datos (Shopify, MailerLite, etc.): `infrastructure/marketing_connectors/`
   - Interfaces base (contratos): `backend/src/shared/infrastructure/channels/`
   - Endpoints segregados por proveedor: `api/`
-- **Frontend**: `frontend/src/features/marketing-studio/`
+- **Frontend**: `frontend/src/features/growth-studio/`
   - Vista hub de integraciones y tarjetas de conexión: `components/`
 
 ## 2. Lógica de Negocio (The "Why" & "How")

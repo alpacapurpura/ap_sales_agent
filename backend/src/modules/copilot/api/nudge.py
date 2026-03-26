@@ -31,7 +31,7 @@ ROUTE_MODULE_MAP = {
     "offer-studio": "offer",
     "connections": "connections",
     "landing": "landing",
-    "marketing-studio": "analytics",
+    "growth-studio": "analytics",
     "sales": "sales_agent",
 }
 

@@ -82,7 +82,7 @@ def _build_registry() -> Dict[str, ModuleDescriptor]:
             module_id="analytics",
             label="Growth Studio",
             description="Métricas de marketing y ventas: funnel bowtie, conversión, revenue, leads por etapa",
-            route_prefix="marketing-studio",
+            route_prefix="growth-studio",
             model_class=None,
             repo_factory=None,  # Uses SalesMetricsRepository — handled by dedicated tool
             read_fn=None,

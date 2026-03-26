@@ -5,7 +5,7 @@ Más específicamente, tu estructura es casi idéntica al estándar popularizado
 
 Características de tu arquitectura actual:
 
-Screaming Architecture (Arquitectura que grita): Al abrir la carpeta features/, veo inmediatamente de qué trata tu negocio: admin, audit, brand, connections, marketing-studio, offer-studio, sales. Esto es excelente.
+Screaming Architecture (Arquitectura que grita): Al abrir la carpeta features/, veo inmediatamente de qué trata tu negocio: admin, audit, brand, connections, growth-studio, offer-studio, sales. Esto es excelente.
 
 Cohesión de Dominio: Dentro de cada "feature" (ej. offer-studio), agrupas todo lo relacionado técnica y lógicamente: api/, components/, hooks/, types/, utils/.
 

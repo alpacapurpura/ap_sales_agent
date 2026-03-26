@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StageCard } from '../StageCard';
-import type { StageSummary } from '@/features/marketing-studio/types/metrics';
+import type { StageSummary } from '@/features/growth-studio/types/metrics';
 
 // NOTE: StageCard is refactored in Plan 11-01 to accept `summary` prop with
 // mainKpi + secondaryKpi (conversion rate). These tests scaffold the expected

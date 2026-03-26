@@ -3,7 +3,7 @@ module: Social Media
 status: active
 core_files:
     - "backend/src/modules/social_media/"
-    - "frontend/src/features/marketing-studio/"
+    - "frontend/src/features/growth-studio/"
 ---
 
 ## 1. Propósito del Negocio (El "Por Qué")
@@ -15,7 +15,7 @@ Gestionar la presencia orgánica de la marca. Permite generar piezas gráficas, 
 
 ## 3. Mapa de Código (Rutas relativas a Front y Back para este módulo)
 - Backend: backend/src/modules/social_media/
-- Frontend: frontend/src/features/marketing-studio/
+- Frontend: frontend/src/features/growth-studio/
 
 ## 4. Casos Borde Conocidos (Edge Cases)
 - Rate Limits de APIs Externas: Ser bloqueado temporalmente por Meta si la IA intenta responder a cientos de comentarios en menos de un minuto.

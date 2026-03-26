@@ -186,7 +186,7 @@ async def auth_callback(
     dashboard_url = settings.DASHBOARD_DOMAIN
     if not dashboard_url:
         raise HTTPException(status_code=500, detail="DASHBOARD_DOMAIN not configured on server")
-    return RedirectResponse(url=f"{dashboard_url}/marketing-studio/connections?status=success&channel=shopify")
+    return RedirectResponse(url=f"{dashboard_url}/growth-studio/connections?status=success&channel=shopify")
 
 
 @router.post("/quick-connect", response_model=ConnectionResponse)

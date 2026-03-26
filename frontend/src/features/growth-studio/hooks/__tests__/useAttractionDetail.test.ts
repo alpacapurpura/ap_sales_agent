@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAttractionDetail } from '../useStageDetail';
-import type { AttractionDetail } from '@/features/marketing-studio/types/metrics';
+import type { AttractionDetail } from '@/features/growth-studio/types/metrics';
 
 // Mock the API module
-vi.mock('@/features/marketing-studio/api/metrics-api', () => ({
+vi.mock('@/features/growth-studio/api/metrics-api', () => ({
   metricsApi: {
     getAttractionDetail: vi.fn(),
   },
@@ -55,7 +55,7 @@ describe('useAttractionDetail', () => {
   it('should fetch attraction detail data and return it', async () => {
     // Arrange
     // TODO (Plan 11-01): Set up metricsApi.getAttractionDetail mock to return mockAttractionData
-    // const { metricsApi } = await import('@/features/marketing-studio/api/metrics-api');
+    // const { metricsApi } = await import('@/features/growth-studio/api/metrics-api');
     // vi.mocked(metricsApi.getAttractionDetail).mockResolvedValueOnce(mockAttractionData as AttractionDetail);
 
     // Verify mock data shape matches expected return type

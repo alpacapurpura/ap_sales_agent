@@ -1,12 +1,12 @@
 'use client';
 
-import { GrowthStudioProvider, useGrowthStudioContext } from '@/features/marketing-studio/components/metrics-dashboard/context/GrowthStudioContext';
-import { StageSummaryRow } from '@/features/marketing-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow';
-import { useStageSummaries } from '@/features/marketing-studio/components/metrics-dashboard/hooks/useStageSummaries';
-import MetricSidebar from '@/features/marketing-studio/components/metrics-dashboard/sidebar/MetricSidebar';
-import ChannelDetailSidebar from '@/features/marketing-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar';
-import { SidebarContent } from '@/features/marketing-studio/components/metrics-dashboard/sidebar/SidebarContent';
-import { ChannelConnectionModal } from '@/features/marketing-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal';
+import { GrowthStudioProvider, useGrowthStudioContext } from '@/features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext';
+import { StageSummaryRow } from '@/features/growth-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow';
+import { useStageSummaries } from '@/features/growth-studio/components/metrics-dashboard/hooks/useStageSummaries';
+import MetricSidebar from '@/features/growth-studio/components/metrics-dashboard/sidebar/MetricSidebar';
+import ChannelDetailSidebar from '@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar';
+import { SidebarContent } from '@/features/growth-studio/components/metrics-dashboard/sidebar/SidebarContent';
+import { ChannelConnectionModal } from '@/features/growth-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal';
 
 function GrowthStudioShell({ children }: { children: React.ReactNode }) {
   const {
@@ -69,7 +69,7 @@ function GrowthStudioShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function MarketingStudioLayout({ children }: { children: React.ReactNode }) {
+export default function GrowthStudioLayout({ children }: { children: React.ReactNode }) {
   return (
     <GrowthStudioProvider>
       <GrowthStudioShell>{children}</GrowthStudioShell>

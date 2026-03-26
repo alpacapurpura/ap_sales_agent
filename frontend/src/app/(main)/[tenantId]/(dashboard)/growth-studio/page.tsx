@@ -5,11 +5,11 @@ export const metadata = {
   description: 'Manage your customer lifecycle, connections, and growth metrics.',
 };
 
-export default async function MarketingStudioPage({
+export default async function GrowthStudioPage({
   params,
 }: {
   params: Promise<{ tenantId: string }>;
 }) {
   const { tenantId } = await params;
-  redirect(`/${tenantId}/marketing-studio/atraccion-captura`);
+  redirect(`/${tenantId}/growth-studio/atraccion-captura`);
 }

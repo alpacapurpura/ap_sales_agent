@@ -26,7 +26,7 @@ export function ShopifyView() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const externalStudioBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
-  const nicolifyStudioUrl = `${externalStudioBaseUrl}/marketing-studio`;
+  const nicolifyStudioUrl = `${externalStudioBaseUrl}/growth-studio`;
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<ShopifyStatusResponse | null>(null);
   const [shopUrl, setShopUrl] = useState("");
@@ -60,12 +60,12 @@ export function ShopifyView() {
     const message = searchParams?.get("message");
     if (statusParam === "success" && channel === "shopify") {
         toast.success("Shopify conectado exitosamente");
-        router.replace("/marketing-studio/connections");
+        router.replace("/growth-studio/connections");
         fetchStatus();
     }
     if (statusParam === "error" && message) {
       toast.error(message);
-      router.replace("/marketing-studio/connections");
+      router.replace("/growth-studio/connections");
     }
   }, [searchParams, router]); // eslint-disable-line react-hooks/exhaustive-deps
 

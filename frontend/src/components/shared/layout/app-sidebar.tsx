@@ -45,7 +45,7 @@ const getNavItems = (tenantId: string) => [
   },
   {
     title: "Growth Studio",
-    href: `/${tenantId}/marketing-studio`,
+    href: `/${tenantId}/growth-studio`,
     icon: Megaphone,
   },
   {
@@ -108,7 +108,7 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
         <nav className="grid gap-1">
           <TooltipProvider delayDuration={0}>
             {navItems.map((item, index) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname.startsWith(item.href);
               
               const LinkContent = (
                 <Link

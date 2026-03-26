@@ -107,7 +107,7 @@ async def test_callback_publico_permite_state_ausente():
         response = await auth_callback(request=request, repo=repo)
 
     assert response.status_code in (302, 307)
-    assert "marketing-studio/connections?status=success&channel=shopify" in response.headers["location"]
+    assert "growth-studio/connections?status=success&channel=shopify" in response.headers["location"]
     repo.upsert.assert_called_once()
     assert repo.upsert.call_args.kwargs["tenant_id"] == tenant_id
 

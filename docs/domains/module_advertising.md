@@ -14,7 +14,7 @@ Tratar exclusivamente con pauta pagada (Meta Ads, Google Ads). Manejar la creaci
 
 ## 3. Mapa de Código (Rutas relativas a Front y Back para este módulo)
 - Backend: backend/src/modules/advertising/
-- Frontend: frontend/src/features/marketing-studio/
+- Frontend: frontend/src/features/growth-studio/
 ## 4. Casos Borde Conocidos (Edge Cases)
 - Rechazo de Anuncios: Creación de creativos por IA que infrinjan silenciosamente políticas de Meta (ej. promesas excesivas de ingresos), resultando en cuentas baneadas.
 - Sincronización de Gastos: Desfase horario (Timezone mismatch) entre la zona horaria de la cuenta publicitaria y el servidor backend local que distorsione los reportes diarios de gasto.

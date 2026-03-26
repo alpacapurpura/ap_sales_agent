@@ -515,7 +515,7 @@ El registry cruza esta definición estática con las conexiones activas del tena
 
 ### Hook de Datos
 
-**Archivo:** `frontend/src/features/marketing-studio/hooks/useAttractionDetail.ts`
+**Archivo:** `frontend/src/features/growth-studio/hooks/useAttractionDetail.ts`
 
 ```typescript
 const { data, isLoading } = useQuery({
@@ -527,14 +527,14 @@ const { data, isLoading } = useQuery({
 
 ### Cliente API
 
-**Archivo:** `frontend/src/features/marketing-studio/api/metrics-api.ts`
+**Archivo:** `frontend/src/features/growth-studio/api/metrics-api.ts`
 
 - Llama `GET /metrics/attraction` con Bearer token (Clerk)
 - Mapea snake_case → camelCase (`organic_social` → `organicSocial`)
 
 ### Componente de Dashboard
 
-**Archivo:** `frontend/src/features/marketing-studio/components/metrics-dashboard/detail-panels/AttractionDetail.tsx`
+**Archivo:** `frontend/src/features/growth-studio/components/metrics-dashboard/detail-panels/AttractionDetail.tsx`
 
 **Estructura visual:**
 
@@ -943,9 +943,9 @@ Esto previene el problema de "métricas silenciosamente en 0" — si Meta devuel
 
 | Archivo | Responsabilidad |
 |---|---|
-| `frontend/src/features/marketing-studio/hooks/useAttractionDetail.ts` | React Query hook |
-| `frontend/src/features/marketing-studio/api/metrics-api.ts` | Cliente HTTP |
-| `frontend/src/features/marketing-studio/components/metrics-dashboard/detail-panels/AttractionDetail.tsx` | Componente visual |
+| `frontend/src/features/growth-studio/hooks/useAttractionDetail.ts` | React Query hook |
+| `frontend/src/features/growth-studio/api/metrics-api.ts` | Cliente HTTP |
+| `frontend/src/features/growth-studio/components/metrics-dashboard/detail-panels/AttractionDetail.tsx` | Componente visual |
 
 ### Database
 

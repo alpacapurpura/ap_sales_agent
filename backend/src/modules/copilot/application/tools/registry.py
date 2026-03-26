@@ -41,7 +41,7 @@ TOOL_GROUPS: Dict[str, list] = {
 ROUTE_TOOL_MAP: Dict[str, List[str]] = {
     "brand-settings": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
     "offer-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
-    "marketing-studio": ["navigation", "awareness", "module_data", "analytics", "crm", "procedure", "knowledge"],
+    "growth-studio": ["navigation", "awareness", "module_data", "analytics", "crm", "procedure", "knowledge"],
     "sales": ["navigation", "awareness", "module_data", "sales_agent", "crm", "procedure", "knowledge"],
     "connections": ["navigation", "awareness", "module_data", "connections", "procedure", "knowledge"],
     "landing": ["navigation", "awareness", "module_data", "landing", "procedure", "knowledge"],

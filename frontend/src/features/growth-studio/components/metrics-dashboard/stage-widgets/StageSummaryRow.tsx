@@ -36,7 +36,7 @@ export function StageSummaryRow({
   const handleStageClick = useCallback((id: StageId) => {
     const slug = STAGE_TO_SLUG[id as keyof typeof STAGE_TO_SLUG];
     if (slug) {
-      router.push(`/${tenantId}/marketing-studio/${slug}`);
+      router.push(`/${tenantId}/growth-studio/${slug}`);
     }
   }, [router, tenantId]);
 

@@ -27,7 +27,7 @@ const ROUTE_SUGGESTIONS: Record<string, SuggestedAction[]> = {
     { label: "Revisa mi escalera", prompt: "Analiza mi escalera de ofertas y sugiere mejoras" },
     { label: "Mejora mis objeciones", prompt: "Revisa las objeciones de mis ofertas y sugiere mejores respuestas" },
   ],
-  "marketing-studio": [
+  "growth-studio": [
     { label: "¿Cómo van mis métricas?", prompt: "Dame un resumen de mis métricas de ventas y conversión" },
     { label: "¿Dónde pierdo conversiones?", prompt: "Analiza mi funnel y dime en qué etapa pierdo más conversiones" },
     { label: "Explica mi funnel", prompt: "Explica qué significan las métricas de mi funnel" },

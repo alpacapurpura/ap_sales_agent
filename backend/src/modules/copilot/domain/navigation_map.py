@@ -106,14 +106,65 @@ NAVIGATION_MAP: List[AppPage] = [
 
     # ── Growth Studio (Marketing Studio) ─────────────────────────
     AppPage(
-        route_template="/{tenantId}/marketing-studio",
+        route_template="/{tenantId}/growth-studio",
         label="Growth Studio",
         module="growth",
-        description="Funnel Bowtie, métricas de marketing y ventas, analytics por canal",
-        keywords=["funnel", "bowtie", "métricas", "analytics", "growth", "marketing", "ventas", "conversión"],
+        description="Funnel Bowtie completo — redirige a la primera etapa (Atracción & Captura)",
+        keywords=["funnel", "bowtie", "métricas", "analytics", "growth", "marketing"],
+        sections=[],
+    ),
+    AppPage(
+        route_template="/{tenantId}/growth-studio/atraccion-captura",
+        label="Atracción & Captura",
+        module="growth",
+        description="Etapa 1-2: tráfico, visitantes, leads, canales orgánicos, paid, captura",
+        keywords=["atracción", "captura", "visitantes", "tráfico", "leads", "orgánico", "paid", "SEO", "redes sociales"],
         sections=[
-            AppSection("funnel", "Funnel Bowtie", "Visualización del funnel completo"),
-            AppSection("metrics", "Métricas", "Dashboard de métricas por etapa"),
+            AppSection("attraction", "Atracción", "Visitantes por canal: orgánico, paid, search, outbound"),
+            AppSection("capture", "Captura", "Conversión de visitantes a leads, landing pages, chatbots"),
+        ],
+    ),
+    AppPage(
+        route_template="/{tenantId}/growth-studio/nutricion-oportunidad",
+        label="Nutrición & Oportunidad",
+        module="growth",
+        description="Etapa 3-4: nurture, MQLs, SQLs, retargeting, automatización, calificación",
+        keywords=["nutrición", "oportunidad", "MQL", "SQL", "retargeting", "automatización", "nurture", "calificación"],
+        sections=[
+            AppSection("nurture", "Nutrición", "Retargeting, email automation, engagement"),
+            AppSection("opportunity", "Oportunidad", "Checkout, payment links, calificación de leads"),
+        ],
+    ),
+    AppPage(
+        route_template="/{tenantId}/growth-studio/ventas",
+        label="Ventas",
+        module="growth",
+        description="Etapa 5: revenue, clientes nuevos, ofertas vendidas, Shopify, suscripciones",
+        keywords=["ventas", "revenue", "ingresos", "clientes", "shopify", "suscripciones", "CAC", "ticket"],
+        sections=[
+            AppSection("sales-metrics", "Métricas de Ventas", "Revenue total, nuevos clientes, CAC"),
+            AppSection("offer-ladder", "Escalera de Ofertas", "Revenue por oferta y tipo"),
+        ],
+    ),
+    AppPage(
+        route_template="/{tenantId}/growth-studio/adopcion",
+        label="Adopción",
+        module="growth",
+        description="Etapa 6: salud del cliente, activación, retención temprana, refunds",
+        keywords=["adopción", "salud", "activación", "retención", "refund", "churn temprano", "onboarding"],
+        sections=[
+            AppSection("health", "Salud de Clientes", "Porcentaje de salud, activos vs inactivos"),
+        ],
+    ),
+    AppPage(
+        route_template="/{tenantId}/growth-studio/expansion-evangelizacion",
+        label="Expansión & Evangelización",
+        module="growth",
+        description="Etapa 7-8: MRR, LTV, churn, referidos, NPS, k-factor, upsell",
+        keywords=["expansión", "evangelización", "MRR", "LTV", "churn", "referidos", "NPS", "k-factor", "upsell"],
+        sections=[
+            AppSection("expansion", "Expansión", "Net MRR, LTV, retención, crecimiento, cancelaciones"),
+            AppSection("evangelization", "Evangelización", "Referidos, NPS, k-factor, UGC"),
         ],
     ),
 

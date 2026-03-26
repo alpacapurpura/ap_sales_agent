@@ -161,7 +161,7 @@ Acciones rapidas contextuales que aparecen cuando el chat esta vacio. Se adaptan
 | ------------------ | --------------------------------------------------------------- |
 | `brand-settings`   | "Que me falta de mi marca?", "Mejora mi UVP", "Extrae mi marca" |
 | `offer-studio`     | "Crea una oferta", "Revisa mi escalera"                         |
-| `marketing-studio` | "Explica mi funnel", "Como mejoro conversion?"                  |
+| `growth-studio` | "Explica mi funnel", "Como mejoro conversion?"                  |
 | `sales`            | "Como va mi agente?"                                            |
 | `connections`      | "Que debo conectar?"                                            |
 | Default            | "Que me falta configurar?", "Guiame paso a paso"                |
