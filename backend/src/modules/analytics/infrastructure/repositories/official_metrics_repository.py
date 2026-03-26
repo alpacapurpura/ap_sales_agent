@@ -4,12 +4,13 @@ Official metrics are the source of truth for dashboard queries.
 They are promoted from staging_metrics after transformation.
 """
 
+import json
 import uuid
 from datetime import date
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func as sa_func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
@@ -137,3 +138,75 @@ class OfficialMetricsRepository:
             .order_by(MetricAggregationModel.channel_slug)
         )
         return list(self.db.execute(stmt).scalars().all())
+
+    def upsert_increment(
+        self,
+        tenant_id: UUID,
+        provider: str,
+        channel_slug: str,
+        metric_name: str,
+        value: float,
+        unit: str,
+        metric_date: date,
+        cost_type: str | None = None,
+        extra: dict | None = None,
+    ) -> None:
+        """Upsert with SUM semantics: increment value if row exists, insert otherwise.
+
+        Used by webhook-fed providers (ManyChat) where each event adds to the daily total.
+        """
+        sql = text("""
+            INSERT INTO official_metrics (
+                id, tenant_id, provider, channel_slug, metric_name,
+                value, unit, metric_date, cost_type, extra, created_at, updated_at
+            ) VALUES (
+                gen_random_uuid(), :tenant_id, :provider, :channel_slug, :metric_name,
+                :value, :unit, :metric_date, :cost_type, :extra::jsonb, NOW(), NOW()
+            )
+            ON CONFLICT (tenant_id, provider, channel_slug, metric_name, metric_date)
+            DO UPDATE SET
+                value = official_metrics.value + EXCLUDED.value,
+                extra = EXCLUDED.extra,
+                updated_at = NOW()
+        """)
+
+        self.db.execute(sql, {
+            "tenant_id": tenant_id,
+            "provider": provider,
+            "channel_slug": channel_slug,
+            "metric_name": metric_name,
+            "value": value,
+            "unit": unit,
+            "metric_date": metric_date,
+            "cost_type": cost_type,
+            "extra": json.dumps(extra or {}),
+        })
+        self.db.flush()
+
+    def get_channel_metrics(
+        self,
+        tenant_id: UUID,
+        provider: str,
+        channel_slug: str,
+        start_date: date,
+        end_date: date,
+    ) -> dict[str, float]:
+        """Get aggregated metrics for a channel in a date range.
+
+        Returns: {"metric_name": total_value, ...}
+        """
+        stmt = (
+            select(
+                OfficialMetricModel.metric_name,
+                sa_func.sum(OfficialMetricModel.value).label("total"),
+            )
+            .where(
+                OfficialMetricModel.tenant_id == tenant_id,
+                OfficialMetricModel.provider == provider,
+                OfficialMetricModel.channel_slug == channel_slug,
+                OfficialMetricModel.metric_date.between(start_date, end_date),
+            )
+            .group_by(OfficialMetricModel.metric_name)
+        )
+        rows = self.db.execute(stmt).all()
+        return {row.metric_name: float(row.total) for row in rows}

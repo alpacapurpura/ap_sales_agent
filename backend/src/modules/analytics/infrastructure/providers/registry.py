@@ -57,6 +57,8 @@ def _register_all() -> None:
     from src.modules.analytics.infrastructure.providers.youtube_provider import YouTubeProvider
     from src.modules.analytics.infrastructure.providers.crm_internal_provider import CRMInternalProvider
     from src.modules.analytics.infrastructure.providers.shopify_provider import ShopifyProvider
+    from src.modules.analytics.infrastructure.providers.manychat_provider import ManyChatProvider
+    from src.modules.analytics.infrastructure.providers.mailerlite_provider import MailerLiteProvider
 
     register_provider("meta", MetaProvider)
     register_provider("google_analytics", GoogleAnalyticsProvider)
@@ -65,6 +67,8 @@ def _register_all() -> None:
     register_provider("youtube", YouTubeProvider)
     register_provider("crm_internal", CRMInternalProvider)
     register_provider("shopify", ShopifyProvider)
+    register_provider("manychat", ManyChatProvider)
+    register_provider("mailerlite", MailerLiteProvider)
 
 
 _register_all()

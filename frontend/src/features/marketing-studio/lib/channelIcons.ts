@@ -85,8 +85,8 @@ export function getChannelIcon(channelSlug: string): ChannelIconComponent {
     return ShoppingCart as ChannelIconComponent;
   }
 
-  // Mailerlite / email automation
-  if (slug === 'mailerlite' || slug === 'mailerlite-newsletter' || slug === 'email') {
+  // Email marketing (provider-agnostic email-* slugs + legacy mailerlite)
+  if (slug.startsWith('email-') || slug === 'mailerlite') {
     return Mail as ChannelIconComponent;
   }
 
@@ -95,8 +95,16 @@ export function getChannelIcon(channelSlug: string): ChannelIconComponent {
     return MessageCircle as ChannelIconComponent;
   }
 
-  // Manychat / Facebook Messenger bot
-  if (slug === 'manychat' || slug === 'manychat-messenger') {
+  // Manychat / Facebook Messenger bot + IG, WA, sequences, BOFU, comments
+  if (
+    slug === 'manychat' ||
+    slug === 'manychat-messenger' ||
+    slug === 'manychat-ig' ||
+    slug === 'manychat-wa' ||
+    slug === 'manychat-sequences' ||
+    slug === 'manychat-bofu' ||
+    slug === 'manychat-comments'
+  ) {
     return MessageSquare as ChannelIconComponent;
   }
 
@@ -189,8 +197,8 @@ export function getChannelColor(channelSlug: string): string {
     return '#96BF48';
   }
 
-  // Mailerlite — orange
-  if (slug === 'mailerlite' || slug === 'mailerlite-newsletter' || slug === 'email') {
+  // Email marketing — orange (provider-agnostic email-* slugs + legacy mailerlite)
+  if (slug.startsWith('email-') || slug === 'mailerlite') {
     return '#F6921E';
   }
 
@@ -200,7 +208,15 @@ export function getChannelColor(channelSlug: string): string {
   }
 
   // Manychat — purple
-  if (slug === 'manychat' || slug === 'manychat-messenger') {
+  if (
+    slug === 'manychat' ||
+    slug === 'manychat-messenger' ||
+    slug === 'manychat-ig' ||
+    slug === 'manychat-wa' ||
+    slug === 'manychat-sequences' ||
+    slug === 'manychat-bofu' ||
+    slug === 'manychat-comments'
+  ) {
     return '#7B3FE4';
   }
 

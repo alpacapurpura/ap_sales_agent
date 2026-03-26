@@ -92,14 +92,24 @@ const SLUG_TO_VIEW: Record<string, LazyView> = {
   'checkout-init': ShopifyView,
   'abandoned-cart': ShopifyView,
 
-  // MailerLite provider
-  'mailerlite': MailerLiteView,
-  'mailerlite-newsletter': MailerLiteView,
-  'email': MailerLiteView,
+  // Email marketing provider (provider-agnostic email-* slugs)
+  'email-capture': MailerLiteView,
+  'email-nurture': MailerLiteView,
+  'email-launch': MailerLiteView,
+  'email-delivery': MailerLiteView,
+  'email-onboarding': MailerLiteView,
+  'email-retention': MailerLiteView,
+  'email-upsell': MailerLiteView,
+  'email-referral': MailerLiteView,
 
   // ManyChat provider
   'manychat': ManyChatView,
   'manychat-messenger': ManyChatView,
+  'manychat-ig': ManyChatView,
+  'manychat-wa': ManyChatView,
+  'manychat-sequences': ManyChatView,
+  'manychat-bofu': ManyChatView,
+  'manychat-comments': ManyChatView,
 
   // Telegram provider
   'telegram': TelegramView,

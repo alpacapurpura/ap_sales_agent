@@ -313,6 +313,53 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
         db.close()
 
 
+async def run_manychat_subscriber_sync(
+    ctx: dict,
+    tenant_id: str,
+) -> dict:
+    """Sync ManyChat subscriber data into CRM profiles.
+
+    Fetches subscriber details from ManyChat API and enriches
+    CRM customer_profiles with tags, custom fields, and score data.
+    """
+    db_factory = ctx["db_factory"]
+    db = db_factory()
+
+    try:
+        from src.modules.analytics.workers.manychat_sync import (
+            sync_manychat_subscribers,
+        )
+
+        result = await sync_manychat_subscribers(UUID(tenant_id), db)
+
+        logger.info(
+            "ManyChat subscriber sync completed for tenant=%s: %s",
+            tenant_id,
+            result,
+        )
+        return result
+
+    except Exception as exc:
+        job_try = ctx.get("job_try", 1)
+        if job_try < 3:
+            logger.warning(
+                "ManyChat sync failed for tenant=%s (attempt %d): %s",
+                tenant_id,
+                job_try,
+                str(exc),
+            )
+            raise Retry(defer=300) from exc  # Retry in 5 minutes
+        logger.error(
+            "ManyChat sync permanently failed for tenant=%s: %s",
+            tenant_id,
+            str(exc),
+        )
+        return {"status": "error", "error": str(exc)}
+
+    finally:
+        db.close()
+
+
 async def run_inactivity_detection(ctx: dict) -> dict:
     """Batch job: flag inactive profiles and apply score decay.
 

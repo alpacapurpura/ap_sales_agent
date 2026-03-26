@@ -30,9 +30,21 @@ COST_TYPE_MAP: dict[tuple[str, str], CostType] = {
     ("google-organic", "attraction"): CostType.NEUTRAL,
     ("direct", "attraction"): CostType.NEUTRAL,
     ("ai-search-organic", "attraction"): CostType.NEUTRAL,
+    # ManyChat channels
+    ("manychat-comments", "attraction"): CostType.NEUTRAL,
+    ("manychat-ig", "capture"): CostType.EXPENSE,
+    ("manychat-wa", "capture"): CostType.EXPENSE,
+    ("manychat-sequences", "nurture"): CostType.EXPENSE,
+    ("manychat-bofu", "opportunity"): CostType.EXPENSE,
     # Operational tools = EXPENSE
-    ("manychat", "capture"): CostType.EXPENSE,
-    ("mailerlite", "nurture"): CostType.EXPENSE,
+    ("email-capture", "capture"): CostType.EXPENSE,
+    ("email-nurture", "nurture"): CostType.EXPENSE,
+    ("email-launch", "opportunity"): CostType.EXPENSE,
+    ("email-delivery", "delivery"): CostType.EXPENSE,
+    ("email-onboarding", "adoption"): CostType.EXPENSE,
+    ("email-retention", "retention"): CostType.EXPENSE,
+    ("email-upsell", "expansion"): CostType.EXPENSE,
+    ("email-referral", "evangelization"): CostType.EXPENSE,
     ("cold-contact", "attraction"): CostType.EXPENSE,
     # Revenue channels
     ("shopify", "sales"): CostType.REVENUE,

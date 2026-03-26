@@ -388,6 +388,23 @@ class MetricsService:
                         stale = True
                         error_message = self._classify_error(latest_run.error)
 
+            # For ManyChat channels, read from official_metrics directly
+            if provider_name == "manychat":
+                from datetime import timedelta, timezone as _tz
+
+                now_mc = datetime.now(_tz.utc)
+                mc_metrics = OfficialMetricsRepository(self.db).get_channel_metrics(
+                    tenant_id,
+                    "manychat",
+                    slug,
+                    (now_mc - timedelta(days=30)).date(),
+                    now_mc.date(),
+                )
+                existing_names = {m.name for m in metrics}
+                for m_name, m_value in mc_metrics.items():
+                    if m_name not in existing_names:
+                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
@@ -586,8 +603,23 @@ class MetricsService:
                     MetricValueDTO(name="conversations", value=float(conv_count))
                 )
 
-            # Resolve display name from connection config
+            # For ManyChat channels, supplement with metrics from official_metrics
             provider_name = ch.get("provider_name", "")
+            if provider_name == "manychat":
+                official_repo = OfficialMetricsRepository(self.db)
+                mc_metrics = official_repo.get_channel_metrics(
+                    tenant_id,
+                    "manychat",
+                    slug,
+                    start_date.date() if hasattr(start_date, "date") else start_date,
+                    end_date.date() if hasattr(end_date, "date") else end_date,
+                )
+                existing_names = {m.name for m in metrics}
+                for m_name, m_value in mc_metrics.items():
+                    if m_name not in existing_names:
+                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+
+            # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
             source_display = conn_config.get(display_name_key) if display_name_key else None
@@ -757,7 +789,7 @@ class MetricsService:
             # Build metrics depending on channel type
             metrics: List[MetricValueDTO] = []
 
-            if slug == "mailerlite":
+            if slug == "email-nurture":
                 # Mailerlite: email engagement metrics from CRM events
                 emails_sent = email_events.get("emails_sent", 0)
                 opens = email_events.get("opens", 0)
@@ -794,8 +826,22 @@ class MetricsService:
                         breakdown=breakdown,
                     ))
 
-            # Resolve display name from connection config
+            # For ManyChat channels, supplement with metrics from official_metrics
             provider_name = ch.get("provider_name", "")
+            if provider_name == "manychat":
+                mc_metrics_nurture = OfficialMetricsRepository(self.db).get_channel_metrics(
+                    tenant_id,
+                    "manychat",
+                    slug,
+                    start_date.date() if hasattr(start_date, "date") else start_date,
+                    now.date() if hasattr(now, "date") else now,
+                )
+                existing_names = {m.name for m in metrics}
+                for m_name, m_value in mc_metrics_nurture.items():
+                    if m_name not in existing_names:
+                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+
+            # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
             source_display = conn_config.get(display_name_key) if display_name_key else None
@@ -998,8 +1044,22 @@ class MetricsService:
                     MetricValueDTO(name="rescheduled", value=float(meeting_rescheduled)),
                 ]
 
-            # Resolve display name from connection config
+            # For ManyChat channels, supplement with metrics from official_metrics
             provider_name = ch.get("provider_name", "")
+            if provider_name == "manychat":
+                mc_metrics_opp = OfficialMetricsRepository(self.db).get_channel_metrics(
+                    tenant_id,
+                    "manychat",
+                    slug,
+                    start_date.date() if hasattr(start_date, "date") else start_date,
+                    end_date.date() if hasattr(end_date, "date") else end_date,
+                )
+                existing_names = {m.name for m in metrics}
+                for m_name, m_value in mc_metrics_opp.items():
+                    if m_name not in existing_names:
+                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+
+            # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
             source_display = conn_config.get(display_name_key) if display_name_key else None

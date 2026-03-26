@@ -18,7 +18,221 @@ from src.modules.connections.api.dependencies.webhook_security import verify_sho
 
 logger = structlog.get_logger()
 
+# -- ManyChat event mapping --
+_MANYCHAT_EVENT_MAP = {
+    "subscriber.new": "manychat_subscriber_created",
+    "tag.applied": "manychat_tag_applied",
+    "flow.triggered": "manychat_flow_triggered",
+    "field.updated": "manychat_field_updated",
+    "comment.trigger": "manychat_comment_trigger",
+}
+
+_MANYCHAT_CHANNEL_SLUG = {
+    "instagram": "manychat-ig",
+    "whatsapp": "manychat-wa",
+}
+
 router = APIRouter()
+
+# -- ManyChat helper functions --
+
+
+def _event_to_metric_name(event_type: str, payload: dict) -> str | None:
+    """Map ManyChat event type to a metric_name for staging_metrics."""
+    mapping = {
+        "subscriber.new": "new_subscribers",
+        "comment.trigger": "comment_triggers",
+    }
+
+    if event_type == "tag.applied":
+        tag = payload.get("tag_name", "")
+        if tag == "Solicito_reunion":
+            return "meetings_requested"
+        if tag == "link_clicked":
+            return "link_clicks"
+        if tag in (
+            "quiz_started",
+            "Estrategia",
+            "Orden",
+            "Bienestar",
+            "Liderazgo",
+            "Claridad",
+        ):
+            return "qualified_leads"
+        return "tag_applied"
+
+    if event_type == "flow.triggered":
+        flow_name = payload.get("flow_name", "")
+        if "BOFU" in flow_name.upper():
+            return "bofu_flows_triggered"
+        if "FollowUp" in flow_name or "Sequence" in flow_name:
+            return "sequences_sent"
+        return "flows_triggered"
+
+    if event_type == "field.updated":
+        field = payload.get("custom_field_name", "")
+        if field == "Consultas":
+            return "consultations"
+        return None
+
+    return mapping.get(event_type)
+
+
+def _event_to_stage(event_type: str, payload: dict) -> str | None:
+    """Map ManyChat event to funnel stage."""
+    if event_type == "comment.trigger":
+        return "attraction"
+    if event_type == "subscriber.new":
+        return "capture"
+
+    if event_type == "tag.applied":
+        tag = payload.get("tag_name", "")
+        if tag == "Solicito_reunion":
+            return "opportunity"
+        return "nurture"
+
+    if event_type == "flow.triggered":
+        flow_name = payload.get("flow_name", "")
+        if "BOFU" in flow_name.upper():
+            return "opportunity"
+        return "nurture"
+
+    if event_type == "field.updated":
+        return "nurture"
+
+    return None
+
+
+def _event_to_channel_suffix(event_type: str, payload: dict) -> str:
+    """Map event type to channel slug suffix."""
+    if event_type == "comment.trigger":
+        return "comments"
+    if event_type in ("tag.applied", "field.updated"):
+        tag = payload.get("tag_name", "")
+        if tag == "Solicito_reunion":
+            return "bofu"
+        return "sequences"
+    if event_type == "flow.triggered":
+        flow_name = payload.get("flow_name", "")
+        if "BOFU" in flow_name.upper():
+            return "bofu"
+        return "sequences"
+    return "ig"
+
+
+async def _handle_manychat_event(
+    db: Session, tenant_id: UUID, payload: dict, channel: str
+) -> None:
+    """Process a ManyChat webhook event into journey_events + official_metrics."""
+    from datetime import date as date_cls
+
+    from src.modules.analytics.application.services.manychat_metrics_promoter import (
+        ManyChatMetricsPromoter,
+    )
+    from src.modules.crm.application.services.customer_service import CustomerService
+    from src.modules.crm.application.services.lifecycle_service import LifecycleService
+    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+
+    event_type = payload.get("event_type", "")
+    event_name = _MANYCHAT_EVENT_MAP.get(event_type, f"manychat_{event_type}")
+    channel_slug = _MANYCHAT_CHANNEL_SLUG.get(channel, "manychat-ig")
+
+    subscriber_id = payload.get("subscriber_id", "")
+    email = payload.get("email")
+    phone = payload.get("phone")
+    first_name = payload.get("first_name", "")
+    last_name = payload.get("last_name", "")
+    ig_username = payload.get("ig_username")
+
+    # 1. Identity resolution
+    profile = None
+    if email or phone:
+        customer_svc = CustomerService(db)
+        traits = {"name": f"{first_name} {last_name}".strip()}
+        if email:
+            traits["email"] = email
+        identities: dict[str, str] = {}
+        if ig_username:
+            identities["instagram"] = ig_username
+        if phone:
+            identities["phone"] = phone
+
+        profile = customer_svc.identify(
+            tenant_id=tenant_id,
+            traits=traits,
+            identities=identities,
+        )
+        if not profile.lead_source:
+            profile.lead_source = channel_slug
+
+    # 2. Create journey_event
+    properties: dict[str, str | dict[str, str]] = {
+        "source": "manychat_webhook",
+        "manychat_subscriber_id": subscriber_id,
+        "channel": channel,
+        "event_type": event_type,
+    }
+    if payload.get("tag_name"):
+        properties["tag_name"] = payload["tag_name"]
+    if payload.get("flow_ns"):
+        properties["flow_ns"] = payload["flow_ns"]
+        properties["flow_name"] = payload.get("flow_name", "")
+    if payload.get("custom_field_name"):
+        properties["custom_field_name"] = payload["custom_field_name"]
+        properties["custom_field_value"] = payload.get("custom_field_value", "")
+    if payload.get("custom_fields"):
+        properties["custom_fields_snapshot"] = payload["custom_fields"]
+
+    if profile:
+        journey_event = JourneyEventModel(
+            profile_id=profile.id,
+            tenant_id=tenant_id,
+            event_name=event_name,
+            event_type="track",
+            properties=properties,
+        )
+        db.add(journey_event)
+
+        # 3. Recalculate score
+        lifecycle_svc = LifecycleService(db)
+        lifecycle_svc.recalculate_score(profile.id, tenant_id)
+
+    # 4. Promote metric to official_metrics for Growth Studio
+    today = date_cls.today()
+    metric_name = _event_to_metric_name(event_type, payload)
+    stage_slug = _event_to_stage(event_type, payload)
+
+    if metric_name and stage_slug:
+        resolved_channel = (
+            channel_slug
+            if stage_slug in ("capture", "attraction")
+            else f"manychat-{_event_to_channel_suffix(event_type, payload)}"
+        )
+        # For attraction stage, use the dedicated slug
+        if stage_slug == "attraction":
+            resolved_channel = "manychat-comments"
+
+        promoter = ManyChatMetricsPromoter(db)
+        promoter.promote_event(
+            tenant_id=tenant_id,
+            channel_slug=resolved_channel,
+            metric_name=metric_name,
+            metric_date=today,
+            stage_slug=stage_slug,
+            value=1.0,
+            extra={"subscriber_id": subscriber_id, "event_type": event_type},
+        )
+
+    db.commit()
+
+    logger.info(
+        "manychat_webhook_processed",
+        tenant_id=str(tenant_id),
+        event=event_name,
+        channel=channel,
+        profile_id=str(profile.id) if profile else "none",
+    )
+
 
 # Module-level cache for shop_domain -> tenant_id resolution
 _shop_tenant_cache: dict[str, UUID] = {}
@@ -415,3 +629,55 @@ async def mailerlite_webhook_legacy(request: Request, db: Session = Depends(get_
     except Exception as e:
         logger.error("mailerlite_webhook_error", error=str(e))
         raise HTTPException(status_code=400, detail="Invalid payload")
+
+
+@router.post("/manychat/{tenant_id}", status_code=status.HTTP_200_OK)
+async def handle_manychat_webhook(
+    tenant_id: UUID,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Receive ManyChat events via External Request blocks.
+
+    Event types:
+    - subscriber.new: New subscriber captured
+    - tag.applied: Tag assigned to subscriber
+    - flow.triggered: Automation flow triggered
+    - field.updated: Custom field value changed
+    - comment.trigger: Comment trigger activated
+    """
+    from src.modules.connections.api.dto.manychat_webhook_dto import (
+        ManyChatWebhookPayload,
+    )
+    from pydantic import ValidationError
+
+    try:
+        raw = await request.json()
+        dto = ManyChatWebhookPayload(**raw)
+    except ValidationError as ve:
+        raise HTTPException(status_code=422, detail=ve.errors())
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    payload = dto.model_dump()
+    event_type = dto.event_type
+    channel = dto.channel
+
+    # Verify tenant has ManyChat connected
+    from src.modules.connections.infrastructure.models.channel_connection_model import (
+        ChannelConnectionModel,
+    )
+
+    conn_stmt = select(ChannelConnectionModel).where(
+        ChannelConnectionModel.tenant_id == tenant_id,
+        ChannelConnectionModel.channel_type == "manychat",
+        ChannelConnectionModel.is_active == True,  # noqa: E712
+    )
+    connection = db.execute(conn_stmt).scalar_one_or_none()
+    if not connection:
+        logger.warning("manychat_webhook_no_connection", tenant_id=str(tenant_id))
+        return {"status": "ignored", "reason": "no_manychat_connection"}
+
+    await _handle_manychat_event(db, tenant_id, payload, channel)
+
+    return {"status": "processed", "event": event_type}

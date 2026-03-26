@@ -23,7 +23,7 @@ PROVIDER_TO_CHANNEL_TYPES: Dict[str, Set[str]] = {
     "youtube": {"youtube", "youtube_analytics"},
     "tiktok": {"tiktok", "tiktok_ads"},
     "linkedin": set(),        # No ChannelType yet
-    "mailerlite": {"mailerlite"},
+    "email_marketing": {"mailerlite", "mailchimp", "activecampaign"},
     "manychat": {"manychat"},
     "whatsapp": {"whatsapp", "whatsapp_cloud"},
     "shopify": {"shopify"},
@@ -52,14 +52,18 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
         # Outbound: contacts + responses
         {"slug": "cold-contact", "name": "Cold Contact", "channel_type": "outbound", "source_label": "Cold Outreach", "provider_name": "manual", "metric_names": ["contacts", "responses"]},
+        # ManyChat comment triggers -> attraction
+        {"slug": "manychat-comments", "name": "ManyChat Comment Triggers", "channel_type": "social", "source_label": "ManyChat", "provider_name": "manychat", "metric_names": ["comment_triggers", "dm_opens"]},
     ],
     "capture": [
         {"slug": "landing-form", "name": "Landing Page Form", "channel_type": "form", "source_label": "Landing Page", "provider_name": "internal"},
-        {"slug": "mailerlite", "name": "MailerLite", "channel_type": "email", "source_label": "MailerLite", "provider_name": "mailerlite"},
+        {"slug": "email-capture", "name": "Email Capture", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["new_subscribers", "active_subscribers", "form_conversions", "form_conversion_rate"]},
         {"slug": "ig-dm", "name": "Instagram DM", "channel_type": "messaging", "source_label": "Instagram DM", "provider_name": "meta"},
         {"slug": "fb-messenger", "name": "Facebook Messenger", "channel_type": "messaging", "source_label": "Messenger", "provider_name": "meta"},
         {"slug": "tiktok-dm", "name": "TikTok DM", "channel_type": "messaging", "source_label": "TikTok DM", "provider_name": "tiktok"},
         {"slug": "whatsapp-inbound", "name": "WhatsApp Inbound", "channel_type": "messaging", "source_label": "WhatsApp", "provider_name": "whatsapp"},
+        {"slug": "manychat-ig", "name": "ManyChat Instagram", "channel_type": "messaging", "source_label": "ManyChat IG", "provider_name": "manychat", "metric_names": ["new_subscribers", "leads", "conversations", "conversion_rate"]},
+        {"slug": "manychat-wa", "name": "ManyChat WhatsApp", "channel_type": "messaging", "source_label": "ManyChat WA", "provider_name": "manychat", "metric_names": ["new_subscribers", "leads", "conversations", "conversion_rate"]},
     ],
     "nurture": [
         # Retargeting Omnichannel
@@ -67,8 +71,9 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "google-retargeting", "name": "Google Retargeting", "channel_type": "retargeting", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "spend", "ctr", "cpc"]},
         {"slug": "tiktok-retargeting", "name": "TikTok Retargeting", "channel_type": "retargeting", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "spend"]},
         # Automatizacion
-        {"slug": "mailerlite", "name": "Mailerlite", "channel_type": "email", "source_label": "MailerLite", "provider_name": "mailerlite", "metric_names": ["emails_sent", "open_rate", "click_rate"]},
+        {"slug": "email-nurture", "name": "Email Nurturing", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "unique_opens", "open_rate", "click_rate", "click_to_open_rate", "unsubscribe_rate", "bounce_rate", "spam_reports"]},
         {"slug": "ai-sdr", "name": "AI SDR", "channel_type": "automation", "source_label": "AI SDR", "provider_name": "internal", "metric_names": ["followups", "response_rate"]},
+        {"slug": "manychat-sequences", "name": "ManyChat Sequences", "channel_type": "automation", "source_label": "ManyChat", "provider_name": "manychat", "metric_names": ["sequences_sent", "response_rate", "qualified_leads"]},
     ],
     "opportunity": [
         # Checkout group
@@ -79,6 +84,8 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "checkout-lp", "name": "Checkout Landing Page", "channel_type": "payment_link", "source_label": "Landing Page", "provider_name": "internal", "metric_names": ["count", "value"]},
         # Qualification group
         {"slug": "meeting-booked", "name": "Reuniones Agendadas", "channel_type": "qualification", "source_label": "Scheduling", "provider_name": "internal", "metric_names": ["booked", "completed", "no_show", "rescheduled"]},
+        {"slug": "manychat-bofu", "name": "ManyChat BOFU", "channel_type": "qualification", "source_label": "ManyChat", "provider_name": "manychat", "metric_names": ["meetings_requested", "bofu_flows_triggered", "consultations"]},
+        {"slug": "email-launch", "name": "Email Launch", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "open_rate", "click_rate", "click_to_open_rate", "unique_clicks", "unsubscribes"]},
     ],
     "sales": [
         {"slug": "sales-agent", "name": "Sales Agent", "channel_type": "ai", "source_label": "AI SDR", "provider_name": "internal"},
@@ -86,16 +93,18 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     ],
     "adoption": [
         {"slug": "product-usage", "name": "Uso del Producto", "channel_type": "engagement", "source_label": "CRM", "provider_name": "internal"},
+        {"slug": "email-onboarding", "name": "Email Onboarding", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "open_rate", "click_rate", "automation_completed", "completion_rate"]},
     ],
     "expansion": [
         {"slug": "renewals", "name": "Renovaciones", "channel_type": "recurring", "source_label": "CRM", "provider_name": "internal"},
         {"slug": "upsell", "name": "Ventas Adicionales", "channel_type": "growth", "source_label": "CRM", "provider_name": "internal"},
+        {"slug": "email-upsell", "name": "Email Upsell", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "open_rate", "click_rate", "unique_clicks"]},
     ],
     "delivery": [
-        {"slug": "email-delivery", "name": "Email Delivery", "channel_type": "email", "source_label": "Email", "provider_name": "mailerlite"},
+        {"slug": "email-delivery", "name": "Email Delivery", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "open_rate", "click_rate", "completion_rate"]},
     ],
     "retention": [
-        {"slug": "email-retention", "name": "Retention Emails", "channel_type": "email", "source_label": "Email", "provider_name": "mailerlite"},
+        {"slug": "email-retention", "name": "Retention Emails", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "open_rate", "reactivation_rate", "unsubscribe_rate"]},
     ],
     "referral": [
         {"slug": "referral-program", "name": "Referral Program", "channel_type": "referral", "source_label": "Referrals", "provider_name": "internal"},
@@ -103,6 +112,7 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "evangelization": [
         {"slug": "referral-organic", "name": "Referidos Organicos", "channel_type": "referral", "source_label": "Codigos de Referido", "provider_name": "internal", "metric_names": ["referrals_sent", "conversions", "revenue"]},
         {"slug": "nps-surveys", "name": "Encuestas NPS", "channel_type": "survey", "source_label": "NPS", "provider_name": "internal", "metric_names": ["score", "response_rate", "promoters"]},
+        {"slug": "email-referral", "name": "Email Referral", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "open_rate", "forwards", "click_rate"]},
     ],
 }
 

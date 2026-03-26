@@ -59,7 +59,7 @@ class TestGetStageChannels:
         slugs = [ch["slug"] for ch in channels]
 
         assert "landing-form" in slugs
-        assert "mailerlite" in slugs
+        assert "email-capture" in slugs
         assert "ig-dm" in slugs
 
     def test_different_stages_return_different_channels(self):
