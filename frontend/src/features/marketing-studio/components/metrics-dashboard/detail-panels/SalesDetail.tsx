@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Banknote, Calendar, Crosshair, Settings } from 'lucide-react';
+import { Banknote, Calendar, Crosshair, Download, Loader2, CheckCircle2, Settings, Package, ShoppingCart, AlertTriangle } from 'lucide-react';
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import { useSalesDetail } from '../../../hooks/useSalesDetail';
 import { MiniFunnel } from '../channel-widgets/MiniFunnel';
@@ -14,6 +14,8 @@ import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
 import { formatLastUpdated, formatDualCurrency } from '../utils/format';
+import { useInitialLoad } from '../../../hooks/useMetaInitialLoad';
+import { useQueryClient } from '@tanstack/react-query';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
 
 const VENTAS_STAGE: StageSummary = {
@@ -33,6 +35,17 @@ interface SalesDetailProps {
 export function SalesDetail({ onMetricClick }: SalesDetailProps) {
   const { data, isLoading, error, refetch } = useSalesDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Shopify sync button
+  const { trigger: triggerShopify, isLoading: isLoadingShopify, result: shopifyResult } = useInitialLoad();
+  const handleShopifySync = () => {
+    triggerShopify({ provider: 'shopify', days: 30 }, {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: ['sales-detail'] });
+      },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -61,28 +74,42 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
   // Check if there are no offers at all
   const hasAdqOffers = adquisicion.tiers.some((t) => t.offers.length > 0);
   const hasExpOffers = expansion.tiers.some((t) => t.offers.length > 0);
-
-  if (!hasAdqOffers && !hasExpOffers) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <h3 className="text-sm font-semibold">Sin ofertas configuradas</h3>
-        <p className="text-xs text-muted-foreground mt-2 max-w-md">
-          Configura tu Offer Ladder para ver ventas por producto. Tu panel de ventas se llenara
-          automaticamente cuando registres tus primeras transacciones.
-        </p>
-        <Link href="/offer-studio" className="text-xs text-primary underline mt-3">
-          Ir a Offer Studio
-        </Link>
-      </div>
-    );
-  }
+  const hasOffers = hasAdqOffers || hasExpOffers;
 
   // Compute funnel metrics if not present explicitly
   const oppToSalesConvRate = miniFunnel?.conversionRate || (headerKpis.newCustomers > 0 && miniFunnel.sourceValue > 0 ? (headerKpis.newCustomers / miniFunnel.sourceValue) * 100 : 0);
 
+  // Build extraData for sidebar clicks
+  const extraData: Record<string, number> = {
+    totalRevenue: headerKpis.totalRevenue,
+    newCustomers: headerKpis.newCustomers,
+    netSales: headerKpis.netSales ?? 0,
+    totalDiscounts: headerKpis.totalDiscounts ?? 0,
+    totalTax: headerKpis.totalTax ?? 0,
+    refundCount: headerKpis.refundCount ?? 0,
+    refundAmount: headerKpis.refundAmount ?? 0,
+    shippingRevenue: headerKpis.shippingRevenue ?? 0,
+    repeatCustomers: headerKpis.repeatCustomers ?? 0,
+    discountUsageCount: headerKpis.discountUsageCount ?? 0,
+    cac: headerKpis.cac ?? 0,
+    conversionRate: oppToSalesConvRate,
+    sqls: miniFunnel.sourceValue,
+  };
+
+  const handleKpiClick = (metricName: string, currentValue: number) => {
+    onMetricClick?.({
+      stageId: 'VENTAS',
+      channelSlug: 'shopify',
+      metricName,
+      currentValue,
+      currency: headerKpis.currency,
+      extraData,
+    });
+  };
+
   return (
     <div className="space-y-12 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
-      
+
       {/* Title & Actions Row */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
@@ -96,6 +123,24 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
           <p className="text-xs text-muted-foreground italic mr-2">
             Actualizado: {data.lastUpdated ? formatLastUpdated(data.lastUpdated) : 'Hoy'}
           </p>
+          <Button variant="outline" onClick={handleShopifySync} disabled={isLoadingShopify}>
+            {isLoadingShopify ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : shopifyResult ? (
+              shopifyResult.loaded_days > 0 ? <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> :
+              shopifyResult.skipped_days > 0 ? <CheckCircle2 className="mr-2 h-4 w-4 text-muted-foreground" /> :
+              <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {shopifyResult
+              ? shopifyResult.loaded_days > 0
+                ? `Shopify OK (${shopifyResult.loaded_days} dias)`
+                : shopifyResult.skipped_days > 0
+                  ? 'Shopify (ya cargado)'
+                  : 'Shopify (sin datos)'
+              : 'Datos Shopify'}
+          </Button>
           <Button variant="outline" onClick={() => setIsPanelOpen(true)}>
             <Calendar className="mr-2 h-4 w-4" /> Últimos 30 días
           </Button>
@@ -112,34 +157,42 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
         <h2 className="text-lg font-semibold mb-6 flex items-center text-foreground/90">
           <Banknote className="w-5 h-5 mr-2 text-emerald-600 dark:text-emerald-500" /> Rendimiento de Ventas
         </h2>
-        
+
         <div className="relative mb-2">
           {/* Horizontal Lines (Background Layer) */}
           <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-slate-200 to-slate-400 dark:from-slate-800 dark:to-slate-600 top-[40%] left-[20%] z-0"></div>
           <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-emerald-200 to-emerald-400 dark:from-emerald-900 dark:to-emerald-700 top-[40%] left-[45%] z-0"></div>
           <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-emerald-400 to-emerald-600 dark:from-emerald-700 dark:to-emerald-500 top-[40%] left-[70%] z-0"></div>
-          
+
           {/* Metrics Row (Foreground Layer) */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10 w-full">
             {/* Bloque 1: Pipeline Inicial */}
-            <div className="bg-background p-5 rounded-lg border border-border shadow-sm flex flex-col items-center justify-center relative text-center">
+            <button
+              type="button"
+              className="bg-background p-5 rounded-lg border border-border shadow-sm flex flex-col items-center justify-center relative text-center hover:border-emerald-500/40 hover:shadow-md transition-all cursor-pointer"
+              onClick={() => handleKpiClick('pipeline', miniFunnel.sourceValue)}
+            >
               <span className="text-[10px] text-muted-foreground font-bold uppercase mb-1">Oportunidades (SQLs)</span>
               <span className="text-3xl font-black text-foreground">{miniFunnel.sourceValue.toLocaleString('es-ES')}</span>
               <span className="text-xs text-muted-foreground mt-1">Leads Listos para Comprar</span>
-            </div>
+            </button>
 
             {/* Bloque 2: Nuevos Clientes */}
-            <div className="bg-background p-5 rounded-lg border border-emerald-500/20 shadow-sm flex flex-col items-center justify-center relative text-center ring-1 ring-emerald-500/10">
+            <button
+              type="button"
+              className="bg-background p-5 rounded-lg border border-emerald-500/20 shadow-sm flex flex-col items-center justify-center relative text-center ring-1 ring-emerald-500/10 hover:ring-emerald-500/30 hover:shadow-md transition-all cursor-pointer"
+              onClick={() => handleKpiClick('customers', headerKpis.newCustomers)}
+            >
               <span className="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase mb-1">Nuevos Clientes</span>
               <span className="text-4xl font-black text-emerald-600 dark:text-emerald-500">{headerKpis.newCustomers.toLocaleString('es-ES')}</span>
               <span className="text-xs text-emerald-600/80 dark:text-emerald-500/80 mt-1 font-medium">Conversiones Exitosas</span>
               <div className="mt-3 text-[10px] text-muted-foreground font-medium flex items-center justify-center">
-                <Crosshair className="w-3 h-3 mr-1 text-emerald-600 dark:text-emerald-500" /> 
+                <Crosshair className="w-3 h-3 mr-1 text-emerald-600 dark:text-emerald-500" />
                 <span>
                   CAC Promedio: {headerKpis.cac != null ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.cac) : '--'}
                 </span>
               </div>
-            </div>
+            </button>
 
             {/* Bloque 3: Tasa de Conversión */}
             <div className="flex flex-col items-center justify-center relative">
@@ -150,7 +203,11 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
             </div>
 
             {/* Bloque 4: Revenue Total */}
-            <div className="bg-emerald-950 dark:bg-emerald-950/50 p-5 rounded-lg border border-emerald-900 shadow-md flex flex-col items-center justify-center relative text-center text-white">
+            <button
+              type="button"
+              className="bg-emerald-950 dark:bg-emerald-950/50 p-5 rounded-lg border border-emerald-900 shadow-md flex flex-col items-center justify-center relative text-center text-white hover:border-emerald-700 hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => handleKpiClick('revenue', headerKpis.totalRevenue)}
+            >
               <span className="text-[10px] text-emerald-300 font-bold uppercase mb-1">Revenue Total</span>
               <span className="text-4xl font-black text-white">{formatDualCurrency(headerKpis.totalRevenue, headerKpis.currency, headerKpis.totalRevenueUsd).replace(/ \(.+\)/, '')}</span>
               <span className="text-xs text-emerald-200 mt-1">Ingresos Generados</span>
@@ -159,10 +216,78 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
                   (~{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.totalRevenueUsd)} USD)
                 </div>
               )}
-            </div>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Shopify Stats Breakdown (only when Shopify data exists) */}
+      {headerKpis.shopifyOrderCount > 0 && (
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
+          <h2 className="text-lg font-semibold mb-4 flex items-center text-foreground/90">
+            <ShoppingCart className="w-5 h-5 mr-2 text-emerald-600 dark:text-emerald-500" />
+            Detalle Shopify
+          </h2>
+
+          {/* Primary KPI cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="bg-background p-4 rounded-lg border border-border text-center">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase">Revenue</span>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.shopifyCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.shopifyRevenue)}
+              </p>
+            </div>
+            <div className="bg-background p-4 rounded-lg border border-border text-center">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase">Pedidos</span>
+              <p className="text-2xl font-bold text-foreground mt-1">{headerKpis.shopifyOrderCount.toLocaleString('es-ES')}</p>
+            </div>
+            <div className="bg-background p-4 rounded-lg border border-border text-center">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase">Ticket Promedio</span>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.shopifyCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.shopifyAvgOrderValue)}
+              </p>
+            </div>
+            <div className="bg-background p-4 rounded-lg border border-border text-center">
+              <span className="text-[10px] text-muted-foreground font-bold uppercase">Ventas Netas</span>
+              <p className="text-2xl font-bold text-foreground mt-1">
+                {new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.shopifyCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.netSales)}
+              </p>
+            </div>
+          </div>
+
+          {/* Secondary detail rows */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+            <div className="flex flex-col items-center p-2 rounded-md bg-muted/50">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase">Descuentos</span>
+              <span className="font-semibold text-foreground">
+                {new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.shopifyCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.totalDiscounts)}
+              </span>
+            </div>
+            <div className="flex flex-col items-center p-2 rounded-md bg-muted/50">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase">Impuestos</span>
+              <span className="font-semibold text-foreground">
+                {new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.shopifyCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.totalTax)}
+              </span>
+            </div>
+            <div className="flex flex-col items-center p-2 rounded-md bg-muted/50">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase">Envios</span>
+              <span className="font-semibold text-foreground">
+                {new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.shopifyCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.shippingRevenue)}
+              </span>
+            </div>
+            <div className="flex flex-col items-center p-2 rounded-md bg-muted/50">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase">Reembolsos</span>
+              <span className="font-semibold text-foreground">
+                {headerKpis.refundCount} ({new Intl.NumberFormat('es-MX', { style: 'currency', currency: headerKpis.shopifyCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(headerKpis.refundAmount)})
+              </span>
+            </div>
+            <div className="flex flex-col items-center p-2 rounded-md bg-muted/50">
+              <span className="text-[10px] text-muted-foreground font-medium uppercase">Clientes Recurrentes</span>
+              <span className="font-semibold text-foreground">{headerKpis.repeatCustomers}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottleneck Banners */}
       {bottlenecks.length > 0 && (
@@ -173,15 +298,38 @@ export function SalesDetail({ onMetricClick }: SalesDetailProps) {
         </div>
       )}
 
-      {/* Offer Ladder Layout */}
-      <OfferLadder
-        adquisicion={adquisicion}
-        expansion={expansion}
-        onMetricClick={onMetricClick}
-      />
-
-      {/* Unmatched Shopify Products */}
+      {/* Unmatched Shopify Products (shown prominently before offers) */}
       <UnmatchedProducts source="shopify" />
+
+      {/* Offer Ladder Layout or Empty State Banner */}
+      {hasOffers ? (
+        <OfferLadder
+          adquisicion={adquisicion}
+          expansion={expansion}
+          onMetricClick={onMetricClick}
+        />
+      ) : (
+        <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 p-6">
+          <div className="flex items-start gap-3">
+            <Package className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                Sin ofertas configuradas
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Configura tu Offer Ladder para ver ventas desglosadas por producto.
+                El panel de metricas globales ya muestra tus datos de Shopify arriba.
+              </p>
+              <Link
+                href="/offer-studio"
+                className="inline-flex items-center mt-3 text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline"
+              >
+                Ir a Offer Studio &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

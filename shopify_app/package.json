@@ -8,10 +8,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "shopify:generate": "./generate-config.sh",
-    "shopify:generate:prod": "./generate-config.sh prod",
-    "shopify:sync": "./generate-config.sh && npx shopify app dev",
-    "shopify:sync:prod": "./generate-config.sh prod && npx shopify app dev"
+    "shopify:validate": "./generate-config.sh",
+    "shopify:validate:prod": "./generate-config.sh prod",
+    "shopify:dev": "npx shopify app dev",
+    "shopify:deploy:prod": "npx shopify app deploy --config prod"
   },
   "repository": {
     "type": "git",

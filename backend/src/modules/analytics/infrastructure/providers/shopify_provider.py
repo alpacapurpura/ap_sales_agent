@@ -30,6 +30,18 @@ API_VERSION = "2026-01"
 class ShopifyProvider(BaseMetricsProvider):
     """Extracts metrics from Shopify Admin API for opportunity and sales stages."""
 
+    def __init__(self):
+        self._last_orders: List[dict] = []
+        self._last_checkouts: List[dict] = []
+
+    def get_last_extracted_orders(self) -> List[dict]:
+        """Return raw orders cached during the last sales-stage extraction."""
+        return self._last_orders
+
+    def get_last_extracted_checkouts(self) -> List[dict]:
+        """Return raw checkouts cached during the last opportunity-stage extraction."""
+        return self._last_checkouts
+
     def provider_name(self) -> str:
         return "shopify"
 
@@ -188,12 +200,15 @@ class ShopifyProvider(BaseMetricsProvider):
             "orders.json",
             {
                 "status": "any",
-                "created_at_min": f"{start_date}T00:00:00Z",
-                "created_at_max": f"{end_date}T23:59:59Z",
+                "processed_at_min": f"{start_date}T00:00:00Z",
+                "processed_at_max": f"{end_date}T23:59:59Z",
                 "limit": 250,
-                "fields": "id,created_at,total_price,checkout_token,financial_status,line_items",
+                "fields": "id,created_at,processed_at,total_price,checkout_token,financial_status,line_items",
             },
         )
+
+        # Cache orders for CRM record creation in ETL
+        self._last_checkouts = []  # Reset; will be populated below
 
         # Get abandoned checkouts
         checkouts = await self._paginated_get(
@@ -206,6 +221,9 @@ class ShopifyProvider(BaseMetricsProvider):
                 "limit": 250,
             },
         )
+
+        # Cache checkouts for CRM record creation in ETL
+        self._last_checkouts = checkouts
 
         # Group by date
         by_date: Dict[date, dict] = defaultdict(
@@ -220,7 +238,7 @@ class ShopifyProvider(BaseMetricsProvider):
 
         completed_tokens = set()
         for order in orders:
-            d = self._parse_date(order.get("created_at", ""))
+            d = self._parse_date(order.get("processed_at") or order.get("created_at", ""))
             if d:
                 by_date[d]["order_count"] += 1
                 token = order.get("checkout_token")
@@ -285,19 +303,34 @@ class ShopifyProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
     ) -> List[ExtractedMetric]:
-        """Extract order/revenue metrics for sales stage."""
+        """Extract order/revenue metrics for sales stage.
+
+        Extracts 12 metrics per day:
+        - revenue, order_count, avg_order_value, units_sold (original 4)
+        - total_discounts, total_tax, net_sales, refund_amount,
+          refund_count, shipping_revenue, repeat_customers,
+          discount_usage_count (new 8)
+        """
         orders = await self._paginated_get(
             shop_domain,
             access_token,
             "orders.json",
             {
                 "status": "any",
-                "created_at_min": f"{start_date}T00:00:00Z",
-                "created_at_max": f"{end_date}T23:59:59Z",
+                "processed_at_min": f"{start_date}T00:00:00Z",
+                "processed_at_max": f"{end_date}T23:59:59Z",
                 "limit": 250,
-                "fields": "id,created_at,total_price,currency,line_items,financial_status",
+                "fields": (
+                    "id,email,created_at,processed_at,total_price,current_total_price,"
+                    "currency,checkout_token,line_items,financial_status,total_discounts,"
+                    "total_tax,subtotal_price,shipping_lines,discount_codes,customer,"
+                    "billing_address"
+                ),
             },
         )
+
+        # Cache orders for CRM record creation in ETL
+        self._last_orders = orders
 
         # Group by date
         by_date: Dict[date, dict] = defaultdict(
@@ -306,23 +339,71 @@ class ShopifyProvider(BaseMetricsProvider):
                 "order_count": 0,
                 "units_sold": 0,
                 "currency": "USD",
+                "total_discounts": 0.0,
+                "total_tax": 0.0,
+                "refund_amount": 0.0,
+                "refund_count": 0,
+                "shipping_revenue": 0.0,
+                "discount_usage_count": 0,
+                "repeat_customer_ids": set(),
             }
         )
 
         for order in orders:
             # Skip cancelled/voided orders
             fin_status = order.get("financial_status", "")
-            if fin_status in ("voided", "refunded"):
+            if fin_status in ("voided",):
                 continue
 
-            d = self._parse_date(order.get("created_at", ""))
+            d = self._parse_date(order.get("processed_at") or order.get("created_at", ""))
             if not d:
                 continue
 
-            by_date[d]["revenue"] += float(order.get("total_price", 0))
+            total_price = float(order.get("total_price", 0))
+            current_total_price = float(order.get("current_total_price", 0) or 0)
+
+            # Fully refunded orders: don't count revenue but track refund
+            if fin_status == "refunded":
+                by_date[d]["refund_amount"] += total_price
+                by_date[d]["refund_count"] += 1
+                by_date[d]["currency"] = order.get("currency", "USD")
+                continue
+
+            by_date[d]["revenue"] += total_price
             by_date[d]["order_count"] += 1
             by_date[d]["currency"] = order.get("currency", "USD")
 
+            # Discounts
+            discounts = float(order.get("total_discounts", 0))
+            by_date[d]["total_discounts"] += discounts
+
+            # Tax
+            by_date[d]["total_tax"] += float(order.get("total_tax", 0))
+
+            # Shipping revenue
+            for sl in order.get("shipping_lines", []):
+                by_date[d]["shipping_revenue"] += float(sl.get("price", 0))
+
+            # Discount usage
+            if order.get("discount_codes"):
+                by_date[d]["discount_usage_count"] += 1
+
+            # Partial refunds (order still active but partially refunded)
+            if fin_status == "partially_refunded":
+                refund_diff = total_price - current_total_price
+                if refund_diff > 0:
+                    by_date[d]["refund_amount"] += refund_diff
+                    by_date[d]["refund_count"] += 1
+
+            # Repeat customers
+            customer = order.get("customer")
+            if customer:
+                cust_id = customer.get("id")
+                orders_count = customer.get("orders_count", 1)
+                if cust_id and orders_count and int(orders_count) > 1:
+                    by_date[d]["repeat_customer_ids"].add(cust_id)
+
+            # Units sold
             for item in order.get("line_items", []):
                 by_date[d]["units_sold"] += int(item.get("quantity", 1))
 
@@ -333,11 +414,22 @@ class ShopifyProvider(BaseMetricsProvider):
             avg_order = revenue / order_count if order_count > 0 else 0.0
             currency = data["currency"]
 
+            # Net sales = revenue - discounts - refunds
+            net_sales = revenue - data["total_discounts"] - data["refund_amount"]
+
             metric_tuples = [
                 ("revenue", revenue, "currency", currency),
                 ("order_count", float(order_count), "count", None),
                 ("avg_order_value", avg_order, "currency", currency),
                 ("units_sold", float(data["units_sold"]), "count", None),
+                ("total_discounts", data["total_discounts"], "currency", currency),
+                ("total_tax", data["total_tax"], "currency", currency),
+                ("net_sales", net_sales, "currency", currency),
+                ("refund_amount", data["refund_amount"], "currency", currency),
+                ("refund_count", float(data["refund_count"]), "count", None),
+                ("shipping_revenue", data["shipping_revenue"], "currency", currency),
+                ("repeat_customers", float(len(data["repeat_customer_ids"])), "count", None),
+                ("discount_usage_count", float(data["discount_usage_count"]), "count", None),
             ]
 
             for name, value, unit, cur in metric_tuples:

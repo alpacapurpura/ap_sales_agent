@@ -1,10 +1,12 @@
-# This file is used by Shopify CLI to manage your app's configuration.
-# To push this configuration to Shopify, run: `shopify app config push`
+# Shopify App Config: nicolify-prod (Public, Draft)
+# PRODUCTION config — used by `shopify app deploy --config prod`.
+# App: nicolify-prod | Distribution: Public
+# To deploy: `shopify app deploy --config prod`
 
-client_id = "REPLACE_WITH_PROD_CLIENT_ID"
+client_id = "887e8cb20836761cff40e585aaa0cf5f"
 name = "nicolify-prod"
 application_url = "https://app.nicolify.com"
-embedded = true
+embedded = false
 
 [webhooks]
 api_version = "2026-01"
@@ -27,8 +29,10 @@ redirect_urls = [
 ]
 
 [access_scopes]
-# Scopes requested by the backend
 scopes = "write_customers,write_orders,read_analytics,read_customer_events,read_cart_transforms,read_all_cart_transforms,read_channels,read_checkouts,read_companies,read_custom_pixels,read_customers,read_customer_data_erasure,read_customer_merge,read_price_rules,read_discounts,read_discounts_allocator_functions,read_discovery,read_draft_orders,read_fulfillments,read_gift_card_transactions,read_gift_cards,read_inventory,read_inventory_shipments,read_inventory_shipments_received_items,read_locales,read_locations,read_marketing_integrated_campaigns,read_marketing_events,read_markets,read_markets_home,read_merchant_managed_fulfillment_orders,read_metaobject_definitions,read_metaobjects,read_online_store_navigation,read_online_store_pages,read_order_edits,read_orders,read_packing_slip_templates,read_payment_terms,read_payment_customizations,read_product_feeds,read_product_listings,read_products,read_publications,read_purchase_options,read_reports,read_resource_feedbacks,read_returns,read_script_tags,read_shipping,read_shopify_payments_payouts,read_shopify_payments_disputes,read_content,read_store_credit_account_transactions,read_third_party_fulfillment_orders,read_translations,read_pixels"
 
 [pos]
 embedded = false
+
+[build]
+automatically_update_urls_on_dev = false

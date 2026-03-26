@@ -189,6 +189,42 @@ async def auth_callback(
     return RedirectResponse(url=f"{dashboard_url}/marketing-studio/connections?status=success&channel=shopify")
 
 
+@router.post("/quick-connect", response_model=ConnectionResponse)
+async def quick_connect_shopify(
+    request: ShopifyAuthUrlRequest,
+    user: User = Depends(get_current_user),
+    repo: ChannelConnectionRepository = Depends(_get_repo),
+):
+    """
+    Connect to Shopify using Client Credentials Grant (no browser redirect).
+    Only works for stores in the same Shopify organization as the app.
+    """
+    shop_url = request.shop_url.replace("https://", "").replace("http://", "").strip("/")
+    if not shop_url.endswith("myshopify.com") and "." not in shop_url:
+        shop_url = f"{shop_url}.myshopify.com"
+
+    access_token, error = await ShopifyConnector.client_credentials_token(shop_url)
+    if error:
+        raise HTTPException(status_code=400, detail=f"Client credentials failed: {error}")
+
+    is_valid, shop_details = await ShopifyConnector.verify_connection(shop_url, access_token)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Failed to verify connection with Shopify")
+
+    repo.upsert(
+        tenant_id=user.tenant_id,
+        channel_type=ChannelType.SHOPIFY,
+        credentials={"access_token": access_token},
+        config={"shop_url": f"https://{shop_url}", "shop_info": shop_details},
+    )
+
+    return ConnectionResponse(
+        status="connected",
+        message="Shopify connected via client credentials",
+        details=shop_details,
+    )
+
+
 @router.post("/disconnect", response_model=ConnectionResponse)
 async def disconnect_shopify(
     user: User = Depends(get_current_user),

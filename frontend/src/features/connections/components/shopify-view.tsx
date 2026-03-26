@@ -70,18 +70,17 @@ export function ShopifyView() {
   }, [searchParams, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConnect = async () => {
-    // Clean shop URL: remove https://, http://, slashes
-    let cleanShopUrl = shopUrl.replace("https://", "").replace("http://", "").split("/")[0];
-    
-    // Validate domain format
-    if (!cleanShopUrl.includes(".")) {
-        // If user entered just "my-store", append ".myshopify.com"
-        cleanShopUrl = `${cleanShopUrl}.myshopify.com`;
-    }
-
     if (!shopUrl.trim()) {
         toast.error("Por favor ingresa la URL de la tienda");
         return;
+    }
+
+    // Clean shop URL: remove https://, http://, slashes
+    let cleanShopUrl = shopUrl.replace("https://", "").replace("http://", "").split("/")[0];
+
+    // Validate domain format
+    if (!cleanShopUrl.includes(".")) {
+        cleanShopUrl = `${cleanShopUrl}.myshopify.com`;
     }
 
     try {
@@ -89,15 +88,26 @@ export function ShopifyView() {
         const token = await getToken();
         if (!token) return;
 
-        const res = await connectionsApi.generateShopifyAuthUrl({ shop_url: cleanShopUrl }, token);
-        if (res.auth_url) {
-            window.location.href = res.auth_url;
-        } else {
-             throw new Error("No se recibió URL de autorización");
-        }
+        // Use quick-connect (client credentials) — works for own stores
+        const res = await connectionsApi.quickConnectShopify({ shop_url: cleanShopUrl }, token);
+        toast.success("Shopify conectado exitosamente");
+        fetchStatus();
     } catch (error: any) {
         console.error(error);
-        toast.error(error.message || "Error al iniciar conexión con Shopify");
+        // Fallback: try OAuth redirect if quick-connect fails
+        try {
+            const token = await getToken();
+            if (!token) return;
+            const authRes = await connectionsApi.generateShopifyAuthUrl({ shop_url: cleanShopUrl }, token);
+            if (authRes.auth_url) {
+                window.location.href = authRes.auth_url;
+                return;
+            }
+        } catch (fallbackError: any) {
+            console.error("OAuth fallback also failed:", fallbackError);
+        }
+        toast.error(error.message || "Error al conectar con Shopify");
+    } finally {
         setConnecting(false);
     }
   };
@@ -235,9 +245,9 @@ export function ShopifyView() {
                 </div>
 
                 {testResult && (
-                    <Alert variant={testResult.status === "ok" ? "default" : "destructive"} className={testResult.status === "ok" ? "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20" : ""}>
+                    <Alert variant={testResult.status === "ok" || testResult.status === "active" ? "default" : "destructive"} className={testResult.status === "ok" || testResult.status === "active" ? "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20" : ""}>
                         <Activity className="h-4 w-4" />
-                        <AlertTitle>{testResult.status === "ok" ? "Conexión Estable" : "Error de Conexión"}</AlertTitle>
+                        <AlertTitle>{testResult.status === "ok" || testResult.status === "active" ? "Conexión Estable" : "Error de Conexión"}</AlertTitle>
                         <AlertDescription>
                             {testResult.message}
                             {testResult.data && (

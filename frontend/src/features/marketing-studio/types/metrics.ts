@@ -33,6 +33,8 @@ export interface MetricClickData {
   /** ISO 4217 currency code when the metric is a monetary value */
   currency?: string;
   lastUpdated?: Date;
+  /** Extra data from headerKpis for enriched sidebar detail (e.g., sales breakdown) */
+  extraData?: Record<string, number>;
 }
 
 export interface StageSummary {
@@ -247,6 +249,20 @@ export interface SalesHeaderKpis {
   newCustomers: number;
   cac: number | null;
   cacIncomplete: boolean;
+  // Enriched Shopify metrics
+  netSales: number;
+  totalDiscounts: number;
+  totalTax: number;
+  refundCount: number;
+  refundAmount: number;
+  shippingRevenue: number;
+  repeatCustomers: number;
+  discountUsageCount: number;
+  // Shopify aggregate KPIs (fallback display)
+  shopifyRevenue: number;
+  shopifyOrderCount: number;
+  shopifyAvgOrderValue: number;
+  shopifyCurrency: string;
 }
 
 export interface SalesDetail {

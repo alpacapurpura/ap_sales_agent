@@ -149,6 +149,7 @@ class ETLPipeline:
                 staging_rows=staging_models,
                 cost_type_fn=get_cost_type,
                 extraction_run_id=run_id,
+                stage_slug=stage,
             )
 
             # Step 6: Upsert official metrics

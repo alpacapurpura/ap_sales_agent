@@ -65,6 +65,8 @@ const METRIC_LABELS: Record<string, string> = {
   total_mqls: 'Total MQLs',
   total_sqls: 'Total SQLs',
   revenue: 'Revenue',
+  pipeline: 'Pipeline (SQLs)',
+  customers: 'Clientes',
   health_pct: 'Salud del Cliente',
   net_mrr: 'Ingreso Recurrente Neto',
   k_factor: 'K-Factor',
@@ -366,28 +368,212 @@ function OpportunityMetricDetail({ metric }: { metric: MetricClickData }) {
   );
 }
 
-function SalesMetricDetail({ metric }: { metric: MetricClickData }) {
+function SalesBreakdownRow({ label, value, currency, isMoney = true }: { label: string; value: number; currency?: string; isMoney?: boolean }) {
+  const formatted = isMoney && currency
+    ? new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
+    : value.toLocaleString('es-ES');
+  return (
+    <div className="flex justify-between items-center py-1.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs font-semibold text-foreground">{formatted}</span>
+    </div>
+  );
+}
+
+function SalesRateBadge({ label, value }: { label: string; value: number }) {
+  const color = value > 20 ? 'text-red-600 dark:text-red-400' : value > 10 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400';
+  return (
+    <div className="flex justify-between items-center py-1">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`text-xs font-bold ${color}`}>{value.toFixed(1)}%</span>
+    </div>
+  );
+}
+
+function RevenueMetricDetail({ metric }: { metric: MetricClickData }) {
+  const d = metric.extraData || {};
+  const currency = metric.currency || 'USD';
+  const grossRevenue = d.totalRevenue || 0;
+  const netSales = d.netSales || 0;
+  const orderCount = d.sqls || 0; // using sqls as proxy if order_count not separate
+  const discountRate = orderCount > 0 ? ((d.discountUsageCount || 0) / orderCount * 100) : 0;
+  const refundRate = orderCount > 0 ? ((d.refundCount || 0) / orderCount * 100) : 0;
+  const netRatio = grossRevenue > 0 ? (netSales / grossRevenue * 100) : 100;
+
   return (
     <div className="space-y-4">
       <div className="rounded-md bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3">
         <p className="text-xs text-green-700 dark:text-green-300 font-medium">
-          Ventas — Revenue y clientes nuevos por oferta
+          Revenue — Desglose de ingresos
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide el impacto economico de tu oferta en el periodo actual.
+          Analisis detallado de ingresos brutos vs netos del periodo.
         </p>
       </div>
-      <Card className="border-dashed">
+
+      {/* Net vs Gross */}
+      <Card className="border-muted">
+        <CardContent className="py-3 px-4 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Ingresos Brutos vs Netos</p>
+          <div className="flex items-center gap-3 mt-2">
+            <div className="flex-1">
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(netRatio, 100)}%` }} />
+              </div>
+            </div>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{netRatio.toFixed(1)}%</span>
+          </div>
+          <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+            <span>Neto: {new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: 0 }).format(netSales)}</span>
+            <span>Bruto: {new Intl.NumberFormat('es-MX', { style: 'currency', currency, minimumFractionDigits: 0 }).format(grossRevenue)}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Breakdown */}
+      <Card className="border-muted">
         <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Desglose por oferta</p>
-          <p className="text-xs text-muted-foreground italic">
-            Detalle de ventas por producto — proxima version
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Desglose</p>
+          <SalesBreakdownRow label="Descuentos" value={d.totalDiscounts || 0} currency={currency} />
+          <SalesBreakdownRow label="Impuestos recaudados" value={d.totalTax || 0} currency={currency} />
+          <SalesBreakdownRow label="Ingresos por envio" value={d.shippingRevenue || 0} currency={currency} />
+          <SalesBreakdownRow label="Reembolsos" value={d.refundAmount || 0} currency={currency} />
+          <Separator className="my-2" />
+          <SalesRateBadge label="Tasa de descuento" value={discountRate} />
+          <SalesRateBadge label="Tasa de devolucion" value={refundRate} />
+        </CardContent>
+      </Card>
+      <ActionButtons stageId="VENTAS" channelSlug={metric.channelSlug} />
+    </div>
+  );
+}
+
+function CustomersMetricDetail({ metric }: { metric: MetricClickData }) {
+  const d = metric.extraData || {};
+  const newCustomers = d.newCustomers || 0;
+  const repeatCustomers = d.repeatCustomers || 0;
+  const repeatRate = newCustomers > 0 ? (repeatCustomers / newCustomers * 100) : 0;
+  const currency = metric.currency || 'USD';
+  const cac = d.cac || 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3">
+        <p className="text-xs text-green-700 dark:text-green-300 font-medium">
+          Clientes — Nuevos vs recurrentes
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Analisis de la base de clientes del periodo.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-2xl font-bold text-foreground">{newCustomers.toLocaleString('es-ES')}</span>
+            <span className="text-[10px] text-muted-foreground mt-1">Nuevos</span>
+          </CardContent>
+        </Card>
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-2xl font-bold text-foreground">{repeatCustomers.toLocaleString('es-ES')}</span>
+            <span className="text-[10px] text-muted-foreground mt-1">Recurrentes</span>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-muted">
+        <CardContent className="py-3 px-4">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Indicadores</p>
+          <SalesBreakdownRow label="Tasa de recompra" value={repeatRate} isMoney={false} />
+          <SalesBreakdownRow label="CAC promedio" value={cac} currency={currency} />
+          {d.totalRevenue > 0 && newCustomers > 0 && (
+            <SalesBreakdownRow label="Ticket promedio" value={d.totalRevenue / newCustomers} currency={currency} />
+          )}
+        </CardContent>
+      </Card>
+      <ActionButtons stageId="VENTAS" channelSlug={metric.channelSlug} />
+    </div>
+  );
+}
+
+function PipelineMetricDetail({ metric }: { metric: MetricClickData }) {
+  const d = metric.extraData || {};
+  const sqls = d.sqls || 0;
+  const newCustomers = d.newCustomers || 0;
+  const conversionRate = d.conversionRate || 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3">
+        <p className="text-xs text-green-700 dark:text-green-300 font-medium">
+          Pipeline — Oportunidades a ventas
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Detalle de conversion del pipeline de ventas.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-2xl font-bold text-foreground">{sqls.toLocaleString('es-ES')}</span>
+            <span className="text-[10px] text-muted-foreground mt-1">SQLs (Oportunidades)</span>
+          </CardContent>
+        </Card>
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">{newCustomers.toLocaleString('es-ES')}</span>
+            <span className="text-[10px] text-muted-foreground mt-1">Convertidos</span>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-muted">
+        <CardContent className="py-3 px-4">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Conversion</p>
+          <div className="flex items-center gap-3 mt-1">
+            <div className="flex-1">
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(conversionRate, 100)}%` }} />
+              </div>
+            </div>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{conversionRate.toFixed(1)}%</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            {sqls - newCustomers > 0 ? `${(sqls - newCustomers).toLocaleString('es-ES')} oportunidades no convertidas` : 'Todas las oportunidades convertidas'}
           </p>
         </CardContent>
       </Card>
       <ActionButtons stageId="VENTAS" channelSlug={metric.channelSlug} />
     </div>
   );
+}
+
+function SalesMetricDetail({ metric }: { metric: MetricClickData }) {
+  // Route to specialized detail based on metricName
+  switch (metric.metricName) {
+    case 'revenue':
+      return <RevenueMetricDetail metric={metric} />;
+    case 'customers':
+      return <CustomersMetricDetail metric={metric} />;
+    case 'pipeline':
+      return <PipelineMetricDetail metric={metric} />;
+    default:
+      return (
+        <div className="space-y-4">
+          <div className="rounded-md bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3">
+            <p className="text-xs text-green-700 dark:text-green-300 font-medium">
+              Ventas — Revenue y clientes nuevos por oferta
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Esta metrica mide el impacto economico de tu oferta en el periodo actual.
+            </p>
+          </div>
+          <ActionButtons stageId="VENTAS" channelSlug={metric.channelSlug} />
+        </div>
+      );
+  }
 }
 
 function AdoptionMetricDetail({ metric }: { metric: MetricClickData }) {

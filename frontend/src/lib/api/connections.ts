@@ -305,6 +305,22 @@ export const connectionsApi = {
     return res.json();
   },
 
+  quickConnectShopify: async (data: ShopifyAuthUrlRequest, token: string): Promise<any> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/quick-connect`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error conectando Shopify");
+    }
+    return res.json();
+  },
+
   connectShopify: async (data: ShopifyConnectRequest, token: string): Promise<any> => {
     const res = await fetchClient(`${API_URL}/api/v1/connections/shopify/connect`, {
       method: "POST",

@@ -21,20 +21,19 @@ class ShopifyConnector(BaseConnector):
     def get_auth_url(shop_domain: str, state: str, redirect_uri: str) -> str:
         """
         Generates the Shopify OAuth authorization URL.
+        Scopes are omitted because they are managed via the deployed TOML config
+        (Shopify managed installation).
         """
         # Clean up shop URL
         shop_domain = shop_domain.replace("https://", "").replace("http://", "").strip("/")
         if not shop_domain.endswith("myshopify.com") and "." not in shop_domain:
             shop_domain = f"{shop_domain}.myshopify.com"
-            
+
         params = {
             "client_id": settings.SHOPIFY_API_KEY,
-            "scope": ShopifyConnector.SCOPES,
             "redirect_uri": redirect_uri,
             "state": state
         }
-        # Shopify OAuth requires params to be sorted in some cases, but urlencode does not sort by default
-        # We ensure consistent ordering just in case, though not strictly required by spec
         query_string = urllib.parse.urlencode(params)
         return f"https://{shop_domain}/admin/oauth/authorize?{query_string}"
 
@@ -89,6 +88,44 @@ class ShopifyConnector(BaseConnector):
                     return None, f"Failed to exchange token: {response.text}"
         except Exception as e:
             logger.error("shopify_token_exchange_error", error=str(e))
+            return None, str(e)
+
+    @staticmethod
+    async def client_credentials_token(shop_domain: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Acquires an access token via OAuth 2.0 Client Credentials Grant.
+        Only works for apps installed on stores owned by the same organization.
+        Token expires in ~24h and must be refreshed.
+        Returns: (access_token, error_message)
+        """
+        shop_domain = shop_domain.replace("https://", "").replace("http://", "").strip("/")
+        if not shop_domain.endswith("myshopify.com") and "." not in shop_domain:
+            shop_domain = f"{shop_domain}.myshopify.com"
+
+        url = f"https://{shop_domain}/admin/oauth/access_token"
+        payload = {
+            "grant_type": "client_credentials",
+            "client_id": settings.SHOPIFY_API_KEY,
+            "client_secret": settings.SHOPIFY_API_SECRET,
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url,
+                    data=payload,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=10.0,
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("access_token"), None
+                else:
+                    logger.error("shopify_client_credentials_failed", status=response.status_code, body=response.text)
+                    return None, f"Client credentials failed: {response.text}"
+        except Exception as e:
+            logger.error("shopify_client_credentials_error", error=str(e))
             return None, str(e)
 
     def sync_contacts(self, tenant_id: str) -> List[Dict[str, Any]]:

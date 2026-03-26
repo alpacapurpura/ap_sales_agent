@@ -40,6 +40,12 @@ from src.modules.analytics.infrastructure.repositories.staging_repository import
 
 logger = logging.getLogger(__name__)
 
+# Providers that need multiple stages extracted.
+# Default stage for unlisted providers is ["attraction"].
+PROVIDER_STAGES: dict[str, list[str]] = {
+    "shopify": ["opportunity", "sales"],
+}
+
 
 class ETLService:
     """Application-level orchestration for ETL extractions.
@@ -151,8 +157,14 @@ class ETLService:
     ) -> dict:
         """Load historical daily metrics, skipping days already in DB.
 
+        For multi-stage providers (e.g. shopify -> opportunity + sales),
+        all stages are extracted in a single run.
+
         Returns dict with total, loaded, skipped counts.
         """
+        # Determine which stages to extract
+        stages = PROVIDER_STAGES.get(provider_name, [stage])
+
         end_date = date.today() - timedelta(days=1)
         start_date = date.today() - timedelta(days=days)
 
@@ -176,17 +188,21 @@ class ETLService:
         if progress_callback:
             progress_callback(0, total, "extracting")
 
-        # Extract daily metrics from provider
+        # Extract daily metrics from provider (all stages)
         provider = get_provider(provider_name)
         creds = await self.connection_port.get_credentials(tenant_id, provider_name)
         provider_creds = {**creds.credentials, **creds.config}
-        extracted = await provider.extract_metrics_daily(
-            tenant_id=tenant_id,
-            credentials=provider_creds,
-            start_date=min_missing,
-            end_date=max_missing,
-            stage=stage,
-        )
+
+        extracted = []
+        for stg in stages:
+            stage_metrics = await provider.extract_metrics_daily(
+                tenant_id=tenant_id,
+                credentials=provider_creds,
+                start_date=min_missing,
+                end_date=max_missing,
+                stage=stg,
+            )
+            extracted.extend(stage_metrics)
 
         # Filter to only missing days
         extracted = [m for m in extracted if m.date in missing_days]
@@ -259,6 +275,19 @@ class ETLService:
             ]
             self.db.add_all(agg_models)
 
+        # Create CRM records (journey_events + SaleModel) for Shopify backfill
+        if provider_name == "shopify":
+            crm_result = self._create_shopify_crm_records(
+                tenant_id=tenant_id,
+                provider=provider,
+            )
+            logger.info(
+                "Shopify CRM backfill: orders=%d checkouts=%d sales=%d",
+                crm_result["orders_processed"],
+                crm_result["checkouts_processed"],
+                crm_result["sales_created"],
+            )
+
         self.db.commit()
         await self.cache.invalidate_tenant(str(tenant_id))
 
@@ -267,7 +296,267 @@ class ETLService:
             progress_callback(total, total, "completed")
 
         logger.info(
-            "Initial load completed: tenant=%s provider=%s loaded=%d skipped=%d",
-            tenant_id, provider_name, loaded, len(existing),
+            "Initial load completed: tenant=%s provider=%s stages=%s loaded=%d skipped=%d",
+            tenant_id, provider_name, stages, loaded, len(existing),
         )
         return {"total": total, "loaded": loaded, "skipped": len(existing)}
+
+    # ------------------------------------------------------------------
+    # Shopify CRM backfill helpers
+    # ------------------------------------------------------------------
+
+    def _create_shopify_crm_records(
+        self,
+        tenant_id: UUID,
+        provider,
+    ) -> dict:
+        """Create journey_events + SaleModel from cached Shopify orders/checkouts.
+
+        Replicates what webhooks produce so that UnmatchedProducts and
+        OfferLadder widgets work after an ETL backfill.
+        """
+        from datetime import datetime as dt
+        from sqlalchemy import select as sa_select, func as sa_func
+        from src.modules.crm.application.services.customer_service import CustomerService
+        from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+        from src.modules.crm.infrastructure.models.sale_model import SaleModel
+        from src.modules.crm.domain.enums import SaleStatus, SaleStage
+        from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
+            ExternalProductMappingRepository,
+        )
+
+        orders = provider.get_last_extracted_orders()
+        checkouts = provider.get_last_extracted_checkouts()
+
+        if not orders and not checkouts:
+            logger.info("shopify_etl_crm_no_data tenant=%s", tenant_id)
+            return {"orders_processed": 0, "checkouts_processed": 0, "sales_created": 0}
+
+        customer_svc = CustomerService(self.db)
+        mapping_repo = ExternalProductMappingRepository(self.db)
+
+        # Build set of completed checkout tokens for abandoned-checkout filtering
+        completed_tokens: set[str] = set()
+        for order in orders:
+            token = order.get("checkout_token")
+            if token:
+                completed_tokens.add(str(token))
+
+        orders_processed = 0
+        checkouts_processed = 0
+        sales_created = 0
+
+        # --- Completed orders → checkout_completed + SaleModel ---
+        for order in orders:
+            fin_status = order.get("financial_status", "")
+            if fin_status in ("voided", "refunded"):
+                continue
+
+            order_id = str(order.get("id", ""))
+            if not order_id:
+                continue
+
+            # Deduplication: skip if journey_event already exists for this order
+            existing_stmt = sa_select(JourneyEventModel.id).where(
+                JourneyEventModel.tenant_id == tenant_id,
+                JourneyEventModel.event_name == "checkout_completed",
+                sa_func.jsonb_extract_path_text(
+                    JourneyEventModel.properties, "order_id"
+                ) == order_id,
+            ).limit(1)
+            if self.db.execute(existing_stmt).scalar_one_or_none():
+                continue
+
+            # Resolve email (top-level or nested in customer)
+            email = order.get("email") or (order.get("customer") or {}).get("email")
+            if not email:
+                logger.warning("shopify_etl_order_no_email order_id=%s", order_id)
+                continue
+
+            # Resolve/create CDP profile
+            customer = order.get("customer") or {}
+            first_name = customer.get("first_name", "")
+            last_name = customer.get("last_name", "")
+            customer_name = f"{first_name} {last_name}".strip()
+
+            profile = customer_svc.identify(
+                tenant_id=tenant_id,
+                traits={"email": email, "name": customer_name},
+                identities={},
+            )
+
+            # Extract line items (same structure as webhook)
+            line_items_raw = order.get("line_items", [])
+            line_items_data = [
+                {
+                    "product_id": str(item.get("product_id", "")),
+                    "variant_id": str(item.get("variant_id", "")),
+                    "title": item.get("title", ""),
+                    "price": float(item.get("price", 0)),
+                    "quantity": int(item.get("quantity", 1)),
+                }
+                for item in line_items_raw
+            ]
+
+            checkout_token = str(order.get("checkout_token", ""))
+            total_price = float(order.get("total_price", 0))
+            currency = order.get("currency", "USD")
+            occurred_at = self._parse_shopify_datetime(
+                order.get("processed_at") or order.get("created_at", "")
+            )
+
+            # Create journey_event
+            event = JourneyEventModel(
+                profile_id=profile.id,
+                tenant_id=tenant_id,
+                event_name="checkout_completed",
+                event_type="track",
+                properties={
+                    "source": "shopify",
+                    "order_id": order_id,
+                    "checkout_token": checkout_token,
+                    "total_price": total_price,
+                    "currency": currency,
+                    "line_items_count": len(line_items_data),
+                    "line_items": line_items_data,
+                    "etl_backfill": True,
+                },
+                occurred_at=occurred_at,
+            )
+            self.db.add(event)
+
+            # Bulk resolve product → offer mappings
+            product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
+            resolved_mappings = (
+                mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids)
+                if product_ids
+                else {}
+            )
+
+            # Create SaleModel per line_item (direct — no SaleCompletedEvent)
+            for item in line_items_data:
+                product_id = item["product_id"]
+                if not product_id:
+                    continue
+
+                txn_id = f"shopify-{order_id}-{product_id}"
+
+                # Dedup by transaction_id
+                existing_sale = self.db.execute(
+                    sa_select(SaleModel.id).where(
+                        SaleModel.tenant_id == tenant_id,
+                        SaleModel.transaction_id == txn_id,
+                    ).limit(1)
+                ).scalar_one_or_none()
+                if existing_sale:
+                    continue
+
+                offer_id = resolved_mappings.get(product_id, uuid.UUID(int=0))
+                line_amount = item["price"] * item["quantity"]
+
+                sale = SaleModel(
+                    id=uuid.uuid4(),
+                    tenant_id=tenant_id,
+                    customer_id=profile.id,
+                    offer_id=offer_id,
+                    transaction_id=txn_id,
+                    amount=line_amount,
+                    currency=currency,
+                    status=SaleStatus.COMPLETED,
+                    stage=SaleStage.CONVERSION,
+                    source="SHOPIFY",
+                    metadata_info={"etl_backfill": True, "shopify_order_id": order_id},
+                    occurred_at=occurred_at,
+                )
+                self.db.add(sale)
+                sales_created += 1
+
+            orders_processed += 1
+
+        # --- Abandoned checkouts → checkout_initiated ---
+        for checkout in checkouts:
+            token = str(checkout.get("token", ""))
+
+            # Skip completed checkouts (handled as orders above)
+            if token and token in completed_tokens:
+                continue
+
+            # Deduplication
+            if token:
+                existing_stmt = sa_select(JourneyEventModel.id).where(
+                    JourneyEventModel.tenant_id == tenant_id,
+                    JourneyEventModel.event_name == "checkout_initiated",
+                    sa_func.jsonb_extract_path_text(
+                        JourneyEventModel.properties, "checkout_token"
+                    ) == token,
+                ).limit(1)
+                if self.db.execute(existing_stmt).scalar_one_or_none():
+                    continue
+
+            email = checkout.get("email")
+            if not email:
+                continue
+
+            billing = checkout.get("billing_address") or {}
+            profile = customer_svc.identify(
+                tenant_id=tenant_id,
+                traits={"email": email, "name": billing.get("name", "")},
+                identities={},
+            )
+
+            line_items_raw = checkout.get("line_items", [])
+            line_items_data = [
+                {
+                    "product_id": str(item.get("product_id", "")),
+                    "variant_id": str(item.get("variant_id", "")),
+                    "title": item.get("title", ""),
+                    "price": float(item.get("price", 0)),
+                    "quantity": int(item.get("quantity", 1)),
+                }
+                for item in line_items_raw
+            ]
+
+            occurred_at = self._parse_shopify_datetime(checkout.get("created_at", ""))
+
+            event = JourneyEventModel(
+                profile_id=profile.id,
+                tenant_id=tenant_id,
+                event_name="checkout_initiated",
+                event_type="track",
+                properties={
+                    "source": "shopify",
+                    "checkout_token": token,
+                    "total_price": float(checkout.get("total_price", 0)),
+                    "currency": checkout.get("currency", "USD"),
+                    "line_items_count": len(line_items_data),
+                    "line_items": line_items_data,
+                    "etl_backfill": True,
+                },
+                occurred_at=occurred_at,
+            )
+            self.db.add(event)
+            checkouts_processed += 1
+
+        # Flush to catch constraint violations before caller commits
+        self.db.flush()
+
+        logger.info(
+            "shopify_etl_crm_records_created tenant=%s orders=%d checkouts=%d sales=%d",
+            tenant_id, orders_processed, checkouts_processed, sales_created,
+        )
+        return {
+            "orders_processed": orders_processed,
+            "checkouts_processed": checkouts_processed,
+            "sales_created": sales_created,
+        }
+
+    @staticmethod
+    def _parse_shopify_datetime(iso_str: str):
+        """Parse Shopify ISO datetime to Python datetime."""
+        if not iso_str:
+            return None
+        try:
+            from datetime import datetime as dt
+            return dt.fromisoformat(iso_str.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            return None

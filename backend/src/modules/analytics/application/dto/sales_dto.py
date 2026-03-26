@@ -181,7 +181,7 @@ class RevenueGroupDTO(BaseModel):
 
 
 class SalesHeaderKpisDTO(BaseModel):
-    """Panel header KPIs: Revenue Total | Nuevos Clientes | CAC."""
+    """Panel header KPIs: Revenue Total | Nuevos Clientes | CAC + enriched Shopify metrics."""
 
     total_revenue: float
     total_revenue_usd: Optional[float] = None
@@ -189,6 +189,20 @@ class SalesHeaderKpisDTO(BaseModel):
     new_customers: int  # CONVERSION count
     cac: Optional[float] = None
     cac_incomplete: bool = False  # True when cost data missing
+    # Enriched Shopify metrics (from official_metrics)
+    net_sales: float = 0.0
+    total_discounts: float = 0.0
+    total_tax: float = 0.0
+    refund_count: int = 0
+    refund_amount: float = 0.0
+    shipping_revenue: float = 0.0
+    repeat_customers: int = 0
+    discount_usage_count: int = 0
+    # Shopify aggregate KPIs (from official_metrics — used for fallback display)
+    shopify_revenue: float = 0.0
+    shopify_order_count: int = 0
+    shopify_avg_order_value: float = 0.0
+    shopify_currency: str = "USD"
 
 
 class SalesDetailDTO(BaseModel):

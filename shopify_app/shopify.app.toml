@@ -1,10 +1,12 @@
-# AUTO-GENERATED from /home/chris/aisalesht/.env — do not edit manually.
-# Run ./generate-config.sh [prod] to regenerate.
+# Shopify App Config: nicolify-dev (Public, Draft)
+# DEFAULT config — used by `shopify app dev` for development/testing on dev stores.
+# App: nicolify-dev | Distribution: Public
+# To preview: `shopify app dev`
 
-client_id = "85a0d3ba74bd153e4d8b4b1c198c9ac7"
-name = "nicolify-test"
+client_id = "d2bf80a34c0f7db6f4c33cb37bd5dc88"
+name = "nicolify-dev"
 application_url = "https://dev-app.nicolify.com"
-embedded = true
+embedded = false
 
 [webhooks]
 api_version = "2026-01"
@@ -23,8 +25,7 @@ compliance_topics = [ "shop/redact" ]
 
 [auth]
 redirect_urls = [
-  "https://dev-app.nicolify.com/api/auth/shopify/callback",
-  "https://app.nicolify.com/api/auth/shopify/callback"
+  "https://dev-app.nicolify.com/api/auth/shopify/callback"
 ]
 
 [access_scopes]
@@ -32,3 +33,6 @@ scopes = "write_customers,write_orders,read_analytics,read_customer_events,read_
 
 [pos]
 embedded = false
+
+[build]
+automatically_update_urls_on_dev = true

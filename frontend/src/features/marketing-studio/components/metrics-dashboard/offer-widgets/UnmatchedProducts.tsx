@@ -69,8 +69,26 @@ export function UnmatchedProducts({ source = 'shopify' }: UnmatchedProductsProps
   if (loading) return null;
   if (products.length === 0) return null;
 
+  // If no offers exist in the system, show CTA to create first offer
+  if (offers.length === 0) {
+    return (
+      <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 p-5">
+        <h3 className="text-sm font-semibold flex items-center gap-2 text-amber-900 dark:text-amber-200 mb-3">
+          <AlertTriangle className="w-4 h-4 text-amber-500" />
+          {products.length} producto{products.length !== 1 ? 's' : ''} de Shopify sin asociar
+        </h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Crea tu primera oferta en Offer Studio para asociar productos de Shopify y ver metricas desglosadas.
+        </p>
+        <a href="/offer-studio" className="text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline">
+          Ir a Offer Studio &rarr;
+        </a>
+      </div>
+    );
+  }
+
   return (
-    <div className="mt-8 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 p-5">
+    <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 p-5">
       <h3 className="text-sm font-semibold flex items-center gap-2 text-amber-900 dark:text-amber-200 mb-3">
         <AlertTriangle className="w-4 h-4 text-amber-500" />
         Productos sin Oferta Asociada ({products.length})

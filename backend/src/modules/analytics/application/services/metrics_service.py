@@ -1412,6 +1412,39 @@ class MetricsService:
         total_rev = total_revenue_all
         total_rev_usd = convert_to_usd(total_rev, display_currency)
 
+        # Enrich with Shopify metrics from official_metrics
+        official_repo = OfficialMetricsRepository(self.db)
+        shopify_agg = official_repo.get_channel_metrics(
+            tenant_id, "shopify", "shopify", start_date.date(), end_date.date(),
+        )
+
+        # Extract Shopify aggregates
+        shopify_revenue = shopify_agg.get("revenue", 0.0)
+        shopify_order_count = int(shopify_agg.get("order_count", 0))
+        shopify_avg_order = shopify_agg.get("avg_order_value", 0.0)
+
+        # Determine Shopify currency from stored metrics
+        shopify_currency = display_currency
+        if shopify_revenue > 0:
+            sample_rows = official_repo.get_metrics(
+                tenant_id, channel_slug="shopify", metric_name="revenue",
+                start_date=start_date.date(), end_date=end_date.date(),
+            )
+            if sample_rows:
+                shopify_currency = sample_rows[0].currency or "USD"
+                if not currency_counts:
+                    display_currency = shopify_currency
+
+        # FALLBACK: when CRM has no revenue, use Shopify as primary
+        if total_rev == 0 and shopify_revenue > 0:
+            total_rev = shopify_revenue
+            total_rev_usd = convert_to_usd(shopify_revenue, shopify_currency)
+        if new_customers == 0 and shopify_order_count > 0:
+            new_customers = shopify_order_count
+            # Recalculate CAC with updated new_customers
+            if total_investment > 0 and new_customers > 0:
+                cac = round(total_investment / new_customers, 2)
+
         header_kpis = SalesHeaderKpisDTO(
             total_revenue=total_rev,
             total_revenue_usd=total_rev_usd,
@@ -1419,6 +1452,18 @@ class MetricsService:
             new_customers=new_customers,
             cac=cac,
             cac_incomplete=cac_incomplete,
+            net_sales=shopify_agg.get("net_sales", 0.0),
+            total_discounts=shopify_agg.get("total_discounts", 0.0),
+            total_tax=shopify_agg.get("total_tax", 0.0),
+            refund_count=int(shopify_agg.get("refund_count", 0)),
+            refund_amount=shopify_agg.get("refund_amount", 0.0),
+            shipping_revenue=shopify_agg.get("shipping_revenue", 0.0),
+            repeat_customers=int(shopify_agg.get("repeat_customers", 0)),
+            discount_usage_count=int(shopify_agg.get("discount_usage_count", 0)),
+            shopify_revenue=shopify_revenue,
+            shopify_order_count=shopify_order_count,
+            shopify_avg_order_value=shopify_avg_order,
+            shopify_currency=shopify_currency,
         )
 
         # 8. Mini funnel: SQLs -> Customers

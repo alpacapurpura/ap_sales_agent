@@ -48,6 +48,9 @@ COST_TYPE_MAP: dict[tuple[str, str], CostType] = {
     ("cold-contact", "attraction"): CostType.EXPENSE,
     # Revenue channels
     ("shopify", "sales"): CostType.REVENUE,
+    ("shopify", "opportunity"): CostType.REVENUE,
+    ("checkout-init", "opportunity"): CostType.REVENUE,
+    ("abandoned-cart", "opportunity"): CostType.REVENUE,
 }
 
 
