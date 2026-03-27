@@ -1,0 +1,89 @@
+"use client";
+
+import { useMemo } from "react";
+import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
+import { useBrandStudio } from "@/features/brand/context/brand-studio-context";
+import { BrandSectionShell } from "../layout/brand-section-shell";
+import { SectionHeader } from "../layout/section-header";
+import { BRAND_SECTIONS, buildSectionNavItems } from "../../config/sections";
+import type { BrandStrategy } from "../../types";
+
+// Preview components
+import { DifferentiationPreview } from "../../sections/differentiation/differentiation-preview";
+import { MarketPreview } from "../../sections/market/market-preview";
+import { NarrativePreview } from "../../sections/narrative/narrative-preview";
+import { MethodologySection } from "../../sections/methodology/methodology-preview";
+
+const SECTION = BRAND_SECTIONS.estrategia;
+
+/**
+ * Estrategia — "Tu plan de juego"
+ *
+ * Contains: Positioning, Market, StoryBrand narrative, Methodology.
+ */
+export function EstrategiaView() {
+  const { settings } = useBrandSettings();
+  const { openEdit } = useBrandStudio();
+
+  if (!settings) return null;
+
+  const navItems = useMemo(
+    () => buildSectionNavItems("estrategia", settings),
+    [settings]
+  );
+
+  return (
+    <BrandSectionShell title={SECTION.label} subtitle={SECTION.subtitle} navItems={navItems}>
+      {/* Posicionamiento */}
+      <div id="positioning" className="space-y-8">
+        <SectionHeader
+          title="Posicionamiento"
+          subtitle="Propuesta unica, beneficios y razones para creer."
+          tooltip="Basado en Brand Love Key"
+        />
+        <DifferentiationPreview
+          positioning={settings.positioning ?? { reasons_to_believe: [] }}
+          onEdit={() => openEdit("positioning")}
+        />
+      </div>
+
+      {/* Mercado */}
+      <div id="market" className="space-y-8">
+        <SectionHeader
+          title="El Mercado"
+          subtitle="Competidores, enemigos e insight del cliente."
+          tooltip="Basado en Brand Love Key"
+        />
+        <MarketPreview
+          positioning={settings.positioning ?? { reasons_to_believe: [] }}
+          onEdit={() => openEdit("positioning")}
+        />
+      </div>
+
+      {/* StoryBrand */}
+      <div id="storybrand" className="space-y-8">
+        <SectionHeader
+          title="StoryBrand"
+          subtitle="El viaje del heroe: problema, guia, plan y transformacion."
+        />
+        <NarrativePreview
+          narrative={settings.narrative ?? { plan: [] }}
+          onEdit={() => openEdit("storybrand")}
+        />
+      </div>
+
+      {/* Metodologia */}
+      <div id="methodology" className="space-y-8">
+        <SectionHeader
+          title="Metodologia"
+          subtitle="Tus pilares y metodos unicos."
+        />
+        <MethodologySection
+          strategy={settings.strategy ?? {} as BrandStrategy}
+          visuals={settings.visuals ?? {}}
+          onEdit={() => openEdit("methodology")}
+        />
+      </div>
+    </BrandSectionShell>
+  );
+}

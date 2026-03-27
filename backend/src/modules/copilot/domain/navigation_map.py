@@ -43,27 +43,64 @@ class AppPage:
 
 NAVIGATION_MAP: List[AppPage] = [
     # ── Brand Studio ─────────────────────────────────────────────
+    # ── Brand Studio — Esencia ────────────────────────────────────
     AppPage(
-        route_template="/{tenantId}/brand-settings",
-        label="Brand Studio",
+        route_template="/{tenantId}/brand-studio/esencia",
+        label="Esencia",
         module="brand",
-        description="Identidad de marca: nombre, historia, posicionamiento, narrativa, identidad visual, voz, equipo, testimonios, autoridad",
-        keywords=["marca", "brand", "identidad", "logo", "colores", "tipografía", "voz", "tono"],
+        description="ADN de la marca: identidad, historia, personalidad, equipo, credibilidad, contacto",
+        keywords=["marca", "brand", "identidad", "esencia", "historia", "equipo", "contacto"],
         sections=[
-            # Fields within each section are discovered dynamically via Pydantic
-            # introspection (schema_introspection.py). Only routes and labels live here.
             AppSection("identity", "Identidad", "Nombre de marca, industria, tagline, descripción, datos legales"),
             AppSection("story", "Historia", "Historia de origen, misión, visión, hitos importantes"),
-            AppSection("positioning", "Posicionamiento (Brand Love Key)", "Entorno competitivo, insight, beneficios, valores, razones para creer, discriminador, esencia, UVP"),
-            AppSection("narrative", "Narrativa (StoryBrand)", "Estructura narrativa: héroe, problema, guía, plan, CTAs, resultado"),
-            AppSection("methodology", "Metodología", "Framework o método propio de la marca"),
-            AppSection("visuals", "Identidad Visual", "Colores, tipografía, sistema de diseño"),
-            AppSection("voice", "Voz y Tono", "Estilo de comunicación de la marca"),
+            AppSection("values-essence", "Personalidad", "Valores, personalidad, arquetipo, esencia de marca, RTBs"),
             AppSection("team", "Equipo", "Personas clave y liderazgo"),
-            AppSection("testimonials", "Testimonios", "Prueba social y casos de éxito"),
             AppSection("authority", "Autoridad", "Prensa, certificaciones, premios, partnerships"),
+            AppSection("testimonials", "Testimonios", "Prueba social y casos de éxito"),
+            AppSection("contact", "Contacto", "Información pública de contacto y redes sociales"),
+        ],
+    ),
+    # ── Brand Studio — Estrategia ──────────────────────────────────
+    AppPage(
+        route_template="/{tenantId}/brand-studio/estrategia",
+        label="Estrategia",
+        module="brand",
+        description="Plan de juego: posicionamiento, mercado, StoryBrand, metodología",
+        keywords=["estrategia", "posicionamiento", "mercado", "storybrand", "metodología", "UVP"],
+        sections=[
+            AppSection("positioning", "Posicionamiento (Brand Love Key)", "Entorno competitivo, insight, beneficios, discriminador, UVP"),
+            AppSection("market", "Mercado", "Competidores directos/indirectos, consumer insights"),
+            AppSection("storybrand", "Narrativa (StoryBrand)", "Héroe, problema, guía, plan, CTAs, resultado, one-liner"),
+            AppSection("methodology", "Metodología", "Framework o método propio de la marca"),
+        ],
+    ),
+    # ── Brand Studio — Público ─────────────────────────────────────
+    AppPage(
+        route_template="/{tenantId}/brand-studio/publico",
+        label="Público",
+        module="brand",
+        description="Clientes ideales: buyer personas y perfiles de avatar",
+        keywords=["público", "avatar", "buyer persona", "cliente ideal", "audiencia"],
+        sections=[
             AppSection("avatars", "Avatares", "Perfiles de cliente ideal"),
-            AppSection("communication-assets", "Assets de Comunicación", "Conceptos creativos y piezas por etapa de funnel"),
+        ],
+    ),
+    # ── Brand Studio — Identidad Creativa ────────────────────────────
+    AppPage(
+        route_template="/{tenantId}/brand-studio/identidad-creativa",
+        label="Identidad Creativa",
+        module="brand",
+        description="Imagen, voz y mensajes: galería, colores, tipografía, logos, tono, conceptos creativos, assets por funnel",
+        keywords=["assets", "visual", "logo", "colores", "tipografía", "diseño", "galería",
+                  "voz", "tono", "comunicación", "idioma", "voice",
+                  "creativos", "conceptos", "funnel", "TOFU", "MOFU", "BOFU", "messaging"],
+        sections=[
+            AppSection("gallery", "Galería de Marca", "Media assets de la marca"),
+            AppSection("visuals", "Sistema de Diseño", "Colores, tipografía, personalidad visual"),
+            AppSection("logos", "Logo Kit", "Variantes de logo"),
+            AppSection("voice", "Voz AI", "Estilo de comunicación y configuración de voz"),
+            AppSection("creative-concepts", "Conceptos Creativos", "Plantillas de messaging reutilizables"),
+            AppSection("funnel-assets", "Assets por Funnel", "Piezas por etapa (TOFU/MOFU/BOFU/Retención)"),
         ],
     ),
 

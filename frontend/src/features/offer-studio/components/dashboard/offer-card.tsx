@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
 
 interface OfferCardProps {
   offer: Offer;
@@ -68,7 +69,7 @@ const DELIVERY_BADGES = {
 };
 
 export function OfferCard({ offer, searchQuery = "", compact = false, className }: OfferCardProps) {
-  const router = useRouter();
+  const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
   
@@ -91,13 +92,14 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
     if ((e.target as HTMLElement).closest('[role="menuitem"]') || (e.target as HTMLElement).closest('button')) {
       return;
     }
-    router.push(`/${tenantId}/offer-studio/offer/${offer.id}`);
+    navigate(`/${tenantId}/offer-studio/offer/${offer.id}`);
   };
 
   return (
     <Card 
       className={cn(
         "group relative w-full overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-t-4 bg-background",
+        isNavigating && "opacity-60 pointer-events-none",
         compact ? "h-auto min-h-[140px]" : "h-[180px]",
         borderColor,
         className
@@ -124,7 +126,7 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push(`/${tenantId}/offer-studio/offer/${offer.id}`)}>
+                <DropdownMenuItem onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)}>
                   Editar
                 </DropdownMenuItem>
                 {offer.landing_page_config?.is_published && (

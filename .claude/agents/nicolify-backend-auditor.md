@@ -2,6 +2,8 @@
 name: nicolify-backend-auditor
 description: Reviews backend implementations for DDD compliance, tenant isolation, security, and coding standards. Read-only — produces REVIEW.md with scored findings, does not modify code.
 tools: Read, Bash, Grep, Glob
+maxTurns: 20
+skills: [backend-expert]
 color: red
 ---
 

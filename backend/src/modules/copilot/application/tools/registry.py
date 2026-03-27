@@ -39,7 +39,7 @@ TOOL_GROUPS: Dict[str, list] = {
 # More specific routes should be listed before generic ones.
 # "*" is the fallback for any unmatched route.
 ROUTE_TOOL_MAP: Dict[str, List[str]] = {
-    "brand-settings": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
+    "brand-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
     "offer-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
     "growth-studio": ["navigation", "awareness", "module_data", "analytics", "crm", "procedure", "knowledge"],
     "sales": ["navigation", "awareness", "module_data", "sales_agent", "crm", "procedure", "knowledge"],

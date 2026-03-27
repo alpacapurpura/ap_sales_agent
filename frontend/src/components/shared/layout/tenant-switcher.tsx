@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ChevronsUpDown, Check, Building2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +41,7 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
     // 2. Navigate to new URL: /[newTenantId]/dashboard
     // We redirect to dashboard to avoid 404s if the current subpage doesn't exist in the new tenant
     // or if the ID structure is different.
-    const newPath = `/${tenantId}/brand-settings`; // Defaulting to brand-settings or dashboard
+    const newPath = `/${tenantId}/brand-studio/esencia`;
     console.log("[TenantSwitcher] Navigating to:", newPath);
     
     // Force a hard reload to ensure all application state is cleared and 
@@ -49,33 +50,45 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
     window.location.href = newPath;
   };
 
-  const currentTenantName = tenants?.find(t => t.id === effectiveTenantId)?.name || currentTenant?.name || "Visionarias AI";
+  const currentTenantName = tenants?.find(t => t.id === effectiveTenantId)?.name || currentTenant?.name || "Nicolify";
   const currentTenantInitial = currentTenantName.charAt(0);
 
   if (isCollapsed) {
     return (
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9" suppressHydrationWarning>
-             <span className="text-lg font-bold tracking-tight text-primary">
-                {currentTenantInitial}
-             </span>
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" suppressHydrationWarning>
+             <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                <span className="text-white font-bold text-lg leading-none mt-[2px]">
+                  {currentTenantInitial}
+                </span>
+             </div>
              <span className="sr-only">Cambiar organización</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" side="right" className="w-56">
-            <DropdownMenuLabel>Mis organizaciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+        <DropdownMenuContent align="start" side="right" className="w-64 rounded-xl p-2">
+            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Mis organizaciones</DropdownMenuLabel>
              {tenants?.map((tenant) => (
             <DropdownMenuItem
               key={tenant.id}
               onClick={() => handleTenantChange(tenant.id)}
-              className="gap-2 p-2 cursor-pointer"
+              className={cn(
+                "gap-3 p-2 cursor-pointer rounded-lg mb-1",
+                activeTenantId === tenant.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
+              )}
             >
-              <div className="flex size-6 items-center justify-center rounded-sm border">
-                <Building2 className="size-4 shrink-0" />
+              <div className={cn(
+                "flex size-8 items-center justify-center rounded-md shrink-0",
+                activeTenantId === tenant.id 
+                  ? "bg-gradient-to-br from-primary to-primary/80" 
+                  : "bg-gradient-to-br from-muted-foreground/20 to-muted-foreground/40"
+              )}>
+                <span className={cn(
+                  "font-bold text-xs leading-none mt-[1px]",
+                  activeTenantId === tenant.id ? "text-white" : "text-foreground"
+                )}>{tenant.name.charAt(0)}</span>
               </div>
-              <span className="truncate">{tenant.name}</span>
+              <span className="truncate font-medium">{tenant.name}</span>
               {activeTenantId === tenant.id && (
                   <Check className="ml-auto h-4 w-4" />
               )}
@@ -90,48 +103,71 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
-          role="combobox"
-          aria-expanded={open}
-          aria-label="Seleccionar organización"
-          className="w-full justify-between hover:bg-background/50 px-2 h-auto py-1"
-          suppressHydrationWarning
-        >
-          <div className="flex flex-col items-start overflow-hidden">
-              <span className="text-lg font-bold tracking-tight text-primary truncate text-left" title={currentTenantName}>
+            variant="ghost"
+            role="combobox"
+            aria-expanded={open}
+            aria-label="Seleccionar organización"
+            className="w-full flex items-center justify-between p-2 h-auto rounded-xl hover:bg-muted/50 transition-all duration-200 border border-transparent hover:border-border group focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-sm bg-muted/20"
+            suppressHydrationWarning
+          >
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm flex-shrink-0 relative overflow-hidden">
+                 <span className="text-white font-bold text-lg leading-none mt-[2px]">{currentTenantInitial}</span>
+              </div>
+            
+            <div className="flex flex-col text-left truncate">
+              <span className="text-sm font-bold text-foreground truncate" title={currentTenantName}>
                 {currentTenantName}
               </span>
-              {/* DEBUG: Show ID */}
-              <span className="text-[10px] text-muted-foreground truncate w-full">
-                ID: {currentTenant?.id?.substring(0, 8)}...
-              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary uppercase tracking-wider">
+                  Workspace
+                </span>
+              </div>
+            </div>
           </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {open ? (
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-foreground" />
+          ) : (
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+          )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[200px]" align="start">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">
-            Organizaciones
+      <DropdownMenuContent className="w-[260px] rounded-xl p-2" align="start">
+        <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+            Mis Organizaciones
         </DropdownMenuLabel>
-         <DropdownMenuSeparator />
-        {tenants?.map((tenant) => (
-          <DropdownMenuItem
-            key={tenant.id}
-            onClick={() => handleTenantChange(tenant.id)}
-            className="gap-2 p-2 cursor-pointer"
-          >
-            <div className="flex size-6 items-center justify-center rounded-sm border">
-              <Building2 className="size-4 shrink-0" />
-            </div>
-            <div className="flex flex-col overflow-hidden">
-                <span className="truncate">{tenant.name}</span>
-                <span className="text-[10px] text-muted-foreground">{tenant.id.substring(0, 8)}...</span>
-            </div>
-            {activeTenantId === tenant.id && (
-              <Check className="ml-auto h-4 w-4" />
-            )}
-          </DropdownMenuItem>
-        ))}
+        <div className="max-h-[300px] overflow-y-auto pr-1">
+          {tenants?.map((tenant) => (
+            <DropdownMenuItem
+              key={tenant.id}
+              onClick={() => handleTenantChange(tenant.id)}
+              className={cn(
+                "gap-3 p-2 cursor-pointer rounded-lg mb-1",
+                activeTenantId === tenant.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
+              )}
+            >
+              <div className={cn(
+                "flex size-8 items-center justify-center rounded-md shrink-0",
+                activeTenantId === tenant.id 
+                  ? "bg-gradient-to-br from-primary to-primary/80" 
+                  : "bg-gradient-to-br from-muted-foreground/20 to-muted-foreground/40"
+              )}>
+                <span className={cn(
+                  "font-bold text-xs leading-none mt-[1px]",
+                  activeTenantId === tenant.id ? "text-white" : "text-foreground"
+                )}>{tenant.name.charAt(0)}</span>
+              </div>
+              <div className="flex flex-col overflow-hidden">
+                  <span className="truncate font-medium">{tenant.name}</span>
+                  <span className="text-[10px] text-muted-foreground">ID: {tenant.id.substring(0, 8)}...</span>
+              </div>
+              {activeTenantId === tenant.id && (
+                <Check className="ml-auto h-4 w-4" />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

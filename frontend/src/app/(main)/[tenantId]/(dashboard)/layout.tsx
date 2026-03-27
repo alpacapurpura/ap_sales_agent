@@ -11,12 +11,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isCopilotOpen = useCopilotStore((s) => s.isOpen);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen">
       <AppSidebar />
       <main
         className={cn(
           "min-h-screen pt-16 md:pt-0 transition-all duration-300 ease-in-out",
-          isCollapsed ? "md:pl-20" : "md:pl-64",
+          isCollapsed ? "md:ml-20" : "md:ml-64",
           isCopilotOpen ? "pr-[380px]" : "pr-[60px]"
         )}
       >

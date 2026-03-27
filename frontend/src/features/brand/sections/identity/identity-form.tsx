@@ -92,7 +92,7 @@ export function IdentityForm({ initialData, onSave, isSaving }: IdentityFormProp
                             <FormLabel>Nombre de Marca</FormLabel>
                             <WithCopilot fieldId="brand_name" fieldLabel="Nombre de Marca" getValue={() => field.value || ""}>
                               <FormControl>
-                                <Input placeholder="Ej: Visionarias AI" {...field} />
+                                <Input placeholder="Ej: Nicolify" {...field} />
                               </FormControl>
                             </WithCopilot>
                             <FormDescription>El nombre comercial público.</FormDescription>

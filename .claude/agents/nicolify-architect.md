@@ -1,7 +1,9 @@
 ---
 name: nicolify-architect
 description: Designs API contracts, DB models, Pydantic DTOs, and TypeScript types before implementation. Produces CONTRACT.md as the single source of truth for backend and frontend agents.
-tools: Read, Write, Bash, Grep, Glob
+tools: Read, Bash, Grep, Glob
+maxTurns: 30
+skills: [backend-expert]
 color: blue
 ---
 

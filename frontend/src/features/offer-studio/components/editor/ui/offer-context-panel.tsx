@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
 import { toast } from "sonner";
 import { InstructorsWidget } from "../components/widgets/instructors-widget";
 
@@ -235,7 +235,7 @@ function ContextPhaseContent({
     onSave?: () => Promise<void>,
     onFieldChange?: (field: string, value: any) => void
 }) {
-    const router = useRouter();
+    const { navigate } = useNavigation();
     const [showSaveAlert, setShowSaveAlert] = useState(false);
 
     // Identify Knowledge/Mentorship Offers
@@ -256,7 +256,7 @@ function ContextPhaseContent({
         if (isDirty && onSave) {
             setShowSaveAlert(true);
         } else {
-            router.push(`/avatars/${avatar.id}/edit`);
+            navigate(`/avatars/${avatar.id}/edit`);
         }
     };
 
@@ -264,7 +264,7 @@ function ContextPhaseContent({
         if (onSave) {
             await onSave();
             if (avatar) {
-                router.push(`/avatars/${avatar.id}/edit`);
+                navigate(`/avatars/${avatar.id}/edit`);
             }
         }
         setShowSaveAlert(false);

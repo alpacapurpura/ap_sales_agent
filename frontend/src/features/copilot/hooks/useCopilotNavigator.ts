@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
 import { useCopilotStore, type UIAction } from "../store/copilot-store";
 
 export type { UIAction };
@@ -11,7 +12,7 @@ export type { UIAction };
  * Also processes the pending action queue from the store.
  */
 export function useCopilotNavigator() {
-  const router = useRouter();
+  const { navigate } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string | undefined;
   const pendingUIActions = useCopilotStore((s) => s.pendingUIActions);
@@ -26,7 +27,7 @@ export function useCopilotNavigator() {
           const route = tenantId
             ? action.route.replace(/{tenantId}/g, tenantId)
             : action.route;
-          router.push(route);
+          navigate(route);
 
           // If a section_id is provided, scroll to it after navigation
           if (action.section_id) {
@@ -78,7 +79,7 @@ export function useCopilotNavigator() {
         }
       }
     },
-    [router, tenantId]
+    [navigate, tenantId]
   );
 
   // Process pending actions from the queue

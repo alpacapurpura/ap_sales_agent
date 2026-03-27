@@ -1,5 +1,14 @@
-import { BrandSettingsView } from "@/features/brand/components/views/brand-settings-view";
+import { redirect } from "next/navigation";
 
-export default function BrandSettingsPage() {
-  return <BrandSettingsView />;
+/**
+ * Legacy route — redirects to the new Brand Studio structure.
+ * Kept for backwards compatibility (bookmarks, copilot navigation, external links).
+ */
+export default async function BrandSettingsPage({
+  params,
+}: {
+  params: Promise<{ tenantId: string }>;
+}) {
+  const { tenantId } = await params;
+  redirect(`/${tenantId}/brand-studio/esencia`);
 }

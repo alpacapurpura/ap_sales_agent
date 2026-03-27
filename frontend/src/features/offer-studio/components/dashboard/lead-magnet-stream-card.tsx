@@ -20,7 +20,8 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
 
 interface LeadMagnetStreamCardProps {
   offer: Offer;
@@ -44,7 +45,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardProps) {
-  const router = useRouter();
+  const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
 
@@ -58,13 +59,14 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
       return;
     }
     if (onClick) onClick();
-    else router.push(`/${tenantId}/offer-studio/offer/${offer.id}`);
+    else navigate(`/${tenantId}/offer-studio/offer/${offer.id}`);
   };
 
   return (
     <Card 
       className={cn(
-        "group flex items-center h-[72px] w-[280px] overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border bg-card hover:border-primary/30"
+        "group flex items-center h-[72px] w-[280px] overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border bg-card hover:border-primary/30",
+        isNavigating && "opacity-60 pointer-events-none"
       )}
       onClick={handleClick}
     >
@@ -107,7 +109,7 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/${tenantId}/offer-studio/offer/${offer.id}`)}>
+              <DropdownMenuItem onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)}>
                 Editar
               </DropdownMenuItem>
               {offer.landing_page_config?.is_published && (

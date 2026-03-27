@@ -80,7 +80,7 @@ export function SingleImagePicker({ value, onChange, children }: SingleImagePick
 
     return (
         <>
-            <div onClick={() => setIsPickerOpen(true)}>
+            <div className="cursor-pointer" onClick={() => setIsPickerOpen(true)}>
                 {children}
             </div>
 

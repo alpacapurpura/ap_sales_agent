@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from '@clerk/nextjs';
+import { ClerkProvider } from "@clerk/nextjs";
 
 export const dynamic = 'force-dynamic';
 import Providers from "../providers";
@@ -7,8 +7,8 @@ import { Suspense } from "react";
 import { TenantGuard } from "@/components/auth/tenant-guard";
 
 export const metadata: Metadata = {
-  title: "Client Dashboard",
-  description: "Visionarias Client Dashboard",
+  title: "Nicolify - Dashboard",
+  description: "AI Sales & Marketing Dashboard",
 };
 
 function LoadingScreen() {

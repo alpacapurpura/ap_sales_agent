@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useNavigation } from '@/components/shared/navigation';
 import type { StageId, StageSummary } from '../../../types/metrics';
 import { StageCard } from './StageCard';
 import { STAGE_TO_SLUG } from '../context/GrowthStudioContext';
@@ -26,7 +27,7 @@ export function StageSummaryRow({
   loadingMap = {},
   mockMap = {},
 }: StageSummaryRowProps) {
-  const router = useRouter();
+  const { navigate } = useNavigation();
   const pathname = usePathname();
 
   // Derive tenantId + base path from current pathname
@@ -36,9 +37,9 @@ export function StageSummaryRow({
   const handleStageClick = useCallback((id: StageId) => {
     const slug = STAGE_TO_SLUG[id as keyof typeof STAGE_TO_SLUG];
     if (slug) {
-      router.push(`/${tenantId}/growth-studio/${slug}`);
+      navigate(`/${tenantId}/growth-studio/${slug}`);
     }
-  }, [router, tenantId]);
+  }, [navigate, tenantId]);
 
   return (
     <div className="w-full overflow-x-auto pb-4 scrollbar-thin">

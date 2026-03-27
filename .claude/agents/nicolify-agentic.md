@@ -2,6 +2,7 @@
 name: nicolify-agentic
 description: Implements LangGraph workflows, AI agent state machines, RAG pipelines, and Qdrant integrations. Specializes in sales_agent and copilot modules. Only spawned when feature involves AI/agentic development.
 tools: Read, Write, Edit, Bash, Grep, Glob
+maxTurns: 40
 color: purple
 ---
 

@@ -42,7 +42,7 @@ def _build_registry() -> Dict[str, ModuleDescriptor]:
             module_id="brand",
             label="Brand Studio",
             description="Identidad de marca completa: nombre, historia, posicionamiento (Brand Love Key), narrativa (StoryBrand), identidad visual, voz, equipo, testimonios, autoridad, assets de comunicación",
-            route_prefix="brand-settings",
+            route_prefix="brand-studio",
             model_class=_lazy_brand_settings(),
             repo_factory=_brand_repo_factory,
             read_fn=_brand_read_fn,

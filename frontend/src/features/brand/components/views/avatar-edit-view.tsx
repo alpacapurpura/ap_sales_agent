@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -16,7 +16,7 @@ interface AvatarEditViewProps {
 }
 
 export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
-  const router = useRouter();
+  const { navigate } = useNavigation();
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
@@ -42,9 +42,9 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
       toast.success("Avatar actualizado exitosamente");
 
       if (callbackUrl) {
-          router.push(callbackUrl);
+          navigate(callbackUrl);
       } else {
-          router.back();
+          window.history.back();
       }
     },
     onError: () => toast.error("Error al actualizar el avatar"),
@@ -64,7 +64,7 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
       <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
         <h2 className="text-xl font-semibold text-destructive">Error al cargar el avatar</h2>
         <p className="text-muted-foreground">No se pudo encontrar el avatar solicitado o no tienes permisos.</p>
-        <Button onClick={() => callbackUrl ? router.push(callbackUrl) : router.back()} variant="outline">
+        <Button onClick={() => callbackUrl ? navigate(callbackUrl) : window.history.back()} variant="outline">
           <ArrowLeft className="mr-2 h-4 w-4" /> Volver
         </Button>
       </div>
@@ -74,7 +74,7 @@ export function AvatarEditView({ avatarId, callbackUrl }: AvatarEditViewProps) {
   return (
     <div className="container max-w-3xl py-8 space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => callbackUrl ? router.push(callbackUrl) : router.back()}>
+        <Button variant="ghost" size="icon" onClick={() => callbackUrl ? navigate(callbackUrl) : window.history.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>

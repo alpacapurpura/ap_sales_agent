@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { Plus, Users, Star, Edit, Trash2, CheckCircle2, Settings2 } from "lucide-react";
@@ -16,7 +16,7 @@ import { AvatarForm } from "./avatar-form";
 import { cn } from "@/lib/utils";
 
 export function AvatarManager() {
-  const router = useRouter();
+  const { navigate, isNavigating } = useNavigation();
   const queryClient = useQueryClient();
   const { getToken } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -88,7 +88,7 @@ export function AvatarManager() {
   const handleOpenEdit = (avatar: Avatar) => {
     // Navigate to dedicated edit page with callbackUrl back to this settings tab
     const currentPath = window.location.pathname + window.location.search;
-    router.push(`/avatars/${avatar.id}/edit?callbackUrl=${encodeURIComponent(currentPath)}`);
+    navigate(`/avatars/${avatar.id}/edit?callbackUrl=${encodeURIComponent(currentPath)}`);
   };
 
   const handleFormSubmit = async (data: CreateAvatarDTO) => {
@@ -152,6 +152,7 @@ export function AvatarManager() {
                   key={avatar.id} 
                   className={cn(
                       "group cursor-pointer border transition-all bg-background shadow-sm hover:shadow-md hover:border-primary",
+                      isNavigating && "opacity-60 pointer-events-none",
                       avatar.is_default && "border-green-600/50"
                   )}
                   onClick={() => handleOpenEdit(avatar)}

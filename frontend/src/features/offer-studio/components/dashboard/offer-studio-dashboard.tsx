@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useNavigation } from "@/components/shared/navigation";
 import { offerApi } from "@/features/offer-studio/api";
 import { Offer, OfferValueLevel, OfferType, OfferStatus } from "@/features/offer-studio/types";
 import { OfferCard } from "./offer-card";
@@ -124,7 +125,7 @@ export function OfferStudioDashboard({
   onCreateTriggerHandled 
 }: OfferStudioDashboardProps) {
   const { getToken } = useAuth();
-  const router = useRouter();
+  const { navigate } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
   
@@ -257,7 +258,7 @@ export function OfferStudioDashboard({
       
       if (newOffer.id) {
         setIsDialogOpen(false);
-        router.push(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
+        navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
       }
     } catch (err) {
       console.error("Error creating offer:", err);
@@ -366,7 +367,7 @@ export function OfferStudioDashboard({
                <div className="grid grid-rows-2 grid-flow-col gap-3 w-max px-2 py-1">
                  {levelOffers.map((offer) => (
                    <div key={offer.id} className="w-[280px]">
-                     <LeadMagnetStreamCard offer={offer} onClick={() => router.push(`/${tenantId}/offer-studio/offer/${offer.id}`)} />
+                     <LeadMagnetStreamCard offer={offer} onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)} />
                    </div>
                  ))}
                  

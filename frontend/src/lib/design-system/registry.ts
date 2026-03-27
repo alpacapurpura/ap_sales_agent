@@ -67,6 +67,15 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     description: 'Primary action trigger with CVA variants and sizes.',
   },
   {
+    name: 'LoadingButton',
+    atomicLevel: 'atom',
+    filePath: 'components/ui/loading-button.tsx',
+    source: 'shared',
+    variants: [],
+    props: ['loading', 'loadingText', '...ButtonProps'],
+    description: 'Button wrapper that shows a spinner and optional loading text when loading=true.',
+  },
+  {
     name: 'Checkbox',
     atomicLevel: 'atom',
     filePath: 'components/ui/checkbox.tsx',
@@ -1107,16 +1116,6 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   // FEATURE: brand (features/brand/components/)
   // ==========================================================================
   {
-    name: 'BrandNavRail',
-    atomicLevel: 'molecule',
-    filePath: 'features/brand/components/navigation/brand-nav-rail.tsx',
-    source: 'feature',
-    featureSlice: 'brand',
-    variants: [],
-    props: [],
-    description: 'Vertical navigation rail for Brand Studio sections.',
-  },
-  {
     name: 'BrandEmptyState',
     atomicLevel: 'atom',
     filePath: 'features/brand/components/empty-state/brand-empty-state.tsx',
@@ -1125,16 +1124,6 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     variants: [],
     props: [],
     description: 'Empty state for Brand Studio when no brand exists.',
-  },
-  {
-    name: 'BrandStudioLayout',
-    atomicLevel: 'organism',
-    filePath: 'features/brand/components/container/brand-studio-layout.tsx',
-    source: 'feature',
-    featureSlice: 'brand',
-    variants: [],
-    props: [],
-    description: 'Layout container for Brand Studio with nav + content.',
   },
   {
     name: 'EditSheetManager',

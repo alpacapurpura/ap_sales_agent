@@ -29,7 +29,8 @@ import {
   ShoppingBag,
   Bot,
 } from "lucide-react"
-import { useSearchParams, useRouter, useParams } from "next/navigation"
+import { useSearchParams, useParams } from "next/navigation"
+import { useNavigation } from "@/components/shared/navigation"
 import { useEffect, useState, Suspense } from "react"
 import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -56,7 +57,7 @@ function PlaceholderContent({ title, icon: Icon }: { title: string, icon: any })
 
 function SettingsContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
+  const { navigateReplace } = useNavigation()
   const params = useParams() ?? {}
   const tenantId = params.tenantId as string
   const tabParam = searchParams?.get("tab")
@@ -71,7 +72,7 @@ function SettingsContent() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value)
-    router.push(`/${tenantId}/settings?tab=${value}`)
+    navigateReplace(`/${tenantId}/settings?tab=${value}`)
   }
 
   return (

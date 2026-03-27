@@ -27,7 +27,7 @@ router = APIRouter()
 
 # Route prefix → module_id mapping for contextual nudges
 ROUTE_MODULE_MAP = {
-    "brand-settings": "brand",
+    "brand-studio": "brand",
     "offer-studio": "offer",
     "connections": "connections",
     "landing": "landing",

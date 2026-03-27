@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -109,6 +111,22 @@ html.dark {
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Ensure all interactive elements show pointer cursor */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  label[for],
+  summary,
+  [tabindex]:not([tabindex="-1"]):not(:disabled) {
+    cursor: pointer;
   }
 }
 

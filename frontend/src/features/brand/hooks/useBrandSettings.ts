@@ -34,7 +34,7 @@ export function useBrandSettings() {
 
       // Initialize other sections if missing to prevent null reference errors
       if (!data.identity) data.identity = {};
-      
+
       // Initialize strategy with safe defaults for arrays
       if (!data.strategy) {
         data.strategy = {
@@ -47,15 +47,6 @@ export function useBrandSettings() {
       if (!data.story) data.story = {};
       if (!data.contact) data.contact = {};
       if (!data.team) data.team = [];
-
-      console.log("[useBrandSettings] Final data after defaults:", {
-          hasIdentityName: !!data.identity?.brand_name,
-          hasStoryOrigin: !!(data.story as any)?.origin_story,
-          hasStrategyVP: !!(data.strategy as any)?.value_proposition,
-          teamCount: data.team?.length || 0,
-          testimonialsCount: data.testimonials?.length || 0,
-          authorityCount: data.authority_vault?.length || 0,
-      });
 
       return data;
     },
@@ -77,113 +68,46 @@ export function useBrandSettings() {
     }
   });
 
-  const updateIdentity = async (identity: BrandIdentity) => {
+  // Factory for simple key-based updaters
+  const createUpdater = <K extends keyof BrandSettings>(
+    key: K,
+    successMsg: string
+  ) => async (value: BrandSettings[K]) => {
     if (!settings) return;
-    const newSettings = { ...settings, identity };
     try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Identidad corporativa actualizada.");
+      await updateMutation.mutateAsync({ ...settings, [key]: value });
+      toast.success(successMsg);
     } catch {}
   };
 
-  const updateVisuals = async (visuals: BrandVisuals) => {
-    if (!settings) return;
-    const newSettings = { ...settings, visuals };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Identidad visual actualizada.");
-    } catch {}
-  };
+  const updateIdentity = createUpdater("identity", "Identidad corporativa actualizada.");
+  const updateVisuals = createUpdater("visuals", "Identidad visual actualizada.");
+  const updateTeam = createUpdater("team", "Equipo actualizado.");
+  const updateContact = createUpdater("contact", "Datos de contacto actualizados.");
+  const updateStrategy = createUpdater("strategy", "Estrategia actualizada.");
+  const updateStory = createUpdater("story", "Historia actualizada.");
+  const updateTestimonials = createUpdater("testimonials", "Testimonios actualizados.");
+  const updatePositioning = createUpdater("positioning", "Posicionamiento actualizado.");
+  const updateNarrative = createUpdater("narrative", "Narrativa actualizada.");
+  const updateCommunicationAssets = createUpdater("communication_assets", "Activos de comunicacion actualizados.");
 
-  const updateTeam = async (team: KeyFigure[]) => {
-    if (!settings) return;
-    const newSettings = { ...settings, team };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Equipo actualizado.");
-    } catch {}
-  };
-
+  // Special case: authority_vault key doesn't match param name
   const updateVault = async (vault: AuthorityItem[]) => {
     if (!settings) return;
-    const newSettings = { ...settings, authority_vault: vault };
     try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Respaldo institucional actualizado.");
-    } catch {}
-  };
-
-  const updateContact = async (contact: ContactData) => {
-    if (!settings) return;
-    const newSettings = { ...settings, contact };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Datos de contacto actualizados.");
-    } catch {}
-  };
-
-  const updateStrategy = async (strategy: BrandStrategy) => {
-    if (!settings) return;
-    const newSettings = { ...settings, strategy };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Estrategia actualizada.");
-    } catch {}
-  };
-
-  const updateStory = async (story: BrandStory) => {
-    if (!settings) return;
-    const newSettings = { ...settings, story };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Historia actualizada.");
-    } catch {}
-  };
-
-  const updateTestimonials = async (testimonials: TestimonialItem[]) => {
-    if (!settings) return;
-    const newSettings = { ...settings, testimonials };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Testimonios actualizados.");
-    } catch {}
-  };
-
-  const updatePositioning = async (positioning: BrandPositioning) => {
-    if (!settings) return;
-    const newSettings = { ...settings, positioning };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Posicionamiento actualizado.");
-    } catch {}
-  };
-
-  const updateNarrative = async (narrative: BrandNarrative) => {
-    if (!settings) return;
-    const newSettings = { ...settings, narrative };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Narrativa actualizada.");
-    } catch {}
-  };
-
-  const updateCommunicationAssets = async (communication_assets: CommunicationAssets) => {
-    if (!settings) return;
-    const newSettings = { ...settings, communication_assets };
-    try {
-        await updateMutation.mutateAsync(newSettings);
-        toast.success("Activos de comunicación actualizados.");
+      await updateMutation.mutateAsync({ ...settings, authority_vault: vault });
+      toast.success("Respaldo institucional actualizado.");
     } catch {}
   };
 
   const updateAllSettings = async (partialSettings: Partial<BrandSettings>) => {
     if (!settings) return;
-    const newSettings = { 
-        ...settings, 
+    const newSettings = {
+        ...settings,
         ...partialSettings,
         identity: { ...settings.identity, ...partialSettings.identity },
-        visuals: { 
-            ...settings.visuals, 
+        visuals: {
+            ...settings.visuals,
             ...partialSettings.visuals,
             logos: { ...settings.visuals?.logos, ...partialSettings.visuals?.logos }
         },
@@ -197,7 +121,7 @@ export function useBrandSettings() {
 
     try {
         await updateMutation.mutateAsync(newSettings);
-        toast.success("Configuración de marca actualizada correctamente.");
+        toast.success("Configuracion de marca actualizada correctamente.");
     } catch {}
   };
 

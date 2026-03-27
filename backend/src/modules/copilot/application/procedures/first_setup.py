@@ -20,18 +20,18 @@ FIRST_SETUP = Procedure(
             tips=[
                 "Si tienes un sitio web, puedo extraer tu información automáticamente",
             ],
-            route_hint="brand-settings",
+            route_hint="brand-studio/esencia",
         ),
         ProcedureStep(
             step_id="brand_positioning",
             module_id="brand",
             section_id="positioning",
-            instruction="Define tu propuesta de valor única — ¿por qué te elegirían?",
+            instruction="Define tu propuesta de valor unica — por que te elegirian?",
             validation="has_required_fields",
             tips=[
-                "Piensa en qué te hace diferente de las alternativas del mercado",
+                "Piensa en que te hace diferente de las alternativas del mercado",
             ],
-            route_hint="brand-settings",
+            route_hint="brand-studio/estrategia",
         ),
         ProcedureStep(
             step_id="first_offer",

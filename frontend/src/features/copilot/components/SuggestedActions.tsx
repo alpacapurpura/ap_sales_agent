@@ -17,7 +17,7 @@ interface SuggestedAction {
 }
 
 const ROUTE_SUGGESTIONS: Record<string, SuggestedAction[]> = {
-  "brand-settings": [
+  "brand-studio": [
     { label: "¿Qué me falta de mi marca?", prompt: "¿Qué secciones de mi Brand Studio están incompletas?" },
     { label: "Mejora mi UVP", prompt: "Revisa mi UVP actual y sugiere mejoras" },
     { label: "Extrae mi marca de mi web", prompt: "Quiero extraer la identidad de mi marca desde mi sitio web" },

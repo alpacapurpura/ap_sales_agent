@@ -7,13 +7,10 @@ import {
   validateTeam,
   validateContact,
   validateAuthority,
-  getBrandHealth,
-  getChapterHealthMap
 } from './brand-validation';
-import { BrandSettings } from '@/features/brand/types';
 
 describe('Brand Validation Utils', () => {
-  
+
   describe('validateIdentity', () => {
     it('should handle undefined identity', () => {
       const result = validateIdentity(undefined as any);
@@ -146,7 +143,7 @@ describe('Brand Validation Utils', () => {
     });
 
     it('should return complete with email and linkedin', () => {
-      const contact = { 
+      const contact = {
         support_email: 'test@test.com',
         social_linkedin: 'linkedin.com'
       } as any;
@@ -168,103 +165,6 @@ describe('Brand Validation Utils', () => {
       const result = validateAuthority(vault);
       expect(result.status).toBe('complete');
       expect(result.score).toBe(100);
-    });
-  });
-
-  describe('getChapterHealthMap', () => {
-    it('should return 10 items (9 chapters + contacto)', () => {
-      const settings = {} as BrandSettings;
-      const chapters = getChapterHealthMap(settings);
-      expect(chapters).toHaveLength(10);
-      expect(chapters.map(c => c.id)).toEqual([
-        'origen', 'diferenciacion', 'mercado', 'personalidad',
-        'historia', 'voz', 'publico', 'imagen', 'credibilidad', 'contacto'
-      ]);
-    });
-
-    it('should aggregate Cap 1 (Origen) from 3 validators', () => {
-      const settings: BrandSettings = {
-        identity: { brand_name: 'Test', website: 'https://t.com', industry: 'Tech', logo_url: 'logo.png', language: 'es' },
-        story: { origin_story: 'Story', milestones: [{ id: '1', year: '2024', title: 'M1' }] },
-        strategy: { methodology_name: 'M', methodology_pillars: [{ id: '1', title: 'P1' }] },
-      };
-      const chapters = getChapterHealthMap(settings);
-      const origen = chapters.find(c => c.id === 'origen')!;
-      expect(origen.score).toBe(100);
-      expect(origen.status).toBe('complete');
-    });
-
-    it('should return status "complete" when all children complete', () => {
-      const settings: BrandSettings = {
-        team: [{ id: '1', name: 'A', role: 'CEO', headshot_url: 'img.jpg', is_primary_voice: true }],
-        authority_vault: [{ id: '1', entity_name: 'Forbes', type: 'Article', context: 'Featured', proof_url: 'http://x.com' }],
-      };
-      const chapters = getChapterHealthMap(settings);
-      const credibilidad = chapters.find(c => c.id === 'credibilidad')!;
-      expect(credibilidad.status).toBe('complete');
-      expect(credibilidad.score).toBe(100);
-    });
-
-    it('should return status "partial" with mixed children', () => {
-      const settings: BrandSettings = {
-        team: [], // empty
-        authority_vault: [{ id: '1', entity_name: 'Forbes', type: 'Article', context: 'Featured', proof_url: 'http://x.com' }],
-      };
-      const chapters = getChapterHealthMap(settings);
-      const credibilidad = chapters.find(c => c.id === 'credibilidad')!;
-      expect(credibilidad.status).toBe('partial');
-      expect(credibilidad.score).toBe(50);
-    });
-  });
-
-  describe('getBrandHealth', () => {
-    it('should calculate 100% score for perfect brand', () => {
-      const settings: BrandSettings = {
-        identity: {
-          brand_name: 'Brand',
-          website: 'https://site.com',
-          industry: 'Tech',
-          logo_url: 'https://logo.com',
-          language: 'Español'
-        },
-        strategy: {
-          methodology_name: 'Method',
-          methodology_pillars: [{ id: '1', title: 'Pillar 1' }]
-        },
-        story: {
-          origin_story: 'Story',
-          milestones: [{ id: '1', year: '2024', title: 'Milestone 1' }]
-        },
-        visuals: {
-          primary_color: '#000',
-          accent_color: '#fff',
-          font_heading: 'Arial',
-          font_body: 'Roboto'
-        },
-        team: [{ 
-            id: '1',
-            name: 'Leader', 
-            role: 'CEO', 
-            headshot_url: 'http://img.com',
-            is_primary_voice: true
-        }],
-        contact: {
-          support_email: 'support@brand.com',
-          social_linkedin: 'linkedin.com/brand'
-        },
-        authority_vault: [{ 
-            id: '1', 
-            entity_name: 'Forbes', 
-            type: 'Article', 
-            context: 'Featured', 
-            proof_url: 'http://forbes.com' 
-        }]
-      };
-
-      const score = getBrandHealth(settings);
-      // Score includes 12 validators. positioning/narrative/communicationAssets are empty (0),
-      // validateVoice marks "Tono de Voz" missing (50), validateAvatars stub (50) => 800/12 = 67
-      expect(score).toBe(67);
     });
   });
 });

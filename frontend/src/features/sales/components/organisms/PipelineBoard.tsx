@@ -55,7 +55,7 @@ export function PipelineBoard({ leads, onLeadClick, className }: PipelineBoardPr
                     </div>
                   ) : (
                     statusLeads.map((lead) => (
-                      <div key={lead.id} onClick={() => onLeadClick?.(lead)}>
+                      <div key={lead.id} className="cursor-pointer" onClick={() => onLeadClick?.(lead)}>
                         <LeadCard lead={lead} />
                       </div>
                     ))

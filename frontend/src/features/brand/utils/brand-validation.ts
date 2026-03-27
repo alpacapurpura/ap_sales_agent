@@ -1,5 +1,5 @@
-import { BrandSettings, BrandIdentity, BrandStrategy, BrandStory, KeyFigure, ContactData, BrandVisuals, AuthorityItem, BrandPositioning, BrandNarrative, CommunicationAssets } from "@/features/brand/types";
-import { Avatar } from "@/lib/api/avatar";
+import type { BrandIdentity, BrandStrategy, BrandStory, KeyFigure, ContactData, BrandVisuals, AuthorityItem, BrandPositioning, BrandNarrative, CommunicationAssets } from "@/features/brand/types";
+import type { Avatar } from "@/lib/api/avatar";
 
 export type ValidationStatus = "complete" | "partial" | "empty";
 
@@ -197,82 +197,3 @@ export const validateCommunicationAssets = (assets?: CommunicationAssets): Statu
   return calculateStatus(missing, 2, missing.length === 2);
 };
 
-// --- Chapter-level aggregation ---
-
-export interface ChapterHealth {
-  id: string;
-  label: string;
-  scrollTo: string;
-  score: number;
-  status: ValidationStatus;
-  missingFields: string[];
-}
-
-export const getChapterHealthMap = (settings: BrandSettings): ChapterHealth[] => {
-  const aggregate = (results: StatusResult[]): Pick<ChapterHealth, "score" | "status" | "missingFields"> => {
-    const score = Math.round(results.reduce((a, r) => a + r.score, 0) / results.length);
-    const allComplete = results.every(r => r.status === "complete");
-    const allEmpty = results.every(r => r.status === "empty");
-    const status: ValidationStatus = allComplete ? "complete" : allEmpty ? "empty" : "partial";
-    const missingFields = results.flatMap(r => r.missingFields);
-    return { score, status, missingFields };
-  };
-
-  const chapters: ChapterHealth[] = [
-    { id: "origen", label: "Origen", scrollTo: "identity", ...aggregate([
-      validateIdentity(settings.identity ?? {}),
-      validateStory(settings.story ?? {}),
-      validateStrategy(settings.strategy ?? { methodology_pillars: [] }),
-    ]) },
-    { id: "diferenciacion", label: "Diferenciacion", scrollTo: "positioning", ...aggregate([
-      validatePositioning(settings.positioning),
-    ]) },
-    { id: "mercado", label: "El Mercado", scrollTo: "market", ...aggregate([
-      validatePositioning(settings.positioning),
-    ]) },
-    { id: "personalidad", label: "Personalidad", scrollTo: "values-essence", ...aggregate([
-      validatePositioning(settings.positioning),
-    ]) },
-    { id: "historia", label: "La Historia", scrollTo: "storybrand", ...aggregate([
-      validateNarrative(settings.narrative),
-    ]) },
-    { id: "voz", label: "La Voz", scrollTo: "voice", ...aggregate([
-      validateVoice(settings.identity ?? {}),
-      validateCommunicationAssets(settings.communication_assets),
-    ]) },
-    { id: "publico", label: "El Publico", scrollTo: "avatars", ...aggregate([
-      validateAvatars(settings.visuals ?? {}),
-    ]) },
-    { id: "imagen", label: "La Imagen", scrollTo: "visuals", ...aggregate([
-      validateVisuals(settings.visuals ?? {}),
-    ]) },
-    { id: "credibilidad", label: "Credibilidad", scrollTo: "team", ...aggregate([
-      validateTeam(settings.team ?? []),
-      validateAuthority(settings.authority_vault ?? []),
-    ]) },
-    { id: "contacto", label: "Contacto", scrollTo: "contact", ...aggregate([
-      validateContact(settings.contact ?? {}),
-    ]) },
-  ];
-
-  return chapters;
-};
-
-export const getBrandHealth = (settings: BrandSettings): number => {
-  const scores = [
-    validateIdentity(settings.identity ?? {}).score,
-    validateStrategy(settings.strategy ?? { methodology_pillars: [] }).score,
-    validateStory(settings.story ?? {}).score,
-    validateVoice(settings.identity ?? {}).score,
-    validateAvatars(settings.visuals ?? {}).score,
-    validateVisuals(settings.visuals ?? {}).score,
-    validateTeam(settings.team ?? []).score,
-    validateContact(settings.contact ?? {}).score,
-    validateAuthority(settings.authority_vault ?? []).score,
-    validatePositioning(settings.positioning).score,
-    validateNarrative(settings.narrative).score,
-    validateCommunicationAssets(settings.communication_assets).score,
-  ];
-
-  return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-};

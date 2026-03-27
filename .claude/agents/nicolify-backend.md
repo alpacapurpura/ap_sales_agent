@@ -2,6 +2,8 @@
 name: nicolify-backend
 description: Implements FastAPI endpoints, SQLAlchemy 2.0 models, Alembic migrations, repositories, and services following DDD Inside-Out pattern. Runs all commands inside Docker.
 tools: Read, Write, Edit, Bash, Grep, Glob
+maxTurns: 50
+skills: [backend-expert]
 color: green
 ---
 

@@ -1,21 +1,22 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NavLink } from "@/components/shared/navigation";
 import { cn } from "@/lib/utils";
-import { 
-  Activity, 
+import {
   Settings,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
   Briefcase,
-  Users,
-  MessageSquare,
-  Lock,
   Building2,
   CalendarCheck,
-  Megaphone
+  Megaphone,
+  ChevronDown,
+  Crosshair,
+  UserSearch,
+  Palette,
+  type LucideIcon,
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
@@ -26,22 +27,41 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ModeToggle } from "@/components/shared/mode-toggle";
 import { useUserProfile } from "@/features/settings/hooks/use-profile";
 import { TenantSwitcher } from "@/components/shared/layout/tenant-switcher";
+import { useTheme } from "next-themes";
 
-const getNavItems = (tenantId: string) => [
+// ---------------------------------------------------------------------------
+// Navigation Configuration
+// ---------------------------------------------------------------------------
+
+interface NavChild {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+interface NavItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  children?: NavChild[];
+}
+
+const getNavItems = (tenantId: string): NavItem[] => [
   {
     title: "Brand Studio",
-    href: `/${tenantId}/brand-settings`,
+    href: `/${tenantId}/brand-studio`,
     icon: Building2,
+    children: [
+      { title: "Esencia", href: `/${tenantId}/brand-studio/esencia`, icon: Building2 },
+      { title: "Estrategia", href: `/${tenantId}/brand-studio/estrategia`, icon: Crosshair },
+      { title: "Publico", href: `/${tenantId}/brand-studio/publico`, icon: UserSearch },
+      { title: "Identidad Creativa", href: `/${tenantId}/brand-studio/identidad-creativa`, icon: Palette },
+    ],
   },
   {
     title: "Offer Studio",
     href: `/${tenantId}/offer-studio`,
     icon: Briefcase,
-  },
-  {
-    title: "Auditoría",
-    href: `/${tenantId}/audit`,
-    icon: Activity,
   },
   {
     title: "Growth Studio",
@@ -54,11 +74,184 @@ const getNavItems = (tenantId: string) => [
     icon: CalendarCheck,
   },
   {
-    title: "Configuración",
+    title: "Configuracion",
     href: `/${tenantId}/settings`,
     icon: Settings,
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Navigation Item Components
+// ---------------------------------------------------------------------------
+
+interface NavItemRendererProps {
+  item: NavItem;
+  pathname: string;
+  mobile: boolean;
+  isCollapsed: boolean;
+  mounted: boolean;
+  onMobileClose: () => void;
+}
+
+function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobileClose }: NavItemRendererProps) {
+  const isParentActive = pathname.startsWith(item.href);
+  const [isExpanded, setIsExpanded] = useState(isParentActive);
+  const hasChildren = item.children && item.children.length > 0;
+  const showExpanded = !isCollapsed || mobile;
+
+  // Auto-expand when navigating to a child route
+  useEffect(() => {
+    if (isParentActive && hasChildren) {
+      setIsExpanded(true);
+    }
+  }, [isParentActive, hasChildren]);
+
+  // Simple item (no children)
+  if (!hasChildren) {
+    const isActive = pathname.startsWith(item.href);
+    const link = (
+      <NavLink
+        href={item.href}
+        onClick={() => mobile && onMobileClose()}
+        showLoadingIcon={showExpanded}
+        loadingClassName="opacity-70"
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all w-full group",
+          isActive
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+          isCollapsed && !mobile && "justify-center px-2"
+        )}
+      >
+        <item.icon className={cn("h-5 w-5 shrink-0 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+        {showExpanded && mounted && <span>{item.title}</span>}
+      </NavLink>
+    );
+
+    if (isCollapsed && !mobile) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{link}</TooltipTrigger>
+          <TooltipContent side="right" className="font-medium">{item.title}</TooltipContent>
+        </Tooltip>
+      );
+    }
+    return link;
+  }
+
+  // Collapsible group (has children)
+  if (isCollapsed && !mobile) {
+    // Collapsed: show parent icon with tooltip listing children
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <NavLink
+            href={item.children![0].href}
+            showLoadingIcon={false}
+            loadingClassName="opacity-70"
+            className={cn(
+              "flex items-center justify-center rounded-lg px-2 py-2.5 text-sm font-semibold transition-all w-full group",
+              isParentActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            )}
+          >
+            <item.icon className={cn("h-5 w-5 shrink-0 transition-colors", isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+          </NavLink>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="p-0">
+          <div className="py-1 min-w-[160px]">
+            <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">{item.title}</div>
+            {item.children!.map((child) => {
+              const isChildActive = pathname.startsWith(child.href);
+              return (
+                <NavLink
+                  key={child.href}
+                  href={child.href}
+                  loadingClassName="opacity-70"
+                  className={cn(
+                    "flex items-center gap-2 px-2 py-1.5 text-sm transition-colors",
+                    isChildActive
+                      ? "text-primary font-medium"
+                      : "text-foreground hover:bg-muted"
+                  )}
+                >
+                  <child.icon className="h-4 w-4 shrink-0" />
+                  <span>{child.title}</span>
+                </NavLink>
+              );
+            })}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // Expanded sidebar: collapsible group
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-all w-full group",
+          isParentActive
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <item.icon className={cn("h-5 w-5 shrink-0 transition-colors", isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+          {mounted && <span className="flex-1 text-left">{item.title}</span>}
+        </div>
+        {mounted && (
+          <ChevronDown className={cn(
+            "h-4 w-4 shrink-0 transition-transform duration-200",
+            isExpanded ? "rotate-0" : "-rotate-90",
+            isParentActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          )} />
+        )}
+      </button>
+
+      {/* Children */}
+      <div className={cn(
+        "overflow-hidden transition-all duration-200",
+        isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+      )}>
+        <div className="ml-5 pl-4 border-l-2 border-border/50 space-y-1 py-1">
+          {item.children!.map((child) => {
+            const isChildActive = pathname.startsWith(child.href);
+            return (
+              <NavLink
+                key={child.href}
+                href={child.href}
+                onClick={() => mobile && onMobileClose()}
+                showLoadingIcon
+                loadingClassName="opacity-70"
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all relative group",
+                  isChildActive
+                    ? "text-primary bg-background shadow-sm border border-border/50"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                )}
+              >
+                {/* Active indicator pill (Hostinger style) */}
+                {isChildActive && (
+                  <div className="absolute left-[-18px] w-[3px] h-[70%] bg-primary rounded-r-full" />
+                )}
+                <child.icon className={cn("h-4 w-4 shrink-0", isChildActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                {mounted && <span>{child.title}</span>}
+              </NavLink>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// NavContent
+// ---------------------------------------------------------------------------
 
 interface NavContentProps {
   mobile?: boolean;
@@ -69,107 +262,139 @@ interface NavContentProps {
   mounted: boolean;
 }
 
-// Extracted component to avoid re-creation on render and scope issues
 function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname, mounted }: NavContentProps) {
   const { user } = useUser();
   const { data: profile } = useUserProfile();
-  
-  // Extract tenantId from pathname: /tenant-id/section -> tenant-id
-  // Fallback to profile tenant if not in URL (e.g. root)
+  const { resolvedTheme } = useTheme();
+  const [logoError, setLogoError] = useState(false);
+  const [isoError, setIsoError] = useState(false);
+
   const pathSegments = pathname.split('/').filter(Boolean);
   const currentTenantId = pathSegments[0] || profile?.tenant?.id || "";
-  
+
   const navItems = getNavItems(currentTenantId);
 
+  // Determinar qué logo completo mostrar según el tema
+  const fullLogoSrc = resolvedTheme === "dark" 
+    ? "/nico-assets/logotipo/logotipo-fondooscuro-nicolify.svg" 
+    : "/nico-assets/logotipo/logotipo-fondoclaro-nicolify.svg";
+
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className={cn("flex h-16 items-center px-4 border-b gap-2", isCollapsed && !mobile ? "justify-center" : "justify-between")}>
-        <div className={cn("flex items-center min-w-0", (!isCollapsed || mobile) && "flex-1")}>
-          <TenantSwitcher 
-            currentTenant={profile?.tenant ?? null} 
-            isCollapsed={isCollapsed && !mobile} 
-            activeTenantId={currentTenantId}
-          />
-        </div>
-        
-        {!mobile && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleSidebar} 
-            className="hidden md:flex h-8 w-8 text-muted-foreground shrink-0"
-          >
-            {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-          </Button>
+    <div className="flex h-full flex-col gap-0 group/sidebar">
+      {/* HEADER: APP LOGO + COLLAPSE BUTTON */}
+      <div className={cn(
+        "h-16 border-b flex items-center relative",
+        isCollapsed && !mobile ? "justify-center px-0" : "justify-between px-6"
+      )}>
+        {!isCollapsed || mobile ? (
+          logoError ? (
+            <span className="font-bold text-xl tracking-tight">Nicolify</span>
+          ) : (
+            <img 
+              src={fullLogoSrc} 
+              alt="Nicolify" 
+              className="w-full max-w-[120px] object-contain"
+              onError={() => setLogoError(true)}
+            />
+          )
+        ) : (
+          isoError ? (
+            <span className="font-bold text-xl">N</span>
+          ) : (
+            <img 
+              src="/nico-assets/isotipo/isotipo-nicolify.svg" 
+              alt="N" 
+              className="w-8 h-8 object-contain"
+              onError={() => setIsoError(true)}
+            />
+          )
         )}
       </div>
 
-      <div className="flex-1 px-3 py-2">
-        <nav className="grid gap-1">
+      {/* TENANT SWITCHER */}
+      <div className={cn("px-4 py-4", isCollapsed && !mobile && "px-2 py-4 center")}>
+        <TenantSwitcher
+          currentTenant={profile?.tenant ?? null}
+          isCollapsed={isCollapsed && !mobile}
+          activeTenantId={currentTenantId}
+        />
+      </div>
+
+      {/* NAVIGATION */}
+      <div className="flex-1 px-3 py-2 overflow-y-auto scrollbar-hide">
+        <nav className="grid gap-2">
           <TooltipProvider delayDuration={0}>
-            {navItems.map((item, index) => {
-              const isActive = pathname.startsWith(item.href);
-              
-              const LinkContent = (
-                <Link
-                  key={index}
-                  href={item.href}
-                  onClick={() => mobile && setIsMobileOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all group relative",
-                    isActive 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    isCollapsed && !mobile && "justify-center px-2"
-                  )}
-                >
-                  <item.icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
-                  {(!isCollapsed || mobile) && mounted && <span>{item.title}</span>}
-                </Link>
-              );
-
-              if (isCollapsed && !mobile) {
-                return (
-                  <Tooltip key={index}>
-                    <TooltipTrigger asChild>
-                      {LinkContent}
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="font-medium">
-                      {item.title}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              }
-
-              return LinkContent;
-            })}
+            {navItems.map((item) => (
+              <NavItemRenderer
+                key={item.href}
+                item={item}
+                pathname={pathname}
+                mobile={!!mobile}
+                isCollapsed={isCollapsed}
+                mounted={mounted}
+                onMobileClose={() => setIsMobileOpen(false)}
+              />
+            ))}
           </TooltipProvider>
         </nav>
       </div>
 
-      <div className="border-t p-4">
-        <div className={cn("flex items-center justify-between px-2", isCollapsed && !mobile && "flex-col justify-center gap-4 px-0")}>
-          <div className="flex items-center gap-3">
+      {/* EXPAND/COLLAPSE BUTTON (Bottom) */}
+      {!mobile && (
+        <div className={cn("px-3 flex", isCollapsed ? "justify-center" : "justify-end")}>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleSidebar}
+                  className={cn(
+                    "h-10 rounded-lg text-muted-foreground bg-background hover:bg-background/80 hover:text-foreground transition-all",
+                    isCollapsed ? "w-10" : "w-full flex justify-between px-3"
+                  )}
+                >
+                  {!isCollapsed && <span className="text-sm font-medium">Ocultar menú</span>}
+                  {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+                  <span className="sr-only">{isCollapsed ? "Expandir menú" : "Ocultar menú"}</span>
+                </Button>
+              </TooltipTrigger>
+              {isCollapsed && <TooltipContent side="right" className="font-medium">Expandir menú</TooltipContent>}
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
+
+      {/* USER PROFILE & SETTINGS */}
+      <div className="border-t bg-muted/10">
+        <div className={cn("flex items-center justify-between py-4 px-4 max-w-[220px]", isCollapsed && !mobile && "flex-col justify-center gap-4 px-4")}>
+          
+          <ModeToggle />
+          <div className="flex items-center">
             {mounted && <UserButton />}
             {(!isCollapsed || mobile) && mounted && (
-              <div className="flex flex-col overflow-hidden text-left min-w-0">
-                <Link 
-                  href={`/${currentTenantId}/settings?tab=profile`} 
-                  className="hover:underline"
+              <div className="px-2 flex flex-col overflow-hidden text-left min-w-0 flex-1">
+                <NavLink
+                  href={`/${currentTenantId}/settings?tab=profile`}
+                  className="hover:text-primary transition-colors"
+                  loadingClassName="opacity-70"
                   onClick={() => mobile && setIsMobileOpen(false)}
                 >
-                    <span className="text-sm font-medium truncate block">{user?.fullName || "Usuario"}</span>
-                </Link>
+                    <span className="text-sm font-semibold truncate block">{user?.fullName || "Usuario"}</span>
+                </NavLink>
                 <span className="text-xs text-muted-foreground truncate">{user?.primaryEmailAddress?.emailAddress || "Gestión de perfil"}</span>
               </div>
             )}
           </div>
-          <ModeToggle />
         </div>
       </div>
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// AppSidebar
+// ---------------------------------------------------------------------------
 
 export function AppSidebar() {
   const pathname = usePathname() ?? '';
@@ -177,7 +402,6 @@ export function AppSidebar() {
   const { isCollapsed, toggleSidebar } = useSidebar();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Fix hydration error by delaying mobile sheet rendering
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -185,15 +409,15 @@ export function AppSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside 
+      <aside
         className={cn(
           "hidden border-r bg-card md:flex md:flex-col fixed inset-y-0 z-50 transition-all duration-300 ease-in-out",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
-        <NavContent 
-          isCollapsed={isCollapsed} 
-          toggleSidebar={toggleSidebar} 
+        <NavContent
+          isCollapsed={isCollapsed}
+          toggleSidebar={toggleSidebar}
           setIsMobileOpen={setIsMobileOpen}
           pathname={pathname}
           mounted={isMounted}
@@ -201,33 +425,35 @@ export function AppSidebar() {
       </aside>
 
       {/* Mobile Header & Sidebar */}
-      <div className="flex h-16 items-center border-b bg-background px-4 md:hidden fixed inset-x-0 top-0 z-50">
-        {isMounted ? (
-          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="mr-2">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72" aria-describedby="mobile-nav-desc">
-              <SheetTitle className="sr-only">Menú de Navegación</SheetTitle>
-              <div id="mobile-nav-desc" className="sr-only">Menú de navegación principal</div>
-              <NavContent 
-                mobile 
-                isCollapsed={isCollapsed} 
-                toggleSidebar={toggleSidebar} 
-                setIsMobileOpen={setIsMobileOpen}
-                pathname={pathname}
-                mounted={isMounted}
-              />
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <Button variant="ghost" size="icon" className="mr-2">
-            <Menu className="h-5 w-5" />
-          </Button>
-        )}
-        <span className="font-bold">Visionarias Dashboard</span>
+      <div className="flex h-16 items-center justify-between border-b bg-background px-4 md:hidden fixed inset-x-0 top-0 z-50">
+        <div className="flex items-center gap-3">
+          {isMounted ? (
+            <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="-ml-2">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-72" aria-describedby="mobile-nav-desc">
+                <SheetTitle className="sr-only">Menú de Navegación</SheetTitle>
+                <div id="mobile-nav-desc" className="sr-only">Menú de navegación principal</div>
+                <NavContent
+                  mobile
+                  isCollapsed={isCollapsed}
+                  toggleSidebar={toggleSidebar}
+                  setIsMobileOpen={setIsMobileOpen}
+                  pathname={pathname}
+                  mounted={isMounted}
+                />
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <Button variant="ghost" size="icon" className="-ml-2">
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
+          <img src="/_temp/logotipo/logotipo-fondoclaro-nicolify.svg" alt="Nicolify" className="h-6 object-contain" />
+        </div>
       </div>
     </>
   );

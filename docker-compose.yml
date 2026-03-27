@@ -3,7 +3,7 @@ services:
   api_dev:
     build:
       context: ./backend
-      target: final
+      target: dev
     container_name: visionarias_brain_dev
     restart: unless-stopped
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
