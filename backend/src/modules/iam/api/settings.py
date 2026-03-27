@@ -234,7 +234,8 @@ async def get_team_members(
         
     # FIX: Query User via UserTenant M:N table
     users = db.query(UserModel).join(UserTenantModel).filter(
-        UserTenantModel.tenant_id == current_user.tenant_id
+        UserTenantModel.tenant_id == current_user.tenant_id,
+        UserTenantModel.is_active.is_(True)
     ).order_by(UserModel.created_at).all()
     
     # We need to get the role from UserTenant for each user relative to THIS tenant
@@ -245,8 +246,9 @@ async def get_team_members(
     for u in users:
         # Fetch the specific role for this tenant
         link = db.query(UserTenantModel).filter(
-            UserTenantModel.user_id == u.id, 
-            UserTenantModel.tenant_id == current_user.tenant_id
+            UserTenantModel.user_id == u.id,
+            UserTenantModel.tenant_id == current_user.tenant_id,
+            UserTenantModel.is_active.is_(True)
         ).first()
         
         role = link.role if link else "member"
@@ -276,7 +278,10 @@ async def create_team_member(
         
     # Check limit
     # Max 3 users total (Admin + 2).
-    count = db.query(UserTenantModel).filter(UserTenantModel.tenant_id == current_user.tenant_id).count()
+    count = db.query(UserTenantModel).filter(
+        UserTenantModel.tenant_id == current_user.tenant_id,
+        UserTenantModel.is_active.is_(True)
+    ).count()
     if count >= 3:
         raise HTTPException(status_code=403, detail="Límite de usuarios alcanzado (Máximo 3 por plan).")
         
@@ -284,7 +289,7 @@ async def create_team_member(
     existing_user = db.query(UserModel).filter(UserModel.email == user_in.email).first()
     if existing_user:
          # Check if already in tenant
-         if db.query(UserTenantModel).filter_by(user_id=existing_user.id, tenant_id=current_user.tenant_id).first():
+         if db.query(UserTenantModel).filter_by(user_id=existing_user.id, tenant_id=current_user.tenant_id).filter(UserTenantModel.is_active.is_(True)).first():
              raise HTTPException(status_code=400, detail="El email ya está registrado en este equipo.")
          else:
              # Link existing user? For now, simplistic approach: Fail if email exists globally to avoid confusion 

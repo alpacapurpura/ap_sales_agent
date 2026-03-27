@@ -27,6 +27,7 @@ def get_users(tenant_id):
         return db.query(User, UserTenant.role)\
             .join(UserTenant)\
             .filter(UserTenant.tenant_id == tenant_id)\
+            .filter(UserTenant.is_active.is_(True))\
             .order_by(User.created_at.desc())\
             .all()
     finally:
@@ -110,7 +111,7 @@ def render_users_view():
                 target_user = db_actions.query(User).filter(User.id == selected_user_id).first()
 
                 if target_user:
-                    col_act1, col_act2 = st.columns(2)
+                    col_act1, col_act2, col_act3 = st.columns(3)
 
                     # Action: Change Password
                     with col_act1:
@@ -135,7 +136,7 @@ def render_users_view():
                                         except Exception as e:
                                             st.error(f"❌ Error Clerk: {e}")
 
-                    # Action: Block/Unblock
+                    # Action: Block/Unblock (Global)
                     with col_act2:
                         with st.container(border=True):
                             st.markdown("#### 🚫 Gestión de Acceso")
@@ -185,6 +186,55 @@ def render_users_view():
 
                                     time.sleep(1)
                                     st.rerun()
+
+                    # Action: Remove from Tenant (Soft-Delete)
+                    with col_act3:
+                        with st.container(border=True):
+                            st.markdown("#### 🗑️ Eliminar del Tenant")
+                            st.caption("Remueve al usuario de este tenant sin afectar su cuenta global ni otros tenants.")
+
+                            # Check if this is the last active admin
+                            active_admin_count = db_actions.query(UserTenant).filter(
+                                UserTenant.tenant_id == selected_tenant_id,
+                                UserTenant.role == "admin",
+                                UserTenant.is_active.is_(True)
+                            ).count()
+
+                            # Get current user's role in this tenant
+                            target_link = db_actions.query(UserTenant).filter(
+                                UserTenant.user_id == target_user.id,
+                                UserTenant.tenant_id == selected_tenant_id,
+                                UserTenant.is_active.is_(True)
+                            ).first()
+
+                            is_last_admin = (
+                                target_link
+                                and target_link.role == "admin"
+                                and active_admin_count <= 1
+                            )
+
+                            if is_last_admin:
+                                st.warning("⚠️ No se puede eliminar: es el ultimo admin activo de este tenant.")
+                            else:
+                                confirm_remove = st.checkbox(
+                                    "Confirmo que quiero eliminar este usuario del tenant",
+                                    key="confirm_remove_tenant"
+                                )
+                                if st.button(
+                                    "🗑️ Eliminar del Tenant",
+                                    type="primary",
+                                    use_container_width=True,
+                                    disabled=not confirm_remove
+                                ):
+                                    if target_link:
+                                        target_link.is_active = False
+                                        db_actions.commit()
+                                        st.success(f"✅ Usuario eliminado de {selected_tenant_name}. Sus datos se preservan para auditoria.")
+                                        time.sleep(1)
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ No se encontro la relacion usuario-tenant.")
+
             finally:
                 db_actions.close()
 
@@ -225,8 +275,28 @@ def render_users_view():
                                 tenant_id=selected_tenant_id
                             ).first()
                             
-                            if existing_link:
+                            if existing_link and existing_link.is_active:
                                 st.warning(f"⚠️ El usuario ya pertenece a este tenant con el rol: {existing_link.role}.")
+                            elif existing_link and not existing_link.is_active:
+                                # Reactivate inactive link
+                                try:
+                                    existing_link.is_active = True
+                                    if new_role:
+                                        existing_link.role = new_role
+                                    db.commit()
+
+                                    if existing_user.clerk_id:
+                                        clerk.update_user_metadata(existing_user.clerk_id, {
+                                            "tenant_id": str(selected_tenant_id),
+                                            "role": existing_link.role
+                                        })
+
+                                    st.success(f"✅ Usuario reactivado en {selected_tenant_name} con rol: {existing_link.role}")
+                                    time.sleep(1.5)
+                                    st.rerun()
+                                except Exception as e_react:
+                                    db.rollback()
+                                    st.error(f"❌ Error al reactivar usuario: {e_react}")
                             else:
                                 # Create Link
                                 try:

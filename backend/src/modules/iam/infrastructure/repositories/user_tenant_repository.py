@@ -19,6 +19,7 @@ class UserTenantRepository:
             self.db.query(TenantModel, UserTenantModel.role)
             .join(UserTenantModel, TenantModel.id == UserTenantModel.tenant_id)
             .filter(UserTenantModel.user_id == user_id)
+            .filter(UserTenantModel.is_active.is_(True))
             .filter(TenantModel.is_active.is_(True))
             .all()
         )

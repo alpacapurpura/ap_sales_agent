@@ -295,7 +295,7 @@ def render_tenant_health():
                     COUNT(ce.id) AS msg_count,
                     MAX(ce.created_at) AS last_activity
                 FROM users u
-                INNER JOIN user_tenants ut ON ut.user_id = u.id AND ut.tenant_id = :tid
+                INNER JOIN user_tenants ut ON ut.user_id = u.id AND ut.tenant_id = :tid AND ut.is_active = true
                 LEFT JOIN copilot_events ce ON ce.user_id = u.id
                     AND ce.tenant_id = :tid
                     AND ce.event_type = 'message_sent'

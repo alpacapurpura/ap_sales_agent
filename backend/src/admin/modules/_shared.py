@@ -121,7 +121,7 @@ def get_all_tenants_summary() -> List[dict]:
                 COUNT(DISTINCT ut.user_id) AS user_count,
                 MAX(ce.created_at) AS last_event
             FROM tenants t
-            LEFT JOIN user_tenants ut ON ut.tenant_id = t.id
+            LEFT JOIN user_tenants ut ON ut.tenant_id = t.id AND ut.is_active = true
             LEFT JOIN copilot_events ce ON ce.tenant_id = t.id AND ce.deleted_at IS NULL
             WHERE t.is_active = true
             GROUP BY t.id, t.name, t.is_active

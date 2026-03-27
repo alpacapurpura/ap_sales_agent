@@ -68,7 +68,8 @@ async def get_optional_tenant_context(
             # Check access
             link = db.query(UserTenantModel).filter(
                 UserTenantModel.user_id == user.id,
-                UserTenantModel.tenant_id == target_uuid
+                UserTenantModel.tenant_id == target_uuid,
+                UserTenantModel.is_active.is_(True)
             ).first()
             if link:
                 tenant_id = target_uuid
@@ -78,14 +79,18 @@ async def get_optional_tenant_context(
             if tenant:
                  link = db.query(UserTenantModel).filter(
                      UserTenantModel.user_id == user.id,
-                     UserTenantModel.tenant_id == tenant.id
+                     UserTenantModel.tenant_id == tenant.id,
+                     UserTenantModel.is_active.is_(True)
                  ).first()
                  if link:
                      tenant_id = tenant.id
-            
+
     # Fallback to default
     if not tenant_id:
-        link = db.query(UserTenantModel).filter(UserTenantModel.user_id == user.id).first()
+        link = db.query(UserTenantModel).filter(
+            UserTenantModel.user_id == user.id,
+            UserTenantModel.is_active.is_(True)
+        ).first()
         if link:
             tenant_id = link.tenant_id
             
@@ -251,7 +256,8 @@ def get_current_user(
         # Verify user has access to this tenant
         user_tenant = db.query(UserTenantModel).filter(
             UserTenantModel.user_id == user.id,
-            UserTenantModel.tenant_id == target_tenant_id
+            UserTenantModel.tenant_id == target_tenant_id,
+            UserTenantModel.is_active.is_(True)
         ).first()
         
         if not user_tenant:
@@ -271,7 +277,10 @@ def get_current_user(
     else:
         # No tenant specified. Find the first available tenant for the user.
         # This is the "default" tenant context.
-        first_tenant_link = db.query(UserTenantModel).filter(UserTenantModel.user_id == user.id).first()
+        first_tenant_link = db.query(UserTenantModel).filter(
+            UserTenantModel.user_id == user.id,
+            UserTenantModel.is_active.is_(True)
+        ).first()
         
         if not first_tenant_link:
              logger.warning("access_denied_no_tenants", user_id=str(user.id))
