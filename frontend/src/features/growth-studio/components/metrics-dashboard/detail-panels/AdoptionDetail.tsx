@@ -33,6 +33,21 @@ export const AdoptionDetail = React.memo(function AdoptionDetail({ onMetricClick
   const { data, isLoading, error, refetch } = useAdoptionDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
+  const healthColor = useMemo(
+    () => !data ? '' : data.headerKpis.healthPct >= 70
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : 'text-amber-600 dark:text-amber-400',
+    [data]
+  );
+
+  const adoptionRate = useMemo(
+    () => {
+      if (!data) return 0;
+      return data.miniFunnel?.conversionRate || (data.headerKpis.activeCustomers > 0 && data.miniFunnel.sourceValue > 0 ? (data.headerKpis.activeCustomers / data.miniFunnel.sourceValue) * 100 : 0);
+    },
+    [data]
+  );
+
   if (isLoading) {
     return (
       <DetailSkeleton isLoading>
@@ -71,19 +86,6 @@ export const AdoptionDetail = React.memo(function AdoptionDetail({ onMetricClick
   }
 
   const { headerKpis, miniFunnel, offers, bottlenecks } = data;
-
-  const healthColor = useMemo(
-    () => headerKpis.healthPct >= 70
-      ? 'text-emerald-600 dark:text-emerald-400'
-      : 'text-amber-600 dark:text-amber-400',
-    [headerKpis.healthPct]
-  );
-
-  // Compute funnel rate if not explicit
-  const adoptionRate = useMemo(
-    () => miniFunnel?.conversionRate || (headerKpis.activeCustomers > 0 && miniFunnel.sourceValue > 0 ? (headerKpis.activeCustomers / miniFunnel.sourceValue) * 100 : 0),
-    [miniFunnel, headerKpis.activeCustomers]
-  );
 
   return (
     <div className="space-y-12 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">

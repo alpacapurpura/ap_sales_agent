@@ -34,6 +34,34 @@ export const ExpansionEvangelizationDetail = React.memo(function ExpansionEvange
   const { data: expData, isLoading: expLoading, error: expError, refetch: refetchExp } = useExpansionDetail();
   const { data: evaData, isLoading: evaLoading, error: evaError, refetch: refetchEva } = useEvangelizationDetail();
 
+  const { avgLtv, actives, netMrr, expansionCount, expansionRate, churnRate } = useMemo(() => ({
+    avgLtv: expData?.headerKpis.avgLtv || 0,
+    actives: expData?.miniFunnel.sourceValue || 0,
+    netMrr: expData?.headerKpis.netMrr || 0,
+    expansionCount: expData?.miniFunnel.targetValue || 0,
+    expansionRate: expData?.miniFunnel.conversionRate || 0,
+    churnRate: expData?.headerKpis.churnRatePct || 0,
+  }), [expData]);
+
+  const { kFactor, referralConversions, npsScore, referralRevenue } = useMemo(() => ({
+    kFactor: evaData?.headerKpis.kFactor || 0,
+    referralConversions: evaData?.headerKpis.referralConversions || 0,
+    npsScore: evaData?.headerKpis.npsScore ?? null,
+    referralRevenue: evaData?.headerKpis.referralRevenue || 0,
+  }), [evaData]);
+
+  const handleMetricClick = useCallback((stageId: 'EXPANSION' | 'EVANGELIZACION', channelSlug: string, metricName: string, val: number, channelName?: string) => {
+    if (onMetricClick) {
+      onMetricClick({
+        stageId,
+        channelSlug,
+        channelName,
+        metricName,
+        currentValue: val,
+      });
+    }
+  }, [onMetricClick]);
+
   if (expLoading || evaLoading) {
     return (
       <DetailSkeleton isLoading>
@@ -61,35 +89,6 @@ export const ExpansionEvangelizationDetail = React.memo(function ExpansionEvange
   const formatNum = (num: number) => num.toLocaleString('es-ES');
   const formatMoney = (num: number, currency: string) => 
     `${currency} ${num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-
-  // --- KPIs Globales ---
-  const { avgLtv, actives, netMrr, expansionCount, expansionRate, churnRate } = useMemo(() => ({
-    avgLtv: expData.headerKpis.avgLtv || 0,
-    actives: expData.miniFunnel.sourceValue || 0,
-    netMrr: expData.headerKpis.netMrr || 0,
-    expansionCount: expData.miniFunnel.targetValue || 0,
-    expansionRate: expData.miniFunnel.conversionRate || 0,
-    churnRate: expData.headerKpis.churnRatePct || 0,
-  }), [expData]);
-
-  const { kFactor, referralConversions, npsScore, referralRevenue } = useMemo(() => ({
-    kFactor: evaData.headerKpis.kFactor || 0,
-    referralConversions: evaData.headerKpis.referralConversions || 0,
-    npsScore: evaData.headerKpis.npsScore,
-    referralRevenue: evaData.headerKpis.referralRevenue || 0,
-  }), [evaData]);
-
-  const handleMetricClick = useCallback((stageId: 'EXPANSION' | 'EVANGELIZACION', channelSlug: string, metricName: string, val: number, channelName?: string) => {
-    if (onMetricClick) {
-      onMetricClick({
-        stageId,
-        channelSlug,
-        channelName,
-        metricName,
-        currentValue: val,
-      });
-    }
-  }, [onMetricClick]);
 
   return (
     <div className="space-y-8 animate-fade-in block">

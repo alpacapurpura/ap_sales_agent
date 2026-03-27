@@ -46,6 +46,46 @@ export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: Sa
     });
   }, [triggerShopify, queryClient]);
 
+  const oppToSalesConvRate = useMemo(
+    () => {
+      if (!data) return 0;
+      return data.miniFunnel?.conversionRate || (data.headerKpis.newCustomers > 0 && data.miniFunnel.sourceValue > 0 ? (data.headerKpis.newCustomers / data.miniFunnel.sourceValue) * 100 : 0);
+    },
+    [data]
+  );
+
+  const extraData = useMemo<Record<string, number>>(() => {
+    if (!data) return {} as Record<string, number>;
+    const { headerKpis: kpis, miniFunnel: mf } = data;
+    return {
+      totalRevenue: kpis.totalRevenue,
+      newCustomers: kpis.newCustomers,
+      netSales: kpis.netSales ?? 0,
+      totalDiscounts: kpis.totalDiscounts ?? 0,
+      totalTax: kpis.totalTax ?? 0,
+      refundCount: kpis.refundCount ?? 0,
+      refundAmount: kpis.refundAmount ?? 0,
+      shippingRevenue: kpis.shippingRevenue ?? 0,
+      repeatCustomers: kpis.repeatCustomers ?? 0,
+      discountUsageCount: kpis.discountUsageCount ?? 0,
+      cac: kpis.cac ?? 0,
+      conversionRate: oppToSalesConvRate,
+      sqls: mf.sourceValue,
+    };
+  }, [data, oppToSalesConvRate]);
+
+  const handleKpiClick = useCallback((metricName: string, currentValue: number) => {
+    if (!data) return;
+    onMetricClick?.({
+      stageId: 'VENTAS',
+      channelSlug: 'shopify',
+      metricName,
+      currentValue,
+      currency: data.headerKpis.currency,
+      extraData,
+    });
+  }, [onMetricClick, data, extraData]);
+
   if (isLoading) {
     return (
       <DetailSkeleton isLoading>
@@ -69,40 +109,6 @@ export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: Sa
   }
 
   const { headerKpis, miniFunnel, adquisicion, expansion, bottlenecks } = data;
-
-  // Compute funnel metrics if not present explicitly
-  const oppToSalesConvRate = useMemo(
-    () => miniFunnel?.conversionRate || (headerKpis.newCustomers > 0 && miniFunnel.sourceValue > 0 ? (headerKpis.newCustomers / miniFunnel.sourceValue) * 100 : 0),
-    [miniFunnel, headerKpis.newCustomers]
-  );
-
-  // Build extraData for sidebar clicks
-  const extraData = useMemo<Record<string, number>>(() => ({
-    totalRevenue: headerKpis.totalRevenue,
-    newCustomers: headerKpis.newCustomers,
-    netSales: headerKpis.netSales ?? 0,
-    totalDiscounts: headerKpis.totalDiscounts ?? 0,
-    totalTax: headerKpis.totalTax ?? 0,
-    refundCount: headerKpis.refundCount ?? 0,
-    refundAmount: headerKpis.refundAmount ?? 0,
-    shippingRevenue: headerKpis.shippingRevenue ?? 0,
-    repeatCustomers: headerKpis.repeatCustomers ?? 0,
-    discountUsageCount: headerKpis.discountUsageCount ?? 0,
-    cac: headerKpis.cac ?? 0,
-    conversionRate: oppToSalesConvRate,
-    sqls: miniFunnel.sourceValue,
-  }), [headerKpis, oppToSalesConvRate, miniFunnel.sourceValue]);
-
-  const handleKpiClick = useCallback((metricName: string, currentValue: number) => {
-    onMetricClick?.({
-      stageId: 'VENTAS',
-      channelSlug: 'shopify',
-      metricName,
-      currentValue,
-      currency: headerKpis.currency,
-      extraData,
-    });
-  }, [onMetricClick, headerKpis.currency, extraData]);
 
   return (
     <div className="space-y-12 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">

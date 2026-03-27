@@ -22,6 +22,42 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   const { trigger: triggerLoad, isLoading: isLoadingMeta, result: loadResult, error: loadError } = useMetaInitialLoad();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
+  const { totalReach, totalVisitors, totalSpend } = useMemo(() => {
+    if (!attrData) return { totalReach: 0, totalVisitors: 0, totalSpend: 0 };
+    const attrGroups = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound];
+    return {
+      totalReach: attrGroups.reduce((sum, g) => sum + (g.totals.reach ?? 0), 0),
+      totalVisitors: attrGroups.reduce((sum, g) => sum + (g.totals.visitors ?? g.totals.sessions ?? 0), 0),
+      totalSpend: attrGroups.reduce((sum, g) => sum + (g.totals.spend ?? 0), 0),
+    };
+  }, [attrData]);
+
+  const totalLeads = capData?.headerKpis.totalLeads || 0;
+  const leadConvRate = useMemo(() => totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0, [totalVisitors, totalLeads]);
+
+  const combinedOrganic = useMemo(() => [
+    ...(attrData?.organicSocial.channels || []),
+    ...(attrData?.ga4Search.channels || []),
+  ], [attrData?.organicSocial.channels, attrData?.ga4Search.channels]);
+
+  const captureChannels = useMemo(() => [
+    ...(capData?.webInfrastructure.channels || []),
+    ...(capData?.aiAgent.channels || []),
+  ], [capData?.webInfrastructure.channels, capData?.aiAgent.channels]);
+
+  const handleMetricClick = useCallback((stageId: 'ATRACCION' | 'CAPTURA', channel: any, metricName: string, val: number) => {
+    if (onMetricClick) {
+      onMetricClick({
+        stageId,
+        channelSlug: channel.slug,
+        channelName: channel.name,
+        metricName,
+        currentValue: val,
+        channelMetrics: channel.metrics
+      });
+    }
+  }, [onMetricClick]);
+
   if (attrLoading || capLoading) {
     return (
       <DetailSkeleton isLoading>
@@ -46,21 +82,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   // Si no hay datos (empty state base)
   if (!attrData || !capData) return null;
 
-  // KPIs Globales (Rendimiento Global)
-  // Attraction totals
-  const { totalReach, totalVisitors, totalSpend } = useMemo(() => {
-    const attrGroups = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound];
-    return {
-      totalReach: attrGroups.reduce((sum, g) => sum + (g.totals.reach ?? 0), 0),
-      totalVisitors: attrGroups.reduce((sum, g) => sum + (g.totals.visitors ?? g.totals.sessions ?? 0), 0),
-      totalSpend: attrGroups.reduce((sum, g) => sum + (g.totals.spend ?? 0), 0),
-    };
-  }, [attrData]);
-
-  // Capture totals
-  const totalLeads = capData.headerKpis.totalLeads || 0;
-  const leadConvRate = useMemo(() => totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0, [totalVisitors, totalLeads]);
-  
   // Formatters
   const formatNum = (num: number) => num.toLocaleString('es-ES');
   const formatMoney = (num: number) => `$${num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -70,28 +91,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
   // Organizar canales
   const paidChannels = attrData.paid.channels;
-  const combinedOrganic = useMemo(() => [
-    ...(attrData.organicSocial.channels || []),
-    ...(attrData.ga4Search.channels || []),
-  ], [attrData.organicSocial.channels, attrData.ga4Search.channels]);
-  const captureChannels = useMemo(() => [
-    ...(capData.webInfrastructure.channels || []),
-    ...(capData.aiAgent.channels || []),
-  ], [capData.webInfrastructure.channels, capData.aiAgent.channels]);
   const availableChannels = attrData.available?.channels || [];
-
-  const handleMetricClick = useCallback((stageId: 'ATRACCION' | 'CAPTURA', channel: any, metricName: string, val: number) => {
-    if (onMetricClick) {
-      onMetricClick({
-        stageId,
-        channelSlug: channel.slug,
-        channelName: channel.name,
-        metricName,
-        currentValue: val,
-        channelMetrics: channel.metrics
-      });
-    }
-  }, [onMetricClick]);
 
   const ChannelRow = ({ channel, stageId, defaultMetricName, defaultMetricLabel }: { channel: any, stageId: 'ATRACCION' | 'CAPTURA', defaultMetricName: string, defaultMetricLabel: string }) => {
     if (!channel.connected) {

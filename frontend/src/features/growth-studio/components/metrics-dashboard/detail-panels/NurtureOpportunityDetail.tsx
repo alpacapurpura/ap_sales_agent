@@ -20,6 +20,63 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
   const { data: oppData, isLoading: oppLoading, error: oppError, refetch: refetchOpp } = useOpportunityDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
+  const { totalNurtureLeads, totalMqls, totalNurtureSpend, totalSqls, oppConvRate, costPerSql } = useMemo(() => {
+    if (!nurtureData || !oppData) return { totalNurtureLeads: 0, totalMqls: 0, totalNurtureSpend: 0, totalSqls: 0, oppConvRate: 0, costPerSql: 0 };
+    const _totalNurtureLeads =
+      (nurtureData.retargeting.totals.reach || nurtureData.retargeting.totals.visitors || 0) +
+      (nurtureData.automation.totals.contacts || nurtureData.automation.totals.leads || 0);
+    const _totalMqls = nurtureData.headerKpis.totalMqls || 0;
+    const _totalNurtureSpend = nurtureData.retargeting.totals.spend || 0;
+    const _totalSqls = oppData.headerKpis.totalSqls || 0;
+    const _oppConvRate = _totalMqls > 0 ? (_totalSqls / _totalMqls) * 100 : 0;
+    const _costPerSql = _totalSqls > 0 ? _totalNurtureSpend / _totalSqls : 0;
+    return {
+      totalNurtureLeads: _totalNurtureLeads,
+      totalMqls: _totalMqls,
+      totalNurtureSpend: _totalNurtureSpend,
+      totalSqls: _totalSqls,
+      oppConvRate: _oppConvRate,
+      costPerSql: _costPerSql,
+    };
+  }, [nurtureData, oppData]);
+
+  const nurtureChannels = useMemo(() => {
+    if (!nurtureData) return [];
+    return nurtureData.automation.channels.map(c => {
+      if (c.slug.includes('mail')) return { ...c, name: 'eMailing Nurturing' };
+      if (c.slug.includes('ai-sdr') || c.slug.includes('agent')) return { ...c, name: 'Nico Sales Agent', slug: 'nico-agent' };
+      return c;
+    });
+  }, [nurtureData]);
+
+  const retargetingChannels = useMemo(() => {
+    if (!nurtureData) return [];
+    return nurtureData.retargeting.channels.map(c => {
+      if (c.slug.includes('meta') || c.slug.includes('fb') || c.slug.includes('ig')) return { ...c, name: 'Meta Retargeting' };
+      return c;
+    });
+  }, [nurtureData]);
+
+  const oppCheckoutChannels = useMemo(() => [
+    ...(oppData?.checkout.channels || []),
+    ...(oppData?.paymentLinks.channels || []),
+  ], [oppData?.checkout.channels, oppData?.paymentLinks.channels]);
+
+  const activeBottlenecks = useMemo(() => oppData?.bottlenecks.filter(b => b.severity !== 'normal') ?? [], [oppData]);
+
+  const handleMetricClick = useCallback((stageId: 'NUTRICION' | 'OPORTUNIDAD', channel: any, metricName: string, val: number) => {
+    if (onMetricClick) {
+      onMetricClick({
+        stageId,
+        channelSlug: channel.slug,
+        channelName: channel.name,
+        metricName,
+        currentValue: val,
+        channelMetrics: channel.metrics
+      });
+    }
+  }, [onMetricClick]);
+
   if (nurtureLoading || oppLoading) {
     return (
       <DetailSkeleton isLoading>
@@ -47,72 +104,12 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
   const formatNum = (num: number) => num.toLocaleString('es-ES');
   const formatMoney = (num: number) => `$${num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
-  // Global KPIs calculation
-  const { totalNurtureLeads, totalMqls, totalNurtureSpend, totalSqls, oppConvRate, costPerSql } = useMemo(() => {
-    const _totalNurtureLeads =
-      (nurtureData.retargeting.totals.reach || nurtureData.retargeting.totals.visitors || 0) +
-      (nurtureData.automation.totals.contacts || nurtureData.automation.totals.leads || 0);
-    const _totalMqls = nurtureData.headerKpis.totalMqls || 0;
-    const _totalNurtureSpend = nurtureData.retargeting.totals.spend || 0;
-    const _totalSqls = oppData.headerKpis.totalSqls || 0;
-    const _oppConvRate = _totalMqls > 0 ? (_totalSqls / _totalMqls) * 100 : 0;
-    const _costPerSql = _totalSqls > 0 ? _totalNurtureSpend / _totalSqls : 0;
-    return {
-      totalNurtureLeads: _totalNurtureLeads,
-      totalMqls: _totalMqls,
-      totalNurtureSpend: _totalNurtureSpend,
-      totalSqls: _totalSqls,
-      oppConvRate: _oppConvRate,
-      costPerSql: _costPerSql,
-    };
-  }, [nurtureData, oppData]);
-
   // Helper to get specific metric
   const getMetric = (metrics: any[], name: string) => metrics.find((m) => m.name === name)?.value ?? 0;
 
-  // Organize channels
-  const nurtureChannels = useMemo(() => nurtureData.automation.channels.map(c => {
-    if (c.slug.includes('mail')) {
-      return { ...c, name: 'eMailing Nurturing' };
-    }
-    if (c.slug.includes('ai-sdr') || c.slug.includes('agent')) {
-      return { ...c, name: 'Nico Sales Agent', slug: 'nico-agent' };
-    }
-    return c;
-  }), [nurtureData.automation.channels]);
-
-  const retargetingChannels = useMemo(() => nurtureData.retargeting.channels.map(c => {
-    if (c.slug.includes('meta') || c.slug.includes('fb') || c.slug.includes('ig')) {
-      return { ...c, name: 'Meta Retargeting' };
-    }
-    return c;
-  }), [nurtureData.retargeting.channels]);
-
   const oppQualificationChannels = oppData.qualification.channels || [];
-
-  const oppCheckoutChannels = useMemo(() => [
-    ...(oppData.checkout.channels || []),
-    ...(oppData.paymentLinks.channels || []),
-  ], [oppData.checkout.channels, oppData.paymentLinks.channels]);
-
   const availableNurtureChannels = nurtureData.available?.channels || [];
   const availableOppChannels = oppData.available?.channels || [];
-
-  // Bottlenecks from opportunity
-  const activeBottlenecks = useMemo(() => oppData.bottlenecks.filter(b => b.severity !== 'normal'), [oppData.bottlenecks]);
-
-  const handleMetricClick = useCallback((stageId: 'NUTRICION' | 'OPORTUNIDAD', channel: any, metricName: string, val: number) => {
-    if (onMetricClick) {
-      onMetricClick({
-        stageId,
-        channelSlug: channel.slug,
-        channelName: channel.name,
-        metricName,
-        currentValue: val,
-        channelMetrics: channel.metrics
-      });
-    }
-  }, [onMetricClick]);
 
   const ChannelRow = ({ channel, stageId, defaultMetricName, defaultMetricLabel, baseColor }: { channel: any, stageId: 'NUTRICION' | 'OPORTUNIDAD', defaultMetricName: string, defaultMetricLabel: string, baseColor?: string }) => {
     if (!channel.connected) {
