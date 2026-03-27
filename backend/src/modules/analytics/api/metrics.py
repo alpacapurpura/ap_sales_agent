@@ -7,6 +7,7 @@ from src.core.database import get_db, redis_client
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.analytics.application.services.metrics_service import MetricsService
+from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
 from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO
 from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
@@ -42,6 +43,26 @@ _SLUG_TO_PROVIDER: dict[str, str] = {
     "abandoned-cart": "shopify",
     "shopify": "shopify",
 }
+
+
+@router.get("/summary", response_model=BowtiesSummaryDTO)
+async def get_summary_metrics(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Lightweight KPIs for the Bowtie funnel row.
+
+    Returns ~15 fields total (2 KPIs per stage × 8 stages) instead of
+    the ~2000+ fields from 8 individual detail endpoints.
+    Cache-first: reads from per-stage Redis caches with 60s summary TTL.
+    """
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    offer_port = OfferReadPortImpl(db)
+    service = MetricsService(
+        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+    )
+    return await service.get_bowtie_summary(user.tenant_id)
 
 
 @router.get("/sankey")

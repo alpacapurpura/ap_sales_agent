@@ -315,7 +315,6 @@ class ETLService:
         Replicates what webhooks produce so that UnmatchedProducts and
         OfferLadder widgets work after an ETL backfill.
         """
-        from datetime import datetime as dt
         from sqlalchemy import select as sa_select, func as sa_func
         from src.modules.crm.application.services.customer_service import CustomerService
         from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel

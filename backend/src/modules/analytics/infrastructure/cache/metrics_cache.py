@@ -17,13 +17,15 @@ logger = logging.getLogger(__name__)
 # Per-stage TTL overrides. Paid ad data changes less frequently (extracted nightly).
 # CRM/general dashboard queries use shorter TTL for fresher data.
 STAGE_TTL: Dict[str, int] = {
-    "attraction": 3600,    # 1 hour — paid ads data is nightly ETL
-    "capture": 300,        # 5 min — CRM-driven
+    "attraction": 3600,      # 1 hour — paid ads data is nightly ETL
+    "capture": 300,          # 5 min — CRM-driven
     "nurture": 300,
+    "opportunity": 300,
     "sales": 300,
-    "delivery": 300,
-    "retention": 300,
-    "referral": 300,
+    "adoption": 300,
+    "expansion": 300,
+    "evangelization": 300,
+    "summary": 60,           # 1 min — Bowtie funnel row, must feel fresh
 }
 DEFAULT_TTL = 300
 
