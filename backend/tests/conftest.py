@@ -95,6 +95,7 @@ def db_engine():
         from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel
         from src.modules.crm.infrastructure.models.sale_model import SaleModel
         from src.modules.offer.infrastructure.models.product_model import ProductModel
+        from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import AgentStateCheckpointModel
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")
     

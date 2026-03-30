@@ -20,6 +20,7 @@ from src.modules.sales_agent.infrastructure.external.buffer_service import Smart
 from src.modules.sales_agent.infrastructure.external.output_manager import OutputManager
 from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_complete
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
+from src.modules.sales_agent.infrastructure.repositories.state_repository import StateRepository
 from src.modules.sales_agent.application.services.knowledge_builder import TenantKnowledgeBuilder
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
 from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
@@ -265,6 +266,49 @@ class ChatOrchestrator:
                 lead_source_detail=channel_type,
             )
 
+            # Enrich Instagram profiles with name/username/pic from User Profile API
+            if channel_type == "instagram" and tenant_uuid:
+                if was_created or not (customer.traits or {}).get("instagram_username"):
+                    try:
+                        from src.modules.crm.application.services.ig_profile_enricher import InstagramProfileEnricher
+                        from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
+
+                        connection_port = ConnectionPortImpl(db)
+                        creds = await connection_port.get_credentials(tenant_uuid, "meta")
+                        enricher = InstagramProfileEnricher(db)
+                        await enricher.enrich(
+                            tenant_id=tenant_uuid,
+                            igsid=user_id_str,
+                            customer_profile_id=customer.id,
+                            access_token=creds.credentials.get("access_token", ""),
+                        )
+                    except Exception:
+                        logger.warning("ig_profile_enrichment_failed", exc_info=True)
+
+            # Track message_received journey event for capture conversation metrics
+            if tenant_uuid:
+                try:
+                    from src.modules.crm.infrastructure.repositories.customer_repository import JourneyEventRepository
+                    journey_repo = JourneyEventRepository(db)
+                    event_props = {
+                        "channel_slug": capture_slug,
+                        "channel_type": channel_type,
+                        "message_direction": "inbound",
+                    }
+                    # Propagate message_id for dedup (IG DM sync + webhook overlap)
+                    mid = incoming.metadata.get("message_id")
+                    if mid:
+                        event_props["message_id"] = mid
+                    journey_repo.track_event(
+                        profile_id=customer.id,
+                        tenant_id=tenant_uuid,
+                        event_name="message_received",
+                        event_type="track",
+                        properties=event_props,
+                    )
+                except Exception:
+                    logger.warning("failed_to_track_message_received", exc_info=True)
+
             # Emit LeadCapturedEvent only for NEW profiles (not returning visitors)
             if was_created and tenant_uuid:
                 EventBus.publish(
@@ -309,7 +353,11 @@ class ChatOrchestrator:
                     channel=channel_type,
                     channel_user_id=user_id_str
                 )
-            
+
+            # Load existing state checkpoint (if any)
+            state_repo = StateRepository(db)
+            checkpoint = state_repo.get_active_checkpoint(tenant_uuid, user.id) if tenant_uuid else None
+
             # Determine Session State
             last_msg = audit_repo.get_last_message(user.id)
             session_active = True
@@ -383,6 +431,22 @@ class ChatOrchestrator:
             if getattr(user, "style_profile", None):
                 base_profile["style_profile"] = user.style_profile
 
+            # Build checkpoint data for state restoration
+            checkpoint_data = {}
+            if checkpoint and session_active:
+                checkpoint_data = {
+                    "current_state": checkpoint.current_stage,
+                    "lead_score": checkpoint.lead_score,
+                    "lead_data": checkpoint.lead_data or {},
+                    "buying_signals": checkpoint.buying_signals or [],
+                    "objection_history": checkpoint.objection_history or [],
+                    "qualification_answers": checkpoint.qualification_answers or {},
+                    "turn_count": checkpoint.turn_count or 0,
+                    "close_strategy": checkpoint.close_strategy,
+                }
+            elif checkpoint and not session_active:
+                state_repo.deactivate(tenant_uuid, user.id)
+
             initial_state = create_initial_state(
                 user_id=str(user.id),
                 tenant_id=str(tenant_id) if tenant_id else str(uuid.uuid4()),
@@ -393,7 +457,10 @@ class ChatOrchestrator:
                 active_enrollment=active_enrollment,
                 active_product=active_product_dict,
                 last_intent=last_intent,
-                agent_identity=agent_identity
+                agent_identity=agent_identity,
+                customer_profile_id=customer.id,
+                channel_type=channel_type,
+                **checkpoint_data,
             )
 
             if launch_stage:
@@ -427,6 +494,33 @@ class ChatOrchestrator:
                 result = await agent_app.ainvoke(initial_state)
             finally:
                 typing_task.cancel()
+
+            # Save state checkpoint after graph execution
+            if tenant_uuid and user:
+                try:
+                    state_repo.save_checkpoint(
+                        tenant_id=tenant_uuid,
+                        lead_id=user.id,
+                        session_id=initial_state.get("session_id", ""),
+                        customer_profile_id=customer.id,
+                        channel_type=channel_type,
+                        current_stage=result.get("current_state", "rapport"),
+                        lead_score=result.get("lead_score", 0),
+                        lead_data=result.get("lead_data", {}),
+                        buying_signals=result.get("buying_signals", []),
+                        objection_history=result.get("objection_history", []),
+                        qualification_answers=result.get("qualification_answers", {}),
+                        turn_count=result.get("turn_count", 0),
+                        last_specialist=result.get("next_node"),
+                        close_strategy=result.get("close_strategy"),
+                    )
+                    db.commit()
+                except Exception as e:
+                    logger.error("checkpoint_save_failed", error=str(e))
+                    try:
+                        db.rollback()
+                    except Exception:
+                        pass
 
             # 4. Extract Response
             last_msg = result["messages"][-1]

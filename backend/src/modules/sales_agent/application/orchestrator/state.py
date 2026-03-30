@@ -40,6 +40,18 @@ class AgentState(TypedDict):
     # Agent Knowledge System (AKS)
     agent_identity: Optional[str]  # Rendered tenant-specific identity prompt
 
+    # Accumulated Signals (persisted via checkpoint)
+    buying_signals: Optional[List[Dict[str, Any]]]
+    objection_history: Optional[List[Dict[str, Any]]]
+    qualification_answers: Optional[Dict[str, Any]]
+    turn_count: Optional[int]
+    customer_profile_id: Optional[UUID]
+    channel_type: Optional[str]
+    close_strategy: Optional[str]
+
+    # Internal (graph loop control)
+    internal_turn: Optional[int]
+
     # Errors
     error: Optional[str]
 
@@ -56,7 +68,17 @@ def create_initial_state(
     active_product: Dict = None,
     last_intent: str = None,
     launch_stage: str = None,
-    agent_identity: str = None
+    agent_identity: str = None,
+    # Checkpoint-persisted fields
+    buying_signals: List[Dict[str, Any]] = None,
+    objection_history: List[Dict[str, Any]] = None,
+    qualification_answers: Dict = None,
+    turn_count: int = None,
+    customer_profile_id: UUID = None,
+    channel_type: str = None,
+    close_strategy: str = None,
+    current_state: str = None,
+    lead_score: int = None,
 ) -> AgentState:
     """
     Factory for creating a clean AgentState.
@@ -79,9 +101,9 @@ def create_initial_state(
         "user_id": uid,
         "tenant_id": tid,
         "session_id": session_id,
-        "current_state": "rapport",
+        "current_state": current_state or "rapport",
         "detected_intent": None,
-        "lead_score": 0,
+        "lead_score": lead_score if lead_score is not None else 0,
         "lead_data": lead_data or {},
         "tenant_config": tenant_config or {},
         "history": history or [],
@@ -92,5 +114,15 @@ def create_initial_state(
         "last_intent": last_intent,
         "launch_stage": launch_stage,
         "agent_identity": agent_identity,
-        "error": None
+        # Checkpoint-persisted fields
+        "buying_signals": buying_signals or [],
+        "objection_history": objection_history or [],
+        "qualification_answers": qualification_answers or {},
+        "turn_count": turn_count or 0,
+        "customer_profile_id": customer_profile_id,
+        "channel_type": channel_type,
+        "close_strategy": close_strategy,
+        # Internal
+        "internal_turn": 0,
+        "error": None,
     }
