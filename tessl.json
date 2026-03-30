@@ -3,6 +3,62 @@
   "dependencies": {
     "tessl/npm-playwright": {
       "version": "1.55.0"
+    },
+    "tessl/pypi-sqlalchemy": {
+      "version": "2.0.0"
+    },
+    "tessl/pypi-alembic": {
+      "version": "1.16.0"
+    },
+    "tessl/pypi-structlog": {
+      "version": "25.4.0"
+    },
+    "tessl/npm-clerk--nextjs": {
+      "version": "6.36.0"
+    },
+    "tessl/pypi-langgraph-cli": {
+      "version": "0.4.0"
+    },
+    "maria/fastapi": {
+      "version": "0.1.0"
+    },
+    "fastapi/fastapi": {
+      "version": "d128a7089a645466b789e32097de125a3b0f8979",
+      "source": "https://github.com/fastapi/fastapi",
+      "include": {
+        "skills": [
+          "fastapi"
+        ]
+      }
+    },
+    "jezweb/claude-skills": {
+      "version": "c1e8dd19c72163b56ea38536d8824bcc9b7a1b3c",
+      "source": "https://github.com/jezweb/claude-skills",
+      "include": {
+        "skills": [
+          "shadcn-ui",
+          "tanstack-start",
+          "vitest"
+        ]
+      }
+    },
+    "secondsky/claude-skills": {
+      "version": "90d6bd7de47ac8f79bdf2f2d06b26d513814f764",
+      "source": "https://github.com/secondsky/claude-skills",
+      "include": {
+        "skills": [
+          "zod"
+        ]
+      }
+    },
+    "renmaiv/nextjs-modularise": {
+      "version": "ec60e1d91545871d040fe1e6b11fa3411a13b8ad",
+      "source": "https://github.com/renmaiv/nextjs-modularise",
+      "include": {
+        "skills": [
+          "nextjs-app-router-modularization"
+        ]
+      }
     }
   }
 }

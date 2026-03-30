@@ -106,6 +106,9 @@ skills-lock.json
 # --- Local overrides (personal, not shared) ---
 CLAUDE.local.md
 
+# --- Tessl (managed tiles cache) ---
+.tessl/
+
 # --- Documentation artifacts (not needed for app to function) ---
 docs/superpowers/
 docs/temp/
