@@ -98,12 +98,12 @@ page.tsx (RSC)
 
 ```
 frontend/src/features/{domain}/
-├── ui/
+├── components/
 │   ├── component-a.tsx        (Server Component)
 │   ├── component-b.tsx        (Client Component)
 │   └── component-c.tsx        (Client Component)
-├── model/
-│   └── types.ts               (TypeScript interfaces from CONTRACT.md)
+├── types/
+│   └── index.ts               (TypeScript interfaces from CONTRACT.md)
 ├── api/
 │   └── {entity}-api.ts        (API functions)
 ├── hooks/
