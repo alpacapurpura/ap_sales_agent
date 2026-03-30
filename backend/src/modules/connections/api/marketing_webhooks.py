@@ -145,8 +145,26 @@ async def _handle_manychat_event(
     ig_username = payload.get("ig_username")
 
     # 1. Identity resolution
+    # First, try to match by instagram_username trait (bridge Meta ↔ ManyChat).
+    # When a user sends a DM, Meta webhook arrives first (~100ms) and the
+    # InstagramProfileEnricher sets traits.instagram_username on the profile.
+    # ManyChat processes the same message ~1-3s later with ig_username.
+    # This lookup prevents creating a duplicate profile.
     profile = None
-    if email or phone:
+    if ig_username:
+        from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
+        from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel as _CPM
+        customer_repo = CustomerRepository(db)
+        existing = customer_repo.find_by_trait(
+            tenant_id=tenant_id,
+            trait_key="instagram_username",
+            trait_value=ig_username.lstrip("@"),
+        )
+        if existing:
+            stmt = select(_CPM).where(_CPM.id == existing.id)
+            profile = db.execute(stmt).scalar_one_or_none()
+
+    if not profile and (email or phone):
         customer_svc = CustomerService(db)
         traits = {"name": f"{first_name} {last_name}".strip()}
         if email:
@@ -192,6 +210,26 @@ async def _handle_manychat_event(
             properties=properties,
         )
         db.add(journey_event)
+
+        # Bridge: subscriber.new → message_received for conversation counting.
+        # The capture dashboard counts conversations via journey_events where
+        # event_name='message_received', grouped by channel_slug. Without this,
+        # ManyChat leads show up but conversations show as 0.
+        if event_type == "subscriber.new":
+            msg_event = JourneyEventModel(
+                profile_id=profile.id,
+                tenant_id=tenant_id,
+                event_name="message_received",
+                event_type="track",
+                properties={
+                    "channel_slug": channel_slug,
+                    "channel_type": channel,
+                    "message_direction": "inbound",
+                    "source": "manychat_webhook",
+                    "manychat_subscriber_id": subscriber_id,
+                },
+            )
+            db.add(msg_event)
 
         # 3. Recalculate score
         lifecycle_svc = LifecycleService(db)
