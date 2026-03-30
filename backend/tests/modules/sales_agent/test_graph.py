@@ -452,7 +452,7 @@ class TestEscalationNode:
         assert "equipo" in msg["content"]
 
 
-class TestToolExecutorStub:
+class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_returns_respond_when_no_pending_tool(self):
         import importlib
@@ -464,18 +464,33 @@ class TestToolExecutorStub:
         assert result["next_node"] == "respond"
 
     @patch(_TRACE_PATCH, _noop_trace)
-    def test_returns_stub_message_when_pending_tool(self):
+    def test_executes_registered_tool_and_clears_pending(self):
+        import importlib
+        import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+        importlib.reload(nodes_mod)
+
+        state = _base_state(active_product={
+            "name": "Curso Premium",
+            "checkout_page_url": "https://pay.example.com/curso",
+        })
+        state["_pending_tool"] = {"tool": "send_payment_link", "args": {}}
+        result = nodes_mod.node_tool_executor(state)
+        assert result["_pending_tool"] is None
+        assert result["messages"][0]["role"] == "tool"
+        assert "pay.example.com" in result["messages"][0]["content"]
+
+    @patch(_TRACE_PATCH, _noop_trace)
+    def test_returns_error_for_unknown_tool(self):
         import importlib
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
         importlib.reload(nodes_mod)
 
         state = _base_state()
-        state["_pending_tool"] = {"tool": "schedule", "args": {}}
+        state["_pending_tool"] = {"tool": "nonexistent", "args": {}}
         result = nodes_mod.node_tool_executor(state)
-        assert result["next_node"] == "respond"
         assert result["_pending_tool"] is None
         assert result["messages"][0]["role"] == "tool"
-        assert "not yet implemented" in result["messages"][0]["content"]
+        assert "not found" in result["messages"][0]["content"]
 
 
 # ---------------------------------------------------------------------------

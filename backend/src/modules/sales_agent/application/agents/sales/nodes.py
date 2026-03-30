@@ -245,19 +245,48 @@ def node_escalation(state: AgentState) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Tool Executor (stub for Phase 3)
+# Tool Executor
 # ---------------------------------------------------------------------------
 
 @trace_node("tool_executor")
 def node_tool_executor(state: AgentState) -> Dict[str, Any]:
-    """Stub: Executes tools requested by specialists. Implemented in Phase 3."""
+    """Executes tools requested by specialists via [TOOL_REQUEST: {...}] blocks.
+
+    After execution the graph edge routes back to supervisor, which will
+    see the tool result message and decide the next specialist.
+    """
     pending = state.get("_pending_tool")
     if not pending:
         return {"next_node": "respond"}
 
-    # Phase 3 will implement actual tool execution
+    tool_name = pending.get("tool", "")
+
+    from src.modules.sales_agent.application.agents.sales.tools import TOOL_REGISTRY
+
+    tool_fn = TOOL_REGISTRY.get(tool_name)
+    if not tool_fn:
+        return {
+            "messages": [
+                {
+                    "role": "tool",
+                    "content": json.dumps(
+                        {"status": "error", "message": f"Tool '{tool_name}' not found."},
+                        ensure_ascii=False,
+                    ),
+                }
+            ],
+            "_pending_tool": None,
+        }
+
+    try:
+        result = tool_fn(state, db=state.get("_db"))
+        result_text = json.dumps(result, ensure_ascii=False)
+    except Exception as e:
+        result_text = json.dumps(
+            {"status": "error", "message": str(e)}, ensure_ascii=False
+        )
+
     return {
-        "messages": [{"role": "tool", "content": "Tool execution not yet implemented."}],
+        "messages": [{"role": "tool", "content": result_text}],
         "_pending_tool": None,
-        "next_node": "respond",
     }
