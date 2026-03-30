@@ -1,0 +1,8 @@
+{
+  "name": "ap_sales_agent",
+  "dependencies": {
+    "tessl/npm-playwright": {
+      "version": "1.55.0"
+    }
+  }
+}
