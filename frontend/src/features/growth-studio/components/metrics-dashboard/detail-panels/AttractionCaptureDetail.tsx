@@ -1,15 +1,43 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useAttractionDetail, useCaptureDetail } from '../../../hooks/useStageDetail';
+import { useAttractionDetail, useCaptureDetail, useStageTimeSeries } from '../../../hooks/useStageDetail';
 import { useMetaInitialLoad } from '../../../hooks/useMetaInitialLoad';
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailError from '../ui/DetailError';
-import type { MetricClickData } from '../../../types/metrics';
+import type { MetricClickData, StageTimeSeries } from '../../../types/metrics';
 import { Button } from '@/components/ui/button';
-import { Settings, Download, Loader2, CheckCircle2, RefreshCw, Plug } from 'lucide-react';
+import { Settings, Download, Loader2, CheckCircle2, Plug } from 'lucide-react';
 import { BrandIcon } from '@/components/ui/brand-icons';
+import { DateRangePicker } from '../ui/DateRangePicker';
+import { AttractionScorecards } from '../attraction/AttractionScorecards';
+import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
+import { ChannelComparisonChart } from '../attraction/ChannelComparisonChart';
+
+/** Mobile-only expandable chart section — hidden on md+ */
+function MobileChartsExpand({ timeSeries, tsLoading }: { timeSeries: StageTimeSeries | undefined; tsLoading: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="md:hidden">
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full"
+        onClick={() => setExpanded(!expanded)}
+      >
+        {expanded ? 'Ocultar graficos' : 'Ver graficos'}
+      </Button>
+      {expanded && (
+        <div className="mt-4 space-y-4">
+          <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
+          <ChannelComparisonChart timeSeries={timeSeries} isLoading={tsLoading} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface AttractionCaptureDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
@@ -19,8 +47,11 @@ interface AttractionCaptureDetailProps {
 export const AttractionCaptureDetail = React.memo(function AttractionCaptureDetail({ onMetricClick, onConfigure }: AttractionCaptureDetailProps) {
   const { data: attrData, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useAttractionDetail();
   const { data: capData, isLoading: capLoading, error: capError, refetch: refetchCap } = useCaptureDetail();
-  const { trigger: triggerLoad, isLoading: isLoadingMeta, result: loadResult, error: loadError } = useMetaInitialLoad();
+  const { trigger: triggerLoad, isLoading: isLoadingMeta, result: loadResult } = useMetaInitialLoad();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [rangeDays, setRangeDays] = useState(30);
+  const granularity = rangeDays >= 90 ? 'weekly' : 'daily';
+  const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries('attraction', 'visitors', rangeDays, granularity);
 
   const { totalReach, totalVisitors, totalSpend } = useMemo(() => {
     if (!attrData) return { totalReach: 0, totalVisitors: 0, totalSpend: 0 };
@@ -211,64 +242,41 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
       <ActionPanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
 
-      {/* Global Performance Header */}
-      <div className="bg-card rounded-xl p-6 shadow-sm border border-border relative overflow-hidden">
-        <h2 className="text-lg font-semibold mb-6 flex items-center text-foreground/90">
-          <RefreshCw className="w-5 h-5 mr-2 text-primary" /> Rendimiento Global
-        </h2>
-
-        {totalReach === 0 && totalVisitors === 0 && totalLeads === 0 ? (
+      {/* Scorecards + Charts Section */}
+      {totalReach === 0 && totalVisitors === 0 && totalLeads === 0 ? (
+        <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <div className="text-center py-12 px-4 rounded-xl border-2 border-dashed border-border bg-muted/50">
             <Plug className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">Tu ecosistema digital está vacío</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto mb-4">Conecta tus primeros canales de atracción para empezar a medir todo en un solo lugar.</p>
+            <h3 className="text-lg font-semibold text-foreground mb-1">Tu ecosistema digital esta vacio</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-4">Conecta tus primeros canales de atraccion para empezar a medir todo en un solo lugar.</p>
           </div>
-        ) : (
-          <div className="relative mb-6">
-            {/* Horizontal Blue Lines (Background Layer) */}
-            <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-blue-200 to-blue-400 dark:from-blue-900 dark:to-blue-700 top-[40%] left-[20%] z-0"></div>
-            <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-blue-400 to-indigo-400 dark:from-blue-700 dark:to-indigo-700 top-[40%] left-[45%] z-0"></div>
-            <div className="hidden md:block absolute w-[10%] h-[2px] bg-gradient-to-r from-indigo-400 to-indigo-600 dark:from-indigo-700 dark:to-indigo-500 top-[40%] left-[70%] z-0"></div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Date Range Picker */}
+          <div className="flex items-center justify-end">
+            <DateRangePicker rangeDays={rangeDays} onRangeChange={setRangeDays} />
+          </div>
 
-            {/* Metrics Row (Foreground Layer) */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10 w-full mb-6">
-              <div className="bg-background p-5 rounded-lg border border-border shadow-sm flex flex-col items-center justify-center relative">
-                <span className="text-[10px] text-muted-foreground font-bold uppercase mb-1">Impacto Inicial</span>
-                <span className="text-3xl font-black text-foreground">{formatNum(totalReach)}</span>
-                <span className="text-xs text-muted-foreground mt-1 mb-3">Alcance Total</span>
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">${formatNum(totalSpend)} Gasto</span>
-              </div>
-              <div className="bg-background p-5 rounded-lg border border-primary/20 shadow-sm flex flex-col items-center justify-center relative ring-1 ring-primary/10">
-                <span className="text-[10px] text-primary font-bold uppercase mb-1">Atracción Efectiva</span>
-                <span className="text-4xl font-black text-primary">{formatNum(totalVisitors)}</span>
-                <span className="text-xs text-primary/80 mt-1 font-medium">Visitantes Totales</span>
-              </div>
-              <div className="flex flex-col items-center justify-center relative">
-                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-4 border-background">
-                  <span className="font-bold text-lg">{leadConvRate.toFixed(1)}%</span>
-                </div>
-                <span className="text-[10px] text-muted-foreground font-bold uppercase mt-3 text-center">Tasa Conversión</span>
-              </div>
-              <div className="bg-foreground text-background dark:bg-muted p-5 rounded-lg border border-border shadow-md flex flex-col items-center justify-center relative">
-                <span className="text-[10px] text-background/70 dark:text-muted-foreground font-bold uppercase mb-1">Captura Exitosa</span>
-                <span className="text-4xl font-black text-background dark:text-foreground">{formatNum(totalLeads)}</span>
-                <span className="text-xs text-background/80 dark:text-muted-foreground mt-1 mb-3">Total Leads</span>
-                <span className="text-xs text-emerald-400 dark:text-emerald-500 font-medium">
-                  CPL: {formatMoney(totalLeads ? (totalSpend / totalLeads) : 0)}
-                </span>
-              </div>
-            </div>
-            
-            {/* Banner Motivacional */}
-            <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-lg p-3 flex gap-3 text-primary items-center shadow-sm">
-              <span className="text-lg flex-shrink-0">🖱️</span>
-              <p className="text-sm font-medium">
-                <strong>Analiza y Optimiza:</strong> Haz clic en las métricas punteadas de cada canal para ver opciones de mejora y tomar acción específica.
-              </p>
-            </div>
+          {/* KPI Scorecards with sparklines */}
+          <AttractionScorecards
+            timeSeries={timeSeries}
+            totalReach={totalReach}
+            totalVisitors={totalVisitors}
+            totalLeads={totalLeads}
+            leadConvRate={leadConvRate}
+          />
+
+          {/* Charts: Stacked Area + Horizontal Bar side by side */}
+          <div className="hidden md:grid md:grid-cols-2 gap-6">
+            <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
+            <ChannelComparisonChart timeSeries={timeSeries} isLoading={tsLoading} />
           </div>
-        )}
-      </div>
+
+          {/* Mobile: expandable charts */}
+          <MobileChartsExpand timeSeries={timeSeries} tsLoading={tsLoading} />
+        </div>
+      )}
 
       {/* Detail Split Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

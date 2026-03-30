@@ -1,4 +1,4 @@
-import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail } from '../types/metrics';
+import type { StageSummary, AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, StageTimeSeries } from '../types/metrics';
 
 export const STAGE_SUMMARIES: StageSummary[] = [
   {
@@ -764,3 +764,51 @@ export const MOCK_EVANGELIZATION_DETAIL: EvangelizationDetail = {
   period: 'last_30_days',
   lastUpdated: new Date().toISOString(),
 };
+
+// Generate 30 days of mock time-series data
+function generateMockTimeSeries(): StageTimeSeries {
+  const now = new Date();
+  const dataPoints = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (29 - i));
+    return {
+      date: d.toISOString().slice(0, 10),
+      channels: {
+        'meta-ads': Math.floor(200 + Math.random() * 300),
+        'google-organic': Math.floor(100 + Math.random() * 200),
+        'ig-organic': Math.floor(50 + Math.random() * 150),
+        'direct': Math.floor(30 + Math.random() * 80),
+      },
+    };
+  });
+
+  const periodTotals: Record<string, number> = {};
+  for (const dp of dataPoints) {
+    for (const [slug, val] of Object.entries(dp.channels)) {
+      periodTotals[slug] = (periodTotals[slug] ?? 0) + val;
+    }
+  }
+
+  return {
+    stage: 'attraction',
+    metricName: 'visitors',
+    granularity: 'daily',
+    rangeDays: 30,
+    dataPoints,
+    channelsPresent: [
+      { slug: 'meta-ads', name: 'Meta Ads', color: '#1877F2' },
+      { slug: 'google-organic', name: 'Google Organic', color: '#34A853' },
+      { slug: 'ig-organic', name: 'Instagram Organic', color: '#E4405F' },
+      { slug: 'direct', name: 'Direct Traffic', color: '#6B7280' },
+    ],
+    periodTotals,
+    previousPeriodTotals: {
+      'meta-ads': Math.floor((periodTotals['meta-ads'] ?? 0) * 0.85),
+      'google-organic': Math.floor((periodTotals['google-organic'] ?? 0) * 0.92),
+      'ig-organic': Math.floor((periodTotals['ig-organic'] ?? 0) * 1.05),
+      'direct': Math.floor((periodTotals['direct'] ?? 0) * 0.98),
+    },
+  };
+}
+
+export const MOCK_TIME_SERIES: StageTimeSeries = generateMockTimeSeries();

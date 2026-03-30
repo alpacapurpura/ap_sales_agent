@@ -1,8 +1,8 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, ExpansionOfferData, ExpansionGroupData } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL, MOCK_ADOPTION_DETAIL, MOCK_EXPANSION_DETAIL, MOCK_EVANGELIZATION_DETAIL } from './metrics-mock-data';
+import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, ExpansionOfferData, ExpansionGroupData, StageTimeSeries } from '../types/metrics';
+import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL, MOCK_ADOPTION_DETAIL, MOCK_EXPANSION_DETAIL, MOCK_EVANGELIZATION_DETAIL, MOCK_TIME_SERIES } from './metrics-mock-data';
 import { mapChannel, mapGroup } from './mappers/shared';
 
 const API_URL = config.api.baseUrl;
@@ -405,5 +405,44 @@ export const metricsApi = {
     if (!res.ok) throw new Error(`Evangelization API returned ${res.status}`);
     const data = await res.json();
     return mapEvangelizationResponse(data);
+  },
+
+  getTimeSeries: async (
+    token: string,
+    stage: string,
+    metric: string,
+    rangeDays: number,
+    granularity: string,
+  ): Promise<StageTimeSeries> => {
+    if (ENABLE_MOCKS) return MOCK_TIME_SERIES;
+    const params = new URLSearchParams({
+      stage,
+      metric,
+      range_days: String(rangeDays),
+      granularity,
+    });
+    const res = await fetchClient(
+      `${API_URL}/api/v1/analytics/metrics/timeseries?${params}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (!res.ok) throw new Error(`TimeSeries API returned ${res.status}`);
+    const raw = await res.json();
+    return {
+      stage: raw.stage,
+      metricName: raw.metric_name,
+      granularity: raw.granularity,
+      rangeDays: raw.range_days,
+      dataPoints: raw.data_points.map((dp: { date: string; channels: Record<string, number> }) => ({
+        date: dp.date,
+        channels: dp.channels,
+      })),
+      channelsPresent: raw.channels_present.map((ch: { slug: string; name: string; color: string }) => ({
+        slug: ch.slug,
+        name: ch.name,
+        color: ch.color,
+      })),
+      periodTotals: raw.period_totals,
+      previousPeriodTotals: raw.previous_period_totals ?? null,
+    };
   },
 };

@@ -432,3 +432,29 @@ export interface EvangelizationDetail {
   period: string;
   lastUpdated?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Time Series (chart visualizations)
+// ---------------------------------------------------------------------------
+
+export interface TimeSeriesPoint {
+  date: string;
+  channels: Record<string, number>;
+}
+
+export interface ChannelInfo {
+  slug: string;
+  name: string;
+  color: string;
+}
+
+export interface StageTimeSeries {
+  stage: string;
+  metricName: string;
+  granularity: 'daily' | 'weekly';
+  rangeDays: number;
+  dataPoints: TimeSeriesPoint[];
+  channelsPresent: ChannelInfo[];
+  periodTotals: Record<string, number>;
+  previousPeriodTotals: Record<string, number> | null;
+}

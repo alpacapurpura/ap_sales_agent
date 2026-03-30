@@ -16,6 +16,7 @@ from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
 from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
 from src.modules.analytics.application.dto.evangelization_dto import EvangelizationDetailDTO
+from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 from src.modules.offer.application.services.offer_read_port_impl import OfferReadPortImpl
@@ -227,6 +228,43 @@ async def get_evangelization_metrics(
     now = datetime.now(timezone.utc)
     start_date = now - timedelta(days=30)
     return await service.get_evangelization_metrics(user.tenant_id, start_date, now)
+
+
+_VALID_STAGES = {
+    "attraction", "capture", "nurture", "opportunity",
+    "sales", "adoption", "expansion", "evangelization",
+}
+_VALID_GRANULARITIES = {"daily", "weekly"}
+_VALID_RANGES = {7, 30, 90}
+
+
+@router.get("/timeseries", response_model=StageTimeSeriesDTO)
+async def get_stage_timeseries(
+    stage: str = Query(default="attraction"),
+    metric: str = Query(default="visitors"),
+    range_days: int = Query(default=30),
+    granularity: str = Query(default="daily"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Generic time-series endpoint for chart visualizations.
+
+    Returns daily/weekly data points grouped by channel for any funnel stage.
+    Reusable across all stages — just change the stage and metric params.
+    """
+    if stage not in _VALID_STAGES:
+        raise HTTPException(status_code=400, detail=f"Invalid stage: {stage}")
+    if granularity not in _VALID_GRANULARITIES:
+        raise HTTPException(status_code=400, detail=f"Invalid granularity: {granularity}")
+    if range_days not in _VALID_RANGES:
+        raise HTTPException(status_code=400, detail=f"Invalid range_days: {range_days}. Use 7, 30, or 90.")
+
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    service = MetricsService(db, cache=cache, connection_port=connection_port)
+    return await service.get_stage_timeseries(
+        user.tenant_id, stage, metric, range_days, granularity
+    )
 
 
 @router.post("/attraction/refresh/{channel_slug}")
