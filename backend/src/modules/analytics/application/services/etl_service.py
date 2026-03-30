@@ -7,7 +7,7 @@ Provides high-level operations for the API and scheduler layers:
 
 import logging
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Callable, Optional
 from uuid import UUID
 
@@ -27,10 +27,11 @@ from src.modules.analytics.infrastructure.models.metric_aggregation_model import
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
-from src.modules.analytics.infrastructure.providers.registry import get_provider
+from src.modules.analytics.infrastructure.providers.registry import get_provider, PROVIDER_REGISTRY
 from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
 )
+from src.modules.analytics.application.services.channel_registry import CHANNEL_TYPE_TO_PROVIDERS
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
@@ -44,6 +45,7 @@ logger = logging.getLogger(__name__)
 # Default stage for unlisted providers is ["attraction"].
 PROVIDER_STAGES: dict[str, list[str]] = {
     "shopify": ["opportunity", "sales"],
+    "mailerlite": ["capture", "nurture"],
 }
 
 
@@ -146,6 +148,136 @@ class ETLService:
                 )
 
         return results
+
+    async def run_sync_all(self, tenant_id: UUID, days: int = 30) -> dict:
+        """Sync all connected providers for a tenant.
+
+        For each active connection, resolves the ETL provider(s) via
+        CHANNEL_TYPE_TO_PROVIDERS, deduplicates, checks cooldown, and
+        runs run_initial_load (gap-detection — fast when no gaps).
+
+        Returns aggregated result with per-provider details.
+        """
+        connections = await self.connection_port.list_active_connections(tenant_id)
+
+        # Deduplicate: connection channel_types → ETL provider names
+        providers_to_sync: set[str] = set()
+        for conn in connections:
+            etl_providers = CHANNEL_TYPE_TO_PROVIDERS.get(conn.channel_type, set())
+            providers_to_sync.update(etl_providers)
+
+        # Only keep providers that have a registered adapter
+        providers_to_sync = providers_to_sync & set(PROVIDER_REGISTRY.keys())
+
+        if not providers_to_sync:
+            return {
+                "status": "ok",
+                "providers_synced": 0,
+                "providers_skipped_cooldown": 0,
+                "providers_failed": 0,
+                "total_loaded": 0,
+                "total_skipped": 0,
+                "details": [],
+            }
+
+        run_repo = ExtractionRunRepository(self.db)
+        cooldown = timedelta(minutes=15)
+        now = datetime.now(timezone.utc)
+
+        details: list[dict] = []
+        total_loaded = 0
+        total_skipped = 0
+        synced = 0
+        skipped_cooldown = 0
+        failed = 0
+
+        for provider_name in sorted(providers_to_sync):
+            # Check cooldown
+            latest_run = run_repo.get_latest(tenant_id, provider_name)
+            if latest_run and latest_run.started_at:
+                elapsed = now - latest_run.started_at
+                if elapsed < cooldown:
+                    remaining = cooldown - elapsed
+                    remaining_min = int(remaining.total_seconds() // 60) + 1
+                    details.append({
+                        "provider": provider_name,
+                        "status": "skipped_cooldown",
+                        "remaining_minutes": remaining_min,
+                    })
+                    skipped_cooldown += 1
+                    continue
+
+            try:
+                result = await self.run_initial_load(tenant_id, provider_name, days=days)
+                details.append({
+                    "provider": provider_name,
+                    "status": "ok",
+                    "loaded": result["loaded"],
+                    "skipped": result["skipped"],
+                    "total": result["total"],
+                })
+                total_loaded += result["loaded"]
+                total_skipped += result["skipped"]
+                synced += 1
+            except Exception as exc:
+                logger.error(
+                    "sync_all provider %s failed for tenant %s: %s",
+                    provider_name, tenant_id, exc,
+                    exc_info=True,
+                )
+                details.append({
+                    "provider": provider_name,
+                    "status": "failed",
+                    "error": str(exc),
+                })
+                failed += 1
+
+        # IG DM sync: if tenant has active Meta connection, also sync DM conversations.
+        # This populates journey_events + customer_profiles (CRM-based capture metrics),
+        # separate from the ETL official_metrics pipeline above.
+        if "meta" in providers_to_sync:
+            try:
+                ig_dm_result = await self._sync_ig_dm(tenant_id)
+                if ig_dm_result:
+                    details.append({
+                        "provider": "ig_dm",
+                        "status": "ok",
+                        "synced_messages": ig_dm_result["synced_messages"],
+                        "new_leads": ig_dm_result["new_leads"],
+                        "skipped": ig_dm_result["skipped"],
+                    })
+            except Exception as exc:
+                logger.warning(
+                    "sync_all ig_dm failed for tenant %s: %s",
+                    tenant_id, exc,
+                )
+                details.append({
+                    "provider": "ig_dm",
+                    "status": "failed",
+                    "error": str(exc),
+                })
+
+        return {
+            "status": "ok",
+            "providers_synced": synced,
+            "providers_skipped_cooldown": skipped_cooldown,
+            "providers_failed": failed,
+            "total_loaded": total_loaded,
+            "total_skipped": total_skipped,
+            "details": details,
+        }
+
+    async def _sync_ig_dm(self, tenant_id: UUID) -> dict | None:
+        """Run IG DM conversation sync as part of sync_all.
+
+        Returns the sync result dict, or None if no Meta credentials.
+        """
+        from src.modules.analytics.application.services.ig_dm_sync_service import (
+            InstagramDMSyncService,
+        )
+
+        sync_service = InstagramDMSyncService(self.db, connection_port=self.connection_port)
+        return await sync_service.sync(tenant_id)
 
     async def run_initial_load(
         self,
