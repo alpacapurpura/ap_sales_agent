@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Zap, Rocket, Briefcase, RefreshCw, Layers, Package } from 'lucide-react';
+import { Zap, Rocket, Briefcase, Layers, Package } from 'lucide-react';
 import type { RevenueGroupData, OfferSaleData, MetricClickData } from '../../../types/metrics';
 
 interface OfferLadderProps {
@@ -30,35 +30,25 @@ function formatCompactMoney(amount: number, currency: string) {
   }).format(amount);
 }
 
-function getOfferTypeLabel(offerType: string, pricingType: string) {
-  const typeMap: Record<string, string> = {
-    'FREE_RESOURCE': 'Lead Magnet',
-    'TRIPWIRE': 'Tripwire',
-    'SELF_PACED_COURSE': 'Curso',
-    'COHORT_PROGRAM': 'Programa Grupal',
-    'HYBRID_MENTORSHIP': 'Mentoría Híbrida',
-    'ONE_ON_ONE_PRIVATE_MENTORING': '1 a 1',
-    'PRODUCTIZED_SERVICE': 'Servicio',
-    'DONE_FOR_YOU_SERVICE': 'DFY',
-    'CONSULTING_RETAINER': 'Retainer',
-    'MASTERMIND_NETWORK': 'Mastermind',
-    'IN_PERSON_RETREAT': 'Retiro',
-    'CORPORATE_WORKSHOP': 'Workshop Corp',
-    'CORPORATE_CONSULTING': 'Consultoría Corp',
-    'COMMUNITY_MEMBERSHIP': 'Membresía',
-    'SOFTWARE_AS_A_SERVICE': 'SaaS',
-    'PHYSICAL_PRODUCT': 'Producto Físico',
+function getOfferLabel(offerType: string, pricingType: string) {
+  // Map archetype values to labels
+  const archetypeMap: Record<string, string> = {
+    'producto': 'Producto',
+    'programa': 'Programa',
+    'servicio': 'Servicio',
+    'membresia': 'Membresía',
+    'experiencia': 'Experiencia',
   };
-  
+
   const pricingMap: Record<string, string> = {
     'one_time': 'Pago Único',
     'subscription': 'Suscripción',
     'payment_plan': 'Cuotas',
   };
 
-  const t = typeMap[offerType] || offerType;
+  const t = archetypeMap[offerType] || offerType;
   const p = pricingMap[pricingType] || pricingType;
-  
+
   return `${t} • ${p}`;
 }
 
@@ -116,7 +106,7 @@ function OfferCard({
             {offer.publicName}
           </h5>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">
-            {getOfferTypeLabel(offer.offerType, offer.pricingType)}
+            {getOfferLabel(offer.offerType, offer.pricingType)}
           </p>
           
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -218,14 +208,11 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
     return Array.from(combinedOffers.values()).sort((a, b) => b.totalRevenue - a.totalRevenue);
   };
 
-  const lowTicketOffers = getAllOffersByTier('low_ticket');
-  const midTicketOffers = getAllOffersByTier('mid_ticket');
-  const highTicketOffers = getAllOffersByTier('high_ticket');
-  const recurrenteOffers = getAllOffersByTier('recurrente');
+  const activacionOffers = getAllOffersByTier('activacion');
+  const transformacionOffers = getAllOffersByTier('transformacion');
+  const maximizacionOffers = getAllOffersByTier('maximizacion');
+  const corporativoOffers = getAllOffersByTier('corporativo');
 
-  // Calculate total MRR
-  const totalMrr = recurrenteOffers.reduce((sum, offer) => sum + offer.totalRevenue, 0);
-  const totalMrrSubs = recurrenteOffers.reduce((sum, offer) => sum + offer.salesCount, 0);
   const currency = adquisicion.currency;
 
   return (
@@ -242,25 +229,25 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Col 1: Iniciación (DIY) */}
+
+        {/* Col 1: Activacion */}
         <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex flex-col">
           <div className="mb-4 pb-3 border-b border-border flex items-center gap-2">
             <div className="p-1.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
               <Zap className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-foreground text-sm">Iniciación (DIY)</h4>
+            <h4 className="font-bold text-foreground text-sm">Activacion</h4>
           </div>
-          
+
           <div className="space-y-3 flex-1">
-            {lowTicketOffers.length > 0 ? (
-              lowTicketOffers.map(offer => (
-                <OfferCard 
-                  key={offer.offerId} 
-                  offer={offer} 
-                  currency={currency} 
+            {activacionOffers.length > 0 ? (
+              activacionOffers.map(offer => (
+                <OfferCard
+                  key={offer.offerId}
+                  offer={offer}
+                  currency={currency}
                   colorTheme="blue"
-                  onMetricClick={onMetricClick} 
+                  onMetricClick={onMetricClick}
                 />
               ))
             ) : (
@@ -269,25 +256,25 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
           </div>
         </div>
 
-        {/* Col 2: Transformación (DWY) */}
+        {/* Col 2: Transformacion */}
         <div className="bg-card rounded-xl border border-indigo-200 dark:border-indigo-900/50 p-4 shadow-sm flex flex-col relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-t-xl"></div>
           <div className="mb-4 pb-3 border-b border-border flex items-center gap-2">
             <div className="p-1.5 rounded bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
               <Rocket className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-foreground text-sm">Transformación (DWY)</h4>
+            <h4 className="font-bold text-foreground text-sm">Transformacion</h4>
           </div>
-          
+
           <div className="space-y-3 flex-1">
-            {midTicketOffers.length > 0 ? (
-              midTicketOffers.map(offer => (
-                <OfferCard 
-                  key={offer.offerId} 
-                  offer={offer} 
-                  currency={currency} 
+            {transformacionOffers.length > 0 ? (
+              transformacionOffers.map(offer => (
+                <OfferCard
+                  key={offer.offerId}
+                  offer={offer}
+                  currency={currency}
                   colorTheme="indigo"
-                  onMetricClick={onMetricClick} 
+                  onMetricClick={onMetricClick}
                 />
               ))
             ) : (
@@ -296,24 +283,24 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
           </div>
         </div>
 
-        {/* Col 3: Delegación (DFY) */}
+        {/* Col 3: Maximizacion */}
         <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex flex-col">
           <div className="mb-4 pb-3 border-b border-border flex items-center gap-2">
             <div className="p-1.5 rounded bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
               <Briefcase className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-foreground text-sm">Delegación (DFY / Corp)</h4>
+            <h4 className="font-bold text-foreground text-sm">Maximizacion</h4>
           </div>
-          
+
           <div className="space-y-3 flex-1">
-            {highTicketOffers.length > 0 ? (
-              highTicketOffers.map(offer => (
-                <OfferCard 
-                  key={offer.offerId} 
-                  offer={offer} 
-                  currency={currency} 
+            {maximizacionOffers.length > 0 ? (
+              maximizacionOffers.map(offer => (
+                <OfferCard
+                  key={offer.offerId}
+                  offer={offer}
+                  currency={currency}
                   colorTheme="amber"
-                  onMetricClick={onMetricClick} 
+                  onMetricClick={onMetricClick}
                 />
               ))
             ) : (
@@ -323,52 +310,49 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
         </div>
       </div>
 
-      {/* Fila Inferior: Recurrencia (Expansión) */}
+      {/* Fila Inferior: Corporativo */}
       <div className="mt-6 bg-slate-800 dark:bg-slate-900 rounded-xl p-4 flex flex-col md:flex-row gap-6 items-center justify-between text-white shadow-md border border-slate-700">
         <div className="flex items-center gap-4 md:w-1/3">
           <div className="p-2.5 bg-emerald-500/20 rounded-full text-emerald-400 flex-shrink-0">
-            <RefreshCw className="w-6 h-6" />
+            <Briefcase className="w-6 h-6" />
           </div>
           <div>
-            <h4 className="font-bold text-lg leading-tight text-white">Ingreso Recurrente (MRR)</h4>
-            <p className="text-xs text-slate-400 mt-0.5">Suscripciones y retainers (Expansión)</p>
+            <h4 className="font-bold text-lg leading-tight text-white">Corporativo</h4>
+            <p className="text-xs text-slate-400 mt-0.5">Ventas B2B y grandes contratos</p>
           </div>
         </div>
-        
+
         <div className="flex-1 flex flex-col gap-3 w-full md:w-auto px-0 md:px-6 md:border-x md:border-slate-700">
-          {recurrenteOffers.length > 0 ? (
-            recurrenteOffers.map(offer => {
-              const shopifyCount = offer.sourceBreakdown?.SHOPIFY || offer.salesCount;
-              return (
-                <div 
-                  key={offer.offerId}
-                  className="bg-slate-700/50 dark:bg-slate-800/80 rounded p-3 flex justify-between items-center hover:bg-slate-700/80 transition-colors cursor-pointer"
-                  onClick={() => {
-                    if (onMetricClick) {
-                      onMetricClick({
-                        stageId: 'VENTAS',
-                        channelSlug: offer.offerId,
-                        metricName: 'offer_detail',
-                        currentValue: offer.totalRevenue,
-                        currency: currency,
-                        extraData: { salesCount: offer.salesCount },
-                      });
-                    }
-                  }}
-                >
-                  <div>
-                    <span className="text-sm font-medium text-slate-200">{offer.publicName}</span>
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      Vía: <span className="text-blue-300">Shopify ({shopifyCount})</span>
-                    </p>
-                  </div>
-                  <span className="font-bold text-emerald-400">{formatMoney(offer.totalRevenue, currency)}</span>
+          {corporativoOffers.length > 0 ? (
+            corporativoOffers.map(offer => (
+              <div
+                key={offer.offerId}
+                className="bg-slate-700/50 dark:bg-slate-800/80 rounded p-3 flex justify-between items-center hover:bg-slate-700/80 transition-colors cursor-pointer"
+                onClick={() => {
+                  if (onMetricClick) {
+                    onMetricClick({
+                      stageId: 'VENTAS',
+                      channelSlug: offer.offerId,
+                      metricName: 'offer_detail',
+                      currentValue: offer.totalRevenue,
+                      currency: currency,
+                      extraData: { salesCount: offer.salesCount },
+                    });
+                  }
+                }}
+              >
+                <div>
+                  <span className="text-sm font-medium text-slate-200">{offer.publicName}</span>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    {Object.entries(offer.sourceBreakdown || {}).map(([src, count]) => `${src}: ${count}`).join(', ') || 'Sin datos'}
+                  </p>
                 </div>
-              );
-            })
+                <span className="font-bold text-emerald-400">{formatMoney(offer.totalRevenue, currency)}</span>
+              </div>
+            ))
           ) : (
             <div className="text-center py-2">
-              <span className="text-xs text-slate-400 italic">Sin ingresos recurrentes</span>
+              <span className="text-xs text-slate-400 italic">Sin servicios corporativos</span>
               <Link
                 href={`/${tenantId}/offer-studio`}
                 className="block mt-1 text-xs font-medium text-amber-400 hover:underline"
@@ -378,10 +362,12 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
             </div>
           )}
         </div>
-        
+
         <div className="text-right md:w-1/4">
-          <div className="text-2xl font-black text-emerald-400">{formatCompactMoney(totalMrr, currency)}</div>
-          <p className="text-xs text-slate-400 mt-1">{totalMrrSubs} Suscripciones Activas</p>
+          <div className="text-2xl font-black text-emerald-400">
+            {formatCompactMoney(corporativoOffers.reduce((s, o) => s + o.totalRevenue, 0), currency)}
+          </div>
+          <p className="text-xs text-slate-400 mt-1">{corporativoOffers.reduce((s, o) => s + o.salesCount, 0)} ventas</p>
         </div>
       </div>
 

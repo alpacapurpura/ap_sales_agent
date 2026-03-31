@@ -23,11 +23,11 @@ describe('OfferCard Component', () => {
     expect(screen.getByText("Guía: Liberar la Mente")).toBeInTheDocument();
   });
 
-  it('renders the correct type label', () => {
+  it('renders the correct archetype label', () => {
     render(<OfferCard offer={MOCK_OFFER_NORMALIZED} />);
-    
-    // Should map FREE_RESOURCE -> "Recurso Gratuito" via metadata
-    expect(screen.getByText("Recurso Gratuito")).toBeInTheDocument();
+
+    // Should map archetype "producto" -> "Producto" via ARCHETYPE_METADATA
+    expect(screen.getByText("Producto")).toBeInTheDocument();
   });
 
   it('renders the correct delivery badge', () => {

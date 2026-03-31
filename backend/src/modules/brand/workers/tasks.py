@@ -45,7 +45,7 @@ async def run_brand_extraction(
     sends new parameters that this worker version doesn't know about yet
     (e.g. after a deploy where the API reloaded but the worker didn't).
     """
-    redis = ctx.get("redis")
+    redis = ctx.get("redis_cache")
     progress_key = f"brand_extract:{tenant_id}:{job_id}"
 
     if _extra_kwargs:

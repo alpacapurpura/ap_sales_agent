@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  OfferType,
   OfferArchetype,
   OfferValueLevel,
   OfferDeliveryModel,
@@ -147,7 +146,11 @@ export const PricingStructureSchema = z.object({
   number_of_installments: z.number().int().default(1),
   installment_amount: z.number().default(0.0),
   is_default: z.boolean().default(false),
-  savings_claim: z.string().optional().nullable()
+  savings_claim: z.string().optional().nullable(),
+  // Membership tier fields
+  benefits: z.array(z.string()).default([]),
+  is_highlighted: z.boolean().default(false),
+  cta_text: z.string().optional().nullable()
 });
 
 export const DeliverableItemSchema = z.object({
@@ -182,8 +185,7 @@ export const OfferSchema = z.object({
   id: z.string().uuid().optional(),
   internal_sku: z.string().optional().nullable(),
   public_name: z.string().min(1, "Name is required"),
-  type: z.nativeEnum(OfferType),
-  archetype: z.nativeEnum(OfferArchetype).optional().nullable(),
+  archetype: z.nativeEnum(OfferArchetype),
   format_hint: z.string().optional().nullable(),
   is_lead_magnet: z.boolean().default(false),
   offer_value_level: z.nativeEnum(OfferValueLevel).optional().nullable(),

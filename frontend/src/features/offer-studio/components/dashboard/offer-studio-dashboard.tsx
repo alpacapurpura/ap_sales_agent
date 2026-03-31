@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
 import { offerApi } from "@/features/offer-studio/api";
-import { Offer, OfferArchetype, OfferValueLevel, OfferType, OfferStatus } from "@/features/offer-studio/types";
+import { Offer, OfferArchetype, OfferValueLevel, OfferStatus } from "@/features/offer-studio/types";
 import { OfferCard } from "./offer-card";
 import { AddOfferCard } from "./add-offer-card";
 import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
@@ -14,94 +14,52 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Plus, Lightbulb, Rocket, TrendingUp, Gem, Building, Building2, SearchX } from "lucide-react";
+import { AlertCircle, Plus, Lightbulb, Rocket, TrendingUp, Gem, Building2, SearchX } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 import { OfferLegend } from "./offer-legend";
 import { OfferLadderLayout } from "./offer-ladder-layout";
+import { LadderProgressBar } from "./ladder-progress-bar";
 import { CreateOfferWizard, WizardResult } from "../wizard/CreateOfferWizard";
+import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
 
 // Helper to sort levels correctly
 const LEVEL_ORDER = [
-  OfferValueLevel.N0,
-  OfferValueLevel.N1,
-  OfferValueLevel.N2,
-  OfferValueLevel.N3,
-  OfferValueLevel.N4,
-  OfferValueLevel.N5,
-  OfferValueLevel.N6,
+  OfferValueLevel.LEAD_MAGNET,
+  OfferValueLevel.ACTIVACION,
+  OfferValueLevel.TRANSFORMACION,
+  OfferValueLevel.MAXIMIZACION,
+  OfferValueLevel.CORPORATIVO,
 ];
 
 const LEVEL_RICH_INFO: Record<string, { title: string; description: string; icon: any }> = {
-  [OfferValueLevel.N0]: {
-    title: "Adquisición (Nivel 0)",
-    description: "Offers pensados en convertir tráfico frío en leads (Lead Magnets). Ej: Ebooks, Webinars gratuitos, Plantillas.",
+  [OfferValueLevel.LEAD_MAGNET]: {
+    title: "Lead Magnets",
+    description: "Recursos gratuitos para convertir trafico frio en leads. Ej: Ebooks, Webinars, Plantillas.",
     icon: Lightbulb
   },
-  [OfferValueLevel.N1]: {
-    title: "Activación (Nivel 1)",
-    description: "Offers pensados en convertir leads en clientes con bajo riesgo. Ej: Tripwires, Cursos Auto-dirigidos, Newsletters pagas.",
+  [OfferValueLevel.ACTIVACION]: {
+    title: "Activacion",
+    description: "Primera compra, bajo riesgo. Ej: Tripwires, Cursos Auto-dirigidos, Mini-cursos.",
     icon: Rocket
   },
-  [OfferValueLevel.N2]: {
-    title: "Escalabilidad (Nivel 2)",
-    description: "Offers pensados para escalar y entregar resultados sin depender 100% de tu tiempo. Ej: Mentorías Híbridas, Cursos por Cohortes.",
+  [OfferValueLevel.TRANSFORMACION]: {
+    title: "Transformacion",
+    description: "Oferta principal — transformacion real. Ej: Mentorias, Cohortes, Bootcamps.",
     icon: TrendingUp
   },
-  [OfferValueLevel.N3]: {
-    title: "Profit Maximizer (Nivel 3)",
-    description: "Offers High Ticket para clientes que buscan mayor velocidad y soporte. Ej: VIP Days, Mentorías 1:1, Auditorías.",
+  [OfferValueLevel.MAXIMIZACION]: {
+    title: "Maximizacion",
+    description: "Premium, alto contacto. Ej: VIP Days, Mentorias 1:1, Masterminds.",
     icon: Gem
   },
-  [OfferValueLevel.N4]: {
-    title: "Delegación (Nivel 4)",
-    description: "Servicios 'Done For You' donde ejecutas por el cliente. Ej: Retainers mensuales, Agencias de servicios.",
-    icon: Building
-  },
-  [OfferValueLevel.N5]: {
-    title: "Legado (Nivel 5)",
-    description: "Experiencias exclusivas de alto estatus. Ej: Masterminds, Retiros de lujo.",
-    icon: Building2
-  },
-  [OfferValueLevel.N6]: {
-    title: "Corporativo (Nivel 6)",
+  [OfferValueLevel.CORPORATIVO]: {
+    title: "Corporativo",
     description: "Ventas B2B a grandes empresas. Ej: Capacitaciones corporativas, Patrocinios.",
     icon: Building2
   }
 };
-
-const TYPE_TO_LEVEL_MAP: Record<string, OfferValueLevel> = {
-  [OfferType.FREE_RESOURCE]: OfferValueLevel.N0,
-  [OfferType.COMMUNITY_LITE]: OfferValueLevel.N0,
-  [OfferType.CONTENT_ASSET_PODCAST]: OfferValueLevel.N0,
-  [OfferType.FREE_WEBINAR_CHALLENGE]: OfferValueLevel.N0,
-  
-  [OfferType.TRIPWIRE_OFFER]: OfferValueLevel.N1,
-  [OfferType.SELF_PACED_COURSE]: OfferValueLevel.N1,
-  [OfferType.PAID_NEWSLETTER_SUBSCRIPTION]: OfferValueLevel.N1,
-  
-  [OfferType.HYBRID_MENTORSHIP]: OfferValueLevel.N2,
-  [OfferType.COHORT_BASED_COURSE]: OfferValueLevel.N2,
-  [OfferType.GROUP_COACHING_PROGRAM]: OfferValueLevel.N2,
-  
-  [OfferType.VIP_DAY_STRATEGY]: OfferValueLevel.N3,
-  [OfferType.ONE_ON_ONE_PRIVATE_MENTORING]: OfferValueLevel.N3,
-  [OfferType.DEEP_DIVE_AUDIT]: OfferValueLevel.N3,
-  
-  [OfferType.PRODUCTIZED_SERVICE]: OfferValueLevel.N4,
-  [OfferType.MONTHLY_RETAINER]: OfferValueLevel.N4,
-  [OfferType.PERFORMANCE_REV_SHARE]: OfferValueLevel.N4,
-  
-  [OfferType.MASTERMIND_NETWORK]: OfferValueLevel.N5,
-  [OfferType.LUXURY_RETREAT]: OfferValueLevel.N5,
-  
-  [OfferType.CORPORATE_TRAINING]: OfferValueLevel.N6,
-  [OfferType.BRAND_SPONSORSHIP]: OfferValueLevel.N6,
-  [OfferType.KEYNOTE_SPEAKING]: OfferValueLevel.N6,
-};
-
-import { OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
 
 interface OfferStudioDashboardProps {
   searchQuery?: string;
@@ -169,19 +127,15 @@ export function OfferStudioDashboard({
         const name = (offer.name || "").toLowerCase();
         const matchesName = name.includes(lowerQuery);
         
-        // Advanced Filtering: Label, Archetype, Format Hint & Delivery Model
-        const metadata = OFFER_TYPE_METADATA[offer.type];
-        const typeLabel = metadata?.label?.toLowerCase() || "";
-        const matchesLabel = typeLabel.includes(lowerQuery);
-
-        const delivery = (offer.delivery_model || "").toLowerCase();
-        const matchesDelivery = delivery.includes(lowerQuery);
-
+        // Advanced Filtering: Archetype, Format Hint & Delivery Model
         const archetypeLabel = (offer.archetype || "").toLowerCase();
         const formatLabel = (offer.format_hint || "").toLowerCase();
         const matchesArchetype = archetypeLabel.includes(lowerQuery) || formatLabel.includes(lowerQuery);
 
-        if (!matchesName && !matchesLabel && !matchesDelivery && !matchesArchetype) {
+        const delivery = (offer.delivery_model || "").toLowerCase();
+        const matchesDelivery = delivery.includes(lowerQuery);
+
+        if (!matchesName && !matchesDelivery && !matchesArchetype) {
           return;
         }
       }
@@ -189,16 +143,7 @@ export function OfferStudioDashboard({
       matches++; // Count matches (or all if no query)
 
       let level = offer.value_level;
-      
-      // Fallback logic...
-      if ((!level || level === OfferValueLevel.N0) && offer.type && TYPE_TO_LEVEL_MAP[offer.type]) {
-          const inferred = TYPE_TO_LEVEL_MAP[offer.type];
-          if (inferred !== OfferValueLevel.N0) {
-             level = inferred; 
-          }
-      }
-
-      level = level || OfferValueLevel.N0;
+      level = level || OfferValueLevel.LEAD_MAGNET;
       if (!grouped[level]) grouped[level] = [];
       grouped[level].push(offer);
     });
@@ -207,6 +152,8 @@ export function OfferStudioDashboard({
   }, [offers, searchQuery]);
 
   const { grouped: groupedOffers, totalMatches } = offersByLevel;
+
+  const ladderCompleteness = useMemo(() => computeLadderCompleteness(offers), [offers]);
 
   const handleArchiveOffer = useCallback(async (offerId: string) => {
     try {
@@ -236,6 +183,9 @@ export function OfferStudioDashboard({
         is_lead_magnet: wizardData.is_lead_magnet,
         headline_promise: wizardData.headline_promise,
         status: wizardData.status,
+        delivery_model: wizardData.delivery_model,
+        offer_value_level: wizardData.value_level,
+        specific_details: wizardData.specific_details,
       } as any, token);
 
       if (newOffer.id) {
@@ -281,6 +231,15 @@ export function OfferStudioDashboard({
     <div className="space-y-10 pb-20">
       {/* Global Legend - Always Visible */}
       <OfferLegend />
+
+      {/* Ladder Progress Bar */}
+      {!searchQuery && (
+        <LadderProgressBar
+          filledGroups={ladderCompleteness.filledGroups}
+          score={ladderCompleteness.score}
+          percentage={ladderCompleteness.percentage}
+        />
+      )}
       
       {/* Empty State for No Matches */}
       {searchQuery && totalMatches === 0 && (
@@ -310,7 +269,7 @@ export function OfferStudioDashboard({
 
       {/* --- LEVEL 0: LEAD MAGNET STREAM (Horizontal) --- */}
       {(() => {
-        const level = OfferValueLevel.N0;
+        const level = OfferValueLevel.LEAD_MAGNET;
         const levelOffers = groupedOffers[level] || [];
         const count = levelOffers.length;
         const info = LEVEL_RICH_INFO[level];

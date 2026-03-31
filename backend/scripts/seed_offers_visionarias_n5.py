@@ -9,9 +9,8 @@ sys.path.append(os.path.join(os.getcwd(), "backend"))
 from src.services.database import SessionLocal
 from src.services.db.models.business import Product
 from src.services.db.models.tenant import Tenant
-from src.core.domain.offer_enums import (
-    OfferType, OfferValueLevel, OfferDeliveryModel, 
-    PaymentPlanType, EventLocationType, 
+from src.modules.offer.domain.enums import (
+    OfferValueLevel, OfferDeliveryModel,
     GuaranteeType
 )
 
@@ -28,11 +27,11 @@ def get_db():
 
 def seed_n5_offers():
     db = next(get_db())
-    
+
     # 1. Get Tenant "Visionarias"
     tenant_slug = "visionarias"
     tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
-    
+
     if not tenant:
         logger.error(f"Tenant {tenant_slug} not found. Please run the main seed script first.")
         return
@@ -42,12 +41,12 @@ def seed_n5_offers():
 
     # 2. Define N5 Offers Data
     offers_data = [
-        # --- N5: MASTERMIND NETWORK ---
+        # --- N5: MASTERMIND (Membresía archetype) ---
         {
             "internal_sku": "VIS-N5-MASTERMIND-ELITE",
             "name": "Círculo Visionarias Elite",
-            "type": OfferType.MASTERMIND_NETWORK.value,
-            "offer_value_level": OfferValueLevel.N5.value,
+            "archetype": "membresia",
+            "offer_value_level": OfferValueLevel.MAXIMIZACION.value,
             "delivery_model": OfferDeliveryModel.DWY.value,
             "headline_promise": "Acceso exclusivo a la red de mujeres empresarias más influyentes de Latam.",
             "primary_outcome": "Networking de alto nivel y alianzas estratégicas.",
@@ -55,13 +54,13 @@ def seed_n5_offers():
             "pricing": [
                 {
                     "label": "Membresía Anual",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 12000.0,
                     "is_default": True
                 },
                 {
                     "label": "Pago Trimestral",
-                    "plan_type": PaymentPlanType.SUBSCRIPTION_RECURRING.value,
+                    "plan_type": "subscription",
                     "total_amount": 14000.0,
                     "number_of_installments": 4,
                     "installment_amount": 3500.0,
@@ -72,20 +71,20 @@ def seed_n5_offers():
                 "max_attendees": 20,
                 "start_date": "2026-01-01",
                 "end_date": "2026-12-31",
-                "location_type": EventLocationType.VIRTUAL_REMOTE.value,
+                "location_type": "virtual",
                 "itinerary_summary": "Reuniones mensuales de consejo, acceso a directorio y eventos privados.",
                 "networking_events": True,
                 "expert_guests": True
             },
-            "guarantee_type": GuaranteeType.NO_REFUNDS.value
+            "guarantee_type": GuaranteeType.NONE.value
         },
-        
-        # --- N5: LUXURY RETREAT ---
+
+        # --- N5: LUXURY RETREAT (Experiencia archetype) ---
         {
             "internal_sku": "VIS-N5-RETREAT-TULUM",
             "name": "Retiro Visionarias: Tulum 2026",
-            "type": OfferType.LUXURY_RETREAT.value,
-            "offer_value_level": OfferValueLevel.N5.value,
+            "archetype": "experiencia",
+            "offer_value_level": OfferValueLevel.MAXIMIZACION.value,
             "delivery_model": OfferDeliveryModel.DWY.value,
             "headline_promise": "4 días de desconexión, lujo y expansión de consciencia en el paraíso.",
             "primary_outcome": "Renovación energética y claridad de visión.",
@@ -93,13 +92,13 @@ def seed_n5_offers():
             "pricing": [
                 {
                     "label": "All Inclusive",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 5500.0,
                     "is_default": True
                 }
             ],
             "specific_details": {
-                "location_type": EventLocationType.DESTINATION_RETREAT.value,
+                "location_type": "destination_retreat",
                 "venue_address": "Azulik Tulum, Mexico",
                 "start_date": "2026-11-10",
                 "end_date": "2026-11-14",
@@ -108,7 +107,7 @@ def seed_n5_offers():
                 "meals_included": True,
                 "itinerary_summary": "Yoga al amanecer, talleres de estrategia, cenas gourmet y tiempo libre."
             },
-            "guarantee_type": GuaranteeType.NO_REFUNDS.value
+            "guarantee_type": GuaranteeType.NONE.value
         }
     ]
 
@@ -131,7 +130,7 @@ def seed_n5_offers():
             new_offer.status = "active" # Set default status
             new_offer.currency = "USD"
             db.add(new_offer)
-    
+
     db.commit()
     logger.info("N5 Seeding Completed Successfully!")
 

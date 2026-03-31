@@ -1,50 +1,70 @@
 """Tests for SalesDetailDTO structure and tier mapping.
 
 VEN-01: Sales DTO groups offers by tier within CONVERSION/EXPANSION.
-Wave 0 stubs -- will fail until 08-01 creates production code.
 """
 import pytest
 
 
 class TestTierMapping:
-    """VALUE_LEVEL_TO_TIER mapping tests."""
+    """VALUE_LEVEL_TO_TIER mapping tests (aligned with Value Ladder groups)."""
 
-    def test_low_ticket_mapping(self):
+    def test_new_activacion_mapping(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level("level_1_low_ticket") == "low_ticket"
+        assert get_tier_for_value_level("activacion") == "activacion"
 
-    def test_mid_ticket_mapping(self):
+    def test_new_transformacion_mapping(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level("level_2_mid_ticket") == "mid_ticket"
+        assert get_tier_for_value_level("transformacion") == "transformacion"
 
-    def test_high_ticket_mapping(self):
+    def test_new_maximizacion_mapping(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level("level_3_high_ticket") == "high_ticket"
+        assert get_tier_for_value_level("maximizacion") == "maximizacion"
 
-    def test_recurring_mapping(self):
+    def test_new_corporativo_mapping(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level("level_4_recurring") == "recurrente"
+        assert get_tier_for_value_level("corporativo") == "corporativo"
 
-    def test_ultra_high_maps_to_high_ticket(self):
+    def test_lead_magnet_excluded(self):
+        """Lead magnets don't generate revenue (excluded from sales panel)."""
+        from src.modules.analytics.application.dto.sales_dto import VALUE_LEVEL_TO_TIER
+        assert VALUE_LEVEL_TO_TIER.get("lead_magnet") is None
+
+    # Legacy fallback tests (unmigrated data)
+    def test_legacy_low_ticket_maps_to_activacion(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level("level_5_ultra_high") == "high_ticket"
+        assert get_tier_for_value_level("level_1_low_ticket") == "activacion"
 
-    def test_corporate_maps_to_high_ticket(self):
+    def test_legacy_mid_ticket_maps_to_transformacion(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level("level_6_corporate") == "high_ticket"
+        assert get_tier_for_value_level("level_2_mid_ticket") == "transformacion"
 
-    def test_unknown_level_defaults_to_high_ticket(self):
+    def test_legacy_high_ticket_maps_to_transformacion(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level("level_99_unknown") == "high_ticket"
+        assert get_tier_for_value_level("level_3_high_ticket") == "transformacion"
 
-    def test_none_level_defaults_to_high_ticket(self):
+    def test_legacy_recurring_maps_to_transformacion(self):
         from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
-        assert get_tier_for_value_level(None) == "high_ticket"
+        assert get_tier_for_value_level("level_4_recurring") == "transformacion"
 
-    def test_free_level_excluded(self):
-        """FREE tier (level_0) should map to None (excluded from sales panel)."""
+    def test_legacy_ultra_high_maps_to_maximizacion(self):
+        from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
+        assert get_tier_for_value_level("level_5_ultra_high") == "maximizacion"
+
+    def test_legacy_corporate_maps_to_corporativo(self):
+        from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
+        assert get_tier_for_value_level("level_6_corporate") == "corporativo"
+
+    def test_legacy_free_excluded(self):
         from src.modules.analytics.application.dto.sales_dto import VALUE_LEVEL_TO_TIER
         assert VALUE_LEVEL_TO_TIER.get("level_0_free") is None
+
+    def test_unknown_level_defaults_to_transformacion(self):
+        from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
+        assert get_tier_for_value_level("level_99_unknown") == "transformacion"
+
+    def test_none_level_defaults_to_transformacion(self):
+        from src.modules.analytics.application.dto.sales_dto import get_tier_for_value_level
+        assert get_tier_for_value_level(None) == "transformacion"
 
 
 class TestSalesDetailDTOStructure:

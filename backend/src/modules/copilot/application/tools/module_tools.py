@@ -78,11 +78,11 @@ def _format_offer_list(offers: list) -> str:
 
         offer_id = o.get("id", "")
         name = o.get("name") or o.get("public_name", "Sin nombre")
-        offer_type = o.get("type", "N/A")
+        archetype = o.get("archetype", "N/A")
         status = o.get("status", "N/A")
 
         lines.append(f"{i}. **{name}** [ID: {offer_id}]")
-        lines.append(f"   Tipo: {offer_type} | Estado: {status}")
+        lines.append(f"   Archetype: {archetype} | Estado: {status}")
 
         if o.get("headline_promise"):
             lines.append(f"   Promesa: {o['headline_promise']}")

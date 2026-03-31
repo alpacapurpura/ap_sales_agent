@@ -1,9 +1,9 @@
 import {
   Offer,
   OfferStatus,
-  OfferType,
   OfferArchetype,
   OfferValueLevel,
+  LEGACY_VALUE_LEVEL_MAP,
   OfferDeliveryModel,
   GuaranteeType,
   OnboardingMechanism,
@@ -19,8 +19,7 @@ export interface BackendOffer {
   name?: string;
   public_name?: string;
   internal_sku?: string;
-  type: string;
-  archetype?: string;
+  archetype: string;
   format_hint?: string;
   is_lead_magnet?: boolean;
   shows_as_lead_magnet?: boolean;
@@ -91,6 +90,20 @@ const normalizeEnum = <T>(value: any, enumObj: any, defaultValue: T): T => {
   return defaultValue;
 };
 
+/** Normalize value_level with legacy fallback */
+const normalizeLegacyValueLevel = (value: any): OfferValueLevel => {
+  if (!value) return OfferValueLevel.LEAD_MAGNET;
+  // Direct match with new values
+  if (Object.values(OfferValueLevel).includes(value as OfferValueLevel)) {
+    return value as OfferValueLevel;
+  }
+  // Legacy mapping
+  const mapped = LEGACY_VALUE_LEVEL_MAP[value];
+  if (mapped) return mapped;
+  console.warn(`[Adapter] Unknown value_level: ${value}. Defaulting to lead_magnet`);
+  return OfferValueLevel.LEAD_MAGNET;
+};
+
 /**
  * Convierte la respuesta del backend al modelo de dominio Offer del frontend.
  * Maneja la normalización de campos, valores por defecto y extracción de metadata.
@@ -104,13 +117,10 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     internal_sku: data.internal_sku,
 
     // Strict Enum Normalization
-    type: normalizeEnum(data.type, OfferType, OfferType.FREE_RESOURCE),
-    value_level: normalizeEnum(data.offer_value_level || data.value_level, OfferValueLevel, OfferValueLevel.N0),
+    archetype: normalizeEnum(data.archetype, OfferArchetype, OfferArchetype.PRODUCTO),
+    value_level: normalizeLegacyValueLevel(data.offer_value_level || data.value_level),
     delivery_model: normalizeEnum(data.delivery_model, OfferDeliveryModel, OfferDeliveryModel.DIY),
     status: normalizeEnum(data.status, OfferStatus, OfferStatus.DRAFT),
-
-    // Archetype system
-    archetype: data.archetype ? normalizeEnum(data.archetype, OfferArchetype, undefined) : undefined,
     format_hint: data.format_hint,
     is_lead_magnet: data.is_lead_magnet || false,
     shows_as_lead_magnet: data.shows_as_lead_magnet || false,

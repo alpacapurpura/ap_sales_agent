@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from src.modules.iam.domain.user import User
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.offer.domain.offer import Offer
-from src.modules.offer.domain.enums import OFFER_METADATA
 from src.modules.offer.api.dto.products import ProductCreate, ProductUpdate
 from src.modules.offer.application.offer_service import OfferService
 from src.modules.offer.domain.offer import (
@@ -21,7 +20,7 @@ router = APIRouter()
 @router.get("/metadata/hints", response_model=Dict[str, Any])
 async def get_offer_metadata():
     """Exposes business logic hints for UI components."""
-    return OFFER_METADATA
+    return {}
 
 @router.get("/", response_model=List[Offer])
 async def list_products(
@@ -44,7 +43,6 @@ async def create_product(
     return service.create_offer(
         name=product.name,
         tenant_id=user.tenant_id,
-        offer_type=product.type,
         archetype=product.archetype,
         format_hint=product.format_hint,
         is_lead_magnet=product.is_lead_magnet,

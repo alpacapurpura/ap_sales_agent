@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
+import { OfferArchetype, OfferDeliveryModel, OfferValueLevel, OfferStatus } from "@/features/offer-studio/types";
 import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
+import {
+  FORMAT_PRESETS,
+  DELIVERY_MODEL_LABELS,
+  VALUE_LEVEL_LABELS,
+  type FormatPreset,
+} from "@/features/offer-studio/config/format-presets";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles, SkipForward } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, SkipForward } from "lucide-react";
 
 interface CreateOfferWizardProps {
   open: boolean;
@@ -34,6 +40,9 @@ export interface WizardResult {
   is_lead_magnet: boolean;
   headline_promise?: string;
   status: OfferStatus;
+  delivery_model?: OfferDeliveryModel;
+  value_level?: OfferValueLevel;
+  specific_details?: Record<string, unknown>;
 }
 
 const ARCHETYPE_ORDER: OfferArchetype[] = [
@@ -53,6 +62,10 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
   const [price, setPrice] = useState<string>("");
   const [isLeadMagnet, setIsLeadMagnet] = useState(false);
   const [headlinePromise, setHeadlinePromise] = useState("");
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [selectedDeliveryModel, setSelectedDeliveryModel] = useState<OfferDeliveryModel | undefined>(undefined);
+  const [selectedValueLevel, setSelectedValueLevel] = useState<OfferValueLevel | undefined>(undefined);
+  const [selectedSpecificDetails, setSelectedSpecificDetails] = useState<Record<string, unknown> | undefined>(undefined);
 
   const resetWizard = () => {
     setStep(1);
@@ -63,6 +76,10 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
     setPrice("");
     setIsLeadMagnet(false);
     setHeadlinePromise("");
+    setSelectedPresetId(null);
+    setSelectedDeliveryModel(undefined);
+    setSelectedValueLevel(undefined);
+    setSelectedSpecificDetails(undefined);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -78,14 +95,30 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
     setStep(2);
   };
 
-  const handleSelectFormat = (format: string) => {
-    setFormatHint(format);
-    setOfferName(`Mi ${format}`);
+  const handleSelectPreset = (preset: FormatPreset) => {
+    const isCustom = preset.id.endsWith("_custom");
+    setSelectedPresetId(preset.id);
+    setSelectedDeliveryModel(preset.delivery_model);
+    setSelectedValueLevel(preset.suggested_value_level);
+    setSelectedSpecificDetails(preset.specific_details_defaults);
+
+    if (isCustom) {
+      // For custom preset, clear format hint and let user type
+      setFormatHint("");
+      setOfferName("");
+    } else {
+      setFormatHint(preset.format_hint);
+      setOfferName(`Mi ${preset.label}`);
+    }
     setStep(3);
   };
 
   const handleSkipFormat = () => {
     setFormatHint("");
+    setSelectedPresetId(null);
+    setSelectedDeliveryModel(undefined);
+    setSelectedValueLevel(undefined);
+    setSelectedSpecificDetails(undefined);
     setStep(3);
   };
 
@@ -106,10 +139,14 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
       is_lead_magnet: effectiveLeadMagnet,
       headline_promise: headlinePromise || undefined,
       status: OfferStatus.DRAFT,
+      delivery_model: selectedDeliveryModel,
+      value_level: selectedValueLevel,
+      specific_details: selectedSpecificDetails,
     });
   };
 
   const meta = selectedArchetype ? ARCHETYPE_METADATA[selectedArchetype] : null;
+  const presets = selectedArchetype ? FORMAT_PRESETS[selectedArchetype] : [];
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -123,7 +160,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
           </DialogTitle>
           <DialogDescription>
             {step === 1 && "Elige el arquetipo que mejor describe tu oferta."}
-            {step === 2 && "Opcional: esto ayuda a organizar tus ofertas."}
+            {step === 2 && "Selecciona un formato predefinido o crea uno personalizado."}
             {step === 3 && "Dale un nombre y precio inicial."}
             {step === 4 && "Opcional: define que resultado logra tu cliente."}
           </DialogDescription>
@@ -172,39 +209,43 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
             </div>
           )}
 
-          {/* STEP 2: Format Selection */}
+          {/* STEP 2: Format Preset Selection */}
           {step === 2 && meta && (
             <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {meta.defaultFormats.map((format) => (
-                  <Button
-                    key={format}
-                    variant={formatHint === format ? "default" : "outline"}
-                    size="sm"
-                    className="rounded-full"
-                    onClick={() => handleSelectFormat(format)}
-                  >
-                    {format}
-                  </Button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="O escribe un formato personalizado..."
-                  value={customFormat}
-                  onChange={(e) => setCustomFormat(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCustomFormat()}
-                  className="flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCustomFormat}
-                  disabled={!customFormat.trim()}
-                >
-                  Usar
-                </Button>
+              <div className="grid grid-cols-2 gap-3">
+                {presets.map((preset) => {
+                  const isCustom = preset.id.endsWith("_custom");
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleSelectPreset(preset)}
+                      className={cn(
+                        "flex flex-col items-start gap-2 p-4 rounded-xl text-left transition-all hover:shadow-md cursor-pointer",
+                        isCustom
+                          ? "border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 bg-background"
+                          : "border border-border hover:border-primary/50 bg-background",
+                        selectedPresetId === preset.id && "border-primary ring-1 ring-primary/20"
+                      )}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <p className="font-semibold text-sm">{preset.label}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
+                        {preset.description}
+                      </p>
+                      {!isCustom && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                            {VALUE_LEVEL_LABELS[preset.suggested_value_level]}
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {DELIVERY_MODEL_LABELS[preset.delivery_model]}
+                          </Badge>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleSkipFormat}>
@@ -217,6 +258,41 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
           {/* STEP 3: Basics */}
           {step === 3 && (
             <div className="space-y-4">
+              {/* Show custom format input when "Personalizado" was selected */}
+              {selectedPresetId?.endsWith("_custom") && (
+                <div className="space-y-2">
+                  <Label htmlFor="wizard-custom-format">Formato personalizado</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="wizard-custom-format"
+                      placeholder="Escribe tu formato (ej: Workshop Online)"
+                      value={customFormat}
+                      onChange={(e) => setCustomFormat(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleCustomFormat();
+                        }
+                      }}
+                      className="flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (customFormat.trim()) {
+                          setFormatHint(customFormat.trim());
+                          setOfferName(`Mi ${customFormat.trim()}`);
+                        }
+                      }}
+                      disabled={!customFormat.trim()}
+                    >
+                      Aplicar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="wizard-name">Nombre de la oferta</Label>
                 <Input
@@ -225,7 +301,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
                   onChange={(e) => setOfferName(e.target.value)}
                   placeholder="Ej. Mi Curso de Marketing"
                   className="h-11"
-                  autoFocus
+                  autoFocus={!selectedPresetId?.endsWith("_custom")}
                 />
               </div>
 
@@ -270,6 +346,11 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
                   {formatHint && (
                     <Badge variant="outline" className="text-xs">
                       {formatHint}
+                    </Badge>
+                  )}
+                  {selectedDeliveryModel && (
+                    <Badge variant="outline" className="text-xs">
+                      {DELIVERY_MODEL_LABELS[selectedDeliveryModel]}
                     </Badge>
                   )}
                 </div>

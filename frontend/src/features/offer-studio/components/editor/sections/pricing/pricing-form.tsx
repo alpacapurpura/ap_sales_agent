@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Plus, Trash2, DollarSign, Star } from "lucide-react";
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { CURRENCIES } from "@/lib/constants/currencies";
-import { PaymentPlanType } from "../../../../types";
+import { PaymentPlanType, OfferArchetype } from "../../../../types";
+import { TierComparisonBuilder } from "./tier-comparison-builder";
 import { cn } from "@/lib/utils";
 
 const PricingSchema = OfferSchema.pick({
@@ -26,6 +27,7 @@ export interface PricingFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
   form?: any;
+  archetype?: OfferArchetype;
 }
 
 function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
@@ -71,14 +73,16 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                         </FormControl>
                     </FormItem>
                 )} />
-                <Button type="button" size="sm" onClick={() => addPricing({ 
-                    label: "Nuevo Precio", 
+                <Button type="button" size="sm" onClick={() => addPricing({
+                    label: "Nuevo Precio",
                     plan_type: PaymentPlanType.ONE_TIME,
-                    total_amount: 0, 
-                    deposit_required: 0, 
-                    number_of_installments: 1, 
-                    installment_amount: 0, 
-                    is_default: false 
+                    total_amount: 0,
+                    deposit_required: 0,
+                    number_of_installments: 1,
+                    installment_amount: 0,
+                    is_default: false,
+                    benefits: [],
+                    is_highlighted: false,
                 })}>
                     <Plus className="h-4 w-4 mr-2"/> Agregar Opción
                 </Button>
@@ -336,7 +340,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   );
 }
 
-export function PricingForm({ defaultValues: propValues, onSave }: PricingFormProps) {
+export function PricingForm({ defaultValues: propValues, onSave, archetype }: PricingFormProps) {
   const defaultValues: PricingFormValues = {
     pricing_options: propValues?.pricing_options || [],
     currency: propValues?.currency || "USD"
@@ -346,6 +350,8 @@ export function PricingForm({ defaultValues: propValues, onSave }: PricingFormPr
     await onSave(data);
   };
 
+  const isMembresia = archetype === OfferArchetype.MEMBRESIA;
+
   return (
     <SectionFormWrapper<PricingFormValues>
       schema={PricingSchema}
@@ -353,7 +359,9 @@ export function PricingForm({ defaultValues: propValues, onSave }: PricingFormPr
       onSubmit={handleSave}
     >
       {(form) => (
-        <PricingContent form={form as unknown as UseFormReturn<OfferFormValues>} />
+        isMembresia
+          ? <TierComparisonBuilder form={form as unknown as UseFormReturn<OfferFormValues>} />
+          : <PricingContent form={form as unknown as UseFormReturn<OfferFormValues>} />
       )}
     </SectionFormWrapper>
   );

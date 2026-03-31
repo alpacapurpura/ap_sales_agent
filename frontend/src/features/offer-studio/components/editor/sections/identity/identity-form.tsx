@@ -7,18 +7,17 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { OfferDeliveryModel as DeliveryModel, OfferType } from "../../../../types";
-import { OFFER_TYPE_METADATA } from "../../../../types/offer-metadata";
+import { OfferDeliveryModel as DeliveryModel, OfferArchetype } from "../../../../types";
+import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 
 // Define partial schema for Identity
 const IdentitySchema = OfferSchema.pick({
   public_name: true,
-  type: true,
   delivery_model: true
 });
 
-type IdentityFormValues = Pick<OfferFormValues, "public_name" | "type" | "delivery_model">;
+type IdentityFormValues = Pick<OfferFormValues, "public_name" | "delivery_model">;
 
 export interface IdentityFormProps {
   defaultValues: Partial<OfferFormValues>;
@@ -33,7 +32,9 @@ const DELIVERY_MODEL_DESCRIPTIONS: Record<string, string> = {
   [DeliveryModel.HYBRID]: "Híbrido / B2B. Soluciones corporativas o modelos mixtos diseñados para empresas.",
 };
 
-function IdentityContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
+function IdentityContent({ form, archetype }: { form: UseFormReturn<OfferFormValues>; archetype?: string }) {
+  const archetypeMeta = archetype ? ARCHETYPE_METADATA[archetype as OfferArchetype] : null;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1">
@@ -57,15 +58,15 @@ function IdentityContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
       <div className="grid grid-cols-2 gap-4">
         <Card className="bg-background">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tipo de Oferta</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Archetype</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-2">
               <Badge variant="outline" className="w-fit">
-                {OFFER_TYPE_METADATA[form.watch("type")]?.label || form.watch("type")}
+                {archetypeMeta?.label || archetype || "No definido"}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                {OFFER_TYPE_METADATA[form.watch("type")]?.description || "Descripción no disponible para este tipo."}
+                {archetypeMeta?.subtitle || "Descripción no disponible."}
               </p>
             </div>
           </CardContent>
@@ -92,10 +93,9 @@ function IdentityContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
 }
 
 export function IdentityForm({ defaultValues: propValues, onSave }: IdentityFormProps) {
-  
+
   const defaultValues: IdentityFormValues = {
     public_name: propValues?.public_name || "",
-    type: propValues?.type || OfferType.GROUP_COACHING_PROGRAM,
     delivery_model: propValues?.delivery_model || DeliveryModel.DWY
   };
 
@@ -110,7 +110,10 @@ export function IdentityForm({ defaultValues: propValues, onSave }: IdentityForm
       onSubmit={handleSave}
     >
       {(form) => (
-        <IdentityContent form={form as unknown as UseFormReturn<OfferFormValues>} />
+        <IdentityContent
+          form={form as unknown as UseFormReturn<OfferFormValues>}
+          archetype={propValues?.archetype as string}
+        />
       )}
     </SectionFormWrapper>
   );

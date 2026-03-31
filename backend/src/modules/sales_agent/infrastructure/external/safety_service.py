@@ -4,7 +4,8 @@ from typing import Tuple, List
 from sqlalchemy.orm import Session
 from src.core.database import SessionLocal
 from src.modules.sales_agent.infrastructure.models.sensitive_data_model import SensitiveData
-from src.shared.infrastructure.llm.providers.openai import OpenAIService
+from src.core.enums import ModelRole
+from src.shared.infrastructure.llm.factory import LLMFactory
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 
 logger = structlog.get_logger()
@@ -16,7 +17,7 @@ class SafetyLayerService:
     2. Contextual LLM Verification (Slow, Intelligent)
     """
     def __init__(self):
-        self.llm_service = OpenAIService() # Adapter for OpenAI/LLM
+        self.llm_service = LLMFactory.get_service()
         
     def _get_rules(self, db: Session) -> List[SensitiveData]:
         """Fetch active rules from DB."""
@@ -91,10 +92,9 @@ class SafetyLayerService:
                 full_context=full_context,
             )
             
-            # Use fast model (gpt-3.5/flash)
             response = self.llm_service.generate_response(
-                messages=[{"role": "user", "content": prompt}], 
-                model_type="fast",
+                messages=[{"role": "user", "content": prompt}],
+                model_type=ModelRole.FAST,
                 temperature=0
             )
             

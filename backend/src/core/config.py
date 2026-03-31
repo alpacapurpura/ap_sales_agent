@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from src.core.enums import PromptSource, AIProvider
+from src.core.enums import PromptSource, AIProvider, ModelRole
 
 class Settings(BaseSettings):
     # API Config
@@ -44,9 +44,37 @@ class Settings(BaseSettings):
     
     # OpenAI
     OPENAI_API_KEY: str
-    OPENAI_MODEL: str = "gpt-4o-mini" # Smart Model (fast, high TPM limits, structured output)
-    OPENAI_FAST_MODEL: str = "gpt-4o-mini" # Response Model (Fast/Cheap)
-    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-large"
+
+    # --- AI Model Registry ---
+    # Each role maps to a concrete model. Override per-role via env vars.
+    AI_MODEL_REASONING: str = "gpt-4o"
+    AI_MODEL_FAST: str = "gpt-4o-mini"
+    AI_MODEL_VISION: str = "gpt-4o"
+    AI_MODEL_AGENT: str = "gpt-4o"
+    AI_MODEL_EMBEDDING: str = "text-embedding-3-large"
+
+    def get_model(self, role: ModelRole) -> str:
+        """Resolve a semantic role to a concrete model name."""
+        _map = {
+            ModelRole.REASONING: self.AI_MODEL_REASONING,
+            ModelRole.FAST: self.AI_MODEL_FAST,
+            ModelRole.VISION: self.AI_MODEL_VISION,
+            ModelRole.AGENT: self.AI_MODEL_AGENT,
+            ModelRole.EMBEDDING: self.AI_MODEL_EMBEDDING,
+        }
+        return _map[role]
+
+    @property
+    def OPENAI_MODEL(self) -> str:
+        return self.AI_MODEL_REASONING
+
+    @property
+    def OPENAI_FAST_MODEL(self) -> str:
+        return self.AI_MODEL_FAST
+
+    @property
+    def OPENAI_EMBEDDING_MODEL(self) -> str:
+        return self.AI_MODEL_EMBEDDING
 
     # Gemini
     GEMINI_API_KEY: str = ""

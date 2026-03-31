@@ -2,6 +2,7 @@ import json
 import re
 from typing import Dict, Any
 
+from src.core.enums import ModelRole
 from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.shared.infrastructure.llm.factory import LLMFactory
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
@@ -103,7 +104,7 @@ def node_sales_supervisor(state: AgentState) -> Dict[str, Any]:
         decision = LLMFactory.get_service().generate_response(
             messages=state["messages"][-SUPERVISOR_MESSAGE_WINDOW:],
             system_prompt=system_prompt,
-            model_type="fast",
+            model_type=ModelRole.FAST,
             temperature=0.0,
             max_output_tokens=10,
             metadata={"prompt_template": "supervisor_routing"},
@@ -134,7 +135,7 @@ def node_qualifier(state: AgentState) -> Dict[str, Any]:
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
-        model_type="smart",
+        model_type=ModelRole.REASONING,
         temperature=0.2,
         metadata={"prompt_template": "agent_identity + specialist_qualifier"},
     )
@@ -151,7 +152,7 @@ def node_product_expert(state: AgentState) -> Dict[str, Any]:
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
-        model_type="smart",
+        model_type=ModelRole.REASONING,
         temperature=0.2,
         metadata={"prompt_template": "agent_identity + specialist_product_expert"},
     )
@@ -165,7 +166,7 @@ def node_closer(state: AgentState) -> Dict[str, Any]:
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
         system_prompt=system_prompt,
-        model_type="smart",
+        model_type=ModelRole.REASONING,
         temperature=0.4,
         metadata={"prompt_template": "agent_identity + specialist_closer"},
     )

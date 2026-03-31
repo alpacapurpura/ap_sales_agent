@@ -58,7 +58,7 @@ class OfferReadPortImpl(OfferReadPort):
             id=m.id,
             tenant_id=m.tenant_id,
             public_name=m.name,
-            offer_type=m.type,
+            offer_type=m.archetype,
             value_level=m.value_level,
             pricing_type=pricing_type,
             currency=m.currency or "USD",

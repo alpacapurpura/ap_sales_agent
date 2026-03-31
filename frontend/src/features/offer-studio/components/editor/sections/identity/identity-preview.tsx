@@ -4,70 +4,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OfferFormValues } from '../../../../types/schema';
 import { useFormContext } from 'react-hook-form';
-import { 
-  Sparkles, 
-  Box, 
-  Tag, 
-  Zap, 
-  BookOpen, 
-  Mic, 
-  Video, 
-  ShoppingBag, 
-  GraduationCap, 
-  Users, 
-  Award, 
-  Briefcase, 
-  Globe, 
-  Building2, 
-  Megaphone,
-  Gift,
-  LayoutTemplate,
-  LucideIcon,
+import {
+  Sparkles,
+  Box,
+  Tag,
   Edit2
 } from 'lucide-react';
-import { OFFER_TYPE_METADATA } from '../../../../types/offer-metadata';
-import { OfferType } from '../../../../types';
+import { ARCHETYPE_METADATA } from '../../../../config/archetype-metadata';
+import { OfferArchetype } from '../../../../types';
 import { useBrandSettings } from '@/features/brand/hooks/useBrandSettings';
 import { getContrastColor } from '@/lib/utils/colors';
-
-// Map OfferType to Lucide Icons
-const OFFER_TYPE_ICONS: Partial<Record<OfferType, LucideIcon>> = {
-  // Level 0
-  [OfferType.FREE_RESOURCE]: Gift,
-  [OfferType.COMMUNITY_LITE]: Users,
-  [OfferType.CONTENT_ASSET_PODCAST]: Mic,
-  [OfferType.FREE_WEBINAR_CHALLENGE]: Video,
-
-  // Level 1
-  [OfferType.TRIPWIRE_OFFER]: Zap,
-  [OfferType.SELF_PACED_COURSE]: BookOpen,
-  [OfferType.PAID_NEWSLETTER_SUBSCRIPTION]: LayoutTemplate,
-  [OfferType.PHYSICAL_MERCH]: ShoppingBag,
-
-  // Level 2
-  [OfferType.HYBRID_MENTORSHIP]: GraduationCap,
-  [OfferType.COHORT_BASED_COURSE]: Users,
-  [OfferType.GROUP_COACHING_PROGRAM]: Users,
-
-  // Level 3
-  [OfferType.VIP_DAY_STRATEGY]: Award,
-  [OfferType.ONE_ON_ONE_PRIVATE_MENTORING]: Award,
-  [OfferType.DEEP_DIVE_AUDIT]: Box,
-
-  // Level 4
-  [OfferType.PRODUCTIZED_SERVICE]: Box,
-  [OfferType.MONTHLY_RETAINER]: Briefcase,
-  [OfferType.PERFORMANCE_REV_SHARE]: Briefcase,
-
-  // Level 5
-  [OfferType.MASTERMIND_NETWORK]: Globe,
-  [OfferType.LUXURY_RETREAT]: Globe,
-
-  // Level 6
-  [OfferType.CORPORATE_TRAINING]: Building2,
-  [OfferType.BRAND_SPONSORSHIP]: Megaphone,
-  [OfferType.KEYNOTE_SPEAKING]: Mic,
-};
 
 interface IdentityPreviewProps {
   data?: Partial<OfferFormValues>;
@@ -88,15 +34,14 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
     );
   }
 
-  const { public_name, type, delivery_model } = data;
+  const { public_name, archetype, delivery_model } = data;
   const visuals = settings?.visuals;
   
   const hasName = Boolean(public_name);
-  const offerType = type as OfferType;
-  
+
   // Get Metadata
-  const typeMetadata = offerType ? OFFER_TYPE_METADATA[offerType] : null;
-  const TypeIcon = offerType ? (OFFER_TYPE_ICONS[offerType] || Sparkles) : Sparkles;
+  const archetypeMeta = archetype ? ARCHETYPE_METADATA[archetype as OfferArchetype] : null;
+  const TypeIcon = archetypeMeta?.icon || Sparkles;
 
   // --- SAFE COLOR LOGIC ---
   const primaryColor = visuals?.primary_color || "#a855f7";
@@ -204,12 +149,12 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
             {hasName ? public_name : "Nombre de tu Oferta"}
           </h1>
           
-          {typeMetadata?.description && (
-            <p 
+          {archetypeMeta?.subtitle && (
+            <p
                 className="text-base max-w-lg mx-auto leading-relaxed opacity-80"
                 style={{ color: textPrimary }}
             >
-              {typeMetadata.description}
+              {archetypeMeta.subtitle}
             </p>
           )}
         </div>
@@ -226,7 +171,7 @@ export const IdentityPreview = ({ data: propsData, onEdit }: IdentityPreviewProp
             style={visuals ? badgeTypeStyle : undefined}
           >
             <Tag className="w-3.5 h-3.5 opacity-70" />
-            {typeMetadata?.label || (type ? type.replace(/_/g, ' ') : "Tipo no definido")}
+            {archetypeMeta?.label || (archetype ? archetype.charAt(0).toUpperCase() + archetype.slice(1) : "Archetype no definido")}
           </Badge>
 
           {/* Delivery Badge */}

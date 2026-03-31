@@ -1,13 +1,16 @@
+from __future__ import annotations
+
 import json
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Dict, Optional, Type, TypeVar, Union
 from uuid import UUID
 
 import structlog
 from pydantic import BaseModel, ValidationError
 
+from src.core.enums import ModelRole
 from src.shared.infrastructure.llm.factory import LLMFactory
 
 TModel = TypeVar("TModel", bound=BaseModel)
@@ -15,7 +18,7 @@ TModel = TypeVar("TModel", bound=BaseModel)
 
 @dataclass(frozen=True)
 class AIModelPolicy:
-    model_type: str = "smart"
+    model_type: Union[str, ModelRole] = ModelRole.REASONING
     temperature: float = 0.7
     max_output_tokens: int = 800
 

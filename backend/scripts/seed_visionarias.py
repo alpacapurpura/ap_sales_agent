@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.services.db.models.business import Product, JourneyProgress
 from src.services.db.models.lead import Lead
-from src.core.domain.offer_enums import OfferType, DeliveryModel, GuaranteeType
+from src.modules.offer.domain.enums import OfferDeliveryModel as DeliveryModel
 from src.core.domain.lead_enums import FinancialCapacity, LeadTemperature, AvatarPersona
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/visionarias_logs")
@@ -25,8 +25,8 @@ def seed_data():
             print(f"Updating Product: {p.name}")
             
             # Default Values for Visionarias High Ticket Context
-            if not p.type or p.type == "program": 
-                p.type = OfferType.HYBRID_MENTORSHIP
+            if not p.archetype:
+                p.archetype = "programa"
             
             if not p.delivery_model:
                 p.delivery_model = DeliveryModel.DWY # Do With You

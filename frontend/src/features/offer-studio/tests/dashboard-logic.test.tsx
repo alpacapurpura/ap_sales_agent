@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { backendToFrontend } from '../api/adapter';
 import { MOCK_BACKEND_RESPONSE } from './fixtures';
-import { OfferType, OfferStatus } from '../types';
+import { OfferArchetype, OfferStatus } from '../types';
 
 describe('Dashboard Logic & Adapter', () => {
   it('Adapter normalizes "public_name" to "name"', () => {
@@ -15,11 +15,11 @@ describe('Dashboard Logic & Adapter', () => {
     expect(result.status).toBe(OfferStatus.ACTIVE);
   });
 
-  it('Adapter handles unknown Enums gracefully', () => {
-    const weirdData = { ...MOCK_BACKEND_RESPONSE, type: "UNKNOWN_TYPE_XYZ" };
+  it('Adapter handles unknown archetype gracefully', () => {
+    const weirdData = { ...MOCK_BACKEND_RESPONSE, archetype: "UNKNOWN_ARCH_XYZ" };
     const result = backendToFrontend(weirdData as any);
-    
-    // Should fallback to default (FREE_RESOURCE) instead of crashing
-    expect(result.type).toBe(OfferType.FREE_RESOURCE);
+
+    // Should fallback to default (PRODUCTO) instead of crashing
+    expect(result.archetype).toBe(OfferArchetype.PRODUCTO);
   });
 });

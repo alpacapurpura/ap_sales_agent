@@ -1,16 +1,11 @@
-import { Offer, OfferType, OfferStatus } from "@/features/offer-studio/types";
-import { OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
+import { Offer, OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
+import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  MoreHorizontal, 
-  FileText, 
-  Video, 
-  Mic, 
-  Users, 
+import {
+  MoreHorizontal,
   Magnet,
-  Sparkles,
   ExternalLink
 } from "lucide-react";
 import { 
@@ -28,19 +23,12 @@ interface LeadMagnetStreamCardProps {
   onClick?: () => void;
 }
 
-const TYPE_ICONS: Record<string, any> = {
-  [OfferType.FREE_RESOURCE]: FileText,
-  [OfferType.FREE_WEBINAR_CHALLENGE]: Video,
-  [OfferType.CONTENT_ASSET_PODCAST]: Mic,
-  [OfferType.COMMUNITY_LITE]: Users,
-  default: Magnet
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  [OfferType.FREE_RESOURCE]: "bg-blue-100 text-blue-700 border-r border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800", 
-  [OfferType.FREE_WEBINAR_CHALLENGE]: "bg-orange-100 text-orange-700 border-r border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",
-  [OfferType.CONTENT_ASSET_PODCAST]: "bg-violet-100 text-violet-700 border-r border-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800",
-  [OfferType.COMMUNITY_LITE]: "bg-emerald-100 text-emerald-700 border-r border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
+const ARCHETYPE_COLORS: Record<string, string> = {
+  producto: "bg-blue-100 text-blue-700 border-r border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
+  programa: "bg-orange-100 text-orange-700 border-r border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",
+  servicio: "bg-violet-100 text-violet-700 border-r border-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:border-violet-800",
+  membresia: "bg-emerald-100 text-emerald-700 border-r border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
+  experiencia: "bg-amber-100 text-amber-700 border-r border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800",
   default: "bg-slate-100 text-slate-700 border-r border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
 };
 
@@ -49,10 +37,10 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
   const params = useParams();
   const tenantId = params?.tenantId as string;
 
-  const Icon = TYPE_ICONS[offer.type] || TYPE_ICONS.default;
-  const colorClass = TYPE_COLORS[offer.type] || TYPE_COLORS.default;
-  
-  const typeLabel = OFFER_TYPE_METADATA[offer.type]?.label || "Recurso";
+  const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype as OfferArchetype] : null;
+  const Icon = archetypeMeta?.icon || Magnet;
+  const colorClass = ARCHETYPE_COLORS[offer.archetype] || ARCHETYPE_COLORS.default;
+  const typeLabel = archetypeMeta?.label || "Recurso";
   
   const handleClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[role="menuitem"]') || (e.target as HTMLElement).closest('button')) {

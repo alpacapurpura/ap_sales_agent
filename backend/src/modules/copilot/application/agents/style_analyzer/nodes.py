@@ -1,5 +1,6 @@
 import re
 import json
+from src.core.enums import ModelRole
 from src.modules.copilot.application.agents.style_analyzer.state import OnboardingState
 from src.modules.copilot.application.agents.style_analyzer.prompts import JANITOR_PROMPT, PSYCHOLOGIST_PROMPT, ARCHITECT_PROMPT, SIMULATOR_PROMPT
 from src.shared.infrastructure.llm.factory import LLMFactory
@@ -56,7 +57,7 @@ def node_janitor(state: OnboardingState):
         cleaned_text = LLMFactory.get_service().generate_response(
             messages=[{"role": "user", "content": sampled_text}],
             system_prompt=JANITOR_PROMPT.format(raw_input=sampled_text), 
-            model_type="fast",
+            model_type=ModelRole.FAST,
             temperature=0.0, # Deterministic
             max_output_tokens=2000
         )
@@ -82,7 +83,7 @@ def node_psychologist(state: OnboardingState):
         analysis_json = LLMFactory.get_service().generate_response(
             messages=[{"role": "user", "content": cleaned_input}],
             system_prompt=PSYCHOLOGIST_PROMPT.format(cleaned_input=cleaned_input),
-            model_type="smart",
+            model_type=ModelRole.REASONING,
             temperature=0.2,
             max_output_tokens=1000
         )
@@ -122,7 +123,7 @@ def node_architect(state: OnboardingState):
         instruction = LLMFactory.get_service().generate_response(
             messages=[],
             system_prompt=ARCHITECT_PROMPT.format(style_profile=profile_str),
-            model_type="smart",
+            model_type=ModelRole.REASONING,
             temperature=0.7, # Slightly creative for better writing
             max_output_tokens=1000
         )
@@ -147,7 +148,7 @@ def node_simulator(state: OnboardingState):
         examples_json = LLMFactory.get_service().generate_response(
             messages=[],
             system_prompt=SIMULATOR_PROMPT.format(system_instruction=instruction),
-            model_type="fast",
+            model_type=ModelRole.FAST,
             temperature=0.7,
             max_output_tokens=800
         )

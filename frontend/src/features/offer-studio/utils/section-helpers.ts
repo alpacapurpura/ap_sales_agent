@@ -1,10 +1,9 @@
 import { OfferFormValues } from "../types/schema";
-import { OfferType } from "../types";
 
 export const getSectionFields = (sectionId: string): (keyof OfferFormValues)[] => {
   switch (sectionId) {
     case "identity":
-      return ["public_name", "internal_sku", "type", "status"];
+      return ["public_name", "internal_sku", "archetype", "status"];
     case "strategy":
       return ["target_avatar_match", "marketing_pain_points", "marketing_desires"];
     case "psychology":

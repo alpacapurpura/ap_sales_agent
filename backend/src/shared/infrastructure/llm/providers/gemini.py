@@ -3,6 +3,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmb
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.shared.infrastructure.llm.base import BaseLLMService
 from src.core.config import settings
+from src.core.enums import ModelRole
 
 
 class GeminiService(BaseLLMService):
@@ -34,7 +35,7 @@ class GeminiService(BaseLLMService):
             api_key=self.api_key
         )
 
-    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, **kwargs) -> str:
+    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, model_type: str = "smart", **kwargs) -> str:
         """
         Adapts the generic message format to LangChain's format for Gemini.
         """
@@ -70,5 +71,5 @@ class GeminiService(BaseLLMService):
     def get_embedding_model(self) -> Any:
         return self.embeddings
         
-    def get_client(self) -> Any:
+    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:
         return self.chat_model

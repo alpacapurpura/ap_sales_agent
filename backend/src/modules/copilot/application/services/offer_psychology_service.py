@@ -8,6 +8,7 @@ from src.modules.offer.domain.offer_ai_schemas import (
     PsychologyGenerationRequest,
     PsychologyGenerationResponse,
 )
+from src.core.enums import ModelRole
 from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
 
 
@@ -49,7 +50,7 @@ class CopilotOfferPsychologyService:
                 retries=2,
                 retry_delay_seconds=0.4,
                 model=AIModelPolicy(
-                    model_type="smart",
+                    model_type=ModelRole.REASONING,
                     temperature=0.7,
                     max_output_tokens=800,
                 ),
