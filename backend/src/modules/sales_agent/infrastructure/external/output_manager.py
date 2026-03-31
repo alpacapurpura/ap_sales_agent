@@ -22,11 +22,11 @@ class OutputManager:
     MICRO_DELAY_RANGE = (0.4, 0.8) # Pause between sending and next typing (Cognitive pause)
     
     @classmethod
-    async def process_response(cls, user_id: str, raw_response: str, channel_adapter):
+    async def process_response(cls, user_id: str, raw_response: str, channel_adapter, channel_type: str = "telegram"):
         """
         Parses the raw LLM response and sends it as chunks with human-like delays.
         """
-        chunks = cls._parse_response(raw_response)
+        chunks = cls._parse_response(raw_response, channel_type=channel_type)
         
         logger.info("processing_response_chunks", user_id=user_id, chunks_count=len(chunks))
         
@@ -66,27 +66,47 @@ class OutputManager:
                 await asyncio.sleep(pause)
 
     @classmethod
-    def _parse_response(cls, raw_response: str) -> List[str]:
+    def _parse_response(cls, raw_response: str, channel_type: str = "telegram") -> List[str]:
         """
-        Attempts to parse the response as a JSON array.
-        Falls back to splitting by newlines or returning raw text if parsing fails.
+        Parses the raw LLM response into user-facing chunks.
+
+        Pipeline:
+        1. Strip internal blocks ([QUALIFICATION_DATA:...], [SIGNALS:...], [TOOL_REQUEST:...])
+        2. Remove markdown code-block wrappers (common LLM artifact)
+        3. Try JSON array (backward compat with older prompt format)
+        4. Split by paragraph breaks (double newline)
+        5. Fallback to single chunk
         """
-        cleaned = raw_response.strip()
-        
-        # Remove markdown code blocks if present (common LLM artifact)
+        # 1. Strip internal blocks before user sees them
+        cleaned = re.sub(
+            r'\[(?:QUALIFICATION_DATA|SIGNALS|TOOL_REQUEST):\s*\{.*?\}\]',
+            '',
+            raw_response,
+            flags=re.DOTALL,
+        ).strip()
+
+        # 2. Remove markdown code blocks if present
         if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.MULTILINE)
-        
-        try:
-            parsed = json.loads(cleaned)
-            if isinstance(parsed, list):
-                # Ensure all elements are strings
-                return [str(item) for item in parsed if item]
-        except json.JSONDecodeError:
-            logger.warning("json_parsing_failed_fallback_text", raw_response=raw_response[:50])
-            
-        # Fallback: If JSON fails, we return it as a single chunk.
-        return [raw_response]
+            cleaned = re.sub(
+                r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.MULTILINE
+            ).strip()
+
+        # 3. Try JSON array first (backward compat)
+        if cleaned.startswith("["):
+            try:
+                parsed = json.loads(cleaned)
+                if isinstance(parsed, list):
+                    return [str(item).strip() for item in parsed if item and str(item).strip()]
+            except json.JSONDecodeError:
+                pass
+
+        # 4. Split by double newline (paragraph breaks)
+        paragraphs = [p.strip() for p in cleaned.split("\n\n") if p.strip()]
+        if len(paragraphs) > 1:
+            return paragraphs
+
+        # 5. Single chunk fallback
+        return [cleaned] if cleaned else []
 
     @classmethod
     def _calculate_typing_time(cls, text: str) -> float:

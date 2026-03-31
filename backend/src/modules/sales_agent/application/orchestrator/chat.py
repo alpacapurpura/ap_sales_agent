@@ -466,16 +466,31 @@ class ChatOrchestrator:
             if launch_stage:
                 initial_state["launch_stage"] = launch_stage
 
-            # Add the current user message to state["messages"] so LLM nodes can read it
-            initial_state["messages"] = [{"role": "user", "content": incoming.text}]
-
-            # 3.5 Semantic Intent Detection (pre-routing hint for the supervisor)
+            # Sanitize user input
+            sanitized_text = incoming.text
             try:
-                detected_intent, intent_score = SemanticRouter.detect_intent(
-                    incoming.text, tenant_id=tenant_uuid
+                from src.modules.sales_agent.infrastructure.external.safety_service import SafetyLayerService
+                safety = SafetyLayerService()
+                sanitized_text, was_modified = await safety.sanitize_content(incoming.text)
+                if was_modified:
+                    logger.warning("user_input_sanitized", original_preview=incoming.text[:50])
+            except Exception as e:
+                logger.warning("safety_sanitization_failed", error=str(e))
+                sanitized_text = incoming.text
+
+            # Add the current user message to state["messages"] so LLM nodes can read it
+            initial_state["messages"] = [{"role": "user", "content": sanitized_text}]
+
+            # 3.5 Semantic Intent Detection + Signal Accumulation
+            try:
+                detected_intent, intent_score, updated_signals = SemanticRouter.detect_and_accumulate(
+                    incoming.text,
+                    existing_signals=initial_state.get("buying_signals", []),
+                    tenant_id=tenant_uuid,
                 )
                 if detected_intent:
                     initial_state["detected_intent"] = detected_intent
+                    initial_state["buying_signals"] = updated_signals
                     logger.debug(f"Semantic intent: {detected_intent} (score={intent_score:.2f})")
             except Exception as e:
                 logger.warning(f"Semantic router failed, continuing without intent: {e}")
@@ -525,7 +540,17 @@ class ChatOrchestrator:
             # 4. Extract Response
             last_msg = result["messages"][-1]
             bot_text = last_msg.get("content", "") if isinstance(last_msg, dict) else str(last_msg)
-            
+
+            # Sanitize bot output
+            try:
+                from src.modules.sales_agent.infrastructure.external.safety_service import SafetyLayerService
+                safety = SafetyLayerService()
+                bot_text, was_modified = await safety.sanitize_content(bot_text)
+                if was_modified:
+                    logger.warning("bot_output_sanitized", original_preview=bot_text[:50])
+            except Exception as e:
+                logger.warning("safety_output_sanitization_failed", error=str(e))
+
             # Log Assistant Message
             audit_repo.log_message(
                 user_id=user.id,
@@ -536,7 +561,7 @@ class ChatOrchestrator:
             )
             
             # 5. Send using OutputManager (Chunks + Human Typing)
-            await OutputManager.process_response(incoming.user_id, bot_text, channel_adapter)
+            await OutputManager.process_response(incoming.user_id, bot_text, channel_adapter, channel_type=channel_type)
             
         except Exception as e:
             logger.error(f"Error processing message: {e}", exc_info=True)
