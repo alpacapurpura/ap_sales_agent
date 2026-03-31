@@ -1,6 +1,6 @@
 """create agent_state_checkpoints table
 
-Revision ID: 020_create_agent_state_checkpoints
+Revision ID: 020_agent_checkpoints
 Revises: 019_add_message_id_idx
 Create Date: 2026-03-30
 """
@@ -8,7 +8,7 @@ from typing import Sequence, Union
 
 from alembic import op
 
-revision = "020_create_agent_state_checkpoints"
+revision = "020_agent_checkpoints"
 down_revision = "019_add_message_id_idx"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
