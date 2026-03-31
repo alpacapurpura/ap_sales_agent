@@ -16,8 +16,8 @@ class ProductResponse(BaseModel):
 
     # Polymorphic fields
     delivery_model: Optional[str] = None
-    offer_value_level: Optional[str] = "lead_magnet"
-    value_level: Optional[str] = "lead_magnet"
+    offer_value_level: Optional[str] = None
+    value_level: Optional[str] = None
     headline_promise: Optional[str] = None
     primary_outcome: Optional[str] = None
     time_to_value: Optional[str] = None

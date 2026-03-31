@@ -113,12 +113,8 @@ class Offer(BaseEntity):
     @computed_field
     @property
     def shows_as_lead_magnet(self) -> bool:
-        """Auto-detect from price OR manual flag."""
-        if self.is_lead_magnet:
-            return True
-        if self.pricing_options:
-            return all(p.total_amount == 0 for p in self.pricing_options)
-        return self.value_level == OfferValueLevel.LEAD_MAGNET
+        """Only True when the user explicitly marks the offer as lead magnet."""
+        return self.is_lead_magnet
 
     @model_validator(mode='after')
     def validate_consistency(self):

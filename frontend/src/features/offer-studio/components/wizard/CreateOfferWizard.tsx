@@ -88,7 +88,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
   };
 
   const priceNum = parseFloat(price) || 0;
-  const effectiveLeadMagnet = isLeadMagnet || priceNum === 0;
+  const effectiveLeadMagnet = isLeadMagnet;
 
   const handleSelectArchetype = (archetype: OfferArchetype) => {
     setSelectedArchetype(archetype);
