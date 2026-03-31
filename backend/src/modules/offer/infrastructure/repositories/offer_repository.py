@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
-from src.modules.offer.domain.offer import Offer, OFFER_TYPE_TO_DETAILS_MAPPING
-from src.modules.offer.domain.enums import OfferType, OfferStatus, OfferValueLevel
+from src.modules.offer.domain.offer import Offer, OFFER_TYPE_TO_DETAILS_MAPPING, ARCHETYPE_TO_DETAILS_MAPPING
+from src.modules.offer.domain.enums import OfferType, OfferArchetype, OfferStatus, OfferValueLevel
 from src.modules.offer.infrastructure.models.product_model import ProductModel
 from src.modules.crm.domain.enums import FinancialCapacity
 
@@ -14,18 +14,17 @@ class OfferRepository:
         # 1. Basic Fields Mapping
         raw_type = model.type
         # Fix known legacy types
-        if raw_type == "1ON1_PRIVATE_MENTORING":
-             raw_type = "one_on_one_private_mentoring"
+        if raw_type and raw_type.upper() == "1ON1_PRIVATE_MENTORING":
+            raw_type = "one_on_one_private_mentoring"
 
         try:
             offer_type = OfferType(raw_type)
         except ValueError:
-            # Try lowercase as fallback
             try:
-                offer_type = OfferType(raw_type.lower())
+                offer_type = OfferType(raw_type.lower() if raw_type else "free_resource")
             except ValueError:
-                # Fallback or log error for invalid type in DB
-                # For now, we assume data integrity or raise
+                import structlog
+                structlog.get_logger().warning("invalid_offer_type", raw_type=raw_type, offer_id=str(model.id))
                 raise ValueError(f"Invalid OfferType in DB: {model.type}")
 
         value_level = None
@@ -33,44 +32,54 @@ class OfferRepository:
             try:
                 value_level = OfferValueLevel(model.value_level)
             except ValueError:
-                pass # or log warning
+                try:
+                    value_level = OfferValueLevel(model.value_level.lower())
+                except ValueError:
+                    pass
 
-        # Fix delivery_model
+        # Delivery model - simple lowercase fallback
         delivery_model = model.delivery_model
         if delivery_model:
+            from src.modules.offer.domain.enums import OfferDeliveryModel
             try:
-                # Check if valid enum value
-                from src.modules.offer.domain.enums import OfferDeliveryModel
                 OfferDeliveryModel(delivery_model)
             except ValueError:
-                # Try lowercase
                 try:
                     delivery_model = delivery_model.lower()
-                    from src.modules.offer.domain.enums import OfferDeliveryModel
                     OfferDeliveryModel(delivery_model)
                 except ValueError:
                     delivery_model = None
-        
-        # Fix guarantee_type
+
+        # Guarantee type - normalize
         guarantee_type = model.guarantee_type or "none"
-        if guarantee_type == "NO_REFUNDS":
+        if guarantee_type.upper() == "NO_REFUNDS":
             guarantee_type = "none"
         else:
-             try:
-                 from src.modules.offer.domain.enums import GuaranteeType
-                 GuaranteeType(guarantee_type)
-             except ValueError:
-                 try:
-                     guarantee_type = guarantee_type.lower()
-                     from src.modules.offer.domain.enums import GuaranteeType
-                     GuaranteeType(guarantee_type)
-                 except ValueError:
-                     guarantee_type = "none"
+            from src.modules.offer.domain.enums import GuaranteeType
+            try:
+                GuaranteeType(guarantee_type)
+            except ValueError:
+                try:
+                    guarantee_type = guarantee_type.lower()
+                    GuaranteeType(guarantee_type)
+                except ValueError:
+                    guarantee_type = "none"
 
         # Fix min_financial_capacity
         min_financial_capacity = model.min_financial_capacity or FinancialCapacity.LOW_INCOME
         if min_financial_capacity == "LOW":
-             min_financial_capacity = FinancialCapacity.LOW_INCOME
+            min_financial_capacity = FinancialCapacity.LOW_INCOME
+
+        # Parse archetype
+        archetype = None
+        if model.archetype:
+            try:
+                archetype = OfferArchetype(model.archetype)
+            except ValueError:
+                try:
+                    archetype = OfferArchetype(model.archetype.lower())
+                except ValueError:
+                    pass
 
         offer_data = {
             "id": model.id,
@@ -78,6 +87,9 @@ class OfferRepository:
             "internal_sku": model.internal_sku or "",
             "public_name": model.name,
             "type": offer_type,
+            "archetype": archetype,
+            "format_hint": model.format_hint,
+            "is_lead_magnet": model.is_lead_magnet or False,
             "value_level": value_level,
             "status": OfferStatus(model.status.lower()) if model.status else OfferStatus.DRAFT,
             "headline_promise": model.headline_promise or "",
@@ -158,10 +170,14 @@ class OfferRepository:
 
         offer_data["deliverables"] = deliverables
         
-        # 3. Polymorphic Details
+        # 3. Polymorphic Details (archetype takes priority)
         details_json = model.specific_details or {}
         if details_json:
-            detail_class = OFFER_TYPE_TO_DETAILS_MAPPING.get(offer_type)
+            detail_class = None
+            if archetype:
+                detail_class = ARCHETYPE_TO_DETAILS_MAPPING.get(archetype)
+            if not detail_class:
+                detail_class = OFFER_TYPE_TO_DETAILS_MAPPING.get(offer_type)
             if detail_class:
                 # Fix known data issues in details_json
                 if "format" in details_json and details_json["format"] == "RECORDED_CONTENT":
@@ -205,6 +221,9 @@ class OfferRepository:
             tenant_id=offer.tenant_id,
             name=offer.public_name,
             type=offer.type.value,
+            archetype=offer.archetype.value if offer.archetype else None,
+            format_hint=offer.format_hint,
+            is_lead_magnet=offer.is_lead_magnet,
             status=offer.status.value,
             internal_sku=offer.internal_sku,
             pricing=pricing_data,
@@ -250,7 +269,10 @@ class OfferRepository:
         return None
 
     def get_all_by_tenant(self, tenant_id: UUID) -> List[Offer]:
-        models = self.db.query(ProductModel).filter(ProductModel.tenant_id == tenant_id).all()
+        models = self.db.query(ProductModel).filter(
+            ProductModel.tenant_id == tenant_id,
+            ProductModel.status != "archived"
+        ).all()
         return [self._to_domain(m) for m in models]
 
     def create(self, offer: Offer) -> Offer:

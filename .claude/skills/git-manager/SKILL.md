@@ -1,11 +1,13 @@
 ---
 name: git-manager
 description: >
-  Git and GitHub workflow assistant for Nicolify (ap_sales_agent). Use when the user asks to
-  "create a branch", "sync with github", "push changes", "merge to main", "create a release",
-  "make a PR", "resolve conflicts", "check git status", "deploy to production", "create a version",
-  "write a changelog", or any git/GitHub related task. Also triggers on "quiero hacer un commit",
-  "quiero pushear", "hacemos un release", "pasamos a producción", "nueva versión", "rama nueva".
+  Git and GitHub workflow assistant for Nicolify (ap_sales_agent). Creates and manages branches,
+  handles pull requests, resolves merge conflicts, generates changelogs, and manages releases and
+  deployments. Use when the user asks to "create a branch", "sync with github", "push changes",
+  "merge to main", "create a release", "make a PR", "resolve conflicts", "check git status",
+  "deploy to production", "create a version", "write a changelog", or any git/GitHub related task.
+  Also triggers on "quiero hacer un commit", "quiero pushear", "hacemos un release",
+  "pasamos a producción", "nueva versión", "rama nueva".
 version: 1.0.0
 ---
 
@@ -19,8 +21,6 @@ Tu objetivo es mantener el repositorio ordenado, las ramas bien gestionadas, y l
 - **Repo:** `https://github.com/alpacapurpura/ap_sales_agent`
 - **Rama principal:** `main` (producción)
 - **Estrategia:** Feature branches → PR → merge a `main` → Release Tag
-- **Stack:** FastAPI backend + Next.js frontend (monorepo)
-- **Deploy:** Docker Compose (`docker-compose.prod.yml` + `.env.prod`)
 
 ## Paso 0: Siempre Ejecutar Primero
 
@@ -52,11 +52,7 @@ Mostrar: rama actual, archivos modificados, commits pendientes de push.
 
 ### `/git branch <nombre> [--from <base>]` — Crear rama de feature
 
-**Convención de nombres:**
-- `feature/<descripcion-corta>` — nueva funcionalidad
-- `fix/<descripcion-corta>` — corrección de bug
-- `refactor/<descripcion-corta>` — refactorización
-- `chore/<descripcion-corta>` — configuración, docs, infra
+**Convención de nombres:** `feature/`, `fix/`, `refactor/`, `chore/` + `<descripcion-corta>`
 
 **Pasos:**
 1. Asegurarse de estar en `main` actualizado: `git checkout main && git pull origin main`
@@ -76,7 +72,7 @@ Mostrar: rama actual, archivos modificados, commits pendientes de push.
 1. `git status` — identificar archivos modificados
 2. Agrupar cambios por módulo/propósito
 3. Stage archivos relevantes (NUNCA `git add .` sin revisar)
-4. Generar mensaje de commit siguiendo Conventional Commits:
+4. Generar mensaje siguiendo Conventional Commits (`feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`):
    ```
    <type>(<scope>): <descripcion>
 
@@ -84,11 +80,11 @@ Mostrar: rama actual, archivos modificados, commits pendientes de push.
 
    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
    ```
-   Tipos: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`
-
 5. Commit y push
 
 **Nunca incluir:** `.env`, `.env.prod`, archivos de secrets, binarios grandes.
+
+> Ver formato extendido en `references/git-strategy.md`.
 
 ---
 
@@ -112,8 +108,10 @@ Si hay conflictos → ir al protocolo de resolución de conflictos.
 3. `git log main..HEAD --oneline` — listar commits incluidos
 4. Crear PR con `gh pr create`:
    - **Title:** `[Módulo] Descripción corta`
-   - **Body:** Template con Summary (bullets técnicos) + Business Impact + Test Plan
+   - **Body:** Summary (bullets técnicos) + Business Impact + Test Plan
 5. Si hay conflictos con main → resolver primero
+
+> Ver template completo de PR body en `references/git-strategy.md`.
 
 ---
 
@@ -135,10 +133,7 @@ Este es el comando más importante. Sigue el protocolo completo:
 
 **Proceso:**
 1. Verificar que `main` está actualizado y estable
-2. Determinar tipo de versión: `major.minor.patch` (semver)
-   - `patch` (X.X.1): bug fixes, mejoras menores
-   - `minor` (X.1.0): nuevas features, cambios de UX
-   - `major` (1.0.0): breaking changes, nuevas plataformas
+2. Determinar tipo de versión siguiendo semver (`major.minor.patch`); si el usuario no especifica, proponer una basada en los cambios
 3. Leer todos los commits desde el último tag: `git log <ultimo-tag>..HEAD --oneline`
 4. Generar **dos changelogs** (ver templates en `references/changelog-templates.md`):
    - **CHANGELOG_TECH.md** — para el equipo técnico
@@ -194,5 +189,5 @@ Actualizar este archivo cada vez que:
 
 ## Referencias
 
-- `references/git-strategy.md` — Branch naming, commit conventions, workflow diagram
+- `references/git-strategy.md` — Branch naming, commit conventions, PR body template, workflow diagram
 - `references/changelog-templates.md` — Templates para changelogs técnico y de usuario

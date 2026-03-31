@@ -143,10 +143,10 @@ NAVIGATION_MAP: List[AppPage] = [
 
     # ── Growth Studio (Marketing Studio) ─────────────────────────
     AppPage(
-        route_template="/{tenantId}/growth-studio",
+        route_template="/{tenantId}/growth-studio/ventas",
         label="Growth Studio",
         module="growth",
-        description="Funnel Bowtie completo — redirige a la primera etapa (Atracción & Captura)",
+        description="Funnel Bowtie completo — redirige a la etapa Ventas",
         keywords=["funnel", "bowtie", "métricas", "analytics", "growth", "marketing"],
         sections=[],
     ),

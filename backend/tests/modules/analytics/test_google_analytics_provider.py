@@ -30,7 +30,7 @@ class TestGAProviderBasics:
 
     def test_rate_limit_config(self):
         cfg = GoogleAnalyticsProvider().rate_limit_config()
-        assert cfg["requests_per_minute"] == 10
+        assert cfg["requests_per_minute"] == 20
 
 
 class TestGA4Segmentation:

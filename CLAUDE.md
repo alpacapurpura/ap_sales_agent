@@ -40,3 +40,5 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first.
 ## Product Vision
 
 For product decisions: `docs/vision/product-vision.md`.
+
+@AGENTS.md

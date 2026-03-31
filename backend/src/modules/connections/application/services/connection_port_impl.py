@@ -55,6 +55,13 @@ PROVIDER_TO_CHANNEL_TYPE_ALIAS = {
     "google_ads": "google_analytics",  # Google Ads uses same Google OAuth as GA4
 }
 
+# Child providers that need the parent connection's OAuth credentials
+# but their own config (e.g., meta_pixel needs meta's access_token + pixel's asset_id).
+# Maps child provider → parent channel_type for credential resolution.
+CHILD_PROVIDER_PARENT = {
+    "meta_pixel": "meta",
+}
+
 
 class ConnectionPortImpl(ConnectionPort):
     """Adapter implementing ConnectionPort for the connections bounded context.
@@ -70,7 +77,18 @@ class ConnectionPortImpl(ConnectionPort):
     async def get_credentials(
         self, tenant_id: UUID, channel_type: str
     ) -> ConnectionCredentials:
-        """Retrieve credentials for a specific channel, refreshing expired tokens."""
+        """Retrieve credentials for a specific channel, refreshing expired tokens.
+
+        Child providers (CHILD_PROVIDER_PARENT) get OAuth credentials from
+        the parent connection but keep their own config (e.g., asset_id).
+        """
+        # Check if this is a child provider needing parent credentials
+        parent_type = CHILD_PROVIDER_PARENT.get(channel_type)
+        if parent_type:
+            return await self._get_child_credentials(
+                tenant_id, channel_type, parent_type
+            )
+
         # Resolve provider alias → actual ChannelType value
         resolved = PROVIDER_TO_CHANNEL_TYPE_ALIAS.get(channel_type, channel_type)
         try:
@@ -119,6 +137,40 @@ class ConnectionPortImpl(ConnectionPort):
             channel_type=channel_type,
             credentials=credentials,
             config=conn.config or {},
+        )
+
+    async def _get_child_credentials(
+        self, tenant_id: UUID, child_type: str, parent_type: str
+    ) -> ConnectionCredentials:
+        """Resolve credentials for a child provider.
+
+        Uses parent connection's OAuth credentials (access_token) merged with
+        the child connection's config (asset_id, etc.).
+        """
+        # Get child connection (for config like asset_id)
+        try:
+            child_enum = ChannelType(child_type)
+        except ValueError:
+            raise ConnectionRevokedException(
+                f"Unknown channel type: {child_type}",
+                channel_type=child_type,
+            )
+        child_conn = await asyncio.to_thread(
+            self.repo.get_active, tenant_id, child_enum
+        )
+        if child_conn is None:
+            raise ConnectionRevokedException(
+                f"No active connection for {child_type}",
+                channel_type=child_type,
+            )
+
+        # Get parent connection (for OAuth credentials)
+        parent_creds = await self.get_credentials(tenant_id, parent_type)
+
+        return ConnectionCredentials(
+            channel_type=child_type,
+            credentials=parent_creds.credentials,
+            config=child_conn.config or {},
         )
 
     async def list_active_connections(

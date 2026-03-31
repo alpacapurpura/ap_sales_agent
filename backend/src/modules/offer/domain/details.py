@@ -82,12 +82,12 @@ class ProgramDetails(BaseEntity):
         return self
 
 class SubscriptionDetails(BaseEntity):
-    billing_cycle: BillingFrequency
+    billing_cycle: Optional[BillingFrequency] = None
     trial_period_days: int = 0
-    tier_name: str
-    platform_name: str
-    cancellation_policy: str
-    content_update_freq: str
+    tier_name: Optional[str] = None
+    platform_name: Optional[str] = None
+    cancellation_policy: Optional[str] = None
+    content_update_freq: Optional[str] = None
     expert_guests: bool = False
     networking_events: bool = False
 

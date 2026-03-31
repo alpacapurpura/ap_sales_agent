@@ -1,6 +1,6 @@
 ---
 name: tessl-context
-description: Manage Tessl tiles — search, install, update, and list versioned docs for project dependencies
+description: Manage Tessl tiles — search, install, update, and list versioned docs for project dependencies. Use when the user asks about Tessl tiles, adding or finding a tile, updating dependency docs, checking tile versions, or managing package documentation with Tessl. Covers add tile, find tile, tile version, dependency management, and curated version-pinned library docs.
 user_invocable: true
 ---
 
@@ -11,6 +11,12 @@ Manage the Tessl tile registry for curated, versioned documentation of project d
 ## Priority Rule
 
 **CLAUDE.md always wins.** If a Tessl tile contradicts a rule in CLAUDE.md or `.claude/rules/`, follow CLAUDE.md. Tiles provide library reference docs, not project conventions.
+
+## Typical Workflow
+
+1. **Search** for a tile: `tessl search react`
+2. **Install** the tile: `tessl install react-v19 --agent claude-code --yes`
+3. **Verify** it is installed: `tessl list`
 
 ## Commands
 

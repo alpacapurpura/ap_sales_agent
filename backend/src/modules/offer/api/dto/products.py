@@ -1,18 +1,24 @@
 from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Optional, Dict, Any, List
 import uuid
-from src.modules.offer.domain.enums import OfferType, OfferStatus
+from src.modules.offer.domain.enums import OfferType, OfferArchetype, OfferStatus
 
 class ProductResponse(BaseModel):
     id: uuid.UUID
     name: str
     type: str
     status: str
+
+    # Archetype system
+    archetype: Optional[str] = None
+    format_hint: Optional[str] = None
+    is_lead_magnet: Optional[bool] = False
+    shows_as_lead_magnet: Optional[bool] = False
     
     # Polymorphic fields
     delivery_model: Optional[str] = None
-    offer_value_level: Optional[str] = "N0"
-    value_level: Optional[str] = "N0"
+    offer_value_level: Optional[str] = "level_0_free"
+    value_level: Optional[str] = "level_0_free"
     headline_promise: Optional[str] = None
     primary_outcome: Optional[str] = None
     time_to_value: Optional[str] = None
@@ -63,13 +69,50 @@ class ProductResponse(BaseModel):
 
 class ProductCreate(BaseModel):
     name: str
-    type: OfferType
+    type: Optional[OfferType] = None  # Optional when using archetype
+    archetype: Optional[OfferArchetype] = None
+    format_hint: Optional[str] = None
+    is_lead_magnet: bool = False
     status: OfferStatus = OfferStatus.DRAFT
+
+    # Optional fields the wizard can set
+    headline_promise: Optional[str] = None
+    avatar_id: Optional[uuid.UUID] = None
+
+    @field_validator('type', mode='before')
+    @classmethod
+    def normalize_type(cls, v: object) -> object:
+        if v is None:
+            return v
+        if isinstance(v, str):
+            v = v.lower()
+            if v == "1on1_private_mentoring":
+                v = "one_on_one_private_mentoring"
+        return v
+
+    @field_validator('archetype', mode='before')
+    @classmethod
+    def normalize_archetype(cls, v: object) -> object:
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return v.lower()
+        return v
+
+    @field_validator('status', mode='before')
+    @classmethod
+    def normalize_status(cls, v: object) -> object:
+        if isinstance(v, str):
+            return v.lower()
+        return v
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     internal_sku: Optional[str] = None
     type: Optional[OfferType] = None
+    archetype: Optional[OfferArchetype] = None
+    format_hint: Optional[str] = None
+    is_lead_magnet: Optional[bool] = None
     offer_value_level: Optional[str] = None
     delivery_model: Optional[str] = None
     status: Optional[str] = None

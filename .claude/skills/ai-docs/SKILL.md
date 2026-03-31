@@ -15,36 +15,43 @@ description: >
 
 You write documentation that makes AI agents smarter, not dumber.
 
-Three peer-reviewed studies prove that most project documentation **actively harms** AI performance. This skill applies their findings to produce docs that are short, dense, and structurally optimized for how LLMs actually process context.
-
 ## The Three Laws
 
 Before writing or auditing any documentation, internalize these research-backed principles:
 
-**Law 1 — Minimal Context (ETH Zurich, 2026)**
-Extensive context files reduce AI success by 3% and increase costs 20%+. Write only what cannot be inferred from the code. If the code's types, signatures, and structure already convey it, the doc is noise.
+**Law 1 — Minimal Context (ETH Zurich, 2026):** Extensive context reduces AI success 3%, increases cost 20%+. Write only what code can't convey.
 
-**Law 2 — Zero Redundancy (Yang et al., 2024)**
-25-40% of documentation is redundant. Removing it maintains or improves code quality. Every sentence must pass: *"Does this tell the agent something it cannot infer from function names, types, and code structure?"* If no, delete it.
+**Law 2 — Zero Redundancy (Yang et al., 2024):** 25-40% of docs are redundant; removing them maintains or improves quality. Delete any sentence the agent can infer from function names, types, or code structure.
 
-**Law 3 — Position-Aware Structure (Stanford/Berkeley, 2024)**
-LLMs exhibit U-shaped attention: strong recall at start and end, catastrophic loss in the middle. Place critical constraints at the END of documents. Keep docs short enough that there is no "middle."
+**Law 3 — Position-Aware Structure (Stanford/Berkeley, 2024):** LLMs have U-shaped attention — strong recall at start and end, catastrophic loss in the middle. Place critical constraints at the END. Keep docs short enough that there is no "middle."
 
 For the full research details, read `references/research-foundations.md`.
 
 ---
 
+## Anti-Patterns — Reject These on Sight
+
+| Pattern | Example | Why It's Harmful |
+|---------|---------|-----------------|
+| File inventory | `src/models/user.py — User model` | `ls` shows this |
+| Type narration | "Takes a UUID and returns Optional[Lead]" | The signature says this |
+| Framework tutorials | "FastAPI uses Depends() for injection" | Agent already knows FastAPI |
+| Auto-generated trees | Full directory tree dumps | Law 1: −3% success rate |
+| Architecture novels | 500-line design documents | Law 3: middle is ignored |
+| Obvious comments | "# Initialize the database" above `db = init_db()` | Law 2: pure redundancy |
+| Enum explanations | "COLD means the lead is cold" | Redundant by definition |
+
+---
+
 ## Modes of Operation
 
-This skill operates in four modes. Determine which one the user needs:
+Determine which mode the user needs:
 
 ### Mode 1: Generate New Documentation
 
-When the user asks to create docs for a module, feature, or the project root:
+1. **Read the actual code first.** List the module directory, read key files (models, services, routers). Understand the domain from source code, not existing docs.
 
-1. **Read the actual code first.** List the module directory, read key files (models, services, routers). Understand the domain from the source code, not from existing docs.
-
-2. **Identify what's non-inferable.** As you read, note only:
+2. **Identify what's non-inferable:**
    - Build/deploy commands that aren't standard
    - Business rules that contradict common patterns
    - Edge cases that have caused or could cause bugs
@@ -56,29 +63,23 @@ When the user asks to create docs for a module, feature, or the project root:
    - **Module doc:** < 100 lines. Domain concepts, data flow, business rules, gotchas.
    - **Feature/domain doc:** < 150 lines. Architecture decisions (why, not what), integration points, invariants.
 
-4. **Structure for attention.** In every document:
-   - **First lines:** Identity and scope (what module, what domain)
+4. **Structure for attention:**
+   - **First lines:** Identity and scope
    - **Middle:** Reference material (data flows, integration points)
    - **Last section:** CRITICAL constraints, invariants, "do not violate" rules
 
-5. **Self-audit before delivering.** Re-read your draft and delete every line that:
-   - Restates what the code already shows via types/signatures
-   - Explains what a standard framework feature does
-   - Lists files that `ls` would show
-   - Describes enum values that the enum definition already contains
+5. **Self-audit before delivering.** Delete every line matching any Anti-Patterns entry above.
 
 ### Mode 2: Audit Existing Documentation
-
-When the user asks to audit, review, or check documentation quality:
 
 1. **Read the documentation file(s).**
 
 2. **Score each section** against the three laws:
    - **Redundancy score:** What percentage of sentences restate what code already shows?
-   - **Inference score:** What percentage of content could be derived from reading the source?
+   - **Inference score:** What percentage could be derived from reading the source?
    - **Position score:** Are critical constraints at the end? Is the doc short enough to avoid middle-burial?
 
-3. **Produce an audit report** in this format:
+3. **Produce an audit report:**
 
 ```
 ## Audit: {filename}
@@ -89,7 +90,6 @@ Position: {Critical rules at end? Y/N}
 
 ### Lines to Remove
 - L{n}: "{quoted text}" — Reason: {restates types | explains standard pattern | file inventory}
-- L{n}: "{quoted text}" — Reason: {…}
 
 ### Lines to Add (Missing Non-Inferables)
 - {Business rule or edge case discovered in code but not documented}
@@ -100,28 +100,21 @@ Position: {Critical rules at end? Y/N}
 
 ### Mode 3: Compress Existing Documentation
 
-When the user asks to compress, shorten, or optimize existing docs:
-
 1. **Read the document and the code it describes.**
 
-2. **Apply the ShortenDoc filter:** For each line, ask:
-   - Does this restate the function/class name? → Delete
-   - Does this explain a standard framework pattern? → Delete
-   - Does this list files or directory structure? → Delete
-   - Does this describe what an enum/constant means when the name is self-explanatory? → Delete
+2. **Apply the Anti-Patterns filter** to each line. Also ask:
    - Does this contain business logic, edge cases, or non-obvious constraints? → Keep
    - Does this document a bug-prone integration point? → Keep
+   - Does it match any Anti-Patterns entry? → Delete
 
 3. **Restructure the survivor content:**
    - Move critical constraints to the end
    - Merge redundant sections
    - Convert prose paragraphs into single-line rules
 
-4. **Report the compression ratio:** `"Compressed from {X} to {Y} lines ({Z}% reduction)"`
+4. **Report:** `"Compressed from {X} to {Y} lines ({Z}% reduction)"`
 
 ### Mode 4: Generate Module-Level Documentation Map
-
-When the user asks to document the entire project or create a documentation index:
 
 1. **Scan the module structure:** `ls backend/src/modules/` and `ls frontend/src/features/`
 
@@ -130,25 +123,9 @@ When the user asks to document the entire project or create a documentation inde
 3. **Create an INDEX.md** with one line per module — just name and one-phrase purpose.
 
 4. **Identify which modules need dedicated docs** based on complexity:
-   - Simple CRUD modules: index entry is sufficient, no dedicated doc needed
+   - Simple CRUD modules: index entry is sufficient
    - Modules with business rules, complex state machines, or cross-module integrations: need a dedicated doc
    - Report the list to the user for prioritization
-
----
-
-## Anti-Patterns — Reject These on Sight
-
-When generating or auditing docs, actively reject these patterns:
-
-| Pattern | Example | Why It's Harmful |
-|---------|---------|-----------------|
-| File inventory | `src/models/user.py — User model` | `ls` shows this; wastes tokens |
-| Type narration | "Takes a UUID and returns Optional[Lead]" | The signature says this |
-| Framework tutorials | "FastAPI uses Depends() for injection" | The agent knows FastAPI |
-| Auto-generated trees | Full directory tree dumps | Paper 1: -3% success rate |
-| Architecture novels | 500-line design documents | Paper 3: middle is ignored |
-| Obvious comments | "# Initialize the database" above `db = init_db()` | Paper 2: pure redundancy |
-| Enum explanations | "COLD means the lead is cold" | The enum name is the doc |
 
 ---
 
@@ -165,7 +142,3 @@ Before delivering any documentation, verify:
 - [ ] Identity/scope is in the FIRST lines
 - [ ] Business rules focus on what DEVIATES from standard patterns
 - [ ] Edge cases reference actual bugs or realistic failure modes
-
-## The Golden Rule
-
-> Documentation for AI agents should read like a telegram: every word costs money, so every word must earn its place. The code is the source of truth. Your job is to document only what the code cannot say about itself.

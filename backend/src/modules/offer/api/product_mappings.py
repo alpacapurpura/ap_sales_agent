@@ -1,11 +1,12 @@
 """API endpoints for external product → offer mappings."""
 
 import uuid as uuid_mod
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func as sa_func, select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -97,8 +98,6 @@ async def list_source_products(
     user: User = Depends(get_current_user),
 ):
     """List ALL products from a source (mapped + unmapped) with metrics."""
-    from sqlalchemy import func as sa_func
-
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
     from src.modules.offer.infrastructure.models.product_model import ProductModel
 
@@ -204,8 +203,6 @@ async def list_unmatched_products(
     user: User = Depends(get_current_user),
 ):
     """List external products seen in journey_events that have no mapping."""
-    from sqlalchemy import func as sa_func
-
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
 
     # Get all mapped external_ids for this source
@@ -264,8 +261,6 @@ async def create_product_mapping(
     user: User = Depends(get_current_user),
 ):
     """Create a new external product → offer mapping with retroactive backfill."""
-    from sqlalchemy import func as sa_func
-
     from src.modules.crm.domain.enums import SaleStage, SaleStatus
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
     from src.modules.crm.infrastructure.models.sale_model import SaleModel
@@ -382,3 +377,232 @@ async def delete_product_mapping(
     if not deleted:
         raise HTTPException(status_code=404, detail="Mapping not found")
     db.commit()
+
+
+# ── Offer Product Detail DTOs ──────────────────────────────────────────────────
+
+
+class ProductMetricOut(BaseModel):
+    external_id: str
+    external_name: str | None = None
+    source: str
+    total_revenue: float = 0.0
+    quantity_sold: int = 0
+    transaction_count: int = 0
+    avg_unit_price: float = 0.0
+    currency: str | None = None
+    pct_of_total: float = 0.0
+
+
+class OfferProductDetailOut(BaseModel):
+    offer_id: str
+    offer_name: str | None = None
+    offer_type: str | None = None
+    total_revenue: float = 0.0
+    sales_count: int = 0
+    unique_customers: int = 0
+    repeat_customer_count: int = 0
+    repeat_rate: float = 0.0
+    currency: str = "USD"
+    source_breakdown: dict[str, int] = {}
+    products: list[ProductMetricOut] = []
+    first_sale: str | None = None
+    last_sale: str | None = None
+    weekly_revenue: list[dict] = []
+
+
+@router.get(
+    "/product-mappings/{offer_id}/products-detail",
+    response_model=OfferProductDetailOut,
+)
+async def get_offer_products_detail(
+    offer_id: UUID = Path(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Return aggregated product-level metrics for a single offer."""
+    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+    from src.modules.crm.infrastructure.models.sale_model import SaleModel
+    from src.modules.offer.infrastructure.models.product_model import ProductModel
+
+    tenant_id = user.tenant_id
+
+    # 1. Offer metadata
+    offer_row = db.execute(
+        select(ProductModel.name, ProductModel.type).where(
+            ProductModel.id == offer_id,
+            ProductModel.tenant_id == tenant_id,
+        )
+    ).first()
+    if not offer_row:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    offer_name, offer_type = offer_row
+
+    # 2. Sales aggregation
+    agg_row = db.execute(
+        select(
+            sa_func.count(SaleModel.id).label("sales_count"),
+            sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label("total_revenue"),
+            sa_func.count(sa_func.distinct(SaleModel.customer_id)).label("unique_customers"),
+            sa_func.min(SaleModel.occurred_at).label("first_sale"),
+            sa_func.max(SaleModel.occurred_at).label("last_sale"),
+        ).where(
+            SaleModel.offer_id == offer_id,
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.status == "COMPLETED",
+        )
+    ).first()
+
+    sales_count = agg_row.sales_count if agg_row else 0
+    total_revenue = float(agg_row.total_revenue) if agg_row else 0.0
+    unique_customers = agg_row.unique_customers if agg_row else 0
+    first_sale: datetime | None = agg_row.first_sale if agg_row else None
+    last_sale: datetime | None = agg_row.last_sale if agg_row else None
+
+    # Currency from first sale
+    currency_row = db.execute(
+        select(SaleModel.currency).where(
+            SaleModel.offer_id == offer_id,
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.status == "COMPLETED",
+        ).limit(1)
+    ).scalar_one_or_none()
+    currency = currency_row or "USD"
+
+    # 3. Source breakdown
+    source_rows = db.execute(
+        select(
+            SaleModel.source,
+            sa_func.count(SaleModel.id),
+        ).where(
+            SaleModel.offer_id == offer_id,
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.status == "COMPLETED",
+        ).group_by(SaleModel.source)
+    ).all()
+    source_breakdown = {src: cnt for src, cnt in source_rows}
+
+    # 4. Repeat customers
+    repeat_subq = (
+        select(
+            SaleModel.customer_id,
+            sa_func.count(SaleModel.id).label("purchase_count"),
+        ).where(
+            SaleModel.offer_id == offer_id,
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.status == "COMPLETED",
+        ).group_by(SaleModel.customer_id)
+        .having(sa_func.count(SaleModel.id) > 1)
+        .subquery()
+    )
+    repeat_customer_count = db.execute(
+        select(sa_func.count()).select_from(repeat_subq)
+    ).scalar_one()
+    repeat_rate = (
+        (repeat_customer_count / unique_customers * 100) if unique_customers > 0 else 0.0
+    )
+
+    # 5. Weekly revenue (last 12 weeks)
+    twelve_weeks_ago = datetime.now(timezone.utc) - timedelta(weeks=12)
+    weekly_rows = db.execute(
+        select(
+            sa_func.date_trunc("week", SaleModel.occurred_at).label("week"),
+            sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label("revenue"),
+        ).where(
+            SaleModel.offer_id == offer_id,
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.status == "COMPLETED",
+            SaleModel.occurred_at >= twelve_weeks_ago,
+        ).group_by("week").order_by("week")
+    ).all()
+    weekly_revenue = [
+        {"week": w.strftime("%G-W%V"), "revenue": float(rev)}
+        for w, rev in weekly_rows
+    ]
+
+    # 6. Product-level metrics from journey_events
+    mappings_stmt = select(
+        ExternalProductMappingModel.external_id,
+        ExternalProductMappingModel.external_name,
+        ExternalProductMappingModel.source,
+    ).where(
+        ExternalProductMappingModel.offer_id == offer_id,
+        ExternalProductMappingModel.tenant_id == tenant_id,
+    )
+    mapping_rows = db.execute(mappings_stmt).all()
+
+    products: list[ProductMetricOut] = []
+    if mapping_rows:
+        mapped_ids = {r.external_id for r in mapping_rows}
+        mapping_meta = {
+            r.external_id: {"name": r.external_name, "source": r.source}
+            for r in mapping_rows
+        }
+
+        events_stmt = select(JourneyEventModel.properties).where(
+            JourneyEventModel.tenant_id == tenant_id,
+            JourneyEventModel.event_name == "checkout_completed",
+        )
+        events = db.execute(events_stmt).all()
+
+        prod_agg: dict[str, dict] = {}
+        for (props,) in events:
+            if not props:
+                continue
+            line_items = props.get("line_items", [])
+            for item in line_items:
+                pid = str(item.get("product_id", ""))
+                if pid not in mapped_ids:
+                    continue
+                if pid not in prod_agg:
+                    prod_agg[pid] = {
+                        "revenue": 0.0,
+                        "quantity": 0,
+                        "transactions": 0,
+                        "currency": props.get("currency", "USD"),
+                    }
+                prod_agg[pid]["revenue"] += float(item.get("price", 0)) * int(
+                    item.get("quantity", 1)
+                )
+                prod_agg[pid]["quantity"] += int(item.get("quantity", 1))
+                prod_agg[pid]["transactions"] += 1
+
+        total_product_revenue = sum(p["revenue"] for p in prod_agg.values()) or 1.0
+
+        for ext_id, meta in mapping_meta.items():
+            agg = prod_agg.get(ext_id, {})
+            rev = agg.get("revenue", 0.0)
+            qty = agg.get("quantity", 0)
+            products.append(
+                ProductMetricOut(
+                    external_id=ext_id,
+                    external_name=meta["name"],
+                    source=meta["source"],
+                    total_revenue=rev,
+                    quantity_sold=qty,
+                    transaction_count=agg.get("transactions", 0),
+                    avg_unit_price=round(rev / qty, 2) if qty > 0 else 0.0,
+                    currency=agg.get("currency", currency),
+                    pct_of_total=round(rev / total_product_revenue * 100, 1)
+                    if rev > 0
+                    else 0.0,
+                )
+            )
+        products.sort(key=lambda p: p.total_revenue, reverse=True)
+
+    return OfferProductDetailOut(
+        offer_id=str(offer_id),
+        offer_name=offer_name,
+        offer_type=offer_type,
+        total_revenue=total_revenue,
+        sales_count=sales_count,
+        unique_customers=unique_customers,
+        repeat_customer_count=repeat_customer_count,
+        repeat_rate=round(repeat_rate, 1),
+        currency=currency,
+        source_breakdown=source_breakdown,
+        products=products,
+        first_sale=first_sale.isoformat() if first_sale else None,
+        last_sale=last_sale.isoformat() if last_sale else None,
+        weekly_revenue=weekly_revenue,
+    )

@@ -71,14 +71,36 @@ def render_sales_audit_page():
         col_title, col_actions = st.columns([3, 1])
         with col_title:
             st.subheader(f"Timeline: {lead_name}")
-            
+
         with col_actions:
             # Botones para mostrar contexto en el sidebar
             if st.button("Ver Perfil de Lead", use_container_width=True):
                 st.session_context_tab = "profile"
-                
+
             if st.button("Ver Último Estado (Agent State)", use_container_width=True):
                 st.session_context_tab = "state"
+
+            if st.button("🗑️ Limpiar Conversación", use_container_width=True, type="secondary"):
+                st.session_state["confirm_clear"] = lead_id
+
+        # Confirmation dialog
+        if st.session_state.get("confirm_clear") == lead_id:
+            st.warning(
+                f"**¿Limpiar TODA la conversación de {lead_name}?**\n\n"
+                "Se borrarán: mensajes, trazas, LLM logs, checkpoints, y se resetearán los scores del lead. "
+                "Esta acción no se puede deshacer."
+            )
+            col_yes, col_no = st.columns(2)
+            with col_yes:
+                if st.button("✅ Sí, limpiar", use_container_width=True, type="primary"):
+                    repo.clear_user_history(lead_id=lead_id, tenant_id=str(tenant_id))
+                    st.session_state.pop("confirm_clear", None)
+                    st.success("Conversación limpiada. El lead empezará de cero en la próxima interacción.")
+                    st.rerun()
+            with col_no:
+                if st.button("❌ Cancelar", use_container_width=True):
+                    st.session_state.pop("confirm_clear", None)
+                    st.rerun()
                 
         # Mostrar el panel lateral si se presionó algún botón
         if hasattr(st, "session_context_tab") and st.session_context_tab:

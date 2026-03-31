@@ -477,6 +477,9 @@ class MailerLiteProvider(BaseMetricsProvider):
             raw = stats.get(api_field)
             if raw is None:
                 continue
+            if isinstance(raw, dict):
+                logger.warning("mailerlite_unexpected_stat_type field=%s type=%s", api_field, type(raw).__name__)
+                continue
             value = float(raw)
             # MailerLite percentages come as 0.0-1.0 — convert to 0-100
             if unit == "percentage":

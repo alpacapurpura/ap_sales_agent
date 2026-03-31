@@ -1,6 +1,8 @@
 from typing import List, Any
+
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
+
 from src.modules.sales_agent.infrastructure.models.agent_trace_model import AgentTrace
 from src.modules.sales_agent.infrastructure.models.llm_log_model import LLMLog
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
@@ -92,8 +94,30 @@ class AuditRepository(EpisodicMemoryStore):
         return query.all()
 
     def clear_user_history(self, lead_id, tenant_id):
-        # Delete traces for user
-        self.db.query(AgentTrace).filter(AgentTrace.user_id == lead_id).delete()
+        """Full conversation reset via raw SQL to avoid FK/ORM cache issues."""
+        from sqlalchemy import text
+
+        lead_uuid = str(lead_id)
+        # Raw SQL: delete children before parents, no ORM session interference
+        self.db.execute(text(
+            "DELETE FROM llm_logs WHERE trace_id IN "
+            "(SELECT id FROM agent_traces WHERE user_id = :lid)"
+        ), {"lid": lead_uuid})
+        self.db.execute(text(
+            "DELETE FROM llm_call_logs WHERE trace_id IN "
+            "(SELECT id FROM agent_traces WHERE user_id = :lid)"
+        ), {"lid": lead_uuid})
+        self.db.execute(text("DELETE FROM agent_traces WHERE user_id = :lid"), {"lid": lead_uuid})
+        self.db.execute(text("DELETE FROM messages WHERE user_id = :lid"), {"lid": lead_uuid})
+        self.db.execute(text("DELETE FROM agent_state_checkpoints WHERE lead_id = :lid"), {"lid": lead_uuid})
+        self.db.execute(text(
+            "UPDATE leads SET "
+            "profile_data = '{}', fit_score = 0, intent_score = 0, "
+            "temperature = 'COLD', conversation_summary = NULL, "
+            "key_objections_history = '[]', style_profile = '{}', "
+            "custom_system_instruction = NULL, last_interaction_date = NULL "
+            "WHERE id = :lid"
+        ), {"lid": lead_uuid})
         self.db.commit()
         return True
 

@@ -19,17 +19,9 @@ You are the orchestrator for Nicolify's full-stack feature development. You coor
 
 ## Prerequisites
 
-Before starting, verify agents exist:
-- `.claude/agents/nicolify-architect.md`
-- `.claude/agents/nicolify-backend.md`
-- `.claude/agents/nicolify-agentic.md`
-- `.claude/agents/nicolify-backend-auditor.md`
-- `.claude/agents/nicolify-ux-designer.md`
-- `.claude/agents/nicolify-frontend.md`
+Before starting, verify all agents in `.claude/agents/nicolify-*.md` exist (architect, backend, agentic, backend-auditor, ux-designer, frontend).
 
 ## Phase 1: Analysis (YOU — Interactive)
-
-**You handle this phase directly. Do NOT delegate to a subagent.**
 
 1. Read `docs/domains/INDEX.md` to understand available modules
 2. Interview the user to clarify:
@@ -82,20 +74,18 @@ Read CONTRACT.md and present a summary to the user:
 ## Phase 3: Implementation (Subagents — Parallel Waves)
 
 ### UX Approach Decision
-Before launching agents, ask the user:
+Before launching agents, ask the user to choose a UI design approach:
 
-> **¿Cómo quieres diseñar la UI?**
-> - **A) Exploración creativa** — Proceso de Design Thinking con investigación, propuestas y debate (skill `ux-disruptivo`). Ideal para pantallas nuevas, rediseños, o features donde la UX importa mucho.
-> - **B) Pantalla mecánica** — Spec rápido basado en CONTRACT.md (agente `nicolify-ux-designer`). Ideal para CRUDs, tablas, formularios estándar.
+> **A) Creative exploration** — Design Thinking process with research, proposals, and debate (skill `ux-disruptivo`). Best for new screens, redesigns, or UX-critical features.
+> **B) Mechanical screen** — Quick spec from CONTRACT.md (agent `nicolify-ux-designer`). Best for CRUDs, tables, and standard forms.
 
-If the user chooses **A**: invoke the `ux-disruptivo` skill. The pipeline pauses here until the skill completes and produces a UI-SPEC.md. Then continue with Wave 1 (backend + frontend in parallel, skipping ux-designer agent).
-
-If the user chooses **B** (or doesn't care): proceed with the standard Wave 1 below.
+- **If A:** invoke the `ux-disruptivo` skill. Pause until it completes and produces `UI-SPEC.md`. Then proceed to Wave 1 skipping the ux-designer agent.
+- **If B (or no preference):** proceed with the standard Wave 1 below.
 
 ### Determine agents needed
 - **Always:** nicolify-backend, nicolify-frontend
-- **UX approach B (mechanical):** also nicolify-ux-designer
-- **UX approach A (creative):** ux-disruptivo skill already produced UI-SPEC.md — skip ux-designer
+- **UX approach B:** also nicolify-ux-designer
+- **UX approach A:** ux-disruptivo already produced UI-SPEC.md — skip ux-designer
 - **Conditional:** nicolify-agentic (only if REQUIREMENTS.md flags agentic=yes)
 
 ### Wave 1: Parallel implementation

@@ -121,13 +121,14 @@ _CHANNEL_CONNECTION_MAP: Dict[str, ChannelType] = {
     "yt-ads": ChannelType.YOUTUBE,
 }
 
-# Channel types -> group mapping for the 4-group structure
+# Channel types -> group mapping for the 5-group structure
 _GROUP_MAP: Dict[str, str] = {
     "social": "organic_social",
     "search": "ga4_search",
     "direct": "ga4_search",
     "paid": "paid",
     "outbound": "outbound",
+    "website": "website",
 }
 
 # Channel types -> capture group mapping (Stage 1)
@@ -346,6 +347,7 @@ class MetricsService:
             "ga4_search": [],
             "paid": [],
             "outbound": [],
+            "website": [],
         }
         available_channels: List[ChannelMetricDTO] = []
         latest_updated: Optional[str] = None
@@ -462,6 +464,15 @@ class MetricsService:
             else None
         )
 
+        website_group = (
+            TrafficGroupDTO(
+                totals=_compute_totals(groups["website"]),
+                channels=groups["website"],
+            )
+            if groups["website"]
+            else None
+        )
+
         result = AttractionDetailDTO(
             organic_social=TrafficGroupDTO(
                 totals=_compute_totals(groups["organic_social"]),
@@ -479,6 +490,7 @@ class MetricsService:
                 totals=_compute_totals(groups["outbound"]),
                 channels=groups["outbound"],
             ),
+            website=website_group,
             available=available_dto,
             period="last_30_days",
             last_updated=latest_updated,
@@ -628,6 +640,26 @@ class MetricsService:
                     if m_name not in existing_names:
                         metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
 
+            # For email_marketing channels, supplement with MailerLite official_metrics
+            if provider_name == "email_marketing":
+                official_repo = OfficialMetricsRepository(self.db)
+                ml_metrics = official_repo.get_channel_metrics(
+                    tenant_id,
+                    "mailerlite",
+                    slug,
+                    start_date.date() if hasattr(start_date, "date") else start_date,
+                    end_date.date() if hasattr(end_date, "date") else end_date,
+                )
+                existing_names = {m.name for m in metrics}
+                # Use new_subscribers as "leads" if CRM has no data
+                ns = ml_metrics.get("new_subscribers", 0)
+                if lead_count == 0 and ns > 0:
+                    metrics = [m for m in metrics if m.name != "leads"]
+                    metrics.insert(0, MetricValueDTO(name="leads", value=float(ns)))
+                for m_name, m_value in ml_metrics.items():
+                    if m_name not in existing_names and m_name != "new_subscribers":
+                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
@@ -646,8 +678,19 @@ class MetricsService:
             )
             groups[group_key].append(dto)
 
-        # Available (unconnected) channels
+        # Merge manychat-ig into ig-dm as a unified card with sub_sources
+        detailed_leads = capture_repo.count_leads_by_source_detailed(
+            tenant_id, start_date, end_date
+        )
+        self._merge_manychat_into_meta(
+            groups["ai_agent"], detailed_leads, conversation_counts
+        )
+
+        # Available (unconnected) channels — remove manychat-ig/wa if merged
+        merged_slugs = {"manychat-ig", "manychat-wa"}
         for ch in channel_split.get("available", []):
+            if ch["slug"] in merged_slugs:
+                continue
             dto = ChannelMetricDTO(
                 slug=ch["slug"],
                 name=ch["name"],
@@ -713,6 +756,53 @@ class MetricsService:
             )
 
         return result
+
+    @staticmethod
+    def _merge_manychat_into_meta(
+        channels: List[ChannelMetricDTO],
+        detailed_leads: Dict[str, int],
+        conversation_counts: Dict[str, int],
+    ) -> None:
+        """Merge manychat-ig into ig-dm as a unified card (in-place).
+
+        When both ig-dm and manychat-ig exist in the channel list, the
+        manychat-ig card is removed and the ig-dm card gets sub_sources
+        showing the per-source breakdown.
+        """
+        from src.modules.analytics.application.dto.attraction_dto import SubSourceDTO
+
+        # Pair: (meta_slug, manychat_slug)
+        merge_pairs = [
+            ("ig-dm", "manychat-ig"),
+            ("whatsapp-inbound", "manychat-wa"),
+        ]
+
+        for meta_slug, mc_slug in merge_pairs:
+            meta_dto = next((c for c in channels if c.slug == meta_slug), None)
+            mc_dto = next((c for c in channels if c.slug == mc_slug), None)
+
+            if not meta_dto or not mc_dto:
+                continue
+
+            # Build sub_sources from raw (unconsolidated) counts
+            meta_leads = detailed_leads.get(meta_slug, 0)
+            mc_leads = detailed_leads.get(mc_slug, 0)
+            meta_convs = conversation_counts.get(meta_slug, 0)
+            mc_convs = conversation_counts.get(mc_slug, 0)
+
+            meta_dto.sub_sources = [
+                SubSourceDTO(name="Meta Direct", leads=meta_leads, conversations=meta_convs),
+                SubSourceDTO(name="ManyChat", leads=mc_leads, conversations=mc_convs),
+            ]
+
+            # Append ManyChat-exclusive metrics to the unified card
+            existing_names = {m.name for m in meta_dto.metrics}
+            for m in mc_dto.metrics:
+                if m.name not in existing_names:
+                    meta_dto.metrics.append(m)
+
+            # Remove the standalone manychat card
+            channels.remove(mc_dto)
 
     async def get_nurturing_metrics(
         self, tenant_id: UUID

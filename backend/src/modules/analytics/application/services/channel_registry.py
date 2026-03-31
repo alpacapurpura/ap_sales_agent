@@ -24,12 +24,21 @@ PROVIDER_TO_CHANNEL_TYPES: Dict[str, Set[str]] = {
     "tiktok": {"tiktok", "tiktok_ads"},
     "linkedin": set(),        # No ChannelType yet
     "email_marketing": {"mailerlite", "mailchimp", "activecampaign"},
+    "mailerlite": {"mailerlite", "mailchimp", "activecampaign"},  # alias so PROVIDER_REGISTRY key resolves
     "manychat": {"manychat"},
     "whatsapp": {"whatsapp", "whatsapp_cloud"},
     "shopify": {"shopify"},
     "internal": set(),        # Internal sources (CRM, landing) — always "connected"
     "manual": set(),          # Manual sources — always "connected"
+    "meta_pixel": {"meta_pixel"},
 }
+
+# Inverse mapping: channel_type_value → set of provider_names that need it.
+# E.g. "google_analytics" → {"google_analytics", "google_ads"}
+CHANNEL_TYPE_TO_PROVIDERS: Dict[str, Set[str]] = {}
+for _prov, _types in PROVIDER_TO_CHANNEL_TYPES.items():
+    for _ct in _types:
+        CHANNEL_TYPE_TO_PROVIDERS.setdefault(_ct, set()).add(_prov)
 
 # Stage-to-channel mapping. Each channel definition includes metadata
 # needed by both backend (ETL routing) and frontend (rendering).
@@ -54,6 +63,10 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "cold-contact", "name": "Cold Contact", "channel_type": "outbound", "source_label": "Cold Outreach", "provider_name": "manual", "metric_names": ["contacts", "responses"]},
         # ManyChat comment triggers -> attraction
         {"slug": "manychat-comments", "name": "ManyChat Comment Triggers", "channel_type": "social", "source_label": "ManyChat", "provider_name": "manychat", "metric_names": ["comment_triggers", "dm_opens"]},
+        # Website: site-wide aggregate from GA4
+        {"slug": "website-total", "name": "Tu Sitio Web", "channel_type": "website", "source_label": "Google Analytics", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews", "averageSessionDuration", "conversions", "top_pages", "traffic_sources", "device_split"]},
+        # Website: Meta Pixel events (Phase 2)
+        {"slug": "meta-pixel", "name": "Meta Pixel", "channel_type": "website", "source_label": "Meta Pixel", "provider_name": "meta_pixel", "metric_names": ["pixel_pageviews", "pixel_view_content", "pixel_leads", "pixel_add_to_cart", "pixel_purchases"]},
     ],
     "capture": [
         {"slug": "landing-form", "name": "Landing Page Form", "channel_type": "form", "source_label": "Landing Page", "provider_name": "internal"},

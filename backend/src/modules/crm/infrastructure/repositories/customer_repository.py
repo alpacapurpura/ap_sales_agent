@@ -1,12 +1,15 @@
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import func, cast, String
+from sqlalchemy import func, cast, String, select
 from uuid import UUID
 from src.modules.crm.domain.customer import CustomerProfile, CustomerIdentity
 from src.modules.crm.domain.enums import IdentityType, LifecycleStage
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel, JourneyEventModel
 import uuid
+import structlog
+
+logger = structlog.get_logger()
 
 class CustomerRepository:
     def __init__(self, db: Session):
@@ -130,6 +133,82 @@ class CustomerRepository:
         self.db.refresh(profile_model)
 
         return self._to_domain(profile_model)
+
+    def find_by_trait(
+        self, tenant_id: UUID, trait_key: str, trait_value: str
+    ) -> Optional[CustomerProfile]:
+        """Find a profile by a specific JSONB trait key/value.
+
+        Used for ManyChat↔Meta identity bridge: find profiles by
+        traits.instagram_username to prevent duplicates.
+        """
+        stmt = select(CustomerProfileModel).where(
+            CustomerProfileModel.tenant_id == tenant_id,
+            func.jsonb_extract_path_text(
+                CustomerProfileModel.traits, trait_key
+            ) == trait_value,
+            CustomerProfileModel.is_inactive == False,  # noqa: E712
+        )
+        model = self.db.execute(stmt).scalars().first()
+        if model:
+            return self._to_domain(model)
+        return None
+
+    def merge_profiles(
+        self, source_id: UUID, target_id: UUID, tenant_id: UUID
+    ) -> None:
+        """Merge source profile into target: move identities + journey_events.
+
+        The source profile is soft-deleted after merge. Used when the enricher
+        discovers that a Meta-created profile and a ManyChat-created profile
+        belong to the same person.
+        """
+        # Move identities from source to target
+        self.db.execute(
+            CustomerIdentityModel.__table__.update()
+            .where(
+                CustomerIdentityModel.profile_id == source_id,
+                CustomerIdentityModel.tenant_id == tenant_id,
+            )
+            .values(profile_id=target_id)
+        )
+
+        # Move journey_events from source to target
+        self.db.execute(
+            JourneyEventModel.__table__.update()
+            .where(
+                JourneyEventModel.profile_id == source_id,
+                JourneyEventModel.tenant_id == tenant_id,
+            )
+            .values(profile_id=target_id)
+        )
+
+        # Soft-delete the source profile
+        source = self.db.query(CustomerProfileModel).filter(
+            CustomerProfileModel.id == source_id,
+            CustomerProfileModel.tenant_id == tenant_id,
+        ).first()
+        if source:
+            source.is_inactive = True
+            # Carry over any traits the target might be missing
+            target = self.db.query(CustomerProfileModel).filter(
+                CustomerProfileModel.id == target_id,
+                CustomerProfileModel.tenant_id == tenant_id,
+            ).first()
+            if target and source.traits:
+                merged_traits = dict(target.traits or {})
+                for k, v in source.traits.items():
+                    if k not in merged_traits:
+                        merged_traits[k] = v
+                target.traits = merged_traits
+
+        self.db.flush()
+        logger.info(
+            "profiles_merged",
+            source_id=str(source_id),
+            target_id=str(target_id),
+            tenant_id=str(tenant_id),
+        )
 
     def count_by_stage(self, tenant_id: UUID, stage: Any) -> int:
         return self.db.query(CustomerProfileModel).filter(

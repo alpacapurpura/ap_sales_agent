@@ -355,27 +355,8 @@ class ChatOrchestrator:
                     channel_user_id=user_id_str
                 )
 
-            # Load existing state checkpoint (if any)
-            state_repo = StateRepository(db)
-            checkpoint = state_repo.get_active_checkpoint(tenant_uuid, user.id) if tenant_uuid else None
-
-            # Determine Session State
-            last_msg = audit_repo.get_last_message(user.id)
-            session_active = True
-            last_intent = None
-            
-            if last_msg and last_msg.created_at:
-                msg_time = last_msg.created_at
-                if msg_time.tzinfo is None:
-                    msg_time = msg_time.replace(tzinfo=timezone.utc)
-                time_diff = datetime.now(timezone.utc) - msg_time
-                if time_diff > timedelta(hours=SESSION_TIMEOUT_HOURS):
-                    session_active = False
-                
-                if last_msg.metadata_log and isinstance(last_msg.metadata_log, dict):
-                    last_intent = last_msg.metadata_log.get("intent")
-
-            # Log User Message
+            # Log User Message FIRST (before checkpoint) so audit trail
+            # is preserved even if downstream steps fail
             audit_repo.log_message(
                 user_id=user.id,
                 role="user",
@@ -383,6 +364,34 @@ class ChatOrchestrator:
                 channel=channel_type,
                 tenant_id=tenant_uuid
             )
+
+            # Load existing state checkpoint (if any)
+            state_repo = StateRepository(db)
+            checkpoint = None
+            try:
+                checkpoint = state_repo.get_active_checkpoint(tenant_uuid, user.id) if tenant_uuid else None
+            except Exception as e:
+                logger.warning("checkpoint_load_failed", error=str(e))
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
+
+            # Determine Session State
+            last_msg = audit_repo.get_last_message(user.id)
+            session_active = True
+            last_intent = None
+
+            if last_msg and last_msg.created_at:
+                msg_time = last_msg.created_at
+                if msg_time.tzinfo is None:
+                    msg_time = msg_time.replace(tzinfo=timezone.utc)
+                time_diff = datetime.now(timezone.utc) - msg_time
+                if time_diff > timedelta(hours=SESSION_TIMEOUT_HOURS):
+                    session_active = False
+
+                if last_msg.metadata_log and isinstance(last_msg.metadata_log, dict):
+                    last_intent = last_msg.metadata_log.get("intent")
 
             # 2.5 Build Agent Identity (AKS)
             agent_identity = None

@@ -59,6 +59,7 @@ def _register_all() -> None:
     from src.modules.analytics.infrastructure.providers.shopify_provider import ShopifyProvider
     from src.modules.analytics.infrastructure.providers.manychat_provider import ManyChatProvider
     from src.modules.analytics.infrastructure.providers.mailerlite_provider import MailerLiteProvider
+    from src.modules.analytics.infrastructure.providers.meta_pixel_provider import MetaPixelProvider
 
     register_provider("meta", MetaProvider)
     register_provider("google_analytics", GoogleAnalyticsProvider)
@@ -69,6 +70,7 @@ def _register_all() -> None:
     register_provider("shopify", ShopifyProvider)
     register_provider("manychat", ManyChatProvider)
     register_provider("mailerlite", MailerLiteProvider)
+    register_provider("meta_pixel", MetaPixelProvider)
 
 
 _register_all()

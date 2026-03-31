@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db, redis_client
@@ -26,6 +28,28 @@ router = APIRouter(prefix="/metrics", tags=["Marketing Metrics"])
 # Refresh cooldown: 15 minutes
 _REFRESH_COOLDOWN = timedelta(minutes=15)
 
+
+# ─── Sync All DTOs ────────────────────────────────────────────────────────────
+
+class SyncProviderResult(BaseModel):
+    provider: str
+    status: str  # "ok" | "skipped_cooldown" | "failed"
+    loaded: Optional[int] = None
+    skipped: Optional[int] = None
+    total: Optional[int] = None
+    remaining_minutes: Optional[int] = None
+    error: Optional[str] = None
+
+
+class SyncAllResponse(BaseModel):
+    status: str
+    providers_synced: int
+    providers_skipped_cooldown: int
+    providers_failed: int
+    total_loaded: int
+    total_skipped: int
+    details: list[SyncProviderResult]
+
 # Map channel slugs to their provider names for refresh routing
 _SLUG_TO_PROVIDER: dict[str, str] = {
     "ig-organic": "meta",
@@ -43,6 +67,8 @@ _SLUG_TO_PROVIDER: dict[str, str] = {
     "checkout-init": "shopify",
     "abandoned-cart": "shopify",
     "shopify": "shopify",
+    "website-total": "google_analytics",
+    "meta-pixel": "meta_pixel",
 }
 
 
@@ -267,6 +293,99 @@ async def get_stage_timeseries(
     )
 
 
+@router.post("/sync", response_model=SyncAllResponse)
+async def sync_all_sources(
+    days: int = Query(default=30, ge=1, le=90),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Sync all connected providers for the tenant.
+
+    Runs gap-detection initial-load for each provider with an active
+    connection. Fast when data is up to date (short-circuit, no API calls).
+    Per-provider 15-min cooldown — skipped providers report remaining time.
+    """
+    from src.modules.analytics.application.services.etl_service import ETLService
+
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    etl = ETLService(db, connection_port=connection_port, cache=cache)
+
+    result = await etl.run_sync_all(user.tenant_id, days=days)
+    return SyncAllResponse(**result)
+
+
+class SyncIgDmResponse(BaseModel):
+    status: str
+    synced_messages: int
+    new_leads: int
+    skipped: int
+    remaining_minutes: Optional[int] = None
+
+
+@router.post("/sync-ig-dm", response_model=SyncIgDmResponse)
+async def sync_ig_dm(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Sync Instagram DM conversations via the Conversations API.
+
+    Fetches historical DM messages and creates journey_events with dedup
+    by message_id. Applies a 15-min cooldown to prevent abuse.
+    """
+    # Cooldown check using Redis
+    cooldown_key = f"ig_dm_sync:{user.tenant_id}"
+    if redis_client:
+        last_sync = redis_client.get(cooldown_key)
+        if last_sync:
+            import json
+            elapsed_info = json.loads(last_sync)
+            from datetime import datetime as dt
+            last_ts = dt.fromisoformat(elapsed_info["ts"])
+            elapsed = datetime.now(timezone.utc) - last_ts
+            if elapsed < _REFRESH_COOLDOWN:
+                remaining = _REFRESH_COOLDOWN - elapsed
+                remaining_min = int(remaining.total_seconds() // 60) + 1
+                return SyncIgDmResponse(
+                    status="cooldown",
+                    synced_messages=0,
+                    new_leads=0,
+                    skipped=0,
+                    remaining_minutes=remaining_min,
+                )
+
+    from src.modules.analytics.application.services.ig_dm_sync_service import (
+        InstagramDMSyncService,
+    )
+
+    connection_port = ConnectionPortImpl(db)
+    sync_service = InstagramDMSyncService(db, connection_port=connection_port)
+
+    try:
+        result = await sync_service.sync(user.tenant_id)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"IG DM sync failed: {str(exc)}",
+        )
+
+    # Set cooldown
+    if redis_client:
+        import json
+        redis_client.setex(
+            cooldown_key,
+            int(_REFRESH_COOLDOWN.total_seconds()),
+            json.dumps({"ts": datetime.now(timezone.utc).isoformat()}),
+        )
+
+    return SyncIgDmResponse(
+        status="ok",
+        synced_messages=result["synced_messages"],
+        new_leads=result["new_leads"],
+        skipped=result["skipped"],
+    )
+
+
 @router.post("/attraction/refresh/{channel_slug}")
 async def refresh_channel_metrics(
     channel_slug: str,
@@ -328,7 +447,7 @@ async def refresh_channel_metrics(
         )
 
 
-_VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify"}
+_VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailerlite"}
 
 
 @router.post("/{provider}/initial-load")

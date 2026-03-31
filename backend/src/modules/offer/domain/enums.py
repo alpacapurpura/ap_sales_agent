@@ -1,6 +1,15 @@
 from enum import Enum
 from typing import Dict, Any, List, Type
 
+
+class OfferArchetype(str, Enum):
+    PRODUCTO = "producto"         # ProductDetails
+    PROGRAMA = "programa"         # ProgramDetails
+    SERVICIO = "servicio"         # ServiceDetails
+    MEMBRESIA = "membresia"       # SubscriptionDetails
+    EXPERIENCIA = "experiencia"   # EventDetails
+
+
 class OfferType(str, Enum):
     # Level 0: Free & Lead Magnets
     FREE_RESOURCE = "free_resource"
@@ -209,6 +218,24 @@ GUARANTEE_METADATA: Dict[str, Dict[str, Any]] = {
     GuaranteeType.DOUBLE_MONEY_BACK.value: {"risk_level": "Very Low", "conversion_boost": "Extreme"},
     GuaranteeType.SATISFACTION_OR_FREE_WORK.value: {"risk_level": "Medium", "conversion_boost": "High"},
 }
+
+ARCHETYPE_DEFAULT_DELIVERY: Dict[OfferArchetype, OfferDeliveryModel] = {
+    OfferArchetype.PRODUCTO: OfferDeliveryModel.DIY,
+    OfferArchetype.PROGRAMA: OfferDeliveryModel.DWY,
+    OfferArchetype.SERVICIO: OfferDeliveryModel.DFY,
+    OfferArchetype.MEMBRESIA: OfferDeliveryModel.DIY,
+    OfferArchetype.EXPERIENCIA: OfferDeliveryModel.DWY,
+}
+
+# Fallback OfferType when creating via archetype (for backward compat)
+ARCHETYPE_DEFAULT_TYPE: Dict[OfferArchetype, "OfferType"] = {
+    OfferArchetype.PRODUCTO: OfferType.SELF_PACED_COURSE,
+    OfferArchetype.PROGRAMA: OfferType.GROUP_COACHING_PROGRAM,
+    OfferArchetype.SERVICIO: OfferType.PRODUCTIZED_SERVICE,
+    OfferArchetype.MEMBRESIA: OfferType.PAID_NEWSLETTER_SUBSCRIPTION,
+    OfferArchetype.EXPERIENCIA: OfferType.LUXURY_RETREAT,
+}
+
 
 def get_enum_options(enum_class: Type[Enum], metadata: Dict[str, Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     options = []

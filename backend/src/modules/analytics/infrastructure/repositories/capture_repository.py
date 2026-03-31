@@ -52,6 +52,45 @@ class CaptureMetricsRepository:
             .group_by(CustomerProfileModel.lead_source)
         )
         rows = self.db.execute(stmt).all()
+        result = {row.lead_source: row.lead_count for row in rows}
+
+        # Consolidate manychat-ig leads under ig-dm (same person, unified card)
+        mc_ig = result.pop("manychat-ig", 0)
+        if mc_ig:
+            result["ig-dm"] = result.get("ig-dm", 0) + mc_ig
+
+        # Same for manychat-wa → whatsapp-inbound
+        mc_wa = result.pop("manychat-wa", 0)
+        if mc_wa:
+            result["whatsapp-inbound"] = result.get("whatsapp-inbound", 0) + mc_wa
+
+        return result
+
+    def count_leads_by_source_detailed(
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Dict[str, int]:
+        """Like count_leads_by_source but WITHOUT consolidation.
+
+        Returns raw per-source counts for sub_sources breakdown.
+        """
+        stmt = (
+            select(
+                CustomerProfileModel.lead_source,
+                func.count(CustomerProfileModel.id).label("lead_count"),
+            )
+            .where(
+                CustomerProfileModel.tenant_id == tenant_id,
+                CustomerProfileModel.first_seen_at >= start_date,
+                CustomerProfileModel.first_seen_at <= end_date,
+                CustomerProfileModel.lead_source.isnot(None),
+                CustomerProfileModel.is_inactive == False,  # noqa: E712
+            )
+            .group_by(CustomerProfileModel.lead_source)
+        )
+        rows = self.db.execute(stmt).all()
         return {row.lead_source: row.lead_count for row in rows}
 
     def count_conversations_by_channel(

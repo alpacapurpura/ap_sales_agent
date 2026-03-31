@@ -5,6 +5,9 @@ Segments GA4 sessions by source/medium into three channel slugs:
 - direct: source=(direct), medium=(none)
 - ai-search-organic: source in AI_REFERRER_DOMAINS
 
+Also extracts site-wide aggregate metrics (website-total), top pages,
+traffic sources, and device split for the Website Visits feature.
+
 Uses existing GoogleAnalyticsAdapter.run_report() wrapped in
 asyncio.to_thread() (sync Google SDK).
 """
@@ -35,16 +38,42 @@ AI_REFERRER_DOMAINS = {
     "phind.com",
 }
 
+# GA4 metric names → (our metric_name, unit) for website-total aggregate
+_WEBSITE_METRIC_MAP = {
+    "sessions": ("sessions", "count"),
+    "totalUsers": ("users", "count"),
+    "newUsers": ("newUsers", "count"),
+    "bounceRate": ("bounceRate", "percentage"),
+    "engagedSessions": ("engagedSessions", "count"),
+    "screenPageViews": ("screenPageViews", "count"),
+    "averageSessionDuration": ("averageSessionDuration", "count"),
+    "conversions": ("conversions", "count"),
+}
+
+# Ordered list of GA4 metric names for website-total requests
+_WEBSITE_GA4_METRICS = list(_WEBSITE_METRIC_MAP.keys())
+
 
 class GoogleAnalyticsProvider(BaseMetricsProvider):
     """Extracts GA4 search traffic segmented into organic, direct,
-    and AI-search channels."""
+    and AI-search channels, plus site-wide website-total metrics."""
 
     def provider_name(self) -> str:
         return "google_analytics"
 
     def rate_limit_config(self) -> dict:
-        return {"requests_per_minute": 10, "burst_size": 5}
+        return {"requests_per_minute": 20, "burst_size": 10}
+
+    def _build_adapter(self, credentials: dict) -> GoogleAnalyticsAdapter:
+        """Build a GoogleAnalyticsAdapter from credentials."""
+        client_config = {
+            "client_id": credentials.get("client_id", ""),
+            "client_secret": credentials.get("client_secret", ""),
+        }
+        return GoogleAnalyticsAdapter(
+            client_config=client_config,
+            credentials_data=credentials,
+        )
 
     async def extract_metrics(
         self,
@@ -62,14 +91,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             return []
 
         try:
-            client_config = {
-                "client_id": credentials.get("client_id", ""),
-                "client_secret": credentials.get("client_secret", ""),
-            }
-            adapter = GoogleAnalyticsAdapter(
-                client_config=client_config,
-                credentials_data=credentials,
-            )
+            adapter = self._build_adapter(credentials)
 
             report = await adapter.run_report(
                 property_id=property_id,
@@ -82,11 +104,224 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 end_date=end_date.isoformat(),
             )
 
-            return self._segment_report(report, end_date)
+            results = self._segment_report(report, end_date)
+
+            # Website-total aggregate + enrichment metrics
+            results.extend(
+                await self._extract_website_aggregate(
+                    adapter, property_id, start_date, end_date
+                )
+            )
+            results.extend(
+                await self._extract_top_pages(
+                    adapter, property_id, start_date, end_date
+                )
+            )
+            results.extend(
+                await self._extract_traffic_sources(
+                    adapter, property_id, start_date, end_date
+                )
+            )
+            results.extend(
+                await self._extract_device_split(
+                    adapter, property_id, start_date, end_date
+                )
+            )
+
+            return results
         except Exception:
             logger.exception(
                 "ga_provider_extract_failed tenant=%s", tenant_id
             )
+            return []
+
+    # ── Website-total helpers ─────────────────────────────────────────
+
+    async def _extract_website_aggregate(
+        self,
+        adapter: GoogleAnalyticsAdapter,
+        property_id: str,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Site-wide totals with NO dimensions (aggregate across all traffic)."""
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=[],
+                metrics=_WEBSITE_GA4_METRICS,
+                start_date=start_date.isoformat(),
+                end_date=end_date.isoformat(),
+            )
+
+            metrics: List[ExtractedMetric] = []
+            for row in report.get("rows", []):
+                mets = row.get("metrics", [])
+                for i, ga4_name in enumerate(_WEBSITE_GA4_METRICS):
+                    if i >= len(mets):
+                        break
+                    metric_name, unit = _WEBSITE_METRIC_MAP[ga4_name]
+                    metrics.append(
+                        ExtractedMetric(
+                            provider="google_analytics",
+                            channel_slug="website-total",
+                            metric_name=metric_name,
+                            value=float(mets[i]),
+                            unit=unit,
+                            date=end_date,
+                        )
+                    )
+            return metrics
+        except Exception:
+            logger.exception("ga_website_aggregate_failed")
+            return []
+
+    async def _extract_top_pages(
+        self,
+        adapter: GoogleAnalyticsAdapter,
+        property_id: str,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Top 10 pages by screenPageViews."""
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=["pagePath"],
+                metrics=["screenPageViews"],
+                start_date=start_date.isoformat(),
+                end_date=end_date.isoformat(),
+            )
+
+            pages: List[Dict] = []
+            for row in report.get("rows", []):
+                dims = row.get("dimensions", [])
+                mets = row.get("metrics", [])
+                if dims and mets:
+                    pages.append({
+                        "path": dims[0],
+                        "views": int(float(mets[0])),
+                    })
+
+            # Sort descending by views, take top 10
+            pages.sort(key=lambda p: p["views"], reverse=True)
+            pages = pages[:10]
+
+            if not pages:
+                return []
+
+            return [
+                ExtractedMetric(
+                    provider="google_analytics",
+                    channel_slug="website-total",
+                    metric_name="top_pages",
+                    value=0.0,
+                    unit="json",
+                    date=end_date,
+                    extra={"pages": pages},
+                )
+            ]
+        except Exception:
+            logger.exception("ga_top_pages_failed")
+            return []
+
+    async def _extract_traffic_sources(
+        self,
+        adapter: GoogleAnalyticsAdapter,
+        property_id: str,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Traffic sources by sessionDefaultChannelGroup."""
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=["sessionDefaultChannelGroup"],
+                metrics=["sessions"],
+                start_date=start_date.isoformat(),
+                end_date=end_date.isoformat(),
+            )
+
+            sources: List[Dict] = []
+            for row in report.get("rows", []):
+                dims = row.get("dimensions", [])
+                mets = row.get("metrics", [])
+                if dims and mets:
+                    sources.append({
+                        "channel": dims[0],
+                        "sessions": int(float(mets[0])),
+                    })
+
+            # Sort descending by sessions
+            sources.sort(key=lambda s: s["sessions"], reverse=True)
+
+            if not sources:
+                return []
+
+            return [
+                ExtractedMetric(
+                    provider="google_analytics",
+                    channel_slug="website-total",
+                    metric_name="traffic_sources",
+                    value=0.0,
+                    unit="json",
+                    date=end_date,
+                    extra={"sources": sources},
+                )
+            ]
+        except Exception:
+            logger.exception("ga_traffic_sources_failed")
+            return []
+
+    async def _extract_device_split(
+        self,
+        adapter: GoogleAnalyticsAdapter,
+        property_id: str,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Device category split as percentages (mobile/desktop/tablet)."""
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=["deviceCategory"],
+                metrics=["sessions"],
+                start_date=start_date.isoformat(),
+                end_date=end_date.isoformat(),
+            )
+
+            device_counts: Dict[str, float] = {}
+            total = 0.0
+            for row in report.get("rows", []):
+                dims = row.get("dimensions", [])
+                mets = row.get("metrics", [])
+                if dims and mets:
+                    count = float(mets[0])
+                    device_counts[dims[0].lower()] = count
+                    total += count
+
+            if total == 0:
+                return []
+
+            split = {
+                "mobile": round(device_counts.get("mobile", 0) / total * 100, 1),
+                "desktop": round(device_counts.get("desktop", 0) / total * 100, 1),
+                "tablet": round(device_counts.get("tablet", 0) / total * 100, 1),
+            }
+
+            return [
+                ExtractedMetric(
+                    provider="google_analytics",
+                    channel_slug="website-total",
+                    metric_name="device_split",
+                    value=0.0,
+                    unit="json",
+                    date=end_date,
+                    extra=split,
+                )
+            ]
+        except Exception:
+            logger.exception("ga_device_split_failed")
             return []
 
     def _segment_report(
@@ -176,21 +411,15 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> List[ExtractedMetric]:
-        """Optimized daily extraction — single GA4 API call with date dimension."""
+        """Optimized daily extraction — GA4 API calls with date dimension."""
         property_id = credentials.get("property_id")
         if not property_id:
             return []
 
         try:
-            client_config = {
-                "client_id": credentials.get("client_id", ""),
-                "client_secret": credentials.get("client_secret", ""),
-            }
-            adapter = GoogleAnalyticsAdapter(
-                client_config=client_config,
-                credentials_data=credentials,
-            )
+            adapter = self._build_adapter(credentials)
 
+            # Segmented report (source/medium + date)
             report = await adapter.run_report(
                 property_id=property_id,
                 dimensions=["sessionSource", "sessionMedium", "date"],
@@ -202,11 +431,70 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 end_date=end_date.isoformat(),
             )
 
-            return self._segment_report_daily(report)
+            results = self._segment_report_daily(report)
+
+            # Website-total daily (date only, no source/medium)
+            results.extend(
+                await self._extract_website_daily(
+                    adapter, property_id, start_date, end_date
+                )
+            )
+
+            return results
         except Exception:
             logger.exception(
                 "ga_provider_extract_daily_failed tenant=%s", tenant_id
             )
+            return []
+
+    async def _extract_website_daily(
+        self,
+        adapter: GoogleAnalyticsAdapter,
+        property_id: str,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Website-total metrics per day — date dimension only, no source/medium."""
+        from datetime import datetime as dt
+
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=["date"],
+                metrics=_WEBSITE_GA4_METRICS,
+                start_date=start_date.isoformat(),
+                end_date=end_date.isoformat(),
+            )
+
+            metrics: List[ExtractedMetric] = []
+            for row in report.get("rows", []):
+                dims = row.get("dimensions", [])
+                mets = row.get("metrics", [])
+                if not dims or len(mets) < 2:
+                    continue
+
+                try:
+                    metric_date = dt.strptime(dims[0], "%Y%m%d").date()
+                except ValueError:
+                    continue
+
+                for i, ga4_name in enumerate(_WEBSITE_GA4_METRICS):
+                    if i >= len(mets):
+                        break
+                    metric_name, unit = _WEBSITE_METRIC_MAP[ga4_name]
+                    metrics.append(
+                        ExtractedMetric(
+                            provider="google_analytics",
+                            channel_slug="website-total",
+                            metric_name=metric_name,
+                            value=float(mets[i]),
+                            unit=unit,
+                            date=metric_date,
+                        )
+                    )
+            return metrics
+        except Exception:
+            logger.exception("ga_website_daily_failed")
             return []
 
     def _segment_report_daily(

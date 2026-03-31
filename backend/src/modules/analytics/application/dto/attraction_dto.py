@@ -28,6 +28,14 @@ class MetricValueDTO(BaseModel):
     breakdown: Optional[dict] = None
 
 
+class SubSourceDTO(BaseModel):
+    """Breakdown of a unified channel by data source (e.g., Meta Direct vs ManyChat)."""
+
+    name: str    # "Meta Direct", "ManyChat"
+    leads: int
+    conversations: int = 0
+
+
 class ChannelMetricDTO(BaseModel):
     """Metric data for a single channel, carrying multiple named metrics.
 
@@ -55,6 +63,9 @@ class ChannelMetricDTO(BaseModel):
     source_display_name: Optional[str] = None  # "Visionarias_Lat", "Visionarias Latam"
     provider_name: Optional[str] = None         # "google_analytics", "youtube", "meta"
 
+    # Sub-source breakdown (e.g., Meta Direct + ManyChat for unified IG DM card)
+    sub_sources: Optional[list["SubSourceDTO"]] = None
+
     @computed_field  # type: ignore[misc]
     @property
     def value(self) -> float:
@@ -79,19 +90,21 @@ class AvailableChannelsDTO(BaseModel):
 
 
 class AttractionDetailDTO(BaseModel):
-    """Full attraction stage detail with 4 channel groups.
+    """Full attraction stage detail with 5 channel groups.
 
     Groups match CONTEXT.md headers:
     - organic_social: Instagram, YouTube, Facebook, TikTok, LinkedIn
     - ga4_search: Google Organic, Direct, AI Search Organic
     - paid: Meta Ads, Google Ads, TikTok Ads, YouTube Ads
     - outbound: Cold Contact
+    - website: Site-wide aggregate (GA4 website-total, Meta Pixel)
     """
 
     organic_social: TrafficGroupDTO
     ga4_search: TrafficGroupDTO
     paid: TrafficGroupDTO
     outbound: TrafficGroupDTO
+    website: Optional[TrafficGroupDTO] = None
     available: Optional[AvailableChannelsDTO] = None
     period: str = "last_30_days"
     last_updated: Optional[str] = None

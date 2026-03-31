@@ -1,11 +1,11 @@
 from typing import List, Optional, Union, Dict, Type, Any
 from uuid import UUID
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, computed_field
 from src.shared.domain.base_entity import BaseEntity
 from src.modules.offer.domain.enums import (
-    OfferType, OfferDeliveryModel, GuaranteeType, OfferStatus, DeliverableFormat,
+    OfferType, OfferArchetype, OfferDeliveryModel, GuaranteeType, OfferStatus, DeliverableFormat,
     OfferValueLevel, PaymentPlanType, AccessDuration, PrerequisiteType, OnboardingMechanism,
-    OFFER_METADATA
+    OFFER_METADATA, ARCHETYPE_DEFAULT_DELIVERY
 )
 from src.modules.crm.domain.enums import FinancialCapacity, AvatarPersona
 from src.modules.landing.domain.content import LandingPageConfig
@@ -13,7 +13,16 @@ from src.modules.offer.domain.details import (
     ProductDetails, ServiceDetails, ProgramDetails, SubscriptionDetails, EventDetails
 )
 
-# --- MAPPING ---
+# --- ARCHETYPE → DETAILS MAPPING ---
+ARCHETYPE_TO_DETAILS_MAPPING: Dict[OfferArchetype, Type[BaseEntity]] = {
+    OfferArchetype.PRODUCTO: ProductDetails,
+    OfferArchetype.PROGRAMA: ProgramDetails,
+    OfferArchetype.SERVICIO: ServiceDetails,
+    OfferArchetype.MEMBRESIA: SubscriptionDetails,
+    OfferArchetype.EXPERIENCIA: EventDetails,
+}
+
+# --- LEGACY TYPE → DETAILS MAPPING ---
 OFFER_TYPE_TO_DETAILS_MAPPING: Dict[OfferType, Type[BaseEntity]] = {
     # LEVEL 0
     OfferType.FREE_RESOURCE: ProductDetails,
@@ -82,10 +91,15 @@ class Offer(BaseEntity):
     La Entidad Oferta Maestra con Detalles Polimórficos.
     """
     id: Optional[UUID] = None
-    tenant_id: Optional[UUID] = None # Added for consistency with other modules
+    tenant_id: Optional[UUID] = None
     internal_sku: str
     public_name: str
     type: OfferType
+
+    # New archetype system (nullable for legacy data)
+    archetype: Optional[OfferArchetype] = None
+    format_hint: Optional[str] = None
+    is_lead_magnet: bool = False
     
     value_level: Optional[OfferValueLevel] = Field(None, validation_alias="offer_value_level")
     delivery_model: Optional[OfferDeliveryModel] = None
@@ -135,30 +149,50 @@ class Offer(BaseEntity):
 
     landing_page_config: Optional[LandingPageConfig] = None
 
+    @computed_field
+    @property
+    def shows_as_lead_magnet(self) -> bool:
+        """Auto-detect from price OR manual flag."""
+        if self.is_lead_magnet:
+            return True
+        if self.pricing_options:
+            return all(p.total_amount == 0 for p in self.pricing_options)
+        return self.value_level == OfferValueLevel.LEVEL_0_FREE
+
     @model_validator(mode='after')
     def validate_consistency(self):
-        if not self.type:
-            return self
+        # Dual dispatch: archetype takes priority over legacy type
+        if self.archetype:
+            # Archetype-based dispatch
+            if self.delivery_model is None:
+                self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
 
-        meta = OFFER_METADATA.get(self.type.value, {})
-        expected_level = meta.get("level")
-        default_delivery = meta.get("default_delivery")
+            expected_detail_class = ARCHETYPE_TO_DETAILS_MAPPING.get(self.archetype)
+            if expected_detail_class and self.specific_details is not None:
+                if not isinstance(self.specific_details, expected_detail_class):
+                    raise ValueError(
+                        f"Polymorphism Error: Archetype {self.archetype.value} expects "
+                        f"{expected_detail_class.__name__}, got {type(self.specific_details).__name__}"
+                    )
+        elif self.type:
+            # Legacy type-based dispatch
+            meta = OFFER_METADATA.get(self.type.value, {})
+            expected_level = meta.get("level")
+            default_delivery = meta.get("default_delivery")
 
-        if self.value_level is None:
-            self.value_level = expected_level
-        elif expected_level and self.value_level != expected_level:
-            # Relaxed for now to avoid migration issues, but could be strict
-            pass
+            if self.value_level is None:
+                self.value_level = expected_level
 
-        if self.delivery_model is None:
-            self.delivery_model = default_delivery
-        
-        expected_detail_class = OFFER_TYPE_TO_DETAILS_MAPPING.get(self.type)
-        
-        if expected_detail_class and self.specific_details is not None:
-            if not isinstance(self.specific_details, expected_detail_class):
-                # Pydantic v2 usually handles coercion if possible, but strict type check:
-                raise ValueError(f"Polymorphism Error: Expected {expected_detail_class.__name__}, got {type(self.specific_details).__name__}")
+            if self.delivery_model is None:
+                self.delivery_model = default_delivery
+
+            expected_detail_class = OFFER_TYPE_TO_DETAILS_MAPPING.get(self.type)
+            if expected_detail_class and self.specific_details is not None:
+                if not isinstance(self.specific_details, expected_detail_class):
+                    raise ValueError(
+                        f"Polymorphism Error: Expected {expected_detail_class.__name__}, "
+                        f"got {type(self.specific_details).__name__}"
+                    )
 
         return self
 

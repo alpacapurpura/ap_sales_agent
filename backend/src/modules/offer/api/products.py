@@ -36,12 +36,21 @@ async def list_products(
 
 @router.post("/", response_model=Offer)
 async def create_product(
-    product: ProductCreate, 
+    product: ProductCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
     service = OfferService(db)
-    return service.create_offer(name=product.name, offer_type=product.type, tenant_id=user.tenant_id)
+    return service.create_offer(
+        name=product.name,
+        tenant_id=user.tenant_id,
+        offer_type=product.type,
+        archetype=product.archetype,
+        format_hint=product.format_hint,
+        is_lead_magnet=product.is_lead_magnet,
+        headline_promise=product.headline_promise or "",
+        avatar_id=product.avatar_id,
+    )
 
 @router.get("/{product_id}", response_model=Offer)
 async def get_product(

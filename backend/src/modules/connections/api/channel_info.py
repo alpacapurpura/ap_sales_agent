@@ -32,6 +32,7 @@ _PROVIDER_CHANNEL_TYPES: dict[str, list[ChannelType]] = {
     "mailerlite": [ChannelType.MAILERLITE],
     "manychat": [ChannelType.MANYCHAT],
     "shopify": [ChannelType.SHOPIFY],
+    "meta_pixel": [ChannelType.META_PIXEL],
 }
 
 # Maps provider -> config keys that indicate it's fully configured
@@ -40,6 +41,7 @@ _CONFIG_REQUIRED: dict[str, list[str]] = {
     "youtube": ["channel_id"],
     "meta": [],  # Just needs active connection
     "google_ads": ["property_id"],
+    "meta_pixel": [],  # Just needs active connection (child of Meta OAuth)
 }
 
 # Maps provider -> config keys for display name
@@ -50,6 +52,7 @@ _DISPLAY_NAME_KEYS: dict[str, str] = {
     "google_ads": "property_display_name",
     "shopify": "shop_name",
     "mailerlite": "account_name",
+    "meta_pixel": "pixel_name",
 }
 
 # Maps provider -> config keys for account name
@@ -110,6 +113,12 @@ def _build_details(provider: str, config: dict, credentials: dict) -> dict:
         return {
             "shop_url": config.get("shop_url"),
             "shop_name": (config.get("shop_info") or {}).get("name"),
+        }
+    elif provider == "meta_pixel":
+        return {
+            "pixel_id": config.get("asset_id"),
+            "pixel_name": config.get("pixel_name"),
+            "linked_ad_account_id": config.get("linked_ad_account_id"),
         }
     return {}
 

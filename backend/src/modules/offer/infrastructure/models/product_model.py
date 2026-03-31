@@ -17,9 +17,14 @@ class ProductModel(Base):
     # Core Fields
     name = Column(String, nullable=False) # Maps to public_name
     type = Column(String, nullable=False)
-    status = Column(String, default="DRAFT")
+    status = Column(String, default="draft")
     internal_sku = Column(String, nullable=True)
-    value_level = Column("offer_value_level", String, nullable=True) # Added for OfferValueLevel
+    value_level = Column("offer_value_level", String, nullable=True)
+
+    # Archetype system
+    archetype = Column(String, nullable=True)
+    format_hint = Column(String, nullable=True)
+    is_lead_magnet = Column(Boolean, default=False, server_default="false")
     
     # Polymorphic Content Fields
     pricing = Column(JSONB, default=list) # List of PricingStructure
