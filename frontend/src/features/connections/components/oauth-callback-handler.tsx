@@ -31,12 +31,14 @@ export function OAuthCallbackHandler({ provider = "auto" }: OAuthCallbackHandler
         ? OAUTH_MESSAGE_TYPES.META_SUCCESS
         : OAUTH_MESSAGE_TYPES.GOOGLE_SUCCESS;
       window.opener.postMessage({ type: messageType, code }, window.location.origin);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- fire-and-forget OAuth popup; no re-render alternative
       setStatus("success");
     } else if (error) {
       const messageType = isMetaCallback
         ? OAUTH_MESSAGE_TYPES.META_ERROR
         : OAUTH_MESSAGE_TYPES.GOOGLE_ERROR;
       window.opener.postMessage({ type: messageType, error }, window.location.origin);
+       
       setStatus("error");
     }
 

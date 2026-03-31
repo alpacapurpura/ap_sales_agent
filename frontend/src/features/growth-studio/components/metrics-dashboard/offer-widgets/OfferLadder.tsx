@@ -101,9 +101,10 @@ function OfferCard({
           onMetricClick({
             stageId: 'VENTAS',
             channelSlug: offer.offerId,
-            metricName: 'revenue',
+            metricName: 'offer_detail',
             currentValue: offer.totalRevenue,
             currency: currency,
+            extraData: { salesCount: offer.salesCount },
           });
         }
       }}
@@ -347,9 +348,10 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
                       onMetricClick({
                         stageId: 'VENTAS',
                         channelSlug: offer.offerId,
-                        metricName: 'revenue',
+                        metricName: 'offer_detail',
                         currentValue: offer.totalRevenue,
                         currency: currency,
+                        extraData: { salesCount: offer.salesCount },
                       });
                     }
                   }}

@@ -2,21 +2,45 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useAttractionDetail, useCaptureDetail, useStageTimeSeries } from '../../../hooks/useStageDetail';
-import { useMetaInitialLoad } from '../../../hooks/useMetaInitialLoad';
+import { useSyncAllSources } from '../../../hooks/useSyncAllSources';
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailError from '../ui/DetailError';
-import type { MetricClickData, StageTimeSeries } from '../../../types/metrics';
+import type { MetricClickData, StageTimeSeries as TSType, ChannelMetric } from '../../../types/metrics';
 import { Button } from '@/components/ui/button';
-import { Settings, Download, Loader2, CheckCircle2, Plug } from 'lucide-react';
-import { BrandIcon } from '@/components/ui/brand-icons';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings, RefreshCw, Loader2, CheckCircle2, Plug, Zap, AlertCircle } from 'lucide-react';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { AttractionScorecards } from '../attraction/AttractionScorecards';
 import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
-import { ChannelComparisonChart } from '../attraction/ChannelComparisonChart';
+import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
+import { ConversionBridge } from '../attraction/ConversionBridge';
+import { ChannelGroup, type ChannelGroupVariant } from '../attraction/ChannelGroup';
+import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
 
-/** Mobile-only expandable chart section — hidden on md+ */
-function MobileChartsExpand({ timeSeries, tsLoading }: { timeSeries: StageTimeSeries | undefined; tsLoading: boolean }) {
+// ─── Filter type ─────────────────────────────────────────────────────────────
+
+type AttractionFilter = 'todos' | 'pagado' | 'organico';
+
+// ─── Helper ──────────────────────────────────────────────────────────────────
+
+function getMetric(metrics: { name: string; value: number }[], name: string): number {
+  return metrics.find((m) => m.name === name)?.value ?? 0;
+}
+
+// ─── Mobile Charts Expand ────────────────────────────────────────────────────
+
+function MobileChartsExpand({
+  timeSeries,
+  tsLoading,
+  captureChannels,
+  capLoading,
+}: {
+  timeSeries: TSType | undefined;
+  tsLoading: boolean;
+  captureChannels: ChannelMetric[];
+  capLoading: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -32,33 +56,43 @@ function MobileChartsExpand({ timeSeries, tsLoading }: { timeSeries: StageTimeSe
       {expanded && (
         <div className="mt-4 space-y-4">
           <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
-          <ChannelComparisonChart timeSeries={timeSeries} isLoading={tsLoading} />
+          <CaptureBreakdownChart channels={captureChannels} isLoading={capLoading} />
         </div>
       )}
     </div>
   );
 }
 
+// ─── Main Component ──────────────────────────────────────────────────────────
+
 interface AttractionCaptureDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
   onConfigure?: (slug: string, name: string) => void;
 }
 
-export const AttractionCaptureDetail = React.memo(function AttractionCaptureDetail({ onMetricClick, onConfigure }: AttractionCaptureDetailProps) {
+export const AttractionCaptureDetail = React.memo(function AttractionCaptureDetail({
+  onMetricClick,
+  onConfigure,
+}: AttractionCaptureDetailProps) {
   const { data: attrData, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useAttractionDetail();
   const { data: capData, isLoading: capLoading, error: capError, refetch: refetchCap } = useCaptureDetail();
-  const { trigger: triggerLoad, isLoading: isLoadingMeta, result: loadResult } = useMetaInitialLoad();
+  const { trigger: triggerSync, isLoading: isSyncing, result: syncResult, error: syncError, reset: resetSync } = useSyncAllSources();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [rangeDays, setRangeDays] = useState(30);
+  const [attrFilter, setAttrFilter] = useState<AttractionFilter>('todos');
+  const [sidebarChannel, setSidebarChannel] = useState<ChannelMetric | null>(null);
   const granularity = rangeDays >= 90 ? 'weekly' : 'daily';
-  const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries('attraction', 'visitors', rangeDays, granularity);
+  const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries('attraction', 'reach', rangeDays, granularity);
+
+  // ─── Computed totals ─────────────────────────────────────────────────────
 
   const { totalReach, totalVisitors, totalSpend } = useMemo(() => {
     if (!attrData) return { totalReach: 0, totalVisitors: 0, totalSpend: 0 };
     const attrGroups = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound];
+    const websiteUsers = attrData.website?.totals.users;
     return {
       totalReach: attrGroups.reduce((sum, g) => sum + (g.totals.reach ?? 0), 0),
-      totalVisitors: attrGroups.reduce((sum, g) => sum + (g.totals.visitors ?? g.totals.sessions ?? 0), 0),
+      totalVisitors: websiteUsers ?? attrGroups.reduce((sum, g) => sum + (g.totals.visitors ?? g.totals.sessions ?? 0), 0),
       totalSpend: attrGroups.reduce((sum, g) => sum + (g.totals.spend ?? 0), 0),
     };
   }, [attrData]);
@@ -66,284 +100,335 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   const totalLeads = capData?.headerKpis.totalLeads || 0;
   const leadConvRate = useMemo(() => totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0, [totalVisitors, totalLeads]);
 
-  const combinedOrganic = useMemo(() => [
+  // ─── Channel groupings ──────────────────────────────────────────────────
+
+  const paidChannels = useMemo(() => attrData?.paid.channels || [], [attrData?.paid.channels]);
+  const organicChannels = useMemo(() => [
     ...(attrData?.organicSocial.channels || []),
     ...(attrData?.ga4Search.channels || []),
   ], [attrData?.organicSocial.channels, attrData?.ga4Search.channels]);
+  const outboundChannels = useMemo(() => attrData?.outbound.channels || [], [attrData?.outbound.channels]);
 
-  const captureChannels = useMemo(() => [
-    ...(capData?.webInfrastructure.channels || []),
-    ...(capData?.aiAgent.channels || []),
-  ], [capData?.webInfrastructure.channels, capData?.aiAgent.channels]);
+  // ─── Website synthetic channel (always present) ────────────────────────
+  const websiteChannel: ChannelMetric = useMemo(() => {
+    const ws = attrData?.website;
+    const totals = ws?.totals ?? {};
+    const channels = ws?.channels ?? [];
+    const hasGA4 = channels.some(ch => ch.slug === 'website-total');
+    const hasPixel = channels.some(ch => ch.slug === 'meta-pixel');
+    const hasData = hasGA4 || hasPixel;
 
-  const handleMetricClick = useCallback((stageId: 'ATRACCION' | 'CAPTURA', channel: any, metricName: string, val: number) => {
-    if (onMetricClick) {
-      onMetricClick({
-        stageId,
-        channelSlug: channel.slug,
-        channelName: channel.name,
-        metricName,
-        currentValue: val,
-        channelMetrics: channel.metrics
-      });
+    const sessions = totals.sessions ?? 0;
+    const engaged = totals.engagedSessions ?? 0;
+    const engagementRate = sessions > 0 ? (engaged / sessions) * 100 : 0;
+
+    const sourceLabel = hasGA4 && hasPixel ? 'GA4 + Meta Pixel' : hasGA4 ? 'GA4' : hasPixel ? 'Meta Pixel' : 'Sin fuente de datos';
+
+    return {
+      slug: 'website-overview',
+      name: 'Tu Sitio Web',
+      channelType: 'website',
+      connected: hasData,
+      sourceLabel,
+      providerName: hasGA4 ? 'google_analytics' : hasPixel ? 'meta_pixel' : undefined,
+      metrics: [
+        { name: 'users', value: totals.users ?? 0 },
+        { name: 'sessions', value: sessions },
+        { name: 'engagementRate', value: engagementRate, unit: 'percentage' },
+        { name: 'bounceRate', value: totals.bounceRate ?? 0, unit: 'percentage' },
+        { name: 'avgSessionDuration', value: totals.averageSessionDuration ?? 0, unit: 'seconds' },
+        { name: 'screenPageViews', value: totals.screenPageViews ?? 0 },
+        { name: 'newUsers', value: totals.newUsers ?? 0 },
+      ],
+    };
+  }, [attrData?.website]);
+
+  const webCaptureChannels = useMemo(() => [websiteChannel, ...(capData?.webInfrastructure.channels || [])], [websiteChannel, capData?.webInfrastructure.channels]);
+  const messagingCaptureChannels = useMemo(() => capData?.aiAgent.channels || [], [capData?.aiAgent.channels]);
+  const allCaptureChannels = useMemo(
+    () => [...webCaptureChannels, ...messagingCaptureChannels],
+    [webCaptureChannels, messagingCaptureChannels],
+  );
+
+  const availableChannels = useMemo(() => [
+    ...(attrData?.available?.channels || []),
+    ...(capData?.available?.channels || []),
+  ], [attrData?.available?.channels, capData?.available?.channels]);
+
+  // ─── Max primary values for proportional bars ───────────────────────────
+
+  const maxAttractionPrimary = useMemo(() => {
+    const allAttrChannels = [...paidChannels, ...organicChannels, ...outboundChannels];
+    let max = 0;
+    for (const ch of allAttrChannels) {
+      const reach = getMetric(ch.metrics, 'reach') || getMetric(ch.metrics, 'sessions') || getMetric(ch.metrics, 'impressions') || getMetric(ch.metrics, 'contacts') || getMetric(ch.metrics, 'comment_triggers');
+      if (reach > max) max = reach;
     }
-  }, [onMetricClick]);
+    return max;
+  }, [paidChannels, organicChannels, outboundChannels]);
+
+  const maxCapturePrimary = useMemo(() => {
+    let max = 0;
+    for (const ch of allCaptureChannels) {
+      const leads = getMetric(ch.metrics, 'leads');
+      if (leads > max) max = leads;
+    }
+    return max;
+  }, [allCaptureChannels]);
+
+  // ─── Summary strings ───────────────────────────────────────────────────
+
+  const paidSummary = useMemo(() => {
+    const reach = paidChannels.reduce((s, ch) => s + (getMetric(ch.metrics, 'reach') || getMetric(ch.metrics, 'impressions')), 0);
+    return `${reach.toLocaleString('es-ES')} alcance`;
+  }, [paidChannels]);
+
+  const paidSpendSummary = useMemo(() => {
+    const spend = paidChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'spend'), 0);
+    return spend > 0 ? `$${spend.toLocaleString('es-ES')} invertidos` : undefined;
+  }, [paidChannels]);
+
+  const organicSummary = useMemo(() => {
+    const reach = organicChannels.reduce((s, ch) => s + (getMetric(ch.metrics, 'reach') || getMetric(ch.metrics, 'sessions')), 0);
+    return `${reach.toLocaleString('es-ES')} alcance total`;
+  }, [organicChannels]);
+
+  const webCaptureSummary = useMemo(() => {
+    const leads = webCaptureChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'leads'), 0);
+    const pct = totalLeads > 0 ? ((leads / totalLeads) * 100).toFixed(1) : '0';
+    return `${leads} leads (${pct}%)`;
+  }, [webCaptureChannels, totalLeads]);
+
+  const msgCaptureSummary = useMemo(() => {
+    const leads = messagingCaptureChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'leads'), 0);
+    const pct = totalLeads > 0 ? ((leads / totalLeads) * 100).toFixed(1) : '0';
+    return `${leads} leads (${pct}%)`;
+  }, [messagingCaptureChannels, totalLeads]);
+
+  // ─── Handlers ──────────────────────────────────────────────────────────
+
+  const handleChannelClick = useCallback((channel: ChannelMetric) => {
+    setSidebarChannel(channel);
+  }, []);
+
+  // ─── Loading / Error / Empty ────────────────────────────────────────────
 
   if (attrLoading || capLoading) {
-    return (
-      <DetailSkeleton isLoading>
-        <></>
-      </DetailSkeleton>
-    );
+    return <DetailSkeleton isLoading><></></DetailSkeleton>;
   }
 
   if (attrError || capError) {
     return (
       <DetailError
         error={attrError instanceof Error ? attrError : (capError instanceof Error ? capError : new Error('Error desconocido'))}
-        onRetry={() => {
-          void refetchAttr();
-          void refetchCap();
-        }}
+        onRetry={() => { void refetchAttr(); void refetchCap(); }}
         lastData={attrData || capData}
       />
     );
   }
 
-  // Si no hay datos (empty state base)
   if (!attrData || !capData) return null;
 
-  // Formatters
-  const formatNum = (num: number) => num.toLocaleString('es-ES');
-  const formatMoney = (num: number) => `$${num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-
-  // Helpers to get specific metrics
-  const getMetric = (metrics: any[], name: string) => metrics.find((m) => m.name === name)?.value ?? 0;
-
-  // Organizar canales
-  const paidChannels = attrData.paid.channels;
-  const availableChannels = attrData.available?.channels || [];
-
-  const ChannelRow = ({ channel, stageId, defaultMetricName, defaultMetricLabel }: { channel: any, stageId: 'ATRACCION' | 'CAPTURA', defaultMetricName: string, defaultMetricLabel: string }) => {
-    if (!channel.connected) {
-      // Disponible (Available) style
-      return (
-        <div className="bg-card text-card-foreground border border-border text-center p-3 rounded-md hover:bg-muted cursor-pointer transition-colors shadow-sm flex flex-col items-center justify-center gap-2"
-          onClick={() => onConfigure && onConfigure(channel.slug, channel.name)}>
-          <span className="text-xl">⚡</span>
-          <span className="text-xs font-medium text-foreground">{channel.name}</span>
-        </div>
-      );
-    }
-
-    const hasData = channel.metrics && channel.metrics.length > 0 && channel.metrics.some((m: any) => m.value > 0);
-
-    // Pick icon and color based on channel slug or type
-    let Icon: React.ReactNode = '🔹';
-    
-    // We'll use specific colors for logos but semantic colors for default backgrounds where possible.
-    let bgColor = 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
-    let borderColor = 'hover:border-blue-300 dark:hover:border-blue-700';
-    
-    if (channel.slug.includes('meta') || channel.slug.includes('fb') || channel.slug.includes('ig') || channel.slug.includes('instagram')) {
-      Icon = <BrandIcon name={channel.slug} className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
-      bgColor = 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
-    } else if (channel.slug.includes('google') || channel.slug.includes('yt') || channel.slug.includes('youtube')) {
-      Icon = <BrandIcon name={channel.slug} className="w-5 h-5 text-red-600 dark:text-red-400" />;
-      bgColor = 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
-      borderColor = 'hover:border-red-300 dark:hover:border-red-700';
-    } else if (channel.slug.includes('whatsapp') || channel.slug.includes('wa')) {
-      Icon = <BrandIcon name={channel.slug} className="w-5 h-5 text-green-600 dark:text-green-400" />;
-      bgColor = 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400';
-      borderColor = 'hover:border-green-300 dark:hover:border-green-700';
-    } else if (channel.slug.includes('linkedin') || channel.slug.includes('tiktok') || channel.slug.includes('manychat')) {
-      Icon = <BrandIcon name={channel.slug} className="w-5 h-5" />;
-      bgColor = 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
-      borderColor = 'hover:border-slate-300 dark:hover:border-slate-600';
-    } else {
-      bgColor = 'bg-muted text-muted-foreground';
-      borderColor = 'hover:border-input';
-      Icon = '❖';
-    }
-
-    if (!hasData) {
-      return (
-        <div 
-          className="border border-border rounded-md p-3 justify-between items-center bg-muted/30 hover:bg-muted/60 transition-colors flex cursor-pointer"
-          onClick={() => handleMetricClick(stageId, channel, defaultMetricName, 0)}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded flex items-center justify-center font-bold ${bgColor}`}>{Icon}</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{channel.name}</p>
-              <p className="text-[10px] text-amber-600 dark:text-amber-500 font-semibold">Conectado, sin campañas</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-bold text-muted-foreground underline decoration-dashed underline-offset-4">
-              0
-            </p>
-            <p className="text-[10px] text-muted-foreground">{defaultMetricLabel}</p>
-          </div>
-        </div>
-      );
-    }
-
-    const mainVal = getMetric(channel.metrics, defaultMetricName) || getMetric(channel.metrics, 'reach') || getMetric(channel.metrics, 'visitors');
-    let fallbackLabel = defaultMetricLabel;
-    if (getMetric(channel.metrics, defaultMetricName) === 0 && getMetric(channel.metrics, 'reach') > 0) {
-      fallbackLabel = 'alcance';
-    }
-
-    return (
-      <div 
-        className={`border border-border rounded-md p-3 flex justify-between items-center bg-card transition-colors group cursor-pointer ${borderColor}`}
-        onClick={() => handleMetricClick(stageId, channel, defaultMetricName, mainVal)}
-      >
-        <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded flex items-center justify-center font-bold ${bgColor}`}>{Icon}</div>
-          <div>
-            <p className="text-sm font-medium text-foreground">{channel.name}</p>
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-500">Activo</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-bold text-foreground transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400 underline decoration-dashed underline-offset-4">
-            {formatNum(mainVal)}
-          </p>
-          <p className="text-[10px] text-muted-foreground">{fallbackLabel}</p>
-        </div>
-      </div>
-    );
-  };
+  const isEmpty = totalReach === 0 && totalVisitors === 0 && totalLeads === 0;
 
   return (
-    <div className="space-y-12 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
-      
-      {/* Title & Actions Row */}
+    <div className="space-y-6 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
+
+      {/* ═══ Header ═══ */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            Atracción &amp; Captura
-            <span className="px-2 py-0.5 mt-1 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs font-medium tracking-wide">ETAPA 1 y 2</span>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            Atraccion &amp; Captura
+            <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs font-medium tracking-wide">
+              ETAPA 1 y 2
+            </span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Tráfico, alcance y conversión a leads desde todos tus canales.</p>
+          <p className="text-muted-foreground text-sm mt-1">Tu embudo de adquisicion de leads</p>
         </div>
         <div className="flex items-center gap-3">
-           <Button variant="outline" onClick={() => triggerLoad(30)} disabled={isLoadingMeta}>
-             {isLoadingMeta ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (loadResult ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Download className="mr-2 h-4 w-4" />)}
-             {loadResult ? 'Datos Meta OK' : 'Datos Meta'}
-           </Button>
-           <Button onClick={() => setIsPanelOpen(true)}>
-             <Settings className="mr-2 h-4 w-4" /> Gestionar Etapa
-           </Button>
+          <Button
+            variant={syncError ? 'destructive' : 'outline'}
+            size="sm"
+            onClick={() => { if (syncError) resetSync(); triggerSync(30); }}
+            disabled={isSyncing}
+          >
+            {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : syncError ? <AlertCircle className="mr-2 h-4 w-4" /> : (syncResult ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <RefreshCw className="mr-2 h-4 w-4" />)}
+            {isSyncing ? 'Sincronizando...' : syncError ? 'Error — Reintentar' : syncResult ? (syncResult.total_loaded > 0 ? `${syncResult.providers_synced} fuentes, ${syncResult.total_loaded} dias` : 'Todo al dia') : 'Sincronizar'}
+          </Button>
+          <Button size="sm" onClick={() => setIsPanelOpen(true)}>
+            <Settings className="mr-2 h-4 w-4" /> Gestionar
+          </Button>
         </div>
       </div>
 
       <ActionPanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
 
-      {/* Scorecards + Charts Section */}
-      {totalReach === 0 && totalVisitors === 0 && totalLeads === 0 ? (
+      {/* ═══ Empty State ═══ */}
+      {isEmpty ? (
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <div className="text-center py-12 px-4 rounded-xl border-2 border-dashed border-border bg-muted/50">
             <Plug className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-foreground mb-1">Tu ecosistema digital esta vacio</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto mb-4">Conecta tus primeros canales de atraccion para empezar a medir todo en un solo lugar.</p>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-4">
+              Conecta tus primeros canales de atraccion para empezar a medir todo en un solo lugar.
+            </p>
           </div>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Date Range Picker */}
+        <>
+          {/* ═══ Date Range ═══ */}
           <div className="flex items-center justify-end">
             <DateRangePicker rangeDays={rangeDays} onRangeChange={setRangeDays} />
           </div>
 
-          {/* KPI Scorecards with sparklines */}
+          {/* ═══ Section 1: Hero KPI Strip ═══ */}
           <AttractionScorecards
             timeSeries={timeSeries}
             totalReach={totalReach}
             totalVisitors={totalVisitors}
             totalLeads={totalLeads}
             leadConvRate={leadConvRate}
+            totalSpend={totalSpend}
           />
 
-          {/* Charts: Stacked Area + Horizontal Bar side by side */}
-          <div className="hidden md:grid md:grid-cols-2 gap-6">
+          {/* ═══ Section 2: Charts Side-by-Side ═══ */}
+          <div className="hidden md:grid md:grid-cols-2 gap-4">
             <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
-            <ChannelComparisonChart timeSeries={timeSeries} isLoading={tsLoading} />
+            <CaptureBreakdownChart channels={allCaptureChannels} isLoading={capLoading} />
+          </div>
+          <MobileChartsExpand
+            timeSeries={timeSeries}
+            tsLoading={tsLoading}
+            captureChannels={allCaptureChannels}
+            capLoading={capLoading}
+          />
+
+          {/* ═══ Section 3: Conversion Bridge ═══ */}
+          <ConversionBridge
+            reach={totalReach}
+            visitors={totalVisitors}
+            leads={totalLeads}
+          />
+
+          {/* ═══ Section 4: Attraction Sources ═══ */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Fuentes de Atraccion</h2>
+              <Tabs
+                value={attrFilter}
+                onValueChange={(v) => setAttrFilter(v as AttractionFilter)}
+              >
+                <TabsList className="h-8">
+                  <TabsTrigger value="pagado" className="px-3 text-xs">Pagado</TabsTrigger>
+                  <TabsTrigger value="organico" className="px-3 text-xs">Organico</TabsTrigger>
+                  <TabsTrigger value="todos" className="px-3 text-xs">Todos</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="space-y-3">
+              {(attrFilter === 'todos' || attrFilter === 'pagado') && paidChannels.length > 0 && (
+                <ChannelGroup
+                  title="Inversion Pagada"
+                  variant="paid"
+                  channels={paidChannels}
+                  maxPrimary={maxAttractionPrimary}
+                  summary={paidSummary}
+                  summaryExtra={paidSpendSummary}
+                  onChannelClick={handleChannelClick}
+                  onConfigure={onConfigure}
+                />
+              )}
+
+              {(attrFilter === 'todos' || attrFilter === 'organico') && organicChannels.length > 0 && (
+                <ChannelGroup
+                  title="Trafico Organico"
+                  variant="organic"
+                  channels={organicChannels}
+                  maxPrimary={maxAttractionPrimary}
+                  summary={organicSummary}
+                  onChannelClick={handleChannelClick}
+                  onConfigure={onConfigure}
+                />
+              )}
+
+              {(attrFilter === 'todos') && outboundChannels.length > 0 && (
+                <ChannelGroup
+                  title="Outbound & Automatizacion"
+                  variant="outbound"
+                  channels={outboundChannels}
+                  maxPrimary={maxAttractionPrimary}
+                  onChannelClick={handleChannelClick}
+                  onConfigure={onConfigure}
+                />
+              )}
+            </div>
           </div>
 
-          {/* Mobile: expandable charts */}
-          <MobileChartsExpand timeSeries={timeSeries} tsLoading={tsLoading} />
-        </div>
+          {/* ═══ Section 5: Capture Sources ═══ */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Fuentes de Captura</h2>
+              <span className="text-sm text-muted-foreground">{totalLeads} leads total</span>
+            </div>
+
+            <div className="space-y-3">
+              <ChannelGroup
+                title="Web & Formularios"
+                variant="capture_web"
+                channels={webCaptureChannels}
+                maxPrimary={maxCapturePrimary}
+                summary={webCaptureSummary}
+                totalLeads={totalLeads}
+                onChannelClick={handleChannelClick}
+                onConfigure={onConfigure}
+              />
+
+              {messagingCaptureChannels.length > 0 && (
+                <ChannelGroup
+                  title="AI Agent & Mensajeria"
+                  variant="capture_messaging"
+                  channels={messagingCaptureChannels}
+                  maxPrimary={maxCapturePrimary}
+                  summary={msgCaptureSummary}
+                  totalLeads={totalLeads}
+                  onChannelClick={handleChannelClick}
+                  onConfigure={onConfigure}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* ═══ Section 6: Connect More CTA ═══ */}
+          {availableChannels.length > 0 && (
+            <div className="bg-muted/30 border border-dashed border-border rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Conectar mas canales</p>
+                <p className="text-xs text-muted-foreground">Expande tu ecosistema para capturar mas leads</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableChannels.slice(0, 4).map((ch) => (
+                  <button
+                    key={ch.slug}
+                    onClick={() => onConfigure?.(ch.slug, ch.name)}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border rounded-md px-3 py-1.5 hover:bg-muted transition-colors"
+                  >
+                    <Zap className="w-3 h-3" />
+                    {ch.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Detail Split Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        
-        {/* COLUMNA ATRACCIÓN */}
-        <div className="space-y-6">
-          <h3 className="font-semibold text-lg flex items-center text-foreground/90 border-b border-border pb-2">
-            🔗 Atracción
-          </h3>
-          
-          {/* Paid Ads */}
-          <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
-            <div className="bg-muted/50 px-4 py-3 border-b border-border flex justify-between items-center">
-              <span className="font-medium text-sm text-foreground/90 flex items-center">📢 Publicidad Pagada</span>
-              <div className="flex gap-4 text-xs font-medium">
-                <span className="text-muted-foreground">{formatNum(attrData.paid.totals.sessions ?? attrData.paid.totals.visitors ?? 0)} vis.</span>
-                <span className="text-emerald-600 dark:text-emerald-500">{formatMoney(attrData.paid.totals.spend ?? 0)}</span>
-              </div>
-            </div>
-            <div className="p-4 grid grid-cols-1 gap-2">
-              {paidChannels.map((c) => <ChannelRow key={c.slug} channel={c} stageId="ATRACCION" defaultMetricName="sessions" defaultMetricLabel="visitantes" />)}
-            </div>
-          </div>
-
-          {/* Organic & Direct */}
-          <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
-            <div className="bg-muted/50 px-4 py-3 border-b border-border flex justify-between items-center">
-              <span className="font-medium text-sm text-foreground/90 flex items-center">👥 Tráfico Orgánico y Directo</span>
-            </div>
-            <div className="p-4 grid grid-cols-1 gap-2">
-              {combinedOrganic.map((c) => <ChannelRow key={c.slug} channel={c} stageId="ATRACCION" defaultMetricName="sessions" defaultMetricLabel="visitantes" />)}
-            </div>
-          </div>
-
-          {/* Available */}
-          <div className="bg-muted/30 rounded-lg border border-border border-dashed shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-transparent flex justify-between items-center text-muted-foreground">
-              <span className="font-medium text-sm flex items-center">➕ Canales Disponibles</span>
-            </div>
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {availableChannels.map((c) => <ChannelRow key={c.slug} channel={c} stageId="ATRACCION" defaultMetricName="" defaultMetricLabel="" />)}
-            </div>
-          </div>
-
-        </div>
-
-        {/* COLUMNA CAPTURA */}
-        <div className="space-y-6">
-          <h3 className="font-semibold text-lg flex items-center text-foreground/90 border-b border-border pb-2">
-            📥 Captura
-          </h3>
-
-          <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden border-l-4 border-l-primary hover:border-l-primary/80 transition-colors">
-            <div className="bg-primary/5 px-4 py-3 border-b border-border flex justify-between items-center">
-              <span className="font-medium text-sm flex items-center text-foreground/90">🤖 Agente y Formularios</span>
-              <div className="flex gap-4 text-xs font-medium">
-                <span className="text-primary font-bold">{formatNum(getMetric(captureChannels.flatMap(c => c.metrics), 'leads'))} leads</span>
-              </div>
-            </div>
-            <div className="p-4 grid grid-cols-1 gap-2">
-              {captureChannels.map((c) => <ChannelRow key={c.slug} channel={c} stageId="CAPTURA" defaultMetricName="leads" defaultMetricLabel="leads" />)}
-            </div>
-          </div>
-
-        </div>
-
-      </div>
+      {/* ═══ Channel Detail Sidebar ═══ */}
+      <ChannelDetailSidebar
+        isOpen={sidebarChannel !== null}
+        onClose={() => setSidebarChannel(null)}
+        channel={sidebarChannel}
+      />
     </div>
   );
 });

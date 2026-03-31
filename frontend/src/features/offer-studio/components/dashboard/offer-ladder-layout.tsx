@@ -10,9 +10,10 @@ interface OfferLadderLayoutProps {
   groupedOffers: Record<string, Offer[]>;
   searchQuery: string;
   onCreate: (level: OfferValueLevel) => void;
+  onArchive?: (offerId: string) => void;
 }
 
-export function OfferLadderLayout({ groupedOffers, searchQuery, onCreate }: OfferLadderLayoutProps) {
+export function OfferLadderLayout({ groupedOffers, searchQuery, onCreate, onArchive }: OfferLadderLayoutProps) {
   
   // Helper to render a level section within a column
   const renderLevelGroup = (level: OfferValueLevel, title: string, icon: any, colorClass: string) => {
@@ -39,7 +40,7 @@ export function OfferLadderLayout({ groupedOffers, searchQuery, onCreate }: Offe
         
         <div className="space-y-3">
           {offers.map(offer => (
-            <OfferCard key={offer.id} offer={offer} searchQuery={searchQuery} compact />
+            <OfferCard key={offer.id} offer={offer} searchQuery={searchQuery} compact onArchive={onArchive} />
           ))}
           <AddOfferCard level={level} onClick={() => onCreate(level)} compact />
         </div>
@@ -137,7 +138,7 @@ export function OfferLadderLayout({ groupedOffers, searchQuery, onCreate }: Offe
             <div className="flex-1 w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {groupedOffers[OfferValueLevel.N6]?.map(offer => (
-                        <OfferCard key={offer.id} offer={offer} searchQuery={searchQuery} compact className="bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700 transition-colors" />
+                        <OfferCard key={offer.id} offer={offer} searchQuery={searchQuery} compact onArchive={onArchive} className="bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700 transition-colors" />
                     ))}
                      {(!groupedOffers[OfferValueLevel.N6] || groupedOffers[OfferValueLevel.N6].length === 0) && (
                         <div className="col-span-full py-8 text-center border border-dashed border-slate-700 rounded-lg text-slate-500 text-sm">

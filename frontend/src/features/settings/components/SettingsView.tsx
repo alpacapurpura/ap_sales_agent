@@ -31,7 +31,7 @@ import {
 } from "lucide-react"
 import { useSearchParams, useParams } from "next/navigation"
 import { useNavigation } from "@/components/shared/navigation"
-import { useEffect, useState, Suspense } from "react"
+import { Suspense } from "react"
 import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -61,17 +61,11 @@ function SettingsContent() {
   const params = useParams() ?? {}
   const tenantId = params.tenantId as string
   const tabParam = searchParams?.get("tab")
-  
-  const [activeTab, setActiveTab] = useState(tabParam || "general")
 
-  useEffect(() => {
-    if (tabParam) {
-      setActiveTab(tabParam)
-    }
-  }, [tabParam])
+  // Derive active tab directly from the URL param; no separate state needed
+  const activeTab = tabParam || "general"
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value)
     navigateReplace(`/${tenantId}/settings?tab=${value}`)
   }
 

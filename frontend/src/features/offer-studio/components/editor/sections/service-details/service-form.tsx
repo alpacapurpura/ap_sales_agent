@@ -116,7 +116,7 @@ function ServiceDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
         )}
       />
       
-      {form.watch("specific_details.category") === ServiceCategory.DONE_FOR_YOU_AGENCY && (
+      {form.watch("specific_details.category") === ServiceCategory.AGENCY && (
          <div className="border p-4 rounded-md space-y-4 bg-muted/20">
             <h4 className="font-medium text-sm text-muted-foreground">Lógica de Agencia</h4>
             <div className="grid grid-cols-2 gap-4">

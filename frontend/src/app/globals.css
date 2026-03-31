@@ -93,8 +93,8 @@ html.dark {
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
   
-  /* Muted: Low contrast text/bg */
-  --muted: 217.2 32.6% 17.5%;
+  /* Muted: Low contrast text/bg — lighter than card (17.5%) for visible tracks */
+  --muted: 217.2 32.6% 25%;
   --muted-foreground: 215 20.2% 65.1%;
   
   /* Accent: Hover states */

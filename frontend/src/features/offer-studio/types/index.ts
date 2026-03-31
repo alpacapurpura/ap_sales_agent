@@ -1,182 +1,194 @@
 // --- ENUMS ---
 export enum OfferValueLevel {
-  N0 = "N0",
-  N1 = "N1",
-  N2 = "N2",
-  N3 = "N3",
-  N4 = "N4",
-  N5 = "N5",
-  N6 = "N6",
+  N0 = "level_0_free",
+  N1 = "level_1_low_ticket",
+  N2 = "level_2_mid_ticket",
+  N3 = "level_3_high_ticket",
+  N4 = "level_4_recurring",
+  N5 = "level_5_ultra_high",
+  N6 = "level_6_corporate",
+}
+
+export enum OfferArchetype {
+  PRODUCTO = "producto",
+  PROGRAMA = "programa",
+  SERVICIO = "servicio",
+  MEMBRESIA = "membresia",
+  EXPERIENCIA = "experiencia",
 }
 
 export enum OfferDeliveryModel {
-  DIY = "DIY",
-  DWY = "DWY",
-  DFY = "DFY",
-  B2B = "B2B",
+  DIY = "diy",
+  DWY = "dwy",
+  DFY = "dfy",
+  HYBRID = "hybrid",
 }
 
 export enum OfferType {
-  FREE_RESOURCE = "FREE_RESOURCE",
-  COMMUNITY_LITE = "COMMUNITY_LITE",
-  CONTENT_ASSET_PODCAST = "CONTENT_ASSET_PODCAST",
-  FREE_WEBINAR_CHALLENGE = "FREE_WEBINAR_CHALLENGE",
-  TRIPWIRE_OFFER = "TRIPWIRE_OFFER",
-  SELF_PACED_COURSE = "SELF_PACED_COURSE",
-  PAID_NEWSLETTER_SUBSCRIPTION = "PAID_NEWSLETTER_SUBSCRIPTION",
-  PHYSICAL_MERCH = "PHYSICAL_MERCH",
-  HYBRID_MENTORSHIP = "HYBRID_MENTORSHIP",
-  COHORT_BASED_COURSE = "COHORT_BASED_COURSE",
-  GROUP_COACHING_PROGRAM = "GROUP_COACHING_PROGRAM",
-  VIP_DAY_STRATEGY = "VIP_DAY_STRATEGY",
-  ONE_ON_ONE_PRIVATE_MENTORING = "1ON1_PRIVATE_MENTORING",
-  DEEP_DIVE_AUDIT = "DEEP_DIVE_AUDIT",
-  PRODUCTIZED_SERVICE = "PRODUCTIZED_SERVICE",
-  ECOMMERCE_DEVELOPMENT = "ECOMMERCE_DEVELOPMENT",
-  MONTHLY_RETAINER = "MONTHLY_RETAINER",
-  PERFORMANCE_REV_SHARE = "PERFORMANCE_REV_SHARE",
-  MASTERMIND_NETWORK = "MASTERMIND_NETWORK",
-  LUXURY_RETREAT = "LUXURY_RETREAT",
-  CORPORATE_TRAINING = "CORPORATE_TRAINING",
-  BRAND_SPONSORSHIP = "BRAND_SPONSORSHIP",
-  KEYNOTE_SPEAKING = "KEYNOTE_SPEAKING",
+  FREE_RESOURCE = "free_resource",
+  COMMUNITY_LITE = "community_lite",
+  CONTENT_ASSET_PODCAST = "content_asset_podcast",
+  FREE_WEBINAR_CHALLENGE = "free_webinar_challenge",
+  TRIPWIRE_OFFER = "tripwire_offer",
+  SELF_PACED_COURSE = "self_paced_course",
+  PAID_NEWSLETTER_SUBSCRIPTION = "paid_newsletter_subscription",
+  PHYSICAL_MERCH = "physical_merch",
+  HYBRID_MENTORSHIP = "hybrid_mentorship",
+  COHORT_BASED_COURSE = "cohort_based_course",
+  GROUP_COACHING_PROGRAM = "group_coaching_program",
+  VIP_DAY_STRATEGY = "vip_day_strategy",
+  ONE_ON_ONE_PRIVATE_MENTORING = "one_on_one_private_mentoring",
+  DEEP_DIVE_AUDIT = "deep_dive_audit",
+  PRODUCTIZED_SERVICE = "productized_service",
+  ECOMMERCE_DEVELOPMENT = "ecommerce_development",
+  MONTHLY_RETAINER = "monthly_retainer",
+  PERFORMANCE_REV_SHARE = "performance_rev_share",
+  MASTERMIND_NETWORK = "mastermind_network",
+  LUXURY_RETREAT = "luxury_retreat",
+  CORPORATE_TRAINING = "corporate_training",
+  BRAND_SPONSORSHIP = "brand_sponsorship",
+  KEYNOTE_SPEAKING = "keynote_speaking",
 }
 
 export enum OfferStatus {
-  DRAFT = "DRAFT",
-  ACTIVE = "ACTIVE",
-  PAUSED = "PAUSED",
-  ARCHIVED = "ARCHIVED",
-  WAITLIST = "WAITLIST",
-  SOLD_OUT = "SOLD_OUT",
+  DRAFT = "draft",
+  ACTIVE = "active",
+  PAUSED = "paused",
+  ARCHIVED = "archived",
+  WAITLIST = "waitlist",
+  SOLD_OUT = "sold_out",
 }
 
 export enum GuaranteeType {
-  UNCONDITIONAL_X_DAY = "UNCONDITIONAL_X_DAY",
-  CONDITIONAL_ACTION_BASED = "CONDITIONAL_ACTION_BASED",
-  EXCHANGE_ONLY = "EXCHANGE_ONLY",
-  NO_REFUNDS = "NO_REFUNDS"
+  NONE = "none",
+  CONDITIONAL_ACTION_BASED = "conditional_action_based",
+  UNCONDITIONAL_30_DAY = "unconditional_30_day",
+  DOUBLE_MONEY_BACK = "double_money_back",
+  SATISFACTION_OR_FREE_WORK = "satisfaction_or_free_work"
 }
 
 export enum DeliverableFormat {
-  LIVE_GROUP_CALL = "LIVE_GROUP_CALL",
-  ONE_ON_ONE_CALL = "1ON1_CALL",
-  RECORDED_CONTENT = "RECORDED_CONTENT",
-  PHYSICAL_SHIPMENT = "PHYSICAL_SHIPMENT",
-  DFY_ASSET = "DFY_ASSET"
+  PDF = "pdf",
+  VIDEO = "video",
+  AUDIO = "audio",
+  LIVE_SESSION = "live_session",
+  TEMPLATE = "template",
+  COMMUNITY_ACCESS = "community_access",
+  SOFTWARE_ACCESS = "software_access",
+  PHYSICAL_ITEM = "physical_item",
+  SERVICE_HOURS = "service_hours"
 }
 
 export enum FinancialCapacity {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  ULTRA_HIGH = "ULTRA_HIGH"
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  ULTRA_HIGH = "ultra_high"
 }
 
 export enum OnboardingMechanism {
-  CHECKOUT_LINK = "SEND_LINK",
-  CALENDAR_BOOKING = "BOOK_CALL",
-  INTAKE_FORM = "INTAKE_FORM",
-  COMMUNITY_INVITE = "JOIN_COMMUNITY"
+  INSTANT_ACCESS_EMAIL = "instant_access_email",
+  BOOK_KICKOFF_CALL = "book_kickoff_call",
+  FILL_INTAKE_FORM = "fill_intake_form",
+  JOIN_COMMUNITY = "join_community"
 }
 
 export enum FulfillmentType {
-  DIRECT_DOWNLOAD = "DIRECT_DOWNLOAD",
-  EXTERNAL_PLATFORM_ACCESS = "EXTERNAL_PLATFORM",
-  PHYSICAL_SHIPPING = "PHYSICAL_SHIPPING"
+  DIGITAL_DOWNLOAD = "digital_download",
+  LMS_ACCESS = "lms_access",
+  PHYSICAL_SHIPPING = "physical_shipping",
+  MANUAL_PROVISIONING = "manual_provisioning"
 }
 
 export enum DigitalFormat {
-  PDF_DOCUMENT = "PDF",
-  VIDEO_FILE = "MP4/MOV",
-  AUDIO_FILE = "MP3",
-  SPREADSHEET = "XLS/CSV",
-  NOTION_TEMPLATE = "NOTION",
-  ZIP_BUNDLE = "ZIP",
-  SAAS_ACCESS = "SAAS_KEY",
-  PHYSICAL_ITEM = "PHYSICAL"
+  PDF_EBOOK = "pdf_ebook",
+  VIDEO_COURSE = "video_course",
+  AUDIO_SERIES = "audio_series",
+  NOTION_TEMPLATE = "notion_template",
+  SOFTWARE_SAAS = "software_access",
+  PHYSICAL_ITEM = "physical_item"
 }
 
 export enum ProgramStructure {
-  FIXED_DATE_COHORT = "FIXED_COHORT",
-  ROLLING_ADMISSION = "ROLLING_EVERGREEN",
-  CHALLENGE_SPRINT = "CHALLENGE"
+  FIXED_COHORT = "fixed_cohort",
+  ROLLING_ADMISSION = "rolling_admission",
+  CHALLENGE = "challenge",
+  MEMBERSHIP = "membership"
 }
 
 export enum LiveInteractionType {
-  GROUP_Q_AND_A = "GROUP_Q&A",
-  WORKSHOP_PRACTICAL = "WORKSHOP",
-  LIVE_PROGRAM_DELIVERY = "LIVE_PROGRAM_DELIVERY",
-  HYBRID_SUPPORT = "HYBRID",
-  NO_LIVE_COMPONENTS = "ASYNC_ONLY"
+  NONE = "none",
+  GROUP_Q_AND_A = "group_q_and_a",
+  ONE_ON_ONE_CHECKINS = "one_on_one_checkins",
+  HOT_SEATS = "hot_seats",
+  WORKSHOPS = "workshops"
 }
 
 export enum CommunityPlatform {
-  WHATSAPP_TELEGRAM = "CHAT_APP",
-  FACEBOOK_GROUP = "FB_GROUP",
-  CIRCLE_SKOOL = "DEDICATED_PLATFORM",
-  DISCORD_SLACK = "CHAT_SERVER",
-  ZOOM = "ZOOM",
-  GOOGLE_MEETS = "GOOGLE_MEETS",
-  NONE = "NONE"
+  NONE = "none",
+  WHATSAPP = "whatsapp",
+  TELEGRAM = "telegram",
+  DISCORD = "discord",
+  SKOOL = "skool",
+  CIRCLE = "circle",
+  FACEBOOK_GROUP = "facebook_group",
+  SLACK = "slack"
 }
 
 export enum ServiceCategory {
-  ADVISORY_CONSULTING = "ADVISORY",
-  DONE_FOR_YOU_AGENCY = "EXECUTION_AGENCY",
-  B2B_AUTHORITY_RENTAL = "AUTHORITY_RENTAL"
+  ADVISORY = "advisory",
+  AGENCY = "agency",
+  AUTHORITY = "authority"
 }
 
 export enum InteractionMode {
-  SYNCHRONOUS_LIVE = "SYNC_LIVE",
-  ASYNC_DELIVERY = "ASYNC_DELIVERY",
-  HYBRID_MODEL = "HYBRID"
+  SYNC = "sync",
+  ASYNC = "async",
+  HYBRID = "hybrid"
 }
 
 export enum ServiceFrequency {
-  ONE_OFF_PROJECT = "ONE_OFF",
-  RETAINER_RECURRING = "RETAINER",
-  PACK_OF_SESSIONS = "PACK"
+  ONE_OFF = "one_off",
+  RETAINER = "retainer"
 }
 
 export enum EventLocationType {
-  VIRTUAL_REMOTE = "VIRTUAL",
-  IN_PERSON_LOCAL = "IN_PERSON_LOCAL",
-  DESTINATION_RETREAT = "DESTINATION_RETREAT"
+  VIRTUAL = "virtual",
+  PHYSICAL_LOCAL = "physical_local",
+  DESTINATION_RETREAT = "destination_retreat"
 }
 
 export enum AccommodationType {
-  NOT_INCLUDED = "NOT_INCLUDED",
-  SHARED_ROOM = "SHARED_ROOM",
-  PRIVATE_ROOM = "PRIVATE_ROOM",
-  LUXURY_SUITE = "LUXURY_SUITE"
+  NOT_INCLUDED = "not_included",
+  SHARED_ROOM = "shared_room",
+  PRIVATE_ROOM = "private_room",
+  LUXURY_SUITE = "luxury_suite"
 }
 
 export enum PaymentPlanType {
-  PAY_IN_FULL = "PAY_IN_FULL",
-  INTERNAL_SPLIT_PAY = "SPLIT_PAY",
-  THIRD_PARTY_FINANCE = "3RD_PARTY",
-  SUBSCRIPTION_RECURRING = "SUBSCRIPTION"
+  ONE_TIME = "one_time",
+  SUBSCRIPTION = "subscription",
+  PAYMENT_PLAN = "payment_plan"
 }
 
 export enum AccessDuration {
-  LIFETIME_CONTENT = "LIFETIME",
-  LIMITED_TIME_ACCESS = "LIMITED_TIME",
-  DURATION_OF_PAYMENT = "PAY_TO_PLAY",
-  HYBRID_ACCESS = "HYBRID_ACCESS"
+  LIFETIME = "lifetime",
+  LIMITED_TIME = "limited_time",
+  SUBSCRIPTION_ACTIVE = "subscription_active"
 }
 
 export enum PrerequisiteType {
-  NO_PREREQUISITE = "NONE",
-  GENDER_IDENTITY = "GENDER_IDENTITY",
-  REVENUE_LEVEL = "REVENUE_LEVEL",
-  BUSINESS_STAGE = "BUSINESS_STAGE"
+  NONE = "none",
+  APPLICATION_APPROVED = "application_approved",
+  PRIOR_PROGRAM_COMPLETION = "prior_program_completion",
+  INCOME_LEVEL = "income_level"
 }
 
 export enum BillingFrequency {
-  MONTHLY = "MONTHLY",
-  QUARTERLY = "QUARTERLY",
-  YEARLY = "YEARLY"
+  MONTHLY = "monthly",
+  QUARTERLY = "quarterly",
+  ANNUAL = "annual",
+  ONE_OFF = "one_off"
 }
 
 export enum AvatarPersona {
@@ -231,9 +243,15 @@ export interface Offer {
   internal_sku?: string;
   type: OfferType;
 
+  // Archetype system
+  archetype?: OfferArchetype;
+  format_hint?: string;
+  is_lead_magnet?: boolean;
+  shows_as_lead_magnet?: boolean;
+
   value_level: OfferValueLevel;
   delivery_model: OfferDeliveryModel;
-  status: OfferStatus; // Mapped from backend string to Enum if possible, or just string
+  status: OfferStatus;
 
   headline_promise?: string;
   primary_outcome?: string;

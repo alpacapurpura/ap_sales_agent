@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
     "start": "next start",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
-    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -70,7 +70,6 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.3",
     "@storybook/addon-a11y": "^10.2.19",
     "@storybook/addon-themes": "^10.2.19",
     "@storybook/nextjs-vite": "^10.2.19",
@@ -86,7 +85,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.23",
-    "eslint": "^8.57.1",
+    "eslint": "^9.29.0",
     "eslint-config-next": "^16.2.1",
     "happy-dom": "^20.7.0",
     "husky": "^9.1.7",

@@ -10,7 +10,7 @@ describe('Dashboard Logic & Adapter', () => {
     expect(result.name).toBe("Guía: Liberar la Mente");
   });
 
-  it('Adapter normalizes lowercase status "active" to Enum "ACTIVE"', () => {
+  it('Adapter maps backend status "active" to OfferStatus.ACTIVE', () => {
     const result = backendToFrontend(MOCK_BACKEND_RESPONSE as any);
     expect(result.status).toBe(OfferStatus.ACTIVE);
   });

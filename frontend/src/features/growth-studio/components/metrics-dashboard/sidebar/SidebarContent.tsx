@@ -1,12 +1,17 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ExternalLink, PlusCircle, Settings, TrendingUp } from 'lucide-react';
+import { ExternalLink, Package, PlusCircle, RefreshCw, Settings, ShoppingBag, TrendingUp, Users } from 'lucide-react';
 import type { MetricClickData, StageId } from '../../../types/metrics';
 import { getChannelColor, getChannelIcon } from '../../../lib/channelIcons';
+import { getOfferProductsDetail } from '../../../api/product-mapping-api';
+import type { OfferProductDetail } from '../../../api/product-mapping-api';
 
 interface SidebarContentProps {
   /** The metric that was clicked; null if sidebar was opened without context */
@@ -65,11 +70,25 @@ const METRIC_LABELS: Record<string, string> = {
   total_mqls: 'Total MQLs',
   total_sqls: 'Total SQLs',
   revenue: 'Revenue',
+  offer_detail: 'Detalle de Oferta',
   pipeline: 'Pipeline (SQLs)',
   customers: 'Clientes',
   health_pct: 'Salud del Cliente',
   net_mrr: 'Ingreso Recurrente Neto',
   k_factor: 'K-Factor',
+  pixel_pageviews: 'Visitas al sitio (Pixel)',
+  pixel_view_content: 'Vieron contenido',
+  pixel_leads: 'Dejaron datos',
+  pixel_add_to_cart: 'Agregaron al carrito',
+  pixel_purchases: 'Compraron',
+  top_pages: 'Paginas mas vistas',
+  traffic_sources: 'Fuentes de trafico',
+  device_split: 'Dispositivos',
+  averageSessionDuration: 'Duracion promedio',
+  newUsers: 'Usuarios nuevos',
+  engagedSessions: 'Sesiones activas',
+  screenPageViews: 'Vistas de pagina',
+  bounceRate: 'Tasa de rebote',
 };
 
 // ─── Shared placeholders ───────────────────────────────────────────────────────
@@ -132,12 +151,19 @@ function ActionButtons({ stageId, channelSlug }: ActionButtonsProps) {
   );
 }
 
+// Channel icon wrapper (avoids creating components during render)
+/* eslint-disable react-hooks/static-components -- dynamic icon from registry */
+function ChannelIconInline({ slug, className, style }: { slug: string; className?: string; style?: CSSProperties }) {
+  const Icon = getChannelIcon(slug);
+  return <Icon className={className} style={style} />;
+}
+/* eslint-enable react-hooks/static-components */
+
 interface ChannelInfoCardProps {
   channelSlug: string;
 }
 
 function ChannelInfoCard({ channelSlug }: ChannelInfoCardProps) {
-  const Icon = getChannelIcon(channelSlug);
   const iconColor = getChannelColor(channelSlug);
 
   return (
@@ -147,7 +173,7 @@ function ChannelInfoCard({ channelSlug }: ChannelInfoCardProps) {
           Canal
         </p>
         <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4 flex-shrink-0" style={{ color: iconColor }} aria-hidden="true" />
+          <ChannelIconInline slug={channelSlug} className="w-4 h-4 flex-shrink-0" style={{ color: iconColor }} />
           <span className="text-sm font-mono">{channelSlug}</span>
         </div>
         <div className="space-y-1">
@@ -550,9 +576,232 @@ function PipelineMetricDetail({ metric }: { metric: MetricClickData }) {
   );
 }
 
+function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: string }) {
+  const { getToken } = useAuth();
+
+  const { data, isLoading, error } = useQuery<OfferProductDetail>({
+    queryKey: ['offer-products-detail', offerId],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error('No auth token');
+      return getOfferProductsDetail(token, offerId);
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3 animate-pulse">
+        <div className="h-4 bg-muted rounded w-3/4" />
+        <div className="h-20 bg-muted rounded" />
+        <div className="h-20 bg-muted rounded" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="text-xs text-muted-foreground italic py-4 text-center">
+        No se pudo cargar el detalle de la oferta.
+      </div>
+    );
+  }
+
+  const fmt = (value: number, cur?: string) =>
+    new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: cur || currency || 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+
+  const offerTypeLabels: Record<string, string> = {
+    FREE_RESOURCE: 'Lead Magnet',
+    TRIPWIRE: 'Tripwire',
+    SELF_PACED_COURSE: 'Curso',
+    COHORT_PROGRAM: 'Programa Grupal',
+    HYBRID_MENTORSHIP: 'Mentoría Híbrida',
+    ONE_ON_ONE_PRIVATE_MENTORING: '1 a 1',
+    PRODUCTIZED_SERVICE: 'Servicio',
+    DONE_FOR_YOU_SERVICE: 'DFY',
+    CONSULTING_RETAINER: 'Retainer',
+    MASTERMIND_NETWORK: 'Mastermind',
+    IN_PERSON_RETREAT: 'Retiro',
+    CORPORATE_WORKSHOP: 'Workshop Corp',
+    CORPORATE_CONSULTING: 'Consultoría Corp',
+    COMMUNITY_MEMBERSHIP: 'Membresía',
+    SOFTWARE_AS_A_SERVICE: 'SaaS',
+    PHYSICAL_PRODUCT: 'Producto Físico',
+  };
+
+  const sources = Object.entries(data.source_breakdown || {});
+  const maxWeeklyRevenue = Math.max(...(data.weekly_revenue.map(w => w.revenue)), 1);
+
+  return (
+    <div className="space-y-4">
+      {/* Section 1: Summary */}
+      <div className="rounded-md bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3">
+        <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+          {data.offer_name || 'Oferta'}
+        </p>
+        {data.offer_type && (
+          <Badge variant="secondary" className="mt-1 text-[10px]">
+            {offerTypeLabels[data.offer_type] || data.offer_type}
+          </Badge>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <ShoppingBag className="w-4 h-4 text-emerald-500 mb-1" />
+            <span className="text-lg font-bold text-foreground">{fmt(data.total_revenue, data.currency)}</span>
+            <span className="text-[10px] text-muted-foreground">Revenue Total</span>
+          </CardContent>
+        </Card>
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <Package className="w-4 h-4 text-blue-500 mb-1" />
+            <span className="text-lg font-bold text-foreground">{data.sales_count}</span>
+            <span className="text-[10px] text-muted-foreground">Ventas</span>
+          </CardContent>
+        </Card>
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <Users className="w-4 h-4 text-purple-500 mb-1" />
+            <span className="text-lg font-bold text-foreground">{data.unique_customers}</span>
+            <span className="text-[10px] text-muted-foreground">Clientes</span>
+          </CardContent>
+        </Card>
+        <Card className="border-muted bg-card shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center justify-center text-center">
+            <RefreshCw className="w-4 h-4 text-amber-500 mb-1" />
+            <span className="text-lg font-bold text-foreground">{data.repeat_rate}%</span>
+            <span className="text-[10px] text-muted-foreground">Recompra</span>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Date range */}
+      {(data.first_sale || data.last_sale) && (
+        <p className="text-[10px] text-muted-foreground text-center">
+          {data.first_sale && `Primera venta: ${new Date(data.first_sale).toLocaleDateString('es-MX')}`}
+          {data.first_sale && data.last_sale && ' — '}
+          {data.last_sale && `Última: ${new Date(data.last_sale).toLocaleDateString('es-MX')}`}
+        </p>
+      )}
+
+      {/* Section 2: Weekly sparkline */}
+      {data.weekly_revenue.length > 1 && (
+        <Card className="border-muted">
+          <CardContent className="py-3 px-4">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
+              Revenue Semanal (12 sem)
+            </p>
+            <div className="flex items-end gap-1 h-12">
+              {data.weekly_revenue.map((w, i) => (
+                <div
+                  key={i}
+                  className="flex-1 bg-emerald-400 dark:bg-emerald-600 rounded-t transition-all hover:bg-emerald-500"
+                  style={{ height: `${Math.max((w.revenue / maxWeeklyRevenue) * 100, 4)}%` }}
+                  title={`${w.week}: ${fmt(w.revenue, data.currency)}`}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section 3: Source breakdown */}
+      {sources.length > 0 && (
+        <Card className="border-muted">
+          <CardContent className="py-3 px-4">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
+              Ventas por Fuente
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {sources.map(([src, count]) => {
+                let badgeClass = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+                if (src === 'SHOPIFY') badgeClass = 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+                else if (src === 'AGENT') badgeClass = 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800';
+                return (
+                  <span key={src} className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${badgeClass}`}>
+                    {src}: {count}
+                  </span>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section 4: Mapped products */}
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">
+          Productos Asociados (Shopify)
+        </p>
+        {data.products.length > 0 ? (
+          <div className="space-y-2">
+            {data.products.map((p) => (
+              <Card key={p.external_id} className="border-muted">
+                <CardContent className="py-3 px-4">
+                  <p className="text-sm font-medium truncate">{p.external_name || `#${p.external_id}`}</p>
+                  <div className="mt-2 space-y-1.5">
+                    {/* Revenue bar */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-emerald-500"
+                            style={{ width: `${Math.min(p.pct_of_total, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+                        {p.pct_of_total.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-xs font-bold">{fmt(p.total_revenue, p.currency || data.currency)}</p>
+                        <p className="text-[9px] text-muted-foreground">Revenue</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold">{p.quantity_sold}</p>
+                        <p className="text-[9px] text-muted-foreground">Unidades</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold">{p.transaction_count}</p>
+                        <p className="text-[9px] text-muted-foreground">Transacciones</p>
+                      </div>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground text-center">
+                      Precio prom: {fmt(p.avg_unit_price, p.currency || data.currency)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="border-dashed">
+            <CardContent className="py-3 px-4">
+              <p className="text-xs text-muted-foreground italic">
+                Las ventas de esta oferta provienen de {sources.map(([s]) => s).join(', ') || 'fuentes directas'}. No tiene productos Shopify asociados.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SalesMetricDetail({ metric }: { metric: MetricClickData }) {
   // Route to specialized detail based on metricName
   switch (metric.metricName) {
+    case 'offer_detail':
+      return <OfferRevenueDetail offerId={metric.channelSlug} currency={metric.currency || 'USD'} />;
     case 'revenue':
       return <RevenueMetricDetail metric={metric} />;
     case 'customers':

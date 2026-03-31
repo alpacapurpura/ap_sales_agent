@@ -21,12 +21,12 @@ export function PublicoView() {
   const { settings } = useBrandSettings();
   const { openEdit, openSmartFill } = useBrandStudio();
 
-  if (!settings) return null;
-
   const navItems = useMemo(
-    () => buildSectionNavItems("publico", settings),
+    () => settings ? buildSectionNavItems("publico", settings) : [],
     [settings]
   );
+
+  if (!settings) return null;
 
   return (
     <BrandSectionShell title={SECTION.label} subtitle={SECTION.subtitle} navItems={navItems}>

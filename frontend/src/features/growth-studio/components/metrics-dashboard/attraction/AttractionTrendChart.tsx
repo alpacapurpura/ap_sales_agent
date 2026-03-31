@@ -87,7 +87,7 @@ export function AttractionTrendChart({ timeSeries, isLoading }: AttractionTrendC
 
   return (
     <div className="bg-card border border-border rounded-lg p-4">
-      <h4 className="text-sm font-semibold text-foreground mb-3">Tendencia de Trafico</h4>
+      <h4 className="text-sm font-semibold text-foreground mb-3">Tendencia de Alcance</h4>
       <ChartContainer config={chartConfig} className="h-[280px] w-full !aspect-auto">
         <AreaChart data={chartData} accessibilityLayer>
           <CartesianGrid vertical={false} />

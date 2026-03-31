@@ -14,7 +14,7 @@ function Wrapper() {
       status: OfferStatus.DRAFT,
       type: OfferType.COHORT_BASED_COURSE,
       specific_details: {
-        structure_type: ProgramStructure.FIXED_DATE_COHORT,
+        structure_type: ProgramStructure.FIXED_COHORT,
         schedule: []
       }
     }

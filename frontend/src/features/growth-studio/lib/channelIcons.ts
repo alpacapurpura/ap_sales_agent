@@ -118,6 +118,11 @@ export function getChannelIcon(channelSlug: string): ChannelIconComponent {
     return Phone as ChannelIconComponent;
   }
 
+  // Website overview
+  if (slug === 'website-overview' || slug === 'website-total' || slug === 'meta-pixel') {
+    return Globe as ChannelIconComponent;
+  }
+
   // Landing form / web forms
   if (slug === 'landing-form' || slug === 'landing') {
     return Globe as ChannelIconComponent;
@@ -223,6 +228,11 @@ export function getChannelColor(channelSlug: string): string {
   // AI SDR — neutral blue
   if (slug === 'ai-sdr' || slug === 'ai-agent' || slug === 'ai-search-organic') {
     return '#6366F1';
+  }
+
+  // Website — blue
+  if (slug === 'website-overview' || slug === 'website-total' || slug === 'meta-pixel') {
+    return '#3B82F6';
   }
 
   // LinkedIn — LinkedIn blue

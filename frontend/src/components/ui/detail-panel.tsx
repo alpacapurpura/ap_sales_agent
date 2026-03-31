@@ -20,13 +20,19 @@ function useDetailPanelTransition(open: boolean) {
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
 
+  // Sync mount/visible state with the open prop to drive enter/exit animations.
+  // The effect legitimately derives transient animation state from the prop.
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMounted(true);
       // Next frame: trigger enter animation
+       
       requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
     } else {
+       
       setVisible(false);
+       
       const timer = setTimeout(() => setMounted(false), ANIMATION_MS);
       return () => clearTimeout(timer);
     }

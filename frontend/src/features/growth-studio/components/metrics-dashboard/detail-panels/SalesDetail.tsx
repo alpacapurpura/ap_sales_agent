@@ -13,7 +13,7 @@ import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
 import { formatLastUpdated, formatDualCurrency } from '../utils/format';
-import { useInitialLoad } from '../../../hooks/useMetaInitialLoad';
+import { useInitialLoad } from '../../../hooks/useInitialLoad';
 import { useQueryClient } from '@tanstack/react-query';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
 

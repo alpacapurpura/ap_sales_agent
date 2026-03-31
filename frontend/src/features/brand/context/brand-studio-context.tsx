@@ -61,7 +61,7 @@ export function BrandStudioProvider({ children }: { children: ReactNode }) {
     editMode, selectedItem, openEdit, closeSheet,
     isSmartFillOpen, smartFillMode, openSmartFill, closeSmartFill,
     hasDismissedEmptyState, dismissEmptyState,
-  }), [editMode, selectedItem, isSmartFillOpen, smartFillMode, hasDismissedEmptyState]);
+  }), [editMode, selectedItem, openEdit, closeSheet, isSmartFillOpen, smartFillMode, openSmartFill, closeSmartFill, hasDismissedEmptyState, dismissEmptyState]);
 
   return (
     <BrandStudioContext.Provider value={value}>

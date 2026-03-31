@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { TestimonialItem } from "@/features/brand/types";
 import { Button } from "@/components/ui/button";
@@ -20,21 +20,17 @@ interface TestimonialItemFormProps {
 }
 
 export function TestimonialItemForm({ initialData, onSave, onCancel, isSaving = false }: TestimonialItemFormProps) {
-    const [currentItem, setCurrentItem] = useState<TestimonialItem>({
-        id: uuidv4(),
-        type: "text",
-        content: "",
-        author_name: "",
-        author_role: "",
-        rating: 5,
-        author_avatar: ""
-    });
-
-    useEffect(() => {
-        if (initialData) {
-            setCurrentItem(initialData);
+    const [currentItem, setCurrentItem] = useState<TestimonialItem>(() =>
+        initialData ?? {
+            id: uuidv4(),
+            type: "text",
+            content: "",
+            author_name: "",
+            author_role: "",
+            rating: 5,
+            author_avatar: ""
         }
-    }, [initialData]);
+    );
 
     const handleSubmit = () => {
         onSave(currentItem);

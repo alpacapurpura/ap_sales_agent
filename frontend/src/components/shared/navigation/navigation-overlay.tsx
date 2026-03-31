@@ -11,11 +11,15 @@ export function NavigationOverlay() {
   const { isNavigating } = useNavigation();
   const [showOverlay, setShowOverlay] = useState(false);
 
+  // Debounce the overlay visibility to avoid flash on fast navigations —
+  // this effect legitimately syncs local UI state with external navigation state.
   useEffect(() => {
     if (isNavigating) {
+       
       const timer = setTimeout(() => setShowOverlay(true), DEBOUNCE_MS);
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowOverlay(false);
   }, [isNavigating]);
 

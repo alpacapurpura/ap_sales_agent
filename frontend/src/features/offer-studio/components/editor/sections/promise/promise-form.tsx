@@ -85,7 +85,7 @@ function PromiseContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                         </FormItem>
                     )} />
                     
-                    {(form.watch("access_duration") === AccessDuration.LIMITED_TIME_ACCESS || form.watch("access_duration") === AccessDuration.HYBRID_ACCESS) && (
+                    {form.watch("access_duration") === AccessDuration.LIMITED_TIME && (
                         <div className="animate-in fade-in slide-in-from-left-2">
                                 <FormField control={form.control} name="access_duration_text" render={({ field }) => (
                                 <FormItem>
@@ -108,7 +108,7 @@ export function PromiseForm({ defaultValues: propValues, onSave }: PromiseFormPr
     headline_promise: propValues?.headline_promise || "",
     primary_outcome: propValues?.primary_outcome || "",
     time_to_value: propValues?.time_to_value || "",
-    access_duration: propValues?.access_duration || AccessDuration.LIFETIME_CONTENT,
+    access_duration: propValues?.access_duration || AccessDuration.LIFETIME,
     access_duration_text: propValues?.access_duration_text || ""
   };
 

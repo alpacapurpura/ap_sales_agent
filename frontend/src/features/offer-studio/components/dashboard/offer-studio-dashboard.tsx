@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
 import { offerApi } from "@/features/offer-studio/api";
-import { Offer, OfferValueLevel, OfferType, OfferStatus } from "@/features/offer-studio/types";
+import { Offer, OfferArchetype, OfferValueLevel, OfferType, OfferStatus } from "@/features/offer-studio/types";
 import { OfferCard } from "./offer-card";
 import { AddOfferCard } from "./add-offer-card";
 import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
@@ -14,23 +14,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Plus, Loader2, Lightbulb, Rocket, TrendingUp, Gem, Building, Building2, SearchX, X } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { AlertCircle, Plus, Lightbulb, Rocket, TrendingUp, Gem, Building, Building2, SearchX } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 import { OfferLegend } from "./offer-legend";
-
 import { OfferLadderLayout } from "./offer-ladder-layout";
+import { CreateOfferWizard, WizardResult } from "../wizard/CreateOfferWizard";
 
 // Helper to sort levels correctly
 const LEVEL_ORDER = [
@@ -111,7 +101,7 @@ const TYPE_TO_LEVEL_MAP: Record<string, OfferValueLevel> = {
   [OfferType.KEYNOTE_SPEAKING]: OfferValueLevel.N6,
 };
 
-import { getOffersByLevel, OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
+import { OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
 
 interface OfferStudioDashboardProps {
   searchQuery?: string;
@@ -133,11 +123,8 @@ export function OfferStudioDashboard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Dialog State
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState<OfferValueLevel | null>(null);
-  const [selectedType, setSelectedType] = useState<OfferType | null>(null);
-  const [newOfferName, setNewOfferName] = useState("");
+  // Wizard State
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const fetchOffers = useCallback(async () => {
@@ -161,10 +148,10 @@ export function OfferStudioDashboard({
     fetchOffers();
   }, [fetchOffers]);
 
-  // Handle external trigger for creation (defaulting to N0 if no specific level is selected)
+  // Handle external trigger for creation
   useEffect(() => {
     if (externalCreateTrigger) {
-      handleOpenCreate(OfferValueLevel.N0);
+      setIsWizardOpen(true);
       if (onCreateTriggerHandled) {
         onCreateTriggerHandled();
       }
@@ -182,17 +169,20 @@ export function OfferStudioDashboard({
         const name = (offer.name || "").toLowerCase();
         const matchesName = name.includes(lowerQuery);
         
-        // Advanced Filtering: Label & Delivery Model
-        // Safe access to metadata with fallback
+        // Advanced Filtering: Label, Archetype, Format Hint & Delivery Model
         const metadata = OFFER_TYPE_METADATA[offer.type];
         const typeLabel = metadata?.label?.toLowerCase() || "";
         const matchesLabel = typeLabel.includes(lowerQuery);
-        
+
         const delivery = (offer.delivery_model || "").toLowerCase();
         const matchesDelivery = delivery.includes(lowerQuery);
 
-        if (!matchesName && !matchesLabel && !matchesDelivery) {
-          return; // Skip this offer
+        const archetypeLabel = (offer.archetype || "").toLowerCase();
+        const formatLabel = (offer.format_hint || "").toLowerCase();
+        const matchesArchetype = archetypeLabel.includes(lowerQuery) || formatLabel.includes(lowerQuery);
+
+        if (!matchesName && !matchesLabel && !matchesDelivery && !matchesArchetype) {
+          return;
         }
       }
 
@@ -218,46 +208,38 @@ export function OfferStudioDashboard({
 
   const { grouped: groupedOffers, totalMatches } = offersByLevel;
 
-  const handleOpenCreate = (level: OfferValueLevel) => {
-    setSelectedLevel(level);
-    setSelectedType(null); // Reset selection
-    setNewOfferName("");
-    setIsDialogOpen(true);
+  const handleArchiveOffer = useCallback(async (offerId: string) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      await offerApi.saveOffer(offerId, { status: "archived" } as any, token);
+      await fetchOffers();
+    } catch (err) {
+      console.error("Error archiving offer:", err);
+    }
+  }, [getToken, fetchOffers]);
+
+  const handleOpenCreate = (_level?: OfferValueLevel) => {
+    setIsWizardOpen(true);
   };
 
-  const handleCreateOffer = async () => {
-    if (!newOfferName.trim() || !selectedLevel) return;
-    
-    // Validate that a type is selected if we have options (which we always should now)
-    // But for safety, fallback to default if logic fails, though UI should prevent it.
-    
+  const handleCreateOffer = async (wizardData: WizardResult) => {
     setCreating(true);
     try {
       const token = await getToken();
       if (!token) throw new Error("No authenticated");
 
-      // Default types map (Fallback only)
-      const DEFAULT_TYPES: Record<string, OfferType> = {
-        [OfferValueLevel.N0]: OfferType.FREE_RESOURCE,
-        [OfferValueLevel.N1]: OfferType.TRIPWIRE_OFFER,
-        [OfferValueLevel.N2]: OfferType.HYBRID_MENTORSHIP,
-        [OfferValueLevel.N3]: OfferType.VIP_DAY_STRATEGY,
-        [OfferValueLevel.N4]: OfferType.PRODUCTIZED_SERVICE,
-        [OfferValueLevel.N5]: OfferType.MASTERMIND_NETWORK,
-        [OfferValueLevel.N6]: OfferType.CORPORATE_TRAINING,
-      };
-      
-      const typeToUse = selectedType || DEFAULT_TYPES[selectedLevel] || OfferType.FREE_RESOURCE;
-
       const newOffer = await offerApi.createOffer({
-        public_name: newOfferName,
-        type: typeToUse,
-        status: OfferStatus.DRAFT,
-        requires_application: true,
-      } as Parameters<typeof offerApi.createOffer>[0], token);
-      
+        public_name: wizardData.name,
+        archetype: wizardData.archetype,
+        format_hint: wizardData.format_hint,
+        is_lead_magnet: wizardData.is_lead_magnet,
+        headline_promise: wizardData.headline_promise,
+        status: wizardData.status,
+      } as any, token);
+
       if (newOffer.id) {
-        setIsDialogOpen(false);
+        setIsWizardOpen(false);
         navigate(`/${tenantId}/offer-studio/offer/${newOffer.id}`);
       }
     } catch (err) {
@@ -313,14 +295,10 @@ export function OfferStudioDashboard({
             Intenta con otro término o crea una nueva oferta con este nombre.
           </p>
           <div className="flex items-center gap-4">
-             <Button 
-                variant="outline" 
+             <Button
+                variant="outline"
                 onClick={() => {
-                   // This assumes parent component controls state via props, but we can't clear parent state easily here 
-                   // unless we added a onClear prop. For now, let's trigger creation.
-                   // Actually, better UX is just to offer creation.
-                   handleOpenCreate(OfferValueLevel.N0);
-                   setNewOfferName(searchQuery);
+                   handleOpenCreate();
                 }}
              >
                <Plus className="mr-2 h-4 w-4" />
@@ -350,11 +328,11 @@ export function OfferStudioDashboard({
                      <div className="flex items-center gap-2">
                          <h3 className="text-lg font-semibold tracking-tight text-foreground">{info.title}</h3>
                          <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">{count} Magnets</Badge>
-                          <Button 
-                             variant="ghost" 
-                             size="sm" 
+                          <Button
+                             variant="ghost"
+                             size="sm"
                              className="ml-auto h-6 text-xs text-muted-foreground hover:text-foreground"
-                             onClick={() => handleOpenCreate(level)}
+                             onClick={() => handleOpenCreate()}
                          >
                              <Plus className="mr-1 h-3 w-3" /> Nuevo Magnet
                          </Button>
@@ -374,12 +352,12 @@ export function OfferStudioDashboard({
                  {/* Add Button Slot in the Grid */}
                  <div 
                      className="w-[280px] h-[72px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 hover:border-primary/40 transition-colors group"
-                     onClick={() => handleOpenCreate(level)}
+                     onClick={() => handleOpenCreate()}
                  >
                       <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                          <Plus className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground">Crear Lead Magnet</span>
+                      <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground">Crear Oferta</span>
                  </div>
                </div>
                <ScrollBar orientation="horizontal" />
@@ -389,73 +367,20 @@ export function OfferStudioDashboard({
       })()}
 
       {/* --- LADDER LAYOUT (L1 - L6) --- */}
-      <OfferLadderLayout 
-        groupedOffers={groupedOffers} 
-        searchQuery={searchQuery} 
-        onCreate={handleOpenCreate} 
+      <OfferLadderLayout
+        groupedOffers={groupedOffers}
+        searchQuery={searchQuery}
+        onCreate={handleOpenCreate}
+        onArchive={handleArchiveOffer}
       />
 
-      {/* Create Modal */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Crear Oferta {selectedLevel}</DialogTitle>
-            <DialogDescription>
-              Selecciona el tipo de oferta y define su nombre para comenzar.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-6 py-4">
-             {/* Type Selection */}
-             <div className="space-y-3">
-               <Label className="text-base font-medium">1. Selecciona el Tipo de Oferta</Label>
-               <ScrollArea className="h-[300px] rounded-md border bg-muted/10 p-4">
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   {selectedLevel && getOffersByLevel(selectedLevel).map((def) => (
-                     <div 
-                        key={def.type}
-                        onClick={() => setSelectedType(def.type)}
-                        className={cn(
-                          "cursor-pointer rounded-xl border p-4 transition-all hover:shadow-md relative overflow-hidden bg-background",
-                          selectedType === def.type 
-                            ? "border-primary ring-1 ring-primary shadow-sm" 
-                            : "border-border hover:border-primary/50"
-                        )}
-                     >
-                        {selectedType === def.type && (
-                          <div className="absolute top-0 right-0 w-3 h-3 bg-primary rounded-bl-lg" />
-                        )}
-                        <div className="flex items-start justify-between mb-3 gap-2">
-                           <span className="font-semibold text-sm leading-tight">{def.label}</span>
-                           <Badge variant="secondary" className="text-[10px] shrink-0 font-mono">{def.delivery}</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-2">{def.description}</p>
-                        <p className="text-[10px] text-primary/80 font-medium italic">&quot;{def.hint}&quot;</p>
-                     </div>
-                   ))}
-                 </div>
-               </ScrollArea>
-             </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="name" className="text-base font-medium">2. Nombre de la Oferta</Label>
-              <Input
-                id="name"
-                value={newOfferName}
-                onChange={(e) => setNewOfferName(e.target.value)}
-                placeholder="Ej. Mi Nuevo Producto..."
-                className="h-11"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCreateOffer} disabled={creating || !selectedType || !newOfferName.trim()} size="lg">
-              {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Crear Oferta
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Create Wizard */}
+      <CreateOfferWizard
+        open={isWizardOpen}
+        onOpenChange={setIsWizardOpen}
+        onCreateOffer={handleCreateOffer}
+        creating={creating}
+      />
     </div>
   );
 }

@@ -9,10 +9,11 @@ interface ClosingPreviewProps {
 }
 
 const GUARANTEE_LABELS: Record<string, string> = {
-    [GuaranteeType.NO_REFUNDS]: "Sin Reembolsos",
-    [GuaranteeType.UNCONDITIONAL_X_DAY]: "Garantía Incondicional",
+    [GuaranteeType.NONE]: "Sin Reembolsos",
+    [GuaranteeType.UNCONDITIONAL_30_DAY]: "Garantía Incondicional (30 Días)",
     [GuaranteeType.CONDITIONAL_ACTION_BASED]: "Garantía Condicional",
-    [GuaranteeType.EXCHANGE_ONLY]: "Solo Intercambio"
+    [GuaranteeType.DOUBLE_MONEY_BACK]: "Doble Devolución",
+    [GuaranteeType.SATISFACTION_OR_FREE_WORK]: "Satisfacción o Trabajo Gratis"
 };
 
 export const ClosingPreview = ({ data: propsData }: ClosingPreviewProps) => {
@@ -23,7 +24,7 @@ export const ClosingPreview = ({ data: propsData }: ClosingPreviewProps) => {
 
   const { guarantee_type, guarantee_terms } = data;
 
-  if (guarantee_type === GuaranteeType.NO_REFUNDS && !guarantee_terms) {
+  if (guarantee_type === GuaranteeType.NONE && !guarantee_terms) {
       return null;
   }
 
@@ -32,11 +33,11 @@ export const ClosingPreview = ({ data: propsData }: ClosingPreviewProps) => {
       <div className="mb-3 p-3 rounded-full bg-background shadow-sm ring-1 ring-border/50">
         <ShieldCheck className="w-8 h-8 text-primary" strokeWidth={1.5} />
       </div>
-      
+
       <h4 className="text-base font-bold tracking-tight text-foreground mb-1">
-        {GUARANTEE_LABELS[guarantee_type || GuaranteeType.NO_REFUNDS] || guarantee_type}
+        {GUARANTEE_LABELS[guarantee_type || GuaranteeType.NONE] || guarantee_type}
       </h4>
-      
+
       <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">
         Garantía Oficial
       </p>

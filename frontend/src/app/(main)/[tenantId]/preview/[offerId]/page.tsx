@@ -53,6 +53,15 @@ async function getLandingPageConfig(offerId: string, tenantId: string): Promise<
   }
 }
 
+// Preview Banner (extracted to module scope for ESLint react-hooks/static-components)
+function PreviewBanner() {
+  return (
+    <div className="fixed top-0 left-0 right-0 bg-indigo-600 text-white text-xs font-bold py-2 text-center z-50 shadow-md">
+        MODO VISTA PREVIA - Solo tú puedes ver esto
+    </div>
+  );
+}
+
 // PREVIEW PAGE COMPONENT (SERVER SIDE)
 export default async function LandingPreviewPage({ params }: { params: Promise<{ offerId: string; tenantId: string }> }) {
   const { offerId, tenantId } = await params;
@@ -68,13 +77,6 @@ export default async function LandingPreviewPage({ params }: { params: Promise<{
         </div>
     );
   }
-
-  // Add a Preview Banner
-  const PreviewBanner = () => (
-    <div className="fixed top-0 left-0 right-0 bg-indigo-600 text-white text-xs font-bold py-2 text-center z-50 shadow-md">
-        MODO VISTA PREVIA - Solo tú puedes ver esto
-    </div>
-  );
 
   // ROUTER: Decide which template to render based on Archetype
   let template;

@@ -28,12 +28,12 @@ export function EsenciaView() {
   const { settings } = useBrandSettings();
   const { openEdit, openSmartFill } = useBrandStudio();
 
-  if (!settings) return null;
-
   const navItems = useMemo(
-    () => buildSectionNavItems("esencia", settings),
+    () => settings ? buildSectionNavItems("esencia", settings) : [],
     [settings]
   );
+
+  if (!settings) return null;
 
   return (
     <BrandSectionShell title={SECTION.label} subtitle={SECTION.subtitle} navItems={navItems}>

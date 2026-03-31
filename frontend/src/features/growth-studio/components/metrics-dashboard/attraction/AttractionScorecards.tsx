@@ -12,6 +12,7 @@ interface AttractionScorecardsProps {
   totalVisitors: number;
   totalLeads: number;
   leadConvRate: number;
+  totalSpend: number;
 }
 
 interface ScorecardData {
@@ -24,7 +25,12 @@ interface ScorecardData {
 
 function formatValue(value: number, format: 'number' | 'percent' | 'money'): string {
   if (format === 'percent') return `${value.toFixed(1)}%`;
-  if (format === 'money') return `$${value.toLocaleString('es-ES', { maximumFractionDigits: 0 })}`;
+  if (format === 'money') {
+    if (value === 0) return '--';
+    return `$${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}`;
+  }
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
   return value.toLocaleString('es-ES');
 }
 
@@ -39,6 +45,7 @@ export function AttractionScorecards({
   totalVisitors,
   totalLeads,
   leadConvRate,
+  totalSpend,
 }: AttractionScorecardsProps) {
   const cards = useMemo((): ScorecardData[] => {
     // Build sparkline from timeseries data (sum all channels per day)
@@ -53,27 +60,22 @@ export function AttractionScorecards({
     const prevTotal = timeSeries?.previousPeriodTotals
       ? Object.values(timeSeries.previousPeriodTotals).reduce((s, v) => s + v, 0)
       : null;
-    const visitorDelta = computeDelta(currTotal, prevTotal);
+    const reachDelta = computeDelta(currTotal, prevTotal);
+
+    const cpl = totalLeads > 0 && totalSpend > 0 ? totalSpend / totalLeads : 0;
 
     return [
       {
         label: 'Alcance',
         value: totalReach,
         format: 'number',
-        delta: null, // no time-series for reach yet
-        sparkData: [],
+        delta: reachDelta,
+        sparkData: dailyTotals,
       },
       {
         label: 'Visitantes',
         value: totalVisitors,
         format: 'number',
-        delta: visitorDelta,
-        sparkData: dailyTotals,
-      },
-      {
-        label: 'Conv. %',
-        value: leadConvRate,
-        format: 'percent',
         delta: null,
         sparkData: [],
       },
@@ -84,27 +86,41 @@ export function AttractionScorecards({
         delta: null,
         sparkData: [],
       },
+      {
+        label: 'Conv. %',
+        value: leadConvRate,
+        format: 'percent',
+        delta: null,
+        sparkData: [],
+      },
+      {
+        label: 'CPL',
+        value: cpl,
+        format: 'money',
+        delta: null,
+        sparkData: [],
+      },
     ];
-  }, [timeSeries, totalReach, totalVisitors, totalLeads, leadConvRate]);
+  }, [timeSeries, totalReach, totalVisitors, totalLeads, leadConvRate, totalSpend]);
 
   const sparkConfig = { v: { color: 'hsl(var(--primary))' } };
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
       {cards.map((card) => (
         <div
           key={card.label}
           className="bg-card border border-border rounded-lg p-4 flex flex-col gap-1"
         >
-          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+          <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">
             {card.label}
           </span>
           <div className="flex items-end justify-between gap-2">
-            <span className="text-3xl font-black text-foreground leading-none">
+            <span className="text-2xl font-black text-foreground leading-none">
               {formatValue(card.value, card.format)}
             </span>
             {card.sparkData.length > 2 && (
-              <ChartContainer config={sparkConfig} className="h-[30px] w-[60px] !aspect-auto">
+              <ChartContainer config={sparkConfig} className="h-[28px] w-[56px] !aspect-auto">
                 <AreaChart data={card.sparkData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                   <Area
                     type="monotone"
@@ -121,7 +137,7 @@ export function AttractionScorecards({
           {card.delta !== null && (
             <div className={`flex items-center gap-1 text-xs font-medium ${card.delta >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
               {card.delta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {card.delta >= 0 ? '+' : ''}{card.delta.toFixed(1)}% vs periodo anterior
+              {card.delta >= 0 ? '+' : ''}{card.delta.toFixed(1)}% vs anterior
             </div>
           )}
         </div>

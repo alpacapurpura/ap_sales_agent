@@ -11,7 +11,7 @@ export function HealthBar({ activeCount, inactiveCount }: HealthBarProps) {
   const inactivePct = total > 0 ? (inactiveCount / total) * 100 : 0;
 
   return (
-    <div className="w-full h-4 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex shadow-inner">
+    <div className="w-full h-4 rounded-full bg-muted overflow-hidden flex shadow-inner">
       <div
         className="h-full bg-emerald-500 transition-all duration-500"
         style={{ width: `${activePct}%` }}

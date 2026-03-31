@@ -1,6 +1,7 @@
 import { UseFormReturn, useWatch } from "react-hook-form";
 import { OfferFormValues } from "../../types/schema";
-import { SECTION_REGISTRY, OFFER_BUILDER_CONFIG } from "../../config/offer-builder-config";
+import { GuaranteeType } from "../../types";
+import { SECTION_REGISTRY, getSectionsForOffer } from "../../config/offer-builder-config";
 import { Button } from "@/components/ui/button";
 import { Edit3, Eye, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -102,7 +103,7 @@ export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
       case "pricing":
         return !formValues.pricing_options || formValues.pricing_options.length === 0;
       case "closing":
-        return formValues.guarantee_type === "NO_REFUNDS" && !formValues.guarantee_terms;
+        return formValues.guarantee_type === GuaranteeType.NONE && !formValues.guarantee_terms;
       case "instructors":
         return !formValues.instructors || formValues.instructors.length === 0;
       case "value_stack":
@@ -128,11 +129,10 @@ export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
     }
   }, [formValues]);
 
+  const currentArchetype = (formValues as any).archetype;
   const sections = useMemo(() => {
-    return currentType && OFFER_BUILDER_CONFIG[currentType]
-      ? OFFER_BUILDER_CONFIG[currentType]
-      : [];
-  }, [currentType]);
+    return getSectionsForOffer({ archetype: currentArchetype, type: currentType });
+  }, [currentType, currentArchetype]);
 
   // Filter out identity to render it separately as a header
   const sectionsWithoutIdentity = useMemo(() => sections.filter(id => id !== 'identity'), [sections]);

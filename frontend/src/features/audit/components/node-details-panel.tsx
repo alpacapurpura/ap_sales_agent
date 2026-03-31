@@ -76,9 +76,15 @@ function StateViewer({ title, state }: { title: string; state: Record<string, un
   );
 }
 
+/* eslint-disable react-hooks/static-components -- dynamic icon from registry */
+function NodeIcon({ nodeName, className }: { nodeName?: string; className?: string }) {
+  const Icon = nodeName ? getNodeIcon(nodeName) : Loader2;
+  return <Icon className={className} />;
+}
+/* eslint-enable react-hooks/static-components */
+
 export function NodeDetailsPanel({ traceId, isOpen, onOpenChange }: NodeDetailsPanelProps) {
   const { data: trace, isLoading } = useTraceDetails(traceId);
-  const Icon = trace ? getNodeIcon(trace.node_name) : Loader2;
   const iconColor = trace ? getNodeColor(trace.node_name) : "text-slate-500";
 
   const totalTokens = trace?.llm_logs?.reduce(
@@ -91,7 +97,7 @@ export function NodeDetailsPanel({ traceId, isOpen, onOpenChange }: NodeDetailsP
       <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col p-0 gap-0">
         <SheetHeader className="px-6 py-4 border-b">
           <SheetTitle className="flex items-center gap-2">
-            {trace && <Icon className={cn("h-5 w-5", iconColor)} />}
+            {trace && <NodeIcon nodeName={trace.node_name} className={cn("h-5 w-5", iconColor)} />}
             Detalle del Nodo
           </SheetTitle>
           <SheetDescription>

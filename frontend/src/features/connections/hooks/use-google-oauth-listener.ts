@@ -17,8 +17,10 @@ export function useGoogleOAuthListener({
   const onSuccessRef = useRef(onSuccess);
   const onErrorRef = useRef(onError);
 
-  onSuccessRef.current = onSuccess;
-  onErrorRef.current = onError;
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  });
 
   useEffect(() => {
     if (!enabled) return;

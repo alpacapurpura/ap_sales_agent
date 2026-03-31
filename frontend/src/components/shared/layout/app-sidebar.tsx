@@ -65,7 +65,7 @@ const getNavItems = (tenantId: string): NavItem[] => [
   },
   {
     title: "Growth Studio",
-    href: `/${tenantId}/growth-studio`,
+    href: `/${tenantId}/growth-studio/ventas`,
     icon: Megaphone,
   },
   {
@@ -95,13 +95,16 @@ interface NavItemRendererProps {
 
 function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobileClose }: NavItemRendererProps) {
   const isParentActive = pathname.startsWith(item.href);
+  // Initialize expanded from the active state; user can still toggle manually
   const [isExpanded, setIsExpanded] = useState(isParentActive);
   const hasChildren = item.children && item.children.length > 0;
   const showExpanded = !isCollapsed || mobile;
 
-  // Auto-expand when navigating to a child route
+  // Auto-expand when navigating to a child route — the effect legitimately
+  // syncs local toggle state with external navigation changes.
   useEffect(() => {
     if (isParentActive && hasChildren) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsExpanded(true);
     }
   }, [isParentActive, hasChildren]);
@@ -274,9 +277,9 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
 
   const navItems = getNavItems(currentTenantId);
 
-  // Determinar qué logo completo mostrar según el tema
-  const fullLogoSrc = resolvedTheme === "dark" 
-    ? "/nico-assets/logotipo/logotipo-fondooscuro-nicolify.svg" 
+  // Use a stable src during SSR/hydration to avoid mismatch; switch after mount.
+  const fullLogoSrc = mounted && resolvedTheme === "dark"
+    ? "/nico-assets/logotipo/logotipo-fondooscuro-nicolify.svg"
     : "/nico-assets/logotipo/logotipo-fondoclaro-nicolify.svg";
 
   return (
@@ -402,7 +405,10 @@ export function AppSidebar() {
   const { isCollapsed, toggleSidebar } = useSidebar();
   const [isMounted, setIsMounted] = useState(false);
 
+  // Track client-side mount to avoid hydration mismatch for components
+  // that depend on browser APIs (Sheet, UserButton, theme-aware images).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 

@@ -73,7 +73,7 @@ export function ChannelComparisonChart({ timeSeries, isLoading }: ChannelCompari
 
   return (
     <div className="bg-card border border-border rounded-lg p-4">
-      <h4 className="text-sm font-semibold text-foreground mb-3">Comparacion por Canal</h4>
+      <h4 className="text-sm font-semibold text-foreground mb-3">Alcance por Canal</h4>
       <ChartContainer config={chartConfig} className="w-full !aspect-auto" style={{ height: barHeight }}>
         <BarChart
           data={chartData}

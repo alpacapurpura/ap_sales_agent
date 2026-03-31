@@ -93,8 +93,10 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const providerName = channel?.providerName;
+
   useEffect(() => {
-    if (!isOpen || !channel?.providerName) {
+    if (!isOpen || !providerName) {
       setInfo(null);
       return;
     }
@@ -106,7 +108,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
       try {
         const token = await getToken();
         if (!token || cancelled) return;
-        const data = await connectionsApi.getChannelInfo(channel!.providerName!, token);
+        const data = await connectionsApi.getChannelInfo(providerName!, token);
         if (!cancelled) setInfo(data);
       } catch (e: unknown) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Error cargando info');
@@ -117,7 +119,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
 
     fetchInfo();
     return () => { cancelled = true; };
-  }, [isOpen, channel?.providerName, getToken]);
+  }, [isOpen, providerName, getToken]);
 
   if (!channel) return null;
 
@@ -139,9 +141,11 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
               {channel.name}
             </DetailPanelTitle>
             <p className="text-xs text-muted-foreground">
-              {channel.sourceDisplayName
-                ? `${channel.sourceLabel} · ${channel.sourceDisplayName}`
-                : channel.sourceLabel}
+              {channel.subSources && channel.subSources.length > 1
+                ? channel.subSources.map((s) => s.name).join(' + ')
+                : channel.sourceDisplayName
+                  ? `${channel.sourceLabel} · ${channel.sourceDisplayName}`
+                  : channel.sourceLabel}
             </p>
           </div>
         </div>
@@ -325,6 +329,40 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
                         </span>
                       </div>
                     )}
+                  </div>
+                </section>
+              </>
+            )}
+
+            {/* Sub-source breakdown (unified channels like IG DM = Meta + ManyChat) */}
+            {channel.subSources && channel.subSources.length > 1 && (
+              <>
+                <Separator />
+                <section>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+                    Fuentes de Datos
+                  </h3>
+                  <div className="space-y-1.5">
+                    {channel.subSources.map((src, idx) => (
+                      <div
+                        key={src.name}
+                        className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/30 text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            'w-2 h-2 rounded-full shrink-0',
+                            idx === 0 ? 'bg-blue-400' : 'bg-violet-400',
+                          )} />
+                          <span className="font-medium">{src.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs">
+                          <span className="tabular-nums">{formatNumber(src.leads)} leads</span>
+                          {src.conversations > 0 && (
+                            <span className="text-muted-foreground tabular-nums">{formatNumber(src.conversations)} conv</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </section>
               </>

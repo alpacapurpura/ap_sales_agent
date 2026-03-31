@@ -90,3 +90,45 @@ export async function deleteProductMapping(token: string, mappingId: string): Pr
   });
   if (!res.ok) throw new Error('Failed to delete mapping');
 }
+
+// --- Offer Product Detail Types ---
+
+export interface ProductMetric {
+  external_id: string;
+  external_name: string | null;
+  source: string;
+  total_revenue: number;
+  quantity_sold: number;
+  transaction_count: number;
+  avg_unit_price: number;
+  currency: string | null;
+  pct_of_total: number;
+}
+
+export interface OfferProductDetail {
+  offer_id: string;
+  offer_name: string | null;
+  offer_type: string | null;
+  total_revenue: number;
+  sales_count: number;
+  unique_customers: number;
+  repeat_customer_count: number;
+  repeat_rate: number;
+  currency: string;
+  source_breakdown: Record<string, number>;
+  products: ProductMetric[];
+  first_sale: string | null;
+  last_sale: string | null;
+  weekly_revenue: Array<{ week: string; revenue: number }>;
+}
+
+export async function getOfferProductsDetail(token: string, offerId: string): Promise<OfferProductDetail> {
+  const res = await fetchClient(`${API_URL}/api/v1/offer/product-mappings/${offerId}/products-detail`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch offer product detail');
+  }
+  return res.json();
+}

@@ -16,6 +16,20 @@ import {
 import { DialogOverlay } from '@/components/ui/dialog';
 import { getConnectionView } from '../../../lib/channelViewMap';
 
+/* eslint-disable react-hooks/static-components -- dynamic view from registry */
+function ConnectionViewRenderer({ channelSlug }: { channelSlug: string }) {
+  const View = getConnectionView(channelSlug);
+  if (!View) {
+    return (
+      <p className="text-sm text-muted-foreground py-8 text-center">
+        No hay vista de configuracion disponible para este canal.
+      </p>
+    );
+  }
+  return <View />;
+}
+/* eslint-enable react-hooks/static-components */
+
 interface ChannelConnectionModalProps {
   channelSlug: string | null;
   channelName: string;
@@ -38,8 +52,6 @@ export function ChannelConnectionModal({ channelSlug, channelName, onClose }: Ch
       onClose();
     }
   };
-
-  const ConnectionView = channelSlug ? getConnectionView(channelSlug) : null;
 
   return (
     <>
@@ -79,7 +91,7 @@ export function ChannelConnectionModal({ channelSlug, channelName, onClose }: Ch
               Panel de configuracion para conectar {channelName}
             </DialogPrimitive.Description>
 
-            {ConnectionView ? (
+            {channelSlug ? (
               <Suspense
                 fallback={
                   <div className="flex items-center justify-center py-12">
@@ -87,7 +99,7 @@ export function ChannelConnectionModal({ channelSlug, channelName, onClose }: Ch
                   </div>
                 }
               >
-                <ConnectionView />
+                <ConnectionViewRenderer channelSlug={channelSlug} />
               </Suspense>
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">

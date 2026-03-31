@@ -39,7 +39,7 @@ const createMockOffer = (
     prerequisites: [],
     includes_offers: [],
     assets: [],
-    guarantee_type: GuaranteeType.UNCONDITIONAL_X_DAY,
+    guarantee_type: GuaranteeType.UNCONDITIONAL_30_DAY,
     guarantee_terms: "30 días de garantía",
     landing_page_config: {
         is_published: status === OfferStatus.ACTIVE,

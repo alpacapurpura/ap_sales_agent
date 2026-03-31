@@ -35,6 +35,8 @@ export interface MetricClickData {
   lastUpdated?: Date;
   /** Extra data from headerKpis for enriched sidebar detail (e.g., sales breakdown) */
   extraData?: Record<string, number>;
+  /** Sub-source breakdown for unified channels (e.g., Meta Direct + ManyChat) */
+  subSources?: SubSource[];
 }
 
 export interface StageSummary {
@@ -80,7 +82,14 @@ export interface MetricValue {
   breakdown?: Record<string, number>;
 }
 
-export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'checkout' | 'payment_links' | 'qualification' | 'adquisicion' | 'expansion' | 'available';
+export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'website' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'checkout' | 'payment_links' | 'qualification' | 'adquisicion' | 'expansion' | 'available';
+
+/** Sub-source breakdown for unified channels (e.g., Meta Direct + ManyChat) */
+export interface SubSource {
+  name: string;  // "Meta Direct", "ManyChat"
+  leads: number;
+  conversations: number;
+}
 
 export interface ChannelMetric {
   slug: string;
@@ -97,6 +106,8 @@ export interface ChannelMetric {
   sourceDisplayName?: string;
   /** Provider identifier (e.g., "google_analytics", "youtube", "meta") */
   providerName?: string;
+  /** Sub-source breakdown when channel merges multiple providers */
+  subSources?: SubSource[];
   /** @deprecated use metrics array instead */
   value?: number;
 }
@@ -115,6 +126,7 @@ export interface AttractionDetail {
   ga4Search: TrafficGroup;
   paid: TrafficGroup;
   outbound: TrafficGroup;
+  website?: TrafficGroup;
   available?: AvailableChannels;
   period: string;
   lastUpdated?: string;

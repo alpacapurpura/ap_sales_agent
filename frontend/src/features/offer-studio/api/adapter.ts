@@ -2,6 +2,7 @@ import {
   Offer,
   OfferStatus,
   OfferType,
+  OfferArchetype,
   OfferValueLevel,
   OfferDeliveryModel,
   GuaranteeType,
@@ -15,10 +16,14 @@ import { OfferFormValues } from "../types/schema";
 // Tipo para la respuesta cruda del backend
 export interface BackendOffer {
   id: string;
-  name?: string; // Puede no venir si el backend usa solo public_name
+  name?: string;
   public_name?: string;
   internal_sku?: string;
   type: string;
+  archetype?: string;
+  format_hint?: string;
+  is_lead_magnet?: boolean;
+  shows_as_lead_magnet?: boolean;
   offer_value_level?: string;
   value_level?: string;
   delivery_model?: string;
@@ -97,12 +102,18 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     id: data.id,
     name: data.name || data.public_name || "Oferta sin nombre",
     internal_sku: data.internal_sku,
-    
+
     // Strict Enum Normalization
     type: normalizeEnum(data.type, OfferType, OfferType.FREE_RESOURCE),
     value_level: normalizeEnum(data.offer_value_level || data.value_level, OfferValueLevel, OfferValueLevel.N0),
     delivery_model: normalizeEnum(data.delivery_model, OfferDeliveryModel, OfferDeliveryModel.DIY),
     status: normalizeEnum(data.status, OfferStatus, OfferStatus.DRAFT),
+
+    // Archetype system
+    archetype: data.archetype ? normalizeEnum(data.archetype, OfferArchetype, undefined) : undefined,
+    format_hint: data.format_hint,
+    is_lead_magnet: data.is_lead_magnet || false,
+    shows_as_lead_magnet: data.shows_as_lead_magnet || false,
     
     headline_promise: data.headline_promise,
     primary_outcome: data.primary_outcome,
@@ -134,7 +145,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     })),
     deliverables: (data.deliverables || []).map((d: any) => ({
         name: d.name,
-        format: d.format || DeliverableFormat.RECORDED_CONTENT,
+        format: d.format || DeliverableFormat.VIDEO,
         quantity: String(d.quantity || "1"),
         value_stack_price: Number(d.value_stack_price) || 0
     })),
@@ -143,7 +154,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     includes_offers: data.includes_offers || [],
     assets: data.assets || [],
 
-    guarantee_type: (data.guarantee_type as GuaranteeType) || GuaranteeType.NO_REFUNDS,
+    guarantee_type: (data.guarantee_type as GuaranteeType) || GuaranteeType.NONE,
     guarantee_terms: data.guarantee_terms,
     
     // Prioridad: metadata -> campo directo
@@ -182,26 +193,22 @@ export const offerToFormValues = (offer: Offer): OfferFormValues => {
  * Convierte los valores del formulario al payload que espera el backend.
  */
 export const frontendToBackend = (values: OfferFormValues | Partial<OfferFormValues>): Record<string, any> => {
-    // 1. Mapear pricing_options (Frontend) -> pricing (Backend) y eliminar pricing_options
-    // El backend espera 'pricing', alineado con el DTO ProductUpdate
     const { pricing_options, ...rest } = values;
     const payload: Record<string, any> = { ...rest };
-    
+
+    // Map public_name -> name (ProductCreate expects 'name')
+    if (values.public_name && !payload.name) {
+        payload.name = values.public_name;
+    }
+
+    // pricing_options -> pricing
     if (pricing_options) {
         payload.pricing = pricing_options;
     } else if ((values as any).pricing) {
         payload.pricing = (values as any).pricing;
     }
-    
-    // 2. Eliminar metadata_info para evitar sobrescribir actualizaciones parciales
-    // El backend maneja la fusión de campos específicos en metadata si es necesario.
+
     delete payload.metadata_info;
-    
-    // 3. Mapear public_name
-    // Si existe public_name, se usa. Si no, y existe name, se usa name como public_name.
-    if (values.public_name) {
-        payload.public_name = values.public_name;
-    }
 
     return payload;
 };

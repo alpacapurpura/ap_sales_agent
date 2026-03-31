@@ -57,10 +57,12 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
     });
   }, [nurtureData]);
 
+  const checkoutChannels = oppData?.checkout.channels;
+  const paymentLinksChannels = oppData?.paymentLinks.channels;
   const oppCheckoutChannels = useMemo(() => [
-    ...(oppData?.checkout.channels || []),
-    ...(oppData?.paymentLinks.channels || []),
-  ], [oppData?.checkout.channels, oppData?.paymentLinks.channels]);
+    ...(checkoutChannels || []),
+    ...(paymentLinksChannels || []),
+  ], [checkoutChannels, paymentLinksChannels]);
 
   const activeBottlenecks = useMemo(() => oppData?.bottlenecks.filter(b => b.severity !== 'normal') ?? [], [oppData]);
 

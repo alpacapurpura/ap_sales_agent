@@ -186,7 +186,7 @@ export const OFFER_TYPE_METADATA: Record<OfferType, OfferTypeDefinition> = {
   [OfferType.CORPORATE_TRAINING]: {
     type: OfferType.CORPORATE_TRAINING,
     level: OfferValueLevel.N6,
-    delivery: OfferDeliveryModel.B2B,
+    delivery: OfferDeliveryModel.HYBRID,
     label: "Capacitación Corporativa",
     hint: "Venta a empresas (B2B).",
     description: "Entrenamiento para equipos o departamentos."
@@ -194,7 +194,7 @@ export const OFFER_TYPE_METADATA: Record<OfferType, OfferTypeDefinition> = {
   [OfferType.BRAND_SPONSORSHIP]: {
     type: OfferType.BRAND_SPONSORSHIP,
     level: OfferValueLevel.N6,
-    delivery: OfferDeliveryModel.B2B,
+    delivery: OfferDeliveryModel.HYBRID,
     label: "Patrocinio de Marca",
     hint: "Venta de acceso a tu audiencia.",
     description: "Monetización de tu alcance mediático."
@@ -202,7 +202,7 @@ export const OFFER_TYPE_METADATA: Record<OfferType, OfferTypeDefinition> = {
   [OfferType.KEYNOTE_SPEAKING]: {
     type: OfferType.KEYNOTE_SPEAKING,
     level: OfferValueLevel.N6,
-    delivery: OfferDeliveryModel.B2B,
+    delivery: OfferDeliveryModel.HYBRID,
     label: "Conferencias / Keynotes",
     hint: "Ponencias pagadas.",
     description: "Monetización de tu autoridad y oratoria."

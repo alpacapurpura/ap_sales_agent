@@ -41,9 +41,16 @@ export function OfferStudioLayout({
             <Badge variant="outline" className="uppercase text-[10px] tracking-wider font-semibold">
               {offer.status}
             </Badge>
-            <Badge variant="secondary" className="uppercase text-[10px] tracking-wider font-semibold">
-              {offer.value_level}
-            </Badge>
+            {offer.archetype && (
+              <Badge variant="secondary" className="text-[10px] tracking-wider font-semibold capitalize">
+                {offer.archetype}{offer.format_hint ? ` - ${offer.format_hint}` : ""}
+              </Badge>
+            )}
+            {!offer.archetype && (
+              <Badge variant="secondary" className="uppercase text-[10px] tracking-wider font-semibold">
+                {offer.value_level}
+              </Badge>
+            )}
          </div>
          
          <div className="flex items-center gap-3">

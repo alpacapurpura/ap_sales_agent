@@ -15,6 +15,7 @@ function mapResponse(raw: any): AttractionDetail {
     ga4Search: mapGroup(raw.ga4_search),
     paid: mapGroup(raw.paid),
     outbound: mapGroup(raw.outbound),
+    website: raw.website ? mapGroup(raw.website) : undefined,
     available: raw.available ? { channels: raw.available.channels.map(mapChannel) } : undefined,
   };
 }

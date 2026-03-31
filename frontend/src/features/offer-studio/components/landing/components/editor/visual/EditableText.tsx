@@ -12,7 +12,10 @@ interface EditableTextProps {
 export function EditableText({ value, onChange, className, placeholder, as }: EditableTextProps) {
     const [localValue, setLocalValue] = useState(value || "");
 
+    // Sync local buffer when the prop changes externally (e.g. parent form reset).
+    // This legitimately mirrors an external prop into local editable state.
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLocalValue(value || "");
     }, [value]);
 

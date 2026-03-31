@@ -4,7 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useRef,
+  useState,
   useTransition,
   type ReactNode,
 } from "react";
@@ -24,14 +24,13 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const router = useTopLoaderRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
-
-  const pendingHrefRef = useRef<string | null>(null);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
 
   const navigate = useCallback(
     (href: string) => {
       if (isPending) return;
       if (href === pathname) return;
-      pendingHrefRef.current = href;
+      setPendingHref(href);
       startTransition(() => {
         router.push(href);
       });
@@ -43,7 +42,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     (href: string) => {
       if (isPending) return;
       if (href === pathname) return;
-      pendingHrefRef.current = href;
+      setPendingHref(href);
       startTransition(() => {
         router.replace(href);
       });
@@ -57,7 +56,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         isNavigating: isPending,
         navigate,
         navigateReplace,
-        pendingHref: isPending ? pendingHrefRef.current : null,
+        pendingHref: isPending ? pendingHref : null,
       }}
     >
       {children}

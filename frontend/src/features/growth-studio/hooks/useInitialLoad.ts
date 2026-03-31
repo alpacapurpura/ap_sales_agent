@@ -29,14 +29,3 @@ export function useInitialLoad() {
     error: mutation.error,
   };
 }
-
-/** @deprecated Use useInitialLoad instead */
-export function useMetaInitialLoad() {
-  const hook = useInitialLoad();
-  return {
-    trigger: (days: number = 30) => hook.trigger({ provider: 'meta', days }),
-    isLoading: hook.isLoading,
-    result: hook.result,
-    error: hook.error,
-  };
-}

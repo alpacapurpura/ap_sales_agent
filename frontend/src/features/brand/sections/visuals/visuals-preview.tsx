@@ -8,10 +8,9 @@ interface VisualsSectionProps {
   onExtract: () => void;
 }
 
-export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionProps) {
-  const hasData = visuals.primary_color && visuals.primary_color.length > 0 && visuals.primary_color !== "#000000" && visuals.primary_color !== "#ffffff";
-
-  const ColorSwatch = ({ color, label }: { color: string, label: string }) => (
+// Extracted to module scope for ESLint react-hooks/static-components
+function ColorSwatch({ color, label }: { color: string; label: string }) {
+  return (
     <div className="flex flex-col gap-2 group/swatch">
         <div
             className="h-16 w-full rounded-lg shadow-sm border border-border/10 ring-1 ring-border/5 transition-transform group-hover/swatch:scale-105"
@@ -23,13 +22,19 @@ export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionPro
         </div>
     </div>
   );
+}
 
-  const SmallSwatch = ({ color }: { color: string }) => (
+function SmallSwatch({ color }: { color: string }) {
+  return (
     <div className="flex flex-col items-center gap-1">
         <div className="w-8 h-8 rounded-md shadow-sm border border-border/10" style={{ backgroundColor: color }} />
         <span className="text-[9px] text-muted-foreground font-mono opacity-50">{color}</span>
     </div>
   );
+}
+
+export function VisualsSection({ visuals, onEdit, onExtract }: VisualsSectionProps) {
+  const hasData = visuals.primary_color && visuals.primary_color.length > 0 && visuals.primary_color !== "#000000" && visuals.primary_color !== "#ffffff";
 
   return (
     <section

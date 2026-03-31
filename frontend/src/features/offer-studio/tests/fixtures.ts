@@ -4,10 +4,10 @@ import { Offer, OfferType, OfferValueLevel, OfferDeliveryModel, OfferStatus, Gua
 export const MOCK_BACKEND_RESPONSE = {
   id: "217ff363-8e96-4132-9542-935499bc7efc",
   public_name: "Guía: Liberar la Mente",
-  type: "FREE_RESOURCE", // Matches Enum
-  status: "active", // Needs normalization
-  offer_value_level: "N0",
-  delivery_model: "DIY",
+  type: "free_resource",
+  status: "active",
+  offer_value_level: "level_0_free",
+  delivery_model: "diy",
   pricing_options: [{ total_amount: 0, currency: "USD" }]
 };
 
@@ -28,6 +28,6 @@ export const MOCK_OFFER_NORMALIZED: Offer = {
   prerequisites: [],
   includes_offers: [],
   assets: [],
-  guarantee_type: GuaranteeType.NO_REFUNDS,
+  guarantee_type: GuaranteeType.NONE,
   instructors: []
 };

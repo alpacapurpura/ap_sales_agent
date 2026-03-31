@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 /**
  * A hook that persists state to localStorage with SSR support.
@@ -8,24 +8,15 @@ import { useState, useEffect } from 'react';
  * @returns A tuple containing the stored value and a function to set the value
  */
 export function useLocalStorage<T>(key: string, initialValue: T) {
-  // Initialize with initialValue to prevent hydration mismatch
-  const [storedValue, setStoredValue] = useState<T>(initialValue);
-
-  // After mount, we can safely access localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === 'undefined') return initialValue;
     try {
       const item = window.localStorage.getItem(key);
-      if (item) {
-        setStoredValue(JSON.parse(item));
-      }
-    } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
+      return item ? JSON.parse(item) : initialValue;
+    } catch {
+      return initialValue;
     }
-  }, [key]);
+  });
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {

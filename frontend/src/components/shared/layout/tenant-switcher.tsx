@@ -47,6 +47,7 @@ export function TenantSwitcher({ currentTenant, isCollapsed, activeTenantId }: T
     // Force a hard reload to ensure all application state is cleared and 
     // the new tenant context is loaded fresh. This prevents data leakage 
     // and stale cache issues common in SPA transitions between tenants.
+    // eslint-disable-next-line react-hooks/immutability -- intentional browser navigation
     window.location.href = newPath;
   };
 

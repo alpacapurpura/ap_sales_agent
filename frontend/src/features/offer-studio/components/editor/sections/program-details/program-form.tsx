@@ -42,29 +42,34 @@ export interface ProgramDetailsFormProps {
 
 // MAPPING: Smart Suggestions based on Structure
 const STRUCTURE_INTERACTION_RECOMMENDATIONS: Record<string, LiveInteractionType[]> = {
-  [ProgramStructure.FIXED_DATE_COHORT]: [
-    LiveInteractionType.LIVE_PROGRAM_DELIVERY,
-    LiveInteractionType.HYBRID_SUPPORT,
-    LiveInteractionType.WORKSHOP_PRACTICAL,
-    LiveInteractionType.GROUP_Q_AND_A
+  [ProgramStructure.FIXED_COHORT]: [
+    LiveInteractionType.WORKSHOPS,
+    LiveInteractionType.HOT_SEATS,
+    LiveInteractionType.GROUP_Q_AND_A,
+    LiveInteractionType.ONE_ON_ONE_CHECKINS
   ],
   [ProgramStructure.ROLLING_ADMISSION]: [
     LiveInteractionType.GROUP_Q_AND_A,
-    LiveInteractionType.HYBRID_SUPPORT,
-    LiveInteractionType.NO_LIVE_COMPONENTS,
-    LiveInteractionType.WORKSHOP_PRACTICAL
+    LiveInteractionType.NONE,
+    LiveInteractionType.WORKSHOPS,
+    LiveInteractionType.ONE_ON_ONE_CHECKINS
   ],
-  [ProgramStructure.CHALLENGE_SPRINT]: [
-    LiveInteractionType.LIVE_PROGRAM_DELIVERY,
-    LiveInteractionType.WORKSHOP_PRACTICAL,
-    LiveInteractionType.GROUP_Q_AND_A
+  [ProgramStructure.CHALLENGE]: [
+    LiveInteractionType.WORKSHOPS,
+    LiveInteractionType.GROUP_Q_AND_A,
+    LiveInteractionType.HOT_SEATS
+  ],
+  [ProgramStructure.MEMBERSHIP]: [
+    LiveInteractionType.GROUP_Q_AND_A,
+    LiveInteractionType.WORKSHOPS,
+    LiveInteractionType.NONE
   ]
 };
 
 function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   const timezone = form.watch("specific_details.timezone") || "UTC";
   const structureType = form.watch("specific_details.structure_type") as ProgramStructure;
-  const isCohortOrChallenge = structureType === ProgramStructure.FIXED_DATE_COHORT || structureType === ProgramStructure.CHALLENGE_SPRINT;
+  const isCohortOrChallenge = structureType === ProgramStructure.FIXED_COHORT || structureType === ProgramStructure.CHALLENGE;
 
   // Filter Logic
   const allInteractionOptions = getEnumOptions(LIVE_INTERACTION_METADATA);
@@ -161,7 +166,7 @@ function ProgramDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> 
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>
-                            {structureType === ProgramStructure.CHALLENGE_SPRINT ? "Duración (Días)" : "Duración (Semanas)"}
+                            {structureType === ProgramStructure.CHALLENGE ? "Duración (Días)" : "Duración (Semanas)"}
                         </FormLabel>
                         <FormControl>
                             <div className="relative">

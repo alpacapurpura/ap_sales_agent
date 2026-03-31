@@ -1,5 +1,5 @@
 import { Offer, OfferType } from "../types";
-import { OFFER_BUILDER_CONFIG } from "../config/offer-builder-config";
+import { getSectionsForOffer } from "../config/offer-builder-config";
 
 export interface SectionHealth {
   status: "complete" | "incomplete" | "optional";
@@ -93,7 +93,7 @@ const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
  * Calcula la salud (completitud) de una oferta basada en su tipo y configuración.
  */
 export function getOfferHealth(offer: Offer, type: OfferType): OfferHealth {
-  const sections = OFFER_BUILDER_CONFIG[type] || [];
+  const sections = getSectionsForOffer(offer);
   
   if (sections.length === 0) {
     return {

@@ -103,7 +103,7 @@ function EventDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> })
         )}
       />
 
-      {(form.watch("specific_details.location_type") === EventLocationType.IN_PERSON_LOCAL || 
+      {(form.watch("specific_details.location_type") === EventLocationType.PHYSICAL_LOCAL || 
         form.watch("specific_details.location_type") === EventLocationType.DESTINATION_RETREAT) && (
         <div className="border p-4 rounded-md space-y-4">
           <h4 className="font-medium text-sm text-muted-foreground">Detalles Físicos</h4>

@@ -30,7 +30,7 @@ const DELIVERY_MODEL_DESCRIPTIONS: Record<string, string> = {
   [DeliveryModel.DIY]: "Do It Yourself. El cliente implementa la solución por su cuenta con tus recursos.",
   [DeliveryModel.DWY]: "Done With You. Colaboración activa entre tú y el cliente para lograr el resultado.",
   [DeliveryModel.DFY]: "Done For You. Tú o tu equipo ejecutan todo el trabajo operativo por el cliente.",
-  [DeliveryModel.B2B]: "Business to Business. Soluciones corporativas diseñadas para empresas.",
+  [DeliveryModel.HYBRID]: "Híbrido / B2B. Soluciones corporativas o modelos mixtos diseñados para empresas.",
 };
 
 function IdentityContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

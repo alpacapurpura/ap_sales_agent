@@ -73,7 +73,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                 )} />
                 <Button type="button" size="sm" onClick={() => addPricing({ 
                     label: "Nuevo Precio", 
-                    plan_type: PaymentPlanType.PAY_IN_FULL,
+                    plan_type: PaymentPlanType.ONE_TIME,
                     total_amount: 0, 
                     deposit_required: 0, 
                     number_of_installments: 1, 
@@ -133,10 +133,10 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                                             </div>
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                 <Badge variant="outline" className="text-[10px] uppercase font-normal">
-                                                    {planType === PaymentPlanType.PAY_IN_FULL ? "Pago Único" : 
-                                                        planType === PaymentPlanType.INTERNAL_SPLIT_PAY ? "Financiado" : "Suscripción"}
+                                                    {planType === PaymentPlanType.ONE_TIME ? "Pago Único" : 
+                                                        planType === PaymentPlanType.PAYMENT_PLAN ? "Financiado" : "Suscripción"}
                                                 </Badge>
-                                                {planType === PaymentPlanType.INTERNAL_SPLIT_PAY && (
+                                                {planType === PaymentPlanType.PAYMENT_PLAN && (
                                                     <span>• {installments} cuotas de {currency} {calculatedInstallment.toFixed(2)}</span>
                                                 )}
                                             </div>
@@ -175,17 +175,17 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                                 {/* SMART EDITOR */}
                                 <div className="pl-11">
                                     <Tabs 
-                                        defaultValue={planType || PaymentPlanType.PAY_IN_FULL} 
+                                        defaultValue={planType || PaymentPlanType.ONE_TIME} 
                                         onValueChange={(val) => form.setValue(`pricing_options.${index}.plan_type`, val as PaymentPlanType)}
                                         className="w-full"
                                     >
                                         <TabsList className="mb-4 w-full justify-start h-auto p-1 bg-muted/50">
-                                            <TabsTrigger value={PaymentPlanType.PAY_IN_FULL} className="text-xs">Pago Único</TabsTrigger>
-                                            <TabsTrigger value={PaymentPlanType.INTERNAL_SPLIT_PAY} className="text-xs">Plan de Pagos</TabsTrigger>
-                                            <TabsTrigger value={PaymentPlanType.SUBSCRIPTION_RECURRING} className="text-xs">Suscripción</TabsTrigger>
+                                            <TabsTrigger value={PaymentPlanType.ONE_TIME} className="text-xs">Pago Único</TabsTrigger>
+                                            <TabsTrigger value={PaymentPlanType.PAYMENT_PLAN} className="text-xs">Plan de Pagos</TabsTrigger>
+                                            <TabsTrigger value={PaymentPlanType.SUBSCRIPTION} className="text-xs">Suscripción</TabsTrigger>
                                         </TabsList>
 
-                                        <TabsContent value={PaymentPlanType.PAY_IN_FULL} className="mt-0 space-y-4">
+                                        <TabsContent value={PaymentPlanType.ONE_TIME} className="mt-0 space-y-4">
                                             <div className="grid grid-cols-2 gap-4">
                                                 <FormField
                                                     control={form.control}
@@ -224,7 +224,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                                             </div>
                                         </TabsContent>
 
-                                        <TabsContent value={PaymentPlanType.INTERNAL_SPLIT_PAY} className="mt-0 space-y-4">
+                                        <TabsContent value={PaymentPlanType.PAYMENT_PLAN} className="mt-0 space-y-4">
                                             <div className="grid grid-cols-3 gap-4">
                                                 <FormField
                                                     control={form.control}
@@ -296,7 +296,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                                             </div>
                                         </TabsContent>
 
-                                        <TabsContent value={PaymentPlanType.SUBSCRIPTION_RECURRING} className="mt-0">
+                                        <TabsContent value={PaymentPlanType.SUBSCRIPTION} className="mt-0">
                                             <div className="flex items-center gap-4">
                                                     <FormField
                                                     control={form.control}

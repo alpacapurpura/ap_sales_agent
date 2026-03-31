@@ -10,6 +10,11 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ tenantId: 'visionarias' }),
 }));
 
+// Mock NavigationProvider context
+vi.mock('@/components/shared/navigation', () => ({
+  useNavigation: () => ({ navigate: vi.fn(), isNavigating: false, navigateReplace: vi.fn(), pendingHref: null }),
+}));
+
 describe('OfferCard Component', () => {
   it('renders the offer name correctly', () => {
     render(<OfferCard offer={MOCK_OFFER_NORMALIZED} />);

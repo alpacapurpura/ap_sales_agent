@@ -39,7 +39,7 @@ export function OfferHealthCard({ offer }: OfferHealthCardProps) {
           <span className="font-bold text-foreground">{offer.healthPct.toFixed(0)}% Salud</span>
         </div>
         
-        <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">
+        <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden flex">
           <div className={`h-full ${isHealthy ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${offer.healthPct}%` }}></div>
         </div>
         

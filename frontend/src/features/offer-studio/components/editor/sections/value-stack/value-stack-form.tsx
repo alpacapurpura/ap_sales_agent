@@ -91,7 +91,7 @@ function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
             type="button" 
             variant="outline" 
             size="sm"
-            onClick={() => append({ name: "", format: DeliverableFormat.RECORDED_CONTENT, quantity: "1", value_stack_price: 0 })}
+            onClick={() => append({ name: "", format: DeliverableFormat.VIDEO, quantity: "1", value_stack_price: 0 })}
           >
             <Plus className="w-4 h-4 mr-2" />
             Agregar Item
@@ -245,7 +245,7 @@ function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
               <p className="text-xs">Agrega items para construir el valor de tu oferta.</p>
               <Button 
                 variant="link" 
-                onClick={() => append({ name: "", format: DeliverableFormat.RECORDED_CONTENT, quantity: "1", value_stack_price: 0 })}
+                onClick={() => append({ name: "", format: DeliverableFormat.VIDEO, quantity: "1", value_stack_price: 0 })}
                 className="mt-2 text-primary"
               >
                 Agregar el primer item

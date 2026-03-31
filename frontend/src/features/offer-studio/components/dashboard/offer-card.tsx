@@ -1,6 +1,6 @@
 "use client";
 
-import { Offer, OfferDeliveryModel, OfferStatus } from "@/features/offer-studio/types";
+import { Offer, OfferDeliveryModel, OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
 import { OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
 import { HighlightedText } from "@/components/ui/highlighted-text";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -33,13 +33,14 @@ interface OfferCardProps {
   searchQuery?: string;
   compact?: boolean;
   className?: string;
+  onArchive?: (offerId: string) => void;
 }
 
 const DELIVERY_COLORS = {
   [OfferDeliveryModel.DIY]: "border-emerald-500",
   [OfferDeliveryModel.DWY]: "border-blue-500",
   [OfferDeliveryModel.DFY]: "border-purple-600",
-  [OfferDeliveryModel.B2B]: "border-yellow-500", // Gold for B2B
+  [OfferDeliveryModel.HYBRID]: "border-yellow-500",
 };
 
 const STATUS_CONFIG = {
@@ -52,23 +53,23 @@ const STATUS_CONFIG = {
 };
 
 const LEVEL_ICONS: Record<string, any> = {
-  "N0": Package,
-  "N1": Zap,
-  "N2": Users,
-  "N3": Gem,
-  "N4": Building2,
-  "N5": Building2,
-  "N6": Building2,
+  [OfferValueLevel.N0]: Package,
+  [OfferValueLevel.N1]: Zap,
+  [OfferValueLevel.N2]: Users,
+  [OfferValueLevel.N3]: Gem,
+  [OfferValueLevel.N4]: Building2,
+  [OfferValueLevel.N5]: Building2,
+  [OfferValueLevel.N6]: Building2,
 };
 
 const DELIVERY_BADGES = {
   [OfferDeliveryModel.DIY]: { label: "DIY", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
   [OfferDeliveryModel.DWY]: { label: "DWY", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
   [OfferDeliveryModel.DFY]: { label: "DFY", color: "bg-purple-600/10 text-purple-600 border-purple-600/20" },
-  [OfferDeliveryModel.B2B]: { label: "B2B", color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" },
+  [OfferDeliveryModel.HYBRID]: { label: "Hybrid", color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" },
 };
 
-export function OfferCard({ offer, searchQuery = "", compact = false, className }: OfferCardProps) {
+export function OfferCard({ offer, searchQuery = "", compact = false, className, onArchive }: OfferCardProps) {
   const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
@@ -78,9 +79,14 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
   const statusConfig = STATUS_CONFIG[offer.status] || STATUS_CONFIG[OfferStatus.DRAFT];
   const Icon = LEVEL_ICONS[offer.value_level] || Package;
 
-  // Metadata lookup should be safe now due to Adapter normalization
+  // Archetype label takes priority over legacy type
   const typeMetadata = OFFER_TYPE_METADATA[offer.type];
-  const typeLabel = typeMetadata?.label || offer.type;
+  const archetypeLabel = offer.archetype
+    ? offer.archetype.charAt(0).toUpperCase() + offer.archetype.slice(1)
+    : null;
+  const typeLabel = archetypeLabel
+    ? (offer.format_hint ? `${archetypeLabel} - ${offer.format_hint}` : archetypeLabel)
+    : (typeMetadata?.label || offer.type);
 
   // Calculate Price Display
   const priceDisplay = offer.pricing && offer.pricing.length > 0 
@@ -136,7 +142,7 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className 
                     </DropdownMenuItem>
                 )}
                 <DropdownMenuItem>Duplicar</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">Archivar</DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onClick={() => onArchive?.(offer.id)}>Archivar</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

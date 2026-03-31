@@ -25,12 +25,12 @@ export function EstrategiaView() {
   const { settings } = useBrandSettings();
   const { openEdit } = useBrandStudio();
 
-  if (!settings) return null;
-
   const navItems = useMemo(
-    () => buildSectionNavItems("estrategia", settings),
+    () => settings ? buildSectionNavItems("estrategia", settings) : [],
     [settings]
   );
+
+  if (!settings) return null;
 
   return (
     <BrandSectionShell title={SECTION.label} subtitle={SECTION.subtitle} navItems={navItems}>

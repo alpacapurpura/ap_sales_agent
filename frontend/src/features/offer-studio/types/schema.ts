@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { 
-  OfferType, 
-  OfferValueLevel, 
-  OfferDeliveryModel, 
+import {
+  OfferType,
+  OfferArchetype,
+  OfferValueLevel,
+  OfferDeliveryModel,
   OfferStatus,
   GuaranteeType,
   DeliverableFormat,
@@ -182,6 +183,9 @@ export const OfferSchema = z.object({
   internal_sku: z.string().optional().nullable(),
   public_name: z.string().min(1, "Name is required"),
   type: z.nativeEnum(OfferType),
+  archetype: z.nativeEnum(OfferArchetype).optional().nullable(),
+  format_hint: z.string().optional().nullable(),
+  is_lead_magnet: z.boolean().default(false),
   offer_value_level: z.nativeEnum(OfferValueLevel).optional().nullable(),
   delivery_model: z.nativeEnum(OfferDeliveryModel).optional().nullable(),
   
@@ -208,7 +212,7 @@ export const OfferSchema = z.object({
   price_pay_in_full: z.number().optional().nullable(),
   currency: z.string().default("USD"),
   
-  guarantee_type: z.nativeEnum(GuaranteeType).default(GuaranteeType.NO_REFUNDS),
+  guarantee_type: z.nativeEnum(GuaranteeType).default(GuaranteeType.NONE),
   guarantee_terms: z.string().optional().nullable(),
   
   downsell_offer_id: z.string().uuid().optional().nullable(),

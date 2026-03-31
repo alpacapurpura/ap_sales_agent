@@ -50,32 +50,37 @@ function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   }, [getToken]);
 
   const onboardingOptions = [
-      { value: OnboardingMechanism.CHECKOUT_LINK, label: "Venta Directa (Checkout)", description: "Muestra un link de pago directo. Ideal para productos de bajo ticket." },
-      { value: OnboardingMechanism.CALENDAR_BOOKING, label: "Agendar Cita (Consultiva)", description: "Muestra el calendario para agendar. Ideal para High Ticket." },
-      { value: OnboardingMechanism.INTAKE_FORM, label: "Aplicación / Formulario", description: "Requiere llenar un formulario antes de comprar." },
-      { value: OnboardingMechanism.COMMUNITY_INVITE, label: "Invitación a Comunidad", description: "Acceso directo a Discord/Skool/WhatsApp." },
+      { value: OnboardingMechanism.INSTANT_ACCESS_EMAIL, label: "Acceso Instantáneo (Email)", description: "El usuario recibe acceso inmediato por email. Ideal para productos digitales." },
+      { value: OnboardingMechanism.BOOK_KICKOFF_CALL, label: "Agendar Cita (Kickoff Call)", description: "Muestra el calendario para agendar. Ideal para High Ticket." },
+      { value: OnboardingMechanism.FILL_INTAKE_FORM, label: "Formulario de Intake", description: "Requiere llenar un formulario antes de comenzar." },
+      { value: OnboardingMechanism.JOIN_COMMUNITY, label: "Invitación a Comunidad", description: "Acceso directo a Discord/Skool/WhatsApp." },
   ];
 
   const guaranteeOptions = [
-    { 
-      value: GuaranteeType.UNCONDITIONAL_X_DAY, 
-      label: "Incondicional (X Días)", 
-      description: "Devolución total sin preguntas dentro del periodo." 
+    {
+      value: GuaranteeType.UNCONDITIONAL_30_DAY,
+      label: "Incondicional (30 Días)",
+      description: "Devolución total sin preguntas dentro de 30 días."
     },
-    { 
-      value: GuaranteeType.CONDITIONAL_ACTION_BASED, 
-      label: "Condicional (Basada en Acción)", 
-      description: "Reembolso solo si demuestran haber hecho el trabajo." 
+    {
+      value: GuaranteeType.CONDITIONAL_ACTION_BASED,
+      label: "Condicional (Basada en Acción)",
+      description: "Reembolso solo si demuestran haber hecho el trabajo."
     },
-    { 
-      value: GuaranteeType.EXCHANGE_ONLY, 
-      label: "Solo Intercambio / Crédito", 
-      description: "No se devuelve dinero, solo cambio por otro producto." 
+    {
+      value: GuaranteeType.DOUBLE_MONEY_BACK,
+      label: "Doble Devolución",
+      description: "Si no funciona, devuelves el doble. Máxima confianza."
     },
-    { 
-      value: GuaranteeType.NO_REFUNDS, 
-      label: "Sin Reembolsos (Venta Final)", 
-      description: "Estricto. Ideal para servicios ya consumidos o eventos." 
+    {
+      value: GuaranteeType.SATISFACTION_OR_FREE_WORK,
+      label: "Satisfacción o Trabajo Gratis",
+      description: "Si no estás satisfecho, trabajo adicional sin costo."
+    },
+    {
+      value: GuaranteeType.NONE,
+      label: "Sin Reembolsos (Venta Final)",
+      description: "Estricto. Ideal para servicios ya consumidos o eventos."
     }
   ];
 
@@ -103,7 +108,7 @@ function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                     </FormItem>
                 )} />
 
-                {form.watch("onboarding_action") === OnboardingMechanism.CHECKOUT_LINK && (
+                {form.watch("onboarding_action") === OnboardingMechanism.INSTANT_ACCESS_EMAIL && (
                     <div className="pt-2 animate-in fade-in slide-in-from-top-2">
                         <FormField control={form.control} name="checkout_page_url" render={({ field }) => (
                             <FormItem>
@@ -114,7 +119,7 @@ function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                     </div>
                 )}
                 
-                {form.watch("onboarding_action") === OnboardingMechanism.CALENDAR_BOOKING && (
+                {form.watch("onboarding_action") === OnboardingMechanism.BOOK_KICKOFF_CALL && (
                     <div className="pt-2 animate-in fade-in slide-in-from-top-2">
                         <FormField control={form.control} name="calendar_type_id" render={({ field }) => (
                             <FormItem>
@@ -159,7 +164,7 @@ function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                 )} />
 
                 {/* Conditional Inputs for Guarantee Terms */}
-                {form.watch("guarantee_type") === GuaranteeType.UNCONDITIONAL_X_DAY && (
+                {form.watch("guarantee_type") === GuaranteeType.UNCONDITIONAL_30_DAY && (
                     <div className="pt-2 animate-in fade-in slide-in-from-top-2">
                         <FormField control={form.control} name="guarantee_terms" render={({ field }) => (
                             <FormItem>
@@ -209,10 +214,10 @@ function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
 
 export function ClosingForm({ defaultValues: propValues, onSave }: ClosingFormProps) {
   const defaultValues: ClosingFormValues = {
-    onboarding_action: propValues?.onboarding_action || OnboardingMechanism.CHECKOUT_LINK,
+    onboarding_action: propValues?.onboarding_action || OnboardingMechanism.INSTANT_ACCESS_EMAIL,
     checkout_page_url: propValues?.checkout_page_url || "",
     calendar_type_id: propValues?.calendar_type_id || "",
-    guarantee_type: propValues?.guarantee_type || GuaranteeType.NO_REFUNDS,
+    guarantee_type: propValues?.guarantee_type || GuaranteeType.NONE,
     guarantee_terms: propValues?.guarantee_terms || ""
   };
 

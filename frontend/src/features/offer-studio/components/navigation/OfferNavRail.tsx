@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Offer } from "@/features/offer-studio/types";
-import { OFFER_BUILDER_CONFIG, SECTION_REGISTRY } from "@/features/offer-studio/config/offer-builder-config";
+import { SECTION_REGISTRY, getSectionsForOffer } from "@/features/offer-studio/config/offer-builder-config";
 import { getOfferHealth } from "@/features/offer-studio/utils/offer-health";
 import { cn } from "@/lib/utils";
 import { Check, AlertCircle, Circle, PanelLeftClose, PanelLeftOpen, ChevronRight } from "lucide-react";
@@ -17,7 +17,7 @@ interface OfferNavRailProps {
 
 export function OfferNavRail({ offer, activeSection, onNavigate, className }: OfferNavRailProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const sections = OFFER_BUILDER_CONFIG[offer.type] || [];
+  const sections = getSectionsForOffer(offer);
   const health = getOfferHealth(offer, offer.type);
 
   const handleNavigate = (sectionId: string) => {

@@ -74,12 +74,18 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const [channelSidebarOpen, setChannelSidebarOpen] = useState(false);
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
 
-  // Reset sidebars when stage changes
+  // Reset sidebars when stage changes — legitimately syncs multiple pieces
+  // of local UI state when the user navigates to a different funnel stage.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSidebarOpen(false);
+     
     setSidebarMetric(null);
+     
     setChannelSidebarOpen(false);
+     
     setSelectedChannel(null);
+     
     setConfigureChannel(null);
   }, [activeStage]);
 
