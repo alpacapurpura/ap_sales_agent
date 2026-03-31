@@ -8,4 +8,4 @@ class BaseEntity(BaseModel):
     Base Pydantic model for domain entities.
     Enables ORM mode by default.
     """
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

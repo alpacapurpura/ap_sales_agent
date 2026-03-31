@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Optional, Dict, Any, List
 import uuid
-from src.modules.offer.domain.enums import OfferArchetype, OfferStatus
+from src.modules.offer.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
 
 class ProductResponse(BaseModel):
     id: uuid.UUID
@@ -73,6 +73,7 @@ class ProductCreate(BaseModel):
     status: OfferStatus = OfferStatus.DRAFT
 
     # Optional fields the wizard can set
+    value_level: Optional[OfferValueLevel] = None
     headline_promise: Optional[str] = None
     avatar_id: Optional[uuid.UUID] = None
 

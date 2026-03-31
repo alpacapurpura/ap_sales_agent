@@ -16,6 +16,7 @@ class ProductModel(Base):
     
     # Core Fields
     name = Column(String, nullable=False) # Maps to public_name
+    type = Column("type", String, nullable=False)  # Legacy column, populated from archetype
     status = Column(String, default="draft")
     internal_sku = Column(String, nullable=True)
     value_level = Column("offer_value_level", String, nullable=True)

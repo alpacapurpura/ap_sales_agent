@@ -48,6 +48,7 @@ async def create_product(
         is_lead_magnet=product.is_lead_magnet,
         headline_promise=product.headline_promise or "",
         avatar_id=product.avatar_id,
+        value_level=product.value_level,
     )
 
 @router.get("/{product_id}", response_model=Offer)

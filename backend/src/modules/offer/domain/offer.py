@@ -62,7 +62,7 @@ class Offer(BaseEntity):
     format_hint: Optional[str] = None
     is_lead_magnet: bool = False
     
-    value_level: Optional[OfferValueLevel] = Field(None, validation_alias="offer_value_level")
+    value_level: Optional[OfferValueLevel] = Field(None, serialization_alias="offer_value_level")
     delivery_model: Optional[OfferDeliveryModel] = None
     
     headline_promise: str
@@ -140,7 +140,7 @@ class OfferIdentityUpdate(BaseEntity):
     public_name: Optional[str] = None
 
 class OfferStrategyUpdate(BaseEntity):
-    value_level: Optional[OfferValueLevel] = Field(None, validation_alias="offer_value_level")
+    value_level: Optional[OfferValueLevel] = Field(None, serialization_alias="offer_value_level")
     delivery_model: Optional[OfferDeliveryModel] = None
 
 class OfferPromiseUpdate(BaseEntity):

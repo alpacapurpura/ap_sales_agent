@@ -4,7 +4,7 @@ from uuid import UUID
 from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
 from src.modules.offer.domain.offer import Offer, ARCHETYPE_TO_DETAILS_MAPPING
 from src.modules.offer.domain.enums import (
-    OfferStatus, GuaranteeType, OfferArchetype
+    OfferStatus, GuaranteeType, OfferArchetype, OfferValueLevel
 )
 from src.modules.crm.domain.enums import FinancialCapacity
 
@@ -29,6 +29,7 @@ class OfferService:
         internal_sku: str = "",
         headline_promise: str = "",
         avatar_id: Optional[UUID] = None,
+        value_level: Optional[OfferValueLevel] = None,
     ) -> Offer:
         new_offer = Offer(
             tenant_id=tenant_id,
@@ -37,6 +38,7 @@ class OfferService:
             archetype=archetype,
             format_hint=format_hint,
             is_lead_magnet=is_lead_magnet,
+            value_level=value_level,
             headline_promise=headline_promise,
             primary_outcome="",
             time_to_value="",
