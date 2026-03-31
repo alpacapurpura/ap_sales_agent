@@ -13,10 +13,10 @@ The system prompt is enriched with a completion snapshot and module list.
 from typing import Literal
 
 from langchain_core.messages import AIMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, START, END
 
-from src.core.config import settings
+from src.core.enums import ModelRole
+from src.shared.infrastructure.llm.factory import LLMFactory
 from src.modules.copilot.application.orchestrator.state import CopilotState
 from src.modules.copilot.application.tools.registry import (
     get_all_tools,
@@ -241,12 +241,8 @@ def agent_node(state: CopilotState) -> dict:
 
     Tools are selected dynamically based on the user's current route.
     """
-    llm = ChatOpenAI(
-        model=settings.OPENAI_MODEL,
-        api_key=settings.OPENAI_API_KEY,
-        temperature=0.6,
-        streaming=True,
-    )
+    llm = LLMFactory.get_service().get_client(ModelRole.AGENT)
+    llm = llm.bind(temperature=0.6)
 
     # Dynamic tool selection based on route
     ctx = state.get("client_context", {})

@@ -24,6 +24,7 @@ import httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
+from src.core.enums import ModelRole
 from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
 import traceback
 import re
@@ -39,7 +40,7 @@ logger = structlog.get_logger()
 class ExtractionProfile:
     """Immutable configuration for how brand extraction behaves."""
     name: str
-    model_type: str           # "smart" or "fast" — maps to LLM factory
+    model_type: ModelRole      # Semantic role — maps to LLM factory via registry
     max_output_tokens: int    # max completion tokens (model-dependent limit)
     retries: int              # how many attempts per section
     retry_delay_seconds: float  # base delay between retries
@@ -52,7 +53,7 @@ class ExtractionProfile:
 # gpt-4o-mini has 200k+ TPM — waves are less critical but kept as safety.
 PROFILE_SAFE = ExtractionProfile(
     name="safe",
-    model_type="smart",
+    model_type=ModelRole.REASONING,
     max_output_tokens=4000,
     retries=3,
     retry_delay_seconds=5.0,
@@ -63,7 +64,7 @@ PROFILE_SAFE = ExtractionProfile(
 # "fast" — all 6 concurrent, minimal delays. Safe with gpt-4o-mini (200K+ TPM).
 PROFILE_FAST = ExtractionProfile(
     name="fast",
-    model_type="smart",
+    model_type=ModelRole.REASONING,
     max_output_tokens=4000,
     retries=2,
     retry_delay_seconds=1.0,

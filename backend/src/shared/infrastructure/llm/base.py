@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
+from src.core.enums import ModelRole
+
 
 class BaseLLMService(ABC):
     """
@@ -8,15 +11,16 @@ class BaseLLMService(ABC):
     """
 
     @abstractmethod
-    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, **kwargs) -> str:
+    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, model_type: str = "smart", **kwargs) -> str:
         """
         Generates a text response from the LLM.
-        
+
         Args:
             messages: List of message dicts [{"role": "user", "content": "..."}, ...]
             system_prompt: Optional system instruction to prepend or set.
+            model_type: ModelRole enum or legacy string ("smart"/"fast").
             **kwargs: Extra parameters like temperature, max_tokens, etc.
-            
+
         Returns:
             str: The generated text response.
         """
@@ -24,15 +28,10 @@ class BaseLLMService(ABC):
 
     @abstractmethod
     def get_embedding_model(self) -> Any:
-        """
-        Returns a LangChain-compatible embedding model object.
-        Useful for integration with Vector Stores like Qdrant.
-        """
+        """Returns a LangChain-compatible embedding model object."""
         pass
-    
+
     @abstractmethod
-    def get_client(self) -> Any:
-        """
-        Returns the underlying client (e.g. OpenAI client) if direct access is needed.
-        """
+    def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:
+        """Returns the underlying chat model client for the given role."""
         pass

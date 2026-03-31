@@ -1,53 +1,61 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.shared.infrastructure.llm.base import BaseLLMService
 from src.core.config import settings
+from src.core.enums import ModelRole
 
 from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
 from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
 from src.modules.sales_agent.infrastructure.db.database import SessionLocal
 
+# Legacy string → ModelRole mapping (backwards-compat)
+_LEGACY_MODEL_TYPE_MAP: Dict[str, ModelRole] = {
+    "smart": ModelRole.REASONING,
+    "fast": ModelRole.FAST,
+    "vision": ModelRole.VISION,
+    "agent": ModelRole.AGENT,
+}
+
+
 class OpenAIService(BaseLLMService):
     """
     Concrete implementation for OpenAI (Adapter Pattern).
+    Uses role-based model selection via ModelRole enum.
     """
-    
+
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or settings.OPENAI_API_KEY
-        if not self.api_key:
-             # If strictly no key is available (env not set and user didn't provide), raise.
-             # But usually env has it.
-             pass 
-             
-        self.model_name = settings.OPENAI_MODEL
-        self.embedding_model_name = settings.OPENAI_EMBEDDING_MODEL
-        
-        # Initialize LangChain Chat Model
-        self.chat_model = ChatOpenAI(
-            model=self.model_name,
-            api_key=self.api_key,
-            temperature=0.7
-        )
-        
-        # Initialize Fast Model (for tiered compute)
-        self.fast_chat_model = ChatOpenAI(
-            model=settings.OPENAI_FAST_MODEL,
-            api_key=self.api_key,
-            temperature=0.7
-        )
-        
-        # Initialize Embeddings Model
+        self._models: Dict[str, ChatOpenAI] = {}  # cache by model name
+
         self.embeddings = OpenAIEmbeddings(
-            model=self.embedding_model_name,
-            api_key=self.api_key
+            model=settings.get_model(ModelRole.EMBEDDING),
+            api_key=self.api_key,
         )
 
-    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, model_type: str = "smart", **kwargs) -> str:
+    def _get_chat_model(self, role: ModelRole) -> ChatOpenAI:
+        """Get or create a ChatOpenAI instance for the given role."""
+        model_name = settings.get_model(role)
+        if model_name not in self._models:
+            self._models[model_name] = ChatOpenAI(
+                model=model_name,
+                api_key=self.api_key,
+                temperature=0.7,
+            )
+        return self._models[model_name]
+
+    @staticmethod
+    def _resolve_role(model_type: Union[str, ModelRole]) -> ModelRole:
+        """Resolve a legacy string or ModelRole to a ModelRole."""
+        if isinstance(model_type, ModelRole):
+            return model_type
+        return _LEGACY_MODEL_TYPE_MAP.get(model_type, ModelRole.REASONING)
+
+    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, model_type: Union[str, ModelRole] = "smart", **kwargs) -> str:
         """
         Adapts the generic message format to LangChain's format and invokes the model.
         Args:
-            model_type: "smart" (GPT-4) or "fast" (GPT-3.5/Mini)
+            model_type: ModelRole enum or legacy string ("smart"/"fast")
         """
         # Init vars for logging in finally block
         response_text = ""
@@ -62,10 +70,10 @@ class OpenAIService(BaseLLMService):
                 messages = [{"role": "user", "content": messages}]
 
             lc_messages = []
-            
+
             if system_prompt:
                 lc_messages.append(SystemMessage(content=system_prompt))
-                
+
             for msg in messages:
                 role = msg.get("role")
                 content = msg.get("content")
@@ -74,11 +82,11 @@ class OpenAIService(BaseLLMService):
                 elif role == "assistant":
                     lc_messages.append(AIMessage(content=content))
                 elif role == "system":
-                    # Handle case where system prompt is in the messages list
                     lc_messages.append(SystemMessage(content=content))
-            
-            # Select Model based on Tier
-            selected_model = self.fast_chat_model if model_type == "fast" else self.chat_model
+
+            # Select Model based on Role
+            resolved_role = self._resolve_role(model_type)
+            selected_model = self._get_chat_model(resolved_role)
             
             # --- PARAMETER OVERRIDE ---
             # Allow overriding generation parameters per call
@@ -160,6 +168,6 @@ class OpenAIService(BaseLLMService):
 
     def get_embedding_model(self) -> Any:
         return self.embeddings
-        
-    def get_client(self) -> Any:
-        return self.chat_model
+
+    def get_client(self, role: ModelRole = ModelRole.REASONING) -> ChatOpenAI:
+        return self._get_chat_model(role)

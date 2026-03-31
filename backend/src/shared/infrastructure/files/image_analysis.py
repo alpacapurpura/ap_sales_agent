@@ -1,8 +1,8 @@
 import base64
 from typing import Union
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
-from src.core.config import settings
+from src.core.enums import ModelRole
+from src.shared.infrastructure.llm.factory import LLMFactory
 import structlog
 import json
 
@@ -11,12 +11,11 @@ logger = structlog.get_logger()
 
 class ImageAnalysisService:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4o",
-            api_key=settings.OPENAI_API_KEY,
+        base_llm = LLMFactory.get_service().get_client(ModelRole.VISION)
+        self.llm = base_llm.bind(
             temperature=0.2,
             max_tokens=500,
-            model_kwargs={"response_format": {"type": "json_object"}},
+            response_format={"type": "json_object"},
         )
 
     def encode_image(self, image_data: Union[bytes, str]) -> str:
