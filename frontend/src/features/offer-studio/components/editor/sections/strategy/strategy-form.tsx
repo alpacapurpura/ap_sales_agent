@@ -5,11 +5,11 @@ import { useAuth } from "@clerk/nextjs";
 import { UseFormReturn } from "react-hook-form";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { OfferType } from "../../../../types";
+import { OfferArchetype } from "../../../../types";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RichSelect } from "@/components/ui/rich-select";
-import { OFFER_TYPE_METADATA } from "../../../../types/offer-metadata";
+import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
 import { Target } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { avatarApi, Avatar } from "@/lib/api/avatar";
@@ -17,16 +17,16 @@ import { avatarApi, Avatar } from "@/lib/api/avatar";
 // Define partial schema for Strategy
 const StrategySchema = OfferSchema.pick({
   public_name: true,
-  type: true,
+  archetype: true,
   avatar_id: true
 });
 
-type StrategyFormValues = Pick<OfferFormValues, "public_name" | "type" | "avatar_id">;
+type StrategyFormValues = Pick<OfferFormValues, "public_name" | "archetype" | "avatar_id">;
 
 export interface StrategyFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any; // To satisfy OfferEditSheetManager passing 'form'
+  form?: any;
 }
 
 function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
@@ -47,11 +47,14 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
     fetchAvatars();
   }, [getToken]);
 
-  const offerTypeOptions = Object.values(OFFER_TYPE_METADATA).map(meta => ({
-      value: meta.type,
-      label: meta.label,
-      description: meta.hint
-  }));
+  const archetypeOptions = Object.values(OfferArchetype).map(arch => {
+    const meta = ARCHETYPE_METADATA[arch];
+    return {
+      value: arch,
+      label: meta?.label || arch,
+      description: meta?.subtitle || ""
+    };
+  });
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -65,13 +68,13 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                     <FormMessage />
                 </FormItem>
             )} />
-            <FormField control={form.control} name="type" render={({ field }) => (
+            <FormField control={form.control} name="archetype" render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Tipo de Oferta</FormLabel>
-                    <RichSelect 
-                        options={offerTypeOptions} 
-                        value={field.value} 
-                        onValueChange={field.onChange} 
+                    <FormLabel>Archetype de Oferta</FormLabel>
+                    <RichSelect
+                        options={archetypeOptions}
+                        value={field.value}
+                        onValueChange={field.onChange}
                         disabled={!!field.value}
                     />
                     <FormMessage />
@@ -85,14 +88,14 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                 <FormLabel className="flex items-center gap-2">
                     <Target className="w-4 h-4 text-primary" /> Avatar Match
                 </FormLabel>
-                <RichSelect 
-                    options={avatars.map(a => ({ 
-                        value: a.id, 
-                        label: a.name, 
-                        description: a.icp_description ? a.icp_description.substring(0, 60) + "..." : "Sin descripción" 
-                    }))} 
-                    value={field.value || undefined} 
-                    onValueChange={field.onChange} 
+                <RichSelect
+                    options={avatars.map(a => ({
+                        value: a.id,
+                        label: a.name,
+                        description: a.icp_description ? a.icp_description.substring(0, 60) + "..." : "Sin descripción"
+                    }))}
+                    value={field.value || undefined}
+                    onValueChange={field.onChange}
                     placeholder="Selecciona Avatar..."
                 />
                 <FormDescription className="text-xs">
@@ -106,10 +109,9 @@ function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
 }
 
 export function StrategyForm({ defaultValues: propValues, onSave }: StrategyFormProps) {
-  // Filter relevant values
   const defaultValues: StrategyFormValues = {
     public_name: propValues?.public_name || "",
-    type: propValues?.type || OfferType.GROUP_COACHING_PROGRAM,
+    archetype: propValues?.archetype || OfferArchetype.PRODUCTO,
     avatar_id: propValues?.avatar_id || ""
   };
 

@@ -1,6 +1,6 @@
 import { ComponentType } from 'react';
 import { SectionProps } from '../types/section';
-import { OfferType, OfferArchetype } from '../types';
+import { OfferArchetype } from '../types';
 import {
   Target,
   Fingerprint,
@@ -62,8 +62,6 @@ export interface OfferBuilderSectionConfig {
   previewComponent: ComponentType<any>;
   formComponent: ComponentType<any>;
 }
-
-export type OfferBuilderConfig = Partial<Record<OfferType, string[]>>;
 
 export const SECTION_REGISTRY: Record<string, OfferBuilderSectionConfig> = {
   strategy: {
@@ -197,38 +195,12 @@ export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
   [OfferArchetype.EXPERIENCIA]: ['identity', 'strategy', 'psychology', 'promise', 'event_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
 };
 
-// --- LEGACY TYPE-BASED CONFIG (backward compat) ---
-export const OFFER_BUILDER_CONFIG: OfferBuilderConfig = {
-    [OfferType.GROUP_COACHING_PROGRAM]: ['identity', 'strategy', 'psychology', 'promise', 'program_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-    [OfferType.HYBRID_MENTORSHIP]: ['identity', 'strategy', 'psychology', 'promise', 'program_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-    [OfferType.COHORT_BASED_COURSE]: ['identity', 'strategy', 'psychology', 'promise', 'program_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-    [OfferType.FREE_RESOURCE]: ['identity', 'strategy', 'promise', 'product_details', 'resources', 'gallery', 'pricing', 'closing'],
-    [OfferType.TRIPWIRE_OFFER]: ['identity', 'strategy', 'psychology', 'promise', 'product_details', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-    [OfferType.SELF_PACED_COURSE]: ['identity', 'strategy', 'psychology', 'promise', 'product_details', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-    [OfferType.VIP_DAY_STRATEGY]: ['identity', 'strategy', 'psychology', 'promise', 'service_details', 'instructors', 'gallery', 'pricing', 'closing'],
-    [OfferType.ONE_ON_ONE_PRIVATE_MENTORING]: ['identity', 'strategy', 'psychology', 'promise', 'service_details', 'instructors', 'gallery', 'pricing', 'closing'],
-    [OfferType.ECOMMERCE_DEVELOPMENT]: ['identity', 'strategy', 'psychology', 'promise', 'service_details', 'gallery', 'pricing', 'closing'],
-    [OfferType.LUXURY_RETREAT]: ['identity', 'strategy', 'psychology', 'promise', 'event_details', 'instructors', 'gallery', 'pricing', 'closing'],
-    [OfferType.MASTERMIND_NETWORK]: ['identity', 'strategy', 'psychology', 'promise', 'subscription_details', 'instructors', 'gallery', 'pricing', 'closing'],
-    [OfferType.CORPORATE_TRAINING]: ['identity', 'strategy', 'psychology', 'promise', 'service_details', 'gallery', 'pricing', 'closing'],
-};
-
 /**
- * Get sections for an offer: archetype-based if available, fallback to legacy type.
+ * Get sections for an offer based on archetype.
  */
-export function getSectionsForOffer(offer: { archetype?: OfferArchetype | string; type?: OfferType | string }): string[] {
-  if (offer.archetype) {
-    const archetype = offer.archetype as OfferArchetype;
-    if (ARCHETYPE_BUILDER_CONFIG[archetype]) {
-      return ARCHETYPE_BUILDER_CONFIG[archetype];
-    }
+export function getSectionsForOffer(offer: { archetype?: OfferArchetype | string }): string[] {
+  if (offer.archetype && ARCHETYPE_BUILDER_CONFIG[offer.archetype as OfferArchetype]) {
+    return ARCHETYPE_BUILDER_CONFIG[offer.archetype as OfferArchetype];
   }
-  if (offer.type) {
-    const type = offer.type as OfferType;
-    if (OFFER_BUILDER_CONFIG[type]) {
-      return OFFER_BUILDER_CONFIG[type]!;
-    }
-  }
-  // Ultimate fallback: producto sections
   return ARCHETYPE_BUILDER_CONFIG[OfferArchetype.PRODUCTO];
 }

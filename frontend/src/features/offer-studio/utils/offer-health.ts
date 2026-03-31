@@ -1,4 +1,4 @@
-import { Offer, OfferType } from "../types";
+import { Offer } from "../types";
 import { getSectionsForOffer } from "../config/offer-builder-config";
 
 export interface SectionHealth {
@@ -18,8 +18,8 @@ export interface OfferHealth {
 const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
   switch (sectionId) {
     case "identity":
-      // Requerido: Nombre, Tipo, Nivel
-      if (!offer.name || !offer.type || !offer.value_level) {
+      // Requerido: Nombre, Archetype, Nivel
+      if (!offer.name || !offer.archetype || !offer.value_level) {
         return { status: "incomplete", message: "Faltan datos básicos" };
       }
       return { status: "complete" };
@@ -92,7 +92,7 @@ const validateSection = (sectionId: string, offer: Offer): SectionHealth => {
 /**
  * Calcula la salud (completitud) de una oferta basada en su tipo y configuración.
  */
-export function getOfferHealth(offer: Offer, type: OfferType): OfferHealth {
+export function getOfferHealth(offer: Offer): OfferHealth {
   const sections = getSectionsForOffer(offer);
   
   if (sections.length === 0) {

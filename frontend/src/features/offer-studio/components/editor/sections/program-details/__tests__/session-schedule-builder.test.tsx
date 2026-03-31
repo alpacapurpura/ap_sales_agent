@@ -4,7 +4,7 @@ import { SessionScheduleBuilder } from '../session-schedule-builder';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import { OfferFormValues } from '../../../../../types/schema';
-import { ProgramStructure, OfferStatus, OfferType } from '../../../../../types';
+import { ProgramStructure, OfferStatus, OfferArchetype } from '../../../../../types';
 
 // Wrapper component to provide Form context
 function Wrapper() {
@@ -12,7 +12,7 @@ function Wrapper() {
     defaultValues: {
       public_name: "Test Offer",
       status: OfferStatus.DRAFT,
-      type: OfferType.COHORT_BASED_COURSE,
+      archetype: OfferArchetype.PROGRAMA,
       specific_details: {
         structure_type: ProgramStructure.FIXED_COHORT,
         schedule: []

@@ -47,7 +47,7 @@ class OfferReadDTO(BaseModel):
     id: UUID
     tenant_id: UUID
     public_name: str
-    offer_type: str  # OfferType.value string (e.g. "self_paced_course")
+    offer_type: str  # Archetype string (e.g. "producto", "programa")
     value_level: Optional[str] = None  # OfferValueLevel.value string
     pricing_type: str = "one_time"  # "one_time" | "subscription" | "payment_plan"
     currency: str = "USD"

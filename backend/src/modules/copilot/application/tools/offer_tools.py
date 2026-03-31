@@ -26,8 +26,8 @@ def _fetch_offers(db, tenant_id: UUID, offer_id: Optional[str] = None) -> list[d
         if offer_id:
             rows = db.execute(
                 text(
-                    "SELECT id, name, type, status, headline_promise, primary_outcome, "
-                    "pricing, currency, value_level, delivery_model, access_duration, "
+                    "SELECT id, name, archetype, format_hint, status, headline_promise, primary_outcome, "
+                    "pricing, currency, offer_value_level AS value_level, delivery_model, access_duration, "
                     "access_duration_text, guarantee_type, guarantee_terms, "
                     "marketing_pain_points, marketing_desires, objections, "
                     "target_avatar_match, requires_application, checkout_page_url "
@@ -38,8 +38,8 @@ def _fetch_offers(db, tenant_id: UUID, offer_id: Optional[str] = None) -> list[d
         else:
             rows = db.execute(
                 text(
-                    "SELECT id, name, type, status, headline_promise, primary_outcome, "
-                    "pricing, currency, value_level, delivery_model, access_duration "
+                    "SELECT id, name, archetype, format_hint, status, headline_promise, primary_outcome, "
+                    "pricing, currency, offer_value_level AS value_level, delivery_model, access_duration "
                     "FROM products WHERE tenant_id = :tid AND is_active = true "
                     "ORDER BY created_at DESC"
                 ),
@@ -56,9 +56,9 @@ def _format_offer_summary(offer: dict) -> str:
     """Format a single offer as readable text."""
     lines = []
     name = offer.get("name", "Sin nombre")
-    offer_type = offer.get("type", "N/A")
+    archetype = offer.get("archetype", "N/A")
     status = offer.get("status", "N/A")
-    lines.append(f"**{name}** (Tipo: {offer_type}, Estado: {status})")
+    lines.append(f"**{name}** (Archetype: {archetype}, Estado: {status})")
 
     if offer.get("headline_promise"):
         lines.append(f"  Promesa: {offer['headline_promise']}")

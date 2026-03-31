@@ -1,13 +1,22 @@
 // --- ENUMS ---
 export enum OfferValueLevel {
-  N0 = "level_0_free",
-  N1 = "level_1_low_ticket",
-  N2 = "level_2_mid_ticket",
-  N3 = "level_3_high_ticket",
-  N4 = "level_4_recurring",
-  N5 = "level_5_ultra_high",
-  N6 = "level_6_corporate",
+  LEAD_MAGNET = "lead_magnet",
+  ACTIVACION = "activacion",
+  TRANSFORMACION = "transformacion",
+  MAXIMIZACION = "maximizacion",
+  CORPORATIVO = "corporativo",
 }
+
+/** Map legacy DB values to new enum values (for adapter backward compat) */
+export const LEGACY_VALUE_LEVEL_MAP: Record<string, OfferValueLevel> = {
+  level_0_free: OfferValueLevel.LEAD_MAGNET,
+  level_1_low_ticket: OfferValueLevel.ACTIVACION,
+  level_2_mid_ticket: OfferValueLevel.TRANSFORMACION,
+  level_3_high_ticket: OfferValueLevel.TRANSFORMACION,
+  level_4_recurring: OfferValueLevel.TRANSFORMACION,
+  level_5_ultra_high: OfferValueLevel.MAXIMIZACION,
+  level_6_corporate: OfferValueLevel.CORPORATIVO,
+};
 
 export enum OfferArchetype {
   PRODUCTO = "producto",
@@ -22,32 +31,6 @@ export enum OfferDeliveryModel {
   DWY = "dwy",
   DFY = "dfy",
   HYBRID = "hybrid",
-}
-
-export enum OfferType {
-  FREE_RESOURCE = "free_resource",
-  COMMUNITY_LITE = "community_lite",
-  CONTENT_ASSET_PODCAST = "content_asset_podcast",
-  FREE_WEBINAR_CHALLENGE = "free_webinar_challenge",
-  TRIPWIRE_OFFER = "tripwire_offer",
-  SELF_PACED_COURSE = "self_paced_course",
-  PAID_NEWSLETTER_SUBSCRIPTION = "paid_newsletter_subscription",
-  PHYSICAL_MERCH = "physical_merch",
-  HYBRID_MENTORSHIP = "hybrid_mentorship",
-  COHORT_BASED_COURSE = "cohort_based_course",
-  GROUP_COACHING_PROGRAM = "group_coaching_program",
-  VIP_DAY_STRATEGY = "vip_day_strategy",
-  ONE_ON_ONE_PRIVATE_MENTORING = "one_on_one_private_mentoring",
-  DEEP_DIVE_AUDIT = "deep_dive_audit",
-  PRODUCTIZED_SERVICE = "productized_service",
-  ECOMMERCE_DEVELOPMENT = "ecommerce_development",
-  MONTHLY_RETAINER = "monthly_retainer",
-  PERFORMANCE_REV_SHARE = "performance_rev_share",
-  MASTERMIND_NETWORK = "mastermind_network",
-  LUXURY_RETREAT = "luxury_retreat",
-  CORPORATE_TRAINING = "corporate_training",
-  BRAND_SPONSORSHIP = "brand_sponsorship",
-  KEYNOTE_SPEAKING = "keynote_speaking",
 }
 
 export enum OfferStatus {
@@ -216,6 +199,10 @@ export interface PricingStructure {
   deposit_required?: number;
   number_of_installments?: number;
   installment_amount?: number;
+  // Membership tier fields
+  benefits?: string[];
+  is_highlighted?: boolean;
+  cta_text?: string;
 }
 
 export interface MarketingAsset {
@@ -241,10 +228,8 @@ export interface Offer {
   name: string;
   public_name?: string;
   internal_sku?: string;
-  type: OfferType;
-
   // Archetype system
-  archetype?: OfferArchetype;
+  archetype: OfferArchetype;
   format_hint?: string;
   is_lead_magnet?: boolean;
   shows_as_lead_magnet?: boolean;

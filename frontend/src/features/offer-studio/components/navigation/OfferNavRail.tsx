@@ -18,7 +18,7 @@ interface OfferNavRailProps {
 export function OfferNavRail({ offer, activeSection, onNavigate, className }: OfferNavRailProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const sections = getSectionsForOffer(offer);
-  const health = getOfferHealth(offer, offer.type);
+  const health = getOfferHealth(offer);
 
   const handleNavigate = (sectionId: string) => {
     onNavigate(sectionId);

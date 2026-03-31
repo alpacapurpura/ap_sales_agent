@@ -19,49 +19,47 @@ from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
 
 
 # ---------------------------------------------------------------------------
-# TIER MAPPING: 7 OfferValueLevel values -> 4 display tiers
+# TIER MAPPING: OfferValueLevel -> display tiers (aligned with Value Ladder)
 # SINGLE SOURCE OF TRUTH for how offers are grouped in the Sales panel.
-# If Offer Studio adds new value_levels, add them here.
-# Unknown levels default to "high_ticket".
-#
-# Why this simplification:
-# - Business owners think in price ranges, not in 7 granular levels
-# - "High Ticket" merges levels 3 (VIP/1:1), 5 (Ultra-High), and 6 (Corporate)
-#   because they all represent premium, high-touch sales with similar processes
-# - "Recurrente" is separated because recurring revenue has fundamentally
-#   different metrics (new vs renewal split, MRR tracking)
-# - FREE (level 0) excluded -- lead magnets don't generate revenue (Stage 1)
+# Lead magnets excluded (don't generate revenue).
+# Unknown levels default to "transformacion" (safest mid-range fallback).
 # ---------------------------------------------------------------------------
 
 VALUE_LEVEL_TO_TIER: dict[str, Optional[str]] = {
-    "level_0_free": None,  # Excluded from sales panel
-    "level_1_low_ticket": "low_ticket",
-    "level_2_mid_ticket": "mid_ticket",
-    "level_3_high_ticket": "high_ticket",
-    "level_4_recurring": "recurrente",
-    "level_5_ultra_high": "high_ticket",
-    "level_6_corporate": "high_ticket",
+    "lead_magnet": None,           # Lead magnets don't generate revenue
+    "activacion": "activacion",
+    "transformacion": "transformacion",
+    "maximizacion": "maximizacion",
+    "corporativo": "corporativo",
+    # Legacy fallbacks (data that wasn't migrated yet):
+    "level_0_free": None,
+    "level_1_low_ticket": "activacion",
+    "level_2_mid_ticket": "transformacion",
+    "level_3_high_ticket": "transformacion",
+    "level_4_recurring": "transformacion",
+    "level_5_ultra_high": "maximizacion",
+    "level_6_corporate": "corporativo",
 }
 
-TIER_DISPLAY_ORDER = ["low_ticket", "mid_ticket", "high_ticket", "recurrente"]
+TIER_DISPLAY_ORDER = ["activacion", "transformacion", "maximizacion", "corporativo"]
 TIER_LABELS: dict[str, str] = {
-    "low_ticket": "Low Ticket",
-    "mid_ticket": "Mid Ticket",
-    "high_ticket": "High Ticket",
-    "recurrente": "Recurrente",
+    "activacion": "Activacion",
+    "transformacion": "Transformacion",
+    "maximizacion": "Maximizacion",
+    "corporativo": "Corporativo",
 }
 
 
 def get_tier_for_value_level(value_level: Optional[str]) -> str:
     """Map a value_level string to its display tier.
 
-    Unknown levels default to high_ticket (safe fallback per CONTEXT.md).
+    Unknown levels default to transformacion (safe mid-range fallback).
     """
     if not value_level:
-        return "high_ticket"
+        return "transformacion"
     tier = VALUE_LEVEL_TO_TIER.get(value_level)
     if tier is None:
-        return "high_ticket"
+        return "transformacion"
     return tier
 
 

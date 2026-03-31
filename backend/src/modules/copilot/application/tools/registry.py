@@ -17,6 +17,7 @@ from src.modules.copilot.application.tools.mutations import MUTATION_TOOLS
 from src.modules.copilot.application.tools.navigation import NAVIGATION_TOOLS
 from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
+from src.modules.copilot.application.tools.offer_ladder_tools import OFFER_LADDER_TOOLS
 from src.modules.copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
 
 
@@ -33,6 +34,7 @@ TOOL_GROUPS: Dict[str, list] = {
     "landing": LANDING_TOOLS,
     "procedure": PROCEDURE_TOOLS,
     "knowledge": KNOWLEDGE_TOOLS,
+    "offer_ladder": OFFER_LADDER_TOOLS,
 }
 
 # Route prefix -> which tool groups are available.
@@ -40,7 +42,7 @@ TOOL_GROUPS: Dict[str, list] = {
 # "*" is the fallback for any unmatched route.
 ROUTE_TOOL_MAP: Dict[str, List[str]] = {
     "brand-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
-    "offer-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
+    "offer-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge", "offer_ladder"],
     "growth-studio": ["navigation", "awareness", "module_data", "analytics", "crm", "procedure", "knowledge"],
     "sales": ["navigation", "awareness", "module_data", "sales_agent", "crm", "procedure", "knowledge"],
     "connections": ["navigation", "awareness", "module_data", "connections", "procedure", "knowledge"],

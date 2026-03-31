@@ -9,9 +9,8 @@ sys.path.append(os.path.join(os.getcwd(), "backend"))
 from src.services.database import SessionLocal
 from src.services.db.models.business import Product
 from src.services.db.models.tenant import Tenant
-from src.core.domain.offer_enums import (
-    OfferType, OfferValueLevel, OfferDeliveryModel, 
-    DeliverableFormat, PaymentPlanType, EventLocationType, GuaranteeType
+from src.modules.offer.domain.enums import (
+    OfferValueLevel, OfferDeliveryModel, GuaranteeType
 )
 
 # Setup Logging
@@ -56,8 +55,8 @@ def seed_offers():
         {
             "internal_sku": "VIS-N0-MIND-GUIDE",
             "name": "Guía: Liberar la Mente",
-            "type": OfferType.FREE_RESOURCE.value,
-            "offer_value_level": OfferValueLevel.N0.value,
+            "archetype": "producto",
+            "offer_value_level": OfferValueLevel.LEAD_MAGNET.value,
             "delivery_model": OfferDeliveryModel.DIY.value,
             "headline_promise": "Descubre cómo calmar tu mente para expandir tu visión.",
             "primary_outcome": "Claridad mental y reducción de ansiedad.",
@@ -65,25 +64,25 @@ def seed_offers():
             "pricing": [
                 {
                     "label": "Gratis",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 0.0,
                     "is_default": True
                 }
             ],
             "specific_details": {
-                "format": DeliverableFormat.RECORDED_CONTENT.value,
+                "format": "video",
                 "file_type": "PDF",
                 "download_limit": 5
             },
-            "guarantee_type": GuaranteeType.NO_REFUNDS.value # It's free
+            "guarantee_type": "none" # It's free
         },
         
         # --- N1: TRIPWIRE ---
         {
             "internal_sku": "VIS-N1-MEDITATION-PACK",
             "name": "Pack Meditaciones: Abundancia",
-            "type": OfferType.TRIPWIRE_OFFER.value,
-            "offer_value_level": OfferValueLevel.N1.value,
+            "archetype": "producto",
+            "offer_value_level": OfferValueLevel.ACTIVACION.value,
             "delivery_model": OfferDeliveryModel.DIY.value,
             "headline_promise": "7 audios guiados para reprogramar tu mente hacia la abundancia.",
             "primary_outcome": "Mindset de abundancia activado.",
@@ -91,18 +90,18 @@ def seed_offers():
             "pricing": [
                 {
                     "label": "Oferta Especial",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 27.0,
                     "savings_claim": "Ahorras $70",
                     "is_default": True
                 }
             ],
             "specific_details": {
-                "format": DeliverableFormat.RECORDED_CONTENT.value,
+                "format": "video",
                 "is_bundle": True,
                 "file_type": "MP3"
             },
-            "guarantee_type": GuaranteeType.UNCONDITIONAL_X_DAY.value,
+            "guarantee_type": "unconditional_30_day",
             "guarantee_terms": "7 días de garantía incondicional."
         },
 
@@ -110,8 +109,8 @@ def seed_offers():
         {
             "internal_sku": "VIS-N2-PURPOSE-PROSPERITY",
             "name": "Programa: De Propósito a Prosperidad",
-            "type": OfferType.GROUP_COACHING_PROGRAM.value,
-            "offer_value_level": OfferValueLevel.N2.value,
+            "archetype": "programa",
+            "offer_value_level": OfferValueLevel.TRANSFORMACION.value,
             "delivery_model": OfferDeliveryModel.DWY.value,
             "headline_promise": "8 semanas para transformar tu negocio en una marca auténtica y rentable.",
             "primary_outcome": "Negocio estructurado y facturando.",
@@ -119,13 +118,13 @@ def seed_offers():
             "pricing": [
                 {
                     "label": "Pago Único",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 997.0,
                     "is_default": True
                 },
                 {
                     "label": "3 Cuotas",
-                    "plan_type": PaymentPlanType.INTERNAL_SPLIT_PAY.value,
+                    "plan_type": "payment_plan",
                     "total_amount": 1197.0,
                     "number_of_installments": 3,
                     "installment_amount": 399.0,
@@ -144,7 +143,7 @@ def seed_offers():
                     "4": "Ventas"
                 }
             },
-            "guarantee_type": GuaranteeType.CONDITIONAL_ACTION_BASED.value,
+            "guarantee_type": "conditional_action_based",
             "guarantee_terms": "Si implementas todo y no ves resultados, te devolvemos tu dinero."
         },
 
@@ -152,8 +151,8 @@ def seed_offers():
         {
             "internal_sku": "VIS-N3-VIP-VISION",
             "name": "Mentoría Privada: Visión Clara",
-            "type": OfferType.ONE_ON_ONE_PRIVATE_MENTORING.value,
-            "offer_value_level": OfferValueLevel.N3.value,
+            "archetype": "servicio",
+            "offer_value_level": OfferValueLevel.TRANSFORMACION.value,
             "delivery_model": OfferDeliveryModel.DWY.value,
             "headline_promise": "Acompañamiento estratégico 1 a 1 para escalar tu facturación.",
             "primary_outcome": "Escalabilidad y delegación.",
@@ -161,7 +160,7 @@ def seed_offers():
             "pricing": [
                 {
                     "label": "Inversión Total",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 3000.0,
                     "is_default": True
                 }
@@ -172,15 +171,15 @@ def seed_offers():
                 "communication_channels": ["WhatsApp", "Zoom"],
                 "deliverables_list": ["Plan de 90 días", "Soporte diario", "Revisión de funnels"]
             },
-            "guarantee_type": GuaranteeType.NO_REFUNDS.value
+            "guarantee_type": "none"
         },
 
         # --- N4: DFY AGENCY ---
         {
             "internal_sku": "VIS-N4-AGENCY-DFY",
             "name": "Agencia Visionarias DFY",
-            "type": OfferType.PRODUCTIZED_SERVICE.value,
-            "offer_value_level": OfferValueLevel.N4.value,
+            "archetype": "servicio",
+            "offer_value_level": OfferValueLevel.TRANSFORMACION.value,
             "delivery_model": OfferDeliveryModel.DFY.value,
             "headline_promise": "Nosotras construimos tu ecosistema digital mientras tú te enfocas en tu genio.",
             "primary_outcome": "Funnel de ventas automatizado y funcionando.",
@@ -188,7 +187,7 @@ def seed_offers():
             "pricing": [
                 {
                     "label": "Setup Fee + Retainer",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 5000.0,
                     "is_default": True
                 }
@@ -199,35 +198,35 @@ def seed_offers():
                 "onboarding_timeline": "Kickoff Call inmediata",
                 "account_manager_assigned": True
             },
-            "guarantee_type": GuaranteeType.CONDITIONAL_ACTION_BASED.value
+            "guarantee_type": "conditional_action_based"
         },
 
         # --- N6: CORPORATE (B2B) ---
         {
             "internal_sku": "VIS-N6-CORP-TRAINING",
             "name": "Visionarias Corporate Leadership",
-            "type": OfferType.CORPORATE_TRAINING.value,
-            "offer_value_level": OfferValueLevel.N6.value,
-            "delivery_model": OfferDeliveryModel.B2B.value,
+            "archetype": "experiencia",
+            "offer_value_level": OfferValueLevel.CORPORATIVO.value,
+            "delivery_model": "hybrid",
             "headline_promise": "Capacitación de liderazgo femenino para empresas Fortune 500.",
             "primary_outcome": "Líderes empoderadas y cultura inclusiva.",
             "time_to_value": "Custom",
             "pricing": [
                 {
                     "label": "Cotización a Medida",
-                    "plan_type": PaymentPlanType.PAY_IN_FULL.value,
+                    "plan_type": "one_time",
                     "total_amount": 15000.0,
                     "is_default": True
                 }
             ],
             "specific_details": {
-                "location_type": EventLocationType.IN_PERSON_LOCAL.value,
+                "location_type": "physical_local",
                 "max_attendees": 50,
                 "start_date": "2026-06-01", # Future date
                 "end_date": "2026-06-03",
                 "itinerary_summary": "3 días de inmersión en liderazgo y bienestar corporativo."
             },
-            "guarantee_type": GuaranteeType.NO_REFUNDS.value
+            "guarantee_type": "none"
         }
     ]
 

@@ -1,13 +1,12 @@
 "use client";
 
 import { useOfferMetadata } from "../../../hooks/use-offer-metadata";
-import { OfferType } from "../../../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContextualHintProps {
-  type: OfferType;
+  type: string;
   className?: string;
 }
 

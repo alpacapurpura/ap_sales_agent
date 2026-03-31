@@ -1418,8 +1418,8 @@ class MetricsService:
                 value_level = offer.value_level if offer else None
                 tier = get_tier_for_value_level(value_level)
 
-                # Skip free tier offers (level_0)
-                if value_level and value_level == "level_0_free":
+                # Skip lead magnets (don't generate revenue)
+                if value_level and value_level in ("lead_magnet", "level_0_free"):
                     continue
 
                 # Build OfferSaleDTO

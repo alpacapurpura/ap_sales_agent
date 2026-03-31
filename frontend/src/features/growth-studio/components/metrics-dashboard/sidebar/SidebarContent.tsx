@@ -615,23 +615,12 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
       maximumFractionDigits: 0,
     }).format(value);
 
-  const offerTypeLabels: Record<string, string> = {
-    FREE_RESOURCE: 'Lead Magnet',
-    TRIPWIRE: 'Tripwire',
-    SELF_PACED_COURSE: 'Curso',
-    COHORT_PROGRAM: 'Programa Grupal',
-    HYBRID_MENTORSHIP: 'Mentoría Híbrida',
-    ONE_ON_ONE_PRIVATE_MENTORING: '1 a 1',
-    PRODUCTIZED_SERVICE: 'Servicio',
-    DONE_FOR_YOU_SERVICE: 'DFY',
-    CONSULTING_RETAINER: 'Retainer',
-    MASTERMIND_NETWORK: 'Mastermind',
-    IN_PERSON_RETREAT: 'Retiro',
-    CORPORATE_WORKSHOP: 'Workshop Corp',
-    CORPORATE_CONSULTING: 'Consultoría Corp',
-    COMMUNITY_MEMBERSHIP: 'Membresía',
-    SOFTWARE_AS_A_SERVICE: 'SaaS',
-    PHYSICAL_PRODUCT: 'Producto Físico',
+  const archetypeLabels: Record<string, string> = {
+    producto: 'Producto',
+    programa: 'Programa',
+    servicio: 'Servicio',
+    membresia: 'Membresía',
+    experiencia: 'Experiencia',
   };
 
   const sources = Object.entries(data.source_breakdown || {});
@@ -646,7 +635,7 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
         </p>
         {data.offer_type && (
           <Badge variant="secondary" className="mt-1 text-[10px]">
-            {offerTypeLabels[data.offer_type] || data.offer_type}
+            {archetypeLabels[data.offer_type] || data.offer_type}
           </Badge>
         )}
       </div>

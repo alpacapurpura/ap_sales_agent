@@ -1,7 +1,7 @@
 "use client";
 
-import { Offer, OfferDeliveryModel, OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
-import { OFFER_TYPE_METADATA } from "@/features/offer-studio/types/offer-metadata";
+import { Offer, OfferArchetype, OfferDeliveryModel, OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
+import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
 import { HighlightedText } from "@/components/ui/highlighted-text";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,13 +53,11 @@ const STATUS_CONFIG = {
 };
 
 const LEVEL_ICONS: Record<string, any> = {
-  [OfferValueLevel.N0]: Package,
-  [OfferValueLevel.N1]: Zap,
-  [OfferValueLevel.N2]: Users,
-  [OfferValueLevel.N3]: Gem,
-  [OfferValueLevel.N4]: Building2,
-  [OfferValueLevel.N5]: Building2,
-  [OfferValueLevel.N6]: Building2,
+  [OfferValueLevel.LEAD_MAGNET]: Package,
+  [OfferValueLevel.ACTIVACION]: Zap,
+  [OfferValueLevel.TRANSFORMACION]: Users,
+  [OfferValueLevel.MAXIMIZACION]: Gem,
+  [OfferValueLevel.CORPORATIVO]: Building2,
 };
 
 const DELIVERY_BADGES = {
@@ -79,14 +77,10 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className,
   const statusConfig = STATUS_CONFIG[offer.status] || STATUS_CONFIG[OfferStatus.DRAFT];
   const Icon = LEVEL_ICONS[offer.value_level] || Package;
 
-  // Archetype label takes priority over legacy type
-  const typeMetadata = OFFER_TYPE_METADATA[offer.type];
-  const archetypeLabel = offer.archetype
-    ? offer.archetype.charAt(0).toUpperCase() + offer.archetype.slice(1)
-    : null;
-  const typeLabel = archetypeLabel
-    ? (offer.format_hint ? `${archetypeLabel} - ${offer.format_hint}` : archetypeLabel)
-    : (typeMetadata?.label || offer.type);
+  const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype as OfferArchetype] : null;
+  const typeLabel = archetypeMeta
+    ? (offer.format_hint ? `${archetypeMeta.label} - ${offer.format_hint}` : archetypeMeta.label)
+    : "Oferta";
 
   // Calculate Price Display
   const priceDisplay = offer.pricing && offer.pricing.length > 0 

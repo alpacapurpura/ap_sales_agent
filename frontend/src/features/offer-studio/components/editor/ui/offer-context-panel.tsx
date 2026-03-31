@@ -3,9 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { OfferFormValues } from "../../../types/schema";
-import { OfferType } from "../../../types";
+import { OfferArchetype } from "../../../types";
 import { Avatar } from "@/lib/api/avatar";
-import { OFFER_TYPE_METADATA } from "../../../types/offer-metadata";
+import { ARCHETYPE_METADATA } from "../../../config/archetype-metadata";
 import { ArrowRight, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, CheckCircle, PlaneTakeoff, Zap, Book, ChevronDown, ChevronUp, ExternalLink, Edit, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
@@ -64,7 +64,7 @@ export function getOfferValidationStatus(values: OfferFormValues): ValidationRes
     const checks: ValidationItem[] = [
         // Phase 1: Context
         { label: "Nombre Público", valid: !!values.public_name && values.public_name.length > 3, phase: 'context' },
-        { label: "Tipo de Oferta", valid: !!values.type, phase: 'context' },
+        { label: "Archetype de Oferta", valid: !!values.archetype, phase: 'context' },
         { label: "Avatar Match", valid: !!values.avatar_id, phase: 'context' },
         
         // Phase 2: Solution
@@ -78,7 +78,7 @@ export function getOfferValidationStatus(values: OfferFormValues): ValidationRes
             label: "Fechas Definidas", 
             valid: (() => {
                 const details = values.specific_details as any;
-                const isEvent = [OfferType.MASTERMIND_NETWORK, OfferType.LUXURY_RETREAT].includes(values.type);
+                const isEvent = values.archetype === OfferArchetype.EXPERIENCIA;
                 // Check string values of enum ProgramStructure
                 const isFixedProgram = details?.structure_type === 'FIXED_COHORT' || details?.structure_type === 'CHALLENGE';
                 
@@ -177,7 +177,7 @@ function FlightCheckCard({ status }: { status: ValidationResult }) {
 
 export function OfferContextPanel({ phase, formValues, avatars, isDirty, onSave, onFieldChange }: OfferContextPanelProps) {
     const selectedAvatar = avatars.find(a => a.id === formValues.avatar_id);
-    const offerTypeMeta = formValues.type ? OFFER_TYPE_METADATA[formValues.type] : null;
+    const archetypeMeta = formValues.archetype ? ARCHETYPE_METADATA[formValues.archetype as OfferArchetype] : null;
     const validationStatus = getOfferValidationStatus(formValues);
 
     return (
@@ -192,19 +192,19 @@ export function OfferContextPanel({ phase, formValues, avatars, isDirty, onSave,
                     {/* 2. CONTEXTUAL CONTENT */}
                     <div className="pb-10">
                         {phase === 'context' && (
-                            <ContextPhaseContent 
-                                values={formValues} 
-                                avatar={selectedAvatar} 
-                                offerTypeMeta={offerTypeMeta} 
+                            <ContextPhaseContent
+                                values={formValues}
+                                avatar={selectedAvatar}
+                                archetypeMeta={archetypeMeta}
                                 isDirty={isDirty}
                                 onSave={onSave}
                                 onFieldChange={onFieldChange}
                             />
                         )}
                         {phase === 'solution' && (
-                            <SolutionPhaseContent 
-                                values={formValues} 
-                                offerTypeMeta={offerTypeMeta} 
+                            <SolutionPhaseContent
+                                values={formValues}
+                                archetypeMeta={archetypeMeta}
                             />
                         )}
                         {phase === 'deal' && (
@@ -220,17 +220,17 @@ export function OfferContextPanel({ phase, formValues, avatars, isDirty, onSave,
 }
 
 // PHASE 1: CONTEXT CONTENT
-function ContextPhaseContent({ 
-    values, 
-    avatar, 
-    offerTypeMeta,
+function ContextPhaseContent({
+    values,
+    avatar,
+    archetypeMeta,
     isDirty,
     onSave,
     onFieldChange
-}: { 
-    values: OfferFormValues, 
-    avatar?: Avatar, 
-    offerTypeMeta: any,
+}: {
+    values: OfferFormValues,
+    avatar?: Avatar,
+    archetypeMeta: any,
     isDirty?: boolean,
     onSave?: () => Promise<void>,
     onFieldChange?: (field: string, value: any) => void
@@ -239,16 +239,7 @@ function ContextPhaseContent({
     const [showSaveAlert, setShowSaveAlert] = useState(false);
 
     // Identify Knowledge/Mentorship Offers
-    const isKnowledgeOffer = [
-        OfferType.HYBRID_MENTORSHIP,
-        OfferType.COHORT_BASED_COURSE,
-        OfferType.GROUP_COACHING_PROGRAM,
-        OfferType.ONE_ON_ONE_PRIVATE_MENTORING,
-        OfferType.MASTERMIND_NETWORK,
-        OfferType.VIP_DAY_STRATEGY,
-        OfferType.CORPORATE_TRAINING,
-        OfferType.KEYNOTE_SPEAKING
-    ].includes(values.type as OfferType);
+    const isKnowledgeOffer = ['programa', 'servicio'].includes(values.archetype as string);
 
     const handleEditClick = async () => {
         if (!avatar) return;
@@ -449,7 +440,7 @@ function ContextPhaseContent({
 }
 
 // PHASE 2: SOLUTION CONTENT
-function SolutionPhaseContent({ values, offerTypeMeta }: { values: OfferFormValues, offerTypeMeta: any }) {
+function SolutionPhaseContent({ values, archetypeMeta }: { values: OfferFormValues, archetypeMeta: any }) {
     const hasPromise = values.headline_promise && values.headline_promise.length > 10;
     
     // Resources Logic
@@ -525,7 +516,7 @@ function SolutionPhaseContent({ values, offerTypeMeta }: { values: OfferFormValu
             {/* Offer Construct Preview */}
             <Card className="bg-background shadow-md border-l-4 border-l-primary">
                 <CardHeader>
-                    <Badge className="w-fit mb-2">{offerTypeMeta?.label || "Oferta Genérica"}</Badge>
+                    <Badge className="w-fit mb-2">{archetypeMeta?.label || "Oferta Genérica"}</Badge>
                     <CardTitle className={cn("text-lg leading-tight", !hasPromise && "text-muted-foreground italic")}>
                         {values.headline_promise || "Tu Gran Promesa aparecerá aquí..."}
                     </CardTitle>
@@ -543,7 +534,7 @@ function SolutionPhaseContent({ values, offerTypeMeta }: { values: OfferFormValu
                     <div className="space-y-2">
                         <div className="text-xs font-semibold text-muted-foreground uppercase">El Vehículo (Delivery)</div>
                         <div className="text-xs">
-                             {offerTypeMeta?.label} diseñado para entregar resultados en <span className="font-bold">{values.time_to_value || "X tiempo"}</span>.
+                             {archetypeMeta?.label} diseñado para entregar resultados en <span className="font-bold">{values.time_to_value || "X tiempo"}</span>.
                         </div>
                     </div>
 
@@ -574,7 +565,7 @@ function SolutionPhaseContent({ values, offerTypeMeta }: { values: OfferFormValu
                     <AlertCircle className="w-4 h-4" /> Check de Coherencia
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                    ¿El <strong>Vehículo</strong> que elegiste ({offerTypeMeta?.label}) es capaz de entregar la <strong>Promesa</strong> en el tiempo que indicaste?
+                    ¿El <strong>Vehículo</strong> que elegiste ({archetypeMeta?.label}) es capaz de entregar la <strong>Promesa</strong> en el tiempo que indicaste?
                 </p>
             </div>
         </div>

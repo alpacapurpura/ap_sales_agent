@@ -84,7 +84,7 @@ export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
   // However, since this is a "Live Preview", we might want updates. 
   // Optimization: Memoize the sections calculation and the empty check function.
   const formValues = form.watch();
-  const currentType = formValues.type;
+  const currentArchetype = formValues.archetype;
   
   // Helper to check if a section is empty using current watched values
   const isSectionEmpty = useCallback((sectionId: string) => {
@@ -129,10 +129,9 @@ export function OfferLivePreview({ form, onEdit }: OfferLivePreviewProps) {
     }
   }, [formValues]);
 
-  const currentArchetype = (formValues as any).archetype;
   const sections = useMemo(() => {
-    return getSectionsForOffer({ archetype: currentArchetype, type: currentType });
-  }, [currentType, currentArchetype]);
+    return getSectionsForOffer({ archetype: currentArchetype });
+  }, [currentArchetype]);
 
   // Filter out identity to render it separately as a header
   const sectionsWithoutIdentity = useMemo(() => sections.filter(id => id !== 'identity'), [sections]);

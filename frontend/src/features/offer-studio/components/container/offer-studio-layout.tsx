@@ -150,7 +150,7 @@ function OfferLivePreview({ offer }: { offer: Offer }) {
                 <h3 className="text-2xl font-semibold tracking-tight">Vista Previa de &quot;{offer.name}&quot;</h3>
                 <p className="text-muted-foreground">
                     La previsualización en tiempo real se está generando basada en la configuración de 
-                    <span className="font-medium text-foreground mx-1">{offer.type}</span>.
+                    <span className="font-medium text-foreground mx-1">{offer.archetype}</span>.
                 </p>
             </div>
 

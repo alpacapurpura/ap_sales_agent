@@ -397,7 +397,7 @@ class ProductMetricOut(BaseModel):
 class OfferProductDetailOut(BaseModel):
     offer_id: str
     offer_name: str | None = None
-    offer_type: str | None = None
+    offer_archetype: str | None = None
     total_revenue: float = 0.0
     sales_count: int = 0
     unique_customers: int = 0
@@ -429,14 +429,14 @@ async def get_offer_products_detail(
 
     # 1. Offer metadata
     offer_row = db.execute(
-        select(ProductModel.name, ProductModel.type).where(
+        select(ProductModel.name, ProductModel.archetype).where(
             ProductModel.id == offer_id,
             ProductModel.tenant_id == tenant_id,
         )
     ).first()
     if not offer_row:
         raise HTTPException(status_code=404, detail="Offer not found")
-    offer_name, offer_type = offer_row
+    offer_name, offer_archetype = offer_row
 
     # 2. Sales aggregation
     agg_row = db.execute(
@@ -593,7 +593,7 @@ async def get_offer_products_detail(
     return OfferProductDetailOut(
         offer_id=str(offer_id),
         offer_name=offer_name,
-        offer_type=offer_type,
+        offer_archetype=offer_archetype,
         total_revenue=total_revenue,
         sales_count=sales_count,
         unique_customers=unique_customers,

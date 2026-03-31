@@ -3,9 +3,9 @@ from uuid import UUID
 from pydantic import Field, model_validator, computed_field
 from src.shared.domain.base_entity import BaseEntity
 from src.modules.offer.domain.enums import (
-    OfferType, OfferArchetype, OfferDeliveryModel, GuaranteeType, OfferStatus, DeliverableFormat,
+    OfferArchetype, OfferDeliveryModel, GuaranteeType, OfferStatus, DeliverableFormat,
     OfferValueLevel, PaymentPlanType, AccessDuration, PrerequisiteType, OnboardingMechanism,
-    OFFER_METADATA, ARCHETYPE_DEFAULT_DELIVERY
+    ARCHETYPE_DEFAULT_DELIVERY
 )
 from src.modules.crm.domain.enums import FinancialCapacity, AvatarPersona
 from src.modules.landing.domain.content import LandingPageConfig
@@ -22,46 +22,6 @@ ARCHETYPE_TO_DETAILS_MAPPING: Dict[OfferArchetype, Type[BaseEntity]] = {
     OfferArchetype.EXPERIENCIA: EventDetails,
 }
 
-# --- LEGACY TYPE → DETAILS MAPPING ---
-OFFER_TYPE_TO_DETAILS_MAPPING: Dict[OfferType, Type[BaseEntity]] = {
-    # LEVEL 0
-    OfferType.FREE_RESOURCE: ProductDetails,
-    OfferType.COMMUNITY_LITE: SubscriptionDetails,
-    OfferType.CONTENT_ASSET_PODCAST: ProductDetails,
-    OfferType.FREE_WEBINAR_CHALLENGE: ProgramDetails,
-
-    # LEVEL 1
-    OfferType.TRIPWIRE_OFFER: ProductDetails,
-    OfferType.SELF_PACED_COURSE: ProductDetails,
-    OfferType.PAID_NEWSLETTER_SUBSCRIPTION: SubscriptionDetails,
-    OfferType.PHYSICAL_MERCH: ProductDetails,
-
-    # LEVEL 2
-    OfferType.HYBRID_MENTORSHIP: ProgramDetails,
-    OfferType.COHORT_BASED_COURSE: ProgramDetails,
-    OfferType.GROUP_COACHING_PROGRAM: ProgramDetails,
-
-    # LEVEL 3
-    OfferType.VIP_DAY_STRATEGY: ServiceDetails,
-    OfferType.ONE_ON_ONE_PRIVATE_MENTORING: ServiceDetails,
-    OfferType.DEEP_DIVE_AUDIT: ServiceDetails,
-
-    # LEVEL 4
-    OfferType.PRODUCTIZED_SERVICE: ServiceDetails,
-    OfferType.ECOMMERCE_DEVELOPMENT: ServiceDetails,
-    OfferType.MONTHLY_RETAINER: ServiceDetails,
-    OfferType.PERFORMANCE_REV_SHARE: ServiceDetails,
-
-    # LEVEL 5
-    OfferType.MASTERMIND_NETWORK: EventDetails,
-    OfferType.LUXURY_RETREAT: EventDetails,
-
-    # LEVEL 6
-    OfferType.CORPORATE_TRAINING: ServiceDetails,
-    OfferType.BRAND_SPONSORSHIP: ServiceDetails,
-    OfferType.KEYNOTE_SPEAKING: ServiceDetails,
-}
-
 class PricingStructure(BaseEntity):
     label: str
     plan_type: Optional[PaymentPlanType] = None
@@ -71,6 +31,10 @@ class PricingStructure(BaseEntity):
     installment_amount: float = 0.0
     is_default: bool = False
     savings_claim: Optional[str] = None
+    # Membership tier fields (stored in JSONB, no migration needed)
+    benefits: List[str] = []
+    is_highlighted: bool = False
+    cta_text: Optional[str] = None
 
 class DeliverableItem(BaseEntity):
     name: str
@@ -94,10 +58,7 @@ class Offer(BaseEntity):
     tenant_id: Optional[UUID] = None
     internal_sku: str
     public_name: str
-    type: OfferType
-
-    # New archetype system (nullable for legacy data)
-    archetype: Optional[OfferArchetype] = None
+    archetype: OfferArchetype
     format_hint: Optional[str] = None
     is_lead_magnet: bool = False
     
@@ -157,49 +118,26 @@ class Offer(BaseEntity):
             return True
         if self.pricing_options:
             return all(p.total_amount == 0 for p in self.pricing_options)
-        return self.value_level == OfferValueLevel.LEVEL_0_FREE
+        return self.value_level == OfferValueLevel.LEAD_MAGNET
 
     @model_validator(mode='after')
     def validate_consistency(self):
-        # Dual dispatch: archetype takes priority over legacy type
-        if self.archetype:
-            # Archetype-based dispatch
-            if self.delivery_model is None:
-                self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
+        if self.delivery_model is None:
+            self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
 
-            expected_detail_class = ARCHETYPE_TO_DETAILS_MAPPING.get(self.archetype)
-            if expected_detail_class and self.specific_details is not None:
-                if not isinstance(self.specific_details, expected_detail_class):
-                    raise ValueError(
-                        f"Polymorphism Error: Archetype {self.archetype.value} expects "
-                        f"{expected_detail_class.__name__}, got {type(self.specific_details).__name__}"
-                    )
-        elif self.type:
-            # Legacy type-based dispatch
-            meta = OFFER_METADATA.get(self.type.value, {})
-            expected_level = meta.get("level")
-            default_delivery = meta.get("default_delivery")
-
-            if self.value_level is None:
-                self.value_level = expected_level
-
-            if self.delivery_model is None:
-                self.delivery_model = default_delivery
-
-            expected_detail_class = OFFER_TYPE_TO_DETAILS_MAPPING.get(self.type)
-            if expected_detail_class and self.specific_details is not None:
-                if not isinstance(self.specific_details, expected_detail_class):
-                    raise ValueError(
-                        f"Polymorphism Error: Expected {expected_detail_class.__name__}, "
-                        f"got {type(self.specific_details).__name__}"
-                    )
+        expected_detail_class = ARCHETYPE_TO_DETAILS_MAPPING.get(self.archetype)
+        if expected_detail_class and self.specific_details is not None:
+            if not isinstance(self.specific_details, expected_detail_class):
+                raise ValueError(
+                    f"Polymorphism Error: Archetype {self.archetype.value} expects "
+                    f"{expected_detail_class.__name__}, got {type(self.specific_details).__name__}"
+                )
 
         return self
 
 class OfferIdentityUpdate(BaseEntity):
     internal_sku: Optional[str] = None
     public_name: Optional[str] = None
-    type: Optional[OfferType] = None
 
 class OfferStrategyUpdate(BaseEntity):
     value_level: Optional[OfferValueLevel] = Field(None, validation_alias="offer_value_level")
