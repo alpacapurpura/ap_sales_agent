@@ -165,112 +165,78 @@ def upgrade() -> None:
     """)
 
     # 5. Data Migration: Create CustomerProfiles for existing Leads
+    #    Skip if leads.full_name doesn't exist (fresh DB with current model)
     op.execute("""
-        -- Generate customer_ids for leads that don't have one AND have a valid tenant_id
-        UPDATE leads SET customer_id = gen_random_uuid()
-        WHERE customer_id IS NULL AND tenant_id IS NOT NULL;
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'leads' AND column_name = 'full_name') THEN
+                -- Generate customer_ids for leads that don't have one AND have a valid tenant_id
+                UPDATE leads SET customer_id = gen_random_uuid()
+                WHERE customer_id IS NULL AND tenant_id IS NOT NULL;
 
-        -- Insert into customer_profiles from leads
-        INSERT INTO customer_profiles (id, tenant_id, full_name, primary_email, primary_phone, created_at, updated_at, traits)
-        SELECT
-            customer_id,
-            tenant_id::uuid,
-            full_name,
-            email,
-            phone,
-            created_at,
-            updated_at,
-            COALESCE(profile_data, '{}')
-        FROM leads
-        WHERE customer_id IS NOT NULL
-        AND tenant_id IS NOT NULL
-        AND NOT EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id);
+                -- Insert into customer_profiles from leads
+                INSERT INTO customer_profiles (id, tenant_id, full_name, primary_email, primary_phone, created_at, updated_at, traits)
+                SELECT
+                    customer_id,
+                    tenant_id::uuid,
+                    full_name,
+                    email,
+                    phone,
+                    created_at,
+                    updated_at,
+                    COALESCE(profile_data, '{}')
+                FROM leads
+                WHERE customer_id IS NOT NULL
+                AND tenant_id IS NOT NULL
+                AND NOT EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id);
+            END IF;
+        END $$;
     """)
 
-    # 6. Migrate Identities from leads
-
-    # Telegram
+    # 6. Migrate Identities from leads (skip if legacy columns don't exist)
     op.execute("""
-        INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
-        SELECT
-            gen_random_uuid(),
-            customer_id,
-            tenant_id,
-            'telegram'::identitytype,
-            telegram_id,
-            false,
-            'unverified',
-            COALESCE(last_interaction_date, NOW())
-        FROM leads
-        WHERE telegram_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
-        AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
-        AND NOT EXISTS (
-            SELECT 1 FROM customer_identities
-            WHERE profile_id = leads.customer_id AND type = 'telegram' AND value = leads.telegram_id
-        );
-    """)
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'leads' AND column_name = 'telegram_id') THEN
+                -- Telegram
+                INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
+                SELECT gen_random_uuid(), customer_id, tenant_id, 'telegram'::identitytype,
+                       telegram_id, false, 'unverified', COALESCE(last_interaction_date, NOW())
+                FROM leads
+                WHERE telegram_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
+                AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
+                AND NOT EXISTS (SELECT 1 FROM customer_identities WHERE profile_id = leads.customer_id AND type = 'telegram' AND value = leads.telegram_id);
 
-    # WhatsApp
-    op.execute("""
-        INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
-        SELECT
-            gen_random_uuid(),
-            customer_id,
-            tenant_id,
-            'whatsapp'::identitytype,
-            whatsapp_id,
-            false,
-            'unverified',
-            COALESCE(last_interaction_date, NOW())
-        FROM leads
-        WHERE whatsapp_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
-        AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
-        AND NOT EXISTS (
-            SELECT 1 FROM customer_identities
-            WHERE profile_id = leads.customer_id AND type = 'whatsapp' AND value = leads.whatsapp_id
-        );
-    """)
+                -- WhatsApp
+                INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
+                SELECT gen_random_uuid(), customer_id, tenant_id, 'whatsapp'::identitytype,
+                       whatsapp_id, false, 'unverified', COALESCE(last_interaction_date, NOW())
+                FROM leads
+                WHERE whatsapp_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
+                AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
+                AND NOT EXISTS (SELECT 1 FROM customer_identities WHERE profile_id = leads.customer_id AND type = 'whatsapp' AND value = leads.whatsapp_id);
 
-    # Instagram
-    op.execute("""
-        INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
-        SELECT
-            gen_random_uuid(),
-            customer_id,
-            tenant_id,
-            'instagram'::identitytype,
-            instagram_id,
-            false,
-            'unverified',
-            COALESCE(last_interaction_date, NOW())
-        FROM leads
-        WHERE instagram_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
-        AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
-        AND NOT EXISTS (
-            SELECT 1 FROM customer_identities
-            WHERE profile_id = leads.customer_id AND type = 'instagram' AND value = leads.instagram_id
-        );
-    """)
+                -- Instagram
+                INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
+                SELECT gen_random_uuid(), customer_id, tenant_id, 'instagram'::identitytype,
+                       instagram_id, false, 'unverified', COALESCE(last_interaction_date, NOW())
+                FROM leads
+                WHERE instagram_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
+                AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
+                AND NOT EXISTS (SELECT 1 FROM customer_identities WHERE profile_id = leads.customer_id AND type = 'instagram' AND value = leads.instagram_id);
 
-    # TikTok
-    op.execute("""
-        INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
-        SELECT
-            gen_random_uuid(),
-            customer_id,
-            tenant_id,
-            'tiktok'::identitytype,
-            tiktok_id,
-            false,
-            'unverified',
-            COALESCE(last_interaction_date, NOW())
-        FROM leads
-        WHERE tiktok_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
-        AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
-        AND NOT EXISTS (
-            SELECT 1 FROM customer_identities
-            WHERE profile_id = leads.customer_id AND type = 'tiktok' AND value = leads.tiktok_id
-        );
+                -- TikTok
+                INSERT INTO customer_identities (id, profile_id, tenant_id, type, value, is_primary, verification_status, last_seen_at)
+                SELECT gen_random_uuid(), customer_id, tenant_id, 'tiktok'::identitytype,
+                       tiktok_id, false, 'unverified', COALESCE(last_interaction_date, NOW())
+                FROM leads
+                WHERE tiktok_id IS NOT NULL AND customer_id IS NOT NULL AND tenant_id IS NOT NULL
+                AND EXISTS (SELECT 1 FROM customer_profiles WHERE id = leads.customer_id)
+                AND NOT EXISTS (SELECT 1 FROM customer_identities WHERE profile_id = leads.customer_id AND type = 'tiktok' AND value = leads.tiktok_id);
+            END IF;
+        END $$;
     """)
 
     # 7. Add Foreign Key Constraint (if not already present)

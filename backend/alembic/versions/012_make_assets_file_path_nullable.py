@@ -18,7 +18,8 @@ def upgrade() -> None:
     op.execute("""
         DO $$
         BEGIN
-            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'assets') THEN
+            IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'assets' AND column_name = 'file_path') THEN
                 -- 1. Drop NOT NULL constraint on file_path
                 ALTER TABLE assets ALTER COLUMN file_path DROP NOT NULL;
 
@@ -39,7 +40,8 @@ def downgrade() -> None:
     op.execute("""
         DO $$
         BEGIN
-            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'assets') THEN
+            IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'assets' AND column_name = 'file_path') THEN
                 UPDATE assets
                 SET file_path = COALESCE(file_path, storage_path, '')
                 WHERE file_path IS NULL;
