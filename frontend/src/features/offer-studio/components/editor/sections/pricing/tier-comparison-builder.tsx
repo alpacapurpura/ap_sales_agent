@@ -153,7 +153,7 @@ export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
                           />
                         </FormControl>
                         <FormLabel className="text-xs text-muted-foreground !mt-0">
-                          Marcar como "Mas Popular"
+                          Marcar como &ldquo;Mas Popular&rdquo;
                         </FormLabel>
                       </FormItem>
                     )}
