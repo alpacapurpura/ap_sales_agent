@@ -51,6 +51,7 @@ class AgentState(TypedDict):
 
     # Internal (graph loop control)
     internal_turn: Optional[int]
+    _pending_tool: Optional[Dict[str, Any]]
 
     # Errors
     error: Optional[str]
@@ -124,5 +125,6 @@ def create_initial_state(
         "close_strategy": close_strategy,
         # Internal
         "internal_turn": 0,
+        "_pending_tool": None,
         "error": None,
     }
