@@ -5,33 +5,19 @@ import { useAuth } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
 import { offerApi } from "@/features/offer-studio/api";
-import { Offer, OfferArchetype, OfferValueLevel, OfferStatus } from "@/features/offer-studio/types";
-import { OfferCard } from "./offer-card";
-import { AddOfferCard } from "./add-offer-card";
+import { Offer, OfferValueLevel } from "@/features/offer-studio/types";
 import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
-import { EmptyLevelSlot } from "./empty-level-slot";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Plus, Lightbulb, Rocket, TrendingUp, Gem, Building2, SearchX } from "lucide-react";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 import { OfferLegend } from "./offer-legend";
 import { OfferLadderLayout } from "./offer-ladder-layout";
-import { LadderProgressBar } from "./ladder-progress-bar";
 import { CreateOfferWizard, WizardResult } from "../wizard/CreateOfferWizard";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
-
-// Helper to sort levels correctly
-const LEVEL_ORDER = [
-  OfferValueLevel.LEAD_MAGNET,
-  OfferValueLevel.ACTIVACION,
-  OfferValueLevel.TRANSFORMACION,
-  OfferValueLevel.MAXIMIZACION,
-  OfferValueLevel.CORPORATIVO,
-];
 
 const LEVEL_RICH_INFO: Record<string, { title: string; description: string; icon: any }> = {
   [OfferValueLevel.LEAD_MAGNET]: {
@@ -65,12 +51,14 @@ interface OfferStudioDashboardProps {
   searchQuery?: string;
   externalCreateTrigger?: boolean;
   onCreateTriggerHandled?: () => void;
+  onLadderComputed?: (data: { filledGroups: Set<OfferValueLevel>; score: string; percentage: number }) => void;
 }
 
-export function OfferStudioDashboard({ 
-  searchQuery = "", 
-  externalCreateTrigger = false, 
-  onCreateTriggerHandled 
+export function OfferStudioDashboard({
+  searchQuery = "",
+  externalCreateTrigger = false,
+  onCreateTriggerHandled,
+  onLadderComputed
 }: OfferStudioDashboardProps) {
   const { getToken } = useAuth();
   const { navigate } = useNavigation();
@@ -155,6 +143,12 @@ export function OfferStudioDashboard({
 
   const ladderCompleteness = useMemo(() => computeLadderCompleteness(offers), [offers]);
 
+  useEffect(() => {
+    if (onLadderComputed) {
+      onLadderComputed(ladderCompleteness);
+    }
+  }, [ladderCompleteness, onLadderComputed]);
+
   const handleArchiveOffer = useCallback(async (offerId: string) => {
     try {
       const token = await getToken();
@@ -228,19 +222,7 @@ export function OfferStudioDashboard({
   }
 
   return (
-    <div className="space-y-10 pb-20">
-      {/* Global Legend - Always Visible */}
-      <OfferLegend />
-
-      {/* Ladder Progress Bar */}
-      {!searchQuery && (
-        <LadderProgressBar
-          filledGroups={ladderCompleteness.filledGroups}
-          score={ladderCompleteness.score}
-          percentage={ladderCompleteness.percentage}
-        />
-      )}
-      
+    <div className="space-y-8 pb-20">
       {/* Empty State for No Matches */}
       {searchQuery && totalMatches === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in-50">
@@ -278,7 +260,7 @@ export function OfferStudioDashboard({
         if (searchQuery && count === 0) return null;
 
         return (
-          <section className="space-y-4 py-6 px-4 -mx-4 bg-muted/30 border-y border-dashed border-border/60">
+          <section className="space-y-4 py-6 px-4 -mx-4 border-y border-dashed border-border/60 rounded-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--muted) / 0.3), hsl(var(--primary) / 0.05))' }}>
              <div className="flex items-start gap-4 pl-2 border-l-4 border-primary/70">
                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                      <Icon className="h-6 w-6 text-primary" />
@@ -300,17 +282,14 @@ export function OfferStudioDashboard({
                  </div>
              </div>
 
-             <ScrollArea className="w-full whitespace-nowrap rounded-md pb-2">
-               <div className="grid grid-rows-2 grid-flow-col gap-3 w-max px-2 py-1">
+             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-2 py-1">
                  {levelOffers.map((offer) => (
-                   <div key={offer.id} className="w-[280px]">
-                     <LeadMagnetStreamCard offer={offer} onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)} />
-                   </div>
+                     <LeadMagnetStreamCard key={offer.id} offer={offer} onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)} />
                  ))}
-                 
+
                  {/* Add Button Slot in the Grid */}
-                 <div 
-                     className="w-[280px] h-[72px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 hover:border-primary/40 transition-colors group"
+                 <div
+                     className="h-[80px] border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 hover:border-primary/40 transition-colors group"
                      onClick={() => handleOpenCreate()}
                  >
                       <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
@@ -318,9 +297,7 @@ export function OfferStudioDashboard({
                       </div>
                       <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground">Crear Oferta</span>
                  </div>
-               </div>
-               <ScrollBar orientation="horizontal" />
-             </ScrollArea>
+             </div>
           </section>
         );
       })()}

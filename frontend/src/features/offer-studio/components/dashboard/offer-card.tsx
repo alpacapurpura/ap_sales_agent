@@ -98,7 +98,7 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className,
   return (
     <Card 
       className={cn(
-        "group relative w-full overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border-t-4 bg-background",
+        "group relative w-full overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.01] cursor-pointer border-t-4 bg-background",
         isNavigating && "opacity-60 pointer-events-none",
         compact ? "h-auto min-h-[140px]" : "h-[180px]",
         borderColor,

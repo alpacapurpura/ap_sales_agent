@@ -50,10 +50,14 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
     else navigate(`/${tenantId}/offer-studio/offer/${offer.id}`);
   };
 
+  const priceDisplay = offer.pricing && offer.pricing.length > 0
+    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency || 'USD' }).format(offer.pricing[0].total_amount)
+    : "Gratis";
+
   return (
-    <Card 
+    <Card
       className={cn(
-        "group flex items-center h-[72px] w-[280px] overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border bg-card hover:border-primary/30",
+        "group flex items-center h-[80px] w-full overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer border bg-card hover:border-primary/30",
         isNavigating && "opacity-60 pointer-events-none"
       )}
       onClick={handleClick}
@@ -72,20 +76,26 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
            <Badge variant="secondary" className="text-[9px] h-4 px-1 rounded-sm font-normal bg-muted text-muted-foreground border-transparent truncate max-w-[120px]">
               {typeLabel}
            </Badge>
-           
+
            {/* Status Dot */}
-           <div 
+           <div
              className={cn(
                "w-1.5 h-1.5 rounded-full shrink-0",
                offer.status === OfferStatus.ACTIVE ? "bg-emerald-500" : "bg-slate-300"
-             )} 
+             )}
              title={`Status: ${offer.status}`}
            />
         </div>
-        
+
         <h4 className="font-semibold text-xs leading-tight line-clamp-2 text-foreground/90 group-hover:text-primary transition-colors" title={offer.name}>
           {offer.name}
         </h4>
+        <span className={cn(
+          "text-[11px] font-medium mt-0.5",
+          priceDisplay === "Gratis" ? "text-emerald-400" : "text-amber-400"
+        )}>
+          {priceDisplay}
+        </span>
       </div>
 
       {/* Hover Action */}

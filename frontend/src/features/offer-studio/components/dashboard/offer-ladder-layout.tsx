@@ -3,7 +3,6 @@ import { OfferCard } from "./offer-card";
 import { AddOfferCard } from "./add-offer-card";
 import { Button } from "@/components/ui/button";
 import { Plus, Zap, Users, Trophy, Building2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface OfferLadderLayoutProps {
   groupedOffers: Record<string, Offer[]>;
@@ -14,34 +13,15 @@ interface OfferLadderLayoutProps {
 
 export function OfferLadderLayout({ groupedOffers, searchQuery, onCreate, onArchive }: OfferLadderLayoutProps) {
 
-  const renderLevelGroup = (level: OfferValueLevel, title: string, icon: any, colorClass: string) => {
+  const renderLevelGroup = (level: OfferValueLevel) => {
     const offers = groupedOffers[level] || [];
-    const Icon = icon;
 
     return (
-      <div className="space-y-3 mb-6 last:mb-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <Icon className={cn("h-4 w-4", colorClass)} />
-            <span>{title}</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => onCreate(level)}
-            title={`Crear oferta en ${title}`}
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
-        </div>
-
-        <div className="space-y-3">
-          {offers.map(offer => (
-            <OfferCard key={offer.id} offer={offer} searchQuery={searchQuery} compact onArchive={onArchive} />
-          ))}
-          <AddOfferCard level={level} onClick={() => onCreate(level)} compact />
-        </div>
+      <div className="space-y-3">
+        {offers.map(offer => (
+          <OfferCard key={offer.id} offer={offer} searchQuery={searchQuery} compact onArchive={onArchive} />
+        ))}
+        <AddOfferCard level={level} onClick={() => onCreate(level)} compact />
       </div>
     );
   };
@@ -55,17 +35,28 @@ export function OfferLadderLayout({ groupedOffers, searchQuery, onCreate, onArch
         {/* COLUMN 1: Activacion */}
         <div className="rounded-xl border bg-card/50 p-4 shadow-sm h-full flex flex-col">
           <div className="mb-6 pb-4 border-b">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-2 rounded-md bg-blue-500/10 text-blue-500">
-                <Zap className="h-5 w-5" />
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-2 rounded-md bg-blue-500/10 text-blue-500">
+                  <Zap className="h-5 w-5" />
+                </div>
+                <h3 className="font-semibold text-lg">Activacion</h3>
               </div>
-              <h3 className="font-semibold text-lg">Activacion</h3>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 rounded-md border border-border"
+                onClick={() => onCreate(OfferValueLevel.ACTIVACION)}
+                title="Crear oferta en Activacion"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground">Primera compra, bajo riesgo. Convierte leads en clientes.</p>
           </div>
 
           <div className="flex-1">
-            {renderLevelGroup(OfferValueLevel.ACTIVACION, "Activacion", Zap, "text-blue-500")}
+            {renderLevelGroup(OfferValueLevel.ACTIVACION)}
           </div>
         </div>
 
@@ -74,34 +65,56 @@ export function OfferLadderLayout({ groupedOffers, searchQuery, onCreate, onArch
            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-80" />
 
           <div className="mb-6 pb-4 border-b">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-2 rounded-md bg-violet-500/10 text-violet-500">
-                <Users className="h-5 w-5" />
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-2 rounded-md bg-violet-500/10 text-violet-500">
+                  <Users className="h-5 w-5" />
+                </div>
+                <h3 className="font-semibold text-lg">Transformacion</h3>
               </div>
-              <h3 className="font-semibold text-lg">Transformacion</h3>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 rounded-md border border-border"
+                onClick={() => onCreate(OfferValueLevel.TRANSFORMACION)}
+                title="Crear oferta en Transformacion"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground">Oferta principal, transformacion real. Core offer escalable.</p>
           </div>
 
           <div className="flex-1">
-            {renderLevelGroup(OfferValueLevel.TRANSFORMACION, "Transformacion", Users, "text-violet-500")}
+            {renderLevelGroup(OfferValueLevel.TRANSFORMACION)}
           </div>
         </div>
 
         {/* COLUMN 3: Maximizacion */}
         <div className="rounded-xl border bg-card/50 p-4 shadow-sm h-full flex flex-col">
           <div className="mb-6 pb-4 border-b">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-2 rounded-md bg-amber-500/10 text-amber-500">
-                <Trophy className="h-5 w-5" />
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-2 rounded-md bg-amber-500/10 text-amber-500">
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <h3 className="font-semibold text-lg">Maximizacion</h3>
               </div>
-              <h3 className="font-semibold text-lg">Maximizacion</h3>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 rounded-md border border-border"
+                onClick={() => onCreate(OfferValueLevel.MAXIMIZACION)}
+                title="Crear oferta en Maximizacion"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground">Premium, alto contacto, maximo LTV.</p>
           </div>
 
           <div className="flex-1">
-            {renderLevelGroup(OfferValueLevel.MAXIMIZACION, "Maximizacion", Trophy, "text-amber-500")}
+            {renderLevelGroup(OfferValueLevel.MAXIMIZACION)}
           </div>
         </div>
 
