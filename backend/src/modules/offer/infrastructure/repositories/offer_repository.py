@@ -192,7 +192,6 @@ class OfferRepository:
             id=offer.id,
             tenant_id=offer.tenant_id,
             name=offer.public_name,
-            type=offer.archetype.value,
             archetype=offer.archetype.value,
             format_hint=offer.format_hint,
             is_lead_magnet=offer.is_lead_magnet,
