@@ -59,6 +59,18 @@
           "nextjs-app-router-modularization"
         ]
       }
+    },
+    "tessl/pypi-pydantic": {
+      "version": "2.11.0"
+    },
+    "tessl/pypi-qdrant-client": {
+      "version": "1.15.0"
+    },
+    "tessl/pypi-langgraph-prebuilt": {
+      "version": "0.6.0"
+    },
+    "tessl/npm-next": {
+      "version": "16.0.0"
     }
   }
 }
