@@ -5,6 +5,13 @@ import re
 import structlog
 from typing import List
 from src.shared.domain.messages import OutgoingMessage
+from src.modules.sales_agent.domain.tuning import (
+    CPM_SPEED as _CPM_SPEED,
+    TYPING_JITTER,
+    MIN_TYPING_TIME as _MIN_TYPING_TIME,
+    MAX_TYPING_TIME as _MAX_TYPING_TIME,
+    MICRO_DELAY_RANGE as _MICRO_DELAY_RANGE,
+)
 
 logger = structlog.get_logger()
 
@@ -13,13 +20,13 @@ class OutputManager:
     Manages the "Human Typing Simulation" and "Response Chunking" logic.
     Follows High Ticket sales principles: Triad structure and variable typing speed.
     """
-    
-    # Constants for typing simulation
-    CPM_SPEED = 320  # Characters per minute (High Ticket Standard: 300-350)
-    JITTER_RANGE = (0.8, 1.2) # Variability factor
-    MIN_TYPING_TIME = 1.5 # Minimum time to show "typing..."
-    MAX_TYPING_TIME = 6.0 # Cap to avoid awkward pauses
-    MICRO_DELAY_RANGE = (0.4, 0.8) # Pause between sending and next typing (Cognitive pause)
+
+    # Constants for typing simulation (sourced from domain/tuning.py)
+    CPM_SPEED = _CPM_SPEED
+    JITTER_RANGE = TYPING_JITTER
+    MIN_TYPING_TIME = _MIN_TYPING_TIME
+    MAX_TYPING_TIME = _MAX_TYPING_TIME
+    MICRO_DELAY_RANGE = _MICRO_DELAY_RANGE
     
     @classmethod
     async def process_response(cls, user_id: str, raw_response: str, channel_adapter, channel_type: str = "telegram"):

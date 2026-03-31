@@ -23,6 +23,7 @@ from src.modules.sales_agent.application.orchestrator.state import create_initia
 from src.modules.sales_agent.infrastructure.repositories.state_repository import StateRepository
 from src.modules.sales_agent.application.services.knowledge_builder import TenantKnowledgeBuilder
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
+from src.modules.sales_agent.domain.tuning import SESSION_TIMEOUT_HOURS, MESSAGE_HISTORY_LIMIT
 from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
 from src.core.context import set_tenant_id
 from src.modules.connections.infrastructure.models.channel_connection_model import ChannelConnectionModel
@@ -368,7 +369,7 @@ class ChatOrchestrator:
                 if msg_time.tzinfo is None:
                     msg_time = msg_time.replace(tzinfo=timezone.utc)
                 time_diff = datetime.now(timezone.utc) - msg_time
-                if time_diff > timedelta(hours=6):
+                if time_diff > timedelta(hours=SESSION_TIMEOUT_HOURS):
                     session_active = False
                 
                 if last_msg.metadata_log and isinstance(last_msg.metadata_log, dict):
@@ -413,7 +414,7 @@ class ChatOrchestrator:
                 }
 
             # Convert ORM history to dicts
-            raw_history = audit_repo.get_chat_history(user.id, limit=10)
+            raw_history = audit_repo.get_chat_history(user.id, limit=MESSAGE_HISTORY_LIMIT)
             history = [
                 {"role": msg.role, "content": msg.content}
                 for msg in raw_history if msg.content

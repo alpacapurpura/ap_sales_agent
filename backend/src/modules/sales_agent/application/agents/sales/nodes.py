@@ -6,6 +6,17 @@ from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.shared.infrastructure.llm.factory import LLMFactory
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
+from src.modules.sales_agent.domain.tuning import (
+    BUYING_SIGNAL_WEIGHT,
+    QUALIFICATION_FIELD_WEIGHT,
+    LEAD_SCORE_MAX,
+    MAX_INTERNAL_TURNS,
+    STAGE_CLOSING_SCORE,
+    STAGE_CLOSING_SIGNALS,
+    STAGE_PRESENTATION_QA,
+    STAGE_DISCOVERY_QA,
+    SUPERVISOR_MESSAGE_WINDOW,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -50,11 +61,11 @@ def _determine_stage(state: dict, updates: dict) -> str:
     score = updates.get("lead_score", state.get("lead_score", 0))
     turn = state.get("turn_count", 0)
 
-    if score >= 70 and len(signals) >= 3:
+    if score >= STAGE_CLOSING_SCORE and len(signals) >= STAGE_CLOSING_SIGNALS:
         return "closing"
-    elif len(qa) >= 3:
+    elif len(qa) >= STAGE_PRESENTATION_QA:
         return "presentation"
-    elif len(qa) >= 1:
+    elif len(qa) >= STAGE_DISCOVERY_QA:
         return "discovery"
     elif turn == 0:
         return "rapport"
@@ -90,7 +101,7 @@ def node_sales_supervisor(state: AgentState) -> Dict[str, Any]:
             turn_count=state.get("turn_count", 0),
         )
         decision = LLMFactory.get_service().generate_response(
-            messages=state["messages"][-6:],
+            messages=state["messages"][-SUPERVISOR_MESSAGE_WINDOW:],
             system_prompt=system_prompt,
             model_type="fast",
             temperature=0.0,
@@ -198,10 +209,10 @@ def node_signal_accumulator(state: AgentState) -> Dict[str, Any]:
     # Update lead score
     score = state.get("lead_score", 0)
     if qual_data:
-        score += 10 * len(qual_data)
+        score += QUALIFICATION_FIELD_WEIGHT * len(qual_data)
     if signals and signals.get("buying"):
-        score += 15 * len(signals["buying"])
-    updates["lead_score"] = min(score, 100)
+        score += BUYING_SIGNAL_WEIGHT * len(signals["buying"])
+    updates["lead_score"] = min(score, LEAD_SCORE_MAX)
 
     # Stage transition logic
     updates["current_state"] = _determine_stage(state, updates)
@@ -217,7 +228,7 @@ def node_signal_accumulator(state: AgentState) -> Dict[str, Any]:
     if tool_req:
         updates["next_node"] = "tool_executor"
         updates["_pending_tool"] = tool_req
-    elif updates.get("internal_turn", 0) >= 3:
+    elif updates.get("internal_turn", 0) >= MAX_INTERNAL_TURNS:
         updates["next_node"] = "respond"  # Force output after 3 internal loops
     else:
         updates["next_node"] = "respond"  # Default: send to user
