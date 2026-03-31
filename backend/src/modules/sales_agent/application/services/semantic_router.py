@@ -243,6 +243,30 @@ class SemanticRouter:
         return None, float(best_score)
 
     @classmethod
+    def detect_and_accumulate(
+        cls, text: str, existing_signals: list, tenant_id: Optional[UUID] = None
+    ) -> Tuple[Optional[str], float, list]:
+        """
+        Detects intent AND accumulates buying signals.
+        Returns (intent, score, updated_signals).
+        """
+        intent, score = cls.detect_intent(text, tenant_id)
+
+        buying_intents = {"buying_signal", "schedule_signal", "query_payment_methods"}
+        if intent in buying_intents and score >= 0.50:
+            # Avoid duplicate signal types in the same turn
+            existing_types = {s.get("type") for s in existing_signals}
+            if intent not in existing_types:
+                existing_signals = list(existing_signals)  # Don't mutate original
+                existing_signals.append({
+                    "type": intent,
+                    "confidence": round(score, 3),
+                    "turn": len(existing_signals),
+                })
+
+        return intent, score, existing_signals
+
+    @classmethod
     def invalidate_tenant(cls, tenant_id: UUID):
         """Remove cached tenant routes (e.g., when offers are updated)."""
         cls._tenant_cache.pop(tenant_id, None)
