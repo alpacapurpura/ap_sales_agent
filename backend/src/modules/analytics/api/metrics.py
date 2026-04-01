@@ -315,6 +315,27 @@ async def sync_all_sources(
     return SyncAllResponse(**result)
 
 
+class MetricCatalogEntryResponse(BaseModel):
+    """Single metric entry in the catalog response."""
+
+    name: str
+    display_name: str
+    description: str
+    interpretation: str
+    unit: str
+    aggregation: str
+    is_unique_metric: bool
+    higher_is_better: bool
+    providers: list[str]
+
+
+class MetricCatalogResponse(BaseModel):
+    """Full metric catalog response."""
+
+    metrics: list[MetricCatalogEntryResponse]
+    count: int
+
+
 class SyncIgDmResponse(BaseModel):
     status: str
     synced_messages: int
@@ -445,6 +466,34 @@ async def refresh_channel_metrics(
             status_code=500,
             detail=f"Extraction failed: {str(exc)}",
         )
+
+
+@router.get("/catalog", response_model=MetricCatalogResponse)
+def get_metric_catalog(
+    user: User = Depends(get_current_user),
+) -> MetricCatalogResponse:
+    """Return the full metric catalog with aggregation semantics.
+
+    Useful for frontend to display metric descriptions, units, and
+    understand which metrics should NOT be summed across time periods.
+    """
+    from src.modules.analytics.domain.metric_catalog import METRIC_CATALOG
+
+    entries = [
+        MetricCatalogEntryResponse(
+            name=defn.name,
+            display_name=defn.display_name,
+            description=defn.description,
+            interpretation=defn.interpretation,
+            unit=defn.unit.value,
+            aggregation=defn.aggregation.value,
+            is_unique_metric=defn.is_unique_metric,
+            higher_is_better=defn.higher_is_better,
+            providers=list(defn.providers),
+        )
+        for defn in METRIC_CATALOG.values()
+    ]
+    return MetricCatalogResponse(metrics=entries, count=len(entries))
 
 
 _VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailerlite"}

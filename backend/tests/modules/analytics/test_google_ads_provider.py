@@ -205,8 +205,8 @@ class TestRetargetingExtraction:
 
         # Only retargeting campaigns should appear
         assert all(m.channel_slug == "google-retargeting" for m in metrics)
-        reach = next(m for m in metrics if m.metric_name == "reach")
-        assert reach.value == 10000.0
+        impressions = next(m for m in metrics if m.metric_name == "impressions")
+        assert impressions.value == 10000.0
         ctr = next(m for m in metrics if m.metric_name == "ctr")
         assert ctr.value == pytest.approx(500 / 10000)
         cpc = next(m for m in metrics if m.metric_name == "cpc")

@@ -68,7 +68,7 @@ class YouTubeProvider(BaseMetricsProvider):
                 ExtractedMetric(
                     provider="youtube",
                     channel_slug="yt-organic",
-                    metric_name="reach",
+                    metric_name="views",
                     value=views,
                     unit="count",
                     date=end_date,

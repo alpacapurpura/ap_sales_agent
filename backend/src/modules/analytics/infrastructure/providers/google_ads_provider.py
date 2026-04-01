@@ -146,7 +146,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         cpc = (total_spend / total_clicks) if total_clicks > 0 else 0.0
 
         metric_tuples = [
-            ("reach", total_impressions, "count", None),
+            ("impressions", total_impressions, "count", None),
             ("clicks", total_clicks, "count", None),
             ("spend", total_spend, "currency", "USD"),
             ("ctr", ctr, "percentage", None),
@@ -172,11 +172,11 @@ class GoogleAdsProvider(BaseMetricsProvider):
         """Aggregate campaign rows into google-ads and yt-ads slugs."""
         channel_data: Dict[str, Dict[str, float]] = {
             "google-ads": {
-                "reach": 0.0, "clicks": 0.0, "conversions": 0.0,
+                "impressions": 0.0, "clicks": 0.0, "conversions": 0.0,
                 "spend": 0.0, "conversion_value": 0.0,
             },
             "yt-ads": {
-                "reach": 0.0, "clicks": 0.0, "conversions": 0.0,
+                "impressions": 0.0, "clicks": 0.0, "conversions": 0.0,
                 "spend": 0.0, "conversion_value": 0.0,
             },
         }
@@ -185,7 +185,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
             channel_type = row.get("advertising_channel_type", "")
             slug = "yt-ads" if channel_type == "VIDEO" else "google-ads"
 
-            channel_data[slug]["reach"] += float(row.get("impressions", 0))
+            channel_data[slug]["impressions"] += float(row.get("impressions", 0))
             channel_data[slug]["clicks"] += float(row.get("clicks", 0))
             channel_data[slug]["conversions"] += float(row.get("conversions", 0))
             # CRITICAL: divide cost_micros by 1_000_000
@@ -201,13 +201,13 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 continue
 
             # Compute derived metrics from aggregated totals
-            impressions = data["reach"]
+            impressions = data["impressions"]
             clicks = data["clicks"]
             ctr = (clicks / impressions) if impressions > 0 else 0.0
             cpc = (data["spend"] / clicks) if clicks > 0 else 0.0
 
             metric_tuples = [
-                ("reach", data["reach"], "count", None),
+                ("impressions", data["impressions"], "count", None),
                 ("clicks", data["clicks"], "count", None),
                 ("conversions", data["conversions"], "count", None),
                 ("spend", data["spend"], "currency", "USD"),

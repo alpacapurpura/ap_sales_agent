@@ -52,8 +52,8 @@ class TestTikTokOrganic:
         organic = [m for m in metrics if m.channel_slug == "tiktok-organic"]
         assert len(organic) >= 2
 
-        reach = next(m for m in organic if m.metric_name == "reach")
-        assert reach.value == 8000.0
+        video_views = next(m for m in organic if m.metric_name == "video_views")
+        assert video_views.value == 8000.0
 
         engagement = next(m for m in organic if m.metric_name == "engagement")
         assert engagement.value == 370.0  # 300+50+20

@@ -182,7 +182,7 @@ class TikTokProvider(BaseMetricsProvider):
                 ExtractedMetric(
                     provider="tiktok",
                     channel_slug="tiktok-organic",
-                    metric_name="reach",
+                    metric_name="video_views",
                     value=float(total_views),
                     unit="count",
                     date=end_date,
