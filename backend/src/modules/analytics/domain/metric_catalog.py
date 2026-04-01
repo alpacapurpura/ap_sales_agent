@@ -609,7 +609,7 @@ _DERIVED: list[MetricDefinition] = [
         unit=MetricUnit.PERCENTAGE,
         aggregation=AggregationType.DERIVED,
         formula="form_conversions / form_views × 100",
-        formula_components=("form_conversions", "form_views"),
+        formula_components=("form_conversions",),
         providers=("mailerlite",),
     ),
     MetricDefinition(
