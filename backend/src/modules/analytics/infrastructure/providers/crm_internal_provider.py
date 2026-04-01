@@ -113,6 +113,7 @@ class CRMInternalProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "crm_internal")
             sentry_sdk.capture_exception()
             logger.exception(
                 "crm_internal_provider_extract_failed tenant=%s", tenant_id

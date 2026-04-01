@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require("@sentry/nextjs");
 
 // Derive hostnames from environment variables for dev/prod parity
 const appDomain = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
@@ -61,4 +62,11 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = withSentryConfig(nextConfig, {
+  org: "alpaca-purpura-to",
+  project: "nicolify-frontend",
+  silent: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+  automaticVercelMonitors: false,
+});

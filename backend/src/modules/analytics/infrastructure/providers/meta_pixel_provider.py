@@ -92,6 +92,7 @@ class MetaPixelProvider(BaseMetricsProvider):
 
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "meta_pixel")
             sentry_sdk.capture_exception()
             logger.exception(
                 "meta_pixel_extract_failed tenant=%s", tenant_id

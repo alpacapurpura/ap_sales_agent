@@ -65,6 +65,10 @@ from src.modules.commercial_calendar.api import events as calendar_events
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401
 
+# --- Sentry must init before app creation to capture startup errors ---
+from src.core.sentry import init_sentry
+init_sentry("api")
+
 # --- App Initialization ---
 
 # Configure Logging (Structlog)
@@ -87,6 +91,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def sentry_tenant_middleware(request: Request, call_next):
+    """Tag every Sentry event/transaction with the tenant_id from the request header."""
+    import sentry_sdk
+    tenant_id = request.headers.get("X-Tenant-ID")
+    if tenant_id:
+        sentry_sdk.set_tag("tenant_id", tenant_id)
+    return await call_next(request)
+
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
@@ -114,8 +128,6 @@ async def logging_middleware(request: Request, call_next):
 
 @app.on_event("startup")
 def on_startup():
-    from src.core.sentry import init_sentry
-    init_sentry("api")
     init_db()
 
     # Register CRM domain event handlers (EventBus wiring)

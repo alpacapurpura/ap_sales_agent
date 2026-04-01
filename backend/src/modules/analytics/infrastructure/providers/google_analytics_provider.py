@@ -135,6 +135,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
             return results
         except Exception:
+            sentry_sdk.set_tag("provider", "google_analytics")
             sentry_sdk.capture_exception()
             logger.exception(
                 "ga_provider_extract_failed tenant=%s", tenant_id
@@ -179,6 +180,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                     )
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "google_analytics")
             sentry_sdk.capture_exception()
             logger.exception("ga_website_aggregate_failed")
             return []
@@ -229,6 +231,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 )
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "google_analytics")
             sentry_sdk.capture_exception()
             logger.exception("ga_top_pages_failed")
             return []
@@ -278,6 +281,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 )
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "google_analytics")
             sentry_sdk.capture_exception()
             logger.exception("ga_traffic_sources_failed")
             return []
@@ -330,6 +334,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 )
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "google_analytics")
             sentry_sdk.capture_exception()
             logger.exception("ga_device_split_failed")
             return []
@@ -461,6 +466,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
             return results
         except Exception:
+            sentry_sdk.set_tag("provider", "google_analytics")
             sentry_sdk.capture_exception()
             logger.exception(
                 "ga_provider_extract_daily_failed tenant=%s", tenant_id
@@ -514,6 +520,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                     )
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "google_analytics")
             sentry_sdk.capture_exception()
             logger.exception("ga_website_daily_failed")
             return []

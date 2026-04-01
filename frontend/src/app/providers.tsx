@@ -8,6 +8,7 @@ import { NavigationProvider, NavigationOverlay } from '@/components/shared/navig
 import DevelopmentTools from '@/components/shared/development-tools'
 import { Toaster } from "@/components/ui/sonner"
 import { useUser } from '@clerk/nextjs'
+import * as Sentry from "@sentry/nextjs"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
@@ -15,7 +16,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user?.publicMetadata?.tenant_id) {
-      localStorage.setItem('x-tenant-id', user.publicMetadata.tenant_id as string)
+      const tenantId = user.publicMetadata.tenant_id as string
+      localStorage.setItem('x-tenant-id', tenantId)
+      Sentry.setTag("tenant_id", tenantId)
+    }
+    if (user) {
+      Sentry.setUser({ id: user.id, email: user.primaryEmailAddress?.emailAddress })
+    } else {
+      Sentry.setUser(null)
     }
   }, [user])
 

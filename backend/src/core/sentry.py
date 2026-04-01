@@ -40,6 +40,26 @@ def _redact_event(event: dict[str, object], hint: dict[str, object]) -> dict[str
     return event
 
 
+_EXCLUDED_PATHS = frozenset({"/health", "/metrics"})
+_LOW_SAMPLE_PATH_PREFIXES = ("/api/v1/connections/webhook", "/api/v1/iam/webhooks", "/api/v1/connections/shopify/compliance")
+
+
+def _traces_sampler(sampling_context: dict[str, object]) -> float:
+    """Dynamic sampling: exclude health checks, reduce webhook noise."""
+    wsgi_env = sampling_context.get("wsgi_environ") or {}
+    asgi_scope = sampling_context.get("asgi_scope") or {}
+    path = (
+        wsgi_env.get("PATH_INFO")
+        or asgi_scope.get("path")
+        or ""
+    )
+    if path in _EXCLUDED_PATHS:
+        return 0.0
+    if path.startswith(_LOW_SAMPLE_PATH_PREFIXES):
+        return 0.01
+    return settings.SENTRY_TRACES_SAMPLE_RATE
+
+
 def init_sentry(service_name: str) -> None:
     """Initialise Sentry SDK for the given service.
 
@@ -69,7 +89,11 @@ def init_sentry(service_name: str) -> None:
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
         environment=settings.ENVIRONMENT,
-        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+        release=f"nicolify-backend@{settings.SENTRY_RELEASE}",
+        server_name=f"nicolify-{service_name}",
+        enable_tracing=True,
+        traces_sampler=_traces_sampler,
+        profiles_sample_rate=settings.SENTRY_PROFILES_SAMPLE_RATE,
         send_default_pii=False,
         integrations=integrations,
         before_send=_redact_event,

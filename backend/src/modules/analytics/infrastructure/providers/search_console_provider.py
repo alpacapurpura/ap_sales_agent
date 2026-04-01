@@ -131,6 +131,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
 
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "search_console")
             sentry_sdk.capture_exception()
             logger.exception(
                 "search_console_provider_extract_failed tenant=%s", tenant_id

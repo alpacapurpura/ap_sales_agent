@@ -123,6 +123,7 @@ class YouTubeProvider(BaseMetricsProvider):
 
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "youtube")
             sentry_sdk.capture_exception()
             logger.exception(
                 "youtube_provider_extract_failed tenant=%s", tenant_id

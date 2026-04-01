@@ -97,6 +97,7 @@ class MetaProvider(BaseMetricsProvider):
                     )
                     metrics.extend(ads_metrics)
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_provider_extract_failed tenant=%s", tenant_id)
 
@@ -180,6 +181,7 @@ class MetaProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_instagram_organic_failed")
             return []
@@ -265,6 +267,7 @@ class MetaProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_facebook_organic_failed")
             return []
@@ -352,6 +355,7 @@ class MetaProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_retargeting_extract_failed")
             return []
@@ -468,6 +472,7 @@ class MetaProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_ads_extract_failed")
             return []
@@ -516,6 +521,7 @@ class MetaProvider(BaseMetricsProvider):
                     )
                     metrics.extend(ads)
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_provider_extract_daily_failed tenant=%s", tenant_id)
 
@@ -606,6 +612,7 @@ class MetaProvider(BaseMetricsProvider):
             )
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_instagram_organic_daily_failed")
             return []
@@ -669,6 +676,7 @@ class MetaProvider(BaseMetricsProvider):
                         )
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_facebook_organic_daily_failed")
             return []
@@ -746,6 +754,7 @@ class MetaProvider(BaseMetricsProvider):
                     )
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "meta")
             sentry_sdk.capture_exception()
             logger.exception("meta_ads_daily_extract_failed")
             return []

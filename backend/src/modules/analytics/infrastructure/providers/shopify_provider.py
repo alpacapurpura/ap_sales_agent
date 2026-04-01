@@ -85,6 +85,7 @@ class ShopifyProvider(BaseMetricsProvider):
             else:
                 return []
         except Exception:
+            sentry_sdk.set_tag("provider", "shopify")
             sentry_sdk.capture_exception()
             logger.exception(
                 "shopify_provider_extract_failed tenant=%s stage=%s",
@@ -122,6 +123,7 @@ class ShopifyProvider(BaseMetricsProvider):
             else:
                 return []
         except Exception:
+            sentry_sdk.set_tag("provider", "shopify")
             sentry_sdk.capture_exception()
             logger.exception(
                 "shopify_provider_extract_daily_failed tenant=%s stage=%s",

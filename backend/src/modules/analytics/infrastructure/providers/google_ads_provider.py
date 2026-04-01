@@ -122,6 +122,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
             )
             return base_metrics + search_term_metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "google_ads")
             sentry_sdk.capture_exception()
             logger.exception(
                 "google_ads_provider_extract_failed tenant=%s", tenant_id
@@ -169,6 +170,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 )
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "google_ads")
             sentry_sdk.capture_exception()
             logger.exception("google_ads_search_terms_extract_failed")
             return []
@@ -340,6 +342,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
 
             return metrics
         except Exception:
+            sentry_sdk.set_tag("provider", "google_ads")
             sentry_sdk.capture_exception()
             logger.exception(
                 "google_ads_provider_extract_daily_failed tenant=%s", tenant_id

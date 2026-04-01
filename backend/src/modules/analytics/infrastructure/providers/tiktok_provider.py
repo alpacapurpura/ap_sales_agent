@@ -75,6 +75,7 @@ class TikTokProvider(BaseMetricsProvider):
                     )
                     metrics.extend(ads)
         except Exception:
+            sentry_sdk.set_tag("provider", "tiktok")
             sentry_sdk.capture_exception()
             logger.exception(
                 "tiktok_provider_extract_failed tenant=%s", tenant_id
@@ -148,6 +149,7 @@ class TikTokProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "tiktok")
             sentry_sdk.capture_exception()
             logger.exception("tiktok_retargeting_extract_failed")
             return []
@@ -205,6 +207,7 @@ class TikTokProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "tiktok")
             sentry_sdk.capture_exception()
             logger.exception("tiktok_organic_extract_failed")
             return []
@@ -273,6 +276,7 @@ class TikTokProvider(BaseMetricsProvider):
                 ),
             ]
         except Exception:
+            sentry_sdk.set_tag("provider", "tiktok")
             sentry_sdk.capture_exception()
             logger.exception("tiktok_ads_extract_failed")
             return []
