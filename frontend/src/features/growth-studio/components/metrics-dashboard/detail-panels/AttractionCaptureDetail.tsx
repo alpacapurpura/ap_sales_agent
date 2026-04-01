@@ -237,8 +237,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   if (!attrData || !capData) return null;
 
   const hasAnyAttractionData = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound, attrData.website]
-    .filter(Boolean)
-    .some(g => g.channels.some(ch => ch.connected && ch.metrics.some(m => m.value > 0)));
+    .some(g => g?.channels.some(ch => ch.connected && ch.metrics.some(m => m.value > 0)));
   const hasCaptureData = totalLeads > 0;
   const isEmpty = !hasAnyAttractionData && !hasCaptureData;
 
