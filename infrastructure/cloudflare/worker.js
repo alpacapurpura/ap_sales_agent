@@ -19,8 +19,14 @@ export default {
     const url = new URL(request.url);
     const hostname = url.hostname;
 
-    // Skip worker for the dashboard app itself
-    if (hostname === "app.nicolify.com") {
+    // Skip worker for first-party Nicolify domains — route directly to origin
+    const FIRST_PARTY_DOMAINS = [
+      "app.nicolify.com",
+      "api.nicolify.com",
+      "dev-app.nicolify.com",
+      "dev-api.nicolify.com",
+    ];
+    if (FIRST_PARTY_DOMAINS.includes(hostname)) {
       return fetch(request);
     }
 
