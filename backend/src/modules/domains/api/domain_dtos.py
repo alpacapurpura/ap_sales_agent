@@ -2,13 +2,18 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.modules.domains.domain.domain_entity import DomainStatus, DomainType
 
 
 class DomainCreate(BaseModel):
-    hostname: str
+    hostname: str = Field(
+        min_length=4,
+        max_length=253,
+        pattern=r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*(\.[a-zA-Z]{2,})$",
+        description="Valid fully-qualified domain name (e.g. go.example.com)",
+    )
     domain_type: DomainType
 
 

@@ -54,9 +54,9 @@ async def create_domain(
                 tenant_id=user.tenant_id,
                 hostname=body.hostname,
             )
-    except Exception as e:
-        logger.error("domain_create_error", error=str(e), tenant_id=str(user.tenant_id))
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("domain_create_failed", tenant_id=str(user.tenant_id))
+        raise HTTPException(status_code=500, detail="Internal error creating domain")
     return _to_response(domain)
 
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
 
@@ -78,7 +78,7 @@ class DomainService:
         if ssl.get("status") == "active":
             domain.status = DomainStatus.ACTIVE
             domain.ssl_status = "active"
-            domain.verified_at = datetime.utcnow()
+            domain.verified_at = datetime.now(timezone.utc)
             try:
                 self.cf.put_kv(domain.hostname, {
                     "tenant_id": str(tenant_id),
