@@ -1,39 +1,48 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/api/webhooks(.*)',
-  '/visit(.*)',
-  '/p(.*)',
-  '/onboarding(.*)'
+const isPublicSiteRequest = (request: NextRequest) =>
+  request.headers.get("X-Public-Site") === "true";
+
+// Dashboard routes — require Clerk auth
+const isDashboardRoute = createRouteMatcher([
+  "/(main)(.*)",
+  "/[tenantId](.*)",
+  "/onboarding(.*)",
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.redirect(new URL('/sign-in', req.url));
+export default clerkMiddleware(async (auth, request) => {
+  // Public site traffic (forwarded by Cloudflare Worker)
+  // These requests carry X-Public-Site: true and need no auth.
+  // Transparently rewrite to /_public/* so the route group doesn't
+  // conflict with the dashboard routes in (main).
+  if (isPublicSiteRequest(request)) {
+    const url = request.nextUrl.clone();
+    if (!url.pathname.startsWith("/_public")) {
+      url.pathname = "/_public" + url.pathname;
     }
+    const response = NextResponse.rewrite(url);
+    const tenantId = request.headers.get("X-Tenant-ID") ?? "";
+    const originalHost = request.headers.get("X-Original-Host") ?? "";
+    response.headers.set("X-Tenant-ID", tenantId);
+    response.headers.set("X-Original-Host", originalHost);
+    return response;
   }
 
-  // Inject current path into headers for Layout to read
-  const requestHeaders = new Headers(req.headers);
-  requestHeaders.set('x-current-path', req.nextUrl.pathname);
+  // Dashboard routes — protect with Clerk
+  if (isDashboardRoute(request)) {
+    await auth.protect();
+  }
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  return NextResponse.next();
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Skip Next.js internals and static files
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // Always run for API routes
-    '/(api|trpc)(.*)',
+    "/(api|trpc)(.*)",
   ],
 };
