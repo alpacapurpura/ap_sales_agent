@@ -427,6 +427,26 @@ _ADDITIVE: list[MetricDefinition] = [
         aggregation=AggregationType.ADDITIVE,
         providers=("meta_pixel",),
     ),
+    MetricDefinition(
+        name="watch_time_minutes",
+        display_name="Minutos Vistos",
+        description="Tiempo total de visualización en minutos",
+        interpretation="Indicador de engagement profundo. Más minutos = más interés.",
+        unit=MetricUnit.COUNT,
+        aggregation=AggregationType.ADDITIVE,
+        higher_is_better=True,
+        providers=("youtube",),
+    ),
+    MetricDefinition(
+        name="subscribers_gained",
+        display_name="Suscriptores Ganados",
+        description="Nuevos suscriptores obtenidos en el período",
+        interpretation="Crecimiento de la audiencia.",
+        unit=MetricUnit.COUNT,
+        aggregation=AggregationType.ADDITIVE,
+        higher_is_better=True,
+        providers=("youtube",),
+    ),
 ]
 
 # ---------------------------------------------------------------------------
@@ -524,6 +544,17 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         formula="abandoned_count / total_checkout_count × 100",
         higher_is_better=False,
         providers=("shopify",),
+    ),
+    MetricDefinition(
+        name="avg_view_duration",
+        display_name="Duración Promedio de Vista",
+        description="Duración promedio de visualización por vista en segundos",
+        interpretation="Indica qué tan atrapante es el contenido.",
+        unit=MetricUnit.SECONDS,
+        aggregation=AggregationType.WEIGHTED_AVERAGE,
+        weight_metric="views",
+        higher_is_better=True,
+        providers=("youtube",),
     ),
 ]
 

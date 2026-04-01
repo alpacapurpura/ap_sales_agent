@@ -46,7 +46,7 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "attraction": [
         # Organic social: reach + engagement
         {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
-        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": ["views", "engagement"]},
+        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": ["views", "engagement", "watch_time_minutes", "avg_view_duration", "subscribers_gained"]},
         {"slug": "fb-organic", "name": "Facebook Organic", "channel_type": "social", "source_label": "Facebook", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
         {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["video_views", "engagement"]},
         {"slug": "linkedin-organic", "name": "LinkedIn Organic", "channel_type": "social", "source_label": "LinkedIn", "provider_name": "linkedin", "metric_names": ["reach", "engagement"]},

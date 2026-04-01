@@ -64,7 +64,7 @@ class YouTubeProvider(BaseMetricsProvider):
             dislikes = float(overview.get("dislikes", 0))
             total_engagement = likes + dislikes
 
-            return [
+            metrics: list = [
                 ExtractedMetric(
                     provider="youtube",
                     channel_slug="yt-organic",
@@ -86,6 +86,40 @@ class YouTubeProvider(BaseMetricsProvider):
                     },
                 ),
             ]
+
+            watch_time = float(overview.get("estimatedMinutesWatched", 0))
+            if watch_time:
+                metrics.append(ExtractedMetric(
+                    provider="youtube",
+                    channel_slug="yt-organic",
+                    metric_name="watch_time_minutes",
+                    value=watch_time,
+                    unit="count",
+                    date=end_date,
+                ))
+
+            avg_duration = float(overview.get("averageViewDuration", 0))
+            if avg_duration:
+                metrics.append(ExtractedMetric(
+                    provider="youtube",
+                    channel_slug="yt-organic",
+                    metric_name="avg_view_duration",
+                    value=avg_duration,
+                    unit="seconds",
+                    date=end_date,
+                ))
+
+            subs_gained = float(overview.get("subscribersGained", 0))
+            metrics.append(ExtractedMetric(
+                provider="youtube",
+                channel_slug="yt-organic",
+                metric_name="subscribers_gained",
+                value=subs_gained,
+                unit="count",
+                date=end_date,
+            ))
+
+            return metrics
         except Exception:
             logger.exception(
                 "youtube_provider_extract_failed tenant=%s", tenant_id
