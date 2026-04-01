@@ -20,13 +20,24 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # 1. Create landing_pages table (idempotent — deleted_at added later in 024)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS landing_pages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id UUID REFERENCES tenants(id),
+            offer_id UUID REFERENCES products(id),
+            slug VARCHAR NOT NULL,
+            config JSONB DEFAULT '{}',
+            is_published BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ
+        );
+    """)
+
+    # 2. Migrate data from products.landing_page_config (only if column exists)
     conn = op.get_bind()
     inspector = Inspector.from_engine(conn)
     existing_tables = inspector.get_table_names()
-
-    if 'landing_pages' not in existing_tables:
-        print("Skipping data migration: landing_pages table does not exist")
-        return
 
     if 'products' not in existing_tables:
         print("Skipping data migration: products table does not exist")

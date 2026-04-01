@@ -12,6 +12,13 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Widen alembic_version.version_num to support revision IDs longer than 32 chars.
+    # Fresh installs create VARCHAR(32); prod DB was created with VARCHAR(128).
+    op.execute("""
+        ALTER TABLE alembic_version
+        ALTER COLUMN version_num TYPE VARCHAR(128);
+    """)
+
     op.execute("""
         ALTER TABLE tenants
         ADD COLUMN IF NOT EXISTS tracking_config JSONB DEFAULT '{}'::jsonb;
