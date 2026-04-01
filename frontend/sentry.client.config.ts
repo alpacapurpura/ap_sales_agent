@@ -10,13 +10,16 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
   sendDefaultPii: false,
   enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-      networkCaptureBodies: false,
-    }),
-  ],
+  integrations:
+    typeof window !== "undefined"
+      ? [
+          Sentry.replayIntegration({
+            maskAllText: true,
+            blockAllMedia: true,
+            networkCaptureBodies: false,
+          }),
+        ]
+      : [],
   beforeBreadcrumb(breadcrumb) {
     if (breadcrumb.category === "fetch" || breadcrumb.category === "xhr") {
       delete breadcrumb.data?.headers;
