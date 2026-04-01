@@ -39,13 +39,12 @@ export async function fetchClient(input: RequestInfo | URL, init?: RequestInit):
   // Ejecutar la petición original con headers inyectados
   const response = await fetch(input, finalConfig);
 
-  // Capturar errores 5xx en Sentry (sanitize URL to avoid leaking tenant IDs)
+  // Capturar errores 5xx en Sentry (sanitize URL: strip query params and UUIDs)
   if (response.status >= 500) {
     const rawUrl = input instanceof URL ? input.pathname : typeof input === "string" ? input : "request";
-    // Replace UUID-like segments and first path segment (tenant slug) to prevent PII leakage
     const sanitizedUrl = rawUrl
-      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/[id]")
-      .split("?")[0];
+      .split("?")[0]
+      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/[id]");
     Sentry.captureMessage(`API ${response.status}: ${sanitizedUrl}`, {
       level: "error",
       extra: { status: response.status, method: finalConfig.method ?? "GET" },
