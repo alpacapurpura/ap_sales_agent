@@ -31,6 +31,7 @@ PROVIDER_TO_CHANNEL_TYPES: Dict[str, Set[str]] = {
     "internal": set(),        # Internal sources (CRM, landing) — always "connected"
     "manual": set(),          # Manual sources — always "connected"
     "meta_pixel": {"meta_pixel"},
+    "search_console": {"google_analytics"},  # Uses same Google OAuth as GA4
 }
 
 # Inverse mapping: channel_type_value → set of provider_names that need it.
@@ -51,12 +52,13 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["video_views", "engagement"]},
         {"slug": "linkedin-organic", "name": "LinkedIn Organic", "channel_type": "social", "source_label": "LinkedIn", "provider_name": "linkedin", "metric_names": ["reach", "engagement"]},
         # GA4 search: sessions + users
-        {"slug": "google-organic", "name": "Google Organic", "channel_type": "search", "source_label": "Google Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
-        {"slug": "direct", "name": "Direct Traffic", "channel_type": "direct", "source_label": "Direct", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
-        {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
+        {"slug": "google-organic", "name": "Google Organic", "channel_type": "search", "source_label": "Google Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews", "activeUsers", "engagementRate"]},
+        {"slug": "direct", "name": "Direct Traffic", "channel_type": "direct", "source_label": "Direct", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews", "activeUsers", "engagementRate"]},
+        {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews", "activeUsers", "engagementRate"]},
+        {"slug": "search-console", "name": "Google Search Console", "channel_type": "search", "source_label": "Search Console", "provider_name": "search_console", "metric_names": ["impressions", "clicks", "ctr", "avg_position", "top_queries"]},
         # Paid: reach + clicks + conversions + spend
         {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "impressions", "clicks", "ctr", "cpm", "frequency", "conversions", "spend"]},
-        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
+        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value", "search_terms"]},
         {"slug": "tiktok-ads", "name": "TikTok Ads", "channel_type": "paid", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "conversions", "spend"]},
         {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
         # Outbound: contacts + responses
@@ -64,7 +66,7 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         # ManyChat comment triggers -> attraction
         {"slug": "manychat-comments", "name": "ManyChat Comment Triggers", "channel_type": "social", "source_label": "ManyChat", "provider_name": "manychat", "metric_names": ["comment_triggers", "dm_opens"]},
         # Website: site-wide aggregate from GA4
-        {"slug": "website-total", "name": "Tu Sitio Web", "channel_type": "website", "source_label": "Google Analytics", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews", "averageSessionDuration", "conversions", "top_pages", "traffic_sources", "device_split"]},
+        {"slug": "website-total", "name": "Tu Sitio Web", "channel_type": "website", "source_label": "Google Analytics", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews", "activeUsers", "engagementRate", "averageSessionDuration", "conversions", "top_pages", "traffic_sources", "device_split"]},
         # Website: Meta Pixel events (Phase 2)
         {"slug": "meta-pixel", "name": "Meta Pixel", "channel_type": "website", "source_label": "Meta Pixel", "provider_name": "meta_pixel", "metric_names": ["pixel_pageviews", "pixel_view_content", "pixel_leads", "pixel_add_to_cart", "pixel_purchases"]},
     ],

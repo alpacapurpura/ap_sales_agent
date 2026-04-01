@@ -49,7 +49,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Más = mayor visibilidad. No implica personas únicas. impressions ≥ reach siempre.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
-        providers=("meta",),
+        providers=("meta", "search_console"),
     ),
     MetricDefinition(
         name="clicks",
@@ -58,7 +58,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Más = mayor interés. clicks/impressions = CTR.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
-        providers=("meta", "google_ads", "tiktok"),
+        providers=("meta", "google_ads", "tiktok", "search_console"),
     ),
     MetricDefinition(
         name="spend",
@@ -475,7 +475,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="impressions",
         formula="clicks / impressions × 100",
-        providers=("meta", "google_ads", "tiktok"),
+        providers=("meta", "google_ads", "tiktok", "search_console"),
     ),
     MetricDefinition(
         name="cpm",
@@ -555,6 +555,28 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         weight_metric="views",
         higher_is_better=True,
         providers=("youtube",),
+    ),
+    MetricDefinition(
+        name="engagementRate",
+        display_name="Tasa de Engagement",
+        description="Porcentaje de sesiones con interacción significativa",
+        interpretation="Sesiones >10s, 2+ pageviews, o una conversión. Recalcular: engagedSessions/sessions.",
+        unit=MetricUnit.PERCENTAGE,
+        aggregation=AggregationType.WEIGHTED_AVERAGE,
+        weight_metric="sessions",
+        higher_is_better=True,
+        providers=("google_analytics",),
+    ),
+    MetricDefinition(
+        name="avg_position",
+        display_name="Posición Promedio",
+        description="Posición promedio en resultados de búsqueda orgánica",
+        interpretation="Menor es mejor. <10 = primera página de Google.",
+        unit=MetricUnit.COUNT,
+        aggregation=AggregationType.WEIGHTED_AVERAGE,
+        weight_metric="impressions",
+        higher_is_better=False,
+        providers=("search_console",),
     ),
 ]
 
@@ -695,6 +717,16 @@ _NON_AGGREGABLE: list[MetricDefinition] = [
         providers=("meta",),
     ),
     MetricDefinition(
+        name="activeUsers",
+        display_name="Usuarios Activos",
+        description="Usuarios únicos que interactuaron activamente con el sitio",
+        interpretation="Métrica de audiencia real. No sumable entre días (se deduplica por rango).",
+        unit=MetricUnit.COUNT,
+        aggregation=AggregationType.NON_AGGREGABLE,
+        higher_is_better=True,
+        providers=("google_analytics",),
+    ),
+    MetricDefinition(
         name="repeat_customers",
         display_name="Clientes Recurrentes",
         description="Clientes con más de una orden histórica. Mismo cliente en múltiples días duplica al sumar.",
@@ -746,6 +778,24 @@ _SNAPSHOT: list[MetricDefinition] = [
         unit=MetricUnit.JSON,
         aggregation=AggregationType.SNAPSHOT,
         providers=("google_analytics",),
+    ),
+    MetricDefinition(
+        name="search_terms",
+        display_name="Términos de Búsqueda",
+        description="Términos de búsqueda que activaron los anuncios",
+        interpretation="Muestra qué buscan los usuarios que ven tus anuncios.",
+        unit=MetricUnit.JSON,
+        aggregation=AggregationType.SNAPSHOT,
+        providers=("google_ads",),
+    ),
+    MetricDefinition(
+        name="top_queries",
+        display_name="Consultas Top",
+        description="Top 20 términos de búsqueda orgánica en Google",
+        interpretation="Qué buscan los usuarios para encontrar tu sitio.",
+        unit=MetricUnit.JSON,
+        aggregation=AggregationType.SNAPSHOT,
+        providers=("search_console",),
     ),
 ]
 

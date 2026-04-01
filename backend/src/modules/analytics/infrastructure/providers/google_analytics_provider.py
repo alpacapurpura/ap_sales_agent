@@ -48,6 +48,8 @@ _WEBSITE_METRIC_MAP = {
     "screenPageViews": ("screenPageViews", "count"),
     "averageSessionDuration": ("averageSessionDuration", "count"),
     "conversions": ("conversions", "count"),
+    "activeUsers": ("activeUsers", "count"),
+    "engagementRate": ("engagementRate", "percentage"),
 }
 
 # Ordered list of GA4 metric names for website-total requests
@@ -99,6 +101,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 metrics=[
                     "sessions", "totalUsers", "bounceRate",
                     "engagedSessions", "newUsers", "screenPageViews",
+                    "activeUsers", "engagementRate",
                 ],
                 start_date=start_date.isoformat(),
                 end_date=end_date.isoformat(),
@@ -331,6 +334,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         _EMPTY_CHANNEL = {
             "sessions": 0.0, "users": 0.0, "bounceRate": 0.0,
             "engagedSessions": 0.0, "newUsers": 0.0, "screenPageViews": 0.0,
+            "activeUsers": 0.0, "engagementRate": 0.0,
         }
         channel_data: Dict[str, Dict[str, float]] = {
             "google-organic": {**_EMPTY_CHANNEL},
@@ -356,6 +360,8 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             engaged_sessions = float(mets[3]) if len(mets) > 3 else 0.0
             new_users = float(mets[4]) if len(mets) > 4 else 0.0
             page_views = float(mets[5]) if len(mets) > 5 else 0.0
+            active_users = float(mets[6]) if len(mets) > 6 else 0.0
+            engagement_rate = float(mets[7]) if len(mets) > 7 else 0.0
 
             if source in AI_REFERRER_DOMAINS:
                 slug = "ai-search-organic"
@@ -374,14 +380,19 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             channel_data[slug]["engagedSessions"] += engaged_sessions
             channel_data[slug]["newUsers"] += new_users
             channel_data[slug]["screenPageViews"] += page_views
+            channel_data[slug]["activeUsers"] += active_users
+            # engagementRate: weighted sum (multiply by sessions, divide later)
+            channel_data[slug]["engagementRate"] += engagement_rate * sessions
 
-        # Finalize weighted bounceRate
+        # Finalize weighted bounceRate and engagementRate
         for slug in channel_data:
             total_sess = _session_counts[slug]
             if total_sess > 0:
                 channel_data[slug]["bounceRate"] /= total_sess
+                channel_data[slug]["engagementRate"] /= total_sess
             else:
                 channel_data[slug]["bounceRate"] = 0.0
+                channel_data[slug]["engagementRate"] = 0.0
 
         # Convert to ExtractedMetric objects (skip channels with zero data)
         metrics: List[ExtractedMetric] = []
@@ -389,7 +400,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             if data["sessions"] == 0.0 and data["users"] == 0.0:
                 continue
             for metric_name, value in data.items():
-                unit = "percentage" if metric_name == "bounceRate" else "count"
+                unit = "percentage" if metric_name in ("bounceRate", "engagementRate") else "count"
                 metrics.append(
                     ExtractedMetric(
                         provider="google_analytics",
@@ -426,6 +437,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 metrics=[
                     "sessions", "totalUsers", "bounceRate",
                     "engagedSessions", "newUsers", "screenPageViews",
+                    "activeUsers", "engagementRate",
                 ],
                 start_date=start_date.isoformat(),
                 end_date=end_date.isoformat(),
@@ -506,6 +518,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         _METRIC_NAMES = [
             "sessions", "users", "bounceRate",
             "engagedSessions", "newUsers", "screenPageViews",
+            "activeUsers", "engagementRate",
         ]
 
         # Accumulate: (slug, date_str) -> {metric: value}
@@ -537,6 +550,8 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             engaged_sessions = float(mets[3]) if len(mets) > 3 else 0.0
             new_users = float(mets[4]) if len(mets) > 4 else 0.0
             page_views = float(mets[5]) if len(mets) > 5 else 0.0
+            active_users = float(mets[6]) if len(mets) > 6 else 0.0
+            engagement_rate = float(mets[7]) if len(mets) > 7 else 0.0
 
             key = (slug, date_str)
             if key not in day_data:
@@ -550,6 +565,9 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             day_data[key]["engagedSessions"] += engaged_sessions
             day_data[key]["newUsers"] += new_users
             day_data[key]["screenPageViews"] += page_views
+            day_data[key]["activeUsers"] += active_users
+            # engagementRate: weighted sum (multiply by sessions, divide later)
+            day_data[key]["engagementRate"] += engagement_rate * sessions
 
         metrics: List[ExtractedMetric] = []
         for (slug, date_str), data in day_data.items():
@@ -559,18 +577,20 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             except ValueError:
                 continue
 
-            # Finalize weighted bounceRate
+            # Finalize weighted bounceRate and engagementRate
             total_sess = day_sessions[(slug, date_str)]
             if total_sess > 0:
                 data["bounceRate"] /= total_sess
+                data["engagementRate"] /= total_sess
             else:
                 data["bounceRate"] = 0.0
+                data["engagementRate"] = 0.0
 
             if data["sessions"] == 0.0 and data["users"] == 0.0:
                 continue
 
             for metric_name, value in data.items():
-                unit = "percentage" if metric_name == "bounceRate" else "count"
+                unit = "percentage" if metric_name in ("bounceRate", "engagementRate") else "count"
                 metrics.append(
                     ExtractedMetric(
                         provider="google_analytics",
