@@ -6,7 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
-from src.modules.domains.api.domain_dtos import DomainCreate, DomainResponse, DomainSetPrimary
+from src.modules.domains.api.domain_dtos import (
+    DomainCreate,
+    DomainInstructionsResponse,
+    DomainResponse,
+    DomainSetPrimary,
+    DnsRecord,
+)
 from src.modules.domains.application.domain_service import DomainService
 from src.modules.domains.domain.domain_entity import DomainType
 from src.modules.iam.api.dependencies import get_current_user
@@ -50,10 +56,23 @@ async def create_domain(
                 slug=body.hostname,
             )
         else:
+            conflict = service.detect_domain_conflict(body.hostname)
+            if conflict:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "code": "DOMAIN_CONFLICT",
+                        "provider": conflict["provider"],
+                        "suggestion": conflict["suggestion"],
+                        "message": conflict["message"],
+                    },
+                )
             domain = service.create_custom_domain(
                 tenant_id=user.tenant_id,
                 hostname=body.hostname,
             )
+    except HTTPException:
+        raise
     except Exception:
         logger.exception("domain_create_failed", tenant_id=str(user.tenant_id))
         raise HTTPException(status_code=500, detail="Internal error creating domain")
@@ -128,3 +147,41 @@ async def verify_domain(
         logger.error("domain_verify_error", error=str(e), domain_id=str(domain_id))
         raise HTTPException(status_code=502, detail="Cloudflare verification failed")
     return _to_response(domain)
+
+
+@router.get("/{domain_id}/instructions", response_model=DomainInstructionsResponse)
+async def get_domain_instructions(
+    domain_id: UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> DomainInstructionsResponse:
+    """Return DNS setup instructions for a custom domain."""
+    service = DomainService(db)
+    domain = service.get_domain_instructions(domain_id=domain_id, tenant_id=user.tenant_id)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+
+    cname_record: DnsRecord | None = None
+    txt_record: DnsRecord | None = None
+
+    if domain.verification_cname_target:
+        cname_record = DnsRecord(
+            type="CNAME",
+            name="@",
+            target=domain.verification_cname_target,
+        )
+
+    if domain.verification_txt_name and domain.verification_txt_value:
+        txt_record = DnsRecord(
+            type="TXT",
+            name=domain.verification_txt_name,
+            value=domain.verification_txt_value,
+        )
+
+    return DomainInstructionsResponse(
+        hostname=domain.hostname,
+        domain_type=domain.domain_type,
+        status=domain.status,
+        cname_record=cname_record,
+        txt_record=txt_record,
+    )

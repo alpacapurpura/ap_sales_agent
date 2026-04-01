@@ -1,3 +1,4 @@
+import socket
 from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
@@ -10,6 +11,13 @@ from src.modules.domains.infrastructure.cloudflare_client import CloudflareClien
 from src.modules.domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
 
 logger = structlog.get_logger()
+
+# Known provider IP ranges — extend as new providers are discovered
+_KNOWN_PROVIDERS: dict[str, dict[str, str]] = {
+    "23.227.38.32": {"provider": "Shopify", "suggestion_prefix": "go"},
+    "23.227.38.33": {"provider": "Shopify", "suggestion_prefix": "go"},
+    "23.227.38.34": {"provider": "Shopify", "suggestion_prefix": "go"},
+}
 
 
 class DomainService:
@@ -126,3 +134,47 @@ class DomainService:
             raise ValueError("Domain not found")
         domain.is_primary = True
         return self.repo.update(domain)
+
+    @staticmethod
+    def _extract_root_domain(hostname: str) -> str:
+        """Extract root domain: 'go.visionarias.lat' -> 'visionarias.lat'"""
+        parts = hostname.split(".")
+        if len(parts) >= 2:
+            return ".".join(parts[-2:])
+        return hostname
+
+    def detect_domain_conflict(self, hostname: str) -> Optional[dict]:
+        """
+        Check if the root domain's A record points to a known provider (e.g. Shopify).
+        Returns conflict info with a subdomain suggestion, or None if clean.
+        """
+        root_domain = self._extract_root_domain(hostname)
+        try:
+            ip = socket.gethostbyname(root_domain)
+            provider_info = _KNOWN_PROVIDERS.get(ip)
+            if provider_info:
+                suggestion = f"{provider_info['suggestion_prefix']}.{root_domain}"
+                logger.info(
+                    "domain_conflict_detected",
+                    hostname=hostname,
+                    root_domain=root_domain,
+                    provider=provider_info["provider"],
+                    detected_ip=ip,
+                )
+                return {
+                    "provider": provider_info["provider"],
+                    "detected_ip": ip,
+                    "suggestion": suggestion,
+                    "message": (
+                        f"El dominio raíz {root_domain!r} apunta a {provider_info['provider']}. "
+                        f"Te recomendamos usar un subdominio: {suggestion!r}"
+                    ),
+                }
+        except (socket.gaierror, OSError):
+            # DNS resolution failure — domain not resolvable, no conflict
+            pass
+        return None
+
+    def get_domain_instructions(self, domain_id: UUID, tenant_id: UUID) -> Optional[TenantDomain]:
+        """Return the domain entity so the API layer can build DNS setup instructions."""
+        return self.repo.get_by_id(domain_id, tenant_id)

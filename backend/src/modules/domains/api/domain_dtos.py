@@ -37,3 +37,25 @@ class DomainResponse(BaseModel):
     verification_txt_value: Optional[str] = None
     verified_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
+
+
+class DomainConflictDetail(BaseModel):
+    code: str = "DOMAIN_CONFLICT"
+    provider: str
+    suggestion: str
+    message: str
+
+
+class DnsRecord(BaseModel):
+    type: str
+    name: str
+    target: Optional[str] = None
+    value: Optional[str] = None
+
+
+class DomainInstructionsResponse(BaseModel):
+    hostname: str
+    domain_type: DomainType
+    status: DomainStatus
+    cname_record: Optional[DnsRecord] = None
+    txt_record: Optional[DnsRecord] = None
