@@ -6,14 +6,17 @@ They are promoted from staging_metrics after transformation.
 
 import json
 import uuid
+from collections import defaultdict
 from datetime import date
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import func as sa_func, select, text
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
+from src.modules.analytics.domain.enums import AggregationType
+from src.modules.analytics.domain.metric_catalog import get_metric_def
 from src.modules.analytics.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
@@ -191,14 +194,20 @@ class OfficialMetricsRepository:
         start_date: date,
         end_date: date,
     ) -> dict[str, float]:
-        """Get aggregated metrics for a channel in a date range.
+        """Get aggregated metrics for a channel in a date range, using catalog semantics.
 
-        Returns: {"metric_name": total_value, ...}
+        - ADDITIVE: SUM across the date range
+        - SNAPSHOT: value of the most recent date
+        - NON_AGGREGABLE, WEIGHTED_AVERAGE, DERIVED: value of most recent date
+          (cannot compute accurately without component data or API call)
+
+        Returns: {"metric_name": aggregated_value, ...}
         """
         stmt = (
             select(
                 OfficialMetricModel.metric_name,
-                sa_func.sum(OfficialMetricModel.value).label("total"),
+                OfficialMetricModel.metric_date,
+                OfficialMetricModel.value,
             )
             .where(
                 OfficialMetricModel.tenant_id == tenant_id,
@@ -206,7 +215,24 @@ class OfficialMetricsRepository:
                 OfficialMetricModel.channel_slug == channel_slug,
                 OfficialMetricModel.metric_date.between(start_date, end_date),
             )
-            .group_by(OfficialMetricModel.metric_name)
+            .order_by(OfficialMetricModel.metric_name, OfficialMetricModel.metric_date)
         )
         rows = self.db.execute(stmt).all()
-        return {row.metric_name: float(row.total) for row in rows}
+
+        # Group by metric name: {metric_name: [(date, value), ...]}
+        grouped: dict[str, list[tuple]] = defaultdict(list)
+        for row in rows:
+            grouped[row.metric_name].append((row.metric_date, row.value))
+
+        result: dict[str, float] = {}
+        for metric_name, entries in grouped.items():
+            defn = get_metric_def(metric_name)
+            if defn is None or defn.aggregation == AggregationType.ADDITIVE:
+                result[metric_name] = sum(v for _, v in entries)
+            else:
+                # SNAPSHOT, NON_AGGREGABLE, WEIGHTED_AVERAGE, DERIVED:
+                # use most recent daily value as best approximation
+                latest = max(entries, key=lambda x: x[0])
+                result[metric_name] = float(latest[1])
+
+        return result

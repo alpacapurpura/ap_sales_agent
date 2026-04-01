@@ -5,13 +5,13 @@ channels a tenant has connected vs. available (showing "Configurar" badge).
 Replaces the hardcoded 13-channel list in MetricsService.get_attraction_metrics().
 """
 
-import logging
+import structlog
 from typing import Dict, List, Set
 from uuid import UUID
 
 from src.modules.analytics.domain.ports import ConnectionPort
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Maps provider_name (as used in STAGE_CHANNEL_MAP) to the set of ChannelType
 # string values from the connections module that satisfy that provider.
@@ -46,9 +46,9 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "attraction": [
         # Organic social: reach + engagement
         {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
-        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": ["reach", "engagement"]},
+        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": ["views", "engagement"]},
         {"slug": "fb-organic", "name": "Facebook Organic", "channel_type": "social", "source_label": "Facebook", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
-        {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["reach", "engagement"]},
+        {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["video_views", "engagement"]},
         {"slug": "linkedin-organic", "name": "LinkedIn Organic", "channel_type": "social", "source_label": "LinkedIn", "provider_name": "linkedin", "metric_names": ["reach", "engagement"]},
         # GA4 search: sessions + users
         {"slug": "google-organic", "name": "Google Organic", "channel_type": "search", "source_label": "Google Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
@@ -56,9 +56,9 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews"]},
         # Paid: reach + clicks + conversions + spend
         {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "impressions", "clicks", "ctr", "cpm", "frequency", "conversions", "spend"]},
-        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
+        {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
         {"slug": "tiktok-ads", "name": "TikTok Ads", "channel_type": "paid", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "conversions", "spend"]},
-        {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
+        {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
         # Outbound: contacts + responses
         {"slug": "cold-contact", "name": "Cold Contact", "channel_type": "outbound", "source_label": "Cold Outreach", "provider_name": "manual", "metric_names": ["contacts", "responses"]},
         # ManyChat comment triggers -> attraction
@@ -81,7 +81,7 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "nurture": [
         # Retargeting Omnichannel
         {"slug": "meta-retargeting", "name": "Meta Retargeting", "channel_type": "retargeting", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "clicks", "spend"]},
-        {"slug": "google-retargeting", "name": "Google Retargeting", "channel_type": "retargeting", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["reach", "clicks", "spend", "ctr", "cpc"]},
+        {"slug": "google-retargeting", "name": "Google Retargeting", "channel_type": "retargeting", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "spend", "ctr", "cpc"]},
         {"slug": "tiktok-retargeting", "name": "TikTok Retargeting", "channel_type": "retargeting", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "spend"]},
         # Automatizacion
         {"slug": "email-nurture", "name": "Email Nurturing", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "unique_opens", "open_rate", "click_rate", "click_to_open_rate", "unsubscribe_rate", "bounce_rate", "spam_reports"]},
@@ -102,7 +102,8 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     ],
     "sales": [
         {"slug": "sales-agent", "name": "Sales Agent", "channel_type": "ai", "source_label": "AI SDR", "provider_name": "internal"},
-        {"slug": "shopify", "name": "Shopify", "channel_type": "ecommerce", "source_label": "Shopify", "provider_name": "shopify"},
+        {"slug": "shopify", "name": "Shopify", "channel_type": "ecommerce", "source_label": "Shopify", "provider_name": "shopify",
+         "metric_names": ["revenue", "order_count", "avg_order_value", "units_sold", "total_discounts", "net_sales", "refund_amount", "refund_count", "shipping_revenue", "discount_usage_count", "repeat_customers"]},
     ],
     "adoption": [
         {"slug": "product-usage", "name": "Uso del Producto", "channel_type": "engagement", "source_label": "CRM", "provider_name": "internal"},
@@ -127,6 +128,19 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "nps-surveys", "name": "Encuestas NPS", "channel_type": "survey", "source_label": "NPS", "provider_name": "internal", "metric_names": ["score", "response_rate", "promoters"]},
         {"slug": "email-referral", "name": "Email Referral", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["emails_sent", "open_rate", "forwards", "click_rate"]},
     ],
+}
+
+
+# Channels planned for future implementation (provider not yet active)
+PLANNED_CHANNEL_SLUGS: set[str] = {
+    # LinkedIn (no ChannelType yet)
+    "linkedin-organic",
+    # ManyChat channels (stub provider, data arrives via webhook only)
+    "manychat-comments", "manychat-ig", "manychat-wa", "manychat-sequences", "manychat-bofu",
+    # Internal scheduling/referral (not yet extracted)
+    "meeting-booked",
+    # AI SDR (internal, future)
+    "ai-sdr",
 }
 
 

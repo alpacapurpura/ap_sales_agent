@@ -60,8 +60,8 @@ class TestYouTubeOrganic:
         yt_metrics = [m for m in metrics if m.channel_slug == "yt-organic"]
         assert len(yt_metrics) >= 2
 
-        reach = next(m for m in yt_metrics if m.metric_name == "reach")
-        assert reach.value == 15000.0
+        views = next(m for m in yt_metrics if m.metric_name == "views")
+        assert views.value == 15000.0
 
         engagement = next(m for m in yt_metrics if m.metric_name == "engagement")
         assert engagement.value == 510.0  # likes + dislikes (total interactions)
