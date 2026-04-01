@@ -135,6 +135,13 @@ async def shutdown_arq_pool():
 def health_check():
     return {"status": "ok", "version": "1.0.0"}
 
+
+@app.get("/")
+def root_redirect():
+    """Redirect Shopify admin 'App opened' requests to the frontend dashboard."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=f"{settings.DASHBOARD_DOMAIN}/connections/shopify")
+
 # --- Router Mounting (Organized by Domain) ---
 
 # 1. IAM

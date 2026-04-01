@@ -107,7 +107,7 @@ async def generate_auth_url(
     return {"auth_url": auth_url}
 
 
-@router.post("/auth/exchange", response_model=ConnectionResponse)
+@public_router.post("/auth/exchange", response_model=ConnectionResponse)
 async def exchange_shopify_token(
     request: ShopifyExchangeRequest,
     repo: ChannelConnectionRepository = Depends(_get_repo),

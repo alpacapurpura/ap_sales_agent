@@ -21,8 +21,7 @@ class ShopifyConnector(BaseConnector):
     def get_auth_url(shop_domain: str, state: str, redirect_uri: str) -> str:
         """
         Generates the Shopify OAuth authorization URL.
-        Scopes are omitted because they are managed via the deployed TOML config
-        (Shopify managed installation).
+        Scopes must be explicit for Custom Distribution apps not deployed via CLI/TOML.
         """
         # Clean up shop URL
         shop_domain = shop_domain.replace("https://", "").replace("http://", "").strip("/")
@@ -31,8 +30,9 @@ class ShopifyConnector(BaseConnector):
 
         params = {
             "client_id": settings.SHOPIFY_API_KEY,
+            "scope": ShopifyConnector.SCOPES,
             "redirect_uri": redirect_uri,
-            "state": state
+            "state": state,
         }
         query_string = urllib.parse.urlencode(params)
         return f"https://{shop_domain}/admin/oauth/authorize?{query_string}"
