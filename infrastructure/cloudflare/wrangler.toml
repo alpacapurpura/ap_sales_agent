@@ -7,8 +7,8 @@ compatibility_date = "2025-01-01"
 # Then replace the id below with the real namespace ID
 [[kv_namespaces]]
 binding = "DOMAINS_KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
-preview_id = "REPLACE_WITH_KV_PREVIEW_NAMESPACE_ID"
+id = "8a55179877be414d9c74a5f5f5b1a716"
+preview_id = "8a55179877be414d9c74a5f5f5b1a716"
 
 # Environment variables (set in CF dashboard or wrangler secret)
 [vars]
