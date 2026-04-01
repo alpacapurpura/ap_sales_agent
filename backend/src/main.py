@@ -67,6 +67,9 @@ import src.shared.infrastructure.model_registry  # noqa: F401
 
 # --- App Initialization ---
 
+from src.core.sentry import init_sentry
+init_sentry("api")
+
 # Configure Logging (Structlog)
 configure_logging()
 logger = structlog.get_logger()

@@ -34,15 +34,9 @@ class WorkerSettings:
     async def on_startup(ctx):
         """Initialize DB session factory, Redis, and Sentry for worker."""
         from src.core.database import SessionLocal, redis_client
+        from src.core.sentry import init_sentry
 
-        import sentry_sdk
-
-        if settings.SENTRY_DSN:
-            sentry_sdk.init(
-                dsn=settings.SENTRY_DSN,
-                environment=settings.ENVIRONMENT,
-                traces_sample_rate=0.1,
-            )
+        init_sentry("worker")
         ctx["db_factory"] = SessionLocal
         ctx["redis_cache"] = redis_client
 
@@ -94,15 +88,9 @@ class SchedulerSettings:
     async def on_startup(ctx):
         """Initialize DB session factory, Redis, and Sentry for scheduler."""
         from src.core.database import SessionLocal, redis_client
+        from src.core.sentry import init_sentry
 
-        import sentry_sdk
-
-        if settings.SENTRY_DSN:
-            sentry_sdk.init(
-                dsn=settings.SENTRY_DSN,
-                environment=settings.ENVIRONMENT,
-                traces_sample_rate=0.1,
-            )
+        init_sentry("scheduler")
         ctx["db_factory"] = SessionLocal
         ctx["redis_cache"] = redis_client
 

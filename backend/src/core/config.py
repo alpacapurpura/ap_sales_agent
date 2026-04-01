@@ -129,6 +129,7 @@ class Settings(BaseSettings):
     # Sentry / Environment
     SENTRY_DSN: str = ""
     ENVIRONMENT: str = "dev"
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1
 
     # CORS
     CORS_ORIGINS: list[str] = []
