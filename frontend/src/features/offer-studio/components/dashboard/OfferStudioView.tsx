@@ -67,7 +67,7 @@ export function OfferStudioView() {
       <Separator className="flex-none" />
 
       {/* Content */}
-      <div className="flex-1 overflow-auto pr-4 -mr-4">
+      <div className="flex-1 overflow-auto pr-4 -mr-4 mt-4">
         <OfferStudioDashboard
           searchQuery={searchQuery}
           externalCreateTrigger={isCreateOpen}
