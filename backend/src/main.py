@@ -25,6 +25,7 @@ from src.modules.offer.api import products as offer_products, offer_ai, definiti
 
 # 4. Landing
 from src.modules.landing.api import landing as landing_ai
+from src.modules.landing.api import public_landing as landing_public
 
 # 5. Sales Agent
 from src.modules.sales_agent.api import audit as sales_audit
@@ -166,6 +167,7 @@ app.include_router(offer_product_mappings.router, prefix="/api/v1/offer", tags=[
 
 # 4. Landing
 app.include_router(landing_ai.router, prefix="/api/v1/landings", tags=["Landing"], dependencies=[Depends(get_tenant_context)])
+app.include_router(landing_public.router, prefix="/api/v1/public", tags=["Public - Landing"])
 
 # 5. Sales Agent - Audit
 app.include_router(sales_audit.router, prefix="/api/v1/admin/audit", tags=["Sales Agent - Audit"], dependencies=[Depends(get_tenant_context)])

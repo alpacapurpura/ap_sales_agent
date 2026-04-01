@@ -1,9 +1,11 @@
 from typing import List, Optional
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from uuid import UUID
 from src.modules.landing.domain.landing_page import LandingPage
 from src.modules.landing.domain.content import LandingPageConfig
 from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
+
 
 class LandingRepository:
     def __init__(self, db: Session):
@@ -18,7 +20,7 @@ class LandingRepository:
             config=LandingPageConfig(**model.config),
             is_published=model.is_published,
             created_at=model.created_at,
-            updated_at=model.updated_at
+            updated_at=model.updated_at,
         )
 
     def _to_model(self, entity: LandingPage) -> LandingPageModel:
@@ -27,8 +29,8 @@ class LandingRepository:
             tenant_id=entity.tenant_id,
             offer_id=entity.offer_id,
             slug=entity.slug,
-            config=entity.config.model_dump(mode='json'),
-            is_published=entity.is_published
+            config=entity.config.model_dump(mode="json"),
+            is_published=entity.is_published,
         )
 
     def create(self, entity: LandingPage) -> LandingPage:
@@ -39,39 +41,88 @@ class LandingRepository:
         return self._to_domain(model)
 
     def get_by_id(self, landing_id: UUID) -> Optional[LandingPage]:
-        model = self.db.query(LandingPageModel).filter(LandingPageModel.id == landing_id).first()
+        stmt = (
+            select(LandingPageModel)
+            .where(
+                LandingPageModel.id == landing_id,
+                LandingPageModel.deleted_at.is_(None),
+            )
+        )
+        model = self.db.execute(stmt).scalars().first()
         if model:
             return self._to_domain(model)
         return None
 
     def get_by_slug(self, slug: str) -> Optional[LandingPage]:
-        model = self.db.query(LandingPageModel).filter(LandingPageModel.slug == slug).first()
+        """Global slug lookup (no tenant filter). Use get_by_slug_and_tenant for scoped lookups."""
+        stmt = (
+            select(LandingPageModel)
+            .where(
+                LandingPageModel.slug == slug,
+                LandingPageModel.deleted_at.is_(None),
+            )
+        )
+        model = self.db.execute(stmt).scalars().first()
+        if model:
+            return self._to_domain(model)
+        return None
+
+    def get_by_slug_and_tenant(self, slug: str, tenant_id: UUID) -> Optional[LandingPage]:
+        """Tenant-scoped slug lookup for the public endpoint."""
+        stmt = (
+            select(LandingPageModel)
+            .where(
+                LandingPageModel.tenant_id == tenant_id,
+                LandingPageModel.slug == slug,
+                LandingPageModel.deleted_at.is_(None),
+            )
+        )
+        model = self.db.execute(stmt).scalars().first()
         if model:
             return self._to_domain(model)
         return None
 
     def get_by_offer(self, tenant_id: UUID, offer_id: UUID) -> Optional[LandingPage]:
-        model = self.db.query(LandingPageModel).filter(
-            LandingPageModel.tenant_id == tenant_id,
-            LandingPageModel.offer_id == offer_id
-        ).first()
+        stmt = (
+            select(LandingPageModel)
+            .where(
+                LandingPageModel.tenant_id == tenant_id,
+                LandingPageModel.offer_id == offer_id,
+                LandingPageModel.deleted_at.is_(None),
+            )
+        )
+        model = self.db.execute(stmt).scalars().first()
         if model:
             return self._to_domain(model)
         return None
 
     def list_by_tenant(self, tenant_id: UUID) -> List[LandingPage]:
-        models = self.db.query(LandingPageModel).filter(LandingPageModel.tenant_id == tenant_id).all()
+        stmt = (
+            select(LandingPageModel)
+            .where(
+                LandingPageModel.tenant_id == tenant_id,
+                LandingPageModel.deleted_at.is_(None),
+            )
+        )
+        models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]
 
     def update(self, entity: LandingPage) -> LandingPage:
-        model = self.db.query(LandingPageModel).filter(LandingPageModel.id == entity.id).first()
+        stmt = (
+            select(LandingPageModel)
+            .where(
+                LandingPageModel.id == entity.id,
+                LandingPageModel.deleted_at.is_(None),
+            )
+        )
+        model = self.db.execute(stmt).scalars().first()
         if not model:
             raise ValueError("Landing Page not found")
-            
+
         model.slug = entity.slug
-        model.config = entity.config.model_dump(mode='json')
+        model.config = entity.config.model_dump(mode="json")
         model.is_published = entity.is_published
-        
+
         self.db.commit()
         self.db.refresh(model)
         return self._to_domain(model)
