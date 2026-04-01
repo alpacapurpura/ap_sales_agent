@@ -220,10 +220,19 @@ jobs:
             echo "🗄️ Running database migrations..."
             docker exec visionarias_brain alembic upgrade head
 
-            echo "🧹 Cleaning up old images..."
+            echo "Waiting 30s for services to stabilise..."
+            sleep 30
+
+            echo "Container status:"
+            docker compose -f docker-compose.prod.yml --env-file .env.prod ps
+
+            echo "Backend logs (last 50 lines):"
+            docker logs visionarias_brain --tail 50 2>&1 || true
+
+            echo "Cleaning up old images..."
             docker image prune -f
 
-            echo "✅ Deploy completed at $(date)"
+            echo "Deploy completed at $(date)"
 
   healthcheck:
     name: 🏥 Health Check
@@ -234,17 +243,18 @@ jobs:
     steps:
       - name: Check API health
         run: |
-          echo "⏳ Waiting for API to be ready..."
-          for i in {1..8}; do
+          echo "⏳ Waiting 30s for API to be ready (startup buffer)..."
+          sleep 30
+          for i in {1..12}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ secrets.API_DOMAIN }}/health)
             if [ "$STATUS" = "200" ]; then
               echo "✅ API health check passed (HTTP $STATUS)"
               exit 0
             fi
-            echo "  Attempt $i/8: HTTP $STATUS — retrying in 15s..."
+            echo "  Attempt $i/12: HTTP $STATUS — retrying in 15s..."
             sleep 15
           done
-          echo "❌ API health check failed after 2 minutes: HTTP $STATUS"
+          echo "❌ API health check failed after 3 minutes: HTTP $STATUS"
           exit 1
 
       - name: Check Frontend health
