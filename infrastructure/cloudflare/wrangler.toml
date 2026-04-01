@@ -1,0 +1,27 @@
+name = "nicolify-domain-router"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# KV Namespace binding
+# Create with: wrangler kv:namespace create "nicolify-domains"
+# Then replace the id below with the real namespace ID
+[[kv_namespaces]]
+binding = "DOMAINS_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_KV_PREVIEW_NAMESPACE_ID"
+
+# Environment variables (set in CF dashboard or wrangler secret)
+[vars]
+ORIGIN_HOST = "app.nicolify.com"
+
+# Routes: handle all *.nicolify.com and custom domains
+# Configure in Cloudflare dashboard → Workers → Triggers
+# routes = [
+#   { pattern = "*.nicolify.com/*", zone_name = "nicolify.com" }
+# ]
+
+[env.production]
+vars = { ORIGIN_HOST = "app.nicolify.com" }
+
+[env.staging]
+vars = { ORIGIN_HOST = "staging.nicolify.com" }
