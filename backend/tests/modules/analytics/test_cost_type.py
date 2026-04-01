@@ -49,15 +49,15 @@ class TestMetricUnit:
 
 
 class TestExtractionStatus:
-    def test_has_exactly_five_members(self):
+    def test_has_exactly_six_members(self):
         from src.modules.analytics.domain.enums import ExtractionStatus
 
-        assert len(ExtractionStatus) == 5
+        assert len(ExtractionStatus) == 6
 
     def test_values(self):
         from src.modules.analytics.domain.enums import ExtractionStatus
 
-        expected = {"pending", "running", "success", "failed", "retrying"}
+        expected = {"pending", "running", "success", "failed", "partial_success", "retrying"}
         actual = {member.value for member in ExtractionStatus}
         assert actual == expected
 

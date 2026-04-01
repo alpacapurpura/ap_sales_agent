@@ -12,13 +12,13 @@ Uses GoogleAdsAdapter.run_gaql_query() wrapped in asyncio.to_thread()
 
 import os
 
-import sentry_sdk
 import structlog
 from collections import defaultdict
 from datetime import date
 from typing import Dict, List
 from uuid import UUID
 
+from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
@@ -82,7 +82,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         customer_id = credentials.get("customer_id")
         developer_token = credentials.get(
             "developer_token",
@@ -97,37 +97,68 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 bool(customer_id),
                 bool(developer_token),
             )
+            return ExtractionResult()
+
+        adapter = GoogleAdsAdapter()
+        metrics: List[ExtractedMetric] = []
+        failures = []
+
+        base_metrics, fail = await self._safe_extract(
+            self._extract_base_metrics,
+            adapter,
+            customer_id,
+            developer_token,
+            credentials,
+            start_date,
+            end_date,
+            stage,
+            extractor_name="campaign_metrics",
+        )
+        metrics.extend(base_metrics)
+        if fail:
+            failures.append(fail)
+
+        if stage != "nurturing":
+            search_term_metrics, fail = await self._safe_extract(
+                self._extract_search_terms,
+                adapter,
+                customer_id,
+                developer_token,
+                credentials,
+                start_date,
+                end_date,
+                extractor_name="search_terms",
+            )
+            metrics.extend(search_term_metrics)
+            if fail:
+                failures.append(fail)
+
+        return ExtractionResult(metrics=metrics, failures=failures)
+
+    async def _extract_base_metrics(
+        self,
+        adapter: GoogleAdsAdapter,
+        customer_id: str,
+        developer_token: str,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+        stage: str,
+    ) -> List[ExtractedMetric]:
+        """Run the main GAQL campaign query and aggregate by channel or retargeting."""
+        rows = await adapter.run_gaql_query(
+            customer_id=customer_id,
+            developer_token=developer_token,
+            credentials=credentials,
+            query=GAQL_CAMPAIGN_METRICS,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        if not rows:
             return []
-
-        try:
-            adapter = GoogleAdsAdapter()
-            rows = await adapter.run_gaql_query(
-                customer_id=customer_id,
-                developer_token=developer_token,
-                credentials=credentials,
-                query=GAQL_CAMPAIGN_METRICS,
-                start_date=start_date,
-                end_date=end_date,
-            )
-
-            if not rows:
-                return []
-
-            if stage == "nurturing":
-                return self._aggregate_retargeting(rows, end_date)
-
-            base_metrics = self._aggregate_by_channel(rows, end_date)
-            search_term_metrics = await self._extract_search_terms(
-                adapter, customer_id, developer_token, credentials, start_date, end_date
-            )
-            return base_metrics + search_term_metrics
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_ads")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "google_ads_provider_extract_failed tenant=%s", tenant_id
-            )
-            return []
+        if stage == "nurturing":
+            return self._aggregate_retargeting(rows, end_date)
+        return self._aggregate_by_channel(rows, end_date)
 
     async def _extract_search_terms(
         self,
@@ -139,41 +170,35 @@ class GoogleAdsProvider(BaseMetricsProvider):
         end_date: date,
     ) -> List[ExtractedMetric]:
         """Extract top search terms as a JSON snapshot metric."""
-        try:
-            search_terms = await adapter.run_search_terms_query(
-                customer_id=customer_id,
-                developer_token=developer_token,
-                credentials=credentials,
-                start_date=start_date,
-                end_date=end_date,
-            )
-            if not search_terms:
-                return []
-
-            terms_list = [
-                {
-                    "term": r["search_term"],
-                    "impressions": int(r["impressions"]),
-                    "clicks": int(r["clicks"]),
-                }
-                for r in search_terms[:20]
-            ]
-            return [
-                ExtractedMetric(
-                    provider="google_ads",
-                    channel_slug="google-ads",
-                    metric_name="search_terms",
-                    value=0.0,
-                    unit="json",
-                    date=end_date,
-                    extra={"terms": terms_list},
-                )
-            ]
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_ads")
-            sentry_sdk.capture_exception()
-            logger.exception("google_ads_search_terms_extract_failed")
+        search_terms = await adapter.run_search_terms_query(
+            customer_id=customer_id,
+            developer_token=developer_token,
+            credentials=credentials,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        if not search_terms:
             return []
+
+        terms_list = [
+            {
+                "term": r["search_term"],
+                "impressions": int(r["impressions"]),
+                "clicks": int(r["clicks"]),
+            }
+            for r in search_terms[:20]
+        ]
+        return [
+            ExtractedMetric(
+                provider="google_ads",
+                channel_slug="google-ads",
+                metric_name="search_terms",
+                value=0.0,
+                unit="json",
+                date=end_date,
+                extra={"terms": terms_list},
+            )
+        ]
 
     def _aggregate_retargeting(
         self, rows: List[dict], metric_date: date
@@ -293,7 +318,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         """Optimized daily extraction — GAQL with segments.date."""
         customer_id = credentials.get("customer_id")
         developer_token = credentials.get(
@@ -302,49 +327,61 @@ class GoogleAdsProvider(BaseMetricsProvider):
         )
 
         if not customer_id or not developer_token:
+            return ExtractionResult()
+
+        adapter = GoogleAdsAdapter()
+        metrics, fail = await self._safe_extract(
+            self._extract_daily_metrics,
+            adapter,
+            customer_id,
+            developer_token,
+            credentials,
+            start_date,
+            end_date,
+            stage,
+            extractor_name="campaign_metrics_daily",
+        )
+        failures = [fail] if fail else []
+        return ExtractionResult(metrics=metrics, failures=failures)
+
+    async def _extract_daily_metrics(
+        self,
+        adapter: GoogleAdsAdapter,
+        customer_id: str,
+        developer_token: str,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+        stage: str,
+    ) -> List[ExtractedMetric]:
+        """Run the daily GAQL campaign query and aggregate per-day."""
+        rows = await adapter.run_gaql_query(
+            customer_id=customer_id,
+            developer_token=developer_token,
+            credentials=credentials,
+            query=GAQL_CAMPAIGN_METRICS_DAILY,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        if not rows:
             return []
 
-        try:
-            adapter = GoogleAdsAdapter()
-            rows = await adapter.run_gaql_query(
-                customer_id=customer_id,
-                developer_token=developer_token,
-                credentials=credentials,
-                query=GAQL_CAMPAIGN_METRICS_DAILY,
-                start_date=start_date,
-                end_date=end_date,
-            )
+        # Group rows by date, then aggregate
+        by_date: Dict[str, List[dict]] = defaultdict(list)
+        for row in rows:
+            date_str = row.get("segments_date", row.get("date", ""))
+            by_date[date_str].append(row)
 
-            if not rows:
-                return []
+        metrics: List[ExtractedMetric] = []
+        for date_str, day_rows in by_date.items():
+            try:
+                metric_date = date.fromisoformat(date_str)
+            except (ValueError, AttributeError):
+                continue
 
-            # Group rows by date, then aggregate
-            by_date: Dict[str, List[dict]] = defaultdict(list)
-            for row in rows:
-                date_str = row.get("segments_date", row.get("date", ""))
-                by_date[date_str].append(row)
+            if stage == "nurturing":
+                metrics.extend(self._aggregate_retargeting(day_rows, metric_date))
+            else:
+                metrics.extend(self._aggregate_by_channel(day_rows, metric_date))
 
-            metrics: List[ExtractedMetric] = []
-            for date_str, day_rows in by_date.items():
-                try:
-                    metric_date = date.fromisoformat(date_str)
-                except (ValueError, AttributeError):
-                    continue
-
-                if stage == "nurturing":
-                    metrics.extend(
-                        self._aggregate_retargeting(day_rows, metric_date)
-                    )
-                else:
-                    metrics.extend(
-                        self._aggregate_by_channel(day_rows, metric_date)
-                    )
-
-            return metrics
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_ads")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "google_ads_provider_extract_daily_failed tenant=%s", tenant_id
-            )
-            return []
+        return metrics

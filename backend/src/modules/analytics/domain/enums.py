@@ -30,6 +30,7 @@ class ExtractionStatus(str, Enum):
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
+    PARTIAL_SUCCESS = "partial_success"
     RETRYING = "retrying"
 
 

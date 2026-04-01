@@ -10,13 +10,11 @@ tenant_id and outbound event types. Does not use external credentials
 
 import logging
 from datetime import date
-
-import sentry_sdk
-from typing import List
 from uuid import UUID
 
 from sqlalchemy import func, select
 
+from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
@@ -57,65 +55,57 @@ class CRMInternalProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         db = credentials.get("db_session")
         if db is None:
             logger.warning(
                 "crm_internal_provider_no_db_session tenant=%s", tenant_id
             )
-            return []
+            return ExtractionResult()
 
-        try:
-            # Count outbound contacts
-            contacts_stmt = (
-                select(func.count())
-                .select_from(JourneyEventModel)
-                .where(
-                    JourneyEventModel.tenant_id == tenant_id,
-                    JourneyEventModel.event_name.in_(OUTBOUND_CONTACT_EVENTS),
-                    JourneyEventModel.occurred_at >= start_date,
-                    JourneyEventModel.occurred_at <= end_date,
-                )
+        # Count outbound contacts
+        contacts_stmt = (
+            select(func.count())
+            .select_from(JourneyEventModel)
+            .where(
+                JourneyEventModel.tenant_id == tenant_id,
+                JourneyEventModel.event_name.in_(OUTBOUND_CONTACT_EVENTS),
+                JourneyEventModel.occurred_at >= start_date,
+                JourneyEventModel.occurred_at <= end_date,
             )
-            contacts_result = db.execute(contacts_stmt)
-            contacts_count = contacts_result.scalar() or 0
+        )
+        contacts_result = db.execute(contacts_stmt)
+        contacts_count = contacts_result.scalar() or 0
 
-            # Count outbound responses
-            responses_stmt = (
-                select(func.count())
-                .select_from(JourneyEventModel)
-                .where(
-                    JourneyEventModel.tenant_id == tenant_id,
-                    JourneyEventModel.event_name.in_(OUTBOUND_RESPONSE_EVENTS),
-                    JourneyEventModel.occurred_at >= start_date,
-                    JourneyEventModel.occurred_at <= end_date,
-                )
+        # Count outbound responses
+        responses_stmt = (
+            select(func.count())
+            .select_from(JourneyEventModel)
+            .where(
+                JourneyEventModel.tenant_id == tenant_id,
+                JourneyEventModel.event_name.in_(OUTBOUND_RESPONSE_EVENTS),
+                JourneyEventModel.occurred_at >= start_date,
+                JourneyEventModel.occurred_at <= end_date,
             )
-            responses_result = db.execute(responses_stmt)
-            responses_count = responses_result.scalar() or 0
+        )
+        responses_result = db.execute(responses_stmt)
+        responses_count = responses_result.scalar() or 0
 
-            return [
-                ExtractedMetric(
-                    provider="crm_internal",
-                    channel_slug="cold-contact",
-                    metric_name="contacts",
-                    value=float(contacts_count),
-                    unit="count",
-                    date=end_date,
-                ),
-                ExtractedMetric(
-                    provider="crm_internal",
-                    channel_slug="cold-contact",
-                    metric_name="responses",
-                    value=float(responses_count),
-                    unit="count",
-                    date=end_date,
-                ),
-            ]
-        except Exception:
-            sentry_sdk.set_tag("provider", "crm_internal")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "crm_internal_provider_extract_failed tenant=%s", tenant_id
-            )
-            return []
+        return ExtractionResult(metrics=[
+            ExtractedMetric(
+                provider="crm_internal",
+                channel_slug="cold-contact",
+                metric_name="contacts",
+                value=float(contacts_count),
+                unit="count",
+                date=end_date,
+            ),
+            ExtractedMetric(
+                provider="crm_internal",
+                channel_slug="cold-contact",
+                metric_name="responses",
+                value=float(responses_count),
+                unit="count",
+                date=end_date,
+            ),
+        ])

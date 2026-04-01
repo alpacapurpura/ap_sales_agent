@@ -15,10 +15,10 @@ asyncio.to_thread() (sync Google SDK).
 import logging
 from datetime import date
 
-import sentry_sdk
 from typing import Dict, List
 from uuid import UUID
 
+from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
@@ -86,61 +86,68 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         property_id = credentials.get("property_id")
         if not property_id:
             logger.warning(
                 "ga_provider_no_property_id tenant=%s", tenant_id
             )
-            return []
+            return ExtractionResult()
 
-        try:
-            adapter = self._build_adapter(credentials)
+        adapter = self._build_adapter(credentials)
 
-            report = await adapter.run_report(
-                property_id=property_id,
-                dimensions=["sessionSource", "sessionMedium"],
-                metrics=[
-                    "sessions", "totalUsers", "bounceRate",
-                    "engagedSessions", "newUsers", "screenPageViews",
-                    "activeUsers", "engagementRate",
-                ],
-                start_date=start_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+        report = await adapter.run_report(
+            property_id=property_id,
+            dimensions=["sessionSource", "sessionMedium"],
+            metrics=[
+                "sessions", "totalUsers", "bounceRate",
+                "engagedSessions", "newUsers", "screenPageViews",
+                "activeUsers", "engagementRate",
+            ],
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
 
-            results = self._segment_report(report, end_date)
+        results = self._segment_report(report, end_date)
+        failures = []
 
-            # Website-total aggregate + enrichment metrics
-            results.extend(
-                await self._extract_website_aggregate(
-                    adapter, property_id, start_date, end_date
-                )
-            )
-            results.extend(
-                await self._extract_top_pages(
-                    adapter, property_id, start_date, end_date
-                )
-            )
-            results.extend(
-                await self._extract_traffic_sources(
-                    adapter, property_id, start_date, end_date
-                )
-            )
-            results.extend(
-                await self._extract_device_split(
-                    adapter, property_id, start_date, end_date
-                )
-            )
+        metrics, failure = await self._safe_extract(
+            self._extract_website_aggregate,
+            adapter, property_id, start_date, end_date,
+            extractor_name="website_aggregate",
+        )
+        results.extend(metrics)
+        if failure:
+            failures.append(failure)
 
-            return results
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_analytics")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "ga_provider_extract_failed tenant=%s", tenant_id
-            )
-            return []
+        metrics, failure = await self._safe_extract(
+            self._extract_top_pages,
+            adapter, property_id, start_date, end_date,
+            extractor_name="top_pages",
+        )
+        results.extend(metrics)
+        if failure:
+            failures.append(failure)
+
+        metrics, failure = await self._safe_extract(
+            self._extract_traffic_sources,
+            adapter, property_id, start_date, end_date,
+            extractor_name="traffic_sources",
+        )
+        results.extend(metrics)
+        if failure:
+            failures.append(failure)
+
+        metrics, failure = await self._safe_extract(
+            self._extract_device_split,
+            adapter, property_id, start_date, end_date,
+            extractor_name="device_split",
+        )
+        results.extend(metrics)
+        if failure:
+            failures.append(failure)
+
+        return ExtractionResult(metrics=results, failures=failures)
 
     # ── Website-total helpers ─────────────────────────────────────────
 
@@ -152,38 +159,32 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         end_date: date,
     ) -> List[ExtractedMetric]:
         """Site-wide totals with NO dimensions (aggregate across all traffic)."""
-        try:
-            report = await adapter.run_report(
-                property_id=property_id,
-                dimensions=[],
-                metrics=_WEBSITE_GA4_METRICS,
-                start_date=start_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+        report = await adapter.run_report(
+            property_id=property_id,
+            dimensions=[],
+            metrics=_WEBSITE_GA4_METRICS,
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
 
-            metrics: List[ExtractedMetric] = []
-            for row in report.get("rows", []):
-                mets = row.get("metrics", [])
-                for i, ga4_name in enumerate(_WEBSITE_GA4_METRICS):
-                    if i >= len(mets):
-                        break
-                    metric_name, unit = _WEBSITE_METRIC_MAP[ga4_name]
-                    metrics.append(
-                        ExtractedMetric(
-                            provider="google_analytics",
-                            channel_slug="website-total",
-                            metric_name=metric_name,
-                            value=float(mets[i]),
-                            unit=unit,
-                            date=end_date,
-                        )
+        metrics: List[ExtractedMetric] = []
+        for row in report.get("rows", []):
+            mets = row.get("metrics", [])
+            for i, ga4_name in enumerate(_WEBSITE_GA4_METRICS):
+                if i >= len(mets):
+                    break
+                metric_name, unit = _WEBSITE_METRIC_MAP[ga4_name]
+                metrics.append(
+                    ExtractedMetric(
+                        provider="google_analytics",
+                        channel_slug="website-total",
+                        metric_name=metric_name,
+                        value=float(mets[i]),
+                        unit=unit,
+                        date=end_date,
                     )
-            return metrics
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_analytics")
-            sentry_sdk.capture_exception()
-            logger.exception("ga_website_aggregate_failed")
-            return []
+                )
+        return metrics
 
     async def _extract_top_pages(
         self,
@@ -193,48 +194,42 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         end_date: date,
     ) -> List[ExtractedMetric]:
         """Top 10 pages by screenPageViews."""
-        try:
-            report = await adapter.run_report(
-                property_id=property_id,
-                dimensions=["pagePath"],
-                metrics=["screenPageViews"],
-                start_date=start_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+        report = await adapter.run_report(
+            property_id=property_id,
+            dimensions=["pagePath"],
+            metrics=["screenPageViews"],
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
 
-            pages: List[Dict] = []
-            for row in report.get("rows", []):
-                dims = row.get("dimensions", [])
-                mets = row.get("metrics", [])
-                if dims and mets:
-                    pages.append({
-                        "path": dims[0],
-                        "views": int(float(mets[0])),
-                    })
+        pages: List[Dict] = []
+        for row in report.get("rows", []):
+            dims = row.get("dimensions", [])
+            mets = row.get("metrics", [])
+            if dims and mets:
+                pages.append({
+                    "path": dims[0],
+                    "views": int(float(mets[0])),
+                })
 
-            # Sort descending by views, take top 10
-            pages.sort(key=lambda p: p["views"], reverse=True)
-            pages = pages[:10]
+        # Sort descending by views, take top 10
+        pages.sort(key=lambda p: p["views"], reverse=True)
+        pages = pages[:10]
 
-            if not pages:
-                return []
-
-            return [
-                ExtractedMetric(
-                    provider="google_analytics",
-                    channel_slug="website-total",
-                    metric_name="top_pages",
-                    value=0.0,
-                    unit="json",
-                    date=end_date,
-                    extra={"pages": pages},
-                )
-            ]
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_analytics")
-            sentry_sdk.capture_exception()
-            logger.exception("ga_top_pages_failed")
+        if not pages:
             return []
+
+        return [
+            ExtractedMetric(
+                provider="google_analytics",
+                channel_slug="website-total",
+                metric_name="top_pages",
+                value=0.0,
+                unit="json",
+                date=end_date,
+                extra={"pages": pages},
+            )
+        ]
 
     async def _extract_traffic_sources(
         self,
@@ -244,47 +239,41 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         end_date: date,
     ) -> List[ExtractedMetric]:
         """Traffic sources by sessionDefaultChannelGroup."""
-        try:
-            report = await adapter.run_report(
-                property_id=property_id,
-                dimensions=["sessionDefaultChannelGroup"],
-                metrics=["sessions"],
-                start_date=start_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+        report = await adapter.run_report(
+            property_id=property_id,
+            dimensions=["sessionDefaultChannelGroup"],
+            metrics=["sessions"],
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
 
-            sources: List[Dict] = []
-            for row in report.get("rows", []):
-                dims = row.get("dimensions", [])
-                mets = row.get("metrics", [])
-                if dims and mets:
-                    sources.append({
-                        "channel": dims[0],
-                        "sessions": int(float(mets[0])),
-                    })
+        sources: List[Dict] = []
+        for row in report.get("rows", []):
+            dims = row.get("dimensions", [])
+            mets = row.get("metrics", [])
+            if dims and mets:
+                sources.append({
+                    "channel": dims[0],
+                    "sessions": int(float(mets[0])),
+                })
 
-            # Sort descending by sessions
-            sources.sort(key=lambda s: s["sessions"], reverse=True)
+        # Sort descending by sessions
+        sources.sort(key=lambda s: s["sessions"], reverse=True)
 
-            if not sources:
-                return []
-
-            return [
-                ExtractedMetric(
-                    provider="google_analytics",
-                    channel_slug="website-total",
-                    metric_name="traffic_sources",
-                    value=0.0,
-                    unit="json",
-                    date=end_date,
-                    extra={"sources": sources},
-                )
-            ]
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_analytics")
-            sentry_sdk.capture_exception()
-            logger.exception("ga_traffic_sources_failed")
+        if not sources:
             return []
+
+        return [
+            ExtractedMetric(
+                provider="google_analytics",
+                channel_slug="website-total",
+                metric_name="traffic_sources",
+                value=0.0,
+                unit="json",
+                date=end_date,
+                extra={"sources": sources},
+            )
+        ]
 
     async def _extract_device_split(
         self,
@@ -294,50 +283,44 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         end_date: date,
     ) -> List[ExtractedMetric]:
         """Device category split as percentages (mobile/desktop/tablet)."""
-        try:
-            report = await adapter.run_report(
-                property_id=property_id,
-                dimensions=["deviceCategory"],
-                metrics=["sessions"],
-                start_date=start_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+        report = await adapter.run_report(
+            property_id=property_id,
+            dimensions=["deviceCategory"],
+            metrics=["sessions"],
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
 
-            device_counts: Dict[str, float] = {}
-            total = 0.0
-            for row in report.get("rows", []):
-                dims = row.get("dimensions", [])
-                mets = row.get("metrics", [])
-                if dims and mets:
-                    count = float(mets[0])
-                    device_counts[dims[0].lower()] = count
-                    total += count
+        device_counts: Dict[str, float] = {}
+        total = 0.0
+        for row in report.get("rows", []):
+            dims = row.get("dimensions", [])
+            mets = row.get("metrics", [])
+            if dims and mets:
+                count = float(mets[0])
+                device_counts[dims[0].lower()] = count
+                total += count
 
-            if total == 0:
-                return []
-
-            split = {
-                "mobile": round(device_counts.get("mobile", 0) / total * 100, 1),
-                "desktop": round(device_counts.get("desktop", 0) / total * 100, 1),
-                "tablet": round(device_counts.get("tablet", 0) / total * 100, 1),
-            }
-
-            return [
-                ExtractedMetric(
-                    provider="google_analytics",
-                    channel_slug="website-total",
-                    metric_name="device_split",
-                    value=0.0,
-                    unit="json",
-                    date=end_date,
-                    extra=split,
-                )
-            ]
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_analytics")
-            sentry_sdk.capture_exception()
-            logger.exception("ga_device_split_failed")
+        if total == 0:
             return []
+
+        split = {
+            "mobile": round(device_counts.get("mobile", 0) / total * 100, 1),
+            "desktop": round(device_counts.get("desktop", 0) / total * 100, 1),
+            "tablet": round(device_counts.get("tablet", 0) / total * 100, 1),
+        }
+
+        return [
+            ExtractedMetric(
+                provider="google_analytics",
+                channel_slug="website-total",
+                metric_name="device_split",
+                value=0.0,
+                unit="json",
+                date=end_date,
+                extra=split,
+            )
+        ]
 
     def _segment_report(
         self, report: dict, metric_date: date
@@ -433,45 +416,41 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         """Optimized daily extraction — GA4 API calls with date dimension."""
         property_id = credentials.get("property_id")
         if not property_id:
-            return []
+            return ExtractionResult()
 
-        try:
-            adapter = self._build_adapter(credentials)
+        adapter = self._build_adapter(credentials)
 
-            # Segmented report (source/medium + date)
-            report = await adapter.run_report(
-                property_id=property_id,
-                dimensions=["sessionSource", "sessionMedium", "date"],
-                metrics=[
-                    "sessions", "totalUsers", "bounceRate",
-                    "engagedSessions", "newUsers", "screenPageViews",
-                    "activeUsers", "engagementRate",
-                ],
-                start_date=start_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+        # Segmented report (source/medium + date)
+        report = await adapter.run_report(
+            property_id=property_id,
+            dimensions=["sessionSource", "sessionMedium", "date"],
+            metrics=[
+                "sessions", "totalUsers", "bounceRate",
+                "engagedSessions", "newUsers", "screenPageViews",
+                "activeUsers", "engagementRate",
+            ],
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
 
-            results = self._segment_report_daily(report)
+        results = self._segment_report_daily(report)
+        failures = []
 
-            # Website-total daily (date only, no source/medium)
-            results.extend(
-                await self._extract_website_daily(
-                    adapter, property_id, start_date, end_date
-                )
-            )
+        # Website-total daily (date only, no source/medium)
+        metrics, failure = await self._safe_extract(
+            self._extract_website_daily,
+            adapter, property_id, start_date, end_date,
+            extractor_name="website_daily",
+        )
+        results.extend(metrics)
+        if failure:
+            failures.append(failure)
 
-            return results
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_analytics")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "ga_provider_extract_daily_failed tenant=%s", tenant_id
-            )
-            return []
+        return ExtractionResult(metrics=results, failures=failures)
 
     async def _extract_website_daily(
         self,
@@ -483,47 +462,41 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         """Website-total metrics per day — date dimension only, no source/medium."""
         from datetime import datetime as dt
 
-        try:
-            report = await adapter.run_report(
-                property_id=property_id,
-                dimensions=["date"],
-                metrics=_WEBSITE_GA4_METRICS,
-                start_date=start_date.isoformat(),
-                end_date=end_date.isoformat(),
-            )
+        report = await adapter.run_report(
+            property_id=property_id,
+            dimensions=["date"],
+            metrics=_WEBSITE_GA4_METRICS,
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
 
-            metrics: List[ExtractedMetric] = []
-            for row in report.get("rows", []):
-                dims = row.get("dimensions", [])
-                mets = row.get("metrics", [])
-                if not dims or len(mets) < 2:
-                    continue
+        metrics: List[ExtractedMetric] = []
+        for row in report.get("rows", []):
+            dims = row.get("dimensions", [])
+            mets = row.get("metrics", [])
+            if not dims or len(mets) < 2:
+                continue
 
-                try:
-                    metric_date = dt.strptime(dims[0], "%Y%m%d").date()
-                except ValueError:
-                    continue
+            try:
+                metric_date = dt.strptime(dims[0], "%Y%m%d").date()
+            except ValueError:
+                continue
 
-                for i, ga4_name in enumerate(_WEBSITE_GA4_METRICS):
-                    if i >= len(mets):
-                        break
-                    metric_name, unit = _WEBSITE_METRIC_MAP[ga4_name]
-                    metrics.append(
-                        ExtractedMetric(
-                            provider="google_analytics",
-                            channel_slug="website-total",
-                            metric_name=metric_name,
-                            value=float(mets[i]),
-                            unit=unit,
-                            date=metric_date,
-                        )
+            for i, ga4_name in enumerate(_WEBSITE_GA4_METRICS):
+                if i >= len(mets):
+                    break
+                metric_name, unit = _WEBSITE_METRIC_MAP[ga4_name]
+                metrics.append(
+                    ExtractedMetric(
+                        provider="google_analytics",
+                        channel_slug="website-total",
+                        metric_name=metric_name,
+                        value=float(mets[i]),
+                        unit=unit,
+                        date=metric_date,
                     )
-            return metrics
-        except Exception:
-            sentry_sdk.set_tag("provider", "google_analytics")
-            sentry_sdk.capture_exception()
-            logger.exception("ga_website_daily_failed")
-            return []
+                )
+        return metrics
 
     def _segment_report_daily(
         self, report: dict

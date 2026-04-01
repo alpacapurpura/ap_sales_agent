@@ -8,11 +8,10 @@ Uses SearchConsoleAdapter.query_analytics() wrapped in asyncio.to_thread()
 """
 import logging
 from datetime import date
-
-import sentry_sdk
 from typing import List
 from uuid import UUID
 
+from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
@@ -40,100 +39,92 @@ class SearchConsoleProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         if stage != "attraction":
-            return []
+            return ExtractionResult()
 
         site_url = credentials.get("site_url")
         if not site_url:
             logger.warning(
                 "search_console_provider_no_site_url tenant=%s", tenant_id
             )
-            return []
+            return ExtractionResult()
 
-        try:
-            adapter = SearchConsoleAdapter(credentials_data=credentials)
-            metrics: List[ExtractedMetric] = []
+        adapter = SearchConsoleAdapter(credentials_data=credentials)
+        metrics: List[ExtractedMetric] = []
 
-            # Aggregate totals (no dimensions)
-            rows = await adapter.query_analytics(
-                site_url=site_url,
-                start_date=start_date,
-                end_date=end_date,
-            )
-            if rows:
-                row = rows[0]
-                metrics.extend([
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="impressions",
-                        value=float(row.get("impressions", 0)),
-                        unit="count",
-                        date=end_date,
-                    ),
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="clicks",
-                        value=float(row.get("clicks", 0)),
-                        unit="count",
-                        date=end_date,
-                    ),
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="ctr",
-                        value=float(row.get("ctr", 0)) * 100,
-                        unit="percentage",
-                        date=end_date,
-                    ),
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="avg_position",
-                        value=float(row.get("position", 0)),
-                        unit="count",
-                        date=end_date,
-                    ),
-                ])
+        # Aggregate totals (no dimensions)
+        rows = await adapter.query_analytics(
+            site_url=site_url,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        if rows:
+            row = rows[0]
+            metrics.extend([
+                ExtractedMetric(
+                    provider="search_console",
+                    channel_slug="search-console",
+                    metric_name="impressions",
+                    value=float(row.get("impressions", 0)),
+                    unit="count",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="search_console",
+                    channel_slug="search-console",
+                    metric_name="clicks",
+                    value=float(row.get("clicks", 0)),
+                    unit="count",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="search_console",
+                    channel_slug="search-console",
+                    metric_name="ctr",
+                    value=float(row.get("ctr", 0)) * 100,
+                    unit="percentage",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="search_console",
+                    channel_slug="search-console",
+                    metric_name="avg_position",
+                    value=float(row.get("position", 0)),
+                    unit="count",
+                    date=end_date,
+                ),
+            ])
 
-            # Top queries (dimension: query)
-            query_rows = await adapter.query_analytics(
-                site_url=site_url,
-                start_date=start_date,
-                end_date=end_date,
-                dimensions=["query"],
-                row_limit=20,
-            )
-            if query_rows:
-                terms = [
-                    {
-                        "query": r["keys"][0],
-                        "clicks": int(r.get("clicks", 0)),
-                        "impressions": int(r.get("impressions", 0)),
-                        "ctr": round(float(r.get("ctr", 0)) * 100, 2),
-                        "position": round(float(r.get("position", 0)), 1),
-                    }
-                    for r in query_rows
-                ]
-                metrics.append(
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="top_queries",
-                        value=0.0,
-                        unit="json",
-                        date=end_date,
-                        extra={"queries": terms},
-                    )
+        # Top queries (dimension: query)
+        query_rows = await adapter.query_analytics(
+            site_url=site_url,
+            start_date=start_date,
+            end_date=end_date,
+            dimensions=["query"],
+            row_limit=20,
+        )
+        if query_rows:
+            terms = [
+                {
+                    "query": r["keys"][0],
+                    "clicks": int(r.get("clicks", 0)),
+                    "impressions": int(r.get("impressions", 0)),
+                    "ctr": round(float(r.get("ctr", 0)) * 100, 2),
+                    "position": round(float(r.get("position", 0)), 1),
+                }
+                for r in query_rows
+            ]
+            metrics.append(
+                ExtractedMetric(
+                    provider="search_console",
+                    channel_slug="search-console",
+                    metric_name="top_queries",
+                    value=0.0,
+                    unit="json",
+                    date=end_date,
+                    extra={"queries": terms},
                 )
-
-            return metrics
-        except Exception:
-            sentry_sdk.set_tag("provider", "search_console")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "search_console_provider_extract_failed tenant=%s", tenant_id
             )
-            return []
+
+        return ExtractionResult(metrics=metrics)

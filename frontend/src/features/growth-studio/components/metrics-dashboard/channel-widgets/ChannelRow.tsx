@@ -322,6 +322,11 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
                 Desactualizado
               </Badge>
             )}
+            {!channel.stale && channel.errorMessage?.startsWith('Parcial') && (
+              <Badge variant="outline" className="border-orange-500/50 text-orange-600 dark:text-orange-400 text-[10px] py-0" title={channel.errorMessage}>
+                Parcial
+              </Badge>
+            )}
             {abandonmentBadge === 'warning' && (
               <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 dark:text-yellow-400 text-[10px] py-0">
                 Alerta

@@ -70,10 +70,11 @@ class TestCampaignSeparation:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         # Google Ads (SEARCH) — now 7 metrics
         ga_metrics = [m for m in metrics if m.channel_slug == "google-ads"]
         assert len(ga_metrics) == 7
@@ -118,10 +119,11 @@ class TestCampaignSeparation:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         spend = next(m for m in metrics if m.metric_name == "spend")
         assert spend.value == 5.23
 
@@ -151,10 +153,11 @@ class TestCampaignSeparation:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         cpc = next(m for m in metrics if m.metric_name == "cpc")
         assert cpc.value == pytest.approx(25.0 / 50)  # $0.50
         assert cpc.unit == "currency"
@@ -198,11 +201,12 @@ class TestRetargetingExtraction:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15),
                 stage="nurturing",
             )
 
+        metrics = result.metrics
         # Only retargeting campaigns should appear
         assert all(m.channel_slug == "google-retargeting" for m in metrics)
         impressions = next(m for m in metrics if m.metric_name == "impressions")
@@ -253,10 +257,11 @@ class TestDailyExtraction:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
-            metrics = await provider.extract_metrics_daily(
+            result = await provider.extract_metrics_daily(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
             )
 
+        metrics = result.metrics
         mar1 = [m for m in metrics if m.date == date(2026, 3, 1)]
         mar2 = [m for m in metrics if m.date == date(2026, 3, 2)]
         assert len(mar1) == 7  # 7 metrics per slug
@@ -294,11 +299,12 @@ class TestDailyExtraction:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
-            metrics = await provider.extract_metrics_daily(
+            result = await provider.extract_metrics_daily(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1),
                 stage="nurturing",
             )
 
+        metrics = result.metrics
         assert all(m.channel_slug == "google-retargeting" for m in metrics)
         assert len(metrics) == 5  # reach, clicks, spend, ctr, cpc
 
@@ -307,13 +313,13 @@ class TestGoogleAdsErrorHandling:
     @pytest.mark.asyncio
     async def test_missing_developer_token(self):
         provider = GoogleAdsProvider()
-        metrics = await provider.extract_metrics(
+        result = await provider.extract_metrics(
             TENANT_ID,
             {"customer_id": "123"},  # No developer_token
             date(2026, 3, 1),
             date(2026, 3, 15),
         )
-        assert metrics == []
+        assert result.metrics == []
 
     @pytest.mark.asyncio
     async def test_empty_results(self):
@@ -325,7 +331,7 @@ class TestGoogleAdsErrorHandling:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
-        assert metrics == []
+        assert result.metrics == []

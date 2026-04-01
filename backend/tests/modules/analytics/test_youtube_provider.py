@@ -53,9 +53,10 @@ class TestYouTubeOrganic:
                 new=AsyncMock(return_value=mock_overview),
             ):
                 provider = YouTubeProvider()
-                metrics = await provider.extract_metrics(
+                result = await provider.extract_metrics(
                     TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
                 )
+        metrics = result.metrics
 
         yt_metrics = [m for m in metrics if m.channel_slug == "yt-organic"]
         assert len(yt_metrics) >= 2
@@ -71,20 +72,21 @@ class TestYouTubeProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_missing_credentials(self):
         provider = YouTubeProvider()
-        metrics = await provider.extract_metrics(
+        result = await provider.extract_metrics(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
         )
-        assert metrics == []
+        assert result.metrics == []
 
     @pytest.mark.asyncio
     async def test_api_exception(self):
+        """API exceptions propagate to the pipeline, which handles them as FAILED runs."""
         with patch(
             "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter"
         ) as MockAdapter:
             MockAdapter.side_effect = Exception("Auth failed")
 
             provider = YouTubeProvider()
-            metrics = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
-            )
-        assert metrics == []
+            with pytest.raises(Exception, match="Auth failed"):
+                await provider.extract_metrics(
+                    TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                )

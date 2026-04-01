@@ -67,18 +67,18 @@ class TestShopifyProviderBasics:
 
     @pytest.mark.asyncio
     async def test_missing_credentials_returns_empty(self, provider):
-        result = await provider.extract_metrics(
+        extraction = await provider.extract_metrics(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 10)
         )
-        assert result == []
+        assert extraction.metrics == []
 
     @pytest.mark.asyncio
     async def test_unsupported_stage_returns_empty(self, provider, credentials):
-        result = await provider.extract_metrics(
+        extraction = await provider.extract_metrics(
             TENANT_ID, credentials, date(2026, 3, 1), date(2026, 3, 10),
             stage="attraction",
         )
-        assert result == []
+        assert extraction.metrics == []
 
 
 class TestSalesStage:
@@ -104,11 +104,12 @@ class TestSalesStage:
             mock_client.__aexit__ = AsyncMock(return_value=False)
             mock_client_cls.return_value = mock_client
 
-            result = await provider.extract_metrics(
+            extraction = await provider.extract_metrics(
                 TENANT_ID, credentials,
                 date(2026, 3, 1), date(2026, 3, 2),
                 stage="sales",
             )
+        result = extraction.metrics
 
         assert len(result) > 0
 
@@ -140,11 +141,12 @@ class TestSalesStage:
             mock_client.__aexit__ = AsyncMock(return_value=False)
             mock_client_cls.return_value = mock_client
 
-            result = await provider.extract_metrics(
+            extraction = await provider.extract_metrics(
                 TENANT_ID, credentials,
                 date(2026, 3, 1), date(2026, 3, 1),
                 stage="sales",
             )
+        result = extraction.metrics
 
         revenue = [m for m in result if m.metric_name == "revenue"]
         assert revenue[0].value == 100.0  # Only non-refunded
@@ -178,11 +180,12 @@ class TestOpportunityStage:
             mock_client.__aexit__ = AsyncMock(return_value=False)
             mock_client_cls.return_value = mock_client
 
-            result = await provider.extract_metrics(
+            extraction = await provider.extract_metrics(
                 TENANT_ID, credentials,
                 date(2026, 3, 1), date(2026, 3, 1),
                 stage="opportunity",
             )
+        result = extraction.metrics
 
         checkout_count = [m for m in result if m.channel_slug == "checkout-init" and m.metric_name == "count"]
         assert checkout_count[0].value == 3.0
@@ -219,11 +222,12 @@ class TestPagination:
             mock_client.__aexit__ = AsyncMock(return_value=False)
             mock_client_cls.return_value = mock_client
 
-            result = await provider.extract_metrics(
+            extraction = await provider.extract_metrics(
                 TENANT_ID, credentials,
                 date(2026, 3, 1), date(2026, 3, 1),
                 stage="sales",
             )
+        result = extraction.metrics
 
         # 300 orders → revenue should be 3000
         revenue = [m for m in result if m.metric_name == "revenue"]
@@ -250,11 +254,12 @@ class TestDailyExtraction:
             mock_client.__aexit__ = AsyncMock(return_value=False)
             mock_client_cls.return_value = mock_client
 
-            result = await provider.extract_metrics_daily(
+            extraction = await provider.extract_metrics_daily(
                 TENANT_ID, credentials,
                 date(2026, 3, 1), date(2026, 3, 2),
                 stage="sales",
             )
+        result = extraction.metrics
 
         mar1 = [m for m in result if m.date == date(2026, 3, 1) and m.metric_name == "revenue"]
         mar2 = [m for m in result if m.date == date(2026, 3, 2) and m.metric_name == "revenue"]

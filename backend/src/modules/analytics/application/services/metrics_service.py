@@ -399,6 +399,14 @@ class MetricsService:
                     if latest_run.status in ("failed", "retrying"):
                         stale = True
                         error_message = self._classify_error(latest_run.error)
+                    elif latest_run.status == "partial_success":
+                        failures = latest_run.sub_extractor_failures or []
+                        if failures:
+                            names = [
+                                f["extractor_name"].replace("_", " ").title()
+                                for f in failures[:2]
+                            ]
+                            error_message = f"Parcial ({', '.join(names)})"
 
             # For ManyChat channels, read from official_metrics directly
             if provider_name == "manychat":

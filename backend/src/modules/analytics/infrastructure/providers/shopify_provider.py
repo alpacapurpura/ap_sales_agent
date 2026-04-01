@@ -11,14 +11,13 @@ Credentials: access_token + shop_domain from connection config.
 
 import logging
 from collections import defaultdict
-
-import sentry_sdk
 from datetime import date, datetime
 from typing import Dict, List, Optional
 from uuid import UUID
 
 import httpx
 
+from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
@@ -57,7 +56,7 @@ class ShopifyProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         access_token = credentials.get("access_token")
         shop_domain = credentials.get("shop_domain") or credentials.get("shop_url", "")
 
@@ -69,30 +68,39 @@ class ShopifyProvider(BaseMetricsProvider):
                 bool(access_token),
                 bool(shop_domain),
             )
-            return []
+            return ExtractionResult()
 
         shop_domain = self._clean_domain(shop_domain)
 
-        try:
-            if stage == "opportunity":
-                return await self._extract_opportunity_metrics(
-                    shop_domain, access_token, start_date, end_date
-                )
-            elif stage == "sales":
-                return await self._extract_sales_metrics(
-                    shop_domain, access_token, start_date, end_date
-                )
-            else:
-                return []
-        except Exception:
-            sentry_sdk.set_tag("provider", "shopify")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "shopify_provider_extract_failed tenant=%s stage=%s",
-                tenant_id,
-                stage,
+        metrics: list = []
+        failures = []
+
+        if stage == "opportunity":
+            m, fail = await self._safe_extract(
+                self._extract_opportunity_metrics,
+                shop_domain,
+                access_token,
+                start_date,
+                end_date,
+                extractor_name="shopify_opportunity",
             )
-            return []
+            metrics.extend(m)
+            if fail:
+                failures.append(fail)
+        elif stage == "sales":
+            m, fail = await self._safe_extract(
+                self._extract_sales_metrics,
+                shop_domain,
+                access_token,
+                start_date,
+                end_date,
+                extractor_name="shopify_sales",
+            )
+            metrics.extend(m)
+            if fail:
+                failures.append(fail)
+
+        return ExtractionResult(metrics=metrics, failures=failures)
 
     async def extract_metrics_daily(
         self,
@@ -101,36 +109,45 @@ class ShopifyProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         """Optimized: single paginated call, then group by date."""
         access_token = credentials.get("access_token")
         shop_domain = credentials.get("shop_domain") or credentials.get("shop_url", "")
 
         if not access_token or not shop_domain:
-            return []
+            return ExtractionResult()
 
         shop_domain = self._clean_domain(shop_domain)
 
-        try:
-            if stage == "opportunity":
-                return await self._extract_opportunity_metrics(
-                    shop_domain, access_token, start_date, end_date
-                )
-            elif stage == "sales":
-                return await self._extract_sales_metrics(
-                    shop_domain, access_token, start_date, end_date
-                )
-            else:
-                return []
-        except Exception:
-            sentry_sdk.set_tag("provider", "shopify")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "shopify_provider_extract_daily_failed tenant=%s stage=%s",
-                tenant_id,
-                stage,
+        metrics: list = []
+        failures = []
+
+        if stage == "opportunity":
+            m, fail = await self._safe_extract(
+                self._extract_opportunity_metrics,
+                shop_domain,
+                access_token,
+                start_date,
+                end_date,
+                extractor_name="shopify_opportunity",
             )
-            return []
+            metrics.extend(m)
+            if fail:
+                failures.append(fail)
+        elif stage == "sales":
+            m, fail = await self._safe_extract(
+                self._extract_sales_metrics,
+                shop_domain,
+                access_token,
+                start_date,
+                end_date,
+                extractor_name="shopify_sales",
+            )
+            metrics.extend(m)
+            if fail:
+                failures.append(fail)
+
+        return ExtractionResult(metrics=metrics, failures=failures)
 
     @staticmethod
     def _clean_domain(domain: str) -> str:

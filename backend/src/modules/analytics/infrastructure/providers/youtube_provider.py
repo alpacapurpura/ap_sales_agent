@@ -9,12 +9,11 @@ in asyncio.to_thread() (sync Google SDK).
 
 import asyncio
 
-import sentry_sdk
 import structlog
 from datetime import date
-from typing import List
 from uuid import UUID
 
+from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
@@ -42,90 +41,82 @@ class YouTubeProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         if not credentials.get("token") and not credentials.get("refresh_token"):
             logger.warning(
                 "youtube_provider_no_credentials tenant=%s", tenant_id
             )
-            return []
+            return ExtractionResult()
 
-        try:
-            adapter = YouTubeAnalyticsAdapter(credentials_data=credentials)
+        adapter = YouTubeAnalyticsAdapter(credentials_data=credentials)
 
-            overview = await asyncio.to_thread(
-                adapter.get_channel_overview,
-                start_date.isoformat(),
-                end_date.isoformat(),
-            )
+        overview = await asyncio.to_thread(
+            adapter.get_channel_overview,
+            start_date.isoformat(),
+            end_date.isoformat(),
+        )
 
-            if not overview:
-                return []
+        if not overview:
+            return ExtractionResult()
 
-            views = float(overview.get("views", 0))
-            likes = float(overview.get("likes", 0))
-            dislikes = float(overview.get("dislikes", 0))
-            total_engagement = likes + dislikes
+        views = float(overview.get("views", 0))
+        likes = float(overview.get("likes", 0))
+        dislikes = float(overview.get("dislikes", 0))
+        total_engagement = likes + dislikes
 
-            metrics: list = [
-                ExtractedMetric(
-                    provider="youtube",
-                    channel_slug="yt-organic",
-                    metric_name="views",
-                    value=views,
-                    unit="count",
-                    date=end_date,
-                ),
-                ExtractedMetric(
-                    provider="youtube",
-                    channel_slug="yt-organic",
-                    metric_name="engagement",
-                    value=total_engagement,
-                    unit="count",
-                    date=end_date,
-                    extra={
-                        "likes": int(likes),
-                        "dislikes": int(dislikes),
-                    },
-                ),
-            ]
+        metrics: list = [
+            ExtractedMetric(
+                provider="youtube",
+                channel_slug="yt-organic",
+                metric_name="views",
+                value=views,
+                unit="count",
+                date=end_date,
+            ),
+            ExtractedMetric(
+                provider="youtube",
+                channel_slug="yt-organic",
+                metric_name="engagement",
+                value=total_engagement,
+                unit="count",
+                date=end_date,
+                extra={
+                    "likes": int(likes),
+                    "dislikes": int(dislikes),
+                },
+            ),
+        ]
 
-            watch_time = float(overview.get("estimatedMinutesWatched", 0))
-            if watch_time:
-                metrics.append(ExtractedMetric(
-                    provider="youtube",
-                    channel_slug="yt-organic",
-                    metric_name="watch_time_minutes",
-                    value=watch_time,
-                    unit="count",
-                    date=end_date,
-                ))
-
-            avg_duration = float(overview.get("averageViewDuration", 0))
-            if avg_duration:
-                metrics.append(ExtractedMetric(
-                    provider="youtube",
-                    channel_slug="yt-organic",
-                    metric_name="avg_view_duration",
-                    value=avg_duration,
-                    unit="seconds",
-                    date=end_date,
-                ))
-
-            subs_gained = float(overview.get("subscribersGained", 0))
+        watch_time = float(overview.get("estimatedMinutesWatched", 0))
+        if watch_time:
             metrics.append(ExtractedMetric(
                 provider="youtube",
                 channel_slug="yt-organic",
-                metric_name="subscribers_gained",
-                value=subs_gained,
+                metric_name="watch_time_minutes",
+                value=watch_time,
                 unit="count",
                 date=end_date,
             ))
 
-            return metrics
-        except Exception:
-            sentry_sdk.set_tag("provider", "youtube")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "youtube_provider_extract_failed tenant=%s", tenant_id
-            )
-            return []
+        avg_duration = float(overview.get("averageViewDuration", 0))
+        if avg_duration:
+            metrics.append(ExtractedMetric(
+                provider="youtube",
+                channel_slug="yt-organic",
+                metric_name="avg_view_duration",
+                value=avg_duration,
+                unit="seconds",
+                date=end_date,
+            ))
+
+        subs_gained = float(overview.get("subscribersGained", 0))
+        metrics.append(ExtractedMetric(
+            provider="youtube",
+            channel_slug="yt-organic",
+            metric_name="subscribers_gained",
+            value=subs_gained,
+            unit="count",
+            date=end_date,
+        ))
+
+        return ExtractionResult(metrics=metrics)

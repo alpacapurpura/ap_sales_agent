@@ -44,6 +44,7 @@ class ExtractionRunRepository:
         rows_extracted: int = 0,
         duration_seconds: Optional[float] = None,
         rate_limit_headroom: Optional[float] = None,
+        sub_extractor_failures: Optional[list] = None,
     ) -> ExtractionRunModel:
         """Update the status and metadata of an extraction run."""
         stmt = select(ExtractionRunModel).where(ExtractionRunModel.id == run_id)
@@ -58,8 +59,13 @@ class ExtractionRunRepository:
         run.rows_extracted = rows_extracted
         run.duration_seconds = duration_seconds
         run.rate_limit_headroom = rate_limit_headroom
+        run.sub_extractor_failures = sub_extractor_failures or []
 
-        if status in (ExtractionStatus.SUCCESS, ExtractionStatus.FAILED):
+        if status in (
+            ExtractionStatus.SUCCESS,
+            ExtractionStatus.FAILED,
+            ExtractionStatus.PARTIAL_SUCCESS,
+        ):
             run.completed_at = datetime.now(timezone.utc)
 
         self.db.flush()

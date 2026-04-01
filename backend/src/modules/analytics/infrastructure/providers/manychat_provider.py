@@ -6,13 +6,10 @@ promoted. This allows the ETL pipeline to include ManyChat in
 aggregation and cache invalidation flows.
 """
 from datetime import date
-from typing import List
 from uuid import UUID
 
-from src.modules.analytics.infrastructure.providers.base import (
-    BaseMetricsProvider,
-    ExtractedMetric,
-)
+from src.modules.analytics.domain.extraction_result import ExtractionResult
+from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
 
 
 class ManyChatProvider(BaseMetricsProvider):
@@ -28,14 +25,14 @@ class ManyChatProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "capture",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         """Read ManyChat metrics from official_metrics (webhook-fed).
 
         This is a pass-through: metrics are already in the DB from
         the webhook ingestion pipeline. This method exists so the
         ETL scheduler can include ManyChat in aggregation runs.
         """
-        return []
+        return ExtractionResult()
 
     def provider_name(self) -> str:
         return "manychat"
