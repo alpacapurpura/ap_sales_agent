@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { config } from "./config";
 
 /**
@@ -37,6 +38,17 @@ export async function fetchClient(input: RequestInfo | URL, init?: RequestInit):
 
   // Ejecutar la petición original con headers inyectados
   const response = await fetch(input, finalConfig);
+
+  // Capturar errores 5xx en Sentry
+  if (response.status >= 500) {
+    Sentry.captureMessage(
+      `API ${response.status}: ${typeof input === "string" ? input : "request"}`,
+      {
+        level: "error",
+        extra: { status: response.status, method: finalConfig.method ?? "GET" },
+      },
+    );
+  }
 
   // Interceptor de errores
   if (response.status === 403) {

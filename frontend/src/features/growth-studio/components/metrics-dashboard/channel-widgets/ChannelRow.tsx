@@ -1,5 +1,6 @@
 'use client';
 
+import * as Sentry from "@sentry/nextjs";
 import React, { useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -198,8 +199,8 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
         setCooldown(true);
         setTimeout(() => setCooldown(false), 60_000);
       }
-    } catch {
-      // Silently handle network errors for refresh
+    } catch (err) {
+      Sentry.captureException(err, { tags: { channel: channel.slug, action: "etl_refresh" } });
     } finally {
       setRefreshing(false);
     }
