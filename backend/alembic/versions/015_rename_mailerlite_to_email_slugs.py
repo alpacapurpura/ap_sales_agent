@@ -19,75 +19,100 @@ depends_on = None
 
 def upgrade() -> None:
     # --- Rename channel_slug 'mailerlite' → 'email-nurture' in metrics tables ---
-    # official_metrics: only rename if target doesn't already exist (idempotent)
     op.execute("""
-        UPDATE official_metrics
-        SET channel_slug = 'email-nurture'
-        WHERE channel_slug = 'mailerlite'
-          AND provider = 'mailerlite'
-          AND NOT EXISTS (
-              SELECT 1 FROM official_metrics om2
-              WHERE om2.tenant_id = official_metrics.tenant_id
-                AND om2.provider = official_metrics.provider
-                AND om2.channel_slug = 'email-nurture'
-                AND om2.metric_name = official_metrics.metric_name
-                AND om2.metric_date = official_metrics.metric_date
-          )
-    """)
-    # Delete any remaining 'mailerlite' rows that couldn't be renamed (duplicates)
-    op.execute("""
-        DELETE FROM official_metrics
-        WHERE channel_slug = 'mailerlite'
-          AND provider = 'mailerlite'
-    """)
-
-    # staging_metrics
-    op.execute("""
-        UPDATE staging_metrics
-        SET channel_slug = 'email-nurture'
-        WHERE channel_slug = 'mailerlite'
-          AND provider = 'mailerlite'
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'official_metrics') THEN
+                UPDATE official_metrics
+                SET channel_slug = 'email-nurture'
+                WHERE channel_slug = 'mailerlite'
+                  AND provider = 'mailerlite'
+                  AND NOT EXISTS (
+                      SELECT 1 FROM official_metrics om2
+                      WHERE om2.tenant_id = official_metrics.tenant_id
+                        AND om2.provider = official_metrics.provider
+                        AND om2.channel_slug = 'email-nurture'
+                        AND om2.metric_name = official_metrics.metric_name
+                        AND om2.metric_date = official_metrics.metric_date
+                  );
+                DELETE FROM official_metrics
+                WHERE channel_slug = 'mailerlite'
+                  AND provider = 'mailerlite';
+            END IF;
+        END $$;
     """)
 
-    # metric_aggregations
     op.execute("""
-        UPDATE metric_aggregations
-        SET channel_slug = 'email-nurture'
-        WHERE channel_slug = 'mailerlite'
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'staging_metrics') THEN
+                UPDATE staging_metrics
+                SET channel_slug = 'email-nurture'
+                WHERE channel_slug = 'mailerlite'
+                  AND provider = 'mailerlite';
+            END IF;
+        END $$;
     """)
 
-    # --- Add stage_group_mapping to existing mailerlite connections config ---
     op.execute("""
-        UPDATE channel_connections
-        SET config = config || '{"stage_group_mapping": {}, "known_groups": []}'::jsonb
-        WHERE channel_type = 'mailerlite'
-          AND NOT config ? 'stage_group_mapping'
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'metric_aggregations') THEN
+                UPDATE metric_aggregations
+                SET channel_slug = 'email-nurture'
+                WHERE channel_slug = 'mailerlite';
+            END IF;
+        END $$;
+    """)
+
+    op.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'channel_connections') THEN
+                UPDATE channel_connections
+                SET config = config || '{"stage_group_mapping": {}, "known_groups": []}'::jsonb
+                WHERE channel_type = 'mailerlite'
+                  AND NOT config ? 'stage_group_mapping';
+            END IF;
+        END $$;
     """)
 
 
 def downgrade() -> None:
-    # Reverse: rename email-nurture back to mailerlite
     op.execute("""
-        UPDATE official_metrics
-        SET channel_slug = 'mailerlite'
-        WHERE channel_slug = 'email-nurture'
-          AND provider = 'mailerlite'
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'official_metrics') THEN
+                UPDATE official_metrics SET channel_slug = 'mailerlite'
+                WHERE channel_slug = 'email-nurture' AND provider = 'mailerlite';
+            END IF;
+        END $$;
     """)
     op.execute("""
-        UPDATE staging_metrics
-        SET channel_slug = 'mailerlite'
-        WHERE channel_slug = 'email-nurture'
-          AND provider = 'mailerlite'
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'staging_metrics') THEN
+                UPDATE staging_metrics SET channel_slug = 'mailerlite'
+                WHERE channel_slug = 'email-nurture' AND provider = 'mailerlite';
+            END IF;
+        END $$;
     """)
     op.execute("""
-        UPDATE metric_aggregations
-        SET channel_slug = 'mailerlite'
-        WHERE channel_slug = 'email-nurture'
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'metric_aggregations') THEN
+                UPDATE metric_aggregations SET channel_slug = 'mailerlite'
+                WHERE channel_slug = 'email-nurture';
+            END IF;
+        END $$;
     """)
-    # Remove stage_group_mapping from config
     op.execute("""
-        UPDATE channel_connections
-        SET config = config - 'stage_group_mapping' - 'known_groups'
-        WHERE channel_type = 'mailerlite'
-          AND config ? 'stage_group_mapping'
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'channel_connections') THEN
+                UPDATE channel_connections
+                SET config = config - 'stage_group_mapping' - 'known_groups'
+                WHERE channel_type = 'mailerlite' AND config ? 'stage_group_mapping';
+            END IF;
+        END $$;
     """)

@@ -37,6 +37,58 @@ _TENANT_FK_TABLES = [
 
 
 def upgrade() -> None:
+    # 0. Create core tables that pre-dated the migration system (fresh-install support)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            name        VARCHAR NOT NULL,
+            status      VARCHAR DEFAULT 'draft',
+            type        VARCHAR,
+            pricing     JSONB,
+            dates       JSONB,
+            metadata_info JSONB,
+            access_duration     VARCHAR,
+            access_duration_type VARCHAR,
+            access_duration_text VARCHAR,
+            anti_avatar_keywords JSONB,
+            downsell_product_id  UUID,
+            avatar_id            UUID,
+            created_at  TIMESTAMP WITH TIME ZONE DEFAULT now(),
+            updated_at  TIMESTAMP WITH TIME ZONE
+        )
+    """)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            full_name   VARCHAR,
+            email       VARCHAR NOT NULL,
+            phone       VARCHAR,
+            custom_system_instruction VARCHAR,
+            role        VARCHAR DEFAULT 'admin',
+            is_active   BOOLEAN DEFAULT TRUE,
+            created_at  TIMESTAMP WITH TIME ZONE DEFAULT now(),
+            updated_at  TIMESTAMP WITH TIME ZONE
+        )
+    """)
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS leads (
+            id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id       UUID,
+            email           VARCHAR,
+            phone           VARCHAR,
+            full_name       VARCHAR,
+            api_id          VARCHAR,
+            profile_data    JSONB DEFAULT '{}',
+            fit_score       INTEGER DEFAULT 0,
+            intent_score    INTEGER DEFAULT 0,
+            temperature     VARCHAR DEFAULT 'COLD',
+            conversation_summary    TEXT,
+            key_objections_history  JSONB DEFAULT '[]',
+            created_at  TIMESTAMP WITH TIME ZONE DEFAULT now(),
+            updated_at  TIMESTAMP WITH TIME ZONE
+        )
+    """)
+
     # 1. Create tenants table
     op.execute("""
         CREATE TABLE IF NOT EXISTS tenants (
