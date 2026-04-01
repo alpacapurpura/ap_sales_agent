@@ -63,6 +63,9 @@ from src.modules.assets.api import router as assets_gallery, offer_gallery as as
 # 14. Commercial Calendar
 from src.modules.commercial_calendar.api import events as calendar_events
 
+# 15. Domains
+from src.modules.domains.api import domain_router as domains_router
+
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401
 
@@ -222,6 +225,9 @@ app.include_router(assets_offers.router, prefix="/api/v1/assets/offers", tags=["
 
 # 14. Commercial Calendar
 app.include_router(calendar_events.router, prefix="/api/v1/commercial-calendar", tags=["Commercial Calendar"], dependencies=[Depends(get_tenant_context)])
+
+# 15. Domains
+app.include_router(domains_router.router, prefix="/api/v1/domains", tags=["Domains"], dependencies=[Depends(get_tenant_context)])
 
 if __name__ == "__main__":
     import uvicorn

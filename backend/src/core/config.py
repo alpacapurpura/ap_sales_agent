@@ -114,6 +114,11 @@ class Settings(BaseSettings):
     # Storage Provider: "LOCAL" or "R2"
     STORAGE_PROVIDER: str = "LOCAL"
 
+    # Cloudflare Domains (Custom Domains feature)
+    CLOUDFLARE_ZONE_ID: str = ""
+    CLOUDFLARE_API_TOKEN: str = ""
+    CLOUDFLARE_KV_NAMESPACE_ID: str = ""
+
     # Cloudflare R2
     CLOUDFLARE_ACCOUNT_ID: str = ""
     R2_BUCKET_NAME: str = ""
