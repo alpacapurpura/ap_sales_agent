@@ -1,14 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 import datetime
+from typing import Optional
+from uuid import UUID
+
+import structlog
 
 from src.core.database import get_db
 from src.shared.links.service import LinkService
 from src.modules.scheduling.application.services.availability_service import AvailabilityService
 from src.modules.scheduling.application.services.event_type_service import EventTypeService
 from src.modules.iam.domain.tenant import Tenant
+from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.scheduling.infrastructure.models.booking_link import BookingLink
 from src.modules.scheduling.api.dto.public_links import LinkResolveResponse, BookingRequest, EventTypeResolveResponse, BookingLinkResolveResponse
+
+logger = structlog.get_logger()
 
 router = APIRouter()
 
@@ -86,6 +94,43 @@ def get_public_slots(
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Event Type Public Endpoints ---
+
+@router.get("/event-types/by-id/{event_slug}", response_model=EventTypeResolveResponse)
+def resolve_event_type_by_tenant_id(
+    event_slug: str,
+    db: Session = Depends(get_db),
+    x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-ID"),
+):
+    """
+    Resolve an event type using X-Tenant-ID header (UUID).
+    Used by booking pages under custom domains where tenant_slug is not in the URL.
+    """
+    if not x_tenant_id:
+        raise HTTPException(status_code=400, detail="X-Tenant-ID header is required")
+
+    try:
+        tenant_uuid = UUID(x_tenant_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid X-Tenant-ID format")
+
+    stmt = select(TenantModel).where(TenantModel.id == tenant_uuid)
+    tenant = db.execute(stmt).scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    service = EventTypeService(db, tenant.id)
+    event_type = service.get_by_slug(event_slug)
+    if not event_type:
+        raise HTTPException(status_code=404, detail="Event Type not found")
+
+    logger.info("event_type_resolved_by_tenant_id", tenant_id=x_tenant_id, event_slug=event_slug)
+    return EventTypeResolveResponse(
+        event_type=event_type,
+        tenant_name=tenant.name,
+        tenant_avatar=(tenant.config_json or {}).get("brand_settings", {}).get("logo_url"),
+        tenant_id=str(tenant.id),
+    )
+
 
 @router.get("/event-types/{tenant_slug}/{event_slug}", response_model=EventTypeResolveResponse)
 def resolve_event_type(

@@ -51,3 +51,6 @@ from src.modules.copilot.infrastructure.models.event_model import CopilotEventMo
 
 # --- Commercial Calendar ---
 from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import CalendarEventModel  # noqa: F401
+
+# --- Domains ---
+from src.modules.domains.infrastructure.models.tenant_domain_model import TenantDomainModel  # noqa: F401

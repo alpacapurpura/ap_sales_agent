@@ -27,6 +27,8 @@ class TenantModel(Base):
     webhook_secret = Column(String, nullable=True)
     can_use_platform_keys = Column(Boolean, default=False)
 
+    tracking_config = Column(JSONB, default={}, nullable=True)
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

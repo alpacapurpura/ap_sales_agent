@@ -1,0 +1,49 @@
+"""
+Booking URL helper.
+
+Returns the base URL for booking pages, preferring the tenant's primary
+active custom domain over the platform DASHBOARD_DOMAIN fallback.
+"""
+from typing import Union
+from uuid import UUID
+
+import structlog
+from sqlalchemy.orm import Session
+
+from src.core.config import settings
+
+logger = structlog.get_logger()
+
+
+def get_booking_base_url(tenant_id: Union[UUID, str], db: Session) -> str:
+    """
+    Returns the booking base URL for a tenant.
+
+    Uses the tenant's primary active custom domain when available;
+    falls back to settings.DASHBOARD_DOMAIN otherwise.
+    """
+    from src.modules.domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
+    from src.modules.domains.domain.domain_entity import DomainStatus
+
+    try:
+        tid = UUID(str(tenant_id))
+        repo = DomainRepositoryImpl(db)
+        domains = repo.list_by_tenant(tid)
+        primary = next(
+            (d for d in domains if d.is_primary and d.status == DomainStatus.ACTIVE),
+            None,
+        )
+        if primary:
+            logger.debug(
+                "booking_base_url_custom_domain",
+                tenant_id=str(tid),
+                hostname=primary.hostname,
+            )
+            return f"https://{primary.hostname}"
+    except Exception:
+        logger.warning(
+            "booking_base_url_fallback",
+            tenant_id=str(tenant_id),
+        )
+
+    return settings.DASHBOARD_DOMAIN

@@ -1,3 +1,4 @@
+# TODO(async-migration): This service uses Session (sync). Needs migration to AsyncSession.
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -111,6 +112,17 @@ class LandingService:
         landing.config = LandingPageConfig(**current_config_dict)
         
         return self.repository.update(landing)
+
+    def get_public_landing(self, slug: str, tenant_id: UUID) -> Optional[LandingPage]:
+        """Return a published landing page by slug scoped to a tenant.
+
+        Returns None if the slug does not exist for that tenant or if the page
+        is not published — callers should treat both cases as 404.
+        """
+        landing = self.repository.get_by_slug_and_tenant(slug=slug, tenant_id=tenant_id)
+        if not landing or not landing.is_published:
+            return None
+        return landing
 
     def regenerate_block(self, current_content: str, block_type: str, context: Optional[dict] = None) -> str:
         # Mock AI generation logic

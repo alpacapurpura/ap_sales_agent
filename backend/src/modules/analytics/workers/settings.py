@@ -19,12 +19,13 @@ from src.modules.analytics.workers.tasks import (
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
+from src.modules.domains.workers.tasks import poll_domain_verification
 
 
 class WorkerSettings:
     """ARQ worker that processes ETL extraction jobs and CRM batch tasks."""
 
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -56,7 +57,7 @@ class SchedulerSettings:
     from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -81,6 +82,10 @@ class SchedulerSettings:
             cleanup_old_events,
             hour=3,
             minute=30,  # Daily at 3:30am UTC
+        ),
+        cron(
+            poll_domain_verification,
+            minute={0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55},  # Every 5 minutes
         ),
     ]
 

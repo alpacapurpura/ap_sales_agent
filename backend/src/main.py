@@ -15,6 +15,7 @@ import time
 # 1. IAM
 from src.modules.iam.api.routers import tenant_router as iam_admin, auth_router as iam_users
 from src.modules.iam.api import webhooks as iam_webhooks, settings as iam_settings
+from src.modules.iam.api.tracking import router as iam_tracking, public_router as iam_tracking_public
 
 # 2. Brand
 from src.modules.brand.api import style as brand_style, avatars as brand_avatars
@@ -25,6 +26,7 @@ from src.modules.offer.api import products as offer_products, offer_ai, definiti
 
 # 4. Landing
 from src.modules.landing.api import landing as landing_ai
+from src.modules.landing.api import public_landing as landing_public
 
 # 5. Sales Agent
 from src.modules.sales_agent.api import audit as sales_audit
@@ -61,6 +63,9 @@ from src.modules.assets.api import router as assets_gallery, offer_gallery as as
 
 # 14. Commercial Calendar
 from src.modules.commercial_calendar.api import events as calendar_events
+
+# 15. Domains
+from src.modules.domains.api import domain_router as domains_router
 
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401
@@ -162,6 +167,8 @@ def root_redirect():
 app.include_router(iam_admin.router, prefix="/api/v1/iam/tenants", tags=["IAM - Tenants"], dependencies=[Depends(get_tenant_context)])
 app.include_router(iam_users.router, prefix="/api/v1/iam/users", tags=["IAM - Users"]) # Global Context
 app.include_router(iam_settings.router, prefix="/api/v1/iam/settings", tags=["IAM - Settings"], dependencies=[Depends(get_tenant_context)])
+app.include_router(iam_tracking, prefix="/api/v1/iam/settings", tags=["IAM - Settings"], dependencies=[Depends(get_tenant_context)])
+app.include_router(iam_tracking_public, prefix="/api/v1/public", tags=["Public - Tracking"])
 app.include_router(iam_webhooks.router, prefix="/api/v1/iam/webhooks", tags=["IAM - Webhooks"])
 
 # 2. Brand
@@ -178,6 +185,7 @@ app.include_router(offer_product_mappings.router, prefix="/api/v1/offer", tags=[
 
 # 4. Landing
 app.include_router(landing_ai.router, prefix="/api/v1/landings", tags=["Landing"], dependencies=[Depends(get_tenant_context)])
+app.include_router(landing_public.router, prefix="/api/v1/public", tags=["Public - Landing"])
 
 # 5. Sales Agent - Audit
 app.include_router(sales_audit.router, prefix="/api/v1/admin/audit", tags=["Sales Agent - Audit"], dependencies=[Depends(get_tenant_context)])
@@ -232,6 +240,9 @@ app.include_router(assets_offers.router, prefix="/api/v1/assets/offers", tags=["
 
 # 14. Commercial Calendar
 app.include_router(calendar_events.router, prefix="/api/v1/commercial-calendar", tags=["Commercial Calendar"], dependencies=[Depends(get_tenant_context)])
+
+# 15. Domains
+app.include_router(domains_router.router, prefix="/api/v1/domains", tags=["Domains"], dependencies=[Depends(get_tenant_context)])
 
 if __name__ == "__main__":
     import uvicorn
