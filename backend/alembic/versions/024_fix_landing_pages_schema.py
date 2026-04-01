@@ -12,7 +12,23 @@ depends_on = None
 
 
 def upgrade():
-    # 1. Add deleted_at column (idempotent)
+    # 0. Create table if it doesn't exist yet (handles prod DBs where
+    #    b7c8d9e0f1a2 was stamped but the CREATE TABLE code was missing).
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS landing_pages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id UUID REFERENCES tenants(id),
+            offer_id UUID REFERENCES products(id),
+            slug VARCHAR NOT NULL,
+            config JSONB DEFAULT '{}',
+            is_published BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ,
+            deleted_at TIMESTAMPTZ
+        );
+    """)
+
+    # 1. Add deleted_at column (idempotent — no-op if table was just created)
     op.execute("""
         ALTER TABLE landing_pages
         ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
