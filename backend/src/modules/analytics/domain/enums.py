@@ -19,6 +19,8 @@ class MetricUnit(str, Enum):
     CURRENCY = "currency"
     PERCENTAGE = "percentage"
     RATIO = "ratio"
+    SECONDS = "seconds"
+    JSON = "json"
 
 
 class ExtractionStatus(str, Enum):
