@@ -37,14 +37,15 @@ export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: Sa
   const queryClient = useQueryClient();
 
   // Shopify sync button
-  const { trigger: triggerShopify, isLoading: isLoadingShopify, result: shopifyResult } = useInitialLoad();
+  const { trigger: triggerShopify, isLoading: isLoadingShopify, result: shopifyResult, error: shopifyError, reset: resetShopify } = useInitialLoad();
   const handleShopifySync = useCallback(() => {
+    if (shopifyError) resetShopify();
     triggerShopify({ provider: 'shopify', days: 30 }, {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: ['sales-detail'] });
       },
     });
-  }, [triggerShopify, queryClient]);
+  }, [triggerShopify, queryClient, shopifyError, resetShopify]);
 
   const oppToSalesConvRate = useMemo(
     () => {
@@ -126,9 +127,11 @@ export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: Sa
           <p className="text-xs text-muted-foreground italic mr-2">
             Actualizado: {data.lastUpdated ? formatLastUpdated(data.lastUpdated) : 'Hoy'}
           </p>
-          <Button variant="outline" onClick={handleShopifySync} disabled={isLoadingShopify}>
+          <Button variant={shopifyError ? 'destructive' : 'outline'} onClick={handleShopifySync} disabled={isLoadingShopify}>
             {isLoadingShopify ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : shopifyError ? (
+              <AlertTriangle className="mr-2 h-4 w-4" />
             ) : shopifyResult ? (
               shopifyResult.loaded_days > 0 ? <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> :
               shopifyResult.skipped_days > 0 ? <CheckCircle2 className="mr-2 h-4 w-4 text-muted-foreground" /> :
@@ -136,13 +139,17 @@ export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: Sa
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            {shopifyResult
-              ? shopifyResult.loaded_days > 0
-                ? `Shopify OK (${shopifyResult.loaded_days} dias)`
-                : shopifyResult.skipped_days > 0
-                  ? 'Shopify (ya cargado)'
-                  : 'Shopify (sin datos)'
-              : 'Datos Shopify'}
+            {isLoadingShopify
+              ? 'Cargando...'
+              : shopifyError
+                ? (shopifyError.message.includes('Disponible en') ? shopifyError.message : 'Error — Reintentar')
+                : shopifyResult
+                  ? shopifyResult.loaded_days > 0
+                    ? `Shopify OK (${shopifyResult.loaded_days} dias)`
+                    : shopifyResult.skipped_days > 0
+                      ? 'Shopify (ya cargado)'
+                      : 'Shopify (sin datos)'
+                  : 'Datos Shopify'}
           </Button>
           <Button variant="outline" onClick={() => setIsPanelOpen(true)}>
             <Calendar className="mr-2 h-4 w-4" /> Últimos 30 días
