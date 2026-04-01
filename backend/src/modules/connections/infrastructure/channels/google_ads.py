@@ -77,6 +77,80 @@ class GoogleAdsAdapter:
             logger.exception("google_ads_query_exception")
             return []
 
+    async def run_search_terms_query(
+        self,
+        customer_id: str,
+        developer_token: str,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+    ) -> list:
+        """Execute search_term_view GAQL query for top search terms."""
+        query = f"""
+            SELECT
+                search_term_view.search_term,
+                metrics.impressions,
+                metrics.clicks,
+                metrics.conversions,
+                metrics.cost_micros
+            FROM search_term_view
+            WHERE segments.date BETWEEN '{start_date.isoformat()}' AND '{end_date.isoformat()}'
+                AND campaign.status = 'ENABLED'
+            ORDER BY metrics.impressions DESC
+            LIMIT 50
+        """
+        if not developer_token:
+            return []
+        try:
+            return await asyncio.to_thread(
+                self._run_search_terms_sync,
+                customer_id,
+                developer_token,
+                credentials,
+                query,
+            )
+        except Exception:
+            logger.exception("google_ads_search_terms_exception")
+            return []
+
+    def _run_search_terms_sync(
+        self,
+        customer_id: str,
+        developer_token: str,
+        credentials: dict,
+        query: str,
+    ) -> list:
+        """Synchronous execution of search_term_view query."""
+        try:
+            from google.ads.googleads.client import GoogleAdsClient
+        except ImportError:
+            return []
+
+        config = {
+            "developer_token": developer_token,
+            "client_id": credentials.get("client_id", ""),
+            "client_secret": credentials.get("client_secret", ""),
+            "refresh_token": credentials.get("refresh_token", ""),
+            "use_proto_plus": True,
+        }
+        client = GoogleAdsClient.load_from_dict(config)
+        ga_service = client.get_service("GoogleAdsService")
+
+        results = []
+        try:
+            response = ga_service.search(customer_id=customer_id, query=query)
+            for row in response:
+                results.append({
+                    "search_term": row.search_term_view.search_term,
+                    "impressions": row.metrics.impressions,
+                    "clicks": row.metrics.clicks,
+                    "conversions": row.metrics.conversions,
+                    "cost_micros": row.metrics.cost_micros,
+                })
+        except Exception:
+            logger.exception("google_ads_search_terms_search_exception")
+        return results
+
     def _run_query_sync(
         self,
         customer_id: str,
@@ -122,6 +196,10 @@ class GoogleAdsAdapter:
                         "clicks": row.metrics.clicks,
                         "conversions": row.metrics.conversions,
                         "cost_micros": row.metrics.cost_micros,
+                        "conversions_value": row.metrics.conversions_value,
+                        "ctr": row.metrics.ctr,
+                        "average_cpc": row.metrics.average_cpc,
+                        "segments_date": getattr(getattr(row, "segments", None), "date", ""),
                     }
                 )
         except Exception:

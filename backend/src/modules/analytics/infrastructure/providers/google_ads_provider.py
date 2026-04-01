@@ -114,11 +114,59 @@ class GoogleAdsProvider(BaseMetricsProvider):
             if stage == "nurturing":
                 return self._aggregate_retargeting(rows, end_date)
 
-            return self._aggregate_by_channel(rows, end_date)
+            base_metrics = self._aggregate_by_channel(rows, end_date)
+            search_term_metrics = await self._extract_search_terms(
+                adapter, customer_id, developer_token, credentials, start_date, end_date
+            )
+            return base_metrics + search_term_metrics
         except Exception:
             logger.exception(
                 "google_ads_provider_extract_failed tenant=%s", tenant_id
             )
+            return []
+
+    async def _extract_search_terms(
+        self,
+        adapter: GoogleAdsAdapter,
+        customer_id: str,
+        developer_token: str,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Extract top search terms as a JSON snapshot metric."""
+        try:
+            search_terms = await adapter.run_search_terms_query(
+                customer_id=customer_id,
+                developer_token=developer_token,
+                credentials=credentials,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            if not search_terms:
+                return []
+
+            terms_list = [
+                {
+                    "term": r["search_term"],
+                    "impressions": int(r["impressions"]),
+                    "clicks": int(r["clicks"]),
+                }
+                for r in search_terms[:20]
+            ]
+            return [
+                ExtractedMetric(
+                    provider="google_ads",
+                    channel_slug="google-ads",
+                    metric_name="search_terms",
+                    value=0.0,
+                    unit="json",
+                    date=end_date,
+                    extra={"terms": terms_list},
+                )
+            ]
+        except Exception:
+            logger.exception("google_ads_search_terms_extract_failed")
             return []
 
     def _aggregate_retargeting(
