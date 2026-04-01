@@ -12,7 +12,7 @@ Aggregation strategy by metric type (from METRIC_CATALOG):
 - Unknown:           SUM with warning (backward compatibility)
 """
 
-import logging
+import structlog
 from collections import defaultdict
 from datetime import date, timedelta
 from typing import Dict, List, Optional
@@ -21,7 +21,7 @@ from uuid import UUID
 from src.modules.analytics.domain.enums import AggregationType
 from src.modules.analytics.domain.metric_catalog import get_metric_def
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def compute_aggregations(
