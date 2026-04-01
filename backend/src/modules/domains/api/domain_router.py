@@ -36,7 +36,7 @@ def _to_response(domain) -> DomainResponse:
 
 
 @router.post("/", response_model=DomainResponse, status_code=201)
-def create_domain(
+async def create_domain(
     body: DomainCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -61,7 +61,7 @@ def create_domain(
 
 
 @router.get("/", response_model=List[DomainResponse])
-def list_domains(
+async def list_domains(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> List[DomainResponse]:
@@ -71,7 +71,7 @@ def list_domains(
 
 
 @router.get("/{domain_id}", response_model=DomainResponse)
-def get_domain(
+async def get_domain(
     domain_id: UUID,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -84,7 +84,7 @@ def get_domain(
 
 
 @router.patch("/{domain_id}", response_model=DomainResponse)
-def set_primary(
+async def set_primary(
     domain_id: UUID,
     body: DomainSetPrimary,
     db: Session = Depends(get_db),
@@ -101,7 +101,7 @@ def set_primary(
 
 
 @router.delete("/{domain_id}", status_code=204)
-def delete_domain(
+async def delete_domain(
     domain_id: UUID,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -114,7 +114,7 @@ def delete_domain(
 
 
 @router.post("/{domain_id}/verify", response_model=DomainResponse)
-def verify_domain(
+async def verify_domain(
     domain_id: UUID,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
