@@ -26,10 +26,10 @@ class TestCostType:
 
 
 class TestMetricUnit:
-    def test_has_exactly_four_members(self):
+    def test_has_exactly_six_members(self):
         from src.modules.analytics.domain.enums import MetricUnit
 
-        assert len(MetricUnit) == 4
+        assert len(MetricUnit) == 6
 
     def test_values(self):
         from src.modules.analytics.domain.enums import MetricUnit
@@ -38,6 +38,8 @@ class TestMetricUnit:
         assert MetricUnit.CURRENCY == "currency"
         assert MetricUnit.PERCENTAGE == "percentage"
         assert MetricUnit.RATIO == "ratio"
+        assert MetricUnit.SECONDS == "seconds"
+        assert MetricUnit.JSON == "json"
 
     def test_is_str_enum(self):
         from src.modules.analytics.domain.enums import MetricUnit
