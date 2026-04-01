@@ -83,7 +83,7 @@ async def run_tenant_extraction(
         with sentry_sdk.push_scope() as scope:
             scope.set_tag("tenant_id", tenant_id)
             scope.set_tag("provider", provider)
-            scope.set_tag("job_try", ctx.get("job_try", 1))
+            scope.set_tag("job_try", str(ctx.get("job_try", 1)))
             sentry_sdk.capture_exception(exc)
         raise Retry(defer=defer_seconds) from exc
 
@@ -167,7 +167,7 @@ async def run_initial_load(
         with sentry_sdk.push_scope() as scope:
             scope.set_tag("tenant_id", tenant_id)
             scope.set_tag("provider", provider)
-            scope.set_tag("job_try", ctx.get("job_try", 1))
+            scope.set_tag("job_try", str(ctx.get("job_try", 1)))
             sentry_sdk.capture_exception(exc)
         raise Retry(defer=defer_seconds) from exc
 
