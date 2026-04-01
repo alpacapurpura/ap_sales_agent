@@ -5,12 +5,13 @@ to avoid import-time issues when dependent modules haven't been executed yet.
 """
 
 import json
-import logging
 from uuid import UUID
 
+import sentry_sdk
+import structlog
 from arq import Retry
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Fibonacci backoff intervals in minutes
 FIBONACCI_BACKOFF = [1, 1, 2, 3, 5, 8, 13]
@@ -79,6 +80,11 @@ async def run_tenant_extraction(
             defer_seconds,
             str(exc),
         )
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("tenant_id", tenant_id)
+            scope.set_tag("provider", provider)
+            scope.set_tag("job_try", ctx.get("job_try", 1))
+            sentry_sdk.capture_exception(exc)
         raise Retry(defer=defer_seconds) from exc
 
     finally:
@@ -158,6 +164,11 @@ async def run_initial_load(
         )
         if redis:
             redis.setex(progress_key, 3600, json.dumps({"status": "failed", "error": str(exc)}))
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("tenant_id", tenant_id)
+            scope.set_tag("provider", provider)
+            scope.set_tag("job_try", ctx.get("job_try", 1))
+            sentry_sdk.capture_exception(exc)
         raise Retry(defer=defer_seconds) from exc
 
     finally:

@@ -11,6 +11,8 @@ Credentials: access_token + shop_domain from connection config.
 
 import logging
 from collections import defaultdict
+
+import sentry_sdk
 from datetime import date, datetime
 from typing import Dict, List, Optional
 from uuid import UUID
@@ -83,6 +85,7 @@ class ShopifyProvider(BaseMetricsProvider):
             else:
                 return []
         except Exception:
+            sentry_sdk.capture_exception()
             logger.exception(
                 "shopify_provider_extract_failed tenant=%s stage=%s",
                 tenant_id,
@@ -119,6 +122,7 @@ class ShopifyProvider(BaseMetricsProvider):
             else:
                 return []
         except Exception:
+            sentry_sdk.capture_exception()
             logger.exception(
                 "shopify_provider_extract_daily_failed tenant=%s stage=%s",
                 tenant_id,

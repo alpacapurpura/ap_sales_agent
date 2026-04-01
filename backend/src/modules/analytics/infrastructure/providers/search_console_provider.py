@@ -8,6 +8,8 @@ Uses SearchConsoleAdapter.query_analytics() wrapped in asyncio.to_thread()
 """
 import logging
 from datetime import date
+
+import sentry_sdk
 from typing import List
 from uuid import UUID
 
@@ -129,6 +131,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
 
             return metrics
         except Exception:
+            sentry_sdk.capture_exception()
             logger.exception(
                 "search_console_provider_extract_failed tenant=%s", tenant_id
             )

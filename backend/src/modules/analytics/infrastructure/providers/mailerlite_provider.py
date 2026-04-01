@@ -15,6 +15,8 @@ tenant isolation — same pattern as MetaProvider.
 import asyncio
 import logging
 from datetime import date, datetime
+
+import sentry_sdk
 from typing import Dict, List, Optional, Set
 from uuid import UUID
 
@@ -193,6 +195,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                         client, headers, credentials, start_date, end_date, slug,
                     )
         except Exception:
+            sentry_sdk.capture_exception()
             logger.exception(
                 "mailerlite_extract_failed tenant=%s stage=%s", tenant_id, stage,
             )

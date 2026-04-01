@@ -8,6 +8,8 @@ in asyncio.to_thread() (sync Google SDK).
 """
 
 import asyncio
+
+import sentry_sdk
 import structlog
 from datetime import date
 from typing import List
@@ -121,6 +123,7 @@ class YouTubeProvider(BaseMetricsProvider):
 
             return metrics
         except Exception:
+            sentry_sdk.capture_exception()
             logger.exception(
                 "youtube_provider_extract_failed tenant=%s", tenant_id
             )

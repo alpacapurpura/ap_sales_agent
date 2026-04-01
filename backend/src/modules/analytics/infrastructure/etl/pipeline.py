@@ -4,11 +4,13 @@ Sequence: extract -> stage -> transform -> official -> aggregate -> cache invali
 All DB operations run in a single transaction. On failure, everything rolls back.
 """
 
-import logging
 import time
 import uuid
 from datetime import date
 from uuid import UUID
+
+import sentry_sdk
+import structlog
 
 from sqlalchemy.orm import Session
 
@@ -40,7 +42,7 @@ from src.modules.analytics.infrastructure.repositories.staging_repository import
     StagingMetricsRepository,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class ETLPipeline:
@@ -215,6 +217,12 @@ class ETLPipeline:
                 duration_seconds=round(duration, 2),
             )
             self.db.commit()
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("tenant_id", str(tenant_id))
+                scope.set_tag("provider", provider_name)
+                scope.set_tag("etl_run_id", str(run_id))
+                scope.set_tag("failure_type", "connection_revoked")
+                sentry_sdk.capture_exception(exc)
             logger.warning(
                 "ETL pipeline failed (connection revoked): tenant=%s provider=%s",
                 tenant_id, provider_name,
@@ -232,6 +240,12 @@ class ETLPipeline:
                 duration_seconds=round(duration, 2),
             )
             self.db.commit()
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("tenant_id", str(tenant_id))
+                scope.set_tag("provider", provider_name)
+                scope.set_tag("etl_run_id", str(run_id))
+                scope.set_tag("failure_type", "general")
+                sentry_sdk.capture_exception(exc)
             logger.error(
                 "ETL pipeline failed: tenant=%s provider=%s error=%s",
                 tenant_id, provider_name, exc,
