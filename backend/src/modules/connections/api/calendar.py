@@ -19,6 +19,7 @@ from src.modules.scheduling.application.services.availability_service import Ava
 from src.shared.links.service import LinkService
 from src.modules.scheduling.domain.availability_schema import AvailabilitySchedule, ScheduleUpdate
 from src.modules.scheduling.api.dto.calendar import CalendarStatusResponse, BookMeetingRequest, CreateBookingLinkRequest
+from src.modules.scheduling.application.booking_url import get_booking_base_url
 
 router = APIRouter(tags=["calendar"])
 logger = structlog.get_logger()
@@ -89,16 +90,19 @@ async def get_status(
     )
     link = db.execute(stmt).scalars().first()
 
+    base_url = get_booking_base_url(user.tenant_id, db)
+    booking_link = f"{base_url}/visit/{link.token}" if link else None
+
     if not connection:
         return CalendarStatusResponse(
             is_connected=False,
-            booking_link=f"/visit/{link.token}" if link else None,
+            booking_link=booking_link,
         )
 
     return CalendarStatusResponse(
         is_connected=True,
         email=connection.config.get("email"),
-        booking_link=f"/visit/{link.token}" if link else None,
+        booking_link=booking_link,
     )
 
 
@@ -113,7 +117,8 @@ async def create_booking_link(
         target_type="booking",
         created_by=user.id,
     )
-    return {"token": link.token, "url": f"/visit/{link.token}"}
+    base_url = get_booking_base_url(user.tenant_id, db)
+    return {"token": link.token, "url": f"{base_url}/visit/{link.token}"}
 
 
 @router.post("/personalized-link")
@@ -142,10 +147,11 @@ async def create_personalized_link(
     db.refresh(link)
 
     tenant_slug = user.tenant.slug if user.tenant else "unknown"
+    base_url = get_booking_base_url(user.tenant_id, db)
 
     return {
         "token": link.token,
-        "url": f"/book/{tenant_slug}/{payload.event_slug}?token={link.token}",
+        "url": f"{base_url}/book/{tenant_slug}/{payload.event_slug}?token={link.token}",
         "expires_at": link.expires_at,
     }
 
