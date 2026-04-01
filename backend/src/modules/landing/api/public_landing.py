@@ -15,8 +15,8 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.landing.application.landing_service import LandingService
 from src.modules.landing.domain.content import LandingPageConfig
-from src.modules.landing.infrastructure.repositories.landing_repository import LandingRepository
 
 logger = structlog.get_logger()
 
@@ -34,12 +34,13 @@ class PublicLandingResponse(BaseModel):
     All fields are deliberately non-PII. The full config (visual structure,
     copy) is returned so the frontend renderer can display the page without
     additional requests.
+    tenant_id is intentionally excluded — unnecessary info disclosure on a
+    public unauthenticated endpoint.
     """
 
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    tenant_id: UUID
     offer_id: Optional[UUID] = None
     slug: str
     config: LandingPageConfig
@@ -49,6 +50,10 @@ class PublicLandingResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Route
 # ---------------------------------------------------------------------------
+
+# NOTE: This module uses synchronous SQLAlchemy (Session, not AsyncSession).
+# The entire landing module predates the async migration — tracked as tech debt.
+# Do NOT add async/await here until database.py is upgraded to async engine.
 
 
 @router.get(
@@ -75,25 +80,14 @@ def get_public_landing(
     except ValueError:
         raise HTTPException(status_code=400, detail="X-Tenant-ID must be a valid UUID")
 
-    repo = LandingRepository(db)
-    landing = repo.get_by_slug_and_tenant(slug=slug, tenant_id=tenant_uuid)
+    service = LandingService(db)
+    landing = service.get_public_landing(slug=slug, tenant_id=tenant_uuid)
 
     if not landing:
         logger.info(
             "public_landing_not_found",
             slug=slug,
             tenant_id=x_tenant_id,
-        )
-        raise HTTPException(status_code=404, detail="Landing page not found")
-
-    if not landing.is_published:
-        # Only the tenant owner can preview unpublished landings — this public
-        # endpoint only serves published content.
-        logger.info(
-            "public_landing_not_published",
-            slug=slug,
-            tenant_id=x_tenant_id,
-            landing_id=str(landing.id),
         )
         raise HTTPException(status_code=404, detail="Landing page not found")
 
@@ -105,7 +99,6 @@ def get_public_landing(
     )
     return PublicLandingResponse(
         id=landing.id,
-        tenant_id=landing.tenant_id,
         offer_id=landing.offer_id,
         slug=landing.slug,
         config=landing.config,

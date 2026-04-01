@@ -53,20 +53,6 @@ class LandingRepository:
             return self._to_domain(model)
         return None
 
-    def get_by_slug(self, slug: str) -> Optional[LandingPage]:
-        """Global slug lookup (no tenant filter). Use get_by_slug_and_tenant for scoped lookups."""
-        stmt = (
-            select(LandingPageModel)
-            .where(
-                LandingPageModel.slug == slug,
-                LandingPageModel.deleted_at.is_(None),
-            )
-        )
-        model = self.db.execute(stmt).scalars().first()
-        if model:
-            return self._to_domain(model)
-        return None
-
     def get_by_slug_and_tenant(self, slug: str, tenant_id: UUID) -> Optional[LandingPage]:
         """Tenant-scoped slug lookup for the public endpoint."""
         stmt = (
