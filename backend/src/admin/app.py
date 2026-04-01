@@ -41,6 +41,7 @@ def main():
         "🔍 Auditoría Sales Agent": "sales_audit",
         "📚 Knowledge Base": "knowledge",
         "🔧 Capacidades Copilot": "capabilities",
+        "📅 Calendario Comercial": "commercial_calendar",
         "🏢 Tenants (Clientes)": "tenants",
         "👥 Usuarios": "users",
     }
@@ -74,6 +75,9 @@ def main():
     elif page == "capabilities":
         from src.admin.modules.capability_catalog import render_capability_catalog
         render_capability_catalog()
+    elif page == "commercial_calendar":
+        from src.admin.modules.commercial_calendar import render_commercial_calendar_page
+        render_commercial_calendar_page()
     elif page == "tenants":
         render_tenants_view()
     elif page == "users":

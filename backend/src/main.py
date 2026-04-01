@@ -59,6 +59,9 @@ from src.modules.connections.api import channel_info as conn_channel_info
 # 13. Assets
 from src.modules.assets.api import router as assets_gallery, offer_gallery as assets_offers
 
+# 14. Commercial Calendar
+from src.modules.commercial_calendar.api import events as calendar_events
+
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401
 
@@ -205,6 +208,9 @@ app.include_router(conn_channel_info.router, prefix="/api/v1/connections/channel
 # 13. Assets
 app.include_router(assets_gallery.router, prefix="/api/v1/assets/gallery", tags=["Assets - Gallery"], dependencies=[Depends(get_tenant_context)])
 app.include_router(assets_offers.router, prefix="/api/v1/assets/offers", tags=["Assets - Offers"], dependencies=[Depends(get_tenant_context)])
+
+# 14. Commercial Calendar
+app.include_router(calendar_events.router, prefix="/api/v1/commercial-calendar", tags=["Commercial Calendar"], dependencies=[Depends(get_tenant_context)])
 
 if __name__ == "__main__":
     import uvicorn

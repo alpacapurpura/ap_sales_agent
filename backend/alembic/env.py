@@ -26,6 +26,7 @@ from src.modules.crm.infrastructure.models import customer_model
 
 from src.modules.brand.infrastructure.models import avatar_model
 from src.modules.offer.infrastructure import models as offer_models
+from src.modules.commercial_calendar.infrastructure.models import calendar_event_model  # noqa: F401
 from src.modules.landing.infrastructure.models import landing_model
 from src.modules.analytics.infrastructure.models import (  # noqa: F401 — ETL tables
     StagingMetricModel,

@@ -48,3 +48,6 @@ from src.modules.offer.infrastructure.models.external_product_mapping_model impo
 # --- Copilot ---
 from src.modules.copilot.infrastructure.models.conversation_model import CopilotConversationModel  # noqa: F401
 from src.modules.copilot.infrastructure.models.event_model import CopilotEventModel  # noqa: F401
+
+# --- Commercial Calendar ---
+from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import CalendarEventModel  # noqa: F401
