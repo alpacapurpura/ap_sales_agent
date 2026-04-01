@@ -5,13 +5,13 @@ channels a tenant has connected vs. available (showing "Configurar" badge).
 Replaces the hardcoded 13-channel list in MetricsService.get_attraction_metrics().
 """
 
-import logging
+import structlog
 from typing import Dict, List, Set
 from uuid import UUID
 
 from src.modules.analytics.domain.ports import ConnectionPort
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Maps provider_name (as used in STAGE_CHANNEL_MAP) to the set of ChannelType
 # string values from the connections module that satisfy that provider.

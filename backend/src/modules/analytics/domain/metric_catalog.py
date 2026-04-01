@@ -609,7 +609,8 @@ _DERIVED: list[MetricDefinition] = [
         unit=MetricUnit.PERCENTAGE,
         aggregation=AggregationType.DERIVED,
         formula="form_conversions / form_views × 100",
-        formula_components=("form_conversions",),
+        # form_views is not tracked as a separate metric; cannot auto-recalculate
+        formula_components=(),
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -620,7 +621,8 @@ _DERIVED: list[MetricDefinition] = [
         unit=MetricUnit.PERCENTAGE,
         aggregation=AggregationType.DERIVED,
         formula="completed / triggered × 100",
-        formula_components=("automation_completed",),
+        # 'triggered' and 'completed' are not tracked as separate metrics
+        formula_components=(),
         providers=("mailerlite",),
     ),
 ]

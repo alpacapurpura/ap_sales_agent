@@ -10,8 +10,9 @@ Uses GoogleAdsAdapter.run_gaql_query() wrapped in asyncio.to_thread()
 (sync Google Ads SDK).
 """
 
-import logging
 import os
+import structlog
+from collections import defaultdict
 from datetime import date
 from typing import Dict, List
 from uuid import UUID
@@ -24,7 +25,7 @@ from src.modules.connections.infrastructure.channels.google_ads import (
     GoogleAdsAdapter,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 GAQL_CAMPAIGN_METRICS = """
     SELECT
@@ -264,7 +265,6 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 return []
 
             # Group rows by date, then aggregate
-            from collections import defaultdict
             by_date: Dict[str, List[dict]] = defaultdict(list)
             for row in rows:
                 date_str = row.get("segments_date", row.get("date", ""))

@@ -7,7 +7,7 @@ Channel slugs:
 Uses TikTokAdapter for API calls. Gracefully handles missing credentials.
 """
 
-import logging
+import structlog
 from datetime import date
 from typing import List
 from uuid import UUID
@@ -18,7 +18,7 @@ from src.modules.analytics.infrastructure.providers.base import (
 )
 from src.modules.connections.infrastructure.channels.tiktok import TikTokAdapter
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class TikTokProvider(BaseMetricsProvider):

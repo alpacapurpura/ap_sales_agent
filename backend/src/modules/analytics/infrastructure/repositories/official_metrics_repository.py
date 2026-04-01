@@ -15,6 +15,8 @@ from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
+from src.modules.analytics.domain.enums import AggregationType
+from src.modules.analytics.domain.metric_catalog import get_metric_def
 from src.modules.analytics.infrastructure.models.official_metrics_model import (
     OfficialMetricModel,
 )
@@ -201,9 +203,6 @@ class OfficialMetricsRepository:
 
         Returns: {"metric_name": aggregated_value, ...}
         """
-        from src.modules.analytics.domain.enums import AggregationType
-        from src.modules.analytics.domain.metric_catalog import get_metric_def
-
         stmt = (
             select(
                 OfficialMetricModel.metric_name,
