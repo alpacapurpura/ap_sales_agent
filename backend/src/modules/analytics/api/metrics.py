@@ -293,6 +293,9 @@ async def get_stage_timeseries(
     )
 
 
+_SYNC_ALL_COOLDOWN = timedelta(minutes=2)
+
+
 @router.post("/sync", response_model=SyncAllResponse)
 async def sync_all_sources(
     days: int = Query(default=30, ge=1, le=90),
@@ -303,9 +306,24 @@ async def sync_all_sources(
 
     Runs gap-detection initial-load for each provider with an active
     connection. Fast when data is up to date (short-circuit, no API calls).
+    Global 2-min cooldown prevents concurrent or back-to-back syncs.
     Per-provider 15-min cooldown — skipped providers report remaining time.
     """
     from src.modules.analytics.application.services.etl_service import ETLService
+
+    # Global cooldown: prevent back-to-back or concurrent syncs for the same tenant.
+    cooldown_key = f"sync_all:{user.tenant_id}"
+    if redis_client:
+        last_sync = redis_client.get(cooldown_key)
+        if last_sync:
+            elapsed = datetime.now(timezone.utc) - datetime.fromisoformat(last_sync.decode())
+            remaining = _SYNC_ALL_COOLDOWN - elapsed
+            if remaining.total_seconds() > 0:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Sync en progreso o muy reciente. Espera {int(remaining.total_seconds())}s antes de volver a sincronizar.",
+                )
+        redis_client.setex(cooldown_key, int(_SYNC_ALL_COOLDOWN.total_seconds()), datetime.now(timezone.utc).isoformat())
 
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)

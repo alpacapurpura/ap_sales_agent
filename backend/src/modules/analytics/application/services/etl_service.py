@@ -232,31 +232,6 @@ class ETLService:
                 })
                 failed += 1
 
-        # IG DM sync: if tenant has active Meta connection, also sync DM conversations.
-        # This populates journey_events + customer_profiles (CRM-based capture metrics),
-        # separate from the ETL official_metrics pipeline above.
-        if "meta" in providers_to_sync:
-            try:
-                ig_dm_result = await self._sync_ig_dm(tenant_id)
-                if ig_dm_result:
-                    details.append({
-                        "provider": "ig_dm",
-                        "status": "ok",
-                        "synced_messages": ig_dm_result["synced_messages"],
-                        "new_leads": ig_dm_result["new_leads"],
-                        "skipped": ig_dm_result["skipped"],
-                    })
-            except Exception as exc:
-                logger.warning(
-                    "sync_all ig_dm failed for tenant %s: %s",
-                    tenant_id, exc,
-                )
-                details.append({
-                    "provider": "ig_dm",
-                    "status": "failed",
-                    "error": str(exc),
-                })
-
         return {
             "status": "ok",
             "providers_synced": synced,

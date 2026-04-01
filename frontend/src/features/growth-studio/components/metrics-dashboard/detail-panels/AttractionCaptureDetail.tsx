@@ -236,7 +236,11 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
   if (!attrData || !capData) return null;
 
-  const isEmpty = totalImpressions === 0 && totalVisitors === 0 && totalLeads === 0;
+  const hasAnyAttractionData = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound, attrData.website]
+    .filter(Boolean)
+    .some(g => g.channels.some(ch => ch.connected && ch.metrics.some(m => m.value > 0)));
+  const hasCaptureData = totalLeads > 0;
+  const isEmpty = !hasAnyAttractionData && !hasCaptureData;
 
   return (
     <div className="space-y-6 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
