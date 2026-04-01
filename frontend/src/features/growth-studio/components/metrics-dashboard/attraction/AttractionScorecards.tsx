@@ -8,7 +8,7 @@ import type { StageTimeSeries } from '../../../types/metrics';
 
 interface AttractionScorecardsProps {
   timeSeries: StageTimeSeries | undefined;
-  totalReach: number;
+  totalImpressions: number;
   totalVisitors: number;
   totalLeads: number;
   leadConvRate: number;
@@ -41,7 +41,7 @@ function computeDelta(current: number, previous: number | null): number | null {
 
 export function AttractionScorecards({
   timeSeries,
-  totalReach,
+  totalImpressions,
   totalVisitors,
   totalLeads,
   leadConvRate,
@@ -66,8 +66,8 @@ export function AttractionScorecards({
 
     return [
       {
-        label: 'Alcance',
-        value: totalReach,
+        label: 'Impresiones',
+        value: totalImpressions,
         format: 'number',
         delta: reachDelta,
         sparkData: dailyTotals,
@@ -101,7 +101,7 @@ export function AttractionScorecards({
         sparkData: [],
       },
     ];
-  }, [timeSeries, totalReach, totalVisitors, totalLeads, leadConvRate, totalSpend]);
+  }, [timeSeries, totalImpressions, totalVisitors, totalLeads, leadConvRate, totalSpend]);
 
   const sparkConfig = { v: { color: 'hsl(var(--primary))' } };
 

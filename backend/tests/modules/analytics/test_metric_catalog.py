@@ -99,6 +99,39 @@ def test_key_metric_classifications():
     assert METRIC_CATALOG["active_subscribers"].aggregation == AggregationType.SNAPSHOT
 
 
+def test_compute_channel_totals_excludes_non_additive():
+    """compute_channel_totals must NEVER include NON_AGGREGABLE, WEIGHTED_AVERAGE, or DERIVED metrics."""
+    from src.modules.analytics.application.services.aggregation_helpers import compute_channel_totals
+    from src.modules.analytics.application.dto.attraction_dto import ChannelMetricDTO, MetricValueDTO
+
+    channels = [
+        ChannelMetricDTO(
+            slug="meta-ads",
+            name="Meta Ads",
+            channel_type="paid",
+            connected=True,
+            source_label="Meta",
+            metrics=[
+                MetricValueDTO(name="impressions", value=10000),  # ADDITIVE → include
+                MetricValueDTO(name="clicks", value=500),          # ADDITIVE → include
+                MetricValueDTO(name="spend", value=750, unit="currency"),  # ADDITIVE → include
+                MetricValueDTO(name="reach", value=8000),          # NON_AGGREGABLE → exclude
+                MetricValueDTO(name="ctr", value=0.05, unit="percentage"),  # WEIGHTED_AVERAGE → exclude
+                MetricValueDTO(name="cpc", value=1.5, unit="currency"),     # DERIVED → exclude
+            ],
+        ),
+    ]
+
+    totals = compute_channel_totals(channels)
+
+    assert totals["impressions"] == 10000
+    assert totals["clicks"] == 500
+    assert totals["spend"] == 750
+    assert "reach" not in totals, "reach is NON_AGGREGABLE and must not appear in totals"
+    assert "ctr" not in totals, "ctr is WEIGHTED_AVERAGE and must not appear in totals"
+    assert "cpc" not in totals, "cpc is DERIVED and must not appear in totals"
+
+
 def test_no_duplicate_metric_names():
     """METRIC_CATALOG is built from a list — verify no name appears twice."""
     from src.modules.analytics.domain.metric_catalog import (

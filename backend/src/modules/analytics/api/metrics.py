@@ -327,6 +327,9 @@ class MetricCatalogEntryResponse(BaseModel):
     is_unique_metric: bool
     higher_is_better: bool
     providers: list[str]
+    weight_metric: Optional[str] = None
+    formula: Optional[str] = None
+    formula_components: list[str] = []
 
 
 class MetricCatalogResponse(BaseModel):
@@ -490,6 +493,9 @@ def get_metric_catalog(
             is_unique_metric=defn.is_unique_metric,
             higher_is_better=defn.higher_is_better,
             providers=list(defn.providers),
+            weight_metric=defn.weight_metric,
+            formula=defn.formula,
+            formula_components=list(defn.formula_components),
         )
         for defn in METRIC_CATALOG.values()
     ]

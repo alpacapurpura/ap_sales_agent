@@ -85,20 +85,25 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries('attraction', 'reach', rangeDays, granularity);
 
   // ─── Computed totals ─────────────────────────────────────────────────────
+  // NOTE: reach/users are NON_AGGREGABLE (unique people) — never sum cross-group.
+  // Use impressions (ADDITIVE) as the top-of-funnel awareness metric.
+  // Use GA4 website users/sessions as the single authoritative visitor count.
 
-  const { totalReach, totalVisitors, totalSpend } = useMemo(() => {
-    if (!attrData) return { totalReach: 0, totalVisitors: 0, totalSpend: 0 };
+  const { totalImpressions, totalVisitors, totalSpend } = useMemo(() => {
+    if (!attrData) return { totalImpressions: 0, totalVisitors: 0, totalSpend: 0 };
     const attrGroups = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound];
     const websiteUsers = attrData.website?.totals.users;
+    const websiteSessions = attrData.website?.totals.sessions;
     return {
-      totalReach: attrGroups.reduce((sum, g) => sum + (g.totals.reach ?? 0), 0),
-      totalVisitors: websiteUsers ?? attrGroups.reduce((sum, g) => sum + (g.totals.visitors ?? g.totals.sessions ?? 0), 0),
+      totalImpressions: attrGroups.reduce((sum, g) => sum + (g.totals.impressions ?? 0), 0),
+      totalVisitors: websiteUsers ?? websiteSessions ?? 0,
       totalSpend: attrGroups.reduce((sum, g) => sum + (g.totals.spend ?? 0), 0),
     };
   }, [attrData]);
 
   const totalLeads = capData?.headerKpis.totalLeads || 0;
   const leadConvRate = useMemo(() => totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0, [totalVisitors, totalLeads]);
+
 
   // ─── Channel groupings ──────────────────────────────────────────────────
 
@@ -179,8 +184,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   // ─── Summary strings ───────────────────────────────────────────────────
 
   const paidSummary = useMemo(() => {
-    const reach = paidChannels.reduce((s, ch) => s + (getMetric(ch.metrics, 'reach') || getMetric(ch.metrics, 'impressions')), 0);
-    return `${reach.toLocaleString('es-ES')} alcance`;
+    // impressions is ADDITIVE — safe to sum across paid channels
+    const impressions = paidChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'impressions'), 0);
+    return `${impressions.toLocaleString('es-ES')} impresiones`;
   }, [paidChannels]);
 
   const paidSpendSummary = useMemo(() => {
@@ -189,8 +195,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   }, [paidChannels]);
 
   const organicSummary = useMemo(() => {
-    const reach = organicChannels.reduce((s, ch) => s + (getMetric(ch.metrics, 'reach') || getMetric(ch.metrics, 'sessions')), 0);
-    return `${reach.toLocaleString('es-ES')} alcance total`;
+    // sessions is ADDITIVE — safe to sum across organic channels
+    const sessions = organicChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'sessions'), 0);
+    return `${sessions.toLocaleString('es-ES')} sesiones`;
   }, [organicChannels]);
 
   const webCaptureSummary = useMemo(() => {
@@ -229,7 +236,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
   if (!attrData || !capData) return null;
 
-  const isEmpty = totalReach === 0 && totalVisitors === 0 && totalLeads === 0;
+  const isEmpty = totalImpressions === 0 && totalVisitors === 0 && totalLeads === 0;
 
   return (
     <div className="space-y-6 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
@@ -284,7 +291,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           {/* ═══ Section 1: Hero KPI Strip ═══ */}
           <AttractionScorecards
             timeSeries={timeSeries}
-            totalReach={totalReach}
+            totalImpressions={totalImpressions}
             totalVisitors={totalVisitors}
             totalLeads={totalLeads}
             leadConvRate={leadConvRate}
@@ -305,7 +312,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
           {/* ═══ Section 3: Conversion Bridge ═══ */}
           <ConversionBridge
-            reach={totalReach}
+            impressions={totalImpressions}
             visitors={totalVisitors}
             leads={totalLeads}
           />

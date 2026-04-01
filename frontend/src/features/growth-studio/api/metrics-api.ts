@@ -24,6 +24,7 @@ export const metricsApi = {
 // Re-export types so `import type { X } from '.../metrics-api'` keeps working
 export type { UnmatchedProduct, SourceProduct, ProductMapping, CreateProductMappingResult, ProductMetric, OfferProductDetail } from './product-mapping-api';
 export type { SyncProviderResult, SyncAllResponse } from './etl-api';
+export type { MetricCatalog, MetricCatalogEntry } from '../types/metrics';
 
 // Re-export standalone functions for direct imports
 export { getUnmatchedProducts, getSourceProducts, getProductMappings, createProductMapping, deleteProductMapping, getOfferProductsDetail } from './product-mapping-api';

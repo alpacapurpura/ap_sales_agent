@@ -1,7 +1,7 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
-import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, ExpansionOfferData, ExpansionGroupData, StageTimeSeries } from '../types/metrics';
+import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, ExpansionOfferData, ExpansionGroupData, StageTimeSeries, MetricCatalog } from '../types/metrics';
 import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL, MOCK_ADOPTION_DETAIL, MOCK_EXPANSION_DETAIL, MOCK_EVANGELIZATION_DETAIL, MOCK_TIME_SERIES } from './metrics-mock-data';
 import { mapChannel, mapGroup } from './mappers/shared';
 
@@ -406,6 +406,14 @@ export const metricsApi = {
     if (!res.ok) throw new Error(`Evangelization API returned ${res.status}`);
     const data = await res.json();
     return mapEvangelizationResponse(data);
+  },
+
+  getMetricCatalog: async (token: string): Promise<MetricCatalog> => {
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/catalog`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Metric catalog API returned ${res.status}`);
+    return res.json();
   },
 
   getTimeSeries: async (

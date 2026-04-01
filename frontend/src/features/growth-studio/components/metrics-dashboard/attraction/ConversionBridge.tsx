@@ -3,7 +3,7 @@
 import { ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface ConversionBridgeProps {
-  reach: number;
+  impressions: number;
   visitors: number;
   leads: number;
   /** Previous period values for computing deltas */
@@ -18,13 +18,13 @@ function formatNum(n: number): string {
 }
 
 export function ConversionBridge({
-  reach,
+  impressions,
   visitors,
   leads,
   previousVisitRate,
   previousLeadRate,
 }: ConversionBridgeProps) {
-  const visitRate = reach > 0 ? (visitors / reach) * 100 : 0;
+  const visitRate = impressions > 0 ? (visitors / impressions) * 100 : 0;
   const leadRate = visitors > 0 ? (leads / visitors) * 100 : 0;
 
   const visitDelta = previousVisitRate != null ? visitRate - previousVisitRate : null;
@@ -38,9 +38,9 @@ export function ConversionBridge({
 
       {/* Desktop layout */}
       <div className="hidden md:flex items-center gap-3">
-        {/* Reach */}
+        {/* Impressions */}
         <div className="flex-1">
-          <p className="text-sm font-semibold mb-1">{formatNum(reach)} alcance</p>
+          <p className="text-sm font-semibold mb-1">{formatNum(impressions)} impresiones</p>
           <div className="w-full bg-muted rounded-full h-2.5">
             <div className="bg-blue-500 h-full rounded-full" style={{ width: '100%' }} />
           </div>
@@ -72,7 +72,7 @@ export function ConversionBridge({
       {/* Mobile layout - stacked */}
       <div className="md:hidden space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold">{formatNum(reach)} alcance</span>
+          <span className="text-sm font-semibold">{formatNum(impressions)} impresiones</span>
           <span className="text-sm font-bold text-emerald-500">{visitRate.toFixed(1)}%</span>
           <span className="text-sm font-semibold">{formatNum(visitors)} visitas</span>
         </div>

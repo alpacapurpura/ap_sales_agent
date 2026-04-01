@@ -446,6 +446,32 @@ export interface EvangelizationDetail {
 }
 
 // ---------------------------------------------------------------------------
+// Metric Catalog (semantic aggregation rules)
+// ---------------------------------------------------------------------------
+
+export type MetricAggregation = 'additive' | 'weighted_average' | 'derived' | 'non_aggregable' | 'snapshot';
+
+export interface MetricCatalogEntry {
+  name: string;
+  display_name: string;
+  description: string;
+  interpretation: string;
+  unit: string;
+  aggregation: MetricAggregation;
+  is_unique_metric: boolean;
+  higher_is_better: boolean;
+  providers: string[];
+  weight_metric?: string;
+  formula?: string;
+  formula_components: string[];
+}
+
+export interface MetricCatalog {
+  metrics: MetricCatalogEntry[];
+  count: number;
+}
+
+// ---------------------------------------------------------------------------
 // Time Series (chart visualizations)
 // ---------------------------------------------------------------------------
 

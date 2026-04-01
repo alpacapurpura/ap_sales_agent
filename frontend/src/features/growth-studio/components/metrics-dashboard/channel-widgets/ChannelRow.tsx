@@ -10,8 +10,9 @@ import { ConnectionBadge } from './ConnectionBadge';
 import { CostLink } from './CostLink';
 import { CampaignDrillDown } from './CampaignDrillDown';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
+import { useMetricCatalog } from '../../../hooks/useMetricCatalog';
 
-/** Metric name -> Spanish label mapping. */
+/** Fallback metric name -> Spanish label (used when catalog entry is unavailable). */
 const METRIC_LABELS: Record<string, string> = {
   reach: 'Alcance',
   engagement: 'Engagement',
@@ -114,16 +115,22 @@ interface MetricDisplayProps {
   channelSlug?: string;
   stageId?: StageId;
   onMetricClick?: (metric: MetricClickData) => void;
+  catalogByName?: Record<string, { display_name: string; interpretation: string; formula?: string }>;
 }
 
-function MetricDisplay({ metric, channelSlug, stageId, onMetricClick }: MetricDisplayProps) {
-  const label = METRIC_LABELS[metric.name] ?? metric.name;
+function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByName }: MetricDisplayProps) {
+  const catalogEntry = catalogByName?.[metric.name];
+  const label = catalogEntry?.display_name ?? METRIC_LABELS[metric.name] ?? metric.name;
   const isCurrency = metric.unit === 'currency';
   const formatted = isCurrency
     ? formatCurrency(metric.value, metric.currency)
     : formatNumber(metric.value);
 
   const canClick = onMetricClick && channelSlug && stageId;
+
+  const tooltipText = catalogEntry?.interpretation
+    ? `${label}${catalogEntry.formula ? ` (${catalogEntry.formula})` : ''}: ${catalogEntry.interpretation}`
+    : `Ver detalle: ${label}`;
 
   const content = (
     <div className="flex flex-col items-end min-w-[52px]">
@@ -148,14 +155,14 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick }: MetricDi
           currency: metric.currency,
         })}
         className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded-md transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
-        title={`Ver detalle: ${label}`}
+        title={tooltipText}
       >
         {content}
       </button>
     );
   }
 
-  return content;
+  return <div title={tooltipText}>{content}</div>;
 }
 
 /* ── ChannelRow ────────────────────────────────────────────────────────── */
@@ -175,6 +182,7 @@ export interface ChannelRowProps {
 export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onMetricClick, onChannelClick, onConfigure }: ChannelRowProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [cooldown, setCooldown] = useState(false);
+  const { catalogByName } = useMetricCatalog();
 
   const Icon = getChannelIcon(channel.slug);
   const iconColor = getChannelColor(channel.slug);
@@ -369,10 +377,11 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
             // Leads metric with conversations secondary line
             if (m.name === 'leads' && conversationsMetric) {
               const canClick = onMetricClick && stageId;
+              const leadsLabel = catalogByName[m.name]?.display_name ?? METRIC_LABELS[m.name] ?? m.name;
               const leadsContent = (
                 <div className="flex flex-col items-end min-w-[52px]">
                   <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">
-                    {METRIC_LABELS[m.name] ?? m.name}
+                    {leadsLabel}
                   </span>
                   <span className="text-sm font-semibold tabular-nums leading-tight">{formatNumber(m.value)}</span>
                   <span className="text-[10px] text-muted-foreground">
@@ -391,7 +400,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
                       currentValue: m.value,
                     })}
                     className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded-md transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    title={`Ver detalle: ${METRIC_LABELS[m.name] ?? m.name}`}
+                    title={`Ver detalle: ${leadsLabel}`}
                   >
                     {leadsContent}
                   </button>
@@ -407,6 +416,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
                 channelSlug={channel.slug}
                 stageId={stageId}
                 onMetricClick={onMetricClick}
+                catalogByName={catalogByName}
               />
             );
           })
