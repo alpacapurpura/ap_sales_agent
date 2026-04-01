@@ -17,9 +17,9 @@ _SENSITIVE_KEYS = frozenset(
 )
 
 
-def _redact_event(event: dict, hint: dict) -> dict:  # noqa: ARG001
+def _redact_event(event: dict[str, object], hint: dict[str, object]) -> dict[str, object]:  # noqa: ARG001 — required by sentry_sdk before_send signature
     """Strip sensitive keys from Sentry event extras/data."""
-    def _scrub(obj):
+    def _scrub(obj: object) -> object:
         if isinstance(obj, dict):
             return {
                 k: "[Filtered]" if k.lower() in _SENSITIVE_KEYS else _scrub(v)
@@ -49,7 +49,8 @@ def init_sentry(service_name: str) -> None:
     if not settings.SENTRY_DSN:
         return
 
-    integrations: list = []
+    from sentry_sdk.integrations import Integration
+    integrations: list[Integration] = []
 
     if service_name == "api":
         from sentry_sdk.integrations.fastapi import FastApiIntegration

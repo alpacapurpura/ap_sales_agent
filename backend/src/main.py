@@ -67,9 +67,6 @@ import src.shared.infrastructure.model_registry  # noqa: F401
 
 # --- App Initialization ---
 
-from src.core.sentry import init_sentry
-init_sentry("api")
-
 # Configure Logging (Structlog)
 configure_logging()
 logger = structlog.get_logger()
@@ -117,6 +114,8 @@ async def logging_middleware(request: Request, call_next):
 
 @app.on_event("startup")
 def on_startup():
+    from src.core.sentry import init_sentry
+    init_sentry("api")
     init_db()
 
     # Register CRM domain event handlers (EventBus wiring)
