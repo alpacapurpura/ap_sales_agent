@@ -15,6 +15,7 @@ import time
 # 1. IAM
 from src.modules.iam.api.routers import tenant_router as iam_admin, auth_router as iam_users
 from src.modules.iam.api import webhooks as iam_webhooks, settings as iam_settings
+from src.modules.iam.api.tracking import router as iam_tracking, public_router as iam_tracking_public
 
 # 2. Brand
 from src.modules.brand.api import style as brand_style, avatars as brand_avatars
@@ -154,6 +155,8 @@ def root_redirect():
 app.include_router(iam_admin.router, prefix="/api/v1/iam/tenants", tags=["IAM - Tenants"], dependencies=[Depends(get_tenant_context)])
 app.include_router(iam_users.router, prefix="/api/v1/iam/users", tags=["IAM - Users"]) # Global Context
 app.include_router(iam_settings.router, prefix="/api/v1/iam/settings", tags=["IAM - Settings"], dependencies=[Depends(get_tenant_context)])
+app.include_router(iam_tracking, prefix="/api/v1/iam/settings", tags=["IAM - Settings"], dependencies=[Depends(get_tenant_context)])
+app.include_router(iam_tracking_public, prefix="/api/v1/public", tags=["Public - Tracking"])
 app.include_router(iam_webhooks.router, prefix="/api/v1/iam/webhooks", tags=["IAM - Webhooks"])
 
 # 2. Brand
