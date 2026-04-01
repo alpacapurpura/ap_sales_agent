@@ -302,14 +302,14 @@ class ETLService:
 
         extracted = []
         for stg in stages:
-            stage_metrics = await provider.extract_metrics_daily(
+            stage_result = await provider.extract_metrics_daily(
                 tenant_id=tenant_id,
                 credentials=provider_creds,
                 start_date=min_missing,
                 end_date=max_missing,
                 stage=stg,
             )
-            extracted.extend(stage_metrics)
+            extracted.extend(stage_result.metrics)
 
         # Filter to only missing days
         extracted = [m for m in extracted if m.date in missing_days]

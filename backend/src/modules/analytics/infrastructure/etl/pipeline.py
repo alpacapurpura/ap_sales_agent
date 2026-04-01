@@ -116,13 +116,14 @@ class ETLPipeline:
             # Merge config into credentials so providers have access to
             # connection-level config (e.g. shop_domain for Shopify)
             provider_creds = {**creds.credentials, **creds.config}
-            extracted = await self.provider.extract_metrics(
+            result = await self.provider.extract_metrics(
                 tenant_id=tenant_id,
                 credentials=provider_creds,
                 start_date=start_date,
                 end_date=end_date,
                 stage=stage,
             )
+            extracted = result.metrics
 
             # Step 4: Convert to staging models and bulk insert
             staging_models = [
@@ -183,14 +184,35 @@ class ETLPipeline:
                 ]
                 self.db.add_all(agg_models)
 
-            # Step 8: Mark SUCCESS
+            # Step 8: Determine final status based on partial failures
             duration = time.monotonic() - start_time
+            if result.failures and extracted:
+                final_status = ExtractionStatus.PARTIAL_SUCCESS
+                final_error = None
+            elif result.failures and not extracted:
+                final_status = ExtractionStatus.FAILED
+                final_error = "; ".join(
+                    f"{f.extractor_name}: {f.error[:100]}" for f in result.failures
+                )
+            else:
+                final_status = ExtractionStatus.SUCCESS
+                final_error = None
+
             self.run_repo.update_status(
                 run_id=run_id,
-                status=ExtractionStatus.SUCCESS,
+                status=final_status,
+                error=final_error,
                 metrics_count=len(extracted),
                 rows_extracted=rows_staged,
                 duration_seconds=round(duration, 2),
+                sub_extractor_failures=[
+                    {
+                        "extractor_name": f.extractor_name,
+                        "error": f.error,
+                        "error_type": f.error_type,
+                    }
+                    for f in result.failures
+                ] if result.failures else None,
             )
 
             # Commit the transaction
@@ -200,8 +222,9 @@ class ETLPipeline:
             await self.cache.invalidate_tenant(str(tenant_id))
 
             logger.info(
-                "ETL pipeline completed: tenant=%s provider=%s metrics=%d duration=%.2fs",
-                tenant_id, provider_name, len(extracted), duration,
+                "ETL pipeline completed: tenant=%s provider=%s status=%s metrics=%d failures=%d duration=%.2fs",
+                tenant_id, provider_name, final_status.value, len(extracted),
+                len(result.failures), duration,
             )
 
             return run

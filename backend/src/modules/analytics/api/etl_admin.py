@@ -46,12 +46,19 @@ class RetryResponse(BaseModel):
     run_id: str
 
 
+class SubExtractorFailureDTO(BaseModel):
+    extractor_name: str
+    error: str
+    error_type: str
+
+
 class ExtractionStatusItem(BaseModel):
     provider: str
     status: str
     last_updated: Optional[datetime] = None
     error: Optional[str] = None
     metrics_count: int = 0
+    sub_extractor_failures: List[SubExtractorFailureDTO] = []
 
 
 class ETLStatusResponse(BaseModel):
@@ -237,6 +244,14 @@ def get_etl_status(
             last_updated=run.completed_at or run.created_at,
             error=run.error if run.status == ExtractionStatus.FAILED.value else None,
             metrics_count=run.metrics_count or 0,
+            sub_extractor_failures=[
+                SubExtractorFailureDTO(
+                    extractor_name=f["extractor_name"],
+                    error=f["error"],
+                    error_type=f["error_type"],
+                )
+                for f in (run.sub_extractor_failures or [])
+            ],
         )
         for run in runs
     ]

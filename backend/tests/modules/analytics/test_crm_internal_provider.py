@@ -40,14 +40,14 @@ class TestColdContactMetrics:
         mock_db.execute.side_effect = [mock_contacts_result, mock_responses_result]
 
         provider = CRMInternalProvider()
-        metrics = await provider.extract_metrics(
+        result = await provider.extract_metrics(
             TENANT_ID,
             {"db_session": mock_db},
             date(2026, 3, 1),
             date(2026, 3, 15),
         )
 
-        cold = [m for m in metrics if m.channel_slug == "cold-contact"]
+        cold = [m for m in result.metrics if m.channel_slug == "cold-contact"]
         assert len(cold) == 2
 
         contacts = next(m for m in cold if m.metric_name == "contacts")
@@ -61,21 +61,22 @@ class TestCRMInternalErrorHandling:
     @pytest.mark.asyncio
     async def test_missing_db_session(self):
         provider = CRMInternalProvider()
-        metrics = await provider.extract_metrics(
+        result = await provider.extract_metrics(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
         )
-        assert metrics == []
+        assert result.metrics == []
 
     @pytest.mark.asyncio
     async def test_db_exception(self):
+        """DB exceptions propagate to the pipeline, which handles them as FAILED runs."""
         mock_db = MagicMock()
         mock_db.execute.side_effect = Exception("DB connection lost")
 
         provider = CRMInternalProvider()
-        metrics = await provider.extract_metrics(
-            TENANT_ID,
-            {"db_session": mock_db},
-            date(2026, 3, 1),
-            date(2026, 3, 15),
-        )
-        assert metrics == []
+        with pytest.raises(Exception, match="DB connection lost"):
+            await provider.extract_metrics(
+                TENANT_ID,
+                {"db_session": mock_db},
+                date(2026, 3, 1),
+                date(2026, 3, 15),
+            )

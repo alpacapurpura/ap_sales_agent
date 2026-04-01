@@ -45,10 +45,11 @@ class TestTikTokOrganic:
             MockAdapter.return_value = adapter_instance
 
             provider = TikTokProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         organic = [m for m in metrics if m.channel_slug == "tiktok-organic"]
         assert len(organic) >= 2
 
@@ -82,10 +83,11 @@ class TestTikTokAds:
             MockAdapter.return_value = adapter_instance
 
             provider = TikTokProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         ads = [m for m in metrics if m.channel_slug == "tiktok-ads"]
         assert len(ads) >= 4
 
@@ -101,10 +103,10 @@ class TestTikTokProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_missing_credentials(self):
         provider = TikTokProvider()
-        metrics = await provider.extract_metrics(
+        result = await provider.extract_metrics(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
         )
-        assert metrics == []
+        assert result.metrics == []
 
     @pytest.mark.asyncio
     async def test_adapter_exception(self):
@@ -117,7 +119,7 @@ class TestTikTokProviderErrorHandling:
             MockAdapter.return_value = adapter_instance
 
             provider = TikTokProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
-        assert metrics == []
+        assert result.metrics == []

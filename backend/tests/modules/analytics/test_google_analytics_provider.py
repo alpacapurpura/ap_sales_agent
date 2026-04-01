@@ -54,10 +54,11 @@ class TestGA4Segmentation:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAnalyticsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         google_organic = [m for m in metrics if m.channel_slug == "google-organic"]
         assert len(google_organic) == 8  # 8 metrics now
         sessions = next(m for m in google_organic if m.metric_name == "sessions")
@@ -97,10 +98,11 @@ class TestGA4Segmentation:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAnalyticsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         direct = [m for m in metrics if m.channel_slug == "direct"]
         assert len(direct) == 8
         sessions = next(m for m in direct if m.metric_name == "sessions")
@@ -125,10 +127,11 @@ class TestGA4Segmentation:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAnalyticsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
+        metrics = result.metrics
         ai_search = [m for m in metrics if m.channel_slug == "ai-search-organic"]
         assert len(ai_search) == 8
         sessions = next(m for m in ai_search if m.metric_name == "sessions")
@@ -161,10 +164,11 @@ class TestGA4DailyExtraction:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAnalyticsProvider()
-            metrics = await provider.extract_metrics_daily(
+            result = await provider.extract_metrics_daily(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
             )
 
+        metrics = result.metrics
         # Google organic on March 1
         go_mar1 = [m for m in metrics if m.channel_slug == "google-organic" and m.date == date(2026, 3, 1)]
         assert len(go_mar1) == 8
@@ -184,20 +188,20 @@ class TestGA4DailyExtraction:
     @pytest.mark.asyncio
     async def test_extract_metrics_daily_missing_property(self):
         provider = GoogleAnalyticsProvider()
-        metrics = await provider.extract_metrics_daily(
+        result = await provider.extract_metrics_daily(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 2)
         )
-        assert metrics == []
+        assert result.metrics == []
 
 
 class TestGAProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_missing_property_id(self):
         provider = GoogleAnalyticsProvider()
-        metrics = await provider.extract_metrics(
+        result = await provider.extract_metrics(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
         )
-        assert metrics == []
+        assert result.metrics == []
 
     @pytest.mark.asyncio
     async def test_empty_report(self):
@@ -211,7 +215,7 @@ class TestGAProviderErrorHandling:
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAnalyticsProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
-        assert metrics == []
+        assert result.metrics == []

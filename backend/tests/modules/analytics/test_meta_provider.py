@@ -94,9 +94,10 @@ class TestInstagramOrganic:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
+        metrics = result.metrics
 
         ig_metrics = [m for m in metrics if m.channel_slug == "ig-organic"]
         assert len(ig_metrics) >= 2
@@ -182,9 +183,10 @@ class TestFacebookOrganic:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
+        metrics = result.metrics
 
         fb_metrics = [m for m in metrics if m.channel_slug == "fb-organic"]
         assert len(fb_metrics) >= 2
@@ -230,9 +232,10 @@ class TestMetaAds:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
+        metrics = result.metrics
 
         ads_metrics = [m for m in metrics if m.channel_slug == "meta-ads"]
         assert len(ads_metrics) == 8
@@ -287,9 +290,10 @@ class TestMetaAds:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, creds_eur, date(2026, 3, 1), date(2026, 3, 15)
             )
+        metrics = result.metrics
 
         spend = next(m for m in metrics if m.metric_name == "spend" and m.channel_slug == "meta-ads")
         assert spend.currency == "EUR"
@@ -316,9 +320,10 @@ class TestMetaAds:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID, creds_no_currency, date(2026, 3, 1), date(2026, 3, 15)
             )
+        metrics = result.metrics
 
         spend = next(m for m in metrics if m.metric_name == "spend" and m.channel_slug == "meta-ads")
         assert spend.currency == "USD"
@@ -364,9 +369,10 @@ class TestExtractMetricsDaily:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics_daily(
+            result = await provider.extract_metrics_daily(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
             )
+        metrics = result.metrics
 
         reach_metrics = [m for m in metrics if m.metric_name == "reach" and m.channel_slug == "ig-organic"]
         assert len(reach_metrics) == 3
@@ -427,9 +433,10 @@ class TestExtractMetricsDaily:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics_daily(
+            result = await provider.extract_metrics_daily(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
             )
+        metrics = result.metrics
 
         ads_metrics = [m for m in metrics if m.channel_slug == "meta-ads"]
         # 8 metric types × 2 days = 16
@@ -499,9 +506,10 @@ class TestExtractMetricsDaily:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics_daily(
+            result = await provider.extract_metrics_daily(
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
             )
+        metrics = result.metrics
 
         fb_metrics = [m for m in metrics if m.channel_slug == "fb-organic"]
         reach_d1 = [m for m in fb_metrics if m.metric_name == "reach" and m.date == date(2026, 3, 1)]
@@ -515,20 +523,20 @@ class TestExtractMetricsDaily:
     @pytest.mark.asyncio
     async def test_empty_credentials_returns_empty(self):
         provider = MetaProvider()
-        metrics = await provider.extract_metrics_daily(
+        result = await provider.extract_metrics_daily(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 3)
         )
-        assert metrics == []
+        assert result.metrics == []
 
 
 class TestMetaProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_empty_credentials(self):
         provider = MetaProvider()
-        metrics = await provider.extract_metrics(
+        result = await provider.extract_metrics(
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
         )
-        assert metrics == []
+        assert result.metrics == []
 
     @pytest.mark.asyncio
     async def test_api_error_returns_empty(self):
@@ -544,15 +552,15 @@ class TestMetaProviderErrorHandling:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID,
                 {"access_token": "bad_token"},
                 date(2026, 3, 1),
                 date(2026, 3, 15),
             )
         # Should return empty, not raise — and not silently return zeroes
-        assert isinstance(metrics, list)
-        assert len(metrics) == 0
+        assert isinstance(result.metrics, list)
+        assert len(result.metrics) == 0
 
     @pytest.mark.asyncio
     async def test_401_does_not_return_zero_metrics(self):
@@ -568,11 +576,11 @@ class TestMetaProviderErrorHandling:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            metrics = await provider.extract_metrics(
+            result = await provider.extract_metrics(
                 TENANT_ID,
                 {**CREDS, "access_token": "expired_token"},
                 date(2026, 3, 1),
                 date(2026, 3, 15),
             )
         # Must be empty — the old code would have returned metrics with 0 values
-        assert len(metrics) == 0
+        assert len(result.metrics) == 0

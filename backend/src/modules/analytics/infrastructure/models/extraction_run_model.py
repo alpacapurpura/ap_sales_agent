@@ -3,7 +3,7 @@
 import uuid
 
 from sqlalchemy import Column, DateTime, Float, Index, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 
 from src.shared.domain.base_entity import Base
@@ -25,6 +25,7 @@ class ExtractionRunModel(Base):
     duration_seconds = Column(Float, nullable=True)
     rows_extracted = Column(Integer, server_default="0")
     rate_limit_headroom = Column(Float, nullable=True)
+    sub_extractor_failures = Column(JSONB, server_default="[]")
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

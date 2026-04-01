@@ -45,6 +45,13 @@ def _make_extracted_metric(**overrides):
     return ExtractedMetric(**defaults)
 
 
+def _make_extraction_result(*metrics):
+    """Wrap ExtractedMetric list in ExtractionResult."""
+    from src.modules.analytics.domain.extraction_result import ExtractionResult
+
+    return ExtractionResult(metrics=list(metrics))
+
+
 def _make_run_model(run_id=None, status="pending"):
     """Create a mock ExtractionRunModel."""
     model = MagicMock()
@@ -67,10 +74,10 @@ class TestETLPipelineHappyPath:
         mock_db = MagicMock()
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
-        mock_provider.extract_metrics.return_value = [
+        mock_provider.extract_metrics.return_value = _make_extraction_result(
             _make_extracted_metric(),
             _make_extracted_metric(metric_name="clicks", value=50.0),
-        ]
+        )
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
@@ -126,7 +133,9 @@ class TestETLPipelineHappyPath:
         mock_db = MagicMock()
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
-        mock_provider.extract_metrics.return_value = [_make_extracted_metric()]
+        mock_provider.extract_metrics.return_value = _make_extraction_result(
+            _make_extracted_metric()
+        )
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(

@@ -15,13 +15,12 @@ tenant isolation — same pattern as MetaProvider.
 import asyncio
 import logging
 from datetime import date, datetime
-
-import sentry_sdk
 from typing import Dict, List, Optional, Set
 from uuid import UUID
 
 import httpx
 
+from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
     ExtractedMetric,
@@ -165,42 +164,54 @@ class MailerLiteProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str = "nurture",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         api_key = credentials.get("api_key")
         if not api_key:
             logger.warning("mailerlite_no_api_key tenant=%s", tenant_id)
-            return []
+            return ExtractionResult()
 
         if stage not in EMAIL_STAGES:
             logger.warning(
                 "mailerlite_unknown_stage tenant=%s stage=%s", tenant_id, stage
             )
-            return []
+            return ExtractionResult()
 
         headers = _get_headers(api_key)
         slug = STAGE_TO_SLUG[stage]
 
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                if stage == "capture":
-                    return await self._extract_capture(
-                        client, headers, credentials, start_date, end_date, slug,
-                    )
-                if stage in CAMPAIGN_STAGES:
-                    return await self._extract_campaigns(
-                        client, headers, credentials, start_date, end_date, stage, slug,
-                    )
-                if stage in AUTOMATION_STAGES:
-                    return await self._extract_automations(
-                        client, headers, credentials, start_date, end_date, slug,
-                    )
-        except Exception:
-            sentry_sdk.set_tag("provider", "mailerlite")
-            sentry_sdk.capture_exception()
-            logger.exception(
-                "mailerlite_extract_failed tenant=%s stage=%s", tenant_id, stage,
-            )
-        return []
+        metrics: List[ExtractedMetric] = []
+        failures = []
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            if stage == "capture":
+                m, fail = await self._safe_extract(
+                    self._extract_capture,
+                    client, headers, credentials, start_date, end_date, slug,
+                    extractor_name="mailerlite_capture",
+                )
+                metrics.extend(m)
+                if fail:
+                    failures.append(fail)
+            elif stage in CAMPAIGN_STAGES:
+                m, fail = await self._safe_extract(
+                    self._extract_campaigns,
+                    client, headers, credentials, start_date, end_date, stage, slug,
+                    extractor_name="mailerlite_campaigns",
+                )
+                metrics.extend(m)
+                if fail:
+                    failures.append(fail)
+            elif stage in AUTOMATION_STAGES:
+                m, fail = await self._safe_extract(
+                    self._extract_automations,
+                    client, headers, credentials, start_date, end_date, slug,
+                    extractor_name="mailerlite_automations",
+                )
+                metrics.extend(m)
+                if fail:
+                    failures.append(fail)
+
+        return ExtractionResult(metrics=metrics, failures=failures)
 
     # ------------------------------------------------------------------
     # CAPTURE stage
@@ -619,13 +630,7 @@ class MailerLiteProvider(BaseMetricsProvider):
 
             # 2. Fetch automation activity/stats
             activity_url = f"{BASE_URL}/automations/{auto_id}/activity"
-            try:
-                activity_resp = await _api_get(client, activity_url, headers)
-            except httpx.HTTPStatusError:
-                logger.warning(
-                    "mailerlite_automation_activity_failed id=%s", auto_id,
-                )
-                continue
+            activity_resp = await _api_get(client, activity_url, headers)
             await asyncio.sleep(_RATE_LIMIT_SLEEP)
 
             activity = activity_resp.json()

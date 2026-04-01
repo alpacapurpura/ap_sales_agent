@@ -7,10 +7,19 @@ source through a uniform interface.
 
 from abc import ABC, abstractmethod
 from datetime import date, timedelta
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 from uuid import UUID
 
+import sentry_sdk
+import structlog
 from pydantic import BaseModel, Field
+
+from src.modules.analytics.domain.extraction_result import (
+    ExtractionResult,
+    SubExtractorFailure,
+)
+
+logger = structlog.get_logger(__name__)
 
 
 class ExtractedMetric(BaseModel):
@@ -48,7 +57,7 @@ class BaseMetricsProvider(ABC):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         """Extract metrics from the provider API for the given date range."""
         ...
 
@@ -59,21 +68,60 @@ class BaseMetricsProvider(ABC):
         start_date: date,
         end_date: date,
         stage: str = "attraction",
-    ) -> List[ExtractedMetric]:
+    ) -> ExtractionResult:
         """Extract metrics with per-day granularity.
 
         Default implementation iterates day-by-day calling extract_metrics.
         Providers should override for optimized daily queries (e.g. date dimension).
         """
-        metrics: List[ExtractedMetric] = []
+        all_metrics: List[ExtractedMetric] = []
+        all_failures: List[SubExtractorFailure] = []
         current = start_date
         while current <= end_date:
-            day_metrics = await self.extract_metrics(
+            day_result = await self.extract_metrics(
                 tenant_id, credentials, current, current, stage=stage
             )
-            metrics.extend(day_metrics)
+            all_metrics.extend(day_result.metrics)
+            all_failures.extend(day_result.failures)
             current += timedelta(days=1)
-        return metrics
+        return ExtractionResult(metrics=all_metrics, failures=all_failures)
+
+    async def _safe_extract(
+        self,
+        fn: Callable,
+        *args,
+        extractor_name: str,
+    ) -> Tuple[List[ExtractedMetric], Optional[SubExtractorFailure]]:
+        """Run a sub-extractor safely, capturing exceptions as SubExtractorFailure.
+
+        Tags the Sentry event with provider + sub_extractor info so alerts
+        can filter by failure_type=partial.
+        """
+        try:
+            result = await fn(*args)
+            return result, None
+        except Exception as exc:
+            sentry_sdk.set_tag("provider", self.provider_name())
+            sentry_sdk.set_tag("sub_extractor", extractor_name)
+            sentry_sdk.set_tag("failure_type", "partial")
+            sentry_sdk.capture_exception(exc)
+            logger.exception(
+                "%s_%s_failed", self.provider_name(), extractor_name
+            )
+            error_str = str(exc).lower()
+            if "timeout" in error_str:
+                error_type = "timeout"
+            elif "auth" in error_str or "401" in error_str or "403" in error_str:
+                error_type = "auth"
+            elif "rate" in error_str or "429" in error_str:
+                error_type = "rate_limit"
+            else:
+                error_type = "api_error"
+            return [], SubExtractorFailure(
+                extractor_name=extractor_name,
+                error=str(exc)[:500],
+                error_type=error_type,
+            )
 
     @abstractmethod
     def provider_name(self) -> str:
