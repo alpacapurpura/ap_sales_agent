@@ -11,6 +11,7 @@ export const CHANNEL_COLORS: Record<string, string> = {
   'tiktok-ads': '#00F2EA',
   'direct': '#6B7280',
   'ai-search-organic': '#8B5CF6',
+  'search-console': '#4285F4',
   'manychat-comments': '#0084FF',
   'linkedin-organic': '#0A66C2',
   'email-capture': '#F59E0B',

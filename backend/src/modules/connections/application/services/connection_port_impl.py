@@ -53,6 +53,7 @@ EXPIRY_BUFFER_SECONDS = 300
 # channel type (google_analytics). This map resolves the alias before lookup.
 PROVIDER_TO_CHANNEL_TYPE_ALIAS = {
     "google_ads": "google_analytics",  # Google Ads uses same Google OAuth as GA4
+    "search_console": "google_analytics",  # Search Console uses same Google OAuth
 }
 
 # Child providers that need the parent connection's OAuth credentials

@@ -33,6 +33,7 @@ _PROVIDER_CHANNEL_TYPES: dict[str, list[ChannelType]] = {
     "manychat": [ChannelType.MANYCHAT],
     "shopify": [ChannelType.SHOPIFY],
     "meta_pixel": [ChannelType.META_PIXEL],
+    "search_console": [ChannelType.GOOGLE_ANALYTICS],
 }
 
 # Maps provider -> config keys that indicate it's fully configured
@@ -42,6 +43,7 @@ _CONFIG_REQUIRED: dict[str, list[str]] = {
     "meta": [],  # Just needs active connection
     "google_ads": ["property_id"],
     "meta_pixel": [],  # Just needs active connection (child of Meta OAuth)
+    "search_console": ["site_url"],
 }
 
 # Maps provider -> config keys for display name

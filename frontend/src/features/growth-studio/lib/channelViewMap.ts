@@ -79,6 +79,9 @@ const SLUG_TO_VIEW: Record<string, LazyView> = {
   'yt-ads': GoogleWorkspaceView,
   'google-retargeting': GoogleWorkspaceView,
 
+  // Search Console provider (uses same Google OAuth as Analytics)
+  'search-console': GoogleWorkspaceView,
+
   // YouTube organic — connects via Google Workspace OAuth (YouTube is a sub-service there)
   'yt-organic': GoogleWorkspaceView,
 

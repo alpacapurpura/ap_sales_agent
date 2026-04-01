@@ -69,13 +69,14 @@ export function getChannelIcon(channelSlug: string): ChannelIconComponent {
     return Zap as ChannelIconComponent;
   }
 
-  // Google (ads, search, GA4, retargeting)
+  // Google (ads, search, GA4, retargeting, Search Console)
   if (
     slug === 'google-ads' ||
     slug === 'google-search' ||
     slug === 'ga4-search' ||
     slug === 'google-organic' ||
-    slug === 'google-retargeting'
+    slug === 'google-retargeting' ||
+    slug === 'search-console'
   ) {
     return Search as ChannelIconComponent;
   }
@@ -192,7 +193,8 @@ export function getChannelColor(channelSlug: string): string {
     slug === 'google-search' ||
     slug === 'ga4-search' ||
     slug === 'google-organic' ||
-    slug === 'google-retargeting'
+    slug === 'google-retargeting' ||
+    slug === 'search-console'
   ) {
     return '#4285F4';
   }

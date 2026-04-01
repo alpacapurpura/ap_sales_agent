@@ -44,6 +44,8 @@ WORKSPACE_SCOPES = [
     # YouTube Analytics (watch time, demographics, traffic sources, revenue)
     "https://www.googleapis.com/auth/yt-analytics.readonly",
     "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",
+    # Search Console
+    "https://www.googleapis.com/auth/webmasters.readonly",
 ]
 
 # Maps service slug -> ChannelType
