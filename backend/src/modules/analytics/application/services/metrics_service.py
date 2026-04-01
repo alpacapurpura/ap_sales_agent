@@ -110,6 +110,7 @@ from src.modules.analytics.application.services.channel_registry import (
 )
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
+from src.modules.analytics.application.services.aggregation_helpers import compute_channel_totals
 
 # Maps our channel slugs to the ChannelType enum for connection lookups (sankey legacy)
 _CHANNEL_CONNECTION_MAP: Dict[str, ChannelType] = {
@@ -451,13 +452,6 @@ class MetricsService:
             available_channels.append(dto)
 
         # 6. Compute group totals
-        def _compute_totals(channels: List[ChannelMetricDTO]) -> Dict[str, float]:
-            totals: Dict[str, float] = defaultdict(float)
-            for ch in channels:
-                for m in ch.metrics:
-                    totals[m.name] += m.value
-            return dict(totals)
-
         available_dto = (
             AvailableChannelsDTO(channels=available_channels)
             if available_channels
@@ -466,7 +460,7 @@ class MetricsService:
 
         website_group = (
             TrafficGroupDTO(
-                totals=_compute_totals(groups["website"]),
+                totals=compute_channel_totals(groups["website"]),
                 channels=groups["website"],
             )
             if groups["website"]
@@ -475,19 +469,19 @@ class MetricsService:
 
         result = AttractionDetailDTO(
             organic_social=TrafficGroupDTO(
-                totals=_compute_totals(groups["organic_social"]),
+                totals=compute_channel_totals(groups["organic_social"]),
                 channels=groups["organic_social"],
             ),
             ga4_search=TrafficGroupDTO(
-                totals=_compute_totals(groups["ga4_search"]),
+                totals=compute_channel_totals(groups["ga4_search"]),
                 channels=groups["ga4_search"],
             ),
             paid=TrafficGroupDTO(
-                totals=_compute_totals(groups["paid"]),
+                totals=compute_channel_totals(groups["paid"]),
                 channels=groups["paid"],
             ),
             outbound=TrafficGroupDTO(
-                totals=_compute_totals(groups["outbound"]),
+                totals=compute_channel_totals(groups["outbound"]),
                 channels=groups["outbound"],
             ),
             website=website_group,
@@ -702,13 +696,6 @@ class MetricsService:
             available_channels.append(dto)
 
         # 7. Compute group totals
-        def _compute_totals(channels: List[ChannelMetricDTO]) -> Dict[str, float]:
-            totals: Dict[str, float] = defaultdict(float)
-            for ch_dto in channels:
-                for m in ch_dto.metrics:
-                    totals[m.name] += m.value
-            return dict(totals)
-
         total_leads = sum(lead_counts.values())
         total_costs = sum(all_costs.values())
         overall_conv_rate = round(total_leads / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
@@ -734,11 +721,11 @@ class MetricsService:
                 conversion_rate=overall_conv_rate,
             ),
             web_infrastructure=TrafficGroupDTO(
-                totals=_compute_totals(groups["web_infrastructure"]),
+                totals=compute_channel_totals(groups["web_infrastructure"]),
                 channels=groups["web_infrastructure"],
             ),
             ai_agent=TrafficGroupDTO(
-                totals=_compute_totals(groups["ai_agent"]),
+                totals=compute_channel_totals(groups["ai_agent"]),
                 channels=groups["ai_agent"],
             ),
             available=available_dto,
@@ -970,18 +957,11 @@ class MetricsService:
             available_channels.append(dto)
 
         # 8. Compute group totals with per-group cost_per_mql
-        def _compute_totals(channels: List[ChannelMetricDTO]) -> Dict[str, float]:
-            totals: Dict[str, float] = defaultdict(float)
-            for ch_dto in channels:
-                for m in ch_dto.metrics:
-                    totals[m.name] += m.value
-            return dict(totals)
-
-        retargeting_totals = _compute_totals(groups["retargeting"])
+        retargeting_totals = compute_channel_totals(groups["retargeting"])
         if retargeting_cost_per_mql is not None:
             retargeting_totals["cost_per_mql"] = retargeting_cost_per_mql
 
-        automation_totals = _compute_totals(groups["automation"])
+        automation_totals = compute_channel_totals(groups["automation"])
         if automation_cost_per_mql is not None:
             automation_totals["cost_per_mql"] = automation_cost_per_mql
 
@@ -1188,12 +1168,6 @@ class MetricsService:
             available_channels.append(dto)
 
         # 6. Compute group totals
-        def _compute_totals(channels: List[ChannelMetricDTO]) -> Dict[str, float]:
-            totals: Dict[str, float] = defaultdict(float)
-            for ch_dto in channels:
-                for m in ch_dto.metrics:
-                    totals[m.name] += m.value
-            return dict(totals)
 
         # 7. Bottleneck detection
         bottlenecks: list[BottleneckDTO] = []
@@ -1264,15 +1238,15 @@ class MetricsService:
                 conversion_rate=conversion_rate,
             ),
             checkout=TrafficGroupDTO(
-                totals=_compute_totals(groups["checkout"]),
+                totals=compute_channel_totals(groups["checkout"]),
                 channels=groups["checkout"],
             ),
             payment_links=TrafficGroupDTO(
-                totals=_compute_totals(groups["payment_links"]),
+                totals=compute_channel_totals(groups["payment_links"]),
                 channels=groups["payment_links"],
             ),
             qualification=TrafficGroupDTO(
-                totals=_compute_totals(groups["qualification"]),
+                totals=compute_channel_totals(groups["qualification"]),
                 channels=groups["qualification"],
             ),
             bottlenecks=bottlenecks,
