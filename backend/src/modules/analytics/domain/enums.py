@@ -29,3 +29,13 @@ class ExtractionStatus(str, Enum):
     SUCCESS = "success"
     FAILED = "failed"
     RETRYING = "retrying"
+
+
+class AggregationType(str, Enum):
+    """Defines how a metric should be aggregated across time periods."""
+
+    ADDITIVE = "additive"          # SUM seguro (clicks, spend, sessions)
+    WEIGHTED_AVERAGE = "weighted_avg"  # Requiere denominador (bounceRate/sessions)
+    DERIVED = "derived"            # Recalcular de componentes (CPC = spend/clicks)
+    NON_AGGREGABLE = "non_aggregable"  # Solo diario; personas únicas, no summable cross-day
+    SNAPSHOT = "snapshot"          # Último valor del período (active_subscribers)
