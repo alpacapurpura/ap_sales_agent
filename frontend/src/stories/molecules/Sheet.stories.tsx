@@ -13,12 +13,6 @@ const meta = {
   title: 'Molecules/Sheet',
   component: Sheet,
   tags: ['autodocs'],
-  argTypes: {
-    side: {
-      control: 'select',
-      options: ['top', 'right', 'bottom', 'left'],
-    },
-  },
 } satisfies Meta<typeof Sheet>;
 
 export default meta;

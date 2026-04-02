@@ -4,7 +4,7 @@ RUN apk add --no-cache libc6-compat
 
 FROM base AS deps
 COPY package.json package-lock.json .npmrc ./
-ENV npm_config_jobs=2
+ENV npm_config_jobs=1
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev
 
