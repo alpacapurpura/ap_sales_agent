@@ -193,6 +193,9 @@ jobs:
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+          VPS_APP_PATH: ${{ secrets.VPS_APP_PATH }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: root
@@ -200,13 +203,18 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           timeout: 30s
           command_timeout: 10m
+          envs: DEPLOY_SHA,VPS_APP_PATH
           script: |
             set -e
 
-            cd ${{ secrets.VPS_APP_PATH }}
+            cd ${VPS_APP_PATH}
 
             echo "🔧 Patching .env.prod with any missing required variables..."
             grep -q "^API_URL=" .env.prod || echo "API_URL=http://backend:8000" >> .env.prod
+
+            echo "🏷️ Setting SENTRY_RELEASE to current commit SHA..."
+            sed -i "s/^SENTRY_RELEASE=.*/SENTRY_RELEASE=${DEPLOY_SHA}/" .env.prod
+            sed -i "s/^NEXT_PUBLIC_SENTRY_RELEASE=.*/NEXT_PUBLIC_SENTRY_RELEASE=${DEPLOY_SHA}/" .env.prod
 
             echo "🔐 Logging into GHCR..."
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u alpacapurpura --password-stdin
@@ -276,3 +284,19 @@ jobs:
           done
           echo "❌ Frontend health check failed after 2 minutes: HTTP $STATUS"
           exit 1
+
+  notify-failure:
+    name: 🚨 Notify Deploy Failure
+    runs-on: ubuntu-latest
+    needs: [deploy, healthcheck]
+    if: failure()
+    steps:
+      - name: Send Slack alert
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚨 *DEPLOY FAILED*: `nicolify@${{ github.sha }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }

@@ -133,6 +133,7 @@ class Settings(BaseSettings):
 
     # Sentry / Environment
     SENTRY_DSN: str = ""
+    SENTRY_WORKER_DSN: str = ""  # Workers project DSN — falls back to SENTRY_DSN if empty
     ENVIRONMENT: str = "dev"
     SENTRY_TRACES_SAMPLE_RATE: float = 0.1
     SENTRY_PROFILES_SAMPLE_RATE: float = 0.1

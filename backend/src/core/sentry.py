@@ -64,30 +64,42 @@ def init_sentry(service_name: str) -> None:
     """Initialise Sentry SDK for the given service.
 
     service_name: "api" | "worker" | "scheduler"
-    No-op if SENTRY_DSN is not configured.
+    Workers use SENTRY_WORKER_DSN when set, else fall back to SENTRY_DSN.
+    No-op if no DSN is configured.
     """
-    if not settings.SENTRY_DSN:
+    import logging
+
+    dsn = settings.SENTRY_DSN
+    if service_name in ("worker", "scheduler") and settings.SENTRY_WORKER_DSN:
+        dsn = settings.SENTRY_WORKER_DSN
+    if not dsn:
         return
 
     from sentry_sdk.integrations import Integration
-    integrations: list[Integration] = []
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    logging_integration = LoggingIntegration(
+        level=logging.WARNING,       # WARNING+ → Sentry breadcrumbs
+        event_level=logging.ERROR,   # ERROR+ → Sentry events
+    )
+    integrations: list[Integration] = [logging_integration]
 
     if service_name == "api":
         from sentry_sdk.integrations.fastapi import FastApiIntegration
         from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
         from sentry_sdk.integrations.httpx import HttpxIntegration
 
-        integrations = [FastApiIntegration(), SqlalchemyIntegration(), HttpxIntegration()]
+        integrations += [FastApiIntegration(), SqlalchemyIntegration(), HttpxIntegration()]
 
     elif service_name in ("worker", "scheduler"):
         from sentry_sdk.integrations.arq import ArqIntegration
         from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
         from sentry_sdk.integrations.httpx import HttpxIntegration
 
-        integrations = [ArqIntegration(), SqlalchemyIntegration(), HttpxIntegration()]
+        integrations += [ArqIntegration(), SqlalchemyIntegration(), HttpxIntegration()]
 
     sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
+        dsn=dsn,
         environment=settings.ENVIRONMENT,
         release=f"nicolify-backend@{settings.SENTRY_RELEASE}",
         server_name=f"nicolify-{service_name}",

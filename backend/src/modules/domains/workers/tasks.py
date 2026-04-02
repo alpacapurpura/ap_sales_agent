@@ -6,7 +6,9 @@ and calls verify_domain() for each one to sync status from Cloudflare.
 
 from datetime import datetime, timedelta, timezone
 
+import sentry_sdk
 import structlog
+from sentry_sdk.crons import MonitorStatus, capture_checkin
 
 logger = structlog.get_logger(__name__)
 
@@ -30,6 +32,16 @@ async def poll_domain_verification(ctx: dict) -> dict:
     if db_factory is None:
         logger.error("poll_domain_verification_no_db_factory")
         return {"processed": 0, "error": "no db_factory in context"}
+
+    check_in_id = capture_checkin(
+        monitor_slug="domain-verification-poll",
+        status=MonitorStatus.IN_PROGRESS,
+        monitor_config={
+            "schedule": {"type": "crontab", "value": "*/5 * * * *"},
+            "checkin_margin": 3,
+            "max_runtime": 5,
+        },
+    )
 
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=_PENDING_THRESHOLD_MINUTES)
     pending_statuses = [DomainStatus.PENDING_VERIFICATION, DomainStatus.VERIFYING]
@@ -68,6 +80,7 @@ async def poll_domain_verification(ctx: dict) -> dict:
                 )
             except Exception as exc:
                 errors += 1
+                sentry_sdk.capture_exception(exc)
                 logger.warning(
                     "domain_verification_poll_failed",
                     domain_id=str(record.id),
@@ -81,6 +94,19 @@ async def poll_domain_verification(ctx: dict) -> dict:
             errors=errors,
             candidates=len(candidates),
         )
+        capture_checkin(
+            monitor_slug="domain-verification-poll",
+            check_in_id=check_in_id,
+            status=MonitorStatus.OK,
+        )
         return {"processed": processed, "errors": errors}
+    except Exception as exc:
+        sentry_sdk.capture_exception(exc)
+        capture_checkin(
+            monitor_slug="domain-verification-poll",
+            check_in_id=check_in_id,
+            status=MonitorStatus.ERROR,
+        )
+        raise
     finally:
         db.close()

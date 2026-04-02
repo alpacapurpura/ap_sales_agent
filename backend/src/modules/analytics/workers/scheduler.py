@@ -65,5 +65,10 @@ async def run_tick_scheduler(ctx: dict) -> None:
             len(tenants),
             enqueued,
         )
+
+        # Heartbeat: /health reads this key to confirm scheduler is alive (TTL 5 min)
+        redis_cache = ctx.get("redis_cache")
+        if redis_cache:
+            redis_cache.setex("scheduler:last_tick", 300, "1")
     finally:
         db.close()

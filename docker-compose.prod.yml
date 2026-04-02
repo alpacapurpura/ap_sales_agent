@@ -10,9 +10,12 @@ services:
       - ./data/model_cache:/app/model_cache
       - ./data/static:/app/static
     depends_on:
-      - redis
-      - qdrant
-      - postgres
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - internal_net
       - gateway
@@ -22,6 +25,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1536M
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -38,7 +51,8 @@ services:
     env_file:
       - .env.prod
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - internal_net
       - gateway
@@ -48,6 +62,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -75,6 +99,11 @@ services:
       - "127.0.0.1:8501:8501"
     profiles:
       - admin
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     deploy:
       resources:
         limits:
@@ -89,8 +118,10 @@ services:
     env_file:
       - .env.prod
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - internal_net
     healthcheck:
@@ -99,6 +130,16 @@ services:
       timeout: 10s
       start_period: 15s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 1024M
 
   # --- ETL Scheduler ---
   scheduler:
@@ -109,8 +150,10 @@ services:
     env_file:
       - .env.prod
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
       - internal_net
     healthcheck:
@@ -119,6 +162,16 @@ services:
       timeout: 10s
       start_period: 15s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M
 
   redis:
     image: redis:7-alpine
@@ -129,6 +182,22 @@ services:
       - ./data/redis_data:/data
     networks:
       - internal_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   qdrant:
     image: qdrant/qdrant:v1.7.3
@@ -138,6 +207,22 @@ services:
       - ./data/qdrant_data:/qdrant/storage
     networks:
       - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:6333/readyz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   postgres:
     image: postgres:15-alpine
@@ -151,6 +236,22 @@ services:
       - ./data/postgres_data:/var/lib/postgresql/data
     networks:
       - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
 networks:
   internal_net:

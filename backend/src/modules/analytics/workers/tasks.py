@@ -219,6 +219,16 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
         logger.error("No db_factory in context")
         return {"status": "error", "reason": "no_db_factory"}
 
+    check_in_id = capture_checkin(
+        monitor_slug="mailerlite-etl-sync",
+        status=MonitorStatus.IN_PROGRESS,
+        monitor_config={
+            "schedule": {"type": "crontab", "value": "15 0,6,12,18 * * *"},
+            "checkin_margin": 5,
+            "max_runtime": 30,
+        },
+    )
+
     db = db_factory()
     try:
         # 1. Get all tenants with active Mailerlite connections
@@ -336,13 +346,25 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
                 db.commit()
             except Exception as e:
                 logger.error("Mailerlite ETL sync failed for tenant %s: %s", tenant_id, e)
+                sentry_sdk.capture_exception(e)
                 db.rollback()
 
         logger.info("Mailerlite ETL backup sync complete: %d events synced", synced_count)
+        capture_checkin(
+            monitor_slug="mailerlite-etl-sync",
+            check_in_id=check_in_id,
+            status=MonitorStatus.OK,
+        )
         return {"status": "ok", "synced": synced_count}
 
-    except Exception:
+    except Exception as exc:
         logger.exception("Mailerlite ETL backup sync failed globally")
+        sentry_sdk.capture_exception(exc)
+        capture_checkin(
+            monitor_slug="mailerlite-etl-sync",
+            check_in_id=check_in_id,
+            status=MonitorStatus.ERROR,
+        )
         db.rollback()
         return {"status": "error", "reason": "global_failure"}
 
@@ -406,6 +428,16 @@ async def run_inactivity_detection(ctx: dict) -> dict:
     db_factory = ctx["db_factory"]
     db = db_factory()
 
+    check_in_id = capture_checkin(
+        monitor_slug="crm-inactivity-detection",
+        status=MonitorStatus.IN_PROGRESS,
+        monitor_config={
+            "schedule": {"type": "crontab", "value": "0 4 * * *"},
+            "checkin_margin": 5,
+            "max_runtime": 15,
+        },
+    )
+
     try:
         from src.modules.crm.application.services.inactivity_service import (
             InactivityService,
@@ -419,11 +451,22 @@ async def run_inactivity_detection(ctx: dict) -> dict:
             "Inactivity detection completed: %s",
             result,
         )
+        capture_checkin(
+            monitor_slug="crm-inactivity-detection",
+            check_in_id=check_in_id,
+            status=MonitorStatus.OK,
+        )
         return result
 
-    except Exception:
+    except Exception as exc:
         db.rollback()
         logger.exception("Inactivity detection batch job failed")
+        sentry_sdk.capture_exception(exc)
+        capture_checkin(
+            monitor_slug="crm-inactivity-detection",
+            check_in_id=check_in_id,
+            status=MonitorStatus.ERROR,
+        )
         raise
 
     finally:

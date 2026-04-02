@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, Depends
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -133,6 +134,18 @@ async def logging_middleware(request: Request, call_next):
         logger.error("http_request_failed", error=str(e), process_time=process_time, exc_info=True)
         raise e
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(status_code=422, content={"detail": exc.errors()})
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import sentry_sdk
+    sentry_sdk.capture_exception(exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
 @app.on_event("startup")
 def on_startup():
     init_db()
@@ -153,8 +166,10 @@ async def shutdown_arq_pool():
         await app.state.arq_pool.close()
 
 @app.get("/health")
-async def health_check():
-    checks: dict = {"api": "ok", "version": "1.0.0"}
+def health_check():
+    import httpx
+
+    checks: dict = {"api": "ok", "version": settings.SENTRY_RELEASE}
     healthy = True
 
     # PostgreSQL readiness
@@ -175,6 +190,25 @@ async def health_check():
     except Exception:
         checks["redis"] = "error"
         healthy = False
+
+    # Qdrant readiness
+    try:
+        resp = httpx.get(f"{settings.QDRANT_URL}/readyz", timeout=3.0)
+        checks["qdrant"] = "ok" if resp.status_code == 200 else "error"
+        if resp.status_code != 200:
+            healthy = False
+    except Exception:
+        checks["qdrant"] = "error"
+        healthy = False
+
+    # Scheduler heartbeat (TTL 5 min — set by run_tick_scheduler every minute)
+    try:
+        last_tick = redis_client.get("scheduler:last_tick")
+        checks["scheduler"] = "ok" if last_tick else "stale"
+        if not last_tick:
+            healthy = False
+    except Exception:
+        checks["scheduler"] = "error"
 
     status_code = 200 if healthy else 503
     return JSONResponse(
