@@ -264,8 +264,8 @@ async def disconnect_all(
     deactivated = []
     for service_slug, channel_type in SERVICE_MAP.items():
         connection = repo.get_by_tenant_and_type(user.tenant_id, channel_type)
-        if connection and connection.is_active:
-            repo.deactivate(connection)
+        if connection and connection.credentials:
+            repo.revoke(connection)
             deactivated.append(service_slug)
 
     return {"status": "disconnected", "services": deactivated}

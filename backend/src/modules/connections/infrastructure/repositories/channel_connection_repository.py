@@ -224,6 +224,15 @@ class ChannelConnectionRepository:
         self.db.refresh(connection)
         return connection
 
+    def revoke(self, connection: ChannelConnectionModel) -> ChannelConnectionModel:
+        """Full OAuth revocation: clear credentials and set is_active=False.
+        Use this for user-initiated disconnect (not individual service toggles)."""
+        connection.credentials = {}
+        connection.is_active = False
+        self.db.commit()
+        self.db.refresh(connection)
+        return connection
+
     def delete(self, connection: ChannelConnectionModel) -> None:
         """Hard-delete an asset connection that no longer exists in the external platform."""
         self.db.delete(connection)
