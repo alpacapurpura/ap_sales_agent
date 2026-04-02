@@ -93,6 +93,12 @@ services:
       - postgres
     networks:
       - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import redis; r=redis.from_url(\"redis://redis:6379/0\"); r.ping()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
 
   # --- ETL Scheduler ---
   scheduler:
@@ -107,6 +113,12 @@ services:
       - postgres
     networks:
       - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import redis; r=redis.from_url(\"redis://redis:6379/0\"); r.ping()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
 
   redis:
     image: redis:7-alpine
