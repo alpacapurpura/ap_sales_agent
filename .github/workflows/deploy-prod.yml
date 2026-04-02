@@ -289,6 +289,7 @@ jobs:
     name: ☁️ Deploy Cloudflare Worker
     runs-on: ubuntu-latest
     needs: quality-gates
+    continue-on-error: true
     environment: ap_sales_agent
 
     steps:
@@ -306,9 +307,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy, healthcheck]
     if: failure()
+    environment: ap_sales_agent
     steps:
       - name: Send Slack alert
-        if: ${{ secrets.SLACK_DEPLOY_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_DEPLOY_WEBHOOK_URL }}
+        if: env.SLACK_WEBHOOK != ''
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK_URL }}
