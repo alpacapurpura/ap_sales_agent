@@ -10,6 +10,7 @@ from uuid import UUID
 import sentry_sdk
 import structlog
 from arq import Retry
+from sentry_sdk.crons import MonitorStatus, capture_checkin
 
 logger = structlog.get_logger(__name__)
 
@@ -32,6 +33,16 @@ async def run_tenant_extraction(
     db_factory = ctx["db_factory"]
     db = db_factory()
 
+    check_in_id = capture_checkin(
+        monitor_slug="etl-daily-extraction",
+        status=MonitorStatus.IN_PROGRESS,
+        monitor_config={
+            "schedule": {"type": "interval", "value": 1, "unit": "hour"},
+            "checkin_margin": 10,
+            "max_runtime": 30,
+        },
+    )
+
     try:
         # Late imports to avoid circular/missing imports during development
         from src.modules.analytics.application.services.etl_service import ETLService
@@ -53,6 +64,11 @@ async def run_tenant_extraction(
             tenant_id,
             provider,
         )
+        capture_checkin(
+            monitor_slug="etl-daily-extraction",
+            check_in_id=check_in_id,
+            status=MonitorStatus.OK,
+        )
         return {"status": "success", "tenant_id": tenant_id, "provider": provider}
 
     except ConnectionRevokedException as exc:
@@ -62,6 +78,11 @@ async def run_tenant_extraction(
             tenant_id,
             provider,
             str(exc),
+        )
+        capture_checkin(
+            monitor_slug="etl-daily-extraction",
+            check_in_id=check_in_id,
+            status=MonitorStatus.ERROR,
         )
         return {"status": "revoked", "tenant_id": tenant_id, "error": str(exc)}
 
@@ -85,6 +106,11 @@ async def run_tenant_extraction(
             scope.set_tag("provider", provider)
             scope.set_tag("job_try", str(ctx.get("job_try", 1)))
             sentry_sdk.capture_exception(exc)
+        capture_checkin(
+            monitor_slug="etl-daily-extraction",
+            check_in_id=check_in_id,
+            status=MonitorStatus.ERROR,
+        )
         raise Retry(defer=defer_seconds) from exc
 
     finally:

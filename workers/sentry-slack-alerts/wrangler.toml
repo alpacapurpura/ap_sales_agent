@@ -1,0 +1,10 @@
+name = "sentry-slack-alerts"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Secrets — configure with:
+#   wrangler secret put SLACK_WEBHOOK_URL
+#   wrangler secret put SENTRY_WEBHOOK_SECRET
+#
+# SLACK_WEBHOOK_URL     → Slack Incoming Webhook URL (api.slack.com/apps)
+# SENTRY_WEBHOOK_SECRET → Sentry Internal Integration client secret
