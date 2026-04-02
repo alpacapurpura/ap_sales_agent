@@ -18,6 +18,7 @@ export interface TestResponse {
   status: string;
   message: string;
   data?: any;
+  details?: Record<string, any>;
 }
 
 export interface ShopifyConnectRequest {
@@ -696,6 +697,18 @@ export const connectionsApi = {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Error desconectando Google Workspace");
+  },
+
+  testGoogleWorkspace: async (token: string): Promise<TestResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/google/workspace/test`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Error probando conexión de Google Workspace");
+    }
+    return res.json();
   },
 
   // YouTube

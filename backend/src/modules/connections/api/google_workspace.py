@@ -5,15 +5,21 @@ Handles a single OAuth flow that grants access to all Google services
 (Gmail, Calendar, Analytics, YouTube) at once. The code is exchanged
 ONCE and the resulting credentials are distributed to each service.
 """
+from typing import Any, Dict, Optional
+
+import sentry_sdk
 from fastapi import APIRouter, Depends, HTTPException, Body
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import json
 import os
 import structlog
 
+from google.auth.exceptions import RefreshError
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 from src.core.config import settings
 from src.core.database import get_db
@@ -28,6 +34,12 @@ os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 router = APIRouter(tags=["google-workspace"])
 logger = structlog.get_logger()
+
+
+class ConnectionTestResponse(BaseModel):
+    status: str
+    message: str
+    details: Optional[Dict[str, Any]] = None
 
 # Combined scopes for all supported Google services
 WORKSPACE_SCOPES = [
@@ -269,3 +281,203 @@ async def disconnect_all(
             deactivated.append(service_slug)
 
     return {"status": "disconnected", "services": deactivated}
+
+
+# ── Service-specific test helpers ────────────────────────────────────────────
+
+def _test_gmail(creds_data: dict) -> dict:
+    """Test Gmail: fetch user profile."""
+    creds = Credentials.from_authorized_user_info(creds_data)
+    service = build("gmail", "v1", credentials=creds)
+    profile = service.users().getProfile(userId="me").execute()
+    return {
+        "email": profile.get("emailAddress"),
+        "messages_total": profile.get("messagesTotal"),
+        "threads_total": profile.get("threadsTotal"),
+    }
+
+
+def _test_calendar(creds_data: dict) -> dict:
+    """Test Calendar: list calendars to verify access."""
+    creds = Credentials.from_authorized_user_info(creds_data)
+    service = build("calendar", "v3", credentials=creds)
+    result = service.calendarList().list(maxResults=5).execute()
+    calendars = result.get("items", [])
+    return {
+        "calendars_found": len(calendars),
+        "calendars": [
+            {"id": c.get("id"), "summary": c.get("summary"), "primary": c.get("primary", False)}
+            for c in calendars[:5]
+        ],
+    }
+
+
+def _test_analytics(creds_data: dict) -> dict:
+    """Test Analytics: fetch account summaries."""
+    creds = Credentials.from_authorized_user_info(creds_data)
+    service = build("analyticsadmin", "v1beta", credentials=creds)
+    response = service.accountSummaries().list().execute()
+    summaries = response.get("accountSummaries", [])
+    return {
+        "accounts_found": len(summaries),
+        "accounts": [
+            {"name": s.get("displayName"), "properties": len(s.get("propertySummaries", []))}
+            for s in summaries[:5]
+        ],
+    }
+
+
+def _test_youtube(creds_data: dict) -> dict:
+    """Test YouTube: fetch channel info."""
+    creds_copy = creds_data.copy()
+    if "client_id" not in creds_copy:
+        creds_copy["client_id"] = settings.GOOGLE_CLIENT_ID
+    if "client_secret" not in creds_copy:
+        creds_copy["client_secret"] = settings.GOOGLE_CLIENT_SECRET
+    creds = Credentials.from_authorized_user_info(creds_copy)
+    service = build("youtube", "v3", credentials=creds)
+    response = service.channels().list(mine=True, part="snippet,statistics").execute()
+    items = response.get("items", [])
+    if not items:
+        return {"channel": None, "note": "No se encontró un canal de YouTube asociado"}
+    ch = items[0]
+    return {
+        "channel_id": ch.get("id"),
+        "title": ch.get("snippet", {}).get("title"),
+        "subscribers": ch.get("statistics", {}).get("subscriberCount"),
+        "videos": ch.get("statistics", {}).get("videoCount"),
+    }
+
+
+# Maps service slug -> test function
+_SERVICE_TESTS: dict[str, callable] = {
+    "gmail": _test_gmail,
+    "calendar": _test_calendar,
+    "analytics": _test_analytics,
+    "youtube": _test_youtube,
+}
+
+
+@router.post("/test", response_model=ConnectionTestResponse)
+async def test_connection(
+    user: User = Depends(get_current_user),
+    repo: ChannelConnectionRepository = Depends(_get_repo),
+):
+    """
+    Tests the Google Workspace connection by probing each active service.
+    Returns per-service results or the exact failure reason.
+    Reports programming/infrastructure errors to Sentry.
+    """
+    # Find any connection with credentials (they all share the same OAuth token)
+    creds_data = None
+    for channel_type in SERVICE_MAP.values():
+        conn = repo.get_by_tenant_and_type(user.tenant_id, channel_type)
+        if conn and conn.credentials:
+            creds_data = conn.credentials
+            break
+
+    if not creds_data:
+        raise HTTPException(
+            status_code=404,
+            detail="No hay credenciales de Google Workspace. Conecta tu cuenta primero.",
+        )
+
+    results: dict[str, dict] = {}
+    any_success = False
+    has_auth_error = False
+
+    for service_slug, test_fn in _SERVICE_TESTS.items():
+        # Only test services that have active connections
+        channel_type = SERVICE_MAP.get(service_slug)
+        if not channel_type:
+            continue
+        conn = repo.get_by_tenant_and_type(user.tenant_id, channel_type)
+        if not conn or not conn.is_active:
+            results[service_slug] = {"status": "skipped", "reason": "Servicio desactivado"}
+            continue
+
+        try:
+            data = test_fn(creds_data)
+            results[service_slug] = {"status": "ok", "data": data}
+            any_success = True
+        except RefreshError as exc:
+            has_auth_error = True
+            results[service_slug] = {
+                "status": "error",
+                "error": "Token expirado o revocado. Reconecta tu cuenta de Google.",
+                "detail": str(exc),
+            }
+            logger.warning(
+                "google_workspace_test_refresh_error",
+                tenant_id=str(user.tenant_id),
+                service=service_slug,
+                error=str(exc),
+            )
+        except HttpError as exc:
+            error_reason = str(exc)
+            results[service_slug] = {
+                "status": "error",
+                "error": f"Error de API de Google: {exc.resp.status}",
+                "detail": error_reason,
+            }
+            # 4xx = user/config issue, 5xx = Google infra → report to Sentry
+            if exc.resp.status >= 500:
+                with sentry_sdk.push_scope() as scope:
+                    scope.set_tag("tenant_id", str(user.tenant_id))
+                    scope.set_tag("provider", "google_workspace")
+                    scope.set_tag("service", service_slug)
+                    scope.set_tag("failure_type", "google_api_5xx")
+                    sentry_sdk.capture_exception(exc)
+            logger.error(
+                "google_workspace_test_http_error",
+                tenant_id=str(user.tenant_id),
+                service=service_slug,
+                status_code=exc.resp.status,
+                error=error_reason,
+            )
+        except Exception as exc:
+            results[service_slug] = {
+                "status": "error",
+                "error": f"Error inesperado: {type(exc).__name__}",
+                "detail": str(exc),
+            }
+            # Unexpected errors are programming bugs → always report to Sentry
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("tenant_id", str(user.tenant_id))
+                scope.set_tag("provider", "google_workspace")
+                scope.set_tag("service", service_slug)
+                scope.set_tag("failure_type", "unexpected")
+                sentry_sdk.capture_exception(exc)
+            logger.error(
+                "google_workspace_test_unexpected_error",
+                tenant_id=str(user.tenant_id),
+                service=service_slug,
+                error=str(exc),
+            )
+
+    if has_auth_error:
+        return ConnectionTestResponse(
+            status="auth_error",
+            message="Las credenciales de Google han expirado o fueron revocadas. Reconecta tu cuenta.",
+            details=results,
+        )
+
+    if any_success:
+        failed = [s for s, r in results.items() if r.get("status") == "error"]
+        if failed:
+            return ConnectionTestResponse(
+                status="partial",
+                message=f"Conexión parcial. Servicios con error: {', '.join(failed)}.",
+                details=results,
+            )
+        return ConnectionTestResponse(
+            status="active",
+            message="Todos los servicios de Google están funcionando correctamente.",
+            details=results,
+        )
+
+    return ConnectionTestResponse(
+        status="error",
+        message="No se pudo conectar con ningún servicio de Google.",
+        details=results,
+    )

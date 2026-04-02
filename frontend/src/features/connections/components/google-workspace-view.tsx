@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useGoogleOAuthListener } from "@/features/connections/hooks/use-google-oauth-listener";
 import { openOAuthPopup } from "@/features/connections/utils/open-oauth-popup";
 import { useAuth } from "@clerk/nextjs";
-import { connectionsApi, GA4Property, GoogleAnalyticsStatusResponse } from "@/lib/api/connections";
+import { connectionsApi, GA4Property, GoogleAnalyticsStatusResponse, TestResponse } from "@/lib/api/connections";
 import { PropertyPicker } from "@/features/connections/components/property-picker";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,9 @@ import {
   LogIn,
   Unlink,
   ShieldCheck,
+  Activity,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -228,6 +231,8 @@ export function GoogleWorkspaceView() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [togglingService, setTogglingService] = useState<ServiceKey | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<TestResponse | null>(null);
 
   // GA4 Property Picker State
   const [gaStatus, setGaStatus] = useState<GoogleAnalyticsStatusResponse | null>(null);
@@ -292,6 +297,32 @@ export function GoogleWorkspaceView() {
       setIsConnecting(false);
     },
   });
+
+  const handleTest = async () => {
+    try {
+      setTesting(true);
+      setTestResult(null);
+      const token = await getToken();
+      if (!token) return;
+
+      const res = await connectionsApi.testGoogleWorkspace(token);
+      setTestResult(res);
+      if (res.status === "active") {
+        toast.success("Todos los servicios de Google funcionan correctamente");
+      } else if (res.status === "partial") {
+        toast.warning("Algunos servicios presentan errores");
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Error en la prueba";
+      console.error(error);
+      toast.error(message);
+      setTestResult({ status: "error", message });
+    } finally {
+      setTesting(false);
+    }
+  };
 
   const handleConnect = async () => {
     try {
@@ -443,13 +474,18 @@ export function GoogleWorkspaceView() {
             </CardDescription>
           </div>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive shrink-0">
-                <Unlink className="mr-1.5 h-4 w-4" />
-                Desvincular
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" onClick={handleTest} disabled={testing}>
+              {testing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Activity className="mr-1.5 h-4 w-4" />}
+              Probar Conexión
+            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive">
+                  <Unlink className="mr-1.5 h-4 w-4" />
+                  Desvincular
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>¿Desvincular Google Workspace?</DialogTitle>
@@ -470,9 +506,61 @@ export function GoogleWorkspaceView() {
                 </Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
+
+      {/* Test Connection Result */}
+      {testResult && (
+        <div className="px-6 pb-2">
+          <Alert
+            variant={testResult.status === "active" ? "default" : "destructive"}
+            className={cn(
+              testResult.status === "active" && "bg-green-500/15 text-green-700 border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20",
+              testResult.status === "partial" && "bg-amber-500/15 text-amber-700 border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+            )}
+          >
+            {testResult.status === "active" ? (
+              <CheckCircle className="h-4 w-4" />
+            ) : testResult.status === "partial" ? (
+              <AlertTriangle className="h-4 w-4" />
+            ) : (
+              <XCircle className="h-4 w-4" />
+            )}
+            <AlertTitle>
+              {testResult.status === "active"
+                ? "Conexión Estable"
+                : testResult.status === "partial"
+                  ? "Conexión Parcial"
+                  : testResult.status === "auth_error"
+                    ? "Credenciales Inválidas"
+                    : "Error de Conexión"}
+            </AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>{testResult.message}</p>
+              {testResult.details && (
+                <div className="mt-2 space-y-1.5">
+                  {Object.entries(testResult.details).map(([service, result]) => (
+                    <div key={service} className="text-xs flex items-start gap-2">
+                      <span className="font-medium min-w-[70px]">{service}:</span>
+                      {result.status === "ok" ? (
+                        <span className="text-green-700 dark:text-green-400">
+                          OK — {JSON.stringify(result.data, null, 0).slice(0, 120)}
+                        </span>
+                      ) : result.status === "skipped" ? (
+                        <span className="text-muted-foreground">{result.reason}</span>
+                      ) : (
+                        <span className="text-red-700 dark:text-red-400">{result.error}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       <Separator />
 
