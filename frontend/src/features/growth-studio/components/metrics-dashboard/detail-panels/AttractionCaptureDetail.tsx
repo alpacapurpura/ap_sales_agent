@@ -2,14 +2,14 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useAttractionDetail, useCaptureDetail, useStageTimeSeries } from '../../../hooks/useStageDetail';
-import { useSyncAllSources } from '../../../hooks/useSyncAllSources';
+import { useGrowthSync } from '../../../context/growth-sync-context';
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailError from '../ui/DetailError';
 import type { MetricClickData, StageTimeSeries as TSType, ChannelMetric } from '../../../types/metrics';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, RefreshCw, Loader2, CheckCircle2, Plug, Zap, AlertCircle } from 'lucide-react';
+import { Settings, RefreshCw, Plug, Zap } from 'lucide-react';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { AttractionScorecards } from '../attraction/AttractionScorecards';
 import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
@@ -76,7 +76,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 }: AttractionCaptureDetailProps) {
   const { data: attrData, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useAttractionDetail();
   const { data: capData, isLoading: capLoading, error: capError, refetch: refetchCap } = useCaptureDetail();
-  const { trigger: triggerSync, isLoading: isSyncing, result: syncResult, error: syncError, reset: resetSync } = useSyncAllSources();
+  const { startSync, isSyncing } = useGrowthSync();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [rangeDays, setRangeDays] = useState(30);
   const [attrFilter, setAttrFilter] = useState<AttractionFilter>('todos');
@@ -257,13 +257,13 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         </div>
         <div className="flex items-center gap-3">
           <Button
-            variant={syncError ? 'destructive' : 'outline'}
+            variant="outline"
             size="sm"
-            onClick={() => { if (syncError) resetSync(); triggerSync(30); }}
+            onClick={() => startSync(30)}
             disabled={isSyncing}
           >
-            {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : syncError ? <AlertCircle className="mr-2 h-4 w-4" /> : (syncResult ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <RefreshCw className="mr-2 h-4 w-4" />)}
-            {isSyncing ? 'Sincronizando...' : syncError ? 'Error — Reintentar' : syncResult ? (syncResult.total_loaded > 0 ? `${syncResult.providers_synced} fuentes, ${syncResult.total_loaded} dias` : 'Todo al dia') : 'Sincronizar'}
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Sincronizar
           </Button>
           <Button size="sm" onClick={() => setIsPanelOpen(true)}>
             <Settings className="mr-2 h-4 w-4" /> Gestionar

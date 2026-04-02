@@ -150,12 +150,32 @@ class ETLService:
 
         return results
 
-    async def run_sync_all(self, tenant_id: UUID, days: int = 30) -> dict:
-        """Sync all connected providers for a tenant.
+    async def _run_provider_isolated(
+        self, tenant_id: UUID, provider_name: str, days: int
+    ) -> dict:
+        """Run run_initial_load with an isolated DB session (safe for asyncio.gather).
 
-        For each active connection, resolves the ETL provider(s) via
-        CHANNEL_TYPE_TO_PROVIDERS, deduplicates, checks cooldown, and
-        runs run_initial_load (gap-detection — fast when no gaps).
+        Each concurrent provider gets its own Session so they don't share
+        SQLAlchemy state. The MetricsCache (Redis) is shared — it's thread-safe.
+        """
+        from src.core.database import SessionLocal
+        from src.modules.connections.application.services.connection_port_impl import (
+            ConnectionPortImpl,
+        )
+
+        db = SessionLocal()
+        try:
+            conn_port = ConnectionPortImpl(db)
+            svc = ETLService(db, connection_port=conn_port, cache=self.cache)
+            return await svc.run_initial_load(tenant_id, provider_name, days=days)
+        finally:
+            db.close()
+
+    async def run_sync_all(self, tenant_id: UUID, days: int = 30) -> dict:
+        """Sync all connected providers for a tenant (providers run in parallel).
+
+        Phase 1 (sequential, shared session): resolve provider list, check cooldowns.
+        Phase 2 (parallel, isolated sessions): run each provider via asyncio.gather.
 
         Returns aggregated result with per-provider details.
         """
@@ -181,19 +201,16 @@ class ETLService:
                 "details": [],
             }
 
+        # Phase 1 — cooldown check (sequential, uses shared self.db)
         run_repo = ExtractionRunRepository(self.db)
         cooldown = timedelta(minutes=15)
         now = datetime.now(timezone.utc)
 
         details: list[dict] = []
-        total_loaded = 0
-        total_skipped = 0
-        synced = 0
+        providers_to_run: list[str] = []
         skipped_cooldown = 0
-        failed = 0
 
         for provider_name in sorted(providers_to_sync):
-            # Check cooldown
             latest_run = run_repo.get_latest(tenant_id, provider_name)
             if latest_run and latest_run.started_at:
                 elapsed = now - latest_run.started_at
@@ -207,12 +224,39 @@ class ETLService:
                     })
                     skipped_cooldown += 1
                     continue
+            providers_to_run.append(provider_name)
 
-            try:
-                result = await asyncio.wait_for(
-                    self.run_initial_load(tenant_id, provider_name, days=days),
+        # Phase 2 — parallel execution (each provider gets an isolated DB session)
+        raw_results = await asyncio.gather(
+            *[
+                asyncio.wait_for(
+                    self._run_provider_isolated(tenant_id, p, days),
                     timeout=90.0,
                 )
+                for p in providers_to_run
+            ],
+            return_exceptions=True,
+        )
+
+        total_loaded = 0
+        total_skipped = 0
+        synced = 0
+        failed = 0
+
+        for provider_name, result in zip(providers_to_run, raw_results):
+            if isinstance(result, Exception):
+                logger.error(
+                    "sync_all provider %s failed for tenant %s: %s",
+                    provider_name, tenant_id, result,
+                    exc_info=result,
+                )
+                details.append({
+                    "provider": provider_name,
+                    "status": "failed",
+                    "error": str(result),
+                })
+                failed += 1
+            else:
                 details.append({
                     "provider": provider_name,
                     "status": "ok",
@@ -223,18 +267,6 @@ class ETLService:
                 total_loaded += result["loaded"]
                 total_skipped += result["skipped"]
                 synced += 1
-            except Exception as exc:
-                logger.error(
-                    "sync_all provider %s failed for tenant %s: %s",
-                    provider_name, tenant_id, exc,
-                    exc_info=True,
-                )
-                details.append({
-                    "provider": provider_name,
-                    "status": "failed",
-                    "error": str(exc),
-                })
-                failed += 1
 
         return {
             "status": "ok",

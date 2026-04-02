@@ -10,6 +10,7 @@ from datetime import date
 from typing import List
 from uuid import UUID
 
+
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
 
@@ -35,6 +36,29 @@ class SearchConsoleProvider(BaseMetricsProvider):
     def rate_limit_config(self) -> dict:
         return {"requests_per_minute": 20, "burst_size": 10}
 
+    async def extract_metrics_daily(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+        stage: str = "attraction",
+    ) -> ExtractionResult:
+        """Override: validate site_url once before delegating to per-day loop.
+
+        Avoids logging 30+ warnings per sync when site_url is not configured.
+        """
+        site_url = credentials.get("site_url")
+        if not site_url:
+            logger.warning(
+                "search_console_provider_no_site_url",
+                tenant_id=str(tenant_id),
+            )
+            return ExtractionResult()
+        return await super().extract_metrics_daily(
+            tenant_id, credentials, start_date, end_date, stage=stage
+        )
+
     async def extract_metrics(
         self,
         tenant_id: UUID,
@@ -48,9 +72,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
 
         site_url = credentials.get("site_url")
         if not site_url:
-            logger.warning(
-                "search_console_provider_no_site_url tenant=%s", tenant_id
-            )
+            # Warning is logged once in extract_metrics_daily — skip here
             return ExtractionResult()
 
         adapter = SearchConsoleAdapter(credentials_data=credentials)

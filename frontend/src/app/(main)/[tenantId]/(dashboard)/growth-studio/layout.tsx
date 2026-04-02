@@ -7,6 +7,8 @@ import MetricSidebar from '@/features/growth-studio/components/metrics-dashboard
 import ChannelDetailSidebar from '@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar';
 import { SidebarContent } from '@/features/growth-studio/components/metrics-dashboard/sidebar/SidebarContent';
 import { ChannelConnectionModal } from '@/features/growth-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal';
+import { GrowthSyncProvider } from '@/features/growth-studio/context/growth-sync-context';
+import { SyncProgressDialog } from '@/features/growth-studio/components/sync-progress-dialog';
 
 function GrowthStudioShell({ children }: { children: React.ReactNode }) {
   const {
@@ -72,7 +74,10 @@ function GrowthStudioShell({ children }: { children: React.ReactNode }) {
 export default function GrowthStudioLayout({ children }: { children: React.ReactNode }) {
   return (
     <GrowthStudioProvider>
-      <GrowthStudioShell>{children}</GrowthStudioShell>
+      <GrowthSyncProvider>
+        <GrowthStudioShell>{children}</GrowthStudioShell>
+        <SyncProgressDialog />
+      </GrowthSyncProvider>
     </GrowthStudioProvider>
   );
 }
