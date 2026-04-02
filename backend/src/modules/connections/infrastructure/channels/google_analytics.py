@@ -1,9 +1,10 @@
 import asyncio
 import json
-import logging
 import os
 from typing import Dict, Any, Optional, List
 
+import structlog
+from google.auth.exceptions import RefreshError, TransportError
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -17,7 +18,7 @@ from src.core.config import settings
 # Allow OAuth scope to change
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Scopes for Google Analytics 4 (Read Only)
 SCOPES = [
@@ -160,7 +161,22 @@ class GoogleAnalyticsAdapter:
             metrics=[Metric(name=m) for m in metrics],
             date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
         )
-        response = await asyncio.to_thread(client.run_report, request)
+        try:
+            response = await asyncio.to_thread(client.run_report, request)
+        except RefreshError as exc:
+            logger.warning(
+                "ga4_refresh_token_revoked",
+                property_id=property_id,
+                error=str(exc),
+            )
+            raise
+        except TransportError as exc:
+            logger.warning(
+                "ga4_transport_error",
+                property_id=property_id,
+                error=str(exc),
+            )
+            raise
         return self._normalize_report_response(response)
 
     def _normalize_report_response(self, response) -> dict:

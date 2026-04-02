@@ -99,19 +99,22 @@ async def extract_full_brand(
                 dry_run=dry_run)
 
     # Set initial status in Redis BEFORE enqueue (prevents race condition)
-    redis_client.setex(
-        f"brand_extract:{tenant_id}:{job_id}",
-        3600,
-        json.dumps({
-            "status": "queued",
-            "progress": 0,
-            "stage": "Iniciando análisis...",
-            "started_at": datetime.now(timezone.utc).isoformat(),
-        })
-    )
+    if redis_client:
+        redis_client.setex(
+            f"brand_extract:{tenant_id}:{job_id}",
+            3600,
+            json.dumps({
+                "status": "queued",
+                "progress": 0,
+                "stage": "Iniciando análisis...",
+                "started_at": datetime.now(timezone.utc).isoformat(),
+            })
+        )
 
     # Enqueue ARQ job
     arq_pool = request.app.state.arq_pool
+    if not arq_pool:
+        raise HTTPException(status_code=503, detail="Background job queue unavailable")
     await arq_pool.enqueue_job(
         "run_brand_extraction",
         job_id=job_id,

@@ -157,7 +157,17 @@ def on_startup():
 @app.on_event("startup")
 async def startup_arq_pool():
     """Create shared ARQ connection pool for job dispatch."""
-    app.state.arq_pool = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
+    try:
+        app.state.arq_pool = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
+        logger.info("arq_pool_connected", redis_url=settings.REDIS_URL)
+    except Exception as exc:
+        logger.warning(
+            "arq_pool_unavailable",
+            redis_url=settings.REDIS_URL,
+            error=str(exc),
+            hint="Background job dispatch will be unavailable",
+        )
+        app.state.arq_pool = None
 
 @app.on_event("shutdown")
 async def shutdown_arq_pool():

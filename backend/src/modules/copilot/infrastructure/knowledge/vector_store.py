@@ -93,9 +93,10 @@ class CopilotKnowledgeStore:
         search_filter = models.Filter(must=filter_conditions)
         search_limit = limit * 3 if self.ranker else limit
 
-        results = self.client.search(
+        response = self.client.query_points(
             collection_name=self.COLLECTION,
-            query_vector=models.NamedVector(name="dense", vector=dense_query),
+            query=dense_query,
+            using="dense",
             query_filter=search_filter,
             limit=search_limit,
         )
@@ -107,7 +108,7 @@ class CopilotKnowledgeStore:
                 "meta": hit.payload,
                 "score": hit.score,
             }
-            for hit in results
+            for hit in response.points
         ]
 
         # Rerank

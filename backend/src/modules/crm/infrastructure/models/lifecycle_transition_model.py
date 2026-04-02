@@ -27,8 +27,14 @@ class LifecycleTransitionModel(Base):
     )
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
 
-    from_stage = Column(Enum(LifecycleStage), nullable=True)  # null for initial assignment
-    to_stage = Column(Enum(LifecycleStage), nullable=False)
+    from_stage = Column(
+        Enum(LifecycleStage, values_callable=lambda enum: [e.value for e in enum]),
+        nullable=True,
+    )  # null for initial assignment
+    to_stage = Column(
+        Enum(LifecycleStage, values_callable=lambda enum: [e.value for e in enum]),
+        nullable=False,
+    )
 
     reason = Column(String, nullable=False)  # Human-readable: "Score crossed MQL threshold (42.5 >= 40)"
     triggered_by = Column(

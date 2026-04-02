@@ -6,13 +6,13 @@ traffic sources, and revenue data for the authenticated user's channel.
 
 Uses the same OAuth credentials as the unified Google Workspace flow.
 """
-import logging
 from typing import Dict, Any, List
 
+import structlog
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Scopes required (requested in the unified Workspace OAuth)
 SCOPES = [

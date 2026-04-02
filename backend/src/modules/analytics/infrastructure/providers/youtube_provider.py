@@ -13,6 +13,9 @@ import structlog
 from datetime import date
 from uuid import UUID
 
+from google.auth.exceptions import RefreshError, TransportError
+
+from src.modules.analytics.domain.exceptions import ConnectionRevokedException
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
@@ -50,11 +53,22 @@ class YouTubeProvider(BaseMetricsProvider):
 
         adapter = YouTubeAnalyticsAdapter(credentials_data=credentials)
 
-        overview = await asyncio.to_thread(
-            adapter.get_channel_overview,
-            start_date.isoformat(),
-            end_date.isoformat(),
-        )
+        try:
+            overview = await asyncio.to_thread(
+                adapter.get_channel_overview,
+                start_date.isoformat(),
+                end_date.isoformat(),
+            )
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "youtube_extract_metrics_auth_failure",
+                tenant_id=str(tenant_id),
+                error=str(exc),
+            )
+            raise ConnectionRevokedException(
+                f"YouTube OAuth token revoked/expired: {exc}",
+                channel_type="youtube",
+            ) from exc
 
         if not overview:
             return ExtractionResult()

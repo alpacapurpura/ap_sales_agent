@@ -47,14 +47,15 @@ class CustomerRepository:
     def find_by_identity(self, identity_type: IdentityType, identity_value: str, tenant_id: UUID) -> Optional[CustomerProfile]:
         """
         Find a profile by one of its identities.
-        Uses case-insensitive comparison on type to handle legacy lowercase
-        enum values (e.g., 'telegram') alongside SQLAlchemy uppercase ('TELEGRAM').
+        Compares using the enum value (lowercase) which matches the PostgreSQL
+        identitytype enum labels.
         """
-        identity = self.db.query(CustomerIdentityModel).filter(
-            func.upper(cast(CustomerIdentityModel.type, String)) == identity_type.name,
+        stmt = select(CustomerIdentityModel).where(
+            cast(CustomerIdentityModel.type, String) == identity_type.value,
             CustomerIdentityModel.value == identity_value,
-            CustomerIdentityModel.tenant_id == tenant_id
-        ).first()
+            CustomerIdentityModel.tenant_id == tenant_id,
+        )
+        identity = self.db.execute(stmt).scalars().first()
 
         if identity:
             return self._to_domain(identity.profile)
@@ -184,17 +185,21 @@ class CustomerRepository:
         )
 
         # Soft-delete the source profile
-        source = self.db.query(CustomerProfileModel).filter(
-            CustomerProfileModel.id == source_id,
-            CustomerProfileModel.tenant_id == tenant_id,
-        ).first()
+        source = self.db.execute(
+            select(CustomerProfileModel).where(
+                CustomerProfileModel.id == source_id,
+                CustomerProfileModel.tenant_id == tenant_id,
+            )
+        ).scalars().first()
         if source:
             source.is_inactive = True
             # Carry over any traits the target might be missing
-            target = self.db.query(CustomerProfileModel).filter(
-                CustomerProfileModel.id == target_id,
-                CustomerProfileModel.tenant_id == tenant_id,
-            ).first()
+            target = self.db.execute(
+                select(CustomerProfileModel).where(
+                    CustomerProfileModel.id == target_id,
+                    CustomerProfileModel.tenant_id == tenant_id,
+                )
+            ).scalars().first()
             if target and source.traits:
                 merged_traits = dict(target.traits or {})
                 for k, v in source.traits.items():
@@ -211,10 +216,13 @@ class CustomerRepository:
         )
 
     def count_by_stage(self, tenant_id: UUID, stage: Any) -> int:
-        return self.db.query(CustomerProfileModel).filter(
-            CustomerProfileModel.tenant_id == tenant_id,
-            CustomerProfileModel.lifecycle_stage == stage
-        ).count()
+        result = self.db.execute(
+            select(func.count()).select_from(CustomerProfileModel).where(
+                CustomerProfileModel.tenant_id == tenant_id,
+                CustomerProfileModel.lifecycle_stage == stage,
+            )
+        )
+        return result.scalar() or 0
 
 class JourneyEventRepository:
     def __init__(self, db: Session):
@@ -264,9 +272,12 @@ class JourneyEventRepository:
 
     def get_unique_visitors(self, tenant_id: UUID) -> int:
         try:
-            return self.db.query(JourneyEventModel).filter(
-                JourneyEventModel.tenant_id == tenant_id,
-                JourneyEventModel.event_name == "page_view"
-            ).count()
+            result = self.db.execute(
+                select(func.count()).select_from(JourneyEventModel).where(
+                    JourneyEventModel.tenant_id == tenant_id,
+                    JourneyEventModel.event_name == "page_view",
+                )
+            )
+            return result.scalar() or 0
         except Exception:
             return 0

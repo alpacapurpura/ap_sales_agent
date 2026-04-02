@@ -9,11 +9,13 @@ Gracefully handles missing developer token by returning empty results.
 """
 
 import asyncio
-import logging
 from datetime import date
 from typing import Any, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
+import structlog
+from google.auth.exceptions import RefreshError, TransportError
+
+logger = structlog.get_logger(__name__)
 
 
 class GoogleAdsAdapter:
@@ -73,6 +75,13 @@ class GoogleAdsAdapter:
                 credentials,
                 formatted_query,
             )
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "google_ads_refresh_token_revoked",
+                customer_id=customer_id,
+                error=str(exc),
+            )
+            raise
         except Exception:
             logger.exception("google_ads_query_exception")
             return []
@@ -109,6 +118,13 @@ class GoogleAdsAdapter:
                 credentials,
                 query,
             )
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "google_ads_search_terms_refresh_revoked",
+                customer_id=customer_id,
+                error=str(exc),
+            )
+            raise
         except Exception:
             logger.exception("google_ads_search_terms_exception")
             return []

@@ -13,7 +13,7 @@ tenant isolation — same pattern as MetaProvider.
 """
 
 import asyncio
-import logging
+import structlog
 from datetime import date, datetime
 from typing import Dict, List, Optional, Set
 from uuid import UUID
@@ -26,7 +26,7 @@ from src.modules.analytics.infrastructure.providers.base import (
     ExtractedMetric,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 BASE_URL = "https://connect.mailerlite.com/api"
 
@@ -106,22 +106,22 @@ async def _api_get(
         if resp.status_code == 429:
             delay = _RETRY_BASE_DELAY * (2 ** (attempt - 1))
             logger.warning(
-                "mailerlite_rate_limited url=%s attempt=%d delay=%.1fs",
-                url, attempt, delay,
+                "mailerlite_rate_limited",
+                url=url, attempt=attempt, delay=delay,
             )
             await asyncio.sleep(delay)
             continue
         if resp.status_code >= 400:
             body = resp.text[:500]
             logger.error(
-                "mailerlite_api_error url=%s status=%s body=%s",
-                url, resp.status_code, body,
+                "mailerlite_api_error",
+                url=url, status=resp.status_code, body=body,
             )
             resp.raise_for_status()
         return resp
 
     # Exhausted retries
-    logger.error("mailerlite_retries_exhausted url=%s", url)
+    logger.error("mailerlite_retries_exhausted", url=url)
     raise httpx.HTTPStatusError(
         "Rate limit retries exhausted",
         request=resp.request,  # type: ignore[possibly-undefined]
@@ -167,12 +167,12 @@ class MailerLiteProvider(BaseMetricsProvider):
     ) -> ExtractionResult:
         api_key = credentials.get("api_key")
         if not api_key:
-            logger.warning("mailerlite_no_api_key tenant=%s", tenant_id)
+            logger.warning("mailerlite_no_api_key", tenant_id=str(tenant_id))
             return ExtractionResult()
 
         if stage not in EMAIL_STAGES:
             logger.warning(
-                "mailerlite_unknown_stage tenant=%s stage=%s", tenant_id, stage
+                "mailerlite_unknown_stage", tenant_id=str(tenant_id), stage=stage,
             )
             return ExtractionResult()
 
@@ -230,19 +230,32 @@ class MailerLiteProvider(BaseMetricsProvider):
         metric_date = end_date
 
         # 1. Forms — popup, embedded, promotion
+        #    MailerLite API v2: GET /api/forms/{type} (type is a path param)
         total_conversions = 0
         total_conversion_rate = 0.0
         form_count = 0
 
         for form_type in ("popup", "embedded", "promotion"):
-            url = f"{BASE_URL}/forms?type={form_type}&limit=100"
-            resp = await _api_get(client, url, headers)
+            url = f"{BASE_URL}/forms/{form_type}"
+            try:
+                resp = await _api_get(client, url, headers, params={"limit": 100})
+            except httpx.HTTPStatusError as exc:
+                logger.warning(
+                    "mailerlite_forms_fetch_failed",
+                    form_type=form_type,
+                    status=exc.response.status_code,
+                    detail=exc.response.text[:200],
+                )
+                continue
             data = resp.json().get("data", [])
             for form in data:
                 conversions = form.get("conversions_count", 0)
-                rate = form.get("conversion_rate", 0.0)
+                raw_rate = form.get("conversion_rate", 0.0)
+                # conversion_rate may be a dict like {"float": 0.5, "string": "50%"}
+                if isinstance(raw_rate, dict):
+                    raw_rate = raw_rate.get("float", 0.0)
                 total_conversions += conversions
-                total_conversion_rate += rate
+                total_conversion_rate += float(raw_rate)
                 form_count += 1
             await asyncio.sleep(_RATE_LIMIT_SLEEP)
 
@@ -373,8 +386,8 @@ class MailerLiteProvider(BaseMetricsProvider):
             gid = str(grp.get("id", ""))
             if gid and gid not in known_groups_set:
                 logger.info(
-                    "mailerlite_new_group_detected id=%s name=%s auto_assign=nurture",
-                    gid, grp.get("name", ""),
+                    "mailerlite_new_group_detected",
+                    group_id=gid, name=grp.get("name", ""), auto_assign="nurture",
                 )
                 stage_group_mapping.setdefault("nurture", []).append(gid)
                 known_groups_set.add(gid)
@@ -401,8 +414,8 @@ class MailerLiteProvider(BaseMetricsProvider):
 
         if not matched_campaigns:
             logger.info(
-                "mailerlite_no_campaigns stage=%s date_range=%s..%s",
-                stage, start_date, end_date,
+                "mailerlite_no_campaigns",
+                stage=stage, start_date=str(start_date), end_date=str(end_date),
             )
             return []
 
@@ -493,7 +506,7 @@ class MailerLiteProvider(BaseMetricsProvider):
             if raw is None:
                 continue
             if isinstance(raw, dict):
-                logger.warning("mailerlite_unexpected_stat_type field=%s type=%s", api_field, type(raw).__name__)
+                logger.warning("mailerlite_unexpected_stat_type", field=api_field, type_name=type(raw).__name__)
                 continue
             value = float(raw)
             # MailerLite percentages come as 0.0-1.0 — convert to 0-100
@@ -613,7 +626,7 @@ class MailerLiteProvider(BaseMetricsProvider):
         await asyncio.sleep(_RATE_LIMIT_SLEEP)
 
         if not automations:
-            logger.info("mailerlite_no_automations slug=%s", slug)
+            logger.info("mailerlite_no_automations", slug=slug)
             return []
 
         total_triggered = 0

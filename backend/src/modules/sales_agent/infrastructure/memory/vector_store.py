@@ -194,21 +194,19 @@ class QdrantVectorStore(SemanticMemoryStore):
             # 3. Perform Search (Dense)
             search_limit = limit * 3 if enable_rerank else limit
             
-            results = self.client.search(
+            response = self.client.query_points(
                 collection_name=collection_name,
-                query_vector=models.NamedVector(
-                    name="dense",
-                    vector=dense_query
-                ),
+                query=dense_query,
+                using="dense",
                 query_filter=search_filter,
-                limit=search_limit
+                limit=search_limit,
             )
-            
-            logger.info(f"Dense search found {len(results)} raw candidates")
+
+            logger.info(f"Dense search found {len(response.points)} raw candidates")
 
             # Map results for Reranker
             passages = []
-            for hit in results:
+            for hit in response.points:
                 passages.append({
                     "id": hit.id,
                     "text": hit.payload.get("content", ""),

@@ -18,6 +18,9 @@ from datetime import date
 from typing import Dict, List
 from uuid import UUID
 
+from google.auth.exceptions import RefreshError, TransportError
+
+from src.modules.analytics.domain.exceptions import ConnectionRevokedException
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
@@ -103,35 +106,46 @@ class GoogleAdsProvider(BaseMetricsProvider):
         metrics: List[ExtractedMetric] = []
         failures = []
 
-        base_metrics, fail = await self._safe_extract(
-            self._extract_base_metrics,
-            adapter,
-            customer_id,
-            developer_token,
-            credentials,
-            start_date,
-            end_date,
-            stage,
-            extractor_name="campaign_metrics",
-        )
-        metrics.extend(base_metrics)
-        if fail:
-            failures.append(fail)
-
-        if stage != "nurturing":
-            search_term_metrics, fail = await self._safe_extract(
-                self._extract_search_terms,
+        try:
+            base_metrics, fail = await self._safe_extract(
+                self._extract_base_metrics,
                 adapter,
                 customer_id,
                 developer_token,
                 credentials,
                 start_date,
                 end_date,
-                extractor_name="search_terms",
+                stage,
+                extractor_name="campaign_metrics",
             )
-            metrics.extend(search_term_metrics)
+            metrics.extend(base_metrics)
             if fail:
                 failures.append(fail)
+
+            if stage != "nurturing":
+                search_term_metrics, fail = await self._safe_extract(
+                    self._extract_search_terms,
+                    adapter,
+                    customer_id,
+                    developer_token,
+                    credentials,
+                    start_date,
+                    end_date,
+                    extractor_name="search_terms",
+                )
+                metrics.extend(search_term_metrics)
+                if fail:
+                    failures.append(fail)
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "google_ads_extract_metrics_auth_failure",
+                tenant_id=str(tenant_id),
+                error=str(exc),
+            )
+            raise ConnectionRevokedException(
+                f"Google Ads OAuth token revoked/expired: {exc}",
+                channel_type="google_ads",
+            ) from exc
 
         return ExtractionResult(metrics=metrics, failures=failures)
 
@@ -330,17 +344,28 @@ class GoogleAdsProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         adapter = GoogleAdsAdapter()
-        metrics, fail = await self._safe_extract(
-            self._extract_daily_metrics,
-            adapter,
-            customer_id,
-            developer_token,
-            credentials,
-            start_date,
-            end_date,
-            stage,
-            extractor_name="campaign_metrics_daily",
-        )
+        try:
+            metrics, fail = await self._safe_extract(
+                self._extract_daily_metrics,
+                adapter,
+                customer_id,
+                developer_token,
+                credentials,
+                start_date,
+                end_date,
+                stage,
+                extractor_name="campaign_metrics_daily",
+            )
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "google_ads_extract_daily_auth_failure",
+                tenant_id=str(tenant_id),
+                error=str(exc),
+            )
+            raise ConnectionRevokedException(
+                f"Google Ads OAuth token revoked/expired: {exc}",
+                channel_type="google_ads",
+            ) from exc
         failures = [fail] if fail else []
         return ExtractionResult(metrics=metrics, failures=failures)
 

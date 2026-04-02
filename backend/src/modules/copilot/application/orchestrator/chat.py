@@ -203,7 +203,7 @@ class CopilotOrchestrator:
         # Try Redis first
         redis_key = f"{REDIS_CONV_PREFIX}{conv_id}"
         try:
-            cached = redis_client.get(redis_key)
+            cached = redis_client.get(redis_key) if redis_client else None
             if cached:
                 raw_messages = json.loads(cached)
                 return self._deserialize_messages(raw_messages)
@@ -214,11 +214,12 @@ class CopilotOrchestrator:
         if conv_model and conv_model.messages:
             # Re-cache in Redis
             try:
-                redis_client.setex(
-                    redis_key,
-                    REDIS_CONV_TTL,
-                    json.dumps(conv_model.messages, ensure_ascii=False),
-                )
+                if redis_client:
+                    redis_client.setex(
+                        redis_key,
+                        REDIS_CONV_TTL,
+                        json.dumps(conv_model.messages, ensure_ascii=False),
+                    )
             except Exception:
                 pass
             return self._deserialize_messages(conv_model.messages)
@@ -229,6 +230,8 @@ class CopilotOrchestrator:
         """Append new messages to Redis cache."""
         redis_key = f"{REDIS_CONV_PREFIX}{conv_id}"
         try:
+            if not redis_client:
+                return
             cached = redis_client.get(redis_key)
             existing = json.loads(cached) if cached else []
             existing.extend(new_messages)

@@ -18,7 +18,10 @@ class CustomerProfileModel(Base):
     full_name = Column(String, nullable=True)
     
     # Scoring & Segmentation
-    lifecycle_stage = Column(Enum(LifecycleStage), default=LifecycleStage.SUBSCRIBER)
+    lifecycle_stage = Column(
+        Enum(LifecycleStage, values_callable=lambda enum: [e.value for e in enum]),
+        default=LifecycleStage.SUBSCRIBER,
+    )
     lead_score = Column(Float, default=0.0)
     rfm_segment = Column(String, nullable=True) # e.g. "Champions", "At Risk"
     
@@ -49,7 +52,10 @@ class CustomerIdentityModel(Base):
     profile_id = Column(UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=False)
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     
-    type = Column(Enum(IdentityType), nullable=False)
+    type = Column(
+        Enum(IdentityType, values_callable=lambda enum: [e.value for e in enum]),
+        nullable=False,
+    )
     value = Column(String, nullable=False, index=True) # The actual email, phone, or ID
     
     is_primary = Column(Boolean, default=False)

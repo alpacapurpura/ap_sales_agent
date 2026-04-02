@@ -12,12 +12,15 @@ Uses existing GoogleAnalyticsAdapter.run_report() wrapped in
 asyncio.to_thread() (sync Google SDK).
 """
 
-import logging
 from datetime import date
 
 from typing import Dict, List
 from uuid import UUID
 
+import structlog
+from google.auth.exceptions import RefreshError, TransportError
+
+from src.modules.analytics.domain.exceptions import ConnectionRevokedException
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
@@ -27,7 +30,7 @@ from src.modules.connections.infrastructure.channels.google_analytics import (
     GoogleAnalyticsAdapter,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # AI search referrer domains — configurable list for future expansion
 AI_REFERRER_DOMAINS = {
@@ -96,17 +99,28 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
         adapter = self._build_adapter(credentials)
 
-        report = await adapter.run_report(
-            property_id=property_id,
-            dimensions=["sessionSource", "sessionMedium"],
-            metrics=[
-                "sessions", "totalUsers", "bounceRate",
-                "engagedSessions", "newUsers", "screenPageViews",
-                "activeUsers", "engagementRate",
-            ],
-            start_date=start_date.isoformat(),
-            end_date=end_date.isoformat(),
-        )
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=["sessionSource", "sessionMedium"],
+                metrics=[
+                    "sessions", "totalUsers", "bounceRate",
+                    "engagedSessions", "newUsers", "screenPageViews",
+                    "activeUsers", "engagementRate",
+                ],
+                start_date=start_date.isoformat(),
+                end_date=end_date.isoformat(),
+            )
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "ga4_extract_metrics_auth_failure",
+                tenant_id=str(tenant_id),
+                error=str(exc),
+            )
+            raise ConnectionRevokedException(
+                f"Google Analytics OAuth token revoked/expired: {exc}",
+                channel_type="google_analytics",
+            ) from exc
 
         results = self._segment_report(report, end_date)
         failures = []
@@ -425,17 +439,28 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         adapter = self._build_adapter(credentials)
 
         # Segmented report (source/medium + date)
-        report = await adapter.run_report(
-            property_id=property_id,
-            dimensions=["sessionSource", "sessionMedium", "date"],
-            metrics=[
-                "sessions", "totalUsers", "bounceRate",
-                "engagedSessions", "newUsers", "screenPageViews",
-                "activeUsers", "engagementRate",
-            ],
-            start_date=start_date.isoformat(),
-            end_date=end_date.isoformat(),
-        )
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=["sessionSource", "sessionMedium", "date"],
+                metrics=[
+                    "sessions", "totalUsers", "bounceRate",
+                    "engagedSessions", "newUsers", "screenPageViews",
+                    "activeUsers", "engagementRate",
+                ],
+                start_date=start_date.isoformat(),
+                end_date=end_date.isoformat(),
+            )
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "ga4_extract_metrics_daily_auth_failure",
+                tenant_id=str(tenant_id),
+                error=str(exc),
+            )
+            raise ConnectionRevokedException(
+                f"Google Analytics OAuth token revoked/expired: {exc}",
+                channel_type="google_analytics",
+            ) from exc
 
         results = self._segment_report_daily(report)
         failures = []

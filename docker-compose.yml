@@ -17,9 +17,12 @@ services:
       - ./backend:/app
       - ./data/model_cache:/app/model_cache
     depends_on:
-      - redis
-      - qdrant
-      - postgres
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      postgres:
+        condition: service_started
     networks:
       - internal_net
       - gateway
@@ -195,9 +198,12 @@ services:
       - ./backend:/app
       - ./data/model_cache:/app/model_cache
     depends_on:
-      - redis
-      - qdrant
-      - postgres
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      postgres:
+        condition: service_started
     networks:
       - internal_net
     deploy:
@@ -268,6 +274,12 @@ services:
       - internal_net
     ports:
       - "127.0.0.1:6379:6379" # Secure binding
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     deploy:
       resources:
         limits:

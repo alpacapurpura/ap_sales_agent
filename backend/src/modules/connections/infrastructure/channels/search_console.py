@@ -4,14 +4,15 @@ Provides analytics from Google Search Console's searchanalytics.query endpoint.
 Uses the same Google OAuth credentials as google_analytics (workspace flow).
 """
 import asyncio
-import logging
 from datetime import date
 from typing import Any, Dict, List, Optional
 
+import structlog
+from google.auth.exceptions import RefreshError, TransportError
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"]
 
@@ -65,6 +66,13 @@ class SearchConsoleAdapter:
                 .execute()
             )
             return response.get("rows", [])
+        except (RefreshError, TransportError) as exc:
+            logger.warning(
+                "search_console_refresh_token_revoked",
+                site_url=site_url,
+                error=str(exc),
+            )
+            raise
         except Exception:
             logger.exception("search_console_query_failed site=%s", site_url)
             return []
