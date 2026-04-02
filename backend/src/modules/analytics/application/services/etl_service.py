@@ -5,6 +5,7 @@ Provides high-level operations for the API and scheduler layers:
 - run_all_providers: extract from all active connections
 """
 
+import asyncio
 import logging
 import uuid
 from datetime import date, datetime, timedelta, timezone
@@ -208,7 +209,10 @@ class ETLService:
                     continue
 
             try:
-                result = await self.run_initial_load(tenant_id, provider_name, days=days)
+                result = await asyncio.wait_for(
+                    self.run_initial_load(tenant_id, provider_name, days=days),
+                    timeout=90.0,
+                )
                 details.append({
                     "provider": provider_name,
                     "status": "ok",
