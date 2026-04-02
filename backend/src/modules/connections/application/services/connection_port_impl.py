@@ -273,8 +273,8 @@ class ConnectionPortImpl(ConnectionPort):
     ) -> dict:
         """Refresh a Google OAuth token via refresh_token grant."""
         refresh_token = credentials.get("refresh_token")
-        client_id = config.get("client_id")
-        client_secret = config.get("client_secret")
+        client_id = credentials.get("client_id") or config.get("client_id")
+        client_secret = credentials.get("client_secret") or config.get("client_secret")
 
         if not refresh_token:
             raise TokenRefreshFailed(
