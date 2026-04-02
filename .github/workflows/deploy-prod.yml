@@ -285,10 +285,26 @@ jobs:
           echo "❌ Frontend health check failed after 2 minutes: HTTP $STATUS"
           exit 1
 
+  deploy-worker:
+    name: ☁️ Deploy Cloudflare Worker
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    environment: ap_sales_agent
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy sentry-slack-alerts worker
+        working-directory: workers/sentry-slack-alerts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler deploy
+
   notify-failure:
     name: 🚨 Notify Deploy Failure
     runs-on: ubuntu-latest
-    needs: [deploy, healthcheck]
+    needs: [deploy, healthcheck, deploy-worker]
     if: failure()
     steps:
       - name: Send Slack alert
