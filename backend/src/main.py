@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Request, Depends
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from src.core.config import settings
-from src.core.database import init_db
+from src.core.database import init_db, SessionLocal, redis_client
 from src.core.logger import configure_logging
 from src.modules.iam.api.dependencies import get_tenant_context
 from arq.connections import create_pool, RedisSettings
@@ -151,8 +153,34 @@ async def shutdown_arq_pool():
         await app.state.arq_pool.close()
 
 @app.get("/health")
-def health_check():
-    return {"status": "ok", "version": "1.0.0"}
+async def health_check():
+    checks: dict = {"api": "ok", "version": "1.0.0"}
+    healthy = True
+
+    # PostgreSQL readiness
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT 1"))
+        checks["postgres"] = "ok"
+    except Exception:
+        checks["postgres"] = "error"
+        healthy = False
+    finally:
+        db.close()
+
+    # Redis readiness
+    try:
+        redis_client.ping()
+        checks["redis"] = "ok"
+    except Exception:
+        checks["redis"] = "error"
+        healthy = False
+
+    status_code = 200 if healthy else 503
+    return JSONResponse(
+        content={"status": "ok" if healthy else "degraded", **checks},
+        status_code=status_code,
+    )
 
 
 @app.get("/")
