@@ -11,6 +11,7 @@ Per Phase 1 decision: per-instance API pattern for tenant isolation.
 
 import json
 import logging
+from collections import defaultdict
 from datetime import date, datetime, timedelta
 from typing import List
 from uuid import UUID
@@ -26,6 +27,34 @@ from src.modules.analytics.infrastructure.providers.base import (
 logger = logging.getLogger(__name__)
 
 GRAPH_API_BASE = "https://graph.facebook.com/v24.0"
+
+_META_ACTION_MAP = {
+    "offsite_conversion.fb_pixel_purchase": "conversions",
+    "onsite_conversion.purchase": "conversions",
+    "offsite_conversion.fb_pixel_lead": "meta_leads",
+    "lead": "meta_leads",
+    "offsite_conversion.fb_pixel_add_to_cart": "meta_add_to_cart",
+    "offsite_conversion.fb_pixel_initiate_checkout": "meta_initiate_checkout",
+    "offsite_conversion.fb_pixel_complete_registration": "meta_registrations",
+    "offsite_conversion.fb_pixel_view_content": "meta_view_content",
+    "offsite_conversion.fb_pixel_search": "meta_search_actions",
+    "landing_page_view": "meta_landing_page_views",
+    "onsite_conversion.messaging_conversation_started_7d": "meta_conversations_started",
+    "link_click": "meta_link_clicks",
+    "post_engagement": "meta_post_engagement",
+    "page_engagement": "meta_page_engagement",
+    "video_view": "meta_video_views",
+}
+
+_ADS_EXPANDED_FIELDS = (
+    "reach,impressions,clicks,spend,frequency,ctr,cpm,cpc,cpp,actions,"
+    "action_values,cost_per_action_type,inline_link_clicks,outbound_clicks,"
+    "inline_post_engagement,purchase_roas,"
+    "video_p25_watched_actions,video_p50_watched_actions,"
+    "video_p75_watched_actions,video_p100_watched_actions,"
+    "video_30_sec_watched_actions,video_avg_time_watched_actions,"
+    "cost_per_inline_link_click,cost_per_outbound_click"
+)
 
 
 def _auth_headers(access_token: str) -> dict:
@@ -107,7 +136,47 @@ class MetaProvider(BaseMetricsProvider):
                 if fail:
                     failures.append(fail)
 
+                campaigns_metrics, fail = await self._safe_extract(
+                    self._extract_meta_ads_campaigns,
+                    client, credentials, start_date, end_date,
+                    extractor_name="meta_ads_campaigns",
+                )
+                metrics.extend(campaigns_metrics)
+                if fail:
+                    failures.append(fail)
+
+                breakdowns_metrics, fail = await self._safe_extract(
+                    self._extract_meta_ads_breakdowns,
+                    client, credentials, start_date, end_date,
+                    extractor_name="meta_ads_breakdowns",
+                )
+                metrics.extend(breakdowns_metrics)
+                if fail:
+                    failures.append(fail)
+
         return ExtractionResult(metrics=metrics, failures=failures)
+
+    # Mapping from IG Insights API metric name → internal metric_name
+    _IG_API_TO_METRIC: dict[str, str] = {
+        "reach": "reach",
+        "views": "ig_views",
+        "total_interactions": "total_interactions",
+        "likes": "ig_likes",
+        "comments": "ig_comments",
+        "shares": "ig_shares",
+        "saves": "ig_saves",
+        "replies": "ig_replies",
+        "reposts": "ig_reposts",
+        "accounts_engaged": "ig_accounts_engaged",
+        "follows_and_unfollows": "ig_follows_and_unfollows",
+        "profile_links_taps": "ig_profile_links_taps",
+    }
+
+    # NON_AGGREGABLE metrics — use last day value instead of sum
+    _IG_NON_AGGREGABLE = {"reach", "accounts_engaged"}
+
+    # All IG Insights day-period metrics in a single batch
+    _IG_INSIGHTS_METRICS = ",".join(_IG_API_TO_METRIC.keys())
 
     async def _extract_instagram_organic(
         self,
@@ -116,20 +185,21 @@ class MetaProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
     ) -> List[ExtractedMetric]:
-        """Extract Instagram organic reach and engagement."""
+        """Extract Instagram organic metrics (15 metrics, 3-4 API calls)."""
         access_token = credentials.get("access_token", "")
         ig_account_id = credentials.get("instagram_account_id")
         if not ig_account_id:
             return []
 
         headers = _auth_headers(access_token)
+        metrics: List[ExtractedMetric] = []
 
-        # Account-level reach (daily values summed)
+        # ── Call 1: Account Insights batch (day-period metrics) ──
         insights_resp = await client.get(
             f"{GRAPH_API_BASE}/{ig_account_id}/insights",
             headers=headers,
             params={
-                "metric": "reach",
+                "metric": self._IG_INSIGHTS_METRICS,
                 "period": "day",
                 "since": int(
                     datetime.combine(start_date, datetime.min.time()).timestamp()
@@ -139,52 +209,100 @@ class MetaProvider(BaseMetricsProvider):
                 ),
             },
         )
-        _raise_for_meta_error(insights_resp, "ig_organic_reach")
-        reach_data = insights_resp.json().get("data", [])
-        total_reach = sum(
-            v.get("value", 0)
-            for item in reach_data
-            for v in item.get("values", [])
-        )
+        _raise_for_meta_error(insights_resp, "ig_organic_insights")
 
-        # Per-media engagement breakdown
-        media_resp = await client.get(
-            f"{GRAPH_API_BASE}/{ig_account_id}/media",
+        for item in insights_resp.json().get("data", []):
+            api_name = item.get("name", "")
+            metric_name = self._IG_API_TO_METRIC.get(api_name)
+            if not metric_name:
+                continue
+
+            values = item.get("values", [])
+            if not values:
+                continue
+
+            if api_name in self._IG_NON_AGGREGABLE:
+                # Use last day value (not summable cross-day)
+                total = float(values[-1].get("value", 0))
+            else:
+                total = sum(float(v.get("value", 0)) for v in values)
+
+            metrics.append(
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="ig-organic",
+                    metric_name=metric_name,
+                    value=total,
+                    unit="count",
+                    date=end_date,
+                )
+            )
+
+        # ── Call 2: User Node fields (snapshots) ──
+        user_resp = await client.get(
+            f"{GRAPH_API_BASE}/{ig_account_id}",
             headers=headers,
-            params={
-                "fields": "like_count,comments_count,timestamp",
-                "limit": 100,
-            },
+            params={"fields": "followers_count,media_count"},
         )
-        _raise_for_meta_error(media_resp, "ig_organic_media")
-        media_items = media_resp.json().get("data", [])
-        total_likes = sum(m.get("like_count", 0) for m in media_items)
-        total_comments = sum(m.get("comments_count", 0) for m in media_items)
+        _raise_for_meta_error(user_resp, "ig_organic_user_node")
+        user_data = user_resp.json()
 
-        return [
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="ig-organic",
-                metric_name="reach",
-                value=float(total_reach),
-                unit="count",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="ig-organic",
-                metric_name="engagement",
-                value=float(total_likes + total_comments),
-                unit="count",
-                date=end_date,
-                extra={
-                    "likes": total_likes,
-                    "comments": total_comments,
-                    "shares": 0,  # Not available via current API
-                    "saves": 0,   # Not available via current API
-                },
-            ),
-        ]
+        for field_name, metric_name in [
+            ("followers_count", "ig_followers_count"),
+            ("media_count", "ig_media_count"),
+        ]:
+            val = user_data.get(field_name)
+            if val is not None:
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="ig-organic",
+                        metric_name=metric_name,
+                        value=float(val),
+                        unit="count",
+                        date=end_date,
+                    )
+                )
+
+        # ── Call 3-4: Demographics (lifetime) ──
+        for demo_metric, metric_name in [
+            ("follower_demographics", "ig_follower_demographics"),
+            ("engaged_audience_demographics", "ig_engaged_audience_demographics"),
+        ]:
+            try:
+                demo_resp = await client.get(
+                    f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                    headers=headers,
+                    params={
+                        "metric": demo_metric,
+                        "period": "lifetime",
+                        "metric_type": "total_value",
+                    },
+                )
+                _raise_for_meta_error(demo_resp, f"ig_organic_{demo_metric}")
+                demo_data = demo_resp.json().get("data", [])
+                extra = {}
+                if demo_data:
+                    total_value = demo_data[0].get("total_value", {})
+                    extra = total_value.get("breakdowns", [{}])
+                    if isinstance(extra, list) and extra:
+                        extra = extra[0].get("results", [])
+
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="ig-organic",
+                        metric_name=metric_name,
+                        value=0.0,
+                        unit="json",
+                        date=end_date,
+                        extra={"breakdowns": extra},
+                    )
+                )
+            except httpx.HTTPStatusError:
+                logger.warning("ig_organic_%s_unavailable", demo_metric)
+
+        return metrics
 
     async def _extract_facebook_organic(
         self,
@@ -348,6 +466,142 @@ class MetaProvider(BaseMetricsProvider):
             ),
         ]
 
+    @staticmethod
+    def _parse_ads_row(
+        data: dict, currency: str, metric_date: date,
+    ) -> list["ExtractedMetric"]:
+        """Parse a single Ads Insights API row into ExtractedMetric list.
+
+        Shared by _extract_meta_ads (aggregated) and _extract_meta_ads_daily (per-day).
+        """
+        metrics: list[ExtractedMetric] = []
+
+        # A) Simple numeric fields
+        _SIMPLE_FIELDS = [
+            ("reach", "reach", "count", None),
+            ("impressions", "impressions", "count", None),
+            ("clicks", "clicks", "count", None),
+            ("ctr", "ctr", "percentage", None),
+            ("cpm", "cpm", "currency", currency),
+            ("cpc", "cpc", "currency", currency),
+            ("cpp", "meta_cpp", "currency", currency),
+            ("frequency", "frequency", "ratio", None),
+            ("spend", "spend", "currency", currency),
+            ("inline_link_clicks", "meta_inline_link_clicks", "count", None),
+            ("inline_post_engagement", "meta_post_engagement", "count", None),
+            ("cost_per_inline_link_click", "meta_cost_per_link_click", "currency", currency),
+        ]
+        for api_field, metric_name, unit, cur in _SIMPLE_FIELDS:
+            val = data.get(api_field)
+            if val is not None:
+                metrics.append(ExtractedMetric(
+                    provider="meta",
+                    channel_slug="meta-ads",
+                    metric_name=metric_name,
+                    value=float(val),
+                    unit=unit,
+                    currency=cur,
+                    date=metric_date,
+                ))
+
+        # B) Outbound clicks (list of AdsActionStats)
+        for entry in data.get("outbound_clicks", []):
+            if entry.get("action_type") == "outbound_click":
+                metrics.append(ExtractedMetric(
+                    provider="meta", channel_slug="meta-ads",
+                    metric_name="meta_outbound_clicks",
+                    value=float(entry.get("value", 0)),
+                    unit="count", date=metric_date,
+                ))
+        for entry in data.get("cost_per_outbound_click", []):
+            if entry.get("action_type") == "outbound_click":
+                metrics.append(ExtractedMetric(
+                    provider="meta", channel_slug="meta-ads",
+                    metric_name="meta_cost_per_outbound_click",
+                    value=float(entry.get("value", 0)),
+                    unit="currency", currency=currency, date=metric_date,
+                ))
+
+        # C) Actions → expanded conversions (using _META_ACTION_MAP)
+        action_counts: dict[str, float] = defaultdict(float)
+        for action in data.get("actions", []):
+            action_type = action.get("action_type", "")
+            mapped = _META_ACTION_MAP.get(action_type)
+            if mapped:
+                action_counts[mapped] += float(action.get("value", 0))
+        for mapped_name, value in action_counts.items():
+            metrics.append(ExtractedMetric(
+                provider="meta", channel_slug="meta-ads",
+                metric_name=mapped_name,
+                value=value, unit="count", date=metric_date,
+            ))
+
+        # D) Action values → monetary conversion value
+        for entry in data.get("action_values", []):
+            if entry.get("action_type") in (
+                "offsite_conversion.fb_pixel_purchase",
+                "onsite_conversion.purchase",
+            ):
+                metrics.append(ExtractedMetric(
+                    provider="meta", channel_slug="meta-ads",
+                    metric_name="meta_conversion_value",
+                    value=float(entry.get("value", 0)),
+                    unit="currency", currency=currency, date=metric_date,
+                ))
+
+        # E) Cost per action type
+        for entry in data.get("cost_per_action_type", []):
+            action_type = entry.get("action_type", "")
+            if action_type in (
+                "offsite_conversion.fb_pixel_purchase",
+                "onsite_conversion.purchase",
+            ):
+                metrics.append(ExtractedMetric(
+                    provider="meta", channel_slug="meta-ads",
+                    metric_name="meta_cost_per_purchase",
+                    value=float(entry.get("value", 0)),
+                    unit="currency", currency=currency, date=metric_date,
+                ))
+            elif action_type in ("offsite_conversion.fb_pixel_lead", "lead"):
+                metrics.append(ExtractedMetric(
+                    provider="meta", channel_slug="meta-ads",
+                    metric_name="meta_cost_per_lead",
+                    value=float(entry.get("value", 0)),
+                    unit="currency", currency=currency, date=metric_date,
+                ))
+
+        # F) ROAS
+        for entry in data.get("purchase_roas", []):
+            if entry.get("action_type") == "omni_purchase":
+                metrics.append(ExtractedMetric(
+                    provider="meta", channel_slug="meta-ads",
+                    metric_name="meta_purchase_roas",
+                    value=float(entry.get("value", 0)),
+                    unit="ratio", date=metric_date,
+                ))
+
+        # G) Video metrics
+        _VIDEO_FIELDS = [
+            ("video_p25_watched_actions", "meta_video_p25"),
+            ("video_p50_watched_actions", "meta_video_p50"),
+            ("video_p75_watched_actions", "meta_video_p75"),
+            ("video_p100_watched_actions", "meta_video_p100"),
+            ("video_30_sec_watched_actions", "meta_video_30sec"),
+            ("video_avg_time_watched_actions", "meta_video_avg_watch_time"),
+        ]
+        for api_field, metric_name in _VIDEO_FIELDS:
+            for entry in data.get(api_field, []):
+                if entry.get("action_type") == "video_view":
+                    unit = "seconds" if "avg" in api_field else "count"
+                    metrics.append(ExtractedMetric(
+                        provider="meta", channel_slug="meta-ads",
+                        metric_name=metric_name,
+                        value=float(entry.get("value", 0)),
+                        unit=unit, date=metric_date,
+                    ))
+
+        return metrics
+
     async def _extract_meta_ads(
         self,
         client: httpx.AsyncClient,
@@ -368,7 +622,7 @@ class MetaProvider(BaseMetricsProvider):
             f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
             headers=headers,
             params={
-                "fields": "reach,impressions,clicks,spend,frequency,ctr,cpm,actions",
+                "fields": _ADS_EXPANDED_FIELDS,
                 "time_range": json.dumps(
                     {
                         "since": start_date.isoformat(),
@@ -381,83 +635,7 @@ class MetaProvider(BaseMetricsProvider):
         _raise_for_meta_error(response, "meta_ads_insights")
         data = response.json().get("data", [{}])[0]
 
-        # Extract conversions from actions array
-        conversions = 0
-        for action in data.get("actions", []):
-            if action.get("action_type") in (
-                "offsite_conversion.fb_pixel_purchase",
-                "onsite_conversion.purchase",
-            ):
-                conversions += int(action.get("value", 0))
-
-        return [
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="reach",
-                value=float(data.get("reach", 0)),
-                unit="count",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="impressions",
-                value=float(data.get("impressions", 0)),
-                unit="count",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="clicks",
-                value=float(data.get("clicks", 0)),
-                unit="count",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="ctr",
-                value=float(data.get("ctr", 0)),
-                unit="percentage",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="cpm",
-                value=float(data.get("cpm", 0)),
-                unit="currency",
-                currency=currency,
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="frequency",
-                value=float(data.get("frequency", 0)),
-                unit="ratio",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="conversions",
-                value=float(conversions),
-                unit="count",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="meta-ads",
-                metric_name="spend",
-                value=float(data.get("spend", 0)),
-                unit="currency",
-                currency=currency,
-                date=end_date,
-            ),
-        ]
+        return self._parse_ads_row(data, currency, end_date)
 
     # ── Daily extraction methods (for initial load / gap detection) ──
 
@@ -519,6 +697,15 @@ class MetaProvider(BaseMetricsProvider):
                 if fail:
                     failures.append(fail)
 
+                camps, fail = await self._safe_extract(
+                    self._extract_meta_ads_campaigns_daily,
+                    client, credentials, start_date, end_date,
+                    extractor_name="meta_ads_campaigns_daily",
+                )
+                metrics.extend(camps)
+                if fail:
+                    failures.append(fail)
+
         return ExtractionResult(metrics=metrics, failures=failures)
 
     async def _extract_instagram_organic_daily(
@@ -528,19 +715,21 @@ class MetaProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
     ) -> List[ExtractedMetric]:
-        """Parse IG insights values[] array to emit one reach metric per day."""
+        """Parse IG insights values[] array to emit one metric per day per metric."""
         access_token = credentials.get("access_token", "")
         ig_account_id = credentials.get("instagram_account_id")
         if not ig_account_id:
             return []
 
         headers = _auth_headers(access_token)
+        metrics: List[ExtractedMetric] = []
 
+        # ── Call 1: Account Insights batch (day-period, per-day granularity) ──
         insights_resp = await client.get(
             f"{GRAPH_API_BASE}/{ig_account_id}/insights",
             headers=headers,
             params={
-                "metric": "reach",
+                "metric": self._IG_INSIGHTS_METRICS,
                 "period": "day",
                 "since": int(
                     datetime.combine(start_date, datetime.min.time()).timestamp()
@@ -550,11 +739,14 @@ class MetaProvider(BaseMetricsProvider):
                 ),
             },
         )
-        _raise_for_meta_error(insights_resp, "ig_organic_reach_daily")
-        reach_data = insights_resp.json().get("data", [])
+        _raise_for_meta_error(insights_resp, "ig_organic_insights_daily")
 
-        metrics: List[ExtractedMetric] = []
-        for item in reach_data:
+        for item in insights_resp.json().get("data", []):
+            api_name = item.get("name", "")
+            metric_name = self._IG_API_TO_METRIC.get(api_name)
+            if not metric_name:
+                continue
+
             for v in item.get("values", []):
                 end_time = v.get("end_time", "")
                 try:
@@ -567,43 +759,77 @@ class MetaProvider(BaseMetricsProvider):
                     ExtractedMetric(
                         provider="meta",
                         channel_slug="ig-organic",
-                        metric_name="reach",
+                        metric_name=metric_name,
                         value=float(v.get("value", 0)),
                         unit="count",
                         date=metric_date,
                     )
                 )
 
-        # Engagement from media: no daily breakdown available — single metric
-        media_resp = await client.get(
-            f"{GRAPH_API_BASE}/{ig_account_id}/media",
+        # ── Call 2: User Node snapshots (only emit on end_date) ──
+        user_resp = await client.get(
+            f"{GRAPH_API_BASE}/{ig_account_id}",
             headers=headers,
-            params={
-                "fields": "like_count,comments_count,timestamp",
-                "limit": 100,
-            },
+            params={"fields": "followers_count,media_count"},
         )
-        _raise_for_meta_error(media_resp, "ig_organic_media_daily")
-        media_items = media_resp.json().get("data", [])
-        total_likes = sum(m.get("like_count", 0) for m in media_items)
-        total_comments = sum(m.get("comments_count", 0) for m in media_items)
+        _raise_for_meta_error(user_resp, "ig_organic_user_node_daily")
+        user_data = user_resp.json()
 
-        metrics.append(
-            ExtractedMetric(
-                provider="meta",
-                channel_slug="ig-organic",
-                metric_name="engagement",
-                value=float(total_likes + total_comments),
-                unit="count",
-                date=end_date,
-                extra={
-                    "likes": total_likes,
-                    "comments": total_comments,
-                    "shares": 0,
-                    "saves": 0,
-                },
-            )
-        )
+        for field_name, metric_name in [
+            ("followers_count", "ig_followers_count"),
+            ("media_count", "ig_media_count"),
+        ]:
+            val = user_data.get(field_name)
+            if val is not None:
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="ig-organic",
+                        metric_name=metric_name,
+                        value=float(val),
+                        unit="count",
+                        date=end_date,
+                    )
+                )
+
+        # ── Call 3-4: Demographics (lifetime, only on end_date) ──
+        for demo_metric, metric_name in [
+            ("follower_demographics", "ig_follower_demographics"),
+            ("engaged_audience_demographics", "ig_engaged_audience_demographics"),
+        ]:
+            try:
+                demo_resp = await client.get(
+                    f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                    headers=headers,
+                    params={
+                        "metric": demo_metric,
+                        "period": "lifetime",
+                        "metric_type": "total_value",
+                    },
+                )
+                _raise_for_meta_error(demo_resp, f"ig_organic_{demo_metric}_daily")
+                demo_data = demo_resp.json().get("data", [])
+                extra = {}
+                if demo_data:
+                    total_value = demo_data[0].get("total_value", {})
+                    extra = total_value.get("breakdowns", [{}])
+                    if isinstance(extra, list) and extra:
+                        extra = extra[0].get("results", [])
+
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="ig-organic",
+                        metric_name=metric_name,
+                        value=0.0,
+                        unit="json",
+                        date=end_date,
+                        extra={"breakdowns": extra},
+                    )
+                )
+            except httpx.HTTPStatusError:
+                logger.warning("ig_organic_%s_daily_unavailable", demo_metric)
+
         return metrics
 
     async def _extract_facebook_organic_daily(
@@ -684,7 +910,7 @@ class MetaProvider(BaseMetricsProvider):
             f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
             headers=headers,
             params={
-                "fields": "reach,impressions,clicks,spend,frequency,ctr,cpm,actions",
+                "fields": _ADS_EXPANDED_FIELDS,
                 "time_range": json.dumps(
                     {
                         "since": start_date.isoformat(),
@@ -706,35 +932,180 @@ class MetaProvider(BaseMetricsProvider):
             except (ValueError, AttributeError):
                 continue
 
-            conversions = 0
-            for action in row.get("actions", []):
-                if action.get("action_type") in (
-                    "offsite_conversion.fb_pixel_purchase",
-                    "onsite_conversion.purchase",
-                ):
-                    conversions += int(action.get("value", 0))
+            metrics.extend(self._parse_ads_row(row, currency, metric_date))
+        return metrics
 
-            for name, value, unit, cur in [
-                ("reach", float(row.get("reach", 0)), "count", None),
-                ("impressions", float(row.get("impressions", 0)), "count", None),
-                ("clicks", float(row.get("clicks", 0)), "count", None),
-                ("ctr", float(row.get("ctr", 0)), "percentage", None),
-                ("cpm", float(row.get("cpm", 0)), "currency", currency),
-                ("frequency", float(row.get("frequency", 0)), "ratio", None),
-                ("conversions", float(conversions), "count", None),
-                ("spend", float(row.get("spend", 0)), "currency", currency),
-            ]:
-                metrics.append(
-                    ExtractedMetric(
-                        provider="meta",
-                        channel_slug="meta-ads",
-                        metric_name=name,
-                        value=value,
-                        unit=unit,
-                        currency=cur,
-                        date=metric_date,
+    # ── Phase 2: Campaign-level extraction ──
+
+    async def _extract_meta_ads_campaigns(
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Extract Meta Ads metrics at campaign level."""
+        ad_account_id = credentials.get("ad_account_id")
+        access_token = credentials.get("access_token", "")
+        currency = credentials.get("currency", "USD")
+        if not ad_account_id:
+            return []
+
+        headers = _auth_headers(access_token)
+
+        response = await client.get(
+            f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
+            headers=headers,
+            params={
+                "fields": f"campaign_id,campaign_name,{_ADS_EXPANDED_FIELDS}",
+                "time_range": json.dumps(
+                    {
+                        "since": start_date.isoformat(),
+                        "until": end_date.isoformat(),
+                    }
+                ),
+                "level": "campaign",
+                "limit": "500",
+            },
+        )
+        _raise_for_meta_error(response, "meta_ads_campaigns")
+        rows = response.json().get("data", [])
+
+        metrics: List[ExtractedMetric] = []
+        for row in rows:
+            campaign_id = row.get("campaign_id")
+            parsed = self._parse_ads_row(row, currency, end_date)
+            for m in parsed:
+                m.campaign_id = campaign_id
+            metrics.extend(parsed)
+        return metrics
+
+    async def _extract_meta_ads_campaigns_daily(
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Extract Meta Ads campaign-level metrics with daily granularity."""
+        ad_account_id = credentials.get("ad_account_id")
+        access_token = credentials.get("access_token", "")
+        currency = credentials.get("currency", "USD")
+        if not ad_account_id:
+            return []
+
+        headers = _auth_headers(access_token)
+
+        response = await client.get(
+            f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
+            headers=headers,
+            params={
+                "fields": f"campaign_id,campaign_name,{_ADS_EXPANDED_FIELDS}",
+                "time_range": json.dumps(
+                    {
+                        "since": start_date.isoformat(),
+                        "until": end_date.isoformat(),
+                    }
+                ),
+                "time_increment": "1",
+                "level": "campaign",
+                "limit": "500",
+            },
+        )
+        _raise_for_meta_error(response, "meta_ads_campaigns_daily")
+        rows = response.json().get("data", [])
+
+        metrics: List[ExtractedMetric] = []
+        for row in rows:
+            date_str = row.get("date_start", "")
+            try:
+                metric_date = date.fromisoformat(date_str)
+            except (ValueError, AttributeError):
+                continue
+            campaign_id = row.get("campaign_id")
+            parsed = self._parse_ads_row(row, currency, metric_date)
+            for m in parsed:
+                m.campaign_id = campaign_id
+            metrics.extend(parsed)
+        return metrics
+
+    # ── Phase 3: Demographic / Placement breakdowns ──
+
+    _BREAKDOWN_METRICS = ["reach", "impressions", "spend"]
+
+    async def _extract_meta_ads_breakdowns(
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+    ) -> List[ExtractedMetric]:
+        """Extract demographic and placement breakdowns for Meta Ads."""
+        ad_account_id = credentials.get("ad_account_id")
+        access_token = credentials.get("access_token", "")
+        if not ad_account_id:
+            return []
+
+        headers = _auth_headers(access_token)
+        time_range = json.dumps(
+            {"since": start_date.isoformat(), "until": end_date.isoformat()}
+        )
+        fields = ",".join(self._BREAKDOWN_METRICS)
+        metrics: List[ExtractedMetric] = []
+
+        breakdown_configs = [
+            ("age", "age"),
+            ("gender", "gender"),
+            ("publisher_platform,platform_position", "placement"),
+        ]
+
+        for breakdown_param, breakdown_key in breakdown_configs:
+            response = await client.get(
+                f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
+                headers=headers,
+                params={
+                    "fields": fields,
+                    "time_range": time_range,
+                    "breakdowns": breakdown_param,
+                    "level": "account",
+                    "limit": "500",
+                },
+            )
+            _raise_for_meta_error(response, f"meta_ads_breakdown_{breakdown_key}")
+            rows = response.json().get("data", [])
+
+            # Aggregate rows into {metric_name: [{dimension_values: [...], value: ...}]}
+            for base_metric in self._BREAKDOWN_METRICS:
+                breakdowns_list = []
+                for row in rows:
+                    val = row.get(base_metric)
+                    if val is None:
+                        continue
+                    if breakdown_key == "placement":
+                        dim_values = [
+                            row.get("publisher_platform", ""),
+                            row.get("platform_position", ""),
+                        ]
+                    else:
+                        dim_values = [row.get(breakdown_key, "")]
+                    breakdowns_list.append(
+                        {"dimension_values": dim_values, "value": float(val)}
                     )
-                )
+
+                if breakdowns_list:
+                    metric_name = f"meta_{base_metric}_by_{breakdown_key}"
+                    metrics.append(
+                        ExtractedMetric(
+                            provider="meta",
+                            channel_slug="meta-ads",
+                            metric_name=metric_name,
+                            value=0.0,
+                            unit="json",
+                            date=end_date,
+                            extra={"breakdowns": breakdowns_list},
+                        )
+                    )
+
         return metrics
 
     async def _extract_meta_retargeting_daily(

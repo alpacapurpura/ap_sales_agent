@@ -46,7 +46,18 @@ for _prov, _types in PROVIDER_TO_CHANNEL_TYPES.items():
 STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
     "attraction": [
         # Organic social: reach + engagement
-        {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
+        {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta", "metric_names": [
+            # Summary (ChannelRow) — primeras 3
+            "reach", "total_interactions", "ig_followers_count",
+            # Visibilidad
+            "ig_views", "ig_follows_and_unfollows", "ig_media_count",
+            # Engagement detalle
+            "ig_likes", "ig_comments", "ig_shares", "ig_saves", "ig_replies", "ig_reposts",
+            # Perfil
+            "ig_accounts_engaged", "ig_profile_links_taps",
+            # Demografía
+            "ig_follower_demographics", "ig_engaged_audience_demographics",
+        ]},
         {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": ["views", "engagement", "watch_time_minutes", "avg_view_duration", "subscribers_gained"]},
         {"slug": "fb-organic", "name": "Facebook Organic", "channel_type": "social", "source_label": "Facebook", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
         {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["video_views", "engagement"]},
@@ -57,7 +68,31 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "ai-search-organic", "name": "AI Search Organic", "channel_type": "search", "source_label": "AI Search", "provider_name": "google_analytics", "metric_names": ["sessions", "users", "bounceRate", "engagedSessions", "newUsers", "screenPageViews", "activeUsers", "engagementRate"]},
         {"slug": "search-console", "name": "Google Search Console", "channel_type": "search", "source_label": "Search Console", "provider_name": "search_console", "metric_names": ["impressions", "clicks", "ctr", "avg_position", "top_queries"]},
         # Paid: reach + clicks + conversions + spend
-        {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": ["reach", "impressions", "clicks", "ctr", "cpm", "frequency", "conversions", "spend"]},
+        {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta", "metric_names": [
+            # Summary (ChannelRow) — primeras 3
+            "reach", "spend", "meta_purchase_roas",
+            # Rendimiento
+            "impressions", "clicks", "meta_inline_link_clicks", "meta_outbound_clicks",
+            "meta_post_engagement", "meta_landing_page_views",
+            # Costos
+            "ctr", "cpm", "cpc", "meta_cpp", "frequency",
+            "meta_cost_per_link_click", "meta_cost_per_outbound_click",
+            # Conversiones
+            "conversions", "meta_leads", "meta_add_to_cart",
+            "meta_initiate_checkout", "meta_registrations",
+            "meta_view_content", "meta_conversations_started",
+            # Valor & ROAS
+            "meta_conversion_value", "meta_purchase_roas",
+            "meta_cost_per_purchase", "meta_cost_per_lead",
+            # Video
+            "meta_video_views", "meta_video_p25", "meta_video_p50",
+            "meta_video_p75", "meta_video_p100", "meta_video_30sec",
+            "meta_video_avg_watch_time",
+            # Breakdowns
+            "meta_reach_by_age", "meta_spend_by_age", "meta_impressions_by_age",
+            "meta_reach_by_gender", "meta_spend_by_gender", "meta_impressions_by_gender",
+            "meta_reach_by_placement", "meta_spend_by_placement", "meta_impressions_by_placement",
+        ]},
         {"slug": "google-ads", "name": "Google Ads", "channel_type": "paid", "source_label": "Google Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value", "search_terms"]},
         {"slug": "tiktok-ads", "name": "TikTok Ads", "channel_type": "paid", "source_label": "TikTok Ads", "provider_name": "tiktok", "metric_names": ["reach", "clicks", "conversions", "spend"]},
         {"slug": "yt-ads", "name": "YouTube Ads", "channel_type": "paid", "source_label": "YouTube Ads", "provider_name": "google_ads", "metric_names": ["impressions", "clicks", "conversions", "spend", "ctr", "cpc", "conversion_value"]},
