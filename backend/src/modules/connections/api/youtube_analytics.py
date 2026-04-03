@@ -5,8 +5,9 @@ Exposes channel overview, daily views, top videos, demographics,
 and traffic sources for the Growth Studio and Sales Studio.
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import List, Optional
 import datetime
 import structlog
 
@@ -18,6 +19,27 @@ from src.modules.connections.infrastructure.repositories import ChannelConnectio
 from src.modules.connections.infrastructure.channels.youtube_analytics import YouTubeAnalyticsAdapter
 
 router = APIRouter(tags=["youtube-analytics"])
+
+
+class VideoDetail(BaseModel):
+    """Enriched video detail combining Analytics + Data API data."""
+
+    video_id: str
+    title: str
+    thumbnail_url: str
+    duration: str  # ISO 8601
+    published_at: str
+    views: int
+    likes: int
+    watch_time_minutes: float
+    avg_view_duration: float
+
+
+class TopVideosResponse(BaseModel):
+    status: str
+    data: List[VideoDetail]
+    start_date: str
+    end_date: str
 logger = structlog.get_logger()
 
 
@@ -180,6 +202,24 @@ async def get_countries(
         return {"status": "ok", "data": data, "start_date": sd, "end_date": ed}
     except Exception as e:
         logger.error("youtube_analytics_countries_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/top-videos-enriched", response_model=TopVideosResponse)
+async def get_top_videos_enriched(
+    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    max_results: int = Query(10, ge=1, le=50),
+    adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
+):
+    """Top videos enriched with title, thumbnail, duration from Data API v3."""
+    sd, ed = _default_dates(start_date, end_date)
+    try:
+        data = adapter.get_top_videos_enriched(sd, ed, max_results=max_results)
+        videos = [VideoDetail(**v) for v in data]
+        return TopVideosResponse(status="ok", data=videos, start_date=sd, end_date=ed)
+    except Exception as e:
+        logger.error("youtube_analytics_top_videos_enriched_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

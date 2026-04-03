@@ -497,3 +497,37 @@ export interface StageTimeSeries {
   periodTotals: Record<string, number>;
   previousPeriodTotals: Record<string, number> | null;
 }
+
+// ---------------------------------------------------------------------------
+// YouTube Analytics structured data
+// ---------------------------------------------------------------------------
+
+export interface YouTubeTrafficSource {
+  insightTrafficSourceType: string;
+  views: number;
+  estimatedMinutesWatched: number;
+}
+
+export interface YouTubeTopVideo {
+  videoId: string;
+  title: string;
+  thumbnailUrl: string;
+  duration: string;
+  publishedAt: string;
+  views: number;
+  likes: number;
+  watchTimeMinutes: number;
+  avgViewDuration: number;
+}
+
+export interface YouTubeDemographic {
+  ageGroup: string;
+  gender: string;
+  viewerPercentage: number;
+}
+
+export interface YouTubeCountry {
+  country: string;
+  views: number;
+  estimatedMinutesWatched: number;
+}

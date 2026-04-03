@@ -100,12 +100,13 @@ class YouTubeAnalyticsAdapter:
         Aggregate channel metrics for the given date range.
 
         Returns: views, estimatedMinutesWatched, averageViewDuration,
-                 subscribersGained, subscribersLost, likes, dislikes.
+                 subscribersGained, subscribersLost, likes, dislikes,
+                 comments, shares, averageViewPercentage.
         """
         resp = self._query(
             start_date=start_date,
             end_date=end_date,
-            metrics="views,estimatedMinutesWatched,averageViewDuration,subscribersGained,subscribersLost,likes,dislikes",
+            metrics="views,estimatedMinutesWatched,averageViewDuration,subscribersGained,subscribersLost,likes,dislikes,comments,shares,averageViewPercentage",
         )
         rows = self._rows_to_dicts(resp)
         return rows[0] if rows else {}
@@ -182,6 +183,86 @@ class YouTubeAnalyticsAdapter:
             sort="-views",
         )
         return self._rows_to_dicts(resp)
+
+    def get_card_metrics(
+        self,
+        start_date: str,
+        end_date: str,
+    ) -> Dict[str, Any]:
+        """
+        Card and end screen metrics for the channel.
+
+        Returns: cardClicks, cardImpressions, endScreenElementClicks,
+                 endScreenElementImpressions.
+        """
+        resp = self._query(
+            start_date=start_date,
+            end_date=end_date,
+            metrics="cardClicks,cardImpressions,endScreenElementClicks,endScreenElementImpressions",
+        )
+        rows = self._rows_to_dicts(resp)
+        return rows[0] if rows else {}
+
+    def get_top_videos_enriched(
+        self,
+        start_date: str,
+        end_date: str,
+        max_results: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Top videos with enriched metadata from the Data API v3.
+
+        Combines Analytics API metrics (views, likes, watchTime) with
+        Data API snippet (title, thumbnails, duration, publishedAt).
+        """
+        analytics_videos = self.get_top_videos(start_date, end_date, max_results)
+        if not analytics_videos:
+            return []
+
+        video_ids = [v["video"] for v in analytics_videos if "video" in v]
+        if not video_ids:
+            return analytics_videos
+
+        data_svc = self._get_data_service()
+        snippet_resp = data_svc.videos().list(
+            id=",".join(video_ids),
+            part="snippet,contentDetails,statistics",
+        ).execute()
+
+        snippet_map: Dict[str, Dict[str, Any]] = {}
+        for item in snippet_resp.get("items", []):
+            vid = item["id"]
+            snippet = item.get("snippet", {})
+            content = item.get("contentDetails", {})
+            thumbnails = snippet.get("thumbnails", {})
+            thumb_url = (
+                thumbnails.get("medium", {}).get("url")
+                or thumbnails.get("default", {}).get("url", "")
+            )
+            snippet_map[vid] = {
+                "title": snippet.get("title", ""),
+                "thumbnail_url": thumb_url,
+                "duration": content.get("duration", ""),
+                "published_at": snippet.get("publishedAt", ""),
+            }
+
+        enriched = []
+        for v in analytics_videos:
+            vid = v.get("video", "")
+            meta = snippet_map.get(vid, {})
+            enriched.append({
+                "video_id": vid,
+                "title": meta.get("title", ""),
+                "thumbnail_url": meta.get("thumbnail_url", ""),
+                "duration": meta.get("duration", ""),
+                "published_at": meta.get("published_at", ""),
+                "views": v.get("views", 0),
+                "likes": v.get("likes", 0),
+                "watch_time_minutes": v.get("estimatedMinutesWatched", 0),
+                "avg_view_duration": v.get("averageViewDuration", 0),
+            })
+
+        return enriched
 
     def get_countries(
         self,

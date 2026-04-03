@@ -314,6 +314,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
   // Summary metrics for channels with many metrics — only show top 3 in the row
   const CHANNEL_ROW_SUMMARY_METRICS: Record<string, string[]> = {
     'ig-organic': ['reach', 'total_interactions', 'ig_followers_count'],
+    'yt-organic': ['views', 'engagement', 'subscribers_gained'],
     'meta-ads': ['reach', 'spend', 'meta_purchase_roas'],
   };
 

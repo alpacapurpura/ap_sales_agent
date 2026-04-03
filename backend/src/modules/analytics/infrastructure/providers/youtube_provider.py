@@ -1,10 +1,10 @@
 """YouTubeProvider — extracts YouTube organic channel metrics.
 
 Channel slug: yt-organic
-Metrics: reach (views) + engagement (likes + dislikes)
+Metrics: overview (views, engagement, watch_time, subs, comments, shares, avg_view_percentage)
+       + card/end screen metrics (isolated sub-extractor)
 
-Uses existing YouTubeAnalyticsAdapter.get_channel_overview() wrapped
-in asyncio.to_thread() (sync Google SDK).
+Uses existing YouTubeAnalyticsAdapter wrapped in asyncio.to_thread() (sync Google SDK).
 """
 
 import asyncio
@@ -26,6 +26,18 @@ from src.modules.connections.infrastructure.channels.youtube_analytics import (
 )
 
 logger = structlog.get_logger(__name__)
+
+# Maps YouTube Analytics API response keys to our internal metric names
+_DIRECT_MAP = {
+    "views": ("views", "count"),
+    "estimatedMinutesWatched": ("watch_time_minutes", "count"),
+    "averageViewDuration": ("avg_view_duration", "seconds"),
+    "subscribersGained": ("subscribers_gained", "count"),
+    "subscribersLost": ("subscribers_lost", "count"),
+    "comments": ("comments", "count"),
+    "shares": ("shares", "count"),
+    "averageViewPercentage": ("avg_view_percentage", "percentage"),
+}
 
 
 class YouTubeProvider(BaseMetricsProvider):
@@ -53,11 +65,10 @@ class YouTubeProvider(BaseMetricsProvider):
 
         adapter = YouTubeAnalyticsAdapter(credentials_data=credentials)
 
+        # Sub-extractor 1: Overview (core metrics)
         try:
-            overview = await asyncio.to_thread(
-                adapter.get_channel_overview,
-                start_date.isoformat(),
-                end_date.isoformat(),
+            overview_metrics = await self._extract_overview(
+                adapter, end_date, start_date, end_date
             )
         except (RefreshError, TransportError) as exc:
             logger.warning(
@@ -70,67 +81,127 @@ class YouTubeProvider(BaseMetricsProvider):
                 channel_type="youtube",
             ) from exc
 
-        if not overview:
-            return ExtractionResult()
+        # Sub-extractor 2: Card/End Screen metrics (isolated — fails silently)
+        card_metrics, card_failure = await self._safe_extract(
+            self._extract_card_metrics,
+            adapter,
+            end_date,
+            start_date,
+            end_date,
+            extractor_name="youtube_cards",
+        )
 
-        views = float(overview.get("views", 0))
+        all_metrics = overview_metrics + card_metrics
+        failures = [card_failure] if card_failure else []
+
+        return ExtractionResult(metrics=all_metrics, failures=failures)
+
+    async def _extract_overview(
+        self,
+        adapter: YouTubeAnalyticsAdapter,
+        metric_date: date,
+        start_date: date,
+        end_date: date,
+    ) -> list[ExtractedMetric]:
+        """Extract overview metrics: views, engagement, watch time, subs, comments, shares, avg_view_percentage."""
+        overview = await asyncio.to_thread(
+            adapter.get_channel_overview,
+            start_date.isoformat(),
+            end_date.isoformat(),
+        )
+
+        if not overview:
+            return []
+
+        metrics: list[ExtractedMetric] = []
+
+        # Engagement (likes + dislikes) — special case with breakdown
         likes = float(overview.get("likes", 0))
         dislikes = float(overview.get("dislikes", 0))
-        total_engagement = likes + dislikes
-
-        metrics: list = [
-            ExtractedMetric(
-                provider="youtube",
-                channel_slug="yt-organic",
-                metric_name="views",
-                value=views,
-                unit="count",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="youtube",
-                channel_slug="yt-organic",
-                metric_name="engagement",
-                value=total_engagement,
-                unit="count",
-                date=end_date,
-                extra={
-                    "likes": int(likes),
-                    "dislikes": int(dislikes),
-                },
-            ),
-        ]
-
-        watch_time = float(overview.get("estimatedMinutesWatched", 0))
-        if watch_time:
-            metrics.append(ExtractedMetric(
-                provider="youtube",
-                channel_slug="yt-organic",
-                metric_name="watch_time_minutes",
-                value=watch_time,
-                unit="count",
-                date=end_date,
-            ))
-
-        avg_duration = float(overview.get("averageViewDuration", 0))
-        if avg_duration:
-            metrics.append(ExtractedMetric(
-                provider="youtube",
-                channel_slug="yt-organic",
-                metric_name="avg_view_duration",
-                value=avg_duration,
-                unit="seconds",
-                date=end_date,
-            ))
-
-        subs_gained = float(overview.get("subscribersGained", 0))
         metrics.append(ExtractedMetric(
             provider="youtube",
             channel_slug="yt-organic",
-            metric_name="subscribers_gained",
-            value=subs_gained,
+            metric_name="engagement",
+            value=likes + dislikes,
             unit="count",
-            date=end_date,
+            date=metric_date,
+            extra={"likes": int(likes), "dislikes": int(dislikes)},
         ))
 
-        return ExtractionResult(metrics=metrics)
+        # Direct-mapped metrics
+        for api_key, (metric_name, unit) in _DIRECT_MAP.items():
+            value = float(overview.get(api_key, 0))
+            if value or metric_name == "views":  # Always emit views even if 0
+                metrics.append(ExtractedMetric(
+                    provider="youtube",
+                    channel_slug="yt-organic",
+                    metric_name=metric_name,
+                    value=value,
+                    unit=unit,
+                    date=metric_date,
+                ))
+
+        return metrics
+
+    async def _extract_card_metrics(
+        self,
+        adapter: YouTubeAnalyticsAdapter,
+        metric_date: date,
+        start_date: date,
+        end_date: date,
+    ) -> list[ExtractedMetric]:
+        """Extract card and end screen metrics (isolated sub-extractor)."""
+        card_data = await asyncio.to_thread(
+            adapter.get_card_metrics,
+            start_date.isoformat(),
+            end_date.isoformat(),
+        )
+
+        if not card_data:
+            return []
+
+        metrics: list[ExtractedMetric] = []
+
+        card_clicks = float(card_data.get("cardClicks", 0))
+        card_impressions = float(card_data.get("cardImpressions", 0))
+        end_clicks = float(card_data.get("endScreenElementClicks", 0))
+        end_impressions = float(card_data.get("endScreenElementImpressions", 0))
+
+        for metric_name, value in [
+            ("card_clicks", card_clicks),
+            ("card_impressions", card_impressions),
+            ("end_screen_clicks", end_clicks),
+            ("end_screen_impressions", end_impressions),
+        ]:
+            if value:
+                metrics.append(ExtractedMetric(
+                    provider="youtube",
+                    channel_slug="yt-organic",
+                    metric_name=metric_name,
+                    value=value,
+                    unit="count",
+                    date=metric_date,
+                ))
+
+        # Calculated rates (only if impressions > 0)
+        if card_impressions > 0:
+            metrics.append(ExtractedMetric(
+                provider="youtube",
+                channel_slug="yt-organic",
+                metric_name="card_click_rate",
+                value=round((card_clicks / card_impressions) * 100, 2),
+                unit="percentage",
+                date=metric_date,
+            ))
+
+        if end_impressions > 0:
+            metrics.append(ExtractedMetric(
+                provider="youtube",
+                channel_slug="yt-organic",
+                metric_name="end_screen_click_rate",
+                value=round((end_clicks / end_impressions) * 100, 2),
+                unit="percentage",
+                date=metric_date,
+            ))
+
+        return metrics

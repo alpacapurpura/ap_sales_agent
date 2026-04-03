@@ -58,7 +58,13 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
             # Demografía
             "ig_follower_demographics", "ig_engaged_audience_demographics",
         ]},
-        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": ["views", "engagement", "watch_time_minutes", "avg_view_duration", "subscribers_gained"]},
+        {"slug": "yt-organic", "name": "YouTube Organic", "channel_type": "social", "source_label": "YouTube", "provider_name": "youtube", "metric_names": [
+            "views", "engagement", "subscribers_gained",
+            "watch_time_minutes", "avg_view_duration", "avg_view_percentage",
+            "comments", "shares", "subscribers_lost",
+            "card_clicks", "card_impressions", "card_click_rate",
+            "end_screen_clicks", "end_screen_impressions", "end_screen_click_rate",
+        ]},
         {"slug": "fb-organic", "name": "Facebook Organic", "channel_type": "social", "source_label": "Facebook", "provider_name": "meta", "metric_names": ["reach", "engagement"]},
         {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "metric_names": ["video_views", "engagement"]},
         {"slug": "linkedin-organic", "name": "LinkedIn Organic", "channel_type": "social", "source_label": "LinkedIn", "provider_name": "linkedin", "metric_names": ["reach", "engagement"]},

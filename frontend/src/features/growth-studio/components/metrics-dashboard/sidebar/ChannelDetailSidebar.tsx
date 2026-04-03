@@ -22,10 +22,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import { connectionsApi, type ChannelInfoResponse } from '@/lib/api/connections';
+import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
+import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
+import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
 
 /** Metric name -> Spanish label. */
 const METRIC_LABELS: Record<string, string> = {
@@ -92,6 +96,21 @@ const METRIC_LABELS: Record<string, string> = {
   meta_video_p100: 'Video 100%',
   meta_video_30sec: 'Video 30s+',
   meta_video_avg_watch_time: 'Duración Promedio',
+  // YouTube Organic
+  views: 'Vistas',
+  watch_time_minutes: 'Minutos Vistos',
+  avg_view_duration: 'Duración Promedio',
+  avg_view_percentage: '% Retención Promedio',
+  subscribers_gained: 'Suscriptores Ganados',
+  subscribers_lost: 'Suscriptores Perdidos',
+  comments: 'Comentarios',
+  shares: 'Compartidos',
+  card_clicks: 'Clics en Tarjetas',
+  card_impressions: 'Impresiones Tarjetas',
+  card_click_rate: 'CTR Tarjetas',
+  end_screen_clicks: 'Clics Pantalla Final',
+  end_screen_impressions: 'Imp. Pantalla Final',
+  end_screen_click_rate: 'CTR Pantalla Final',
   // Meta Ads Breakdowns
   meta_reach_by_age: 'Alcance por Edad',
   meta_spend_by_age: 'Gasto por Edad',
@@ -111,6 +130,13 @@ const CHANNEL_METRIC_SECTIONS: Record<string, Array<{ title: string; metrics: st
     { title: 'Engagement', metrics: ['total_interactions', 'ig_likes', 'ig_comments', 'ig_shares', 'ig_saves', 'ig_replies', 'ig_reposts'] },
     { title: 'Perfil', metrics: ['ig_accounts_engaged', 'ig_profile_links_taps'] },
     { title: 'Demografía', metrics: ['ig_follower_demographics', 'ig_engaged_audience_demographics'] },
+  ],
+  'yt-organic': [
+    { title: 'Alcance', metrics: ['views', 'avg_view_percentage'] },
+    { title: 'Engagement', metrics: ['engagement', 'comments', 'shares'] },
+    { title: 'Audiencia', metrics: ['subscribers_gained', 'subscribers_lost'] },
+    { title: 'Retención', metrics: ['watch_time_minutes', 'avg_view_duration'] },
+    { title: 'Conversión', metrics: ['card_clicks', 'card_click_rate', 'end_screen_clicks', 'end_screen_click_rate'] },
   ],
   'meta-ads': [
     { title: 'Rendimiento', metrics: ['reach', 'impressions', 'clicks', 'meta_inline_link_clicks', 'meta_outbound_clicks', 'meta_post_engagement', 'meta_landing_page_views'] },
@@ -510,7 +536,19 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
                     );
                   };
 
-                  if (sections) {
+                  const renderSections = () => {
+                    if (!sections) {
+                      return (
+                        <section>
+                          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+                            Métricas Actuales
+                          </h3>
+                          <div className="space-y-2">
+                            {channel.metrics.map(renderMetric)}
+                          </div>
+                        </section>
+                      );
+                    }
                     return sections.map((section) => {
                       const sectionMetrics = section.metrics
                         .map(name => metricsByName[name])
@@ -527,18 +565,43 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
                         </section>
                       );
                     });
+                  };
+
+                  // YouTube: Tabbed layout with Métricas / Videos / Audiencia
+                  if (channel.slug === 'yt-organic') {
+                    return (
+                      <Tabs defaultValue="metricas" className="mt-2">
+                        <TabsList className="w-full">
+                          <TabsTrigger value="metricas" className="flex-1 text-xs">Métricas</TabsTrigger>
+                          <TabsTrigger value="videos" className="flex-1 text-xs">Videos</TabsTrigger>
+                          <TabsTrigger value="audiencia" className="flex-1 text-xs">Audiencia</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="metricas" className="mt-3">
+                          {renderSections()}
+                        </TabsContent>
+                        <TabsContent value="videos" className="mt-3 space-y-4">
+                          <section>
+                            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+                              Top Videos
+                            </h3>
+                            <YouTubeTopVideosList enabled={isOpen} />
+                          </section>
+                          <Separator />
+                          <section>
+                            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+                              Fuentes de Tráfico
+                            </h3>
+                            <YouTubeTrafficSourcesChart enabled={isOpen} />
+                          </section>
+                        </TabsContent>
+                        <TabsContent value="audiencia" className="mt-3">
+                          <YouTubeDemographicsChart enabled={isOpen} />
+                        </TabsContent>
+                      </Tabs>
+                    );
                   }
 
-                  return (
-                    <section>
-                      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
-                        Métricas Actuales
-                      </h3>
-                      <div className="space-y-2">
-                        {channel.metrics.map(renderMetric)}
-                      </div>
-                    </section>
-                  );
+                  return renderSections();
                 })()}
               </>
             )}
