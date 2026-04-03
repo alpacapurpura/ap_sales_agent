@@ -201,6 +201,85 @@ async def run_initial_load(
         db.close()
 
 
+async def run_campaign_sync(
+    ctx: dict,
+    tenant_id: str,
+    provider: str = "meta",
+) -> dict:
+    """Sync campaign hierarchy (campaigns, ad sets, ads, recommendations) from a provider.
+
+    Separate from metrics ETL — this extracts campaign *structure*, not time-series data.
+    On transient errors, retries with Fibonacci backoff.
+    On ConnectionRevokedException, fails permanently (no retry).
+    """
+    from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+
+    db_factory = ctx["db_factory"]
+    db = db_factory()
+
+    try:
+        from src.modules.analytics.infrastructure.providers.meta_campaign_provider import (
+            MetaCampaignProvider,
+        )
+        from src.modules.analytics.infrastructure.repositories.campaign_repository import (
+            CampaignRepository,
+        )
+        from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
+            CampaignSyncPipeline,
+        )
+        from src.modules.connections.application.services.connection_port_impl import (
+            ConnectionPortImpl,
+        )
+
+        connection_port = ConnectionPortImpl(db)
+        credentials = await connection_port.get_credentials(
+            UUID(tenant_id), provider,
+        )
+
+        campaign_repo = CampaignRepository(db)
+        campaign_provider = MetaCampaignProvider()
+        pipeline = CampaignSyncPipeline(
+            provider=campaign_provider,
+            repository=campaign_repo,
+        )
+
+        result = await pipeline.run_sync(UUID(tenant_id), credentials)
+        db.commit()
+
+        logger.info(
+            "Campaign sync completed for tenant=%s provider=%s: %s",
+            tenant_id, provider, result,
+        )
+        return {"status": "success", "tenant_id": tenant_id, "provider": provider, **result}
+
+    except ConnectionRevokedException as exc:
+        logger.error(
+            "Connection revoked for campaign sync tenant=%s provider=%s: %s",
+            tenant_id, provider, str(exc),
+        )
+        return {"status": "revoked", "tenant_id": tenant_id, "error": str(exc)}
+
+    except Exception as exc:
+        job_try = ctx.get("job_try", 1)
+        fib_index = min(job_try - 1, len(FIBONACCI_BACKOFF) - 1)
+        defer_seconds = FIBONACCI_BACKOFF[fib_index] * 60
+
+        logger.warning(
+            "Campaign sync failed for tenant=%s provider=%s (attempt %d), "
+            "retrying in %d seconds: %s",
+            tenant_id, provider, job_try, defer_seconds, str(exc),
+        )
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("tenant_id", tenant_id)
+            scope.set_tag("provider", provider)
+            scope.set_tag("job_try", str(ctx.get("job_try", 1)))
+            sentry_sdk.capture_exception(exc)
+        raise Retry(defer=defer_seconds) from exc
+
+    finally:
+        db.close()
+
+
 async def run_mailerlite_etl_sync(ctx: dict) -> dict:
     """Backup ETL sync: fetch Mailerlite campaign stats every 6 hours.
 
