@@ -57,6 +57,18 @@ _ADS_EXPANDED_FIELDS = (
 )
 
 
+_IG_INSIGHTS_MAX_DAYS = 30  # Meta enforces ≤30 days for period=day
+
+
+def _ig_day_chunks(start_date: date, end_date: date):
+    """Yield (chunk_start, chunk_end) pairs of at most 30 days."""
+    cursor = start_date
+    while cursor < end_date:
+        chunk_end = min(cursor + timedelta(days=_IG_INSIGHTS_MAX_DAYS), end_date)
+        yield cursor, chunk_end
+        cursor = chunk_end
+
+
 def _auth_headers(access_token: str) -> dict:
     """Build Authorization header — keeps token out of query params and logs."""
     return {"Authorization": f"Bearer {access_token}"}
@@ -173,9 +185,13 @@ class MetaProvider(BaseMetricsProvider):
             for item in data:
                 name = item.get("name", "")
                 metric_name = "ig_accounts_engaged" if name == "accounts_engaged" else name
-                values = item.get("values", [])
-                if values:
-                    val = values[-1].get("value", 0)
+                # metric_type=total_value → {total_value: {value: N}}
+                val = item.get("total_value", {}).get("value")
+                if val is None:
+                    # Fallback for legacy format
+                    values = item.get("values", [])
+                    val = values[-1].get("value", 0) if values else 0
+                if val:
                     metrics.append(ExtractedMetric(
                         provider="meta",
                         channel_slug="ig-organic",
@@ -347,46 +363,63 @@ class MetaProvider(BaseMetricsProvider):
         headers = _auth_headers(access_token)
         metrics: List[ExtractedMetric] = []
 
-        # ── Call 1: Account Insights batch (day-period metrics) ──
-        insights_resp = await client.get(
-            f"{GRAPH_API_BASE}/{ig_account_id}/insights",
-            headers=headers,
-            params={
-                "metric": self._IG_INSIGHTS_METRICS,
-                "metric_type": "total_value",
-                "period": "day",
-                "since": int(
-                    datetime.combine(start_date, datetime.min.time()).timestamp()
-                ),
-                "until": int(
-                    datetime.combine(end_date, datetime.min.time()).timestamp()
-                ),
-            },
-        )
-        _raise_for_meta_error(insights_resp, "ig_organic_insights")
+        # ── Call 1: Account Insights (total_value format, ≤30-day chunks) ──
+        # Meta API with metric_type=total_value returns {total_value: {value: N}}
+        # instead of {values: [{value, end_time}, ...]}. Sum chunks for ADDITIVE,
+        # keep last chunk for NON_AGGREGABLE.
+        totals: dict[str, float] = defaultdict(float)
+        last_values: dict[str, float] = {}
 
-        for item in insights_resp.json().get("data", []):
-            api_name = item.get("name", "")
-            metric_name = self._IG_API_TO_METRIC.get(api_name)
-            if not metric_name:
-                continue
+        for chunk_start, chunk_end in _ig_day_chunks(start_date, end_date):
+            insights_resp = await client.get(
+                f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                headers=headers,
+                params={
+                    "metric": self._IG_INSIGHTS_METRICS,
+                    "metric_type": "total_value",
+                    "period": "day",
+                    "since": int(
+                        datetime.combine(chunk_start, datetime.min.time()).timestamp()
+                    ),
+                    "until": int(
+                        datetime.combine(chunk_end, datetime.min.time()).timestamp()
+                    ),
+                },
+            )
+            _raise_for_meta_error(insights_resp, "ig_organic_insights")
 
-            values = item.get("values", [])
-            if not values:
-                continue
+            for item in insights_resp.json().get("data", []):
+                api_name = item.get("name", "")
+                metric_name = self._IG_API_TO_METRIC.get(api_name)
+                if not metric_name:
+                    continue
 
-            if api_name in self._IG_NON_AGGREGABLE:
-                # Use last day value (not summable cross-day)
-                total = float(values[-1].get("value", 0))
-            else:
-                total = sum(float(v.get("value", 0)) for v in values)
+                val = float(
+                    item.get("total_value", {}).get("value", 0)
+                )
+                if api_name in self._IG_NON_AGGREGABLE:
+                    last_values[metric_name] = val
+                else:
+                    totals[metric_name] += val
 
+        for metric_name, total in totals.items():
             metrics.append(
                 ExtractedMetric(
                     provider="meta",
                     channel_slug="ig-organic",
                     metric_name=metric_name,
                     value=total,
+                    unit="count",
+                    date=end_date,
+                )
+            )
+        for metric_name, val in last_values.items():
+            metrics.append(
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="ig-organic",
+                    metric_name=metric_name,
+                    value=val,
                     unit="count",
                     date=end_date,
                 )
@@ -882,48 +915,49 @@ class MetaProvider(BaseMetricsProvider):
         headers = _auth_headers(access_token)
         metrics: List[ExtractedMetric] = []
 
-        # ── Call 1: Account Insights batch (day-period, per-day granularity) ──
-        insights_resp = await client.get(
-            f"{GRAPH_API_BASE}/{ig_account_id}/insights",
-            headers=headers,
-            params={
-                "metric": self._IG_INSIGHTS_METRICS,
-                "metric_type": "total_value",
-                "period": "day",
-                "since": int(
-                    datetime.combine(start_date, datetime.min.time()).timestamp()
-                ),
-                "until": int(
-                    datetime.combine(end_date, datetime.min.time()).timestamp()
-                ),
-            },
-        )
-        _raise_for_meta_error(insights_resp, "ig_organic_insights_daily")
+        # ── Call 1: Account Insights per day (total_value format) ──
+        # metric_type=total_value returns {total_value: {value: N}} not values[].
+        # To get daily granularity, make one call per day (since=day, until=day+1).
+        current = start_date
+        while current < end_date:
+            next_day = current + timedelta(days=1)
+            insights_resp = await client.get(
+                f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                headers=headers,
+                params={
+                    "metric": self._IG_INSIGHTS_METRICS,
+                    "metric_type": "total_value",
+                    "period": "day",
+                    "since": int(
+                        datetime.combine(current, datetime.min.time()).timestamp()
+                    ),
+                    "until": int(
+                        datetime.combine(next_day, datetime.min.time()).timestamp()
+                    ),
+                },
+            )
+            _raise_for_meta_error(insights_resp, "ig_organic_insights_daily")
 
-        for item in insights_resp.json().get("data", []):
-            api_name = item.get("name", "")
-            metric_name = self._IG_API_TO_METRIC.get(api_name)
-            if not metric_name:
-                continue
-
-            for v in item.get("values", []):
-                end_time = v.get("end_time", "")
-                try:
-                    metric_date = datetime.fromisoformat(
-                        end_time.replace("Z", "+00:00")
-                    ).date()
-                except (ValueError, AttributeError):
+            for item in insights_resp.json().get("data", []):
+                api_name = item.get("name", "")
+                metric_name = self._IG_API_TO_METRIC.get(api_name)
+                if not metric_name:
                     continue
+
+                val = float(
+                    item.get("total_value", {}).get("value", 0)
+                )
                 metrics.append(
                     ExtractedMetric(
                         provider="meta",
                         channel_slug="ig-organic",
                         metric_name=metric_name,
-                        value=float(v.get("value", 0)),
+                        value=val,
                         unit="count",
-                        date=metric_date,
+                        date=current,
                     )
                 )
+            current = next_day
 
         # ── Call 2: User Node snapshots (only emit on end_date) ──
         user_resp = await client.get(
