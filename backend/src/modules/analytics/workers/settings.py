@@ -12,6 +12,7 @@ from arq.connections import RedisSettings
 from src.core.config import settings
 import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.modules.analytics.workers.tasks import (
+    run_campaign_sync,
     run_initial_load,
     run_inactivity_detection,
     run_mailerlite_etl_sync,
@@ -25,7 +26,7 @@ from src.modules.domains.workers.tasks import poll_domain_verification
 class WorkerSettings:
     """ARQ worker that processes ETL extraction jobs and CRM batch tasks."""
 
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -57,7 +58,7 @@ class SchedulerSettings:
     from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5

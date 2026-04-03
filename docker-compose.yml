@@ -45,7 +45,7 @@ services:
       resources:
         limits:
           cpus: '1.00'
-          memory: 1024M
+          memory: 768M
         reservations:
           memory: 256M
 
@@ -85,14 +85,14 @@ services:
       - "traefik.http.routers.admin_http.service=admin_dev"
       - "traefik.http.services.admin_dev.loadbalancer.server.port=8501"
     profiles:
-      - extended
+      - admin
     deploy:
       resources:
         limits:
           cpus: '0.50'
-          memory: 256M
-        reservations:
           memory: 128M
+        reservations:
+          memory: 64M
 
   # --- Client Dashboard (Next.js - Development) ---
   client_dashboard_dev:
@@ -126,6 +126,7 @@ services:
       - SENTRY_PROJECT=nicolify-frontend
       - INTERNAL_API_URL=${INTERNAL_API_URL}
       - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
+      - NODE_OPTIONS=--max-old-space-size=2048
       - CHOKIDAR_USEPOLLING=true # Essential for Windows/WSL hot reload
       - WATCHPACK_POLLING=true
     extra_hosts:
@@ -146,8 +147,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.00'
-          memory: 2048M
+          cpus: '1.50'
+          memory: 3072M
         reservations:
           memory: 512M
 
@@ -284,9 +285,9 @@ services:
       resources:
         limits:
           cpus: '0.25'
-          memory: 256M
-        reservations:
           memory: 128M
+        reservations:
+          memory: 64M
 
   qdrant:
     image: qdrant/qdrant:v1.7.3
@@ -303,9 +304,9 @@ services:
       resources:
         limits:
           cpus: '0.50'
-          memory: 512M
-        reservations:
           memory: 256M
+        reservations:
+          memory: 128M
 
   postgres:
     image: postgres:15-alpine
@@ -325,9 +326,9 @@ services:
       resources:
         limits:
           cpus: '0.50'
-          memory: 512M
-        reservations:
           memory: 256M
+        reservations:
+          memory: 128M
 
   # --- ETL Scheduler ---
   scheduler:
@@ -351,14 +352,14 @@ services:
       start_period: 15s
       retries: 3
     profiles:
-      - extended
+      - etl
     deploy:
       resources:
         limits:
           cpus: '0.50'
-          memory: 512M
+          memory: 192M
         reservations:
-          memory: 256M
+          memory: 96M
 
   # --- ETL Worker ---
   worker:
@@ -382,14 +383,14 @@ services:
       start_period: 15s
       retries: 3
     profiles:
-      - extended
+      - etl
     deploy:
       resources:
         limits:
           cpus: '0.50'
-          memory: 512M
-        reservations:
           memory: 256M
+        reservations:
+          memory: 128M
 
   # --- Cloudflare Tunnel ---
   tunnel:
@@ -400,13 +401,11 @@ services:
     networks:
       - internal_net
       - gateway
-    profiles:
-      - extended
     deploy:
       resources:
         limits:
           cpus: '0.25'
-          memory: 256M
+          memory: 128M
         reservations:
           memory: 64M
 

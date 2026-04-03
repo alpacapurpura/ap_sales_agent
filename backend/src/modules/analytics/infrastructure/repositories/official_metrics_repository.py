@@ -12,7 +12,6 @@ from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select, text
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.domain.enums import AggregationType
@@ -28,12 +27,43 @@ class OfficialMetricsRepository:
     def __init__(self, db: Session):
         self.db = db
 
+    _UPSERT_FROM_STAGING_SQL = text("""
+        INSERT INTO official_metrics (
+            id, tenant_id, provider, channel_slug, metric_name,
+            value, unit, currency, metric_date, spend, revenue,
+            campaign_id, ad_set_id, ad_id,
+            cost_type, extra, source_extraction_run_id, created_at, updated_at
+        ) VALUES (
+            :id, :tenant_id, :provider, :channel_slug, :metric_name,
+            :value, :unit, :currency, :metric_date, :spend, :revenue,
+            :campaign_id, :ad_set_id, :ad_id,
+            :cost_type, :extra::jsonb, :source_extraction_run_id, NOW(), NOW()
+        )
+        ON CONFLICT (
+            tenant_id, provider, channel_slug, metric_name, metric_date,
+            COALESCE(campaign_id, ''), COALESCE(ad_set_id, ''), COALESCE(ad_id, '')
+        )
+        DO UPDATE SET
+            value = EXCLUDED.value,
+            unit = EXCLUDED.unit,
+            currency = EXCLUDED.currency,
+            spend = EXCLUDED.spend,
+            revenue = EXCLUDED.revenue,
+            cost_type = EXCLUDED.cost_type,
+            extra = EXCLUDED.extra,
+            source_extraction_run_id = EXCLUDED.source_extraction_run_id,
+            updated_at = NOW()
+    """)
+
     def upsert_from_staging(self, metrics: List[dict]) -> int:
         """Insert or update official metrics from transformed staging data.
 
         Uses PostgreSQL ON CONFLICT DO UPDATE on the composite key
         (tenant_id, provider, channel_slug, metric_name, metric_date,
-         campaign_id, ad_set_id, ad_id) to deduplicate.
+         COALESCE(campaign_id, ''), COALESCE(ad_set_id, ''), COALESCE(ad_id, ''))
+        to deduplicate. Raw SQL is required because SQLAlchemy's
+        on_conflict_do_update does not support COALESCE expressions in
+        index_elements.
 
         Returns the number of rows upserted.
         """
@@ -46,27 +76,26 @@ class OfficialMetricsRepository:
             if "id" not in metric_data:
                 metric_data["id"] = uuid.uuid4()
 
-            stmt = pg_insert(OfficialMetricModel).values(**metric_data)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=[
-                    "tenant_id",
-                    "provider",
-                    "channel_slug",
-                    "metric_name",
-                    "metric_date",
-                ],
-                set_={
-                    "value": stmt.excluded.value,
-                    "unit": stmt.excluded.unit,
-                    "currency": stmt.excluded.currency,
-                    "spend": stmt.excluded.spend,
-                    "revenue": stmt.excluded.revenue,
-                    "cost_type": stmt.excluded.cost_type,
-                    "extra": stmt.excluded.extra,
-                    "source_extraction_run_id": stmt.excluded.source_extraction_run_id,
-                },
-            )
-            self.db.execute(stmt)
+            params = {
+                "id": metric_data["id"],
+                "tenant_id": metric_data["tenant_id"],
+                "provider": metric_data["provider"],
+                "channel_slug": metric_data["channel_slug"],
+                "metric_name": metric_data["metric_name"],
+                "value": metric_data.get("value"),
+                "unit": metric_data.get("unit"),
+                "currency": metric_data.get("currency"),
+                "metric_date": metric_data.get("metric_date"),
+                "spend": metric_data.get("spend"),
+                "revenue": metric_data.get("revenue"),
+                "campaign_id": metric_data.get("campaign_id"),
+                "ad_set_id": metric_data.get("ad_set_id"),
+                "ad_id": metric_data.get("ad_id"),
+                "cost_type": metric_data.get("cost_type"),
+                "extra": json.dumps(metric_data.get("extra") or {}),
+                "source_extraction_run_id": metric_data.get("source_extraction_run_id"),
+            }
+            self.db.execute(self._UPSERT_FROM_STAGING_SQL, params)
             count += 1
 
         self.db.flush()
@@ -153,20 +182,31 @@ class OfficialMetricsRepository:
         metric_date: date,
         cost_type: str | None = None,
         extra: dict | None = None,
+        campaign_id: str | None = None,
+        ad_set_id: str | None = None,
+        ad_id: str | None = None,
     ) -> None:
         """Upsert with SUM semantics: increment value if row exists, insert otherwise.
 
         Used by webhook-fed providers (ManyChat) where each event adds to the daily total.
+        Uses COALESCE-based unique index for campaign-level dimension support.
         """
         sql = text("""
             INSERT INTO official_metrics (
                 id, tenant_id, provider, channel_slug, metric_name,
-                value, unit, metric_date, cost_type, extra, created_at, updated_at
+                value, unit, metric_date, cost_type, extra,
+                campaign_id, ad_set_id, ad_id,
+                created_at, updated_at
             ) VALUES (
                 gen_random_uuid(), :tenant_id, :provider, :channel_slug, :metric_name,
-                :value, :unit, :metric_date, :cost_type, :extra::jsonb, NOW(), NOW()
+                :value, :unit, :metric_date, :cost_type, :extra::jsonb,
+                :campaign_id, :ad_set_id, :ad_id,
+                NOW(), NOW()
             )
-            ON CONFLICT (tenant_id, provider, channel_slug, metric_name, metric_date)
+            ON CONFLICT (
+                tenant_id, provider, channel_slug, metric_name, metric_date,
+                COALESCE(campaign_id, ''), COALESCE(ad_set_id, ''), COALESCE(ad_id, '')
+            )
             DO UPDATE SET
                 value = official_metrics.value + EXCLUDED.value,
                 extra = EXCLUDED.extra,
@@ -183,6 +223,9 @@ class OfficialMetricsRepository:
             "metric_date": metric_date,
             "cost_type": cost_type,
             "extra": json.dumps(extra or {}),
+            "campaign_id": campaign_id,
+            "ad_set_id": ad_set_id,
+            "ad_id": ad_id,
         })
         self.db.flush()
 

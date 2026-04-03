@@ -18,6 +18,18 @@ from src.modules.analytics.infrastructure.models.metric_aggregation_model import
 from src.modules.analytics.infrastructure.models.channel_cost_model import (
     ChannelCostSettingModel,
 )
+from src.modules.analytics.infrastructure.models.ad_campaign_model import (
+    AdCampaignModel,
+)
+from src.modules.analytics.infrastructure.models.ad_set_model import (
+    AdSetModel,
+)
+from src.modules.analytics.infrastructure.models.ad_model import (
+    AdModel,
+)
+from src.modules.analytics.infrastructure.models.ad_recommendation_model import (
+    AdRecommendationModel,
+)
 
 __all__ = [
     "StagingMetricModel",
@@ -25,4 +37,8 @@ __all__ = [
     "ExtractionRunModel",
     "MetricAggregationModel",
     "ChannelCostSettingModel",
+    "AdCampaignModel",
+    "AdSetModel",
+    "AdModel",
+    "AdRecommendationModel",
 ]

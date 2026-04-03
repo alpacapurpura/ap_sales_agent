@@ -86,8 +86,45 @@ export const MOCK_ATTRACTION_DETAIL: AttractionDetail = {
         name: 'Instagram',
         channelType: 'social',
         metrics: [
+          // Summary (ChannelRow shows first 3)
           { name: 'reach', value: 12000 },
-          { name: 'engagement', value: 3200, breakdown: { likes: 2000, comments: 800, shares: 0, saves: 400 } },
+          { name: 'total_interactions', value: 4850 },
+          { name: 'ig_followers_count', value: 28400 },
+          // Visibilidad
+          { name: 'ig_views', value: 34200 },
+          { name: 'ig_follows_and_unfollows', value: 180 },
+          { name: 'ig_media_count', value: 342 },
+          // Engagement detalle
+          { name: 'ig_likes', value: 2400 },
+          { name: 'ig_comments', value: 680 },
+          { name: 'ig_shares', value: 520 },
+          { name: 'ig_saves', value: 890 },
+          { name: 'ig_replies', value: 245 },
+          { name: 'ig_reposts', value: 115 },
+          // Perfil
+          { name: 'ig_accounts_engaged', value: 3200 },
+          { name: 'ig_profile_links_taps', value: 78 },
+          // Demografía
+          {
+            name: 'ig_follower_demographics', value: 0, unit: 'json',
+            extra: { breakdowns: [
+              { dimension_values: ['25-34', 'F'], value: 4200 },
+              { dimension_values: ['18-24', 'F'], value: 3100 },
+              { dimension_values: ['35-44', 'F'], value: 2800 },
+              { dimension_values: ['25-34', 'M'], value: 1900 },
+              { dimension_values: ['18-24', 'M'], value: 1400 },
+            ] },
+          },
+          {
+            name: 'ig_engaged_audience_demographics', value: 0, unit: 'json',
+            extra: { breakdowns: [
+              { dimension_values: ['25-34', 'F'], value: 980 },
+              { dimension_values: ['18-24', 'F'], value: 720 },
+              { dimension_values: ['35-44', 'F'], value: 540 },
+              { dimension_values: ['25-34', 'M'], value: 380 },
+              { dimension_values: ['18-24', 'M'], value: 290 },
+            ] },
+          },
         ],
         sourceLabel: 'Instagram',
         connected: true,

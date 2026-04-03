@@ -71,6 +71,60 @@ const METRIC_LABELS: Record<string, string> = {
   unique_clicks: 'Clicks Únicos',
   automation_completed: 'Automatizaciones',
   unsubscribes: 'Desuscripciones',
+  // Instagram Organic
+  ig_views: 'Vistas',
+  total_interactions: 'Interacciones',
+  ig_likes: 'Likes',
+  ig_comments: 'Comentarios',
+  ig_shares: 'Compartidos',
+  ig_saves: 'Guardados',
+  ig_replies: 'Respuestas Stories',
+  ig_reposts: 'Reposts',
+  ig_accounts_engaged: 'Cuentas Engaged',
+  ig_follows_and_unfollows: 'Seguidores Netos',
+  ig_profile_links_taps: 'Taps Perfil',
+  ig_followers_count: 'Seguidores',
+  ig_media_count: 'Publicaciones',
+  ig_follower_demographics: 'Demografía',
+  ig_engaged_audience_demographics: 'Demografía Engaged',
+  // Meta Ads Expanded
+  meta_inline_link_clicks: 'Clics al Destino',
+  meta_outbound_clicks: 'Clics Salientes',
+  meta_landing_page_views: 'Vistas de Landing',
+  meta_cost_per_link_click: 'Costo por Clic al Destino',
+  meta_cost_per_outbound_click: 'Costo por Clic Saliente',
+  meta_leads: 'Leads',
+  meta_add_to_cart: 'Agregar al Carrito',
+  meta_initiate_checkout: 'Checkouts Iniciados',
+  meta_registrations: 'Registros',
+  meta_view_content: 'Vistas de Contenido',
+  meta_search_actions: 'Búsquedas',
+  meta_conversations_started: 'Conversaciones',
+  meta_link_clicks: 'Link Clicks',
+  meta_page_engagement: 'Engagement de Página',
+  meta_video_views: 'Reproducciones de Video',
+  meta_conversion_value: 'Valor de Conversiones',
+  meta_purchase_roas: 'ROAS',
+  meta_cost_per_purchase: 'Costo por Compra',
+  meta_cost_per_lead: 'Costo por Lead',
+  meta_cpp: 'CPP',
+  meta_post_engagement: 'Engagement de Post',
+  meta_video_p25: 'Video 25%',
+  meta_video_p50: 'Video 50%',
+  meta_video_p75: 'Video 75%',
+  meta_video_p100: 'Video 100%',
+  meta_video_30sec: 'Video 30s+',
+  meta_video_avg_watch_time: 'Duración Promedio',
+  // Meta Ads Breakdowns
+  meta_reach_by_age: 'Alcance por Edad',
+  meta_spend_by_age: 'Gasto por Edad',
+  meta_impressions_by_age: 'Impresiones por Edad',
+  meta_reach_by_gender: 'Alcance por Género',
+  meta_spend_by_gender: 'Gasto por Género',
+  meta_impressions_by_gender: 'Impresiones por Género',
+  meta_reach_by_placement: 'Alcance por Plataforma',
+  meta_spend_by_placement: 'Gasto por Plataforma',
+  meta_impressions_by_placement: 'Impresiones por Plataforma',
 };
 
 /** Breakdown key -> Spanish label. */
@@ -257,8 +311,17 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
   // Find conversations metric for AI Agent secondary line
   const conversationsMetric = channel.metrics.find(m => m.name === 'conversations');
 
+  // Summary metrics for channels with many metrics — only show top 3 in the row
+  const CHANNEL_ROW_SUMMARY_METRICS: Record<string, string[]> = {
+    'ig-organic': ['reach', 'total_interactions', 'ig_followers_count'],
+    'meta-ads': ['reach', 'spend', 'meta_purchase_roas'],
+  };
+
   // Render metrics, excluding conversations (shown as secondary line) and handling CostLink
-  const displayMetrics = channel.metrics.filter(m => m.name !== 'conversations');
+  const summaryFilter = CHANNEL_ROW_SUMMARY_METRICS[channel.slug];
+  const displayMetrics = channel.metrics
+    .filter(m => m.name !== 'conversations')
+    .filter(m => !summaryFilter || summaryFilter.includes(m.name));
 
   // Inline bottleneck badge for abandoned-cart
   const abandonmentMetric = channel.slug === 'abandoned-cart'

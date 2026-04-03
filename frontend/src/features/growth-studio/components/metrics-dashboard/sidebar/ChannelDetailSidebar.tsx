@@ -48,6 +48,79 @@ const METRIC_LABELS: Record<string, string> = {
   cpm: 'CPM',
   cpc: 'CPC',
   frequency: 'Frecuencia',
+  // Instagram Organic
+  ig_views: 'Vistas',
+  total_interactions: 'Interacciones Totales',
+  ig_likes: 'Likes',
+  ig_comments: 'Comentarios',
+  ig_shares: 'Compartidos',
+  ig_saves: 'Guardados',
+  ig_replies: 'Respuestas Stories',
+  ig_reposts: 'Reposts',
+  ig_accounts_engaged: 'Cuentas que Interactuaron',
+  ig_follows_and_unfollows: 'Seguidores Netos',
+  ig_profile_links_taps: 'Taps en Perfil',
+  ig_followers_count: 'Seguidores',
+  ig_media_count: 'Publicaciones',
+  ig_follower_demographics: 'Demografía Seguidores',
+  ig_engaged_audience_demographics: 'Demografía Engaged',
+  // Meta Ads Expanded
+  meta_inline_link_clicks: 'Clics al Destino',
+  meta_outbound_clicks: 'Clics Salientes',
+  meta_landing_page_views: 'Vistas de Landing',
+  meta_cost_per_link_click: 'Costo por Clic al Destino',
+  meta_cost_per_outbound_click: 'Costo por Clic Saliente',
+  meta_leads: 'Leads',
+  meta_add_to_cart: 'Agregar al Carrito',
+  meta_initiate_checkout: 'Checkouts Iniciados',
+  meta_registrations: 'Registros',
+  meta_view_content: 'Vistas de Contenido',
+  meta_search_actions: 'Búsquedas',
+  meta_conversations_started: 'Conversaciones',
+  meta_link_clicks: 'Link Clicks',
+  meta_page_engagement: 'Engagement de Página',
+  meta_video_views: 'Reproducciones de Video',
+  meta_conversion_value: 'Valor de Conversiones',
+  meta_purchase_roas: 'ROAS',
+  meta_cost_per_purchase: 'Costo por Compra',
+  meta_cost_per_lead: 'Costo por Lead',
+  meta_cpp: 'CPP',
+  meta_post_engagement: 'Engagement de Post',
+  meta_video_p25: 'Video 25%',
+  meta_video_p50: 'Video 50%',
+  meta_video_p75: 'Video 75%',
+  meta_video_p100: 'Video 100%',
+  meta_video_30sec: 'Video 30s+',
+  meta_video_avg_watch_time: 'Duración Promedio',
+  // Meta Ads Breakdowns
+  meta_reach_by_age: 'Alcance por Edad',
+  meta_spend_by_age: 'Gasto por Edad',
+  meta_impressions_by_age: 'Impresiones por Edad',
+  meta_reach_by_gender: 'Alcance por Género',
+  meta_spend_by_gender: 'Gasto por Género',
+  meta_impressions_by_gender: 'Impresiones por Género',
+  meta_reach_by_placement: 'Alcance por Plataforma',
+  meta_spend_by_placement: 'Gasto por Plataforma',
+  meta_impressions_by_placement: 'Impresiones por Plataforma',
+};
+
+/** Section groupings for channels with many metrics. */
+const CHANNEL_METRIC_SECTIONS: Record<string, Array<{ title: string; metrics: string[] }>> = {
+  'ig-organic': [
+    { title: 'Visibilidad', metrics: ['reach', 'ig_views', 'ig_followers_count', 'ig_follows_and_unfollows', 'ig_media_count'] },
+    { title: 'Engagement', metrics: ['total_interactions', 'ig_likes', 'ig_comments', 'ig_shares', 'ig_saves', 'ig_replies', 'ig_reposts'] },
+    { title: 'Perfil', metrics: ['ig_accounts_engaged', 'ig_profile_links_taps'] },
+    { title: 'Demografía', metrics: ['ig_follower_demographics', 'ig_engaged_audience_demographics'] },
+  ],
+  'meta-ads': [
+    { title: 'Rendimiento', metrics: ['reach', 'impressions', 'clicks', 'meta_inline_link_clicks', 'meta_outbound_clicks', 'meta_post_engagement', 'meta_landing_page_views'] },
+    { title: 'Costos', metrics: ['spend', 'cpc', 'cpm', 'meta_cpp', 'frequency', 'meta_cost_per_link_click', 'meta_cost_per_outbound_click'] },
+    { title: 'Conversiones', metrics: ['conversions', 'meta_leads', 'meta_add_to_cart', 'meta_initiate_checkout', 'meta_registrations', 'meta_view_content', 'meta_conversations_started'] },
+    { title: 'Valor & ROAS', metrics: ['meta_conversion_value', 'meta_purchase_roas', 'meta_cost_per_purchase', 'meta_cost_per_lead'] },
+    { title: 'Video', metrics: ['meta_video_views', 'meta_video_p25', 'meta_video_p50', 'meta_video_p75', 'meta_video_p100', 'meta_video_30sec', 'meta_video_avg_watch_time'] },
+    { title: 'Demografía', metrics: ['meta_reach_by_age', 'meta_spend_by_age', 'meta_impressions_by_age', 'meta_reach_by_gender', 'meta_spend_by_gender', 'meta_impressions_by_gender'] },
+    { title: 'Plataforma', metrics: ['meta_reach_by_placement', 'meta_spend_by_placement', 'meta_impressions_by_placement'] },
+  ],
 };
 
 function formatNumber(n: number): string {
@@ -372,38 +445,101 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
             {channel.metrics && channel.metrics.length > 0 && (
               <>
                 <Separator />
-                <section>
-                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
-                    Métricas Actuales
-                  </h3>
-                  <div className="space-y-2">
-                    {channel.metrics.map((m: MetricValue) => {
-                      const label = METRIC_LABELS[m.name] ?? m.name;
-                      const isCurrency = m.unit === 'currency';
-                      const formatted = isCurrency
-                        ? formatCurrency(m.value, m.currency)
-                        : formatNumber(m.value);
+                {(() => {
+                  const sections = CHANNEL_METRIC_SECTIONS[channel.slug];
+                  const metricsByName = Object.fromEntries(channel.metrics.map((m: MetricValue) => [m.name, m]));
+
+                  const renderMetric = (m: MetricValue) => {
+                    const label = METRIC_LABELS[m.name] ?? m.name;
+
+                    // Demographics: render as key-value breakdown
+                    if (m.unit === 'json' && m.extra?.breakdowns) {
+                      const breakdowns = m.extra.breakdowns as Array<{ dimension_values: string[]; value: number }>;
+                      const sorted = Array.isArray(breakdowns)
+                        ? [...breakdowns].sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).slice(0, 5)
+                        : [];
+                      const maxVal = sorted.length > 0 ? Math.max(...sorted.map(b => b.value ?? 0), 1) : 1;
 
                       return (
-                        <div key={m.name} className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">{label}</span>
-                            <span className="text-sm font-semibold tabular-nums">{formatted}</span>
-                          </div>
-                          {m.breakdown && Object.keys(m.breakdown).length > 0 && (
-                            <div className="flex gap-2 pl-2">
-                              {Object.entries(m.breakdown).filter(([, v]) => v > 0).map(([key, val]) => (
-                                <span key={key} className="text-[10px] text-muted-foreground">
-                                  {key} {formatNumber(val)}
-                                </span>
-                              ))}
+                        <div key={m.name} className="space-y-1.5">
+                          <span className="text-sm text-muted-foreground">{label}</span>
+                          {sorted.length > 0 ? (
+                            <div className="space-y-1">
+                              {sorted.map((b, i) => {
+                                const dimLabel = (b.dimension_values ?? []).join(', ') || `#${i + 1}`;
+                                const pct = ((b.value ?? 0) / maxVal) * 100;
+                                return (
+                                  <div key={dimLabel} className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground w-24 truncate" title={dimLabel}>{dimLabel}</span>
+                                    <div className="flex-1 h-2 bg-muted/50 rounded-full overflow-hidden">
+                                      <div className="h-full bg-primary/40 rounded-full" style={{ width: `${pct}%` }} />
+                                    </div>
+                                    <span className="text-xs font-medium tabular-nums w-8 text-right">{b.value ?? 0}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Sin datos demográficos</span>
                           )}
                         </div>
                       );
-                    })}
-                  </div>
-                </section>
+                    }
+
+                    const isCurrency = m.unit === 'currency';
+                    const formatted = isCurrency
+                      ? formatCurrency(m.value, m.currency)
+                      : formatNumber(m.value);
+
+                    return (
+                      <div key={m.name} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">{label}</span>
+                          <span className="text-sm font-semibold tabular-nums">{formatted}</span>
+                        </div>
+                        {m.breakdown && Object.keys(m.breakdown).length > 0 && (
+                          <div className="flex gap-2 pl-2">
+                            {Object.entries(m.breakdown).filter(([, v]) => v > 0).map(([key, val]) => (
+                              <span key={key} className="text-[10px] text-muted-foreground">
+                                {key} {formatNumber(val)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  };
+
+                  if (sections) {
+                    return sections.map((section) => {
+                      const sectionMetrics = section.metrics
+                        .map(name => metricsByName[name])
+                        .filter((m): m is MetricValue => m !== undefined);
+                      if (sectionMetrics.length === 0) return null;
+                      return (
+                        <section key={section.title} className="mt-4">
+                          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+                            {section.title}
+                          </h3>
+                          <div className="space-y-2">
+                            {sectionMetrics.map(renderMetric)}
+                          </div>
+                        </section>
+                      );
+                    });
+                  }
+
+                  return (
+                    <section>
+                      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
+                        Métricas Actuales
+                      </h3>
+                      <div className="space-y-2">
+                        {channel.metrics.map(renderMetric)}
+                      </div>
+                    </section>
+                  );
+                })()}
               </>
             )}
 

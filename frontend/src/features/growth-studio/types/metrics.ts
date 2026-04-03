@@ -80,6 +80,7 @@ export interface MetricValue {
   unit?: string;
   currency?: string;
   breakdown?: Record<string, number>;
+  extra?: Record<string, unknown>;
 }
 
 export type GroupType = 'organic_social' | 'ga4_search' | 'paid' | 'outbound' | 'website' | 'web_infrastructure' | 'ai_agent' | 'retargeting' | 'automation' | 'checkout' | 'payment_links' | 'qualification' | 'adquisicion' | 'expansion' | 'available';

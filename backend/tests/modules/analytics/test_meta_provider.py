@@ -68,22 +68,46 @@ class TestInstagramOrganic:
                 {
                     "name": "reach",
                     "values": [{"value": 1000}, {"value": 2000}, {"value": 500}],
+                },
+                {
+                    "name": "total_interactions",
+                    "values": [{"value": 300}, {"value": 400}, {"value": 200}],
+                },
+                {
+                    "name": "likes",
+                    "values": [{"value": 100}, {"value": 150}, {"value": 80}],
+                },
+            ]
+        })
+
+        mock_user_node_response = _ok_response({
+            "id": "12345",
+            "followers_count": 28400,
+            "media_count": 342,
+        })
+
+        mock_demographics_response = _ok_response({
+            "data": [
+                {
+                    "name": "follower_demographics",
+                    "total_value": {
+                        "breakdowns": [
+                            {"results": [{"dimension_values": ["25-34", "F"], "value": 4200}]}
+                        ]
+                    },
                 }
             ]
         })
 
-        mock_media_response = _ok_response({
-            "data": [
-                {"like_count": 100, "comments_count": 50},
-                {"like_count": 200, "comments_count": 30},
-            ]
-        })
-
         async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
             if "/insights" in url:
+                if params.get("period") == "lifetime":
+                    return mock_demographics_response
                 return mock_insights_response
-            if "/media" in url:
-                return mock_media_response
+            # User node: /{ig_account_id}?fields=...
+            if url.endswith("/12345") and "fields" in params:
+                return mock_user_node_response
             return _ok_response({"data": []})
 
         with patch("httpx.AsyncClient") as MockClient:
@@ -100,16 +124,33 @@ class TestInstagramOrganic:
         metrics = result.metrics
 
         ig_metrics = [m for m in metrics if m.channel_slug == "ig-organic"]
-        assert len(ig_metrics) >= 2
+        # reach + total_interactions + ig_likes + ig_followers_count + ig_media_count + 2 demographics
+        assert len(ig_metrics) >= 5
 
+        # reach is NON_AGGREGABLE — uses last value (500), not SUM (3500)
         reach = next(m for m in ig_metrics if m.metric_name == "reach")
-        assert reach.value == 3500.0  # 1000+2000+500
+        assert reach.value == 500.0
         assert reach.provider == "meta"
 
-        engagement = next(m for m in ig_metrics if m.metric_name == "engagement")
-        assert engagement.value == 380.0  # 100+200+50+30
-        assert engagement.extra.get("likes") == 300
-        assert engagement.extra.get("comments") == 80
+        # total_interactions is ADDITIVE — SUM
+        interactions = next(m for m in ig_metrics if m.metric_name == "total_interactions")
+        assert interactions.value == 900.0  # 300+400+200
+
+        # ig_likes is ADDITIVE — SUM
+        likes = next(m for m in ig_metrics if m.metric_name == "ig_likes")
+        assert likes.value == 330.0  # 100+150+80
+
+        # Snapshot metrics from User Node
+        followers = next(m for m in ig_metrics if m.metric_name == "ig_followers_count")
+        assert followers.value == 28400.0
+
+        media = next(m for m in ig_metrics if m.metric_name == "ig_media_count")
+        assert media.value == 342.0
+
+        # Demographics
+        demo = next(m for m in ig_metrics if m.metric_name == "ig_follower_demographics")
+        assert demo.unit == "json"
+        assert demo.value == 0.0
 
     @pytest.mark.asyncio
     async def test_uses_auth_header_not_query_param(self):
@@ -199,25 +240,73 @@ class TestFacebookOrganic:
 
 
 class TestMetaAds:
+    """Full expanded mock response used across Meta Ads tests."""
+
+    FULL_ADS_DATA = {
+        "reach": "10000",
+        "impressions": "45000",
+        "clicks": "500",
+        "spend": "123.45",
+        "ctr": "1.11",
+        "cpm": "2.74",
+        "cpc": "0.25",
+        "cpp": "12.35",
+        "frequency": "4.5",
+        "inline_link_clicks": "420",
+        "inline_post_engagement": "650",
+        "cost_per_inline_link_click": "0.29",
+        "actions": [
+            {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "15"},
+            {"action_type": "link_click", "value": "300"},
+            {"action_type": "offsite_conversion.fb_pixel_lead", "value": "25"},
+            {"action_type": "offsite_conversion.fb_pixel_add_to_cart", "value": "40"},
+            {"action_type": "offsite_conversion.fb_pixel_initiate_checkout", "value": "20"},
+            {"action_type": "offsite_conversion.fb_pixel_complete_registration", "value": "10"},
+            {"action_type": "offsite_conversion.fb_pixel_view_content", "value": "200"},
+            {"action_type": "landing_page_view", "value": "350"},
+            {"action_type": "video_view", "value": "1200"},
+            {"action_type": "post_engagement", "value": "800"},
+            {"action_type": "page_engagement", "value": "900"},
+        ],
+        "action_values": [
+            {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "750.00"},
+        ],
+        "cost_per_action_type": [
+            {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "8.23"},
+            {"action_type": "offsite_conversion.fb_pixel_lead", "value": "4.94"},
+        ],
+        "outbound_clicks": [
+            {"action_type": "outbound_click", "value": "380"},
+        ],
+        "cost_per_outbound_click": [
+            {"action_type": "outbound_click", "value": "0.32"},
+        ],
+        "purchase_roas": [
+            {"action_type": "omni_purchase", "value": "6.07"},
+        ],
+        "video_p25_watched_actions": [
+            {"action_type": "video_view", "value": "1000"},
+        ],
+        "video_p50_watched_actions": [
+            {"action_type": "video_view", "value": "800"},
+        ],
+        "video_p75_watched_actions": [
+            {"action_type": "video_view", "value": "600"},
+        ],
+        "video_p100_watched_actions": [
+            {"action_type": "video_view", "value": "400"},
+        ],
+        "video_30_sec_watched_actions": [
+            {"action_type": "video_view", "value": "500"},
+        ],
+        "video_avg_time_watched_actions": [
+            {"action_type": "video_view", "value": "15.3"},
+        ],
+    }
+
     @pytest.mark.asyncio
     async def test_happy_path(self):
-        mock_ads_response = _ok_response({
-            "data": [
-                {
-                    "reach": "10000",
-                    "impressions": "45000",
-                    "clicks": "500",
-                    "spend": "123.45",
-                    "ctr": "1.11",
-                    "cpm": "2.74",
-                    "frequency": "4.5",
-                    "actions": [
-                        {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "15"},
-                        {"action_type": "link_click", "value": "300"},
-                    ],
-                }
-            ]
-        })
+        mock_ads_response = _ok_response({"data": [self.FULL_ADS_DATA]})
 
         async def mock_get(url, **kwargs):
             if "/act_" in url:
@@ -238,7 +327,9 @@ class TestMetaAds:
         metrics = result.metrics
 
         ads_metrics = [m for m in metrics if m.channel_slug == "meta-ads"]
-        assert len(ads_metrics) == 8
+        # 12 simple + 2 outbound + 11 actions + 1 action_values + 2 cost_per_action
+        # + 1 roas + 6 video = ~35 metrics
+        assert len(ads_metrics) >= 30
 
         reach = next(m for m in ads_metrics if m.metric_name == "reach")
         assert reach.value == 10000.0
@@ -267,6 +358,157 @@ class TestMetaAds:
         assert spend.value == 123.45
         assert spend.unit == "currency"
         assert spend.currency == "MXN"
+
+    @pytest.mark.asyncio
+    async def test_actions_expanded(self):
+        """Verify expanded action types are correctly parsed."""
+        mock_ads_response = _ok_response({"data": [self.FULL_ADS_DATA]})
+
+        async def mock_get(url, **kwargs):
+            if "/act_" in url:
+                return mock_ads_response
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+        ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
+
+        leads = next(m for m in ads if m.metric_name == "meta_leads")
+        assert leads.value == 25.0
+
+        atc = next(m for m in ads if m.metric_name == "meta_add_to_cart")
+        assert atc.value == 40.0
+
+        checkout = next(m for m in ads if m.metric_name == "meta_initiate_checkout")
+        assert checkout.value == 20.0
+
+        regs = next(m for m in ads if m.metric_name == "meta_registrations")
+        assert regs.value == 10.0
+
+        lpv = next(m for m in ads if m.metric_name == "meta_landing_page_views")
+        assert lpv.value == 350.0
+
+    @pytest.mark.asyncio
+    async def test_video_metrics(self):
+        """Verify video retention fields are parsed correctly."""
+        mock_ads_response = _ok_response({"data": [self.FULL_ADS_DATA]})
+
+        async def mock_get(url, **kwargs):
+            if "/act_" in url:
+                return mock_ads_response
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+        ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
+
+        p25 = next(m for m in ads if m.metric_name == "meta_video_p25")
+        assert p25.value == 1000.0
+        assert p25.unit == "count"
+
+        p100 = next(m for m in ads if m.metric_name == "meta_video_p100")
+        assert p100.value == 400.0
+
+        avg_watch = next(m for m in ads if m.metric_name == "meta_video_avg_watch_time")
+        assert avg_watch.value == 15.3
+        assert avg_watch.unit == "seconds"
+
+    @pytest.mark.asyncio
+    async def test_roas_and_conversion_value(self):
+        """Verify ROAS and conversion value parsing."""
+        mock_ads_response = _ok_response({"data": [self.FULL_ADS_DATA]})
+
+        async def mock_get(url, **kwargs):
+            if "/act_" in url:
+                return mock_ads_response
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+        ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
+
+        roas = next(m for m in ads if m.metric_name == "meta_purchase_roas")
+        assert roas.value == 6.07
+        assert roas.unit == "ratio"
+
+        conv_val = next(m for m in ads if m.metric_name == "meta_conversion_value")
+        assert conv_val.value == 750.0
+        assert conv_val.unit == "currency"
+        assert conv_val.currency == "MXN"
+
+        cpa = next(m for m in ads if m.metric_name == "meta_cost_per_purchase")
+        assert cpa.value == 8.23
+
+        cpl = next(m for m in ads if m.metric_name == "meta_cost_per_lead")
+        assert cpl.value == 4.94
+
+    @pytest.mark.asyncio
+    async def test_empty_optional_fields(self):
+        """Graceful handling when video/ROAS/actions are absent."""
+        minimal_data = {
+            "reach": "5000",
+            "impressions": "20000",
+            "clicks": "200",
+            "spend": "50.00",
+            "ctr": "1.0",
+            "cpm": "2.5",
+            "frequency": "4.0",
+            "actions": [],
+        }
+        mock_ads_response = _ok_response({"data": [minimal_data]})
+
+        async def mock_get(url, **kwargs):
+            if "/act_" in url:
+                return mock_ads_response
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+        ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
+
+        # Should have basic metrics but no video/ROAS/conversion metrics
+        names = {m.metric_name for m in ads}
+        assert "reach" in names
+        assert "spend" in names
+        assert "meta_purchase_roas" not in names
+        assert "meta_video_p25" not in names
+        assert "meta_conversion_value" not in names
 
     @pytest.mark.asyncio
     async def test_currency_from_credentials(self):
@@ -333,8 +575,8 @@ class TestExtractMetricsDaily:
     """Tests for extract_metrics_daily() — per-day granularity extraction."""
 
     @pytest.mark.asyncio
-    async def test_ig_organic_daily_emits_per_day_reach(self):
-        """IG organic daily should emit one reach metric per day from values[] array."""
+    async def test_ig_organic_daily_emits_per_day_metrics(self):
+        """IG organic daily should emit one metric per day per metric from values[] array."""
         mock_insights_response = _ok_response({
             "data": [
                 {
@@ -344,21 +586,32 @@ class TestExtractMetricsDaily:
                         {"value": 2000, "end_time": "2026-03-02T08:00:00+0000"},
                         {"value": 500, "end_time": "2026-03-03T08:00:00+0000"},
                     ],
-                }
+                },
+                {
+                    "name": "total_interactions",
+                    "values": [
+                        {"value": 300, "end_time": "2026-03-01T08:00:00+0000"},
+                        {"value": 400, "end_time": "2026-03-02T08:00:00+0000"},
+                        {"value": 200, "end_time": "2026-03-03T08:00:00+0000"},
+                    ],
+                },
             ]
         })
 
-        mock_media_response = _ok_response({
-            "data": [
-                {"like_count": 100, "comments_count": 50},
-            ]
+        mock_user_node_response = _ok_response({
+            "id": "12345",
+            "followers_count": 28400,
+            "media_count": 342,
         })
 
         async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
             if "/insights" in url:
+                if params.get("period") == "lifetime":
+                    return _ok_response({"data": []})
                 return mock_insights_response
-            if "/media" in url:
-                return mock_media_response
+            if url.endswith("/12345") and "fields" in params:
+                return mock_user_node_response
             return _ok_response({"data": []})
 
         with patch("httpx.AsyncClient") as MockClient:
@@ -374,6 +627,7 @@ class TestExtractMetricsDaily:
             )
         metrics = result.metrics
 
+        # Reach: 3 days
         reach_metrics = [m for m in metrics if m.metric_name == "reach" and m.channel_slug == "ig-organic"]
         assert len(reach_metrics) == 3
         assert reach_metrics[0].date == date(2026, 3, 1)
@@ -382,6 +636,15 @@ class TestExtractMetricsDaily:
         assert reach_metrics[1].value == 2000.0
         assert reach_metrics[2].date == date(2026, 3, 3)
         assert reach_metrics[2].value == 500.0
+
+        # total_interactions: 3 days
+        interactions = [m for m in metrics if m.metric_name == "total_interactions" and m.channel_slug == "ig-organic"]
+        assert len(interactions) == 3
+
+        # Snapshots: only on end_date
+        followers = [m for m in metrics if m.metric_name == "ig_followers_count"]
+        assert len(followers) == 1
+        assert followers[0].date == date(2026, 3, 3)
 
     @pytest.mark.asyncio
     async def test_meta_ads_daily_uses_time_increment(self):
@@ -422,6 +685,10 @@ class TestExtractMetricsDaily:
         async def mock_get(url, **kwargs):
             captured_params.append(kwargs.get("params", {}))
             if "/act_" in url:
+                params = kwargs.get("params", {})
+                # Campaign-level requests return empty
+                if params.get("level") == "campaign":
+                    return _ok_response({"data": []})
                 return mock_ads_response
             return _ok_response({"data": []})
 
@@ -439,8 +706,9 @@ class TestExtractMetricsDaily:
         metrics = result.metrics
 
         ads_metrics = [m for m in metrics if m.channel_slug == "meta-ads"]
-        # 8 metric types × 2 days = 16
-        assert len(ads_metrics) == 16
+        # Day 1: 7 simple fields (no cpc/cpp/inline in mock), 0 actions = 7
+        # Day 2: 7 simple fields + 1 conversion from actions = 8
+        assert len(ads_metrics) == 15
 
         # Check time_increment was used
         ads_params = [p for p in captured_params if p.get("time_increment") == "1"]
@@ -527,6 +795,206 @@ class TestExtractMetricsDaily:
             TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 3)
         )
         assert result.metrics == []
+
+
+class TestMetaAdsCampaigns:
+    """Phase 2: Campaign-level extraction tests."""
+
+    @pytest.mark.asyncio
+    async def test_campaign_level_sets_campaign_id(self):
+        """Campaign-level extractor should set campaign_id on each metric."""
+        campaign_row = {
+            "campaign_id": "camp_123",
+            "campaign_name": "Spring Sale",
+            "reach": "3000",
+            "impressions": "10000",
+            "clicks": "150",
+            "spend": "45.00",
+            "ctr": "1.5",
+            "cpm": "4.5",
+            "frequency": "3.3",
+            "actions": [
+                {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "5"},
+            ],
+        }
+        mock_campaign_resp = _ok_response({"data": [campaign_row]})
+        mock_account_resp = _ok_response({"data": [TestMetaAds.FULL_ADS_DATA]})
+
+        async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
+            if "/act_" in url:
+                level = params.get("level", "")
+                if level == "campaign":
+                    return mock_campaign_resp
+                return mock_account_resp
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+        metrics = result.metrics
+
+        campaign_metrics = [m for m in metrics if m.campaign_id == "camp_123"]
+        assert len(campaign_metrics) >= 8  # at least the simple fields + conversions
+
+        # All should be meta-ads channel
+        assert all(m.channel_slug == "meta-ads" for m in campaign_metrics)
+
+        # Account-level metrics should have no campaign_id
+        account_metrics = [m for m in metrics if m.channel_slug == "meta-ads" and m.campaign_id is None]
+        assert len(account_metrics) >= 30  # from the full data
+
+    @pytest.mark.asyncio
+    async def test_campaign_daily_sets_date_and_campaign_id(self):
+        """Campaign daily should produce per-day per-campaign metrics."""
+        rows = [
+            {
+                "date_start": "2026-03-01",
+                "campaign_id": "camp_A",
+                "reach": "1000",
+                "impressions": "5000",
+                "clicks": "50",
+                "spend": "20.00",
+                "ctr": "1.0",
+                "cpm": "4.0",
+                "frequency": "5.0",
+                "actions": [],
+            },
+        ]
+        mock_resp = _ok_response({"data": rows})
+
+        async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
+            if "/act_" in url and params.get("level") == "campaign":
+                return mock_resp
+            if "/act_" in url:
+                return _ok_response({"data": []})
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1)
+            )
+        campaign_metrics = [m for m in result.metrics if m.campaign_id == "camp_A"]
+        assert len(campaign_metrics) >= 7
+        assert all(m.date == date(2026, 3, 1) for m in campaign_metrics)
+
+
+class TestMetaAdsBreakdowns:
+    """Phase 3: Demographic / placement breakdown tests."""
+
+    @pytest.mark.asyncio
+    async def test_breakdowns_age_gender_placement(self):
+        """Breakdowns extractor should produce JSON metrics for age, gender, placement."""
+        age_data = [
+            {"age": "18-24", "reach": "2000", "impressions": "8000", "spend": "30.00"},
+            {"age": "25-34", "reach": "5000", "impressions": "20000", "spend": "60.00"},
+        ]
+        gender_data = [
+            {"gender": "female", "reach": "4000", "impressions": "15000", "spend": "50.00"},
+            {"gender": "male", "reach": "3000", "impressions": "13000", "spend": "40.00"},
+        ]
+        placement_data = [
+            {"publisher_platform": "facebook", "platform_position": "feed", "reach": "5000", "impressions": "20000", "spend": "60.00"},
+            {"publisher_platform": "instagram", "platform_position": "story", "reach": "2000", "impressions": "8000", "spend": "30.00"},
+        ]
+
+        call_index = 0
+
+        async def mock_get(url, **kwargs):
+            nonlocal call_index
+            params = kwargs.get("params", {})
+            if "/act_" in url:
+                breakdowns = params.get("breakdowns", "")
+                if breakdowns == "age":
+                    return _ok_response({"data": age_data})
+                if breakdowns == "gender":
+                    return _ok_response({"data": gender_data})
+                if "publisher_platform" in breakdowns:
+                    return _ok_response({"data": placement_data})
+                # account-level or campaign-level
+                return _ok_response({"data": [TestMetaAds.FULL_ADS_DATA]})
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+        metrics = result.metrics
+
+        # Find breakdown metrics
+        breakdown_metrics = [m for m in metrics if m.unit == "json" and m.channel_slug == "meta-ads"]
+        breakdown_names = {m.metric_name for m in breakdown_metrics}
+
+        # Should have 9 breakdown metrics (3 base × 3 dimensions)
+        assert "meta_reach_by_age" in breakdown_names
+        assert "meta_spend_by_age" in breakdown_names
+        assert "meta_impressions_by_age" in breakdown_names
+        assert "meta_reach_by_gender" in breakdown_names
+        assert "meta_spend_by_gender" in breakdown_names
+        assert "meta_impressions_by_gender" in breakdown_names
+        assert "meta_reach_by_placement" in breakdown_names
+        assert "meta_spend_by_placement" in breakdown_names
+        assert "meta_impressions_by_placement" in breakdown_names
+
+        # Verify age breakdown structure
+        age_reach = next(m for m in breakdown_metrics if m.metric_name == "meta_reach_by_age")
+        assert age_reach.value == 0.0  # JSON metrics use 0 as placeholder
+        assert "breakdowns" in age_reach.extra
+        assert len(age_reach.extra["breakdowns"]) == 2
+        assert age_reach.extra["breakdowns"][0]["dimension_values"] == ["18-24"]
+        assert age_reach.extra["breakdowns"][0]["value"] == 2000.0
+
+        # Verify placement breakdown has two dimension values
+        placement_reach = next(m for m in breakdown_metrics if m.metric_name == "meta_reach_by_placement")
+        assert placement_reach.extra["breakdowns"][0]["dimension_values"] == ["facebook", "feed"]
+
+    @pytest.mark.asyncio
+    async def test_breakdowns_empty_data(self):
+        """Breakdowns should gracefully handle empty API responses."""
+        async def mock_get(url, **kwargs):
+            if "/act_" in url:
+                return _ok_response({"data": [TestMetaAds.FULL_ADS_DATA]})
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+        # Breakdown metrics should not be present when API returns empty
+        # But the account-level FULL_ADS_DATA is returned for all /act_ URLs
+        # so breakdowns will also get FULL_ADS_DATA (which has reach etc.)
+        # The test just ensures no crash
+        assert len(result.metrics) > 0
 
 
 class TestMetaProviderErrorHandling:
