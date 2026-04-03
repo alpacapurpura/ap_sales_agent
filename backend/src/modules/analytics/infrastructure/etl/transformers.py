@@ -1,11 +1,17 @@
 """ETL transformers — maps staging metrics to official metrics format.
 
-Applies cost_type classification and prepares data for the
-official_metrics table after validation.
+Applies cost_type classification and computes period key columns
+for the official_metrics table after validation.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Callable, Dict, List, Optional
+from datetime import date
+from typing import Callable, Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.modules.analytics.domain.period_config import TenantPeriodConfig
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +21,7 @@ def transform_staging_to_official(
     cost_type_fn: Callable[[str, str], Optional[str]],
     extraction_run_id=None,
     stage_slug: str = "attraction",
+    period_config: "TenantPeriodConfig | None" = None,
 ) -> List[Dict]:
     """Transform staging metrics into official metrics format.
 
@@ -23,14 +30,25 @@ def transform_staging_to_official(
         cost_type_fn: Callable(channel_slug, stage_slug) -> Optional[CostType value].
         extraction_run_id: UUID of the current extraction run.
         stage_slug: The funnel stage this extraction covers (default: "attraction").
+        period_config: Tenant period config for computing period key columns.
 
     Returns:
         List of dicts ready for OfficialMetricsRepository.upsert_from_staging().
     """
+    if period_config is None:
+        from src.modules.analytics.domain.period_config import TenantPeriodConfig
+        period_config = TenantPeriodConfig()
+
     official_rows = []
 
     for row in staging_rows:
         cost_type = cost_type_fn(row.channel_slug, stage_slug)
+
+        metric_date = row.metric_date
+        if isinstance(metric_date, str):
+            metric_date = date.fromisoformat(metric_date)
+
+        period_keys = period_config.compute_period_keys(metric_date)
 
         official_dict = {
             "tenant_id": row.tenant_id,
@@ -49,6 +67,9 @@ def transform_staging_to_official(
             "cost_type": cost_type.value if hasattr(cost_type, "value") else cost_type,
             "extra": getattr(row, "extra", {}) or {},
             "source_extraction_run_id": extraction_run_id,
+            "iso_week_start": period_keys["iso_week_start"],
+            "month_key": period_keys["month_key"],
+            "quarter_key": period_keys["quarter_key"],
         }
         official_rows.append(official_dict)
 

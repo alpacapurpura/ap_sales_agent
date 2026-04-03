@@ -3,13 +3,18 @@
 Runs every minute via ARQ cron. For each active tenant, checks if the
 current UTC time corresponds to 3:00 AM in the tenant's local timezone.
 Enqueues extraction jobs ordered by extraction_priority (higher first).
+
+Also detects period boundaries (week/month/quarter end) and enqueues
+period extraction jobs for NON_AGGREGABLE metrics.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
+
+from src.modules.analytics.domain.period_config import TenantPeriodConfig
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +26,7 @@ async def run_tick_scheduler(ctx: dict) -> None:
     db_factory = ctx["db_factory"]
     db = db_factory()
     enqueued = 0
+    period_enqueued = 0
 
     try:
         # Query tenants ordered by extraction_priority DESC (premium first)
@@ -50,20 +56,61 @@ async def run_tick_scheduler(ctx: dict) -> None:
 
             # Check if it's 3:00 AM in the tenant's local timezone (hour=3, minute=0)
             if local_time.hour == 3 and local_time.minute == 0:
-                # Enqueue extraction job via ARQ
                 redis = ctx.get("redis")
-                if redis:
-                    await redis.enqueue_job(
-                        "run_tenant_extraction",
-                        str(tenant.id),
-                        "all",  # provider: extract from all connected providers
-                    )
+                if not redis:
+                    continue
+
+                # Enqueue daily extraction job via ARQ
+                await redis.enqueue_job(
+                    "run_tenant_extraction",
+                    str(tenant.id),
+                    "all",
+                )
                 enqueued += 1
 
+                # ── Period boundary detection ──
+                yesterday = local_time.date() - timedelta(days=1)
+                config = TenantPeriodConfig(
+                    weekly_start_day=tenant.weekly_start_day or 0,
+                    fiscal_year_start_month=tenant.fiscal_year_start_month or 1,
+                    fiscal_year_start_day=tenant.fiscal_year_start_day or 1,
+                )
+
+                # Weekly: if yesterday was the last day of a week
+                if config.is_period_boundary(yesterday, "weekly"):
+                    ws, we = config.get_week_boundaries(yesterday)
+                    await redis.enqueue_job(
+                        "run_period_extraction",
+                        str(tenant.id), "weekly",
+                        ws.isoformat(), we.isoformat(),
+                    )
+                    period_enqueued += 1
+
+                # Monthly: if yesterday was the last day of a month
+                if config.is_period_boundary(yesterday, "monthly"):
+                    ms, me = config.get_month_boundaries(yesterday)
+                    await redis.enqueue_job(
+                        "run_period_extraction",
+                        str(tenant.id), "monthly",
+                        ms.isoformat(), me.isoformat(),
+                    )
+                    period_enqueued += 1
+
+                # Quarterly: if yesterday was the last day of a quarter
+                if config.is_period_boundary(yesterday, "quarterly"):
+                    qs, qe = config.get_quarter_boundaries(yesterday)
+                    await redis.enqueue_job(
+                        "run_period_extraction",
+                        str(tenant.id), "quarterly",
+                        qs.isoformat(), qe.isoformat(),
+                    )
+                    period_enqueued += 1
+
         logger.info(
-            "Scheduler tick: checked %d tenants, enqueued %d extractions",
+            "Scheduler tick: checked %d tenants, enqueued %d extractions, %d period extractions",
             len(tenants),
             enqueued,
+            period_enqueued,
         )
 
         # Heartbeat: /health reads this key to confirm scheduler is alive (TTL 5 min)

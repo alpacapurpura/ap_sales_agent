@@ -134,6 +134,11 @@ const BREAKDOWN_LABELS: Record<string, string> = {
   shares: 'compartidos',
   saves: 'guardados',
   reactions: 'reacciones',
+  campaigns: 'Campanas',
+  seo: 'SEO',
+  ai_search: 'AI Search',
+  google_ads: 'Google Ads',
+  direct: 'Directo',
 };
 
 function formatNumber(n: number): string {
@@ -316,6 +321,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
     'ig-organic': ['reach', 'total_interactions', 'ig_followers_count'],
     'yt-organic': ['views', 'engagement', 'subscribers_gained'],
     'meta-ads': ['reach', 'spend', 'meta_purchase_roas'],
+    'website-capture': ['visitors'],
   };
 
   // Render metrics, excluding conversations (shown as secondary line) and handling CostLink

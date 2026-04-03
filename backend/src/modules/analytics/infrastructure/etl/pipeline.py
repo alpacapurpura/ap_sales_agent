@@ -31,6 +31,7 @@ from src.modules.analytics.infrastructure.models.metric_aggregation_model import
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
+from src.modules.analytics.domain.period_config import TenantPeriodConfig
 from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
 from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
@@ -61,6 +62,7 @@ class ETLPipeline:
         official_repo: OfficialMetricsRepository,
         run_repo: ExtractionRunRepository,
         cache: MetricsCache,
+        period_config: TenantPeriodConfig | None = None,
     ):
         self.db = db
         self.provider = provider
@@ -69,6 +71,7 @@ class ETLPipeline:
         self.official_repo = official_repo
         self.run_repo = run_repo
         self.cache = cache
+        self.period_config = period_config or TenantPeriodConfig()
 
     async def run(
         self,
@@ -153,6 +156,7 @@ class ETLPipeline:
                 cost_type_fn=get_cost_type,
                 extraction_run_id=run_id,
                 stage_slug=stage,
+                period_config=self.period_config,
             )
 
             # Step 6: Upsert official metrics
@@ -163,6 +167,7 @@ class ETLPipeline:
                 official_rows=official_dicts,
                 tenant_id=tenant_id,
                 extraction_run_id=run_id,
+                period_config=self.period_config,
             )
             if agg_dicts:
                 agg_models = [

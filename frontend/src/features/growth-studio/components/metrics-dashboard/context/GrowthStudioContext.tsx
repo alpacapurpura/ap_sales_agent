@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import type { StageId, MetricClickData, ChannelMetric } from '../../../types/metrics';
+import type { PeriodType } from '../../../api/stage-detail-api';
 
 // ── Slug ↔ StageId mappings ────────────────────────────────────────
 
@@ -27,10 +28,12 @@ export const STAGE_TO_SLUG: Record<CompositeStageId, string> = {
   EXPANSION_EVANGELIZACION: 'expansion-evangelizacion',
 };
 
-// ── Context shape ──────────────────────────────────────────────────
+// ── Context shape ────���─────────────────────────────────────────────
 
 interface GrowthStudioContextValue {
   activeStage: CompositeStageId | null;
+  selectedPeriod: PeriodType;
+  setSelectedPeriod: (period: PeriodType) => void;
   sidebarMetric: MetricClickData | null;
   sidebarOpen: boolean;
   selectedChannel: ChannelMetric | null;
@@ -67,6 +70,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     return SLUG_TO_STAGE[slug] ?? null;
   }, [pathname]);
 
+  // Period selection state (persists across stage navigation)
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('last_30_days');
+
   // Sidebar state
   const [sidebarMetric, setSidebarMetric] = useState<MetricClickData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -79,13 +85,13 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSidebarOpen(false);
-     
+
     setSidebarMetric(null);
-     
+
     setChannelSidebarOpen(false);
-     
+
     setSelectedChannel(null);
-     
+
     setConfigureChannel(null);
   }, [activeStage]);
 
@@ -124,6 +130,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<GrowthStudioContextValue>(() => ({
     activeStage,
+    selectedPeriod,
+    setSelectedPeriod,
     sidebarMetric,
     sidebarOpen,
     selectedChannel,
@@ -137,6 +145,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseConfigure,
   }), [
     activeStage,
+    selectedPeriod,
     sidebarMetric,
     sidebarOpen,
     selectedChannel,

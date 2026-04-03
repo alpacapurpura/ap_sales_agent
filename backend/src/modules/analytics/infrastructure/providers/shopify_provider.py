@@ -46,6 +46,73 @@ class ShopifyProvider(BaseMetricsProvider):
     def provider_name(self) -> str:
         return "shopify"
 
+    def has_period_extraction(self) -> bool:
+        return True
+
+    async def extract_period_metrics(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        period_type: str,
+        period_start: date,
+        period_end: date,
+        metric_names: list[str],
+        stage: str = "attraction",
+    ) -> ExtractionResult:
+        """Extract repeat_customers by querying Shopify orders in the period.
+
+        No external API call needed — counts customers with >1 order
+        from cached/stored order data.
+        """
+        if "repeat_customers" not in metric_names:
+            return ExtractionResult()
+
+        access_token = credentials.get("access_token")
+        shop_domain = credentials.get("shop_domain")
+        if not access_token or not shop_domain:
+            return ExtractionResult()
+
+        # Fetch orders for the period
+        import httpx
+        all_orders = []
+        url = f"https://{shop_domain}/admin/api/2024-01/orders.json"
+        params = {
+            "status": "any",
+            "created_at_min": f"{period_start}T00:00:00Z",
+            "created_at_max": f"{period_end}T23:59:59Z",
+            "limit": 250,
+            "fields": "id,customer",
+        }
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            headers = {"X-Shopify-Access-Token": access_token}
+            resp = await client.get(url, headers=headers, params=params)
+            resp.raise_for_status()
+            all_orders = resp.json().get("orders", [])
+
+        # Count customers with >1 order in the period
+        from collections import Counter
+        customer_ids = [
+            o.get("customer", {}).get("id")
+            for o in all_orders
+            if o.get("customer", {}).get("id")
+        ]
+        customer_counts = Counter(customer_ids)
+        repeat_count = sum(1 for c in customer_counts.values() if c > 1)
+
+        from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
+        metrics = [ExtractedMetric(
+            provider="shopify",
+            channel_slug="shopify",
+            metric_name="repeat_customers",
+            value=float(repeat_count),
+            unit="count",
+            date=period_start,
+            extra={"period_type": period_type, "total_customers": len(customer_counts)},
+        )]
+
+        return ExtractionResult(metrics=metrics)
+
     def rate_limit_config(self) -> dict:
         return {"requests_per_minute": 40, "burst_size": 10}
 

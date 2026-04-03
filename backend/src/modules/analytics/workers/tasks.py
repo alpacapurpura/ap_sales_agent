@@ -201,6 +201,71 @@ async def run_initial_load(
         db.close()
 
 
+async def run_period_extraction(
+    ctx: dict,
+    tenant_id: str,
+    period_type: str,
+    period_start: str,
+    period_end: str,
+) -> dict:
+    """Extract NON_AGGREGABLE metrics for a complete period.
+
+    Triggered by the scheduler when a period boundary is crossed,
+    or manually via the API.
+    """
+    from datetime import date
+
+    db_factory = ctx["db_factory"]
+    db = db_factory()
+
+    try:
+        from src.modules.analytics.application.services.etl_service import ETLService
+        from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+        from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
+
+        redis = ctx.get("redis_cache")
+        cache = MetricsCache(redis)
+        connection_port = ConnectionPortImpl(db)
+        etl_service = ETLService(db=db, connection_port=connection_port, cache=cache)
+
+        results = await etl_service.run_period_extraction(
+            tenant_id=UUID(tenant_id),
+            period_type=period_type,
+            period_start=date.fromisoformat(period_start),
+            period_end=date.fromisoformat(period_end),
+        )
+
+        logger.info(
+            "Period extraction completed for tenant=%s period=%s %s→%s results=%s",
+            tenant_id, period_type, period_start, period_end, results,
+        )
+        return {
+            "status": "success",
+            "tenant_id": tenant_id,
+            "period_type": period_type,
+            "results": results,
+        }
+
+    except Exception as exc:
+        job_try = ctx.get("job_try", 1)
+        fib_index = min(job_try - 1, len(FIBONACCI_BACKOFF) - 1)
+        defer_seconds = FIBONACCI_BACKOFF[fib_index] * 60
+
+        logger.warning(
+            "Period extraction failed for tenant=%s period=%s (attempt %d): %s",
+            tenant_id, period_type, job_try, str(exc),
+        )
+        import sentry_sdk as _sentry
+        with _sentry.push_scope() as scope:
+            scope.set_tag("tenant_id", tenant_id)
+            scope.set_tag("period_type", period_type)
+            _sentry.capture_exception(exc)
+        raise Retry(defer=defer_seconds) from exc
+
+    finally:
+        db.close()
+
+
 async def run_campaign_sync(
     ctx: dict,
     tenant_id: str,

@@ -114,41 +114,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   ], [attrData?.organicSocial.channels, attrData?.ga4Search.channels]);
   const outboundChannels = useMemo(() => attrData?.outbound.channels || [], [attrData?.outbound.channels]);
 
-  // ─── Website synthetic channel (always present) ────────────────────────
-  const websiteChannel: ChannelMetric = useMemo(() => {
-    const ws = attrData?.website;
-    const totals = ws?.totals ?? {};
-    const channels = ws?.channels ?? [];
-    const hasGA4 = channels.some(ch => ch.slug === 'website-total');
-    const hasPixel = channels.some(ch => ch.slug === 'meta-pixel');
-    const hasData = hasGA4 || hasPixel;
-
-    const sessions = totals.sessions ?? 0;
-    const engaged = totals.engagedSessions ?? 0;
-    const engagementRate = sessions > 0 ? (engaged / sessions) * 100 : 0;
-
-    const sourceLabel = hasGA4 && hasPixel ? 'GA4 + Meta Pixel' : hasGA4 ? 'GA4' : hasPixel ? 'Meta Pixel' : 'Sin fuente de datos';
-
-    return {
-      slug: 'website-overview',
-      name: 'Tu Sitio Web',
-      channelType: 'website',
-      connected: hasData,
-      sourceLabel,
-      providerName: hasGA4 ? 'google_analytics' : hasPixel ? 'meta_pixel' : undefined,
-      metrics: [
-        { name: 'users', value: totals.users ?? 0 },
-        { name: 'sessions', value: sessions },
-        { name: 'engagementRate', value: engagementRate, unit: 'percentage' },
-        { name: 'bounceRate', value: totals.bounceRate ?? 0, unit: 'percentage' },
-        { name: 'avgSessionDuration', value: totals.averageSessionDuration ?? 0, unit: 'seconds' },
-        { name: 'screenPageViews', value: totals.screenPageViews ?? 0 },
-        { name: 'newUsers', value: totals.newUsers ?? 0 },
-      ],
-    };
-  }, [attrData?.website]);
-
-  const webCaptureChannels = useMemo(() => [websiteChannel, ...(capData?.webInfrastructure.channels || [])], [websiteChannel, capData?.webInfrastructure.channels]);
+  const webCaptureChannels = useMemo(() => capData?.webInfrastructure.channels || [], [capData?.webInfrastructure.channels]);
   const messagingCaptureChannels = useMemo(() => capData?.aiAgent.channels || [], [capData?.aiAgent.channels]);
   const allCaptureChannels = useMemo(
     () => [...webCaptureChannels, ...messagingCaptureChannels],

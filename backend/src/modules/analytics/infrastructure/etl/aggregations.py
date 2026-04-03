@@ -20,6 +20,7 @@ from uuid import UUID
 
 from src.modules.analytics.domain.enums import AggregationType
 from src.modules.analytics.domain.metric_catalog import get_metric_def
+from src.modules.analytics.domain.period_config import TenantPeriodConfig
 
 logger = structlog.get_logger(__name__)
 
@@ -29,8 +30,9 @@ def compute_aggregations(
     tenant_id: UUID,
     weekly_cutoff_day: int = 0,
     extraction_run_id: Optional[UUID] = None,
+    period_config: Optional[TenantPeriodConfig] = None,
 ) -> List[Dict]:
-    """Compute daily, weekly, monthly, and last_30_days aggregations.
+    """Compute daily, weekly, monthly, quarterly, and last_30_days aggregations.
 
     Uses METRIC_CATALOG to determine the correct aggregation strategy per metric.
     NON_AGGREGABLE, WEIGHTED_AVERAGE, and DERIVED metrics only get daily records.
@@ -40,11 +42,15 @@ def compute_aggregations(
         official_rows: List of dicts from transform_staging_to_official().
         tenant_id: The tenant UUID.
         weekly_cutoff_day: ISO weekday for week start (0=Monday per user decision).
+            Deprecated — use period_config instead.
         extraction_run_id: UUID of the current extraction run.
+        period_config: Tenant period configuration. If None, uses default config.
 
     Returns:
         List of dicts ready for MetricAggregationModel bulk insert.
     """
+    if period_config is None:
+        period_config = TenantPeriodConfig(weekly_start_day=weekly_cutoff_day)
     if not official_rows:
         return []
 
@@ -120,7 +126,7 @@ def compute_aggregations(
             return sum(period_values.values())
 
         # Weekly aggregations
-        weeks = _group_by_week(all_dates, daily_by_date, weekly_cutoff_day)
+        weeks = _group_by_week(all_dates, daily_by_date, period_config)
         for (ws, we), week_daily in weeks.items():
             aggregations.append(_agg_dict(
                 tenant_id=tenant_id,
@@ -147,6 +153,23 @@ def compute_aggregations(
                 period_start=ms,
                 period_end=me,
                 value=_aggregate_period(month_daily),
+                unit=unit,
+                currency=currency,
+                cost_type=cost_type,
+                extraction_run_id=extraction_run_id,
+            ))
+
+        # Quarterly aggregations
+        quarters = _group_by_quarter(daily_by_date, period_config)
+        for (qs, qe), quarter_daily in quarters.items():
+            aggregations.append(_agg_dict(
+                tenant_id=tenant_id,
+                channel_slug=channel_slug,
+                metric_name=metric_name,
+                period_type="quarterly",
+                period_start=qs,
+                period_end=qe,
+                value=_aggregate_period(quarter_daily),
                 unit=unit,
                 currency=currency,
                 cost_type=cost_type,
@@ -184,18 +207,16 @@ def _agg_dict(**kwargs) -> Dict:
 def _group_by_week(
     dates: List[date],
     daily_values: Dict[date, float],
-    cutoff_day: int,
+    period_config: TenantPeriodConfig,
 ) -> Dict[tuple, Dict[date, float]]:
-    """Group daily values by ISO week.
+    """Group daily values by week using tenant-specific week start day.
 
     Returns dict of (week_start, week_end) -> {date: value} for that week.
     """
     weeks: Dict[tuple, Dict[date, float]] = defaultdict(dict)
     for d in dates:
-        days_since_cutoff = (d.weekday() - cutoff_day) % 7
-        week_start = d - timedelta(days=days_since_cutoff)
-        week_end = week_start + timedelta(days=6)
-        weeks[(week_start, week_end)][d] = daily_values[d]
+        ws, we = period_config.get_week_boundaries(d)
+        weeks[(ws, we)][d] = daily_values[d]
     return dict(weeks)
 
 
@@ -215,3 +236,18 @@ def _group_by_month(
             month_end = d.replace(month=d.month + 1, day=1) - timedelta(days=1)
         months[(month_start, month_end)][d] = val
     return dict(months)
+
+
+def _group_by_quarter(
+    daily_values: Dict[date, float],
+    period_config: TenantPeriodConfig,
+) -> Dict[tuple, Dict[date, float]]:
+    """Group daily values by quarter using tenant fiscal year config.
+
+    Returns dict of (quarter_start, quarter_end) -> {date: value}.
+    """
+    quarters: Dict[tuple, Dict[date, float]] = defaultdict(dict)
+    for d, val in daily_values.items():
+        qs, qe = period_config.get_quarter_boundaries(d)
+        quarters[(qs, qe)][d] = val
+    return dict(quarters)

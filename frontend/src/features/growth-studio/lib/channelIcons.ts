@@ -120,7 +120,7 @@ export function getChannelIcon(channelSlug: string): ChannelIconComponent {
   }
 
   // Website overview
-  if (slug === 'website-overview' || slug === 'website-total' || slug === 'meta-pixel') {
+  if (slug === 'website-overview' || slug === 'website-total' || slug === 'meta-pixel' || slug === 'website-capture') {
     return Globe as ChannelIconComponent;
   }
 
@@ -233,7 +233,7 @@ export function getChannelColor(channelSlug: string): string {
   }
 
   // Website — blue
-  if (slug === 'website-overview' || slug === 'website-total' || slug === 'meta-pixel') {
+  if (slug === 'website-overview' || slug === 'website-total' || slug === 'meta-pixel' || slug === 'website-capture') {
     return '#3B82F6';
   }
 

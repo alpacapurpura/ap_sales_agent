@@ -327,10 +327,18 @@ function mapEvangelizationResponse(raw: any): EvangelizationDetail {
   };
 }
 
+export type PeriodType = 'last_30_days' | 'weekly' | 'monthly' | 'quarterly';
+
+function buildPeriodUrl(base: string, period?: PeriodType): string {
+  if (!period || period === 'last_30_days') return base;
+  const sep = base.includes('?') ? '&' : '?';
+  return `${base}${sep}period=${period}`;
+}
+
 export const metricsApi = {
-  getAttractionDetail: async (token: string): Promise<AttractionDetail> => {
+  getAttractionDetail: async (token: string, period?: PeriodType): Promise<AttractionDetail> => {
     if (ENABLE_MOCKS) return MOCK_ATTRACTION_DETAIL;
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/attraction`, {
+    const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/attraction`, period), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error(`Attraction API returned ${res.status}`);
@@ -338,9 +346,9 @@ export const metricsApi = {
     return mapResponse(data);
   },
 
-  getCaptureDetail: async (token: string): Promise<CaptureDetail> => {
+  getCaptureDetail: async (token: string, period?: PeriodType): Promise<CaptureDetail> => {
     if (ENABLE_MOCKS) return MOCK_CAPTURE_DETAIL;
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/capture`, {
+    const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/capture`, period), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error(`Capture API returned ${res.status}`);
@@ -348,9 +356,9 @@ export const metricsApi = {
     return mapCaptureResponse(data);
   },
 
-  getNurtureDetail: async (token: string): Promise<NurtureDetail> => {
+  getNurtureDetail: async (token: string, period?: PeriodType): Promise<NurtureDetail> => {
     if (ENABLE_MOCKS) return MOCK_NURTURE_DETAIL;
-    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/nurturing`, {
+    const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/nurturing`, period), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error(`Nurture API returned ${res.status}`);

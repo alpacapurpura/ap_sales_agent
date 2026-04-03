@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -104,51 +104,55 @@ async def get_marketing_sankey(
     return service.get_marketing_sankey_metrics(user.tenant_id)
 
 
+_VALID_PERIODS = {"last_30_days", "weekly", "monthly", "quarterly"}
+
+
 @router.get("/attraction", response_model=AttractionDetailDTO)
 async def get_attraction_metrics(
+    period: str = Query(default="last_30_days"),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_user),
 ):
+    """Get Attraction stage metrics with dynamic channel list from ETL tables.
+
+    Supports period-aware queries: last_30_days, weekly, monthly, quarterly.
     """
-    Get Attraction stage metrics with dynamic channel list from ETL tables.
-    Channels are sourced from ChannelRegistry; values from official_metrics.
-    """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
-    return await service.get_attraction_metrics(user.tenant_id)
+    return await service.get_attraction_metrics(user.tenant_id, period=period)
 
 
 @router.get("/capture", response_model=CaptureDetailDTO)
 async def get_capture_metrics(
+    period: str = Query(default="last_30_days"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Get Capture (Stage 1) detail panel metrics.
-
-    Returns lead counts by channel, grouped into web_infrastructure and ai_agent,
-    with cost per lead and conversion rate from Stage 0.
-    """
+    """Get Capture (Stage 1) detail panel metrics."""
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
-    return await service.get_capture_metrics(user.tenant_id)
+    return await service.get_capture_metrics(user.tenant_id, period=period)
 
 
 @router.get("/nurturing", response_model=NurtureDetailDTO)
 async def get_nurturing_metrics(
+    period: str = Query(default="last_30_days"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Get Nurturing (Stage 2) detail panel metrics.
-
-    Returns MQL counts, cost per MQL, retargeting and automation channel groups
-    with per-group cost breakdown.
-    """
+    """Get Nurturing (Stage 2) detail panel metrics."""
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
-    return await service.get_nurturing_metrics(user.tenant_id)
+    return await service.get_nurturing_metrics(user.tenant_id, period=period)
 
 
 @router.get("/opportunity", response_model=OpportunityDetailDTO)
@@ -526,7 +530,7 @@ _VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailer
 @router.post("/{provider}/initial-load")
 async def trigger_initial_load(
     provider: str,
-    days: int = Query(default=30, ge=1, le=90),
+    days: int = Query(default=30, ge=1, le=60),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -599,3 +603,166 @@ async def get_initial_load_status(
         return data
     except (json.JSONDecodeError, TypeError):
         return {"status": "idle"}
+
+
+# ─── Period Extraction Endpoints ─────────────────────────────────────────────
+
+
+class PeriodExtractionRequest(BaseModel):
+    period_type: str  # weekly, monthly, quarterly
+    period_start: date
+    period_end: date
+
+
+class PeriodExtractionResultDTO(BaseModel):
+    provider: str
+    status: str
+    metrics_count: Optional[int] = None
+    period_type: Optional[str] = None
+    reason: Optional[str] = None
+    error: Optional[str] = None
+
+
+class PeriodExtractionResponse(BaseModel):
+    status: str
+    results: list[PeriodExtractionResultDTO]
+
+
+@router.post("/trigger-period-extraction", response_model=PeriodExtractionResponse)
+async def trigger_period_extraction(
+    period_type: str = Query(...),
+    period_start: date = Query(...),
+    period_end: date = Query(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Manually trigger period extraction for NON_AGGREGABLE metrics.
+
+    Extracts deduplicated reach/users/frequency for all providers
+    that support period-level extraction.
+    """
+    if period_type not in {"weekly", "monthly", "quarterly"}:
+        raise HTTPException(status_code=400, detail=f"Invalid period_type: {period_type}")
+
+    if period_end < period_start:
+        raise HTTPException(status_code=400, detail="period_end must be >= period_start")
+
+    from src.modules.analytics.application.services.etl_service import ETLService
+
+    cache = MetricsCache(redis_client)
+    connection_port = ConnectionPortImpl(db)
+    etl = ETLService(db, connection_port=connection_port, cache=cache)
+
+    try:
+        results = await etl.run_period_extraction(
+            tenant_id=user.tenant_id,
+            period_type=period_type,
+            period_start=period_start,
+            period_end=period_end,
+        )
+        return PeriodExtractionResponse(
+            status="ok",
+            results=[PeriodExtractionResultDTO(**r) for r in results],
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Period extraction failed: {str(exc)}",
+        )
+
+
+# ─── Tenant Period Config Endpoint ───────────────────────────────────────────
+
+
+class TenantPeriodConfigDTO(BaseModel):
+    weekly_start_day: int
+    fiscal_year_start_month: int
+    fiscal_year_start_day: int
+
+
+class TenantPeriodConfigUpdateDTO(BaseModel):
+    weekly_start_day: Optional[int] = None
+    fiscal_year_start_month: Optional[int] = None
+    fiscal_year_start_day: Optional[int] = None
+
+
+@router.get("/period-config", response_model=TenantPeriodConfigDTO)
+async def get_period_config(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get the tenant's period configuration."""
+    from sqlalchemy import select as sa_select
+    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+
+    tenant = db.execute(
+        sa_select(TenantModel).where(TenantModel.id == user.tenant_id)
+    ).scalar_one_or_none()
+
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    return TenantPeriodConfigDTO(
+        weekly_start_day=tenant.weekly_start_day or 0,
+        fiscal_year_start_month=tenant.fiscal_year_start_month or 1,
+        fiscal_year_start_day=tenant.fiscal_year_start_day or 1,
+    )
+
+
+@router.patch("/period-config", response_model=TenantPeriodConfigDTO)
+async def update_period_config(
+    payload: TenantPeriodConfigUpdateDTO,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Update the tenant's period configuration.
+
+    Changes affect future aggregation calculations and period boundary detection.
+    """
+    from sqlalchemy import select as sa_select, update as sa_update
+    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+
+    tenant = db.execute(
+        sa_select(TenantModel).where(TenantModel.id == user.tenant_id)
+    ).scalar_one_or_none()
+
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    updates = {}
+    if payload.weekly_start_day is not None:
+        if not 0 <= payload.weekly_start_day <= 6:
+            raise HTTPException(status_code=400, detail="weekly_start_day must be 0-6")
+        updates["weekly_start_day"] = payload.weekly_start_day
+    if payload.fiscal_year_start_month is not None:
+        if not 1 <= payload.fiscal_year_start_month <= 12:
+            raise HTTPException(status_code=400, detail="fiscal_year_start_month must be 1-12")
+        updates["fiscal_year_start_month"] = payload.fiscal_year_start_month
+    if payload.fiscal_year_start_day is not None:
+        if not 1 <= payload.fiscal_year_start_day <= 31:
+            raise HTTPException(status_code=400, detail="fiscal_year_start_day must be 1-31")
+        updates["fiscal_year_start_day"] = payload.fiscal_year_start_day
+
+    if updates:
+        db.execute(
+            sa_update(TenantModel)
+            .where(TenantModel.id == user.tenant_id)
+            .values(**updates)
+        )
+        db.commit()
+
+        # Invalidate cache so new config is picked up
+        cache = MetricsCache(redis_client)
+        await cache.invalidate_tenant(str(user.tenant_id))
+
+    # Reload
+    db.expire_all()
+    tenant = db.execute(
+        sa_select(TenantModel).where(TenantModel.id == user.tenant_id)
+    ).scalar_one()
+
+    return TenantPeriodConfigDTO(
+        weekly_start_day=tenant.weekly_start_day or 0,
+        fiscal_year_start_month=tenant.fiscal_year_start_month or 1,
+        fiscal_year_start_day=tenant.fiscal_year_start_day or 1,
+    )

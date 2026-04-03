@@ -136,6 +136,7 @@ _GROUP_MAP: Dict[str, str] = {
 _CAPTURE_GROUP_MAP: Dict[str, str] = {
     "form": "web_infrastructure",
     "email": "web_infrastructure",
+    "website": "web_infrastructure",
     "messaging": "ai_agent",
 }
 
@@ -297,7 +298,7 @@ class MetricsService:
         return "Servicio no disponible"
 
     async def get_attraction_metrics(
-        self, tenant_id: UUID
+        self, tenant_id: UUID, period: str = "last_30_days"
     ) -> AttractionDetailDTO:
         """Return attraction-stage metrics from ETL official tables.
 
@@ -510,7 +511,7 @@ class MetricsService:
         return result
 
     async def get_capture_metrics(
-        self, tenant_id: UUID
+        self, tenant_id: UUID, period: str = "last_30_days"
     ) -> CaptureDetailDTO:
         """Return capture-stage (Stage 1) metrics.
 
@@ -597,6 +598,64 @@ class MetricsService:
             slug = ch["slug"]
             channel_type = ch["channel_type"]
             group_key = _CAPTURE_GROUP_MAP.get(channel_type, "web_infrastructure")
+
+            # ── website-capture: aggregate GA4 sessions + Meta landing_page_views ──
+            if slug == "website-capture":
+                official_repo = OfficialMetricsRepository(self.db)
+                sd = start_date.date() if hasattr(start_date, "date") else start_date
+                ed = end_date.date() if hasattr(end_date, "date") else end_date
+
+                ga4_organic = official_repo.get_channel_metrics(
+                    tenant_id, "google_analytics", "google-organic", sd, ed
+                )
+                ga4_ai = official_repo.get_channel_metrics(
+                    tenant_id, "google_analytics", "ai-search-organic", sd, ed
+                )
+                ga4_direct = official_repo.get_channel_metrics(
+                    tenant_id, "google_analytics", "direct", sd, ed
+                )
+                ga4_total = official_repo.get_channel_metrics(
+                    tenant_id, "google_analytics", "website-total", sd, ed
+                )
+                meta_ads = official_repo.get_channel_metrics(
+                    tenant_id, "meta", "meta-ads", sd, ed
+                )
+
+                seo = ga4_organic.get("sessions", 0)
+                ai_search = ga4_ai.get("sessions", 0)
+                direct = ga4_direct.get("sessions", 0)
+                campaign_visitors = meta_ads.get("meta_landing_page_views", 0)
+                total = ga4_total.get("sessions", 0)
+
+                if total == 0:
+                    total = seo + ai_search + direct + campaign_visitors
+
+                wc_metrics = [
+                    MetricValueDTO(
+                        name="visitors",
+                        value=float(total),
+                        breakdown={
+                            "campaigns": float(campaign_visitors),
+                            "seo": float(seo),
+                            "ai_search": float(ai_search),
+                            "direct": float(direct),
+                        },
+                    ),
+                ]
+
+                has_data = total > 0 or campaign_visitors > 0
+
+                dto = ChannelMetricDTO(
+                    slug=slug,
+                    name=ch["name"],
+                    channel_type=channel_type,
+                    metrics=wc_metrics,
+                    source_label=ch["source_label"],
+                    connected=has_data,
+                    provider_name="internal",
+                )
+                groups["web_infrastructure"].append(dto)
+                continue
 
             lead_count = lead_counts.get(slug, 0)
             channel_cost = all_costs.get(slug, 0.0)
@@ -800,7 +859,7 @@ class MetricsService:
             channels.remove(mc_dto)
 
     async def get_nurturing_metrics(
-        self, tenant_id: UUID
+        self, tenant_id: UUID, period: str = "last_30_days"
     ) -> NurtureDetailDTO:
         """Return nurture-stage (Stage 2) metrics.
 

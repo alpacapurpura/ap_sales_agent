@@ -1408,3 +1408,17 @@ def is_additive(name: str) -> bool:
     """Return True if the metric can be safely summed across time periods."""
     defn = get_metric_def(name)
     return defn is not None and defn.aggregation == AggregationType.ADDITIVE
+
+
+def get_non_aggregable_for_provider(provider: str) -> list[str]:
+    """Return metric names that require period extraction for a provider.
+
+    These are NON_AGGREGABLE metrics (unique persons, etc.) that cannot be
+    summed across days and must be fetched directly for each period.
+    """
+    return [
+        m.name
+        for m in METRIC_CATALOG.values()
+        if m.aggregation == AggregationType.NON_AGGREGABLE
+        and provider in m.providers
+    ]

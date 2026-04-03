@@ -30,6 +30,9 @@ from src.modules.analytics.infrastructure.models.ad_model import (
 from src.modules.analytics.infrastructure.models.ad_recommendation_model import (
     AdRecommendationModel,
 )
+from src.modules.analytics.infrastructure.models.period_metrics_model import (
+    PeriodMetricModel,
+)
 
 __all__ = [
     "StagingMetricModel",
@@ -41,4 +44,5 @@ __all__ = [
     "AdSetModel",
     "AdModel",
     "AdRecommendationModel",
+    "PeriodMetricModel",
 ]

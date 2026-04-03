@@ -1,23 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/nextjs';
 import { metricsApi } from '../api/metrics-api';
+import { useGrowthStudioContext } from '../components/metrics-dashboard/context/GrowthStudioContext';
 import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, StageTimeSeries } from '../types/metrics';
+import type { PeriodType } from '../api/stage-detail-api';
 
 function createStageDetailHook<T>(
   queryKey: string,
-  apiFn: (token: string) => Promise<T>
+  apiFn: (token: string, period?: PeriodType) => Promise<T>
 ) {
   return function useStageDetail() {
     const { getToken } = useAuth();
     const tenantId = typeof window !== 'undefined'
       ? localStorage.getItem('x-tenant-id') : null;
+    const { selectedPeriod } = useGrowthStudioContext();
 
     return useQuery<T>({
-      queryKey: [queryKey, tenantId],
+      queryKey: [queryKey, tenantId, selectedPeriod],
       queryFn: async () => {
         const token = await getToken();
         if (!token) throw new Error('No auth token');
-        return apiFn(token);
+        return apiFn(token, selectedPeriod);
       },
       staleTime: 1000 * 60 * 5,
     });

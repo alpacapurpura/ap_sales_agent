@@ -22,6 +22,7 @@ export const metricsApi = {
 };
 
 // Re-export types so `import type { X } from '.../metrics-api'` keeps working
+export type { PeriodType } from './stage-detail-api';
 export type { UnmatchedProduct, SourceProduct, ProductMapping, CreateProductMappingResult, ProductMetric, OfferProductDetail } from './product-mapping-api';
 export type { SyncProviderResult, SyncAllResponse } from './etl-api';
 export type { MetricCatalog, MetricCatalogEntry } from '../types/metrics';

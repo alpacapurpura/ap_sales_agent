@@ -80,6 +80,150 @@ class MetaProvider(BaseMetricsProvider):
     def provider_name(self) -> str:
         return "meta"
 
+    def has_period_extraction(self) -> bool:
+        return True
+
+    async def extract_period_metrics(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        period_type: str,
+        period_start: date,
+        period_end: date,
+        metric_names: list[str],
+        stage: str = "attraction",
+    ) -> ExtractionResult:
+        """Extract NON_AGGREGABLE metrics for an entire period.
+
+        IG Organic: uses `period=week` for weekly, `period=days_28` for monthly.
+        Meta Ads: uses `time_range` with exact date boundaries for all periods.
+        """
+        access_token = credentials.get("access_token")
+        if not access_token:
+            return ExtractionResult()
+
+        all_metrics: list[ExtractedMetric] = []
+        all_failures = []
+
+        ig_user_id = credentials.get("instagram_business_account_id")
+        ad_account_id = credentials.get("ad_account_id")
+
+        # ── IG Organic period extraction ──
+        if ig_user_id and any(m in metric_names for m in ("reach", "ig_accounts_engaged")):
+            ig_metrics, ig_fail = await self._safe_extract(
+                self._extract_ig_organic_period,
+                access_token, ig_user_id, period_type, period_start, period_end,
+                extractor_name="ig_organic_period",
+            )
+            all_metrics.extend(ig_metrics)
+            if ig_fail:
+                all_failures.append(ig_fail)
+
+        # ── Meta Ads period extraction ──
+        if ad_account_id and any(m in metric_names for m in ("reach", "frequency")):
+            ads_metrics, ads_fail = await self._safe_extract(
+                self._extract_meta_ads_period,
+                access_token, ad_account_id, period_start, period_end,
+                extractor_name="meta_ads_period",
+            )
+            all_metrics.extend(ads_metrics)
+            if ads_fail:
+                all_failures.append(ads_fail)
+
+        return ExtractionResult(metrics=all_metrics, failures=all_failures)
+
+    async def _extract_ig_organic_period(
+        self,
+        access_token: str,
+        ig_user_id: str,
+        period_type: str,
+        period_start: date,
+        period_end: date,
+    ) -> list[ExtractedMetric]:
+        """Extract IG organic reach/engaged for a period using Meta period param."""
+        metrics = []
+        since_ts = int(datetime.combine(period_start, datetime.min.time()).timestamp())
+        until_ts = int(datetime.combine(period_end + timedelta(days=1), datetime.min.time()).timestamp())
+
+        if period_type == "weekly":
+            meta_period = "week"
+        elif period_type in ("monthly", "last_30_days"):
+            meta_period = "days_28"
+        else:
+            # quarterly: use days_28 as approximation
+            meta_period = "days_28"
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            url = f"{GRAPH_API_BASE}/{ig_user_id}/insights"
+            params = {
+                "metric": "reach,accounts_engaged",
+                "period": meta_period,
+                "since": since_ts,
+                "until": until_ts,
+            }
+            resp = await client.get(url, headers=_auth_headers(access_token), params=params)
+            _raise_for_meta_error(resp, f"ig_organic_period_{period_type}")
+
+            data = resp.json().get("data", [])
+            for item in data:
+                name = item.get("name", "")
+                metric_name = "ig_accounts_engaged" if name == "accounts_engaged" else name
+                values = item.get("values", [])
+                if values:
+                    val = values[-1].get("value", 0)
+                    metrics.append(ExtractedMetric(
+                        provider="meta",
+                        channel_slug="ig-organic",
+                        metric_name=metric_name,
+                        value=float(val),
+                        unit="count",
+                        date=period_start,
+                        extra={"period_type": period_type, "meta_period": meta_period},
+                    ))
+
+        return metrics
+
+    async def _extract_meta_ads_period(
+        self,
+        access_token: str,
+        ad_account_id: str,
+        period_start: date,
+        period_end: date,
+    ) -> list[ExtractedMetric]:
+        """Extract Meta Ads reach/frequency for an exact date range."""
+        metrics = []
+        time_range = json.dumps({
+            "since": period_start.isoformat(),
+            "until": period_end.isoformat(),
+        })
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            url = f"{GRAPH_API_BASE}/act_{ad_account_id}/insights"
+            params = {
+                "fields": "reach,impressions,frequency",
+                "time_range": time_range,
+            }
+            resp = await client.get(url, headers=_auth_headers(access_token), params=params)
+            _raise_for_meta_error(resp, "meta_ads_period")
+
+            data = resp.json().get("data", [])
+            if data:
+                row = data[0]
+                for field in ("reach", "frequency"):
+                    val = row.get(field)
+                    if val is not None:
+                        metrics.append(ExtractedMetric(
+                            provider="meta",
+                            channel_slug="meta-ads",
+                            metric_name=field,
+                            value=float(val),
+                            unit="count" if field == "reach" else "ratio",
+                            date=period_start,
+                            extra={"period_exact": True},
+                        ))
+
+        return metrics
+
     def rate_limit_config(self) -> dict:
         return {"requests_per_minute": 200, "burst_size": 50}
 

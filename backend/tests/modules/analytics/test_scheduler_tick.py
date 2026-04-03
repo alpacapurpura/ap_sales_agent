@@ -21,6 +21,9 @@ def _make_tenant(tenant_id, tz_name, priority, is_active=True):
     tenant.timezone = tz_name
     tenant.extraction_priority = priority
     tenant.is_active = is_active
+    tenant.weekly_start_day = 0
+    tenant.fiscal_year_start_month = 1
+    tenant.fiscal_year_start_day = 1
     return tenant
 
 

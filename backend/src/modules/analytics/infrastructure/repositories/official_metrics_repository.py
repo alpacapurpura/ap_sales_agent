@@ -32,12 +32,16 @@ class OfficialMetricsRepository:
             id, tenant_id, provider, channel_slug, metric_name,
             value, unit, currency, metric_date, spend, revenue,
             campaign_id, ad_set_id, ad_id,
-            cost_type, extra, source_extraction_run_id, created_at, updated_at
+            cost_type, extra, source_extraction_run_id,
+            iso_week_start, month_key, quarter_key,
+            created_at, updated_at
         ) VALUES (
             :id, :tenant_id, :provider, :channel_slug, :metric_name,
             :value, :unit, :currency, :metric_date, :spend, :revenue,
             :campaign_id, :ad_set_id, :ad_id,
-            :cost_type, :extra::jsonb, :source_extraction_run_id, NOW(), NOW()
+            :cost_type, :extra::jsonb, :source_extraction_run_id,
+            :iso_week_start, :month_key, :quarter_key,
+            NOW(), NOW()
         )
         ON CONFLICT (
             tenant_id, provider, channel_slug, metric_name, metric_date,
@@ -52,6 +56,9 @@ class OfficialMetricsRepository:
             cost_type = EXCLUDED.cost_type,
             extra = EXCLUDED.extra,
             source_extraction_run_id = EXCLUDED.source_extraction_run_id,
+            iso_week_start = EXCLUDED.iso_week_start,
+            month_key = EXCLUDED.month_key,
+            quarter_key = EXCLUDED.quarter_key,
             updated_at = NOW()
     """)
 
@@ -94,6 +101,9 @@ class OfficialMetricsRepository:
                 "cost_type": metric_data.get("cost_type"),
                 "extra": json.dumps(metric_data.get("extra") or {}),
                 "source_extraction_run_id": metric_data.get("source_extraction_run_id"),
+                "iso_week_start": metric_data.get("iso_week_start"),
+                "month_key": metric_data.get("month_key"),
+                "quarter_key": metric_data.get("quarter_key"),
             }
             self.db.execute(self._UPSERT_FROM_STAGING_SQL, params)
             count += 1

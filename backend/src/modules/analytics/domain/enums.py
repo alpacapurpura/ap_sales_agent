@@ -42,3 +42,20 @@ class AggregationType(str, Enum):
     DERIVED = "derived"            # Recalcular de componentes (CPC = spend/clicks)
     NON_AGGREGABLE = "non_aggregable"  # Solo diario; personas únicas, no summable cross-day
     SNAPSHOT = "snapshot"          # Último valor del período (active_subscribers)
+
+
+class PeriodType(str, Enum):
+    """Time period granularity for metric aggregation and extraction."""
+
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    LAST_30_DAYS = "last_30_days"
+
+
+class ExtractionType(str, Enum):
+    """Whether an extraction run covers daily or period-level data."""
+
+    DAILY = "daily"
+    PERIOD = "period"

@@ -29,6 +29,11 @@ class TenantModel(Base):
 
     tracking_config = Column(JSONB, default={}, nullable=True)
 
+    # Period configuration for ETL aggregation
+    weekly_start_day = Column(Integer, server_default="0")  # 0=Mon, 6=Sun
+    fiscal_year_start_month = Column(Integer, server_default="1")  # January
+    fiscal_year_start_day = Column(Integer, server_default="1")
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

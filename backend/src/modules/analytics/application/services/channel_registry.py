@@ -112,6 +112,9 @@ STAGE_CHANNEL_MAP: Dict[str, List[dict]] = {
         {"slug": "meta-pixel", "name": "Meta Pixel", "channel_type": "website", "source_label": "Meta Pixel", "provider_name": "meta_pixel", "metric_names": ["pixel_pageviews", "pixel_view_content", "pixel_leads", "pixel_add_to_cart", "pixel_purchases"]},
     ],
     "capture": [
+        {"slug": "website-capture", "name": "Tu Sitio Web", "channel_type": "website",
+         "source_label": "Google Analytics + Meta Ads", "provider_name": "internal",
+         "metric_names": ["visitors", "campaign_visitors", "seo_visitors", "ai_search_visitors", "direct_visitors"]},
         {"slug": "landing-form", "name": "Landing Page Form", "channel_type": "form", "source_label": "Landing Page", "provider_name": "internal"},
         {"slug": "email-capture", "name": "Email Capture", "channel_type": "email", "source_label": "Email", "provider_name": "email_marketing", "metric_names": ["new_subscribers", "active_subscribers", "form_conversions", "form_conversion_rate"]},
         {"slug": "ig-dm", "name": "Instagram DM", "channel_type": "messaging", "source_label": "Instagram DM", "provider_name": "meta"},

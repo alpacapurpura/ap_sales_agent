@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Column, DateTime, Float, Index, Integer, String, Text
+from sqlalchemy import Column, Date, DateTime, Float, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 
@@ -26,6 +26,11 @@ class ExtractionRunModel(Base):
     rows_extracted = Column(Integer, server_default="0")
     rate_limit_headroom = Column(Float, nullable=True)
     sub_extractor_failures = Column(JSONB, server_default="[]")
+
+    # Period extraction metadata
+    extraction_type = Column(String, server_default="daily")  # daily | period
+    period_start = Column(Date, nullable=True)
+    period_end = Column(Date, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

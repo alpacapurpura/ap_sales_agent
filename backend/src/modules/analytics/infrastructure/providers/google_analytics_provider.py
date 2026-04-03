@@ -68,6 +68,75 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
     def provider_name(self) -> str:
         return "google_analytics"
 
+    def has_period_extraction(self) -> bool:
+        return True
+
+    async def extract_period_metrics(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        period_type: str,
+        period_start: date,
+        period_end: date,
+        metric_names: List[str],
+        stage: str = "attraction",
+    ) -> ExtractionResult:
+        """Extract GA4 users/activeUsers for an exact date range.
+
+        GA4 Data API natively deduplicates users across the entire range,
+        so weekly/monthly/quarterly values are exact.
+        """
+        property_id = credentials.get("property_id")
+        if not property_id:
+            return ExtractionResult()
+
+        adapter = self._build_adapter(credentials)
+
+        # Map our metric names to GA4 API names
+        ga4_metrics = []
+        for name in metric_names:
+            if name == "users":
+                ga4_metrics.append("totalUsers")
+            elif name == "activeUsers":
+                ga4_metrics.append("activeUsers")
+
+        if not ga4_metrics:
+            return ExtractionResult()
+
+        try:
+            report = await adapter.run_report(
+                property_id=property_id,
+                dimensions=[],
+                metrics=ga4_metrics,
+                start_date=period_start.isoformat(),
+                end_date=period_end.isoformat(),
+            )
+        except (RefreshError, TransportError) as exc:
+            raise ConnectionRevokedException(
+                f"Google Analytics OAuth token revoked/expired: {exc}",
+                channel_type="google_analytics",
+            ) from exc
+
+        extracted = []
+        rows = report.get("rows", [])
+        if rows:
+            row = rows[0]
+            metric_values = row.get("metricValues", [])
+            for i, ga4_name in enumerate(ga4_metrics):
+                our_name = "users" if ga4_name == "totalUsers" else ga4_name
+                val = float(metric_values[i].get("value", 0)) if i < len(metric_values) else 0
+                extracted.append(ExtractedMetric(
+                    provider="google_analytics",
+                    channel_slug="website-total",
+                    metric_name=our_name,
+                    value=val,
+                    unit="count",
+                    date=period_start,
+                    extra={"period_type": period_type, "period_exact": True},
+                ))
+
+        return ExtractionResult(metrics=extracted)
+
     def rate_limit_config(self) -> dict:
         return {"requests_per_minute": 20, "burst_size": 10}
 

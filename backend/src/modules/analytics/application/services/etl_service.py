@@ -12,6 +12,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Callable, Optional
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.domain.ports import ConnectionPort
@@ -41,6 +42,9 @@ from src.modules.analytics.infrastructure.repositories.staging_repository import
 )
 
 logger = logging.getLogger(__name__)
+
+# Maximum lookback for any extraction
+_MAX_LOOKBACK_DAYS = 60
 
 # Providers that need multiple stages extracted.
 # Default stage for unlisted providers is ["attraction"].
@@ -92,8 +96,16 @@ class ETLService:
         if start_date is None:
             start_date = end_date - timedelta(days=30)
 
+        # Enforce max lookback
+        earliest = date.today() - timedelta(days=_MAX_LOOKBACK_DAYS)
+        if start_date < earliest:
+            start_date = earliest
+
         # Resolve provider from registry
         provider = get_provider(provider_name)
+
+        # Resolve tenant period config
+        period_config = self._get_period_config(tenant_id)
 
         # Instantiate repositories
         staging_repo = StagingMetricsRepository(self.db)
@@ -109,6 +121,7 @@ class ETLService:
             official_repo=official_repo,
             run_repo=run_repo,
             cache=self.cache,
+            period_config=period_config,
         )
 
         logger.info(
@@ -117,6 +130,21 @@ class ETLService:
         )
 
         return await pipeline.run(tenant_id, start_date, end_date, stage=stage)
+
+    def _get_period_config(self, tenant_id: UUID):
+        """Resolve TenantPeriodConfig from the tenant's DB columns."""
+        from src.modules.analytics.domain.period_config import TenantPeriodConfig
+        from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+
+        stmt = select(TenantModel).where(TenantModel.id == tenant_id)
+        tenant = self.db.execute(stmt).scalar_one_or_none()
+        if tenant is None:
+            return TenantPeriodConfig()
+        return TenantPeriodConfig(
+            weekly_start_day=tenant.weekly_start_day or 0,
+            fiscal_year_start_month=tenant.fiscal_year_start_month or 1,
+            fiscal_year_start_day=tenant.fiscal_year_start_day or 1,
+        )
 
     async def run_all_providers(self, tenant_id: UUID):
         """Run ETL extraction for all active provider connections.
@@ -278,6 +306,75 @@ class ETLService:
             "details": details,
         }
 
+    async def run_period_extraction(
+        self,
+        tenant_id: UUID,
+        period_type: str,
+        period_start: date,
+        period_end: date,
+    ) -> list[dict]:
+        """Extract NON_AGGREGABLE metrics for a complete period from all providers.
+
+        Iterates through all active connections, checks which providers support
+        period extraction, performs gap detection, and extracts missing periods.
+
+        Returns list of per-provider result dicts.
+        """
+        from src.modules.analytics.infrastructure.etl.period_pipeline import (
+            PeriodExtractionPipeline,
+        )
+        from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+            PeriodMetricsRepository,
+        )
+
+        connections = await self.connection_port.list_active_connections(tenant_id)
+        results = []
+
+        period_repo = PeriodMetricsRepository(self.db)
+        run_repo = ExtractionRunRepository(self.db)
+
+        for conn in connections:
+            provider_name = conn.channel_type
+            try:
+                provider = get_provider(provider_name)
+            except ValueError:
+                continue
+
+            if not provider.has_period_extraction():
+                continue
+
+            # Gap detection: skip if period already extracted
+            existing = period_repo.get_existing_periods(
+                tenant_id, provider_name, period_type,
+                period_start, period_end,
+            )
+            if period_start in existing:
+                results.append({
+                    "provider": provider_name,
+                    "status": "skipped",
+                    "reason": "already_extracted",
+                })
+                continue
+
+            pipeline = PeriodExtractionPipeline(
+                db=self.db,
+                provider=provider,
+                connection_port=self.connection_port,
+                period_repo=period_repo,
+                run_repo=run_repo,
+                cache=self.cache,
+            )
+
+            result = await pipeline.run(
+                tenant_id=tenant_id,
+                period_type=period_type,
+                period_start=period_start,
+                period_end=period_end,
+            )
+            results.append(result)
+
+        return results
+
     async def _sync_ig_dm(self, tenant_id: UUID) -> dict | None:
         """Run IG DM conversation sync as part of sync_all.
 
@@ -310,6 +407,13 @@ class ETLService:
 
         end_date = date.today() - timedelta(days=1)
         start_date = date.today() - timedelta(days=days)
+
+        # Enforce max lookback
+        earliest = date.today() - timedelta(days=_MAX_LOOKBACK_DAYS)
+        if start_date < earliest:
+            start_date = earliest
+
+        period_config = self._get_period_config(tenant_id)
 
         # Gap detection: find days already loaded
         official_repo = OfficialMetricsRepository(self.db)
@@ -390,6 +494,7 @@ class ETLService:
             staging_rows=staging_models,
             cost_type_fn=get_cost_type,
             extraction_run_id=run_id,
+            period_config=period_config,
         )
         official_repo.upsert_from_staging(official_dicts)
 
@@ -397,6 +502,7 @@ class ETLService:
             official_rows=official_dicts,
             tenant_id=tenant_id,
             extraction_run_id=run_id,
+            period_config=period_config,
         )
         if agg_dicts:
             agg_models = [

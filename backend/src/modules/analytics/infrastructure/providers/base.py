@@ -123,6 +123,33 @@ class BaseMetricsProvider(ABC):
                 error_type=error_type,
             )
 
+    async def extract_period_metrics(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        period_type: str,
+        period_start: date,
+        period_end: date,
+        metric_names: List[str],
+        stage: str = "attraction",
+    ) -> ExtractionResult:
+        """Extract deduplicated metrics for an entire period.
+
+        Default: no-op (provider has no NON_AGGREGABLE metrics).
+        Override in providers that have NON_AGGREGABLE metrics.
+
+        Args:
+            period_type: "weekly", "monthly", or "quarterly".
+            period_start: First day of the period.
+            period_end: Last day of the period.
+            metric_names: NON_AGGREGABLE metric names to extract.
+        """
+        return ExtractionResult()
+
+    def has_period_extraction(self) -> bool:
+        """Whether this provider supports period-level extraction."""
+        return False
+
     @abstractmethod
     def provider_name(self) -> str:
         """Return the unique identifier for this provider (e.g. 'meta', 'google_analytics')."""
