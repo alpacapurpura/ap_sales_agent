@@ -105,7 +105,11 @@ class MetaProvider(BaseMetricsProvider):
         all_metrics: list[ExtractedMetric] = []
         all_failures = []
 
-        ig_user_id = credentials.get("instagram_business_account_id")
+        ig_user_id = (
+            credentials.get("instagram_business_account_id")
+            or credentials.get("tracked_ig_id")
+            or credentials.get("instagram_account_id")
+        )
         ad_account_id = credentials.get("ad_account_id")
 
         # ── IG Organic period extraction ──
@@ -157,6 +161,7 @@ class MetaProvider(BaseMetricsProvider):
             url = f"{GRAPH_API_BASE}/{ig_user_id}/insights"
             params = {
                 "metric": "reach,accounts_engaged",
+                "metric_type": "total_value",
                 "period": meta_period,
                 "since": since_ts,
                 "until": until_ts,
@@ -331,7 +336,11 @@ class MetaProvider(BaseMetricsProvider):
     ) -> List[ExtractedMetric]:
         """Extract Instagram organic metrics (15 metrics, 3-4 API calls)."""
         access_token = credentials.get("access_token", "")
-        ig_account_id = credentials.get("instagram_account_id")
+        ig_account_id = (
+            credentials.get("instagram_account_id")
+            or credentials.get("tracked_ig_id")
+            or credentials.get("instagram_business_account_id")
+        )
         if not ig_account_id:
             return []
 
@@ -344,6 +353,7 @@ class MetaProvider(BaseMetricsProvider):
             headers=headers,
             params={
                 "metric": self._IG_INSIGHTS_METRICS,
+                "metric_type": "total_value",
                 "period": "day",
                 "since": int(
                     datetime.combine(start_date, datetime.min.time()).timestamp()
@@ -861,7 +871,11 @@ class MetaProvider(BaseMetricsProvider):
     ) -> List[ExtractedMetric]:
         """Parse IG insights values[] array to emit one metric per day per metric."""
         access_token = credentials.get("access_token", "")
-        ig_account_id = credentials.get("instagram_account_id")
+        ig_account_id = (
+            credentials.get("instagram_account_id")
+            or credentials.get("tracked_ig_id")
+            or credentials.get("instagram_business_account_id")
+        )
         if not ig_account_id:
             return []
 
@@ -874,6 +888,7 @@ class MetaProvider(BaseMetricsProvider):
             headers=headers,
             params={
                 "metric": self._IG_INSIGHTS_METRICS,
+                "metric_type": "total_value",
                 "period": "day",
                 "since": int(
                     datetime.combine(start_date, datetime.min.time()).timestamp()

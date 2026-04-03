@@ -148,6 +148,7 @@ class ETLPipeline:
                 )
                 for m in extracted
             ]
+            self.staging_repo.delete_by_tenant_provider(tenant_id, provider_name)
             rows_staged = self.staging_repo.bulk_insert(staging_models)
 
             # Step 5: Transform staging -> official format

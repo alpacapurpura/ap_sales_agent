@@ -320,7 +320,7 @@ async def sync_all_sources(
     if redis_client:
         last_sync = redis_client.get(cooldown_key)
         if last_sync:
-            elapsed = datetime.now(timezone.utc) - datetime.fromisoformat(last_sync.decode())
+            elapsed = datetime.now(timezone.utc) - datetime.fromisoformat(last_sync)
             remaining = _SYNC_ALL_COOLDOWN - elapsed
             if remaining.total_seconds() > 0:
                 raise HTTPException(

@@ -23,12 +23,34 @@ class StagingMetricsRepository:
         self.db = db
 
     def bulk_insert(self, metrics: List[StagingMetricModel]) -> int:
-        """Bulk insert staging metrics. Returns the count inserted."""
+        """Bulk insert staging metrics. Returns the count inserted.
+
+        Deduplicates by natural key before inserting to avoid
+        UniqueViolation when a provider emits the same metric
+        from multiple sub-extractors (e.g. account-level + campaign rollup).
+        Last-wins semantics: if two rows share a key, the later one is kept.
+        """
         if not metrics:
             return 0
-        self.db.add_all(metrics)
+
+        seen: dict[tuple, StagingMetricModel] = {}
+        for m in metrics:
+            key = (
+                str(m.tenant_id),
+                m.provider,
+                m.channel_slug,
+                m.metric_name,
+                m.metric_date,
+                m.campaign_id or "",
+                m.ad_set_id or "",
+                m.ad_id or "",
+            )
+            seen[key] = m
+
+        deduped = list(seen.values())
+        self.db.add_all(deduped)
         self.db.flush()
-        return len(metrics)
+        return len(deduped)
 
     def get_by_run(self, extraction_run_id: UUID) -> List[StagingMetricModel]:
         """Get all staging metrics for a specific extraction run."""
@@ -52,6 +74,19 @@ class StagingMetricsRepository:
             StagingMetricModel.metric_date <= end_date,
         )
         return list(self.db.execute(stmt).scalars().all())
+
+    def delete_by_tenant_provider(self, tenant_id: UUID, provider: str) -> int:
+        """Delete all staging rows for a tenant+provider before re-inserting.
+
+        Prevents UniqueViolation when re-running extraction for the same provider.
+        """
+        stmt = delete(StagingMetricModel).where(
+            StagingMetricModel.tenant_id == tenant_id,
+            StagingMetricModel.provider == provider,
+        )
+        result = self.db.execute(stmt)
+        self.db.flush()
+        return result.rowcount
 
     def delete_older_than(self, days: int = 30) -> int:
         """Delete staging rows older than N days (retention policy).

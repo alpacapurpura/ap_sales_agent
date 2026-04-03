@@ -488,6 +488,7 @@ class ETLService:
             )
             for m in extracted
         ]
+        staging_repo.delete_by_tenant_provider(tenant_id, provider_name)
         staging_repo.bulk_insert(staging_models)
 
         official_dicts = transform_staging_to_official(

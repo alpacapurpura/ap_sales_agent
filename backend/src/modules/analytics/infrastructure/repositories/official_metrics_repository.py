@@ -39,7 +39,7 @@ class OfficialMetricsRepository:
             :id, :tenant_id, :provider, :channel_slug, :metric_name,
             :value, :unit, :currency, :metric_date, :spend, :revenue,
             :campaign_id, :ad_set_id, :ad_id,
-            :cost_type, :extra::jsonb, :source_extraction_run_id,
+            :cost_type, CAST(:extra AS jsonb), :source_extraction_run_id,
             :iso_week_start, :month_key, :quarter_key,
             NOW(), NOW()
         )
@@ -209,7 +209,7 @@ class OfficialMetricsRepository:
                 created_at, updated_at
             ) VALUES (
                 gen_random_uuid(), :tenant_id, :provider, :channel_slug, :metric_name,
-                :value, :unit, :metric_date, :cost_type, :extra::jsonb,
+                :value, :unit, :metric_date, :cost_type, CAST(:extra AS jsonb),
                 :campaign_id, :ad_set_id, :ad_id,
                 NOW(), NOW()
             )

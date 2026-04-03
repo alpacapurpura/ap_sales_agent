@@ -34,7 +34,7 @@ class PeriodMetricsRepository:
             :id, :tenant_id, :provider, :channel_slug, :metric_name,
             :value, :unit, :currency, :period_type, :period_start, :period_end,
             :campaign_id, :ad_set_id, :ad_id,
-            :cost_type, :extra::jsonb, :source_extraction_run_id, NOW(), NOW()
+            :cost_type, CAST(:extra AS jsonb), :source_extraction_run_id, NOW(), NOW()
         )
         ON CONFLICT (
             tenant_id, provider, channel_slug, metric_name,

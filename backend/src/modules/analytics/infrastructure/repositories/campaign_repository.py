@@ -36,10 +36,10 @@ class CampaignRepository:
             :tenant_id, :provider, :external_id, :name, :objective,
             :status, :effective_status, :bid_strategy,
             :daily_budget, :lifetime_budget, :budget_remaining,
-            :buying_type, :special_ad_categories::jsonb,
+            :buying_type, CAST(:special_ad_categories AS jsonb),
             :start_time, :stop_time,
             :external_created_time, :external_updated_time,
-            :extra::jsonb, NOW(), NOW()
+            CAST(:extra AS jsonb), NOW(), NOW()
         )
         ON CONFLICT (tenant_id, provider, external_id)
         WHERE deleted_at IS NULL
@@ -105,8 +105,8 @@ class CampaignRepository:
             :name, :status, :effective_status,
             :optimization_goal, :billing_event, :bid_strategy,
             :daily_budget, :lifetime_budget, :budget_remaining,
-            :targeting::jsonb, :destination_type, :learning_stage,
-            :start_time, :end_time, :extra::jsonb, NOW(), NOW()
+            CAST(:targeting AS jsonb), :destination_type, :learning_stage,
+            :start_time, :end_time, CAST(:extra AS jsonb), NOW(), NOW()
         )
         ON CONFLICT (tenant_id, provider, external_id)
         WHERE deleted_at IS NULL
@@ -177,7 +177,7 @@ class CampaignRepository:
             :creative_id, :creative_thumbnail_url, :creative_image_url,
             :creative_video_id, :creative_title, :creative_body,
             :creative_cta, :creative_link_url,
-            :preview_shareable_link, :extra::jsonb, NOW(), NOW()
+            :preview_shareable_link, CAST(:extra AS jsonb), NOW(), NOW()
         )
         ON CONFLICT (tenant_id, provider, external_id)
         WHERE deleted_at IS NULL
@@ -239,10 +239,10 @@ class CampaignRepository:
             extra, created_at, updated_at
         ) VALUES (
             :tenant_id, :provider, :source, :recommendation_type,
-            :object_ids::jsonb, :title, :body, :blame_field,
+            CAST(:object_ids AS jsonb), :title, :body, :blame_field,
             :importance, :confidence, :lift_estimate,
             :opportunity_score, :url, :recommendation_signature,
-            :extra::jsonb, NOW(), NOW()
+            CAST(:extra AS jsonb), NOW(), NOW()
         )
         ON CONFLICT DO NOTHING
     """)
