@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff shopify-config-dev shopify-config-prod shopify-config-status
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -29,6 +29,18 @@ build-extended:
 
 stats-core:
 	docker stats --no-stream visionarias_brain_dev visionarias_client_dev visionarias_postgres visionarias_redis visionarias_qdrant
+
+# Test mode: stop non-essential containers to free ~190MB RAM + CPU
+test-mode:
+	@echo "Stopping non-essential containers for test runs..."
+	-docker stop cloudflare-tunnel visionarias_qdrant 2>/dev/null
+	@echo "Stopped. Run 'make dev-mode' to restore."
+
+# Dev mode: restart all containers after test-mode
+dev-mode:
+	@echo "Restoring all containers..."
+	-docker start cloudflare-tunnel visionarias_qdrant 2>/dev/null
+	@echo "All containers running."
 
 # Iniciar entorno de Producción (Usa .env.prod)
 prod:
@@ -115,6 +127,30 @@ lint:
 
 ruff:
 	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling ruff check src $(args)
+
+pytest-cov:
+	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -q $(args)
+
+vitest-cov:
+	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npx vitest run --coverage $(args)
+
+# --- E2E Testing (Playwright) ---
+# Generate a fresh Clerk testing token for all workers via env var
+CLERK_SK = $(shell grep '^CLERK_SECRET_KEY=' .env | cut -d'=' -f2)
+CLERK_TT = $(shell curl -s -X POST "https://api.clerk.com/v1/testing_tokens" -H "Authorization: Bearer $(CLERK_SK)" | python3 -c "import sys,json;print(json.load(sys.stdin).get('token',''))")
+DOCKER_COMPOSE_E2E = CLERK_TESTING_TOKEN=$(CLERK_TT) $(DOCKER_COMPOSE_DEV) --profile e2e
+
+e2e:
+	$(DOCKER_COMPOSE_E2E) run --rm e2e_runner npx playwright test $(args)
+
+e2e-smoke:
+	$(DOCKER_COMPOSE_E2E) run --rm e2e_runner npx playwright test --grep @smoke $(args)
+
+e2e-ui:
+	$(DOCKER_COMPOSE_E2E) run --rm -p 9323:9323 e2e_runner npx playwright test --ui --ui-host 0.0.0.0 --ui-port 9323
+
+e2e-report:
+	$(DOCKER_COMPOSE_E2E) run --rm -p 9324:9324 e2e_runner npx playwright show-report --host 0.0.0.0 --port 9324
 
 shopify-config-dev:
 	cd shopify_app && npx shopify app config use shopify.app.dev.toml
