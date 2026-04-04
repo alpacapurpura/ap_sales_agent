@@ -22,6 +22,15 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 CMD ["npm", "run", "test"]
 
+FROM mcr.microsoft.com/playwright:v1.59.1-noble AS e2e
+WORKDIR /app
+ENV NODE_ENV=test
+COPY package.json package-lock.json .npmrc ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --include=dev
+COPY . .
+CMD ["npx", "playwright", "test"]
+
 FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

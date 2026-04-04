@@ -13,7 +13,11 @@
     "test:ui": "vitest --ui",
     "prepare": "husky",
     "storybook": "storybook dev -p 6006 --host 0.0.0.0",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:ui": "playwright test --ui --ui-host 0.0.0.0",
+    "test:e2e:report": "playwright show-report --host 0.0.0.0"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.8",
@@ -71,6 +75,9 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.0.8",
+    "@playwright/test": "^1.59.1",
+    "@vitest/coverage-v8": "^4.0.17",
     "@storybook/addon-a11y": "^10.3.4",
     "@storybook/addon-themes": "^10.3.4",
     "@storybook/nextjs-vite": "^10.3.4",
@@ -84,9 +91,11 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/coverage-v8": "^4.0.17",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.29.0",
     "eslint-config-next": "^16.2.1",
+    "eslint-plugin-storybook": "10.3.4",
     "happy-dom": "^20.7.0",
     "husky": "^9.1.7",
     "jsdom": "^27.4.0",
@@ -95,8 +104,7 @@
     "storybook": "^10.3.4",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.17",
-    "eslint-plugin-storybook": "10.3.4"
+    "vitest": "^4.0.17"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
