@@ -41,9 +41,9 @@ class BrandRepository:
 
         logger.info("brand_repo_saving", tenant_id=str(tenant_id),
                      data_keys=list(settings_dict.keys()),
-                     has_identity=bool(settings_dict.get("identity", {}).get("brand_name")),
-                     has_story=bool(settings_dict.get("story", {}).get("origin_story")),
-                     has_strategy=bool(settings_dict.get("strategy", {}).get("value_proposition")))
+                     has_identity=bool((settings_dict.get("identity") or {}).get("brand_name")),
+                     has_story=bool((settings_dict.get("story") or {}).get("origin_story")),
+                     has_strategy=bool((settings_dict.get("strategy") or {}).get("methodology_name")))
 
         tenant.config_json = config
         flag_modified(tenant, "config_json")
@@ -53,9 +53,9 @@ class BrandRepository:
         self.db.refresh(tenant)
 
         # Verify after commit
-        saved_config = tenant.config_json.get("brand_settings", {})
+        saved_config = (tenant.config_json or {}).get("brand_settings") or {}
         logger.info("brand_repo_saved_verified", tenant_id=str(tenant_id),
                      saved_keys=list(saved_config.keys()) if saved_config else [],
-                     has_identity=bool(saved_config.get("identity", {}).get("brand_name") if saved_config else False))
+                     has_identity=bool((saved_config.get("identity") or {}).get("brand_name") if saved_config else False))
 
         return settings
