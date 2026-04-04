@@ -3,6 +3,26 @@ pythonpath = ["."]
 testpaths = ["tests", "src/tests"]
 asyncio_mode = "auto"
 
+[tool.coverage.run]
+source = ["src/modules", "src/shared"]
+omit = [
+    "*/models/*",
+    "*/migrations/*",
+    "*/__init__.py",
+    "*/workers/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 43
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.",
+    "@abstractmethod",
+]
+
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [

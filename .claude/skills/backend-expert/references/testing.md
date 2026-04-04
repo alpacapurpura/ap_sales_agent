@@ -1,73 +1,140 @@
 # Testing Backend
 
-El backend usa `pytest` y `pytest-asyncio`.
-Cobertura exigida: Logica critica de negocio (Capa de Aplicacion y Dominio) debe estar probada.
+## TDD Protocol by DDD Layer
 
-- **Capa de Aplicacion:** Usar `unittest.mock.Mock` o `AsyncMock` para simular los repositorios y servicios externos. No usar la base de datos real para testear la logica de negocio pura.
-- **Capa API (Integracion):** Usar `TestClient` o `AsyncClient` de `httpx` junto con una base de datos temporal (Test DB) o sobrescribiendo la dependencia de la base de datos (`app.dependency_overrides`).
-- **Nombres de Tests:** Formato `test_[nombre_funcion]_[condicion]_[resultado_esperado]`. Ejemplo: `test_create_offer_with_invalid_data_raises_error`.
+Write tests BEFORE implementation, following this order:
 
-### 1. Ubicacion de los Tests
+1. **Domain** (Pydantic models, enums, value objects) → Pure unit tests, no fixtures needed
+2. **Infrastructure** (repositories) → Use `db` fixture (SQLite in-memory), `seed_tenant`
+3. **Application** (services) → Integration tests with real repos via `db` fixture
+4. **API** (routes) → TestClient with dependency overrides (optional, low priority)
 
-- **Tests de Modulo (Unitarios e Integracion Aislada)**:
-    - Ubicacion: `src/modules/{nombre_modulo}/tests/`
-    - **Unit Tests**: Pruebas de Servicios de Dominio, Entidades y Casos de Uso aislados (mocking de repositorios).
-    - **Integration Tests**: Pruebas de Repositorios contra una DB real (usando contenedores de prueba) o pruebas de API del modulo especifico.
+## Test Location & Structure
 
-- **Tests de Sistema (End-to-End / Cross-Module)**:
-    - Ubicacion: `backend/tests/integration/`
-    - Pruebas que involucran multiples modulos o flujos completos de usuario que atraviesan todo el sistema.
+```
+backend/tests/modules/{module}/
+  __init__.py
+  conftest.py              # Module fixtures
+  test_domain_models.py    # Pydantic validation, enums
+  test_{name}_repository.py # CRUD, tenant isolation, soft delete
+  test_{name}_service.py   # Service orchestration
+```
 
-### 2. Ejecucion de Tests
+## Factories
 
-Los tests deben ejecutarse **dentro del contenedor Docker** para garantizar consistencia de entorno (especialmente para acceso a DB y dependencias de sistema).
+Use `factory-boy` factories from `tests/factories/`:
+
+```python
+from tests.factories import TenantFactory, BrandSettingsFactory
+
+# ORM model (add to db session):
+tenant = TenantFactory.build(id=tenant_id, name="Test Tenant", slug="test-tenant", config_json={})
+db.add(tenant)
+db.commit()
+
+# Domain model (Pydantic, use directly):
+settings = BrandSettingsFactory()
+```
+
+## Conftest Pattern (FOLLOW THIS)
+
+```python
+import pytest
+import uuid
+from tests.factories import TenantFactory
+
+TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
+TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
+USER_A = uuid.UUID("cccc0000-0000-0000-0000-000000000001")
+
+@pytest.fixture
+def tenant_id():
+    return TENANT_A
+
+@pytest.fixture
+def other_tenant_id():
+    return TENANT_B
+
+@pytest.fixture
+def user_id():
+    return USER_A
+
+@pytest.fixture
+def seed_tenant(db, tenant_id):
+    tenant = TenantFactory.build(id=tenant_id, name="Test Tenant", slug="test-tenant", config_json={})
+    db.add(tenant)
+    db.commit()
+    return tenant
+
+@pytest.fixture
+def seed_other_tenant(db, other_tenant_id):
+    tenant = TenantFactory.build(id=other_tenant_id, name="Other Tenant", slug="other-tenant", config_json={})
+    db.add(tenant)
+    db.commit()
+    return tenant
+```
+
+## Root conftest (`backend/tests/conftest.py`)
+
+Provides:
+- `db_engine` (session-scoped): SQLite in-memory with MockJSONB/MockUUID patches
+- `db` (function-scoped): Session with transaction rollback per test
+
+If your module's model isn't registered there, add it to the `db_engine` fixture imports.
+
+## Test Naming Convention
+
+```
+test_[function]_[condition]_[expected_result]
+```
+
+Examples:
+- `test_create_tenant_with_duplicate_slug_raises_error`
+- `test_get_by_id_with_wrong_tenant_returns_none`
+- `test_list_events_filters_by_category`
+
+## Tenant Isolation Tests (MANDATORY)
+
+Every repository MUST have isolation tests:
+
+```python
+class TestTenantIsolation:
+    def test_tenant_b_cannot_list_tenant_a_data(self, db, seed_tenant, seed_other_tenant):
+        repo = SomeRepository(db)
+        repo.create(tenant_id=TENANT_A, ...)
+        results = repo.list_by_tenant(tenant_id=TENANT_B)
+        assert len(results) == 0
+
+    def test_get_by_id_with_wrong_tenant_returns_none(self, db, seed_tenant, seed_other_tenant):
+        repo = SomeRepository(db)
+        item = repo.create(tenant_id=TENANT_A, ...)
+        result = repo.get_by_id(id=item.id, tenant_id=TENANT_B)
+        assert result is None
+```
+
+## Coverage
+
+- Run: `make pytest-cov` or `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term -q"`
+- Threshold: 43% (CI will fail below this)
+- Target: Critical business logic (application + domain layers) must be tested
+
+## Execution (Docker-First)
 
 ```bash
-# Ejecutar todos los tests del proyecto
-docker exec -t visionarias_brain_dev pytest
+# All tests
+docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short"
 
-# Ejecutar tests de un modulo especifico
-docker exec -t visionarias_brain_dev pytest src/modules/iam/tests
+# Single module
+make pytest args="-k test_name"
 
-# Ejecutar un test especifico con logs (-s)
-docker exec -t visionarias_brain_dev pytest src/modules/iam/tests/unit/test_auth_service.py -s
+# With coverage
+make pytest-cov
 ```
 
-### 3. Fixtures y Configuracion (`conftest.py`)
+## Rules
 
-- **Global**: `backend/tests/conftest.py` (Configuracion de DB compartida, cliente HTTP global).
-- **Modulo**: `src/modules/{modulo}/tests/conftest.py` (Fixtures especificos del modulo, e.g., `mock_user`, `mock_order`).
-
-### 4. Guia para Escribir Tests
-
-#### Unit Tests (Servicios)
-Usar `pytest-mock` o `unittest.mock` para aislar la logica de negocio de la infraestructura.
-
-```python
-# Ejemplo: test_user_service.py
-def test_create_user_success(mock_user_repo):
-    service = UserService(repo=mock_user_repo)
-    user = service.create_user(email="test@example.com")
-    assert user.email == "test@example.com"
-    mock_user_repo.save.assert_called_once()
-```
-
-#### Integration Tests (Repositorios/API)
-Usar la base de datos de prueba (limpiada despues de cada test).
-
-```python
-# Ejemplo: test_user_repo.py
-@pytest.mark.asyncio
-async def test_save_user(db_session):
-    repo = UserRepository(db_session)
-    user = User(email="real@db.com")
-    await repo.save(user)
-
-    saved = await repo.get_by_email("real@db.com")
-    assert saved is not None
-```
-
-## Reglas de Oro
-1. **No Mockear lo que no posees**: En tests de integracion, usar la implementacion real (DB en Docker). En unitarios, mockear interfaces propias.
-2. **Limpieza de Datos**: Asegurar que cada test deje la DB en un estado limpio (usar transacciones rollback en `conftest.py`).
-3. **Velocidad**: Los tests unitarios deben correr en milisegundos. Si tocan DB, son de integracion.
+1. SQLAlchemy 2.0 syntax only: `select(Model).where(...)`, not `session.query(Model)`
+2. Soft deletes: verify `deleted_at` filtering works (deleted rows shouldn't appear)
+3. Pure functions → unit tests without DB. Services → integration with `db` fixture.
+4. No `any` types in test code
+5. Run `ruff check` on test files before committing

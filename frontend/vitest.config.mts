@@ -8,8 +8,21 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: './src/test/setup.ts',
     globals: true,
+    exclude: ['e2e/**', 'node_modules/**'],
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+    coverage: {
+      provider: 'v8',
+      include: ['src/features/**', 'src/lib/**', 'src/components/shared/**'],
+      exclude: ['src/components/ui/**', '**/*.d.ts', '**/*.test.*'],
+      reporter: ['text', 'text-summary'],
+      thresholds: {
+        statements: 5,
+        branches: 3,
+        functions: 3,
+        lines: 5,
+      },
     },
   },
 })
