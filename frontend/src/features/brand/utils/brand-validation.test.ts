@@ -7,6 +7,10 @@ import {
   validateTeam,
   validateContact,
   validateAuthority,
+  validatePositioning,
+  validateNarrative,
+  validateCommunicationAssets,
+  validateVoice,
 } from './brand-validation';
 
 describe('Brand Validation Utils', () => {
@@ -165,6 +169,100 @@ describe('Brand Validation Utils', () => {
       const result = validateAuthority(vault);
       expect(result.status).toBe('complete');
       expect(result.score).toBe(100);
+    });
+  });
+
+  describe('validatePositioning', () => {
+    it('should handle undefined positioning', () => {
+      const result = validatePositioning(undefined);
+      expect(result.status).toBe('empty');
+      expect(result.score).toBe(0);
+    });
+
+    it('should identify missing positioning fields', () => {
+      const positioning = { brand_essence: 'Simplicity' } as any;
+      const result = validatePositioning(positioning);
+      expect(result.status).toBe('partial');
+      expect(result.missingFields).toContain('Propuesta de Valor Unica');
+      expect(result.missingFields).toContain('Diferenciador');
+    });
+
+    it('should return complete for full positioning', () => {
+      const positioning = {
+        unique_value_proposition: 'AI that works',
+        brand_essence: 'Simplicity',
+        discriminator: 'Only AI-native',
+        insight: { tension: 'Complex tools' },
+        benefits: { functional_benefits: ['Fast'], emotional_benefits: ['Calm'] },
+      } as any;
+      const result = validatePositioning(positioning);
+      expect(result.status).toBe('complete');
+      expect(result.score).toBe(100);
+    });
+  });
+
+  describe('validateNarrative', () => {
+    it('should handle undefined narrative', () => {
+      const result = validateNarrative(undefined);
+      expect(result.status).toBe('empty');
+      expect(result.score).toBe(0);
+    });
+
+    it('should identify missing narrative fields', () => {
+      const narrative = { hero: { identity: 'Entrepreneur' } } as any;
+      const result = validateNarrative(narrative);
+      expect(result.status).toBe('partial');
+      expect(result.missingFields).toContain('Problema/Villano');
+    });
+
+    it('should return complete for full narrative', () => {
+      const narrative = {
+        hero: { identity: 'Entrepreneur' },
+        problem: { villain: 'Complexity' },
+        guide: { empathy_statement: 'We understand' },
+        one_liner: 'We help entrepreneurs',
+      } as any;
+      const result = validateNarrative(narrative);
+      expect(result.status).toBe('complete');
+      expect(result.score).toBe(100);
+    });
+  });
+
+  describe('validateCommunicationAssets', () => {
+    it('should handle undefined assets', () => {
+      const result = validateCommunicationAssets(undefined);
+      expect(result.status).toBe('empty');
+    });
+
+    it('should identify missing assets', () => {
+      const assets = { creative_concepts: [{ name: 'Concept' }] } as any;
+      const result = validateCommunicationAssets(assets);
+      expect(result.status).toBe('partial');
+      expect(result.missingFields).toContain('Activos por Funnel');
+    });
+
+    it('should return complete when both present', () => {
+      const assets = {
+        creative_concepts: [{ name: 'Concept' }],
+        assets: [{ title: 'Asset' }],
+      } as any;
+      const result = validateCommunicationAssets(assets);
+      expect(result.status).toBe('complete');
+      expect(result.score).toBe(100);
+    });
+  });
+
+  describe('validateVoice', () => {
+    it('should handle undefined identity', () => {
+      const result = validateVoice(undefined as any);
+      expect(result.status).toBe('empty');
+    });
+
+    it('should always flag missing tone of voice', () => {
+      const identity = { language: 'Espanol' } as any;
+      const result = validateVoice(identity);
+      expect(result.status).toBe('partial');
+      expect(result.missingFields).toContain('Tono de Voz');
     });
   });
 });
