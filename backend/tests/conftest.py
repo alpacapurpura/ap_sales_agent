@@ -98,6 +98,8 @@ def db_engine():
         from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import AgentStateCheckpointModel
         from src.modules.brand.infrastructure.models.avatar_model import AvatarModel
         from src.modules.brand.infrastructure.models.extraction_trace_model import BrandExtractionTrace
+        from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import TenantDomainModel  # noqa: F401
+        from src.modules.landing.infrastructure.models.landing_model import LandingPageModel  # noqa: F401
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")
     
