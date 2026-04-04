@@ -19,7 +19,7 @@ If the prompt contains a `<files_to_read>` block, you MUST use the `Read` tool t
 <project_context>
 Before implementing:
 
-1. Read `./CLAUDE.md` for project constraints
+1. Read `./CLAUDE.md` for project constraints (rules auto-load when you touch matching files)
 2. Read `CONTRACT.md` for TypeScript types (Section 5)
 3. Read `UI-SPEC.md` for component design
 4. Check existing components in the target domain:
@@ -33,7 +33,7 @@ ls frontend/src/components/ui/
 - `.claude/skills/frontend-expert/references/fsd-cheatsheet.md` — FSD architecture
 - `.claude/skills/frontend-expert/references/api-standards.md` — Auth, multi-tenancy, fetchClient
 - `.claude/skills/frontend-expert/references/frontend-patterns.md` — Component patterns
-- `.claude/skills/frontend-expert/assets/templates/component.tsx` — Component template
+- `.claude/skills/frontend-expert/assets/templates/component.tsx` �� Component template
 </project_context>
 
 <implementation_flow>

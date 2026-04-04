@@ -114,9 +114,12 @@ class TestTenantIsolation:
 
 ## Coverage
 
-- Run: `make pytest-cov` or `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term -q"`
-- Threshold: 43% (CI will fail below this)
-- Target: Critical business logic (application + domain layers) must be tested
+- Run: `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -q"`
+- Threshold: **60%** (CI will fail below this)
+- The skill `/test-backend` already includes coverage automatically
+- **Mandatory coverage:** application + domain layers must be tested
+- **Recommended coverage:** infrastructure layer (repositories, clients)
+- **Low priority:** api layer (thin — covered by integration/E2E tests)
 
 ## Execution (Docker-First)
 
@@ -128,7 +131,7 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short
 make pytest args="-k test_name"
 
 # With coverage
-make pytest-cov
+docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -q"
 ```
 
 ## Rules

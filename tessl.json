@@ -23,7 +23,7 @@
       "version": "0.1.0"
     },
     "fastapi/fastapi": {
-      "version": "d128a7089a645466b789e32097de125a3b0f8979",
+      "version": "c3c9dd6b1a08bcda766e7b43eafe72c4c5e9e193",
       "source": "https://github.com/fastapi/fastapi",
       "include": {
         "skills": [
@@ -32,7 +32,7 @@
       }
     },
     "jezweb/claude-skills": {
-      "version": "c1e8dd19c72163b56ea38536d8824bcc9b7a1b3c",
+      "version": "bae7c5f7ae61cd3acce6c9819c406768d7cc35b3",
       "source": "https://github.com/jezweb/claude-skills",
       "include": {
         "skills": [
@@ -43,7 +43,7 @@
       }
     },
     "secondsky/claude-skills": {
-      "version": "90d6bd7de47ac8f79bdf2f2d06b26d513814f764",
+      "version": "40506e5751989a5d066f5605bada7c8a32a095f1",
       "source": "https://github.com/secondsky/claude-skills",
       "include": {
         "skills": [

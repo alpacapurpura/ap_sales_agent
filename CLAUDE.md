@@ -41,6 +41,8 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 | Review PR | `/review-pr` | — |
 | Install npm pkg | `make install-front p=pkg` | — |
 | Fix Docker perms | `make fix-permissions` | — |
+| E2E smoke | `make e2e-smoke` | `docker compose --profile e2e run --rm e2e_runner npx playwright test --grep @smoke` |
+| E2E full | `make e2e` | `docker compose --profile e2e run --rm e2e_runner npx playwright test` |
 
 ### Docker Containers
 
@@ -100,15 +102,16 @@ Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) →
 1. **Anti-Hallucination:** Read `docs/domains/INDEX.md` before coding. Never guess classes/fields.
 2. **Docker-First:** All commands run inside Docker. See `.claude/rules/docker-first.md`.
 3. **Tenant Isolation:** ALL queries filter by `X-Tenant-ID`. See `.claude/rules/tenant-isolation.md`.
-4. **DDD Boundaries:** No cross-module imports. Use `shared/links/` for inter-module communication.
-5. **Data:** Soft deletes only (`deleted_at`). SQLAlchemy 2.0 syntax (`select().where()`, never `session.query()`).
+4. **Backend DDD:** Inside-Out layers, no cross-module imports (except copilot). See `.claude/rules/backend-ddd.md`.
+5. **Frontend FSD:** Server Components by default, no deep feature imports (except copilot). See `.claude/rules/frontend-fsd.md`.
 6. **Migrations:** Must be idempotent (raw SQL with `IF NOT EXISTS`). See `.claude/rules/backend-migrations.md`.
-7. **PII:** Every endpoint MUST declare `response_model=`. See `.tessl/tiles/maria/fastapi/rules/pii-sanitisation.md`.
-8. **Frontend:** Server Components by default. React Query for data. No `any` type. No deep feature imports.
-9. **Logging:** `structlog` only — never `print()` or `logging`.
+7. **PII:** Every endpoint MUST declare `response_model=`. PII fields must be masked or justified (loaded via `@AGENTS.md` → Tessl rules).
+8. **Git:** Conventional Commits, never force push main. See `.claude/rules/git-safety.md`.
+9. **Debugging:** Docker diagnostics + common error patterns. See `.claude/rules/debugging.md`.
+10. **Copilot:** Schema introspection, module registry, route-based tools. See `.claude/rules/copilot-resilience.md`.
 
 ## Product Vision
 
-For product decisions: `docs/vision/product-vision.md`.
+For product decisions: `docs/domains/vision/product-vision.md`.
 
 @AGENTS.md

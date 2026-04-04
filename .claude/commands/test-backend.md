@@ -1,4 +1,4 @@
-Run backend lint and tests inside Docker.
+Run backend lint and tests with coverage inside Docker.
 
 **IMPORTANT:** All tools (pytest, ruff) are in the container's `/opt/venv/bin/` (on PATH).
 If `ruff` or `pytest` is not found, the container was built with `target: final` instead of `target: dev`.
@@ -21,13 +21,14 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cac
 Use `--no-cache` to avoid permission issues with `.ruff_cache/`.
 If the user wants auto-fix: add `--fix` flag.
 
-### 3. Unit tests (pytest)
+### 3. Unit tests with coverage (pytest)
 ```bash
-docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short"
+docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short"
 ```
 - `-x`: stop on first failure
 - `-q`: quiet output
 - `--tb=short`: compact tracebacks
+- `--cov-report=term-missing`: shows which lines are uncovered
 
 To run a specific module's tests:
 ```bash
@@ -35,4 +36,8 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/modules/{m
 ```
 
 ### 4. Report
-Summarize: lint pass/fail, tests pass/fail count, any errors.
+Summarize:
+- Lint: pass/fail
+- Tests: pass/fail count
+- Coverage: overall % and whether it meets the **60% threshold**
+- If coverage is below 60%, list the modules with lowest coverage

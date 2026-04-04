@@ -1,64 +1,37 @@
-# Módulo de Marca (Brand Studio) - Documentación para Agentes
+---
+module: Brand
+status: active
+---
 
-> **CONTEXTO DEL AGENTE**: Este documento es la FUENTE DE VERDAD para entender cómo funciona la identidad de marca en el sistema. Úsalo para razonar sobre problemas de "personalidad del bot", "estilos visuales" o "configuración de empresa".
+# Brand
 
-## 1. Mapa de Código (The "Where")
+Captura y estructura la identidad completa de marca del tenant. Alimenta al Sales Agent (personalidad), Assets (copies) y Copilot (auto-fill).
 
-> ⚠️ **Explorar el código directamente** — no confíes en inventarios de archivos que pueden estar desactualizados.
+## Domain Concepts
 
-- **Backend**: `backend/src/modules/brand/`
-  - Agregados y value objects de dominio: `domain/`
-  - Repositorio (lee/escribe JSONB en tabla `tenants`): `infrastructure/repositories/`
-  - API (GET, PATCH con deep-merge, POST /extract): `api/`
-- **Frontend**: `frontend/src/features/brand/`
-  - Hook de estado global: `hooks/`
-  - Tipos TypeScript (espejo de Pydantic): `types/`
-  - Componentes del studio: `components/`
+- **BrandSettings**: Agregado raiz con 10 sub-modelos: `identity` (nombre, logo, sector), `strategy` (metodologia, pilares), `story` (origen, mision, vision), `team` (List[KeyFigure]), `positioning` (Brand Love Key — esencia, insight, beneficios, valores), `narrative` (StoryBrand — hero, problem, guide, plan, CTA, outcome), `communication_assets` (taglines, CTAs, hooks por etapa de funnel), `visuals` (colores, fuentes, design tokens), `contact`, `testimonials`, `authority_vault`.
+- **ExtractionOrchestrator**: Coordina extraccion multi-seccion via LLM en waves concurrentes (respeta TPM limits). Crawl paralelo: texto + CSS (para visuals). Merge inteligente preserva datos existentes.
 
-## 2. Lógica de Negocio (The "Why" & "How")
+## Architecture Decisions
 
-### Almacenamiento (Persistence Strategy)
-- **Híbrido**:
-  - La configuración general (`BrandSettings`) vive en un campo **JSONB** (`config_json`) en la tabla `tenants`. NO tiene tabla propia.
-  - Los **Avatares** (Buyer Personas) SÍ tienen tabla propia (`avatars`) por necesidad de relaciones y búsquedas complejas.
-- **Por qué**: Permite iterar rápido en la estructura de la marca sin migraciones de base de datos.
+- **JSONB en tabla `tenants`**: `BrandSettings` se almacena en `tenants.config_json['brand_settings']` — no tiene tabla propia. Permite iterar en la estructura sin migraciones.
+- **Avatares SI tienen tabla propia** (`avatars`) por necesidad de relaciones y busquedas complejas.
+- **Deep merge en PATCH**: El backend hace merge por claves, no sobrescribe todo el JSON. Listas (team, testimonials) se reemplazan completas si el payload tiene datos.
 
-### Reglas Críticas (Business Rules)
-1.  **Identidad Mínima**: `brand_name` es obligatorio. Sin él, el sistema considera la marca "no configurada".
-2.  **Health Score**: El sistema calcula un porcentaje de completitud. Si es bajo, los agentes de ventas pueden negarse a operar o funcionar con personalidad genérica.
-3.  **Inmutabilidad Parcial**: Al actualizar, el backend hace un "merge" inteligente. No se sobrescribe todo el JSON, solo las claves enviadas.
+## Business Rules
 
-### Flujo de Extracción (Extraction Agent)
-1.  Usuario provee URL.
-2.  Backend lanza `BrowserService` (Headless Chrome) para scrapear texto e imágenes.
-3.  LLM analiza el contenido y estructura un objeto `BrandSettings` preliminar.
-4.  Frontend recibe el objeto y pre-llena los formularios para validación humana.
-5.  **Timeout**: El proceso tiene un hard-limit de 8 minutos debido a la latencia de scraping + análisis profundo.
+- `brand_name` es obligatorio — sin el, la marca se considera "no configurada".
+- **Health Score**: Porcentaje de completitud. Si es bajo, el Sales Agent puede operar con personalidad generica o negarse.
+- El extractor tiene hard-limit de 8 minutos (scraping + LLM analysis).
+- `model_validator` migra campos legacy (`strategy.unique_value_proposition` -> `positioning`) al vuelo.
 
-## 3. Casos Borde y Gotchas (Edge Cases)
+## Edge Cases
 
-- **Alucinación de Estilos**: El extractor a veces inventa códigos hexadecimales si no encuentra estilos CSS claros. El usuario siempre debe confirmar los colores.
-- **Imágenes Relativas vs Absolutas**: Las URLs de logos guardadas deben ser absolutas o manejarse con el helper `getFullUrl` en frontend.
-- **Migración de Esquema**: Si cambiamos `BrandSettings` en Python, los JSONs antiguos en DB pueden romper Pydantic.
-  - **Solución**: Usar `root_validator(pre=True)` en Pydantic para transformar datos legacy al vuelo.
+- **`flag_modified` obligatorio**: SQLAlchemy no detecta cambios dentro de JSONB automaticamente. Siempre llamar `flag_modified(tenant, "config_json")` despues de mutar el dict.
+- **Schema migration en runtime**: Si `BrandSettings` cambia en Python, JSONs antiguos en DB pueden romper Pydantic. El `model_validator(mode='before')` transforma datos legacy.
+- **Alucinacion de estilos**: El extractor a veces inventa hex codes si no encuentra CSS claro — el usuario debe confirmar colores.
 
-## 4. Snippets para Agentes (Common Tasks)
+## CRITICAL — Do Not Violate
 
-### Cómo obtener la marca en Backend
-```python
-# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
-# En un servicio o caso de uso
-tenant = await tenant_repo.get_by_id(tenant_id)
-brand_settings = BrandSettings(**tenant.config_json.get("brand_settings", {}))
-print(brand_settings.identity.brand_name)
-```
-
-### Cómo actualizar un campo parcial
-```python
-# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
-# El repositorio se encarga del merge, pero conceptualmente:
-current_settings = tenant.config_json.get("brand_settings", {})
-current_settings.update(new_data)
-tenant.config_json["brand_settings"] = current_settings
-flag_modified(tenant, "config_json") # Crucial para SQLAlchemy
-```
+- Siempre usar `flag_modified(tenant, "config_json")` al mutar JSONB — sin esto, SQLAlchemy no persiste el cambio.
+- Los 10 sub-modelos de `BrandSettings` se auto-descubren via introspection (Copilot). Agregar nuevos campos NO requiere cambios en Copilot.

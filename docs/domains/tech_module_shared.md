@@ -1,18 +1,36 @@
 ---
 module: Technical Module Shared
 status: active
-core_files: []
 ---
 
-## 1. Propósito del Negocio (El "Por Qué")
-- Contener el ADN transversal del negocio. Aquí viven las entidades base (Base model de SQLAlchemy), Value Objects comunes y utilidades compartidas que deben ser accesibles para todos los demás módulos sin generar acoplamiento directo entre ellos.
+# Shared (`backend/src/shared/`)
 
-## 2. Reglas de Negocio Estrictas (Business Rules)
-- Regla de Dependencias: shared PUEDE importar utilidades de core, pero NUNCA debe importar nada que pertenezca a las carpetas en modules.
-- Mailing Genérico: Contiene la función técnica agnóstica (send_email() en src/shared/mailing/) que ejecuta el envío físico. Absorbe la complejidad técnica para que los módulos de negocio (CRM, Scheduling, IAM) solo se enfoquen en qué redactar y a quién enviar.
+ADN transversal del negocio. Contiene abstracciones, protocolos y utilidades que todos los modulos pueden importar sin generar acoplamiento entre ellos.
 
-## 3. Mapa de Código (Rutas relativas a Front y Back para este módulo)
-- Backend: backend/src/shared/
+## Componentes
 
-## 4. Casos Borde Conocidos (Edge Cases)
-- Modificaciones Críticas: Al ser la base compartida y ser importado por todos los módulos, un cambio en un esquema aquí (por ejemplo, en el Base model) puede quebrar la compilación o las migraciones en toda la aplicación de manera no aislada (Efecto dominó).
+### domain/
+- **base_entity.py** — `Base` (SQLAlchemy declarative base) y `BaseEntity` (Pydantic base model).
+- **events.py** — `DomainEvent` dataclass + `EventBus` singleton (subscribe/publish con deferred dispatch post-commit).
+- **messages.py** — Protocolo de mensajeria: `IncomingMessage` y `OutgoingMessage` (channel-agnostic).
+- **value_objects.py** — Value Objects comunes reutilizables.
+
+### infrastructure/
+- **channels/base.py** — `BaseChannel` ABC: port para adaptadores de canal externo (`normalize_payload`, `send_message`, `set_typing_status`).
+- **llm/factory.py** — `LLMFactory`: singleton o per-tenant, soporta OpenAI y Gemini. Resuelve API key del tenant o cae a platform keys.
+- **llm/providers/** — Implementaciones concretas (`OpenAIService`, `GeminiService`).
+- **model_registry.py** — Importa todos los SQLAlchemy models para garantizar registro en el mapper antes de `configure_mappers()`.
+- **database/types.py** — Tipos custom de SQLAlchemy.
+- **external/clerk.py** — Cliente Clerk para operaciones server-side.
+- **files/** — `file_parsing_service`, `image_analysis`.
+
+### application/
+- **ai_action_service.py** — Orquestador de acciones IA compartidas.
+
+### links/
+- **LinkService** + **ShareableLink** model: generacion de URLs seguras con token, expiracion, visit tracking y revocacion. Usado por scheduling (booking links) y otros modulos.
+
+## CRITICO — No Violar
+
+- `shared` puede importar de `core`, pero NUNCA de `modules`.
+- Cambios en `Base` o `BaseEntity` tienen efecto domino en toda la aplicacion — requieren revision cuidadosa.

@@ -11,7 +11,7 @@ if (!internalApiUrl) {
 }
 
 // Build allowed origins from env domains
-const allowedOrigins = [appDomain, apiDomain].filter(Boolean);
+const allowedOrigins = [appDomain, apiDomain, 'host.docker.internal'].filter(Boolean);
 if (process.env.CLERK_DOMAIN) {
   allowedOrigins.push(process.env.CLERK_DOMAIN);
 }

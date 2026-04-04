@@ -1,5 +1,7 @@
 # Arquitectura Backend: Monolito Modular (DDD)
 
+> **Constraints:** `.claude/rules/backend-ddd.md` (auto-loaded). This file provides extended context and examples.
+
 El proyecto Visionarias Brain sigue una arquitectura de **Monolito Modular** estrictamente alineada con los principios de **Domain-Driven Design (DDD)** y **Clean Architecture**.
 
 El objetivo es mantener la agilidad de un monolito (despliegue unico, base de codigo unificada) pero con la separacion de responsabilidades y escalabilidad logica de los microservicios.

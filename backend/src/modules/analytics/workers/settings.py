@@ -21,7 +21,7 @@ from src.modules.analytics.workers.tasks import (
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
-from src.modules.domains.workers.tasks import poll_domain_verification
+from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 
 
 class WorkerSettings:

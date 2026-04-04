@@ -19,10 +19,10 @@ If the prompt contains a `<files_to_read>` block, you MUST use the `Read` tool t
 <project_context>
 Before auditing:
 
-1. Read `./CLAUDE.md` for project constraints
+1. Read `./CLAUDE.md` for project constraints (rules auto-load when you touch matching files)
 2. Read the `CONTRACT.md` to understand what was specified
-3. Read `.agents/skills/backend-expert/references/standards.md` for coding standards
-4. Read `.agents/skills/backend-expert/references/database.md` for DB conventions
+3. Read `.claude/skills/backend-expert/references/standards.md` for coding standards
+4. Read `.claude/skills/backend-expert/references/database.md` for DB conventions
 </project_context>
 
 <audit_flow>

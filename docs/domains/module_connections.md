@@ -1,77 +1,35 @@
-# Módulo de Conexiones (Connections & Integrations) - Documentación para Agentes
+---
+module: Connections
+status: active
+---
 
-> **CONTEXTO DEL AGENTE**: Este módulo es la **Bóveda de Credenciales** y el **Gateway de Comunicaciones** del sistema. Centraliza la autenticación y el intercambio de datos con *cualquier* plataforma externa (Mensajería, CRM, E-commerce, Calendarios). Su misión es abstraer la complejidad de APIs de terceros (OAuth2, Webhooks, Firmas) y exponer una interfaz unificada al resto del sistema.
+# Connections
 
-## 1. Mapa de Código (The "Where")
+Boveda de credenciales y gateway de comunicaciones. Abstrae la autenticacion y el intercambio de datos con plataformas externas (mensajeria, e-commerce, analytics, calendario).
 
-> ⚠️ **Explorar el código directamente** — no confíes en inventarios de archivos que pueden estar desactualizados.
+## Domain Concepts
 
-- **Backend**: `backend/src/modules/connections/`
-  - Dominio (entidad unificada para todas las integraciones, enums de tipo): `domain/`
-  - Adaptadores de mensajería (WhatsApp, Meta, etc.): `infrastructure/channels/`
-  - Conectores de datos (Shopify, MailerLite, etc.): `infrastructure/marketing_connectors/`
-  - Interfaces base (contratos): `backend/src/shared/infrastructure/channels/`
-  - Endpoints segregados por proveedor: `api/`
-- **Frontend**: `frontend/src/features/growth-studio/`
-  - Vista hub de integraciones y tarjetas de conexión: `components/`
+- **ChannelConnection**: Entidad unificada — almacena `credentials` (JSONB) y `config` (JSONB) para cualquier tipo de canal.
+- **ChannelType**: Enum con 17 tipos actualmente: Telegram, WhatsApp (Evolution), WhatsApp Cloud, ManyChat, Shopify, MailerLite, Google Analytics, Meta (master), Facebook Page, Instagram Account, Meta Ads Account, Meta Pixel, WhatsApp Business Account, YouTube, YouTube Analytics, Google Calendar, Gmail.
 
-## 2. Lógica de Negocio (The "Why" & "How")
+## Architecture Decisions
 
-### Patrón Adapter/Strategy (Estándar de Oro)
-Para evitar "spaghetti code" con `if type == 'whatsapp'`, el sistema usa polimorfismo estricto.
-- **Mensajería (`BaseChannel`)**: Todo canal de chat debe implementar:
-  - `send_message(payload)`: Transformar mensaje interno -> API Externa.
-  - `normalize_payload(webhook_data)`: Webhook Externo -> `IncomingMessage` interno.
-- **Datos (`BaseConnector`)**: Todo conector de datos debe implementar:
-  - `sync_contacts()`: Traer usuarios externos a `Lead`.
-  - `verify_credentials()`: Validar tokens antes de guardar.
+- **Adapter/Strategy**: `BaseChannel` (interfaz en `shared/`) fuerza polimorfismo para evitar `if type == 'whatsapp'`. Implementaciones en `infrastructure/channels/` (~13 adaptadores). Marketing connectors (`infrastructure/marketing_connectors/`) siguen patron similar con `BaseConnector`.
+- **BaseChannel tiene 3 metodos abstractos**: `normalize_payload(webhook_data)` -> `IncomingMessage`, `send_message(OutgoingMessage)`, `set_typing_status(user_id)`.
 
-### Autenticación y Seguridad
-El módulo maneja dos tipos de auth:
-1.  **OAuth2 (Meta, Google)**:
-    - El usuario es redirigido al proveedor.
-    - El callback recibe `code`, canjea por `access_token` y `refresh_token`.
-    - El sistema se encarga de refrescar tokens automáticamente (TODO: Implementar worker de refresh).
-2.  **API Key / Token (Shopify, Evolution)**:
-    - El usuario pega credenciales o escanea QR.
-    - Se validan inmediatamente contra la API externa (`verify_credentials`).
+## Business Rules
 
-**Regla de Seguridad**: Las credenciales se guardan en el campo `credentials` (JSONB).
-*   **DEUDA TÉCNICA**: Actualmente en texto plano. Se requiere migrar a cifrado Fernet (`core/security.py`) para `access_token` y `client_secret`.
+- Webhooks de plataformas externas (Shopify, Meta) deben ser idempotentes y responder 200 OK rapido (delegar a background tasks).
+- Para OAuth2, capturar errores 401/403 y marcar `is_active=False` automaticamente (desconexion silenciosa).
+- Rate limits de Meta y Shopify requieren Exponential Backoff en los adaptadores.
 
-### Flujos Específicos
-- **WhatsApp (Evolution)**: Complejo. Requiere crear instancia -> obtener QR -> configurar webhook. Tiene "Auto-Healing" para sesiones zombis.
-- **Shopify**: Simple. Valida URL de tienda + Access Token de Admin API. Sincroniza productos y clientes.
-- **Google Calendar**: Usa Service Account o OAuth2 para leer disponibilidad (Free/Busy) y crear eventos de Google Meet.
+## Edge Cases
 
-## 3. Casos Borde y Gotchas (Edge Cases)
+- **WhatsApp Evolution**: Flujo complejo (crear instancia -> QR -> configurar webhook). Tiene auto-healing para sesiones zombis.
+- **Desconexion silenciosa OAuth2**: El usuario puede revocar permisos en Google/Facebook sin notificar al sistema — solo se detecta al fallar una peticion.
+- **Token refresh**: Existe como TODO — no hay worker automatico de refresh de OAuth tokens aun.
 
-- **Desconexión Silenciosa (OAuth2)**: El usuario puede revocar permisos en la configuración de Google/Facebook. El sistema solo se entera al fallar una petición.
-  - *Solución*: Capturar errores 401/403 y marcar `is_active=False` en DB automáticamente.
-- **Webhooks Concurrentes**: Plataformas como Shopify o Meta envían múltiples eventos simultáneos (ej. `product.update`). El endpoint debe ser idempotente y responder 200 OK rápido (background tasks).
-- **Rate Limits**: Las APIs de Meta y Shopify tienen límites estrictos. Los adaptadores deben manejar `429 Too Many Requests` con *Exponential Backoff*.
+## CRITICAL — Do Not Violate
 
-## 4. Snippets para Agentes (Common Tasks)
-
-### Cómo implementar una nueva conexión (Ej. Slack)
-1.  Crear `infrastructure/channels/slack.py` heredando de `BaseChannel`.
-2.  Implementar `send_message` (usando `slack_sdk`).
-3.  Implementar `normalize_payload` (para eventos de Slack Events API).
-4.  Registrar en `ChannelType` (enums.py) y en el `ChannelFactory`.
-
-### Cómo verificar credenciales antes de usar
-```python
-# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
-# channel_service.py pattern
-async def get_valid_connection(tenant_id: str, type: ChannelType):
-    conn = await repo.get_connection(tenant_id, type)
-    if not conn or not conn.is_active:
-        raise InactiveConnectionError()
-    
-    # Para OAuth2, verificar expiración y refrescar si es necesario
-    if type in [ChannelType.META, ChannelType.GOOGLE]:
-        if conn.credentials.get('expires_at') < now():
-            conn = await auth_service.refresh_token(conn)
-            
-    return conn
-```
+- **Credentials en texto plano**: Deuda tecnica activa. El campo `credentials` JSONB NO esta cifrado. No exponer en responses sin response_model explicito.
+- Al agregar un nuevo canal: crear adaptador en `infrastructure/channels/`, agregar valor en `ChannelType` enum, registrar en `ChannelFactory`.

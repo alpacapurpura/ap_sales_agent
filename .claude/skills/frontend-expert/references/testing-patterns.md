@@ -138,9 +138,10 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 ## Coverage
 
-- Run: `make vitest-cov` or `docker exec -t visionarias_client_dev npx vitest run --coverage`
-- Thresholds: statements 5%, branches 3%, functions 3%, lines 5%
+- Run: `docker exec -t visionarias_client_dev npx vitest run --coverage`
+- Thresholds: **statements 20%, branches 15%, functions 15%, lines 20%**
 - CI will fail below these thresholds
+- The skill `/test-frontend` already includes coverage automatically
 
 ## Execution (Docker-First)
 
@@ -154,6 +155,33 @@ docker exec -t visionarias_client_dev npx vitest run src/features/copilot/
 # With coverage
 docker exec -t visionarias_client_dev npx vitest run --coverage
 ```
+
+## E2E Testing con Playwright
+
+Para detalles completos, ver `.claude/rules/e2e-testing.md`.
+
+### Cuándo escribir E2E
+- Feature nueva con UI (page, form, widget)
+- Bug fix que afecta interacción de usuario
+- Cambios en navegación o flujo de auth
+
+### Estructura
+- Smoke tests: `frontend/e2e/specs/smoke/` — rutas críticas, taggeados `@smoke`
+- Regression tests: `frontend/e2e/specs/regression/{domain}/` — flujos completos por dominio
+
+### Ejecución
+```bash
+# Smoke (rápido, incluido en /test-frontend y /test-all)
+make e2e-smoke
+
+# Suite completa (antes de releases)
+make e2e
+```
+
+### Page Object Model
+- Un POM por página en `frontend/e2e/pages/`
+- Locators: `getByRole`, `getByText`, `getByLabel` — NUNCA selectores CSS
+- `/test-frontend` y `/test-all` ejecutan E2E smoke automáticamente
 
 ## Naming Convention
 

@@ -68,6 +68,17 @@ Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md]
 | Server Action Error | Solo pasar JSON plano (strings, números, booleanos) a través del límite Server→Client. |
 | ¿Dónde va este componente? | Ante la duda: `features/{dominio}/components/`. Refactorizar después es más barato que sobre-ingenierizar. |
 
+## E2E Testing
+
+**E2E smoke es obligatorio para rutas nuevas o flujos críticos modificados.**
+
+- Agregar smoke test en `frontend/e2e/specs/smoke/` si es ruta nueva o crítica (tag `@smoke`)
+- Agregar regression test en `frontend/e2e/specs/regression/{domain}/` para flujos completos
+- Usar POM de `frontend/e2e/pages/` o crear uno nuevo
+- Ejecutar `make e2e-smoke` para verificar
+- `/test-frontend` y `/test-all` ejecutan E2E smoke automáticamente — no hace falta correrlo aparte
+- Para detalles completos: `.claude/rules/e2e-testing.md`
+
 ## Constraints (CRITICAL — read last)
 
 - **Anti-alucinación:** Si un componente, hook o tipo no aparece al explorar el código real, **no existe**. Los docs de dominio son orientación de negocio, nunca inventario técnico.

@@ -9,16 +9,6 @@ Nicolify es una plataforma SaaS con arquitectura multitenant y modelo AaaS (Agen
 - Target: Creadores de contenido, Infoproductores, "Negocios de Experto". Servicios digitales y profesionales.
 - Dolor principal: Falta de tiempo y conocimientos tecnicos para gestionar el embudo de marketing y ventas, integrar multiples herramientas y escalar la atencion al cliente.
 
-## Consideraciones de Arquitectura (High-Level)
-
-- Asumimos que el usuario es bueno en su negocio, pero no tiene por que conocer de todo el mundo de marketing y ventas, pero como necesitamos mucha informacion suya para tener una arquitectura de marca y oferta de servicios unica, hacemos que el camino sea muy sencillo a traves de la ayuda de la IA.
-- SaaS Multitenant (aislamiento de datos por cliente).
-- Dashboard web para el dueno de negocio, que le permite editar cualquier al minimo detalle cualquier componente de su negocio de forma manual.
-- Botones de ayuda IA y carga de informacion para el proceso de autocompletado de formularios (Brand, Offer) con IA.
-- Data Vis: Renderizado de graficos complejos (Sankey diagrams) con data extraida de las conexiones.
-- Agente IA conversacional para el negocio: Lo llamamos "Copilot"
-- Agente IA conversacional para leads y customers que actua como representante de la empresa en Soporte, Atencion, Marketing y Ventas (SDR and Online Sales).
-
 ## Desglose de Epicas (Funcionalidades Core)
 
 ### Modulo Brand Studio

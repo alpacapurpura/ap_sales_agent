@@ -1,13 +1,14 @@
 import pytest
 import uuid
-from unittest.mock import MagicMock
-from src.modules.brand.domain import (
-    BrandSettings, BrandIdentity, BrandVisuals, BrandStory, BrandStrategy,
-    BrandContact, BrandTestimonial, BrandAuthorityItem, KeyFigure,
-    BrandPositioning, BrandNarrative, CommunicationAssets,
-    Avatar,
+
+from tests.factories import (
+    TenantFactory,
+    BrandIdentityFactory,
+    BrandVisualsFactory,
+    BrandStoryFactory,
+    BrandSettingsFactory,
+    AvatarFactory,
 )
-from src.modules.brand.infrastructure.models.avatar_model import AvatarModel
 
 TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
 TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
@@ -31,7 +32,7 @@ def user_id():
 
 @pytest.fixture
 def sample_identity():
-    return BrandIdentity(
+    return BrandIdentityFactory(
         brand_name="TestBrand",
         tagline="Test tagline",
         description="A test brand",
@@ -43,7 +44,7 @@ def sample_identity():
 
 @pytest.fixture
 def sample_visuals():
-    return BrandVisuals(
+    return BrandVisualsFactory(
         primary_color="#0f172a",
         secondary_color="#1e293b",
         accent_color="#3b82f6",
@@ -55,7 +56,7 @@ def sample_visuals():
 
 @pytest.fixture
 def sample_story():
-    return BrandStory(
+    return BrandStoryFactory(
         origin_story="Founded in a garage",
         mission="Make the world better",
         vision="Be the best",
@@ -64,35 +65,28 @@ def sample_story():
 
 @pytest.fixture
 def sample_avatar(tenant_id, user_id):
-    return Avatar(
-        id=uuid.uuid4(),
+    return AvatarFactory(
         tenant_id=tenant_id,
         user_id=user_id,
         name="Ideal Customer",
-        scope="GLOBAL",
         icp_description="Tech-savvy entrepreneur",
         anti_avatar="People who don't value quality",
-        is_default=False,
     )
 
 
 @pytest.fixture
 def sample_settings(sample_identity, sample_visuals, sample_story):
-    return BrandSettings(
+    return BrandSettingsFactory(
         identity=sample_identity,
         visuals=sample_visuals,
         story=sample_story,
-        team=[],
-        testimonials=[],
-        authority_vault=[],
     )
 
 
 @pytest.fixture
 def seed_tenant(db, tenant_id):
     """Insert a TenantModel row so BrandRepository can find it."""
-    from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-    tenant = TenantModel(
+    tenant = TenantFactory.build(
         id=tenant_id,
         name="Test Tenant",
         slug="test-tenant",

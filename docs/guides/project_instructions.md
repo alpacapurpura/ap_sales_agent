@@ -6,7 +6,7 @@ Nicolify is a multitenant SaaS platform (AaaS - Agent as a Service) that automat
 
 **Target user:** Entrepreneurs who are experts in their field but lack time/knowledge to manage marketing funnels, integrate tools, and scale customer attention.
 
-For the complete product vision, see: `docs/vision/product-vision.md`
+For the complete product vision, see: `docs/domains/vision/product-vision.md`
 
 ## Core Modules (Business Domains)
 

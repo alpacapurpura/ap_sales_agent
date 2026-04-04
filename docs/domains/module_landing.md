@@ -1,83 +1,34 @@
-# Módulo de Landing Page (Offer Studio) - Documentación para Agentes
+---
+module: Landing
+status: active
+---
 
-> **CONTEXTO DEL AGENTE**: Este documento es la FUENTE DE VERDAD para entender cómo se generan y gestionan las Landing Pages asociadas a ofertas. Úsalo para razonar sobre la transformación de "promesas de venta" en "activos visuales", la edición con Puck Editor y el renderizado público.
+# Landing
 
-## 1. Mapa de Código (The "Where")
+Genera landing pages automaticamente a partir de una Offer existente. No permite crear landings vacias.
 
-> ⚠️ **Explorar el código directamente** — no confíes en inventarios de archivos que pueden estar desactualizados.
+## Domain Concepts
 
-- **Backend**: `backend/src/modules/landing/`
-  - Schemas de arquetipos (THE_SQUEEZE, THE_TRANSFORMER, FLASH_OFFER): `domain/`
-  - Servicio core de generación (Offer → Landing): `application/`
-  - Modelo SQL (`landing_pages`) y repositorio: `infrastructure/`
-  - Endpoints (GET por offer_id, POST config): `api/`
-- **Frontend**: `frontend/src/features/offer-studio/components/landing/`
-  - Editor visual (Puck): `components/editor/`
-  - Templates de renderizado por arquetipo: `templates/`
-  - Página pública SSR (acceso por slug): `frontend/src/app/(main)/(public)/p/`
+- **Archetype**: Plantilla estructural que define el layout y campos del content. El codigo define 6: THE_SQUEEZE, THE_EVENT, THE_FLASH_OFFER, THE_TRANSFORMER, THE_VELVET_ROPE, THE_BROCHURE.
+- **LandingPageConfig**: Contenedor polimorfico — el campo `content` es un Union de 6 modelos tipados (uno por archetype) + `Dict[str, Any]` para datos crudos de Puck Editor.
 
-## 2. Lógica de Negocio (The "Why" & "How")
+## Architecture Decisions
 
-### Generación Automática (Offer -> Landing)
-El sistema NO permite crear landings vacías. Siempre nacen de una `Offer` existente.
-1.  **Trigger**: Al crear una oferta o solicitar la landing por primera vez.
-2.  **Mapeo Inteligente**:
-    - `Offer.headline_promise` -> `Landing.headline`
-    - `Offer.primary_outcome` -> `Landing.subheadline`
-    - `Offer.marketing_pain_points` -> `Landing.bullets` (Fascinations)
-3.  **Resultado**: Un JSON `LandingPageConfig` pre-poblado que el usuario solo necesita refinar, no escribir desde cero.
+- **JSONB hibrido**: Metadatos relacionales (`id`, `offer_id`, `slug`) + campo `config` JSONB para la estructura visual completa. Permite que Puck Editor cambie estructura sin migraciones.
+- **Born-from-Offer**: Toda landing nace mapeando campos de la Offer (`headline_promise` -> `headline`, `primary_outcome` -> `subheadline`, `marketing_pain_points` -> `bullets`).
 
-### Persistencia Híbrida (Relacional + JSONB)
-- **Relacional**: `id`, `offer_id`, `slug`, `created_at` para búsquedas rápidas y relaciones SQL.
-- **Documental (JSONB)**: El campo `config` almacena toda la estructura visual (colores, textos, orden de bloques).
-- **Por qué**: Permite que el editor visual (Puck) sea extremadamente flexible y cambie su estructura sin migraciones de base de datos, mientras mantenemos la integridad referencial con la Oferta.
+## Business Rules
 
-### Arquetipos de Landing
-El sistema soporta múltiples "sabores" de landing, definidos en `content.py`:
-- **THE_SQUEEZE**: Página corta, foco en captura de lead (Headline + Bullets + Form).
-- **THE_TRANSFORMER**: Página larga, foco en educación y cambio de creencias (VSL + Testimonios + Oferta).
-- **FLASH_OFFER**: Página de venta directa con urgencia temporal.
+- Una landing siempre requiere una `offer_id` existente — no hay creacion standalone.
+- El `slug` se genera desde el titulo de la oferta; colisiones se resuelven con sufijo aleatorio.
+- El validator `validate_content_matches_archetype` verifica que el tipo de `content` coincida con el `archetype` seleccionado (actualmente es soft — no lanza error).
 
-## 3. Casos Borde y Gotchas (Edge Cases)
+## Edge Cases
 
-- **Desincronización Oferta-Landing**:
-  - Si el usuario cambia el `headline` en la Oferta, la Landing **NO** se actualiza automáticamente para no sobrescribir ediciones manuales en el editor visual.
-  - **Solución**: El usuario debe solicitar explícitamente "Regenerar" o actualizar manualmente el texto en el editor.
-- **Unicidad del Slug**:
-  - El `slug` se genera desde el título de la oferta. Si ya existe, el sistema debe manejar la colisión (ej. agregando un sufijo aleatorio), aunque la lógica actual confía en UUIDs o validación previa.
-- **Hydration Mismatch en Puck**:
-  - El editor visual carga componentes dinámicos que pueden diferir entre servidor y cliente. Usar componentes `client-only` o `useEffect` para inicializar el editor evita errores de hidratación en Next.js.
-- **Imágenes en el Editor**:
-  - Las imágenes subidas en el editor deben guardarse y referenciarse correctamente. El frontend usa `adapter.ts` para asegurar que las URLs sean válidas para el componente de imagen.
+- **Desync Offer-Landing**: Cambios en la Offer NO se propagan automaticamente a la landing para proteger ediciones manuales del usuario. Requiere "Regenerar" explicito.
+- **Hydration mismatch**: Puck Editor carga componentes dinamicos — usar `client-only` o `useEffect` para inicializar y evitar errores de hidratacion en Next.js.
 
-## 4. Snippets para Agentes (Common Tasks)
+## CRITICAL — Do Not Violate
 
-### Obtener configuración de landing por Slug (Backend)
-```python
-# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
-# En un servicio o caso de uso público
-async def get_public_landing(slug: str, db: AsyncSession):
-    stmt = select(LandingPageModel).where(LandingPageModel.slug == slug)
-    result = await db.execute(stmt)
-    landing = result.scalar_one_or_none()
-    
-    if not landing:
-        raise NotFoundException("Landing not found")
-        
-    # Retorna el modelo Pydantic validado
-    return LandingPageConfig(**landing.config)
-```
-
-### Regenerar Landing desde Oferta (Backend)
-```python
-# ⚠️ Verificar nombres exactos de clases/métodos en el código real antes de usar
-# Forzar la regeneración sobrescribe la configuración actual
-async def regenerate_landing(offer_id: str, db: AsyncSession):
-    offer = await offer_repo.get(offer_id)
-    # Lógica de mapeo
-    new_config = LandingService.map_offer_to_config(offer)
-    
-    landing = await landing_repo.get_by_offer(offer_id)
-    landing.config = new_config.model_dump()
-    await db.commit()
-```
+- Nunca asumir 3 archetypes — son **6** (`enums.py`). Cada uno tiene su modelo de content tipado en `content.py`.
+- El campo `content` acepta `Dict[str, Any]` como fallback para datos raw de Puck — no forzar tipado estricto en ese caso.

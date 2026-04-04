@@ -109,6 +109,12 @@ CLAUDE.local.md
 # --- Tessl (managed tiles cache) ---
 .tessl/
 
+# --- Playwright E2E ---
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.clerk/
+frontend/blob-report/
+
 # --- Documentation artifacts (not needed for app to function) ---
 docs/superpowers/
 docs/temp/

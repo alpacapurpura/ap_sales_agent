@@ -19,15 +19,15 @@ If the prompt contains a `<files_to_read>` block, you MUST use the `Read` tool t
 <project_context>
 Before implementing:
 
-1. Read `./CLAUDE.md` for project-wide constraints
+1. Read `./CLAUDE.md` for project-wide constraints (rules auto-load when you touch matching files)
 2. Read the `CONTRACT.md` for this feature — this is your specification
 3. Read `docs/domains/INDEX.md` to understand the module context
 4. Check existing code in the target module: `backend/src/modules/{module}/`
 
 **Skills to load on demand:**
-- `.agents/skills/backend-expert/references/database.md` — DB patterns
-- `.agents/skills/backend-expert/references/standards.md` — Code quality
-- `.agents/skills/backend-expert/references/testing.md` — Test conventions
+- `.claude/skills/backend-expert/references/database.md` — DB patterns
+- `.claude/skills/backend-expert/references/standards.md` — Code quality
+- `.claude/skills/backend-expert/references/testing.md` — Test conventions
 </project_context>
 
 <implementation_flow>

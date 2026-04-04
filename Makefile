@@ -141,10 +141,10 @@ CLERK_TT = $(shell curl -s -X POST "https://api.clerk.com/v1/testing_tokens" -H 
 DOCKER_COMPOSE_E2E = CLERK_TESTING_TOKEN=$(CLERK_TT) $(DOCKER_COMPOSE_DEV) --profile e2e
 
 e2e:
-	$(DOCKER_COMPOSE_E2E) run --rm e2e_runner npx playwright test $(args)
+	$(DOCKER_COMPOSE_E2E) run --rm --no-deps e2e_runner npx playwright test $(args)
 
 e2e-smoke:
-	$(DOCKER_COMPOSE_E2E) run --rm e2e_runner npx playwright test --grep @smoke $(args)
+	$(DOCKER_COMPOSE_E2E) run --rm --no-deps e2e_runner npx playwright test --grep @smoke $(args)
 
 e2e-ui:
 	$(DOCKER_COMPOSE_E2E) run --rm -p 9323:9323 e2e_runner npx playwright test --ui --ui-host 0.0.0.0 --ui-port 9323

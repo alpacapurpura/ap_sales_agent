@@ -1,3 +1,8 @@
+---
+globs: "**/*"
+description: Nicolify-specific debugging commands and common error patterns
+---
+
 # Debugging (Nicolify-specific)
 
 Complements `superpowers:systematic-debugging` skill with project-specific knowledge.
@@ -27,7 +32,7 @@ Check these FIRST — they cover ~80% of bugs:
 4. **Migration not applied** → table/column missing, check `alembic current` vs `alembic history`
 5. **Clerk token expired** → 401 errors, re-authenticate
 6. **Cross-module import** → violates DDD boundaries, refactor to shared or event
-7. **Next.js build failure** → known pre-existing issue (Next.js 15.5.13 + standalone + Pages Router 404)
+7. **Next.js build failure** → known pre-existing issue (standalone + Pages Router 404 conflict)
 8. **ETL credential expiry** → Meta token dead, GA4 missing property_id, check connections config
 9. **Missing env var** → silent failures or connection refused, verify `.env` vs `docker-compose.yml`
 10. **Qdrant unavailable** → vector search fails silently, check container health

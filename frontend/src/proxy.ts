@@ -5,6 +5,13 @@ import type { NextRequest } from "next/server";
 const isPublicSiteRequest = (request: NextRequest) =>
   request.headers.get("X-Public-Site") === "true";
 
+// Routes that never require auth (sign-in would loop otherwise)
+const isPublicRoute = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/webhooks(.*)",
+]);
+
 // Dashboard routes — require Clerk auth
 const isDashboardRoute = createRouteMatcher([
   "/(main)(.*)",
@@ -14,9 +21,6 @@ const isDashboardRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, request) => {
   // Public site traffic (forwarded by Cloudflare Worker)
-  // These requests carry X-Public-Site: true and need no auth.
-  // Transparently rewrite to /_public/* so the route group doesn't
-  // conflict with the dashboard routes in (main).
   if (isPublicSiteRequest(request)) {
     const url = request.nextUrl.clone();
     if (!url.pathname.startsWith("/_public")) {
@@ -28,6 +32,11 @@ export default clerkMiddleware(async (auth, request) => {
     response.headers.set("X-Tenant-ID", tenantId);
     response.headers.set("X-Original-Host", originalHost);
     return response;
+  }
+
+  // Never protect sign-in/sign-up (would cause redirect loop)
+  if (isPublicRoute(request)) {
+    return NextResponse.next();
   }
 
   // Dashboard routes — protect with Clerk

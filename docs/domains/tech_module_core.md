@@ -1,17 +1,24 @@
 ---
 module: Technical Module Core
 status: active
-core_files: []
 ---
 
-## 1. Propósito del Negocio (El "Por Qué")
-- Centralizar la infraestructura técnica base de la aplicación. Es 100% agnóstico al negocio. Contiene la configuración de base de datos (database.py), carga de variables de entorno (config.py), capas de seguridad y formato de logs.
+# Core (`backend/src/core/`)
 
-## 2. Reglas de Negocio Estrictas (Business Rules)
-- Aislamiento Total: core NO DEBE importar NADA de la carpeta shared ni de los módulos de negocio (modules). Nunca debe conocer reglas de dominio, nombres de tablas lógicas o modelos.
+Infraestructura tecnica base, 100% agnostica al negocio.
 
-## 3. Mapa de Código (Rutas relativas a Front y Back para este módulo)
-- Backend: backend/src/core/
+## Componentes
 
-## 4. Casos Borde Conocidos (Edge Cases)
-- Variables Faltantes: Cambios en la validación del entorno que causan fallos silenciosos si el archivo .env no está debidamente sincronizado en los despliegues.
+- **config.py** — Carga de variables de entorno via Pydantic Settings.
+- **database.py** — Engine SQLAlchemy, `SessionLocal`, `get_db()` dependency.
+- **context.py** — `ContextVar` para `tenant_id` y `user_id` (request-scoped, thread-safe).
+- **base_repository.py** — `BaseRepository` con `_apply_tenant_filter()` y `_set_tenant()` automaticos desde ContextVars.
+- **exceptions.py** — Jerarquia de excepciones de aplicacion.
+- **sentry.py** — `init_sentry(service_name)` con redaccion de PII, traces sampler dinamico, integraciones por servicio (FastAPI/ARQ/SQLAlchemy/httpx).
+- **security.py** — Middlewares de autenticacion y CORS.
+- **logger.py** — Configuracion de structlog.
+- **enums.py** — Enums globales (`AIProvider`, etc.).
+
+## CRITICO — No Violar
+
+- `core` NO importa de `shared` ni de `modules`. Si necesitas logica de negocio, va en `shared` o en el modulo correspondiente.

@@ -158,11 +158,11 @@ Summarize implementation results to the user:
 Run tests inside Docker:
 
 ```bash
-# Backend tests
-docker exec -it visionarias_brain_dev bash -c "cd /app && pytest src/modules/{module}/tests/ -v"
-
 # Backend lint
 docker exec -it visionarias_brain_dev bash -c "cd /app && ruff check src --fix"
+
+# Backend tests with coverage
+docker exec -it visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term -x -q --tb=short"
 
 # Frontend type check
 docker exec -it visionarias_client_dev bash -c "npx tsc --noEmit"
@@ -170,13 +170,11 @@ docker exec -it visionarias_client_dev bash -c "npx tsc --noEmit"
 # Frontend lint
 docker exec -it visionarias_client_dev bash -c "npx next lint"
 
-# Frontend build
-docker exec -it visionarias_client_dev bash -c "npx next build"
-```
+# Frontend tests with coverage
+docker exec -it visionarias_client_dev bash -c "npx vitest run --coverage"
 
-If Playwright tests exist:
-```bash
-docker exec -it visionarias_client_dev bash -c "npx playwright test"
+# E2E Smoke (obligatorio si el feature tiene UI nueva)
+make e2e-smoke
 ```
 
 ### Final Output
@@ -191,9 +189,14 @@ Present results:
 - [list of modified files]
 
 **Test Results:**
-- Backend: [pass/fail]
-- Frontend: [pass/fail]
-- Lint: [pass/fail]
+| Step | Result | Coverage |
+|---|---|---|
+| Backend lint | PASS/FAIL | — |
+| Backend tests | X passed | XX% (min 60%) |
+| Frontend types | PASS/FAIL | — |
+| Frontend lint | PASS/FAIL | — |
+| Frontend tests | X passed | XX% (min 20%) |
+| E2E Smoke | X passed | — |
 
 **Audit:** [PASS/WARN/FAIL with summary]
 

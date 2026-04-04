@@ -31,6 +31,31 @@ Fix: `docker-compose.yml` → api_dev → `target: dev`, then `docker compose up
 | Frontend tests | `docker exec -t visionarias_client_dev npm run test` |
 | Migrations | `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"` |
 
+## Makefile Shortcuts
+
+Prefer `make` targets over raw docker commands:
+
+| Target | What it does |
+|---|---|
+| `make dev` | Start core services (api, frontend, postgres, redis, qdrant) |
+| `make dev-extended` | Core + admin dashboard, scheduler, worker |
+| `make pytest args="..."` | Backend tests (e.g., `make pytest args="-k test_name"`) |
+| `make vitest args="..."` | Frontend tests |
+| `make lint` | Run ruff + eslint |
+| `make ruff` | Backend lint only |
+| `make install-front p=pkg` | Install npm package in Docker |
+| `make fix-permissions` | Fix Docker ↔ host file ownership |
+| `make build-core` | Rebuild api_dev + client_dashboard_dev images |
+
+## Docker Profiles
+
+| Profile | Services | Usage |
+|---|---|---|
+| (default) | api_dev, client_dashboard_dev, postgres, redis, qdrant | `make dev` |
+| `admin` | + admin_dashboard_dev (Streamlit :8502) | `docker compose --profile admin up -d` |
+| `etl` | + scheduler, worker | `docker compose --profile etl up -d` |
+| `tooling` | frontend_tooling, backend_tooling (CI runners) | `docker compose --profile tooling up -d` |
+
 ## Notes
 - Use `--no-cache` with ruff to avoid `.ruff_cache/` permission errors
 - Use `bash -c "cd /app && ..."` for backend commands (ensures correct working directory)

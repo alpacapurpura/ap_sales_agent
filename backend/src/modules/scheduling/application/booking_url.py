@@ -22,8 +22,8 @@ def get_booking_base_url(tenant_id: Union[UUID, str], db: Session) -> str:
     Uses the tenant's primary active custom domain when available;
     falls back to settings.DASHBOARD_DOMAIN otherwise.
     """
-    from src.modules.domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
-    from src.modules.domains.domain.domain_entity import DomainStatus
+    from src.modules.tenant_domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
+    from src.modules.tenant_domains.domain.domain_entity import DomainStatus
 
     try:
         tid = UUID(str(tenant_id))

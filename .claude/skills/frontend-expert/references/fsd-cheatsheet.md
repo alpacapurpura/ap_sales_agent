@@ -1,5 +1,7 @@
 # Feature-Based Architecture (FSD-Inspired) Cheatsheet
 
+> **Constraints:** `.claude/rules/frontend-fsd.md` (auto-loaded). This file provides extended context and examples.
+
 This project uses a pragmactic Feature-Based architecture inspired by FSD principles, but without strict layers like widgets/entities unless necessary.
 
 ## 1. Directory Structure
