@@ -1,23 +1,28 @@
 from typing import List, Optional
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 from uuid import UUID
 
 from src.modules.brand.domain import Avatar
 from src.modules.brand.infrastructure.models.avatar_model import AvatarModel
 
+
 class AvatarRepository:
     def __init__(self, db: Session):
         self.db = db
 
     def get_by_tenant(self, tenant_id: UUID, scope: Optional[str] = None) -> List[Avatar]:
-        query = self.db.query(AvatarModel).filter(AvatarModel.tenant_id == tenant_id)
+        stmt = select(AvatarModel).where(AvatarModel.tenant_id == tenant_id)
         if scope:
-            query = query.filter(AvatarModel.scope == scope)
-        models = query.all()
+            stmt = stmt.where(AvatarModel.scope == scope)
+        result = self.db.execute(stmt)
+        models = result.scalars().all()
         return [Avatar.model_validate(m) for m in models]
 
     def get_by_id(self, avatar_id: UUID) -> Optional[Avatar]:
-        model = self.db.query(AvatarModel).filter(AvatarModel.id == avatar_id).first()
+        stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        result = self.db.execute(stmt)
+        model = result.scalars().first()
         if model:
             return Avatar.model_validate(model)
         return None
@@ -40,41 +45,52 @@ class AvatarRepository:
         return Avatar.model_validate(db_avatar)
 
     def update(self, avatar_id: UUID, data: dict) -> Optional[Avatar]:
-        model = self.db.query(AvatarModel).filter(AvatarModel.id == avatar_id).first()
+        stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        result = self.db.execute(stmt)
+        model = result.scalars().first()
         if not model:
             return None
-        
+
         for key, value in data.items():
             # Only update if value is provided (not None) and field exists
             if hasattr(model, key) and value is not None:
                 setattr(model, key, value)
-        
+
         self.db.commit()
         self.db.refresh(model)
         return Avatar.model_validate(model)
 
     def delete(self, avatar_id: UUID) -> bool:
-        model = self.db.query(AvatarModel).filter(AvatarModel.id == avatar_id).first()
+        stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        result = self.db.execute(stmt)
+        model = result.scalars().first()
         if not model:
             return False
-        
+
         self.db.delete(model)
         self.db.commit()
         return True
 
     def set_global_default(self, tenant_id: UUID, avatar_id: UUID) -> Optional[Avatar]:
-        # Unset all defaults for this tenant
-        self.db.query(AvatarModel).filter(
-            AvatarModel.tenant_id == tenant_id,
-            AvatarModel.is_default.is_(True)
-        ).update({"is_default": False})
-        
+        # Unset all defaults for this tenant using SA 2.0 update()
+        stmt_unset = (
+            update(AvatarModel)
+            .where(
+                AvatarModel.tenant_id == tenant_id,
+                AvatarModel.is_default.is_(True),
+            )
+            .values(is_default=False)
+        )
+        self.db.execute(stmt_unset)
+
         # Set the new default
-        model = self.db.query(AvatarModel).filter(AvatarModel.id == avatar_id).first()
+        stmt_get = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        result = self.db.execute(stmt_get)
+        model = result.scalars().first()
         if not model:
             self.db.rollback()
             return None
-            
+
         model.is_default = True
         self.db.commit()
         self.db.refresh(model)

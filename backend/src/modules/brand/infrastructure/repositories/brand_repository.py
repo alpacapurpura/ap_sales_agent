@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from uuid import UUID
 from sqlalchemy.orm.attributes import flag_modified
@@ -7,12 +8,15 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 class BrandRepository:
     def __init__(self, db: Session):
         self.db = db
 
     def get_settings(self, tenant_id: UUID) -> BrandSettings:
-        tenant = self.db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
+        stmt = select(TenantModel).where(TenantModel.id == tenant_id)
+        result = self.db.execute(stmt)
+        tenant = result.scalars().first()
         if not tenant:
             logger.info("brand_repo_get", tenant_id=str(tenant_id), has_data=False, tenant_found=False)
             return BrandSettings()
@@ -31,7 +35,9 @@ class BrandRepository:
         return BrandSettings.model_validate(brand_settings_data)
 
     def save_settings(self, tenant_id: UUID, settings: BrandSettings) -> BrandSettings:
-        tenant = self.db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
+        stmt = select(TenantModel).where(TenantModel.id == tenant_id)
+        result = self.db.execute(stmt)
+        tenant = result.scalars().first()
         if not tenant:
             raise ValueError("Tenant not found")
 
@@ -41,9 +47,9 @@ class BrandRepository:
 
         logger.info("brand_repo_saving", tenant_id=str(tenant_id),
                      data_keys=list(settings_dict.keys()),
-                     has_identity=bool(settings_dict.get("identity", {}).get("brand_name")),
-                     has_story=bool(settings_dict.get("story", {}).get("origin_story")),
-                     has_strategy=bool(settings_dict.get("strategy", {}).get("value_proposition")))
+                     has_identity=bool((settings_dict.get("identity") or {}).get("brand_name")),
+                     has_story=bool((settings_dict.get("story") or {}).get("origin_story")),
+                     has_strategy=bool((settings_dict.get("strategy") or {}).get("methodology_name")))
 
         tenant.config_json = config
         flag_modified(tenant, "config_json")
@@ -53,9 +59,9 @@ class BrandRepository:
         self.db.refresh(tenant)
 
         # Verify after commit
-        saved_config = tenant.config_json.get("brand_settings", {})
+        saved_config = (tenant.config_json or {}).get("brand_settings") or {}
         logger.info("brand_repo_saved_verified", tenant_id=str(tenant_id),
                      saved_keys=list(saved_config.keys()) if saved_config else [],
-                     has_identity=bool(saved_config.get("identity", {}).get("brand_name") if saved_config else False))
+                     has_identity=bool((saved_config.get("identity") or {}).get("brand_name") if saved_config else False))
 
         return settings

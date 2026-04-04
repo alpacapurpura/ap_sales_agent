@@ -96,6 +96,8 @@ def db_engine():
         from src.modules.crm.infrastructure.models.sale_model import SaleModel
         from src.modules.offer.infrastructure.models.product_model import ProductModel
         from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import AgentStateCheckpointModel
+        from src.modules.brand.infrastructure.models.avatar_model import AvatarModel
+        from src.modules.brand.infrastructure.models.extraction_trace_model import BrandExtractionTrace
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")
     
