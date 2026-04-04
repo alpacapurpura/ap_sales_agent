@@ -1345,28 +1345,6 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     description: 'AI auto-fill trigger button.',
     issues: ['Could be promoted to shared/ — useful across studios'],
   },
-  {
-    name: 'RichEnumSelect',
-    atomicLevel: 'molecule',
-    filePath: 'features/offer-studio/components/editor/ui/rich-enum-select.tsx',
-    source: 'feature',
-    featureSlice: 'offer-studio',
-    variants: [],
-    props: ['options', 'value', 'onChange'],
-    description: 'Rich select for enum values with descriptions.',
-    issues: ['Similar to RichSelect in ui/ — potential duplication'],
-  },
-  {
-    name: 'ContextualHint',
-    atomicLevel: 'atom',
-    filePath: 'features/offer-studio/components/editor/ui/contextual-hint.tsx',
-    source: 'feature',
-    featureSlice: 'offer-studio',
-    variants: [],
-    props: ['text'],
-    description: 'Contextual hint text for form fields.',
-    issues: ['Similar to FieldInfo in ui/ — potential duplication'],
-  },
 
   // ==========================================================================
   // FEATURE: audit (features/audit/components/)
