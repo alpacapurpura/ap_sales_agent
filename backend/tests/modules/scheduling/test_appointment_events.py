@@ -6,9 +6,7 @@ and EventBus subscription registration.
 """
 
 import uuid
-from unittest.mock import MagicMock, patch, call
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from src.shared.domain.events import DomainEvent, EventBus
 
