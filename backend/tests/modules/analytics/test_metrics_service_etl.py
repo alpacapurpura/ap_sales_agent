@@ -17,9 +17,11 @@ import pytest
 
 from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
-    ChannelMetricDTO,
-    TrafficGroupDTO,
 )
+
+# After the stage service extraction, the imports that need patching
+# live in the attraction_stage module, not in metrics_service.
+_ATTRACTION_MODULE = "src.modules.analytics.application.services.stage_services.attraction_stage"
 
 
 @pytest.fixture
@@ -109,14 +111,14 @@ async def test_get_attraction_uses_channel_registry(
     service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
 
     with patch(
-        "src.modules.analytics.application.services.metrics_service.OfficialMetricsRepository"
+        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
     ) as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
         with patch(
-            "src.modules.analytics.application.services.metrics_service.ChannelRegistry"
+            f"{_ATTRACTION_MODULE}.ChannelRegistry"
         ) as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
@@ -152,14 +154,14 @@ async def test_get_attraction_populates_values_from_repo(
     service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
 
     with patch(
-        "src.modules.analytics.application.services.metrics_service.OfficialMetricsRepository"
+        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
     ) as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = sample_aggregations
         MockRepo.return_value = mock_repo_inst
 
         with patch(
-            "src.modules.analytics.application.services.metrics_service.ChannelRegistry"
+            f"{_ATTRACTION_MODULE}.ChannelRegistry"
         ) as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
@@ -211,7 +213,7 @@ async def test_get_attraction_returns_cached_on_hit(
     service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
 
     with patch(
-        "src.modules.analytics.application.services.metrics_service.OfficialMetricsRepository"
+        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
     ) as MockRepo:
         mock_repo_inst = MagicMock()
         MockRepo.return_value = mock_repo_inst
@@ -236,14 +238,14 @@ async def test_get_attraction_sets_cache_after_query(
     service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
 
     with patch(
-        "src.modules.analytics.application.services.metrics_service.OfficialMetricsRepository"
+        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
     ) as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
         with patch(
-            "src.modules.analytics.application.services.metrics_service.ChannelRegistry"
+            f"{_ATTRACTION_MODULE}.ChannelRegistry"
         ) as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
@@ -272,14 +274,14 @@ async def test_unconnected_channels_return_zero(
     service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
 
     with patch(
-        "src.modules.analytics.application.services.metrics_service.OfficialMetricsRepository"
+        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
     ) as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
         with patch(
-            "src.modules.analytics.application.services.metrics_service.ChannelRegistry"
+            f"{_ATTRACTION_MODULE}.ChannelRegistry"
         ) as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
@@ -312,14 +314,14 @@ async def test_connected_channels_include_last_updated(
     service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
 
     with patch(
-        "src.modules.analytics.application.services.metrics_service.OfficialMetricsRepository"
+        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
     ) as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = sample_aggregations
         MockRepo.return_value = mock_repo_inst
 
         with patch(
-            "src.modules.analytics.application.services.metrics_service.ChannelRegistry"
+            f"{_ATTRACTION_MODULE}.ChannelRegistry"
         ) as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
@@ -349,14 +351,14 @@ async def test_works_without_cache(mock_db, mock_connection_port, test_tenant_id
     service = _make_service(mock_db, cache=None, connection_port=mock_connection_port)
 
     with patch(
-        "src.modules.analytics.application.services.metrics_service.OfficialMetricsRepository"
+        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
     ) as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
         with patch(
-            "src.modules.analytics.application.services.metrics_service.ChannelRegistry"
+            f"{_ATTRACTION_MODULE}.ChannelRegistry"
         ) as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
