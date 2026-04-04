@@ -7,6 +7,31 @@ import {
 import { brandApi } from "@/features/brand/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+function withDefaults(data: BrandSettings): BrandSettings {
+  return {
+    ...data,
+    visuals: data.visuals ?? {
+      primary_color: "#0f172a",
+      accent_color: "#3b82f6",
+      font_heading: "Inter",
+      font_body: "Inter",
+      background_color: "#ffffff",
+      text_primary_color: "#0f172a",
+      text_on_primary: "#ffffff",
+      design_style: "Minimalista",
+      usage_guidelines: [],
+    },
+    identity: data.identity ?? ({} as BrandSettings["identity"]),
+    strategy: {
+      methodology_pillars: [],
+      ...data.strategy,
+    } as BrandSettings["strategy"],
+    story: data.story ?? ({} as BrandSettings["story"]),
+    contact: data.contact ?? ({} as BrandSettings["contact"]),
+    team: data.team ?? [],
+  } as BrandSettings;
+}
+
 export function useBrandSettings() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -17,38 +42,7 @@ export function useBrandSettings() {
       const token = await getToken();
       if (!token) return null;
       const data = await brandApi.getBrandSettings(token);
-      // Ensure visuals object exists if backend returns incomplete data (migration)
-      if (!data.visuals) {
-          data.visuals = {
-              primary_color: "#0f172a",
-              accent_color: "#3b82f6",
-              font_heading: "Inter",
-              font_body: "Inter",
-              background_color: "#ffffff",
-              text_primary_color: "#0f172a",
-              text_on_primary: "#ffffff",
-              design_style: "Minimalista",
-              usage_guidelines: []
-          };
-      }
-
-      // Initialize other sections if missing to prevent null reference errors
-      if (!data.identity) data.identity = {};
-
-      // Initialize strategy with safe defaults for arrays
-      if (!data.strategy) {
-        data.strategy = {
-            methodology_pillars: []
-        };
-      } else {
-        if (!data.strategy.methodology_pillars) data.strategy.methodology_pillars = [];
-      }
-
-      if (!data.story) data.story = {};
-      if (!data.contact) data.contact = {};
-      if (!data.team) data.team = [];
-
-      return data;
+      return withDefaults(data);
     },
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
