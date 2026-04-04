@@ -22,7 +22,7 @@ type ResourcesFormValues = Pick<OfferFormValues, "assets">;
 export interface ResourcesFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function ResourcesContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

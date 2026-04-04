@@ -29,7 +29,7 @@ type ValueStackFormValues = Pick<OfferFormValues, "deliverables" | "includes_off
 export interface ValueStackFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

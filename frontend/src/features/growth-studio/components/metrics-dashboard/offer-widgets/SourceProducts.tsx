@@ -10,6 +10,9 @@ import { offerApi } from '@/features/offer-studio/api';
 import type { Offer } from '@/features/offer-studio/types';
 import { AssociationDialog } from './AssociationDialog';
 
+const EMPTY_PRODUCTS: SourceProduct[] = [];
+const EMPTY_OFFERS: Offer[] = [];
+
 const SOURCE_LABELS: Record<string, string> = {
   shopify: 'Shopify',
   woocommerce: 'WooCommerce',
@@ -26,7 +29,7 @@ export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
   const [dialogProduct, setDialogProduct] = useState<SourceProduct | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const { data: products = [], isLoading: loadingProducts } = useQuery<SourceProduct[]>({
+  const { data: products = EMPTY_PRODUCTS, isLoading: loadingProducts } = useQuery<SourceProduct[]>({
     queryKey: ['source-products', source],
     queryFn: async () => {
       const token = await getToken();
@@ -36,7 +39,7 @@ export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: offers = [] } = useQuery<Offer[]>({
+  const { data: offers = EMPTY_OFFERS } = useQuery<Offer[]>({
     queryKey: ['offers'],
     queryFn: async () => {
       const token = await getToken();

@@ -13,11 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Plus, Lightbulb, Rocket, TrendingUp, Gem, Building2, SearchX } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { OfferLegend } from "./offer-legend";
 import { OfferLadderLayout } from "./offer-ladder-layout";
 import { CreateOfferWizard, WizardResult } from "../wizard/CreateOfferWizard";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
+
+const EMPTY_OFFERS: Offer[] = [];
 
 const LEVEL_RICH_INFO: Record<string, { title: string; description: string; icon: any }> = {
   [OfferValueLevel.LEAD_MAGNET]: {
@@ -64,35 +67,24 @@ export function OfferStudioDashboard({
   const { navigate } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
-  
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: offers = EMPTY_OFFERS, isLoading: loading, error: queryError, refetch: fetchOffers } = useQuery({
+    queryKey: ['offers'],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("No autenticado");
+      return offerApi.listOffers(token);
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+  const error = queryError ? "No se pudieron cargar las ofertas." : null;
 
   // Wizard State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-
-  const fetchOffers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const token = await getToken();
-      if (!token) return;
-      
-      const data = await offerApi.listOffers(token);
-      setOffers(data);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching offers:", err);
-      setError("No se pudieron cargar las ofertas.");
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    fetchOffers();
-  }, [fetchOffers]);
 
   // Handle external trigger for creation
   useEffect(() => {
@@ -154,11 +146,11 @@ export function OfferStudioDashboard({
       const token = await getToken();
       if (!token) return;
       await offerApi.saveOffer(offerId, { status: "archived" } as any, token);
-      await fetchOffers();
+      await queryClient.invalidateQueries({ queryKey: ['offers'] });
     } catch (err) {
       console.error("Error archiving offer:", err);
     }
-  }, [getToken, fetchOffers]);
+  }, [getToken, queryClient]);
 
   const handleOpenCreate = (_level?: OfferValueLevel) => {
     setIsWizardOpen(true);
@@ -215,7 +207,7 @@ export function OfferStudioDashboard({
         <AlertTitle>Error</AlertTitle>
         <AlertDescription className="flex items-center gap-4">
           {error}
-          <Button variant="outline" size="sm" onClick={fetchOffers}>Reintentar</Button>
+          <Button variant="outline" size="sm" onClick={() => fetchOffers()}>Reintentar</Button>
         </AlertDescription>
       </Alert>
     );

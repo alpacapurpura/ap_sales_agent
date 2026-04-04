@@ -24,7 +24,7 @@ type PsychologyFormValues = Pick<OfferFormValues, "marketing_pain_points" | "mar
 export interface PsychologyFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function PsychologyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

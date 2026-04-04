@@ -22,7 +22,7 @@ type IdentityFormValues = Pick<OfferFormValues, "public_name" | "delivery_model"
 export interface IdentityFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 const DELIVERY_MODEL_DESCRIPTIONS: Record<string, string> = {

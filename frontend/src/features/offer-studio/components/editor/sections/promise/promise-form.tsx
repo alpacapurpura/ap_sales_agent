@@ -26,7 +26,7 @@ type PromiseFormValues = Pick<OfferFormValues, "headline_promise" | "primary_out
 export interface PromiseFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function PromiseContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

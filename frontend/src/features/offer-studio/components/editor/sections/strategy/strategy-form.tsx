@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import { UseFormReturn } from "react-hook-form";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
@@ -13,6 +13,8 @@ import { ARCHETYPE_METADATA } from "../../../../config/archetype-metadata";
 import { Target } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { avatarApi, Avatar } from "@/lib/api/avatar";
+
+const EMPTY_AVATARS: Avatar[] = [];
 
 // Define partial schema for Strategy
 const StrategySchema = OfferSchema.pick({
@@ -26,26 +28,21 @@ type StrategyFormValues = Pick<OfferFormValues, "public_name" | "archetype" | "a
 export interface StrategyFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function StrategyContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   const { getToken } = useAuth();
-  const [avatars, setAvatars] = useState<Avatar[]>([]);
 
-  useEffect(() => {
-    const fetchAvatars = async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const data = await avatarApi.listAvatars(token);
-        setAvatars(data);
-      } catch (error) {
-        console.error("Failed to load avatars", error);
-      }
-    };
-    fetchAvatars();
-  }, [getToken]);
+  const { data: avatars = EMPTY_AVATARS } = useQuery({
+    queryKey: ["avatars"],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) return [];
+      return avatarApi.listAvatars(token);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const archetypeOptions = Object.values(OfferArchetype).map(arch => {
     const meta = ARCHETYPE_METADATA[arch];

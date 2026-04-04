@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from src.core.database import get_db, redis_client
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
+from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.application.services.metrics_service import MetricsService
 from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
 from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO

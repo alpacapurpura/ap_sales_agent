@@ -164,6 +164,8 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
       {/* Left: icon + name + status */}
       <ChannelRowHeader
         channel={channel}
+        icon={Icon}
+        iconColor={iconColor}
         abandonmentBadge={abandonmentBadge}
         noShowBadge={noShowBadge}
       />

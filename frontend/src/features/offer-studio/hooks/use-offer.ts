@@ -21,7 +21,8 @@ export function useOffer(offerId: string) {
       return offerApi.getOffer(offerId, token);
     },
     enabled: !!offerId && offerId !== "undefined",
-    retry: 1
+    retry: 1,
+    staleTime: 5 * 60 * 1000
   });
 
   const formValues = useMemo(() => {

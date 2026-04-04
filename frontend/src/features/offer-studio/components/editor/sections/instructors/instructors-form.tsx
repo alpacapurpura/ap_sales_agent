@@ -15,7 +15,7 @@ type InstructorsFormValues = Pick<OfferFormValues, "instructors">;
 export interface InstructorsFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
   availableInstructors: KeyFigure[];
   onRefresh?: () => void;
 }

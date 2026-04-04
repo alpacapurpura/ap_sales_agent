@@ -1,13 +1,15 @@
 import React from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { OfferFormValues } from '../../../../types/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export interface PlaceholderFormProps {
   sectionId?: string;
   title?: string;
   children?: React.ReactNode;
-  defaultValues?: any;
-  onSave?: any;
-  form?: any;
+  defaultValues?: Partial<OfferFormValues>;
+  onSave?: (data: Partial<OfferFormValues>) => Promise<void>;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 export const PlaceholderForm = ({ sectionId, title, children, defaultValues, onSave, form }: PlaceholderFormProps) => {

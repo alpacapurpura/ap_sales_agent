@@ -37,7 +37,7 @@ type ProgramDetailsFormValues = Pick<OfferFormValues, "specific_details">;
 export interface ProgramDetailsFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 // MAPPING: Smart Suggestions based on Structure

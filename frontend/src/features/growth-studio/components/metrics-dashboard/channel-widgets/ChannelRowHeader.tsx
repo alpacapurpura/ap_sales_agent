@@ -4,7 +4,6 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric } from '../../../types/metrics';
-import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 
 /** Convert hex color to rgba for backgrounds. */
 function hexToRgba(hex: string, alpha: number): string {
@@ -17,6 +16,10 @@ function hexToRgba(hex: string, alpha: number): string {
 
 export interface ChannelRowHeaderProps {
   channel: ChannelMetric;
+  /** Pre-resolved channel icon component (from getChannelIcon) */
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  /** Pre-resolved channel color hex (from getChannelColor) */
+  iconColor: string;
   /** Bottleneck badge severity for abandoned-cart channels */
   abandonmentBadge: 'warning' | 'critical' | null;
   /** No-show badge severity for meeting-booked channels */
@@ -25,12 +28,11 @@ export interface ChannelRowHeaderProps {
 
 export const ChannelRowHeader = React.memo(function ChannelRowHeader({
   channel,
+  icon: Icon,
+  iconColor,
   abandonmentBadge,
   noShowBadge,
 }: ChannelRowHeaderProps) {
-  const Icon = getChannelIcon(channel.slug);
-  const iconColor = getChannelColor(channel.slug);
-
   return (
     <div className="flex items-center gap-3 min-w-0">
       <div

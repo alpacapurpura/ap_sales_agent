@@ -26,7 +26,7 @@ type PricingFormValues = Pick<OfferFormValues, "pricing_options" | "currency">;
 export interface PricingFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
   archetype?: OfferArchetype;
 }
 

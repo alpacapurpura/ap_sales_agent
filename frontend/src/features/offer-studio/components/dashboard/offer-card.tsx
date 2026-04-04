@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Offer, OfferArchetype, OfferDeliveryModel, OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
 import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
 import { HighlightedText } from "@/components/ui/highlighted-text";
@@ -67,7 +68,7 @@ const DELIVERY_BADGES = {
   [OfferDeliveryModel.HYBRID]: { label: "Hybrid", color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" },
 };
 
-export function OfferCard({ offer, searchQuery = "", compact = false, className, onArchive }: OfferCardProps) {
+export const OfferCard = memo(function OfferCard({ offer, searchQuery = "", compact = false, className, onArchive }: OfferCardProps) {
   const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
@@ -180,4 +181,4 @@ export function OfferCard({ offer, searchQuery = "", compact = false, className,
       </div>
     </Card>
   );
-}
+});

@@ -44,7 +44,8 @@ export function OfferEditor({ offerId }: { offerId: string }) {
     if (formValues) {
       form.reset(formValues);
     }
-  }, [formValues, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- form.reset is stable
+  }, [formValues]);
 
   const handleSave = async () => {
       const data = form.getValues();

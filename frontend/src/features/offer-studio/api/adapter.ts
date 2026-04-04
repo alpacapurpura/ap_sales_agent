@@ -13,6 +13,33 @@ import {
 } from "../types";
 import { OfferFormValues } from "../types/schema";
 
+// --- Backend DTO types (raw shapes from API) ---
+
+export interface BackendPricing {
+  label?: string;
+  plan_type?: string;
+  total_amount?: number;
+  currency?: string;
+  deposit_required?: number;
+  number_of_installments?: number;
+  installment_amount?: number;
+}
+
+export interface BackendObjection {
+  id?: string;
+  type?: string;
+  trigger_phrases?: string[];
+  strategy?: string;
+  rebuttal?: string;
+}
+
+export interface BackendDeliverable {
+  name?: string;
+  format?: string;
+  quantity?: string | number;
+  value_stack_price?: number;
+}
+
 // Tipo para la respuesta cruda del backend
 export interface BackendOffer {
   id: string;
@@ -32,19 +59,19 @@ export interface BackendOffer {
   primary_outcome?: string;
   time_to_value?: string;
   
-  pricing?: any[];
-  pricing_options?: any[];
+  pricing?: BackendPricing[];
+  pricing_options?: BackendPricing[];
   currency?: string;
   
-  specific_details?: Record<string, any>;
-  metadata_info?: Record<string, any>;
+  specific_details?: Record<string, unknown>;
+  metadata_info?: Record<string, unknown>;
   
   avatar_id?: string;
   marketing_pain_points?: string[];
   marketing_desires?: string[];
-  objections?: any[];
+  objections?: BackendObjection[];
 
-  deliverables?: any[];
+  deliverables?: BackendDeliverable[];
   target_avatar_match?: string[];
   prerequisites?: any[];
   includes_offers?: string[];
@@ -57,7 +84,7 @@ export interface BackendOffer {
   support_duration_days?: number;
   instructors?: string[];
   
-  landing_page_config?: any;
+  landing_page_config?: Record<string, unknown>;
 
   // Campos aplanados que a veces vienen directos
   onboarding_action?: string;
@@ -66,32 +93,38 @@ export interface BackendOffer {
   checkout_page_url?: string;
   vsl_link?: string;
   
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Helper to normalize enum values
-const normalizeEnum = <T>(value: any, enumObj: any, defaultValue: T): T => {
+const normalizeEnum = <T extends string>(
+  value: string | null | undefined,
+  enumObj: Record<string, T>,
+  defaultValue: T
+): T => {
   if (!value) return defaultValue;
-  
+
+  const enumValues = Object.values(enumObj);
+
   // 1. Direct match
-  if (Object.values(enumObj).includes(value)) {
+  if (enumValues.includes(value as T)) {
     return value as T;
   }
 
   // 2. Case-insensitive match
   const stringValue = String(value).toUpperCase();
-  const match = Object.values(enumObj).find(
+  const match = enumValues.find(
     (v) => String(v).toUpperCase() === stringValue
   );
 
-  if (match) return match as T;
+  if (match) return match;
 
   console.warn(`[Adapter] Unknown enum value: ${value}. Defaulting to ${defaultValue}`);
   return defaultValue;
 };
 
 /** Normalize value_level with legacy fallback */
-const normalizeLegacyValueLevel = (value: any): OfferValueLevel => {
+const normalizeLegacyValueLevel = (value: string | null | undefined): OfferValueLevel => {
   if (!value) return OfferValueLevel.LEAD_MAGNET;
   // Direct match with new values
   if (Object.values(OfferValueLevel).includes(value as OfferValueLevel)) {
@@ -109,7 +142,7 @@ const normalizeLegacyValueLevel = (value: any): OfferValueLevel => {
  * Maneja la normalización de campos, valores por defecto y extracción de metadata.
  */
 export const backendToFrontend = (data: BackendOffer): Offer => {
-  const metadata = data.metadata_info || {};
+  const metadata = (data.metadata_info || {}) as Record<string, any>;
 
   return {
     id: data.id,
@@ -129,7 +162,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     primary_outcome: data.primary_outcome,
     time_to_value: data.time_to_value,
     
-    pricing: (data.pricing_options || data.pricing || []).map((p: any) => ({
+    pricing: (data.pricing_options || data.pricing || []).map((p: BackendPricing) => ({
         label: p.label || "Standard",
         total_amount: Number(p.total_amount) || 0,
         plan_type: p.plan_type,
@@ -146,15 +179,15 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
 
     marketing_pain_points: data.marketing_pain_points || [],
     marketing_desires: data.marketing_desires || [],
-    objections: (data.objections || []).map((o: any) => ({
+    objections: (data.objections || []).map((o: BackendObjection) => ({
         id: o.id,
         type: o.type || "custom",
         trigger_phrases: o.trigger_phrases || [],
         strategy: o.strategy || "",
         rebuttal: o.rebuttal || "",
     })),
-    deliverables: (data.deliverables || []).map((d: any) => ({
-        name: d.name,
+    deliverables: (data.deliverables || []).map((d: BackendDeliverable) => ({
+        name: d.name || "",
         format: d.format || DeliverableFormat.VIDEO,
         quantity: String(d.quantity || "1"),
         value_stack_price: Number(d.value_stack_price) || 0
@@ -181,7 +214,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     checkout_page_url: metadata.checkout_page_url || data.checkout_page_url,
     vsl_link: metadata.vsl_link || data.vsl_link,
 
-    landing_page_config: data.landing_page_config
+    landing_page_config: data.landing_page_config as any
   };
 };
 

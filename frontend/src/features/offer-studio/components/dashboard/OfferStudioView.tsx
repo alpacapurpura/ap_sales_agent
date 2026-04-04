@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useDeferredValue } from "react";
 import { OfferStudioDashboard } from "@/features/offer-studio/components/dashboard/offer-studio-dashboard";
 import { LadderProgressBar } from "@/features/offer-studio/components/dashboard/ladder-progress-bar";
 import { Separator } from "@/components/ui/separator";
@@ -17,6 +17,7 @@ interface LadderData {
 
 export function OfferStudioView() {
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredQuery = useDeferredValue(searchQuery);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [ladderData, setLadderData] = useState<LadderData | null>(null);
 
@@ -56,7 +57,7 @@ export function OfferStudioView() {
       </div>
 
       {/* Row 2: Ladder Progress — full width, contextual */}
-      {ladderData && !searchQuery && (
+      {ladderData && !deferredQuery && (
         <LadderProgressBar
           filledGroups={ladderData.filledGroups}
           score={ladderData.score}
@@ -69,7 +70,7 @@ export function OfferStudioView() {
       {/* Content */}
       <div className="flex-1 overflow-auto pr-4 -mr-4 mt-4">
         <OfferStudioDashboard
-          searchQuery={searchQuery}
+          searchQuery={deferredQuery}
           externalCreateTrigger={isCreateOpen}
           onCreateTriggerHandled={() => setIsCreateOpen(false)}
           onLadderComputed={handleLadderComputed}

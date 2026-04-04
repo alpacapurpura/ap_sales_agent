@@ -17,7 +17,7 @@ type GalleryFormValues = Pick<OfferFormValues, "assets">;
 export interface GalleryFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function GalleryContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

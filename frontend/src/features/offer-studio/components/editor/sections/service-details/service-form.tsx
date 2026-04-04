@@ -24,7 +24,7 @@ type ServiceDetailsFormValues = Pick<OfferFormValues, "specific_details">;
 export interface ServiceDetailsFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function ServiceDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

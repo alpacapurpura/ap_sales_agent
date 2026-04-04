@@ -1367,16 +1367,6 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     description: 'Contextual hint text for form fields.',
     issues: ['Similar to FieldInfo in ui/ — potential duplication'],
   },
-  {
-    name: 'OfferContextPanel',
-    atomicLevel: 'molecule',
-    filePath: 'features/offer-studio/components/editor/ui/offer-context-panel.tsx',
-    source: 'feature',
-    featureSlice: 'offer-studio',
-    variants: [],
-    props: [],
-    description: 'Side panel showing offer context during editing.',
-  },
 
   // ==========================================================================
   // FEATURE: audit (features/audit/components/)

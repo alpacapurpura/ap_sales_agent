@@ -26,7 +26,7 @@ type EventDetailsFormValues = Pick<OfferFormValues, "specific_details">;
 export interface EventDetailsFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function EventDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

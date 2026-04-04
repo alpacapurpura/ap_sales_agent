@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import { UseFormReturn } from "react-hook-form";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
@@ -14,6 +14,8 @@ import { Target, ShieldCheck } from "lucide-react";
 import { WithCopilot } from "@/features/copilot/components/WithCopilot";
 import { OnboardingMechanism, GuaranteeType } from "../../../../types";
 import { eventTypesApi, EventType } from "@/lib/api/event-types";
+
+const EMPTY_EVENT_TYPES: EventType[] = [];
 
 const ClosingSchema = OfferSchema.pick({
   onboarding_action: true,
@@ -28,26 +30,21 @@ type ClosingFormValues = Pick<OfferFormValues, "onboarding_action" | "checkout_p
 export interface ClosingFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function ClosingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
   const { getToken } = useAuth();
-  const [appointmentTypes, setAppointmentTypes] = useState<EventType[]>([]);
 
-  useEffect(() => {
-    const fetchEventTypes = async () => {
-        try {
-            const token = await getToken();
-            if (!token) return;
-            const data = await eventTypesApi.listEventTypes(token);
-            setAppointmentTypes(data);
-        } catch (error) {
-            console.error("Failed to load event types", error);
-        }
-    };
-    fetchEventTypes();
-  }, [getToken]);
+  const { data: appointmentTypes = EMPTY_EVENT_TYPES } = useQuery({
+    queryKey: ["event-types"],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) return [];
+      return eventTypesApi.listEventTypes(token);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const onboardingOptions = [
       { value: OnboardingMechanism.INSTANT_ACCESS_EMAIL, label: "Acceso Instantáneo (Email)", description: "El usuario recibe acceso inmediato por email. Ideal para productos digitales." },

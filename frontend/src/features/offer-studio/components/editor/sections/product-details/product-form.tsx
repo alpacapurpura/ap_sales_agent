@@ -24,7 +24,7 @@ type ProductDetailsFormValues = Pick<OfferFormValues, "specific_details">;
 export interface ProductDetailsFormProps {
   defaultValues: Partial<OfferFormValues>;
   onSave: (data: Partial<OfferFormValues>) => Promise<void>;
-  form?: any;
+  form?: UseFormReturn<OfferFormValues>;
 }
 
 function ProductDetailsContent({ form }: { form: UseFormReturn<OfferFormValues> }) {

@@ -1,5 +1,5 @@
 ---
-globs: "backend/src/migrations/**/*.py"
+globs: "backend/alembic/versions/**/*.py"
 description: Idempotent Alembic migration rules
 ---
 

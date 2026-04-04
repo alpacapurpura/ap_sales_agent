@@ -11,6 +11,9 @@ import {
   Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { offerApi } from "@/features/offer-studio/api";
+import type { Offer } from "@/features/offer-studio/types";
+
+const EMPTY_OFFERS: Offer[] = [];
 
 interface OffersMultiSelectProps {
   value?: string[]
@@ -22,7 +25,7 @@ export function OffersMultiSelect({ value = [], onChange, currentOfferId }: Offe
   const [open, setOpen] = React.useState(false)
   const { getToken } = useAuth()
 
-  const { data: offers = [], isLoading } = useQuery({
+  const { data: offers = EMPTY_OFFERS, isLoading } = useQuery({
     queryKey: ["offers-list"],
     queryFn: async () => {
       const token = await getToken()
