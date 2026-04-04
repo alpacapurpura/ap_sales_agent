@@ -15,6 +15,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
@@ -42,8 +43,6 @@ from src.modules.analytics.infrastructure.repositories.staging_repository import
 )
 
 logger = logging.getLogger(__name__)
-
-from src.modules.analytics.application.config import ETLConfig
 
 # Maximum lookback for any extraction
 _MAX_LOOKBACK_DAYS = ETLConfig.MAX_LOOKBACK_DAYS
