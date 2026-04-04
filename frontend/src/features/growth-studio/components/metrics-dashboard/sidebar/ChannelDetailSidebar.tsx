@@ -26,102 +26,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
+import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { connectionsApi, type ChannelInfoResponse } from '@/lib/api/connections';
 import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
 import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
 import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
-
-/** Metric name -> Spanish label. */
-const METRIC_LABELS: Record<string, string> = {
-  reach: 'Alcance',
-  engagement: 'Engagement',
-  sessions: 'Sesiones',
-  users: 'Usuarios',
-  clicks: 'Clicks',
-  conversions: 'Conversiones',
-  spend: 'Gasto',
-  contacts: 'Contactos',
-  responses: 'Respuestas',
-  leads: 'Leads',
-  impressions: 'Impresiones',
-  bounceRate: 'Tasa de Rebote',
-  engagedSessions: 'Sesiones Activas',
-  newUsers: 'Nuevos Usuarios',
-  screenPageViews: 'Vistas de Página',
-  ctr: 'CTR',
-  cpm: 'CPM',
-  cpc: 'CPC',
-  frequency: 'Frecuencia',
-  // Instagram Organic
-  ig_views: 'Vistas',
-  total_interactions: 'Interacciones Totales',
-  ig_likes: 'Likes',
-  ig_comments: 'Comentarios',
-  ig_shares: 'Compartidos',
-  ig_saves: 'Guardados',
-  ig_replies: 'Respuestas Stories',
-  ig_reposts: 'Reposts',
-  ig_accounts_engaged: 'Cuentas que Interactuaron',
-  ig_follows_and_unfollows: 'Seguidores Netos',
-  ig_profile_links_taps: 'Taps en Perfil',
-  ig_followers_count: 'Seguidores',
-  ig_media_count: 'Publicaciones',
-  ig_follower_demographics: 'Demografía Seguidores',
-  ig_engaged_audience_demographics: 'Demografía Engaged',
-  // Meta Ads Expanded
-  meta_inline_link_clicks: 'Clics al Destino',
-  meta_outbound_clicks: 'Clics Salientes',
-  meta_landing_page_views: 'Vistas de Landing',
-  meta_cost_per_link_click: 'Costo por Clic al Destino',
-  meta_cost_per_outbound_click: 'Costo por Clic Saliente',
-  meta_leads: 'Leads',
-  meta_add_to_cart: 'Agregar al Carrito',
-  meta_initiate_checkout: 'Checkouts Iniciados',
-  meta_registrations: 'Registros',
-  meta_view_content: 'Vistas de Contenido',
-  meta_search_actions: 'Búsquedas',
-  meta_conversations_started: 'Conversaciones',
-  meta_link_clicks: 'Link Clicks',
-  meta_page_engagement: 'Engagement de Página',
-  meta_video_views: 'Reproducciones de Video',
-  meta_conversion_value: 'Valor de Conversiones',
-  meta_purchase_roas: 'ROAS',
-  meta_cost_per_purchase: 'Costo por Compra',
-  meta_cost_per_lead: 'Costo por Lead',
-  meta_cpp: 'CPP',
-  meta_post_engagement: 'Engagement de Post',
-  meta_video_p25: 'Video 25%',
-  meta_video_p50: 'Video 50%',
-  meta_video_p75: 'Video 75%',
-  meta_video_p100: 'Video 100%',
-  meta_video_30sec: 'Video 30s+',
-  meta_video_avg_watch_time: 'Duración Promedio',
-  // YouTube Organic
-  views: 'Vistas',
-  watch_time_minutes: 'Minutos Vistos',
-  avg_view_duration: 'Duración Promedio',
-  avg_view_percentage: '% Retención Promedio',
-  subscribers_gained: 'Suscriptores Ganados',
-  subscribers_lost: 'Suscriptores Perdidos',
-  comments: 'Comentarios',
-  shares: 'Compartidos',
-  card_clicks: 'Clics en Tarjetas',
-  card_impressions: 'Impresiones Tarjetas',
-  card_click_rate: 'CTR Tarjetas',
-  end_screen_clicks: 'Clics Pantalla Final',
-  end_screen_impressions: 'Imp. Pantalla Final',
-  end_screen_click_rate: 'CTR Pantalla Final',
-  // Meta Ads Breakdowns
-  meta_reach_by_age: 'Alcance por Edad',
-  meta_spend_by_age: 'Gasto por Edad',
-  meta_impressions_by_age: 'Impresiones por Edad',
-  meta_reach_by_gender: 'Alcance por Género',
-  meta_spend_by_gender: 'Gasto por Género',
-  meta_impressions_by_gender: 'Impresiones por Género',
-  meta_reach_by_placement: 'Alcance por Plataforma',
-  meta_spend_by_placement: 'Gasto por Plataforma',
-  meta_impressions_by_placement: 'Impresiones por Plataforma',
-};
 
 /** Section groupings for channels with many metrics. */
 const CHANNEL_METRIC_SECTIONS: Record<string, Array<{ title: string; metrics: string[] }>> = {

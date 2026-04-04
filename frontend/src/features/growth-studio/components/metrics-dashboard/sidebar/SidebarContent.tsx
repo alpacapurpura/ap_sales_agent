@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { ExternalLink, Package, PlusCircle, RefreshCw, Settings, ShoppingBag, TrendingUp, Users } from 'lucide-react';
 import type { MetricClickData, StageId } from '../../../types/metrics';
 import { getChannelColor, getChannelIcon } from '../../../lib/channelIcons';
+import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { getOfferProductsDetail } from '../../../api/product-mapping-api';
 import type { OfferProductDetail } from '../../../api/product-mapping-api';
 
@@ -34,61 +35,6 @@ const STAGE_NAMES: Record<StageId, string> = {
   EXPANSION: 'Expansión',
   EVANGELIZACION: 'Evangelización',
   EXPANSION_EVANGELIZACION: 'Expansión & Evangelización',
-};
-
-const METRIC_LABELS: Record<string, string> = {
-  reach: 'Alcance',
-  engagement: 'Engagement',
-  sessions: 'Sesiones',
-  users: 'Usuarios',
-  clicks: 'Clicks',
-  conversions: 'Conversiones',
-  spend: 'Gasto',
-  contacts: 'Contactos',
-  responses: 'Respuestas',
-  leads: 'Leads',
-  cost: 'Costo',
-  conversion_rate: 'Conversion',
-  conversations: 'Conversaciones',
-  emails_sent: 'Enviados',
-  open_rate: 'Apertura',
-  click_rate: 'Clicks por email',
-  followups: 'Follow-ups',
-  response_rate: 'Tasa de respuesta',
-  campaigns: 'Campanas',
-  count: 'Cantidad',
-  value: 'Valor',
-  abandonment_rate: 'Tasa de abandono',
-  booked: 'Citas agendadas',
-  completed: 'Completadas',
-  no_show: 'No-Show',
-  rescheduled: 'Reprogramadas',
-  attendance_rate: 'Asistencia',
-  impressions: 'Impresiones',
-  visitors: 'Visitantes',
-  total_leads: 'Total Leads',
-  total_mqls: 'Total MQLs',
-  total_sqls: 'Total SQLs',
-  revenue: 'Revenue',
-  offer_detail: 'Detalle de Oferta',
-  pipeline: 'Pipeline (SQLs)',
-  customers: 'Clientes',
-  health_pct: 'Salud del Cliente',
-  net_mrr: 'Ingreso Recurrente Neto',
-  k_factor: 'K-Factor',
-  pixel_pageviews: 'Visitas al sitio (Pixel)',
-  pixel_view_content: 'Vieron contenido',
-  pixel_leads: 'Dejaron datos',
-  pixel_add_to_cart: 'Agregaron al carrito',
-  pixel_purchases: 'Compraron',
-  top_pages: 'Paginas mas vistas',
-  traffic_sources: 'Fuentes de trafico',
-  device_split: 'Dispositivos',
-  averageSessionDuration: 'Duracion promedio',
-  newUsers: 'Usuarios nuevos',
-  engagedSessions: 'Sesiones activas',
-  screenPageViews: 'Vistas de pagina',
-  bounceRate: 'Tasa de rebote',
 };
 
 // ─── Shared placeholders ───────────────────────────────────────────────────────
