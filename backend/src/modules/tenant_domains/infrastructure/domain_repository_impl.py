@@ -6,9 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
-from src.modules.domains.domain.domain_entity import TenantDomain, DomainStatus, DomainType
-from src.modules.domains.domain.domain_repository import DomainRepository
-from src.modules.domains.infrastructure.models.tenant_domain_model import TenantDomainModel
+from src.modules.tenant_domains.domain.domain_entity import TenantDomain, DomainStatus, DomainType
+from src.modules.tenant_domains.domain.domain_repository import DomainRepository
+from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import TenantDomainModel
 
 logger = structlog.get_logger()
 

@@ -98,6 +98,16 @@ def _build_registry() -> Dict[str, ModuleDescriptor]:
             read_fn=None,
             keywords=["agente", "ventas", "conversación", "chat", "SDR"],
         ),
+        "commercial_calendar": ModuleDescriptor(
+            module_id="commercial_calendar",
+            label="Calendario Comercial",
+            description="Eventos del calendario comercial: feriados nacionales, campanas, temporadas de venta, dias especiales. Eventos del sistema + eventos custom por tenant.",
+            route_prefix="commercial-calendar",
+            model_class=None,  # CalendarEvent is a dataclass, not Pydantic
+            repo_factory=_calendar_repo_factory,
+            read_fn=_calendar_read_fn,
+            keywords=["calendario", "feriado", "campana", "temporada", "cyber", "holiday", "sale"],
+        ),
         "landing": ModuleDescriptor(
             module_id="landing",
             label="Landing Pages",
@@ -147,6 +157,23 @@ def _connections_repo_factory(db):
 
 def _connections_read_fn(repo, tenant_id):
     return repo.get_all_by_tenant(tenant_id)
+
+
+def _calendar_repo_factory(db):
+    from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
+        CalendarEventRepository,
+    )
+    return CalendarEventRepository(db)
+
+
+def _calendar_read_fn(repo, tenant_id):
+    from datetime import date
+    today = date.today()
+    return repo.list_events(
+        country_code="PE",
+        year=today.year,
+        tenant_id=tenant_id,
+    )
 
 
 def _landing_repo_factory(db):

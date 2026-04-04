@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from uuid import UUID
 
-from src.modules.domains.domain.domain_entity import TenantDomain
+from src.modules.tenant_domains.domain.domain_entity import TenantDomain
 
 
 class DomainRepository(ABC):

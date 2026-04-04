@@ -6,9 +6,9 @@ from uuid import UUID, uuid4
 import structlog
 from sqlalchemy.orm import Session
 
-from src.modules.domains.domain.domain_entity import TenantDomain, DomainStatus, DomainType
-from src.modules.domains.infrastructure.cloudflare_client import CloudflareClient
-from src.modules.domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
+from src.modules.tenant_domains.domain.domain_entity import TenantDomain, DomainStatus, DomainType
+from src.modules.tenant_domains.infrastructure.cloudflare_client import CloudflareClient
+from src.modules.tenant_domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
 
 logger = structlog.get_logger()
 

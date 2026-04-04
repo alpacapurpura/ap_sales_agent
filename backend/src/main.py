@@ -69,7 +69,7 @@ from src.modules.assets.api import router as assets_gallery, offer_gallery as as
 from src.modules.commercial_calendar.api import events as calendar_events
 
 # 15. Domains
-from src.modules.domains.api import domain_router as domains_router
+from src.modules.tenant_domains.api import domain_router as domains_router
 
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401

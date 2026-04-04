@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.modules.domains.domain.domain_entity import DomainStatus, DomainType
+from src.modules.tenant_domains.domain.domain_entity import DomainStatus, DomainType
 
 
 class DomainCreate(BaseModel):
