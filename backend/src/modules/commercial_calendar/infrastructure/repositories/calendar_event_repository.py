@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
@@ -52,6 +52,7 @@ class CalendarEventRepository:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.year == year,
+            CalendarEventModel.deleted_at == None,  # noqa: E711
         )
         if tenant_id is not None:
             stmt = stmt.where(
@@ -67,8 +68,17 @@ class CalendarEventRepository:
         result = self.db.execute(stmt)
         return [self._to_domain(m) for m in result.scalars().all()]
 
-    def get_by_id(self, event_id: UUID) -> Optional[CalendarEvent]:
-        stmt = select(CalendarEventModel).where(CalendarEventModel.id == event_id)
+    def get_by_id(
+        self, event_id: UUID, tenant_id: Optional[UUID] = None
+    ) -> Optional[CalendarEvent]:
+        stmt = select(CalendarEventModel).where(
+            CalendarEventModel.id == event_id,
+            CalendarEventModel.deleted_at == None,  # noqa: E711
+        )
+        if tenant_id is not None:
+            stmt = stmt.where(
+                (CalendarEventModel.tenant_id == tenant_id) | (CalendarEventModel.tenant_id == None)  # noqa: E711
+            )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
@@ -89,7 +99,10 @@ class CalendarEventRepository:
         return [self._to_domain(m) for m in models]
 
     def update(self, entity: CalendarEvent) -> Optional[CalendarEvent]:
-        stmt = select(CalendarEventModel).where(CalendarEventModel.id == entity.id)
+        stmt = select(CalendarEventModel).where(
+            CalendarEventModel.id == entity.id,
+            CalendarEventModel.deleted_at == None,  # noqa: E711
+        )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
         if model is None:
@@ -106,12 +119,15 @@ class CalendarEventRepository:
         return self._to_domain(model)
 
     def delete(self, event_id: UUID) -> bool:
-        stmt = select(CalendarEventModel).where(CalendarEventModel.id == event_id)
+        stmt = select(CalendarEventModel).where(
+            CalendarEventModel.id == event_id,
+            CalendarEventModel.deleted_at == None,  # noqa: E711
+        )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
         if model is None:
             return False
-        self.db.delete(model)
+        model.deleted_at = datetime.now(timezone.utc)
         self.db.commit()
         return True
 
@@ -120,6 +136,7 @@ class CalendarEventRepository:
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.date == event_date,
             CalendarEventModel.name == name,
+            CalendarEventModel.deleted_at == None,  # noqa: E711
         )
         if tenant_id is None:
             stmt = stmt.where(CalendarEventModel.tenant_id == None)  # noqa: E711

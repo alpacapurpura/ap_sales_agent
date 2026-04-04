@@ -90,7 +90,7 @@ class CalendarEventService:
         description: Optional[str] = None,
         tenant_id: Optional[UUID] = None,
     ) -> Optional[CalendarEvent]:
-        existing = self.repo.get_by_id(event_id)
+        existing = self.repo.get_by_id(event_id, tenant_id=tenant_id)
         if existing is None:
             return None
 
@@ -107,8 +107,8 @@ class CalendarEventService:
         )
         return self.repo.update(updated)
 
-    def delete_event(self, event_id: UUID) -> bool:
+    def delete_event(self, event_id: UUID, tenant_id: Optional[UUID] = None) -> bool:
         return self.repo.delete(event_id)
 
-    def get_by_id(self, event_id: UUID) -> Optional[CalendarEvent]:
-        return self.repo.get_by_id(event_id)
+    def get_by_id(self, event_id: UUID, tenant_id: Optional[UUID] = None) -> Optional[CalendarEvent]:
+        return self.repo.get_by_id(event_id, tenant_id=tenant_id)

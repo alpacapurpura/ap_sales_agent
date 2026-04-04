@@ -95,7 +95,7 @@ def update_event(
     user: User = Depends(get_current_user),
 ):
     service = CalendarEventService(db)
-    existing = service.get_by_id(event_id)
+    existing = service.get_by_id(event_id, tenant_id=user.tenant_id)
     if existing is None:
         raise HTTPException(status_code=404, detail="Event not found")
     if existing.tenant_id != user.tenant_id:
@@ -108,6 +108,7 @@ def update_event(
         event_date=body.date,
         category=body.category,
         description=body.description,
+        tenant_id=user.tenant_id,
     )
     if updated is None:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -121,11 +122,11 @@ def delete_event(
     user: User = Depends(get_current_user),
 ):
     service = CalendarEventService(db)
-    existing = service.get_by_id(event_id)
+    existing = service.get_by_id(event_id, tenant_id=user.tenant_id)
     if existing is None:
         raise HTTPException(status_code=404, detail="Event not found")
     if existing.tenant_id is None:
         raise HTTPException(status_code=403, detail="Cannot delete system events")
     if existing.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Cannot delete events from another tenant")
-    service.delete_event(event_id)
+    service.delete_event(event_id, tenant_id=user.tenant_id)
