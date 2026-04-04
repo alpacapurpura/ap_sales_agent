@@ -12,22 +12,24 @@ import json
 import logging
 from typing import Dict, Optional
 
+from src.modules.analytics.application.config import CacheConfig
+
 logger = logging.getLogger(__name__)
 
 # Per-stage TTL overrides. Paid ad data changes less frequently (extracted nightly).
 # CRM/general dashboard queries use shorter TTL for fresher data.
 STAGE_TTL: Dict[str, int] = {
-    "attraction": 3600,      # 1 hour — paid ads data is nightly ETL
-    "capture": 300,          # 5 min — CRM-driven
-    "nurture": 300,
-    "opportunity": 300,
-    "sales": 300,
-    "adoption": 300,
-    "expansion": 300,
-    "evangelization": 300,
-    "summary": 60,           # 1 min — Bowtie funnel row, must feel fresh
+    "attraction": CacheConfig.ATTRACTION_TTL,       # 1 hour — paid ads data is nightly ETL
+    "capture": CacheConfig.DETAIL_STAGE_TTL,        # 5 min — CRM-driven
+    "nurture": CacheConfig.DETAIL_STAGE_TTL,
+    "opportunity": CacheConfig.DETAIL_STAGE_TTL,
+    "sales": CacheConfig.DETAIL_STAGE_TTL,
+    "adoption": CacheConfig.DETAIL_STAGE_TTL,
+    "expansion": CacheConfig.DETAIL_STAGE_TTL,
+    "evangelization": CacheConfig.DETAIL_STAGE_TTL,
+    "summary": CacheConfig.SUMMARY_TTL,             # 1 min — Bowtie funnel row, must feel fresh
 }
-DEFAULT_TTL = 300
+DEFAULT_TTL = CacheConfig.DEFAULT_TTL
 
 
 class MetricsCache:

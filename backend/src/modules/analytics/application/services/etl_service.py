@@ -43,8 +43,10 @@ from src.modules.analytics.infrastructure.repositories.staging_repository import
 
 logger = logging.getLogger(__name__)
 
+from src.modules.analytics.application.config import ETLConfig
+
 # Maximum lookback for any extraction
-_MAX_LOOKBACK_DAYS = 60
+_MAX_LOOKBACK_DAYS = ETLConfig.MAX_LOOKBACK_DAYS
 
 # Providers that need multiple stages extracted.
 # Default stage for unlisted providers is ["attraction"].

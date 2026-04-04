@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
+from src.modules.analytics.application.config import CacheConfig, ETLConfig
 from src.modules.analytics.domain.period_config import TenantPeriodConfig
 
 logger = logging.getLogger(__name__)
@@ -54,8 +55,8 @@ async def run_tick_scheduler(ctx: dict) -> None:
 
             local_time = now_utc.astimezone(tz)
 
-            # Check if it's 3:00 AM in the tenant's local timezone (hour=3, minute=0)
-            if local_time.hour == 3 and local_time.minute == 0:
+            # Check if it's extraction time in the tenant's local timezone
+            if local_time.hour == ETLConfig.DAILY_EXTRACTION_HOUR_LOCAL and local_time.minute == 0:
                 redis = ctx.get("redis")
                 if not redis:
                     continue
@@ -116,6 +117,6 @@ async def run_tick_scheduler(ctx: dict) -> None:
         # Heartbeat: /health reads this key to confirm scheduler is alive (TTL 5 min)
         redis_cache = ctx.get("redis_cache")
         if redis_cache:
-            redis_cache.setex("scheduler:last_tick", 300, "1")
+            redis_cache.setex("scheduler:last_tick", CacheConfig.DETAIL_STAGE_TTL, "1")
     finally:
         db.close()

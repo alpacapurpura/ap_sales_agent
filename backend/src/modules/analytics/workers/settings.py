@@ -10,6 +10,7 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from src.core.config import settings
+from src.modules.analytics.application.config import ETLConfig
 import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.modules.analytics.workers.tasks import (
     run_campaign_sync,
@@ -28,9 +29,9 @@ class WorkerSettings:
 
     functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
-    max_jobs = 10
-    max_tries = 5
-    job_timeout = 600  # 10 minutes per job
+    max_jobs = ETLConfig.MAX_CONCURRENT_JOBS
+    max_tries = ETLConfig.MAX_RETRIES
+    job_timeout = ETLConfig.EXTRACTION_TIMEOUT_SECONDS
 
     @staticmethod
     async def on_startup(ctx):
@@ -60,9 +61,9 @@ class SchedulerSettings:
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
     functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
-    max_jobs = 10
-    max_tries = 5
-    job_timeout = 600
+    max_jobs = ETLConfig.MAX_CONCURRENT_JOBS
+    max_tries = ETLConfig.MAX_RETRIES
+    job_timeout = ETLConfig.EXTRACTION_TIMEOUT_SECONDS
 
     cron_jobs = [
         cron(

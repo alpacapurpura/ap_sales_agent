@@ -19,14 +19,15 @@ from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
 from src.modules.analytics.application.dto.evangelization_dto import EvangelizationDetailDTO
 from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
+from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 from src.modules.offer.application.services.offer_read_port_impl import OfferReadPortImpl
 
 router = APIRouter(prefix="/metrics", tags=["Marketing Metrics"])
 
-# Refresh cooldown: 15 minutes
-_REFRESH_COOLDOWN = timedelta(minutes=15)
+# Refresh cooldown: derived from centralized config
+_REFRESH_COOLDOWN = timedelta(seconds=ETLConfig.PER_PROVIDER_REFRESH_COOLDOWN)
 
 
 # ─── Sync All DTOs ────────────────────────────────────────────────────────────
@@ -530,7 +531,7 @@ _VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailer
 @router.post("/{provider}/initial-load")
 async def trigger_initial_load(
     provider: str,
-    days: int = Query(default=30, ge=1, le=60),
+    days: int = Query(default=30, ge=1, le=ETLConfig.MAX_LOOKBACK_DAYS),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
