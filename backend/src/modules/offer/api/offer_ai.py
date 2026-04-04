@@ -16,10 +16,6 @@ async def generate_offer_psychology(
     db: Session = Depends(get_db),
     tenant_id: Optional[UUID] = Depends(get_tenant_context)
 ):
-    """
-    Generates AI-powered psychology insights (pains & desires) for an offer.
-    Requires an Avatar ID and Offer Context.
-    """
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Tenant ID required")
 
