@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from uuid import UUID
 from sqlalchemy.orm.attributes import flag_modified
@@ -7,12 +8,15 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 class BrandRepository:
     def __init__(self, db: Session):
         self.db = db
 
     def get_settings(self, tenant_id: UUID) -> BrandSettings:
-        tenant = self.db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
+        stmt = select(TenantModel).where(TenantModel.id == tenant_id)
+        result = self.db.execute(stmt)
+        tenant = result.scalars().first()
         if not tenant:
             logger.info("brand_repo_get", tenant_id=str(tenant_id), has_data=False, tenant_found=False)
             return BrandSettings()
@@ -31,7 +35,9 @@ class BrandRepository:
         return BrandSettings.model_validate(brand_settings_data)
 
     def save_settings(self, tenant_id: UUID, settings: BrandSettings) -> BrandSettings:
-        tenant = self.db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
+        stmt = select(TenantModel).where(TenantModel.id == tenant_id)
+        result = self.db.execute(stmt)
+        tenant = result.scalars().first()
         if not tenant:
             raise ValueError("Tenant not found")
 
