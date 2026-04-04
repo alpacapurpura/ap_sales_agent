@@ -58,8 +58,8 @@ async def get_product(
     user: User = Depends(get_current_user)
 ):
     service = OfferService(db)
-    product = service.get_offer(UUID(product_id))
-    if not product or str(product.tenant_id) != str(user.tenant_id):
+    product = service.get_offer(UUID(product_id), user.tenant_id)
+    if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 

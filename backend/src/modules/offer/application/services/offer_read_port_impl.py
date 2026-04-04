@@ -35,10 +35,13 @@ class OfferReadPortImpl(OfferReadPort):
         return [self._to_dto(m) for m in models]
 
     async def get_offer_by_id(
-        self, offer_id: UUID
+        self, offer_id: UUID, tenant_id: Optional[UUID] = None
     ) -> Optional[OfferReadDTO]:
-        """Single offer by ID."""
-        stmt = select(ProductModel).where(ProductModel.id == offer_id)
+        """Single offer by ID, scoped to tenant when provided."""
+        conditions = [ProductModel.id == offer_id]
+        if tenant_id is not None:
+            conditions.append(ProductModel.tenant_id == tenant_id)
+        stmt = select(ProductModel).where(*conditions)
         result = await asyncio.to_thread(self.db.execute, stmt)
         model = result.scalar_one_or_none()
         return self._to_dto(model) if model else None
