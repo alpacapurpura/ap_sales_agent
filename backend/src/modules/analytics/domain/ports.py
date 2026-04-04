@@ -87,7 +87,7 @@ class OfferReadPort(ABC):
 
     @abstractmethod
     async def get_offer_by_id(
-        self, offer_id: UUID
+        self, offer_id: UUID, tenant_id: Optional[UUID] = None
     ) -> Optional[OfferReadDTO]:
-        """Single offer by ID."""
+        """Single offer by ID, scoped to tenant when provided."""
         ...

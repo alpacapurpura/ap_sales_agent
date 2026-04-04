@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.brand.infrastructure.repositories.avatar_repository import AvatarRepository
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
+from src.modules.offer.application.ports import PsychologyGeneratorPort
 from src.modules.offer.domain.offer_ai_schemas import (
     PsychologyGenerationRequest,
     PsychologyGenerationResponse,
@@ -12,7 +13,7 @@ from src.core.enums import ModelRole
 from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
 
 
-class CopilotOfferPsychologyService:
+class CopilotOfferPsychologyService(PsychologyGeneratorPort):
     def __init__(self, session: Session):
         self.session = session
         self.avatar_repo = AvatarRepository(session)

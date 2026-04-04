@@ -13,60 +13,37 @@ class OfferService:
         self.db = db
         self.repository = OfferRepository(db)
 
-    def get_offer(self, offer_id: UUID) -> Optional[Offer]:
-        return self.repository.get_by_id(offer_id)
+    def get_offer(self, offer_id: UUID, tenant_id: UUID) -> Optional[Offer]:
+        return self.repository.get_by_id(offer_id, tenant_id)
 
     def list_offers(self, tenant_id: UUID) -> List[Offer]:
         return self.repository.get_all_by_tenant(tenant_id)
 
-    def create_offer(
-        self,
-        name: str,
-        tenant_id: UUID,
-        archetype: OfferArchetype,
-        format_hint: Optional[str] = None,
-        is_lead_magnet: bool = False,
-        internal_sku: str = "",
-        headline_promise: str = "",
-        avatar_id: Optional[UUID] = None,
-        value_level: Optional[OfferValueLevel] = None,
-    ) -> Offer:
+    def create_offer(self, name: str, tenant_id: UUID, archetype: OfferArchetype,
+                     format_hint: Optional[str] = None, is_lead_magnet: bool = False,
+                     internal_sku: str = "", headline_promise: str = "",
+                     avatar_id: Optional[UUID] = None, value_level: Optional[OfferValueLevel] = None) -> Offer:
         new_offer = Offer(
-            tenant_id=tenant_id,
-            public_name=name,
-            internal_sku=internal_sku,
-            archetype=archetype,
-            format_hint=format_hint,
-            is_lead_magnet=is_lead_magnet,
-            value_level=value_level,
-            headline_promise=headline_promise,
-            primary_outcome="",
-            time_to_value="",
-            target_avatar_match=[],
-            requires_application=False,
-            min_financial_capacity=FinancialCapacity.LOW_INCOME,
-            pricing_options=[],
-            guarantee_type=GuaranteeType.NONE,
-            guarantee_terms="",
+            tenant_id=tenant_id, public_name=name, internal_sku=internal_sku,
+            archetype=archetype, format_hint=format_hint, is_lead_magnet=is_lead_magnet,
+            value_level=value_level, headline_promise=headline_promise,
+            primary_outcome="", time_to_value="", target_avatar_match=[],
+            requires_application=False, min_financial_capacity=FinancialCapacity.LOW_INCOME,
+            pricing_options=[], guarantee_type=GuaranteeType.NONE, guarantee_terms="",
             status=OfferStatus.DRAFT
         )
         return self.repository.create(new_offer)
 
-    def update_offer(self, offer: Offer) -> Offer:
-        return self.repository.update(offer)
+    def update_offer(self, offer: Offer, tenant_id: UUID) -> Offer:
+        return self.repository.update(offer, tenant_id)
 
     def patch_offer(self, offer_id: UUID, tenant_id: UUID, update_data: Dict[str, Any]) -> Offer:
-        offer = self.repository.get_by_id(offer_id)
+        offer = self.repository.get_by_id(offer_id, tenant_id)
         if not offer:
             raise ValueError(f"Offer with id {offer_id} not found")
 
-        if offer.tenant_id != tenant_id:
-            raise ValueError("Access denied: Offer belongs to another tenant")
-
         current_data = offer.model_dump()
-
         if "specific_details" in update_data and isinstance(update_data["specific_details"], dict):
-            detail_class = None
             archetype = offer.archetype
             if isinstance(archetype, str):
                 archetype = OfferArchetype(archetype)
@@ -78,10 +55,9 @@ class OfferService:
                     raise ValueError(f"Invalid specific_details structure for archetype {archetype}: {str(e)}")
 
         current_data.update(update_data)
-
         try:
             updated_offer = Offer.model_validate(current_data)
         except Exception as e:
             raise ValueError(f"Invalid update data: {str(e)}")
 
-        return self.repository.update(updated_offer)
+        return self.repository.update(updated_offer, tenant_id)

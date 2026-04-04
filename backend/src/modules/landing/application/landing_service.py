@@ -73,7 +73,7 @@ class LandingService:
             return existing
 
         offer_repo = OfferRepository(self.db)
-        offer = offer_repo.get_by_id(offer_id)
+        offer = offer_repo.get_by_id(offer_id, tenant_id)
         if not offer:
             raise ValueError("Offer not found")
         
