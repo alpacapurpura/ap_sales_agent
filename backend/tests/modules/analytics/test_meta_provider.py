@@ -67,15 +67,15 @@ class TestInstagramOrganic:
             "data": [
                 {
                     "name": "reach",
-                    "values": [{"value": 1000}, {"value": 2000}, {"value": 500}],
+                    "total_value": {"value": 500},
                 },
                 {
                     "name": "total_interactions",
-                    "values": [{"value": 300}, {"value": 400}, {"value": 200}],
+                    "total_value": {"value": 900},
                 },
                 {
                     "name": "likes",
-                    "values": [{"value": 100}, {"value": 150}, {"value": 80}],
+                    "total_value": {"value": 330},
                 },
             ]
         })
@@ -576,27 +576,21 @@ class TestExtractMetricsDaily:
 
     @pytest.mark.asyncio
     async def test_ig_organic_daily_emits_per_day_metrics(self):
-        """IG organic daily should emit one metric per day per metric from values[] array."""
-        mock_insights_response = _ok_response({
-            "data": [
-                {
-                    "name": "reach",
-                    "values": [
-                        {"value": 1000, "end_time": "2026-03-01T08:00:00+0000"},
-                        {"value": 2000, "end_time": "2026-03-02T08:00:00+0000"},
-                        {"value": 500, "end_time": "2026-03-03T08:00:00+0000"},
-                    ],
-                },
-                {
-                    "name": "total_interactions",
-                    "values": [
-                        {"value": 300, "end_time": "2026-03-01T08:00:00+0000"},
-                        {"value": 400, "end_time": "2026-03-02T08:00:00+0000"},
-                        {"value": 200, "end_time": "2026-03-03T08:00:00+0000"},
-                    ],
-                },
-            ]
-        })
+        """IG organic daily should emit one metric per day using total_value per-day calls."""
+        from datetime import datetime as dt
+
+        # Map since-timestamp → per-day response (total_value format)
+        day_data = {
+            int(dt.combine(date(2026, 3, 1), dt.min.time()).timestamp()): {
+                "reach": 1000, "total_interactions": 300,
+            },
+            int(dt.combine(date(2026, 3, 2), dt.min.time()).timestamp()): {
+                "reach": 2000, "total_interactions": 400,
+            },
+            int(dt.combine(date(2026, 3, 3), dt.min.time()).timestamp()): {
+                "reach": 500, "total_interactions": 200,
+            },
+        }
 
         mock_user_node_response = _ok_response({
             "id": "12345",
@@ -609,7 +603,14 @@ class TestExtractMetricsDaily:
             if "/insights" in url:
                 if params.get("period") == "lifetime":
                     return _ok_response({"data": []})
-                return mock_insights_response
+                since = params.get("since")
+                values = day_data.get(since, {})
+                return _ok_response({
+                    "data": [
+                        {"name": name, "total_value": {"value": val}}
+                        for name, val in values.items()
+                    ]
+                })
             if url.endswith("/12345") and "fields" in params:
                 return mock_user_node_response
             return _ok_response({"data": []})
@@ -622,8 +623,9 @@ class TestExtractMetricsDaily:
             MockClient.return_value = instance
 
             provider = MetaProvider()
+            # Half-open range [Mar 1, Mar 4) → 3 days
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 4)
             )
         metrics = result.metrics
 
@@ -644,7 +646,7 @@ class TestExtractMetricsDaily:
         # Snapshots: only on end_date
         followers = [m for m in metrics if m.metric_name == "ig_followers_count"]
         assert len(followers) == 1
-        assert followers[0].date == date(2026, 3, 3)
+        assert followers[0].date == date(2026, 3, 4)
 
     @pytest.mark.asyncio
     async def test_meta_ads_daily_uses_time_increment(self):

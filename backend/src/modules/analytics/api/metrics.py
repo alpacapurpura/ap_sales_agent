@@ -20,7 +20,6 @@ from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
 from src.modules.analytics.application.dto.evangelization_dto import EvangelizationDetailDTO
 from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
-from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
 from src.modules.offer.application.services.offer_read_port_impl import OfferReadPortImpl

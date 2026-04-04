@@ -71,6 +71,39 @@
     },
     "tessl/npm-next": {
       "version": "16.0.0"
+    },
+    "tessl/pypi-langgraph": {
+      "version": "1.0.3"
+    },
+    "jbvc/langgraph": {
+      "version": "0.1.0"
+    },
+    "tessl/pypi-redis": {
+      "version": "6.4.0"
+    },
+    "tessl/pypi-pytest": {
+      "version": "8.4.0"
+    },
+    "tessl-labs/pytest-api-testing": {
+      "version": "0.2.1"
+    },
+    "tessl/pypi-httpx": {
+      "version": "0.28.0"
+    },
+    "tessl/npm-tanstack--react-query": {
+      "version": "5.87.0"
+    },
+    "tessl/npm-vitest": {
+      "version": "4.0.0"
+    },
+    "jamesmoss/frontend-skills": {
+      "version": "0.1.0"
+    },
+    "tessl-labs/react-patterns": {
+      "version": "0.2.0"
+    },
+    "tessl-labs/graceful-degradation": {
+      "version": "0.2.1"
     }
   }
 }
