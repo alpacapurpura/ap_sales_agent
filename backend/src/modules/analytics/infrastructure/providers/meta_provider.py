@@ -18,6 +18,7 @@ from uuid import UUID
 
 import httpx
 
+from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
@@ -57,7 +58,7 @@ _ADS_EXPANDED_FIELDS = (
 )
 
 
-_IG_INSIGHTS_MAX_DAYS = 30  # Meta enforces ≤30 days for period=day
+_IG_INSIGHTS_MAX_DAYS = ETLConfig.IG_INSIGHTS_MAX_CHUNK_DAYS  # Meta enforces ≤30 days for period=day
 
 
 def _ig_day_chunks(start_date: date, end_date: date):

@@ -5,11 +5,16 @@ import { useGrowthStudioContext } from '../components/metrics-dashboard/context/
 import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, StageTimeSeries } from '../types/metrics';
 import type { PeriodType } from '../api/stage-detail-api';
 
+interface StageDetailHookOptions {
+  /** When false, the query will not execute. Defaults to true. */
+  enabled?: boolean;
+}
+
 function createStageDetailHook<T>(
   queryKey: string,
   apiFn: (token: string, period?: PeriodType) => Promise<T>
 ) {
-  return function useStageDetail() {
+  return function useStageDetail(options?: StageDetailHookOptions) {
     const { getToken } = useAuth();
     const tenantId = typeof window !== 'undefined'
       ? localStorage.getItem('x-tenant-id') : null;
@@ -23,6 +28,7 @@ function createStageDetailHook<T>(
         return apiFn(token, selectedPeriod);
       },
       staleTime: 1000 * 60 * 5,
+      enabled: options?.enabled ?? true,
     });
   };
 }

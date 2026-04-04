@@ -1,23 +1,56 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAttractionDetail } from '../useStageDetail';
 import type { AttractionDetail } from '@/features/growth-studio/types/metrics';
 
-// Mock the API module
+// ── Inline test helpers (avoid .tsx import from .ts) ─────────────────────────
+
+function createTestQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+}
+
+function createHookWrapper() {
+  const queryClient = createTestQueryClient();
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+  }
+  return { wrapper: Wrapper, queryClient };
+}
+
+// ── Mocks ────────────────────────────────────────────────────────────────────
+
+const mockGetAttractionDetail = vi.fn();
+
 vi.mock('@/features/growth-studio/api/metrics-api', () => ({
   metricsApi: {
-    getAttractionDetail: vi.fn(),
+    getAttractionDetail: (...args: unknown[]) => mockGetAttractionDetail(...args),
   },
 }));
 
-// Mock Clerk auth for hook context
 vi.mock('@clerk/nextjs', () => ({
-  useAuth: () => ({ getToken: vi.fn(() => Promise.resolve('mock-token')) }),
+  useAuth: () => ({
+    getToken: vi.fn().mockResolvedValue('mock-test-token'),
+    isLoaded: true,
+    isSignedIn: true,
+  }),
 }));
 
-// Mock React Query wrapper — hooks use useQuery internally
-// Tests run without a QueryClientProvider by default; install wrapper if needed in Plan 11-01
-const mockAttractionData: Partial<AttractionDetail> = {
+vi.mock('../../components/metrics-dashboard/context/GrowthStudioContext', () => ({
+  useGrowthStudioContext: () => ({
+    selectedPeriod: 'last_30_days',
+  }),
+}));
+
+// ── Test Data ────────────────────────────────────────────────────────────────
+
+const mockAttractionData: AttractionDetail = {
   period: '2026-03-01_2026-03-16',
   organicSocial: {
     totals: { reach: 15000, engagement: 450 },
@@ -37,73 +70,95 @@ const mockAttractionData: Partial<AttractionDetail> = {
   },
 };
 
+// ── Tests ────────────────────────────────────────────────────────────────────
+
 describe('useAttractionDetail', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock localStorage for tenant ID
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: {
+        getItem: vi.fn().mockReturnValue('test-tenant-id'),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+        length: 0,
+        key: vi.fn(),
+      },
+      writable: true,
+      configurable: true,
+    });
   });
 
-  it('should return isLoading true initially before fetch completes', () => {
-    // Arrange
-    // TODO (Plan 11-01): Wrap with QueryClientProvider for proper React Query context
-    // For now, scaffold the test structure
-    const isLoading = true;
+  it('returns loading state initially before fetch completes', () => {
+    mockGetAttractionDetail.mockReturnValue(new Promise(() => {})); // never resolves
+    const { wrapper } = createHookWrapper();
 
-    // Act & Assert
-    expect(isLoading).toBe(true);
+    const { result } = renderHook(() => useAttractionDetail(), { wrapper });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.data).toBeUndefined();
   });
 
-  it('should fetch attraction detail data and return it', async () => {
-    // Arrange
-    // TODO (Plan 11-01): Set up metricsApi.getAttractionDetail mock to return mockAttractionData
-    // const { metricsApi } = await import('@/features/growth-studio/api/metrics-api');
-    // vi.mocked(metricsApi.getAttractionDetail).mockResolvedValueOnce(mockAttractionData as AttractionDetail);
+  it('returns attraction detail data on successful fetch', async () => {
+    mockGetAttractionDetail.mockResolvedValue(mockAttractionData);
+    const { wrapper } = createHookWrapper();
 
-    // Verify mock data shape matches expected return type
-    expect(mockAttractionData.period).toBe('2026-03-01_2026-03-16');
-    expect(mockAttractionData.organicSocial?.totals.reach).toBe(15000);
+    const { result } = renderHook(() => useAttractionDetail(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data).toEqual(mockAttractionData);
+    expect(result.current.data?.period).toBe('2026-03-01_2026-03-16');
+    expect(result.current.data?.organicSocial.totals.reach).toBe(15000);
   });
 
-  it('should handle API errors and surface error state', async () => {
-    // Arrange
-    const mockError = new Error('Network Error: Unable to reach analytics API');
+  it('surfaces error on failed fetch', async () => {
+    const apiError = new Error('Network Error: Unable to reach analytics API');
+    mockGetAttractionDetail.mockRejectedValue(apiError);
+    const { wrapper } = createHookWrapper();
 
-    // Act & Assert
-    // TODO (Plan 11-01): Configure mock to reject and verify hook surfaces error
-    // vi.mocked(metricsApi.getAttractionDetail).mockRejectedValueOnce(mockError);
-    expect(mockError.message).toContain('Network Error');
+    const { result } = renderHook(() => useAttractionDetail(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error?.message).toContain('Network Error');
   });
 
-  it('should make parallel API calls without sequential blocking', async () => {
-    // Arrange — useAttractionDetail (and its siblings) each use useQuery with unique queryKeys
-    // so React Query runs them in parallel automatically (no await chaining between hooks)
-    const queryKey = ['attraction-detail'];
+  it('passes the auth token and period to the API function', async () => {
+    mockGetAttractionDetail.mockResolvedValue(mockAttractionData);
+    const { wrapper } = createHookWrapper();
 
-    // Act & Assert
-    // TODO (Plan 11-01): Verify 8 useXxxDetail hooks each declare unique queryKey arrays
-    expect(queryKey[0]).toBe('attraction-detail');
+    renderHook(() => useAttractionDetail(), { wrapper });
+
+    await waitFor(() => {
+      expect(mockGetAttractionDetail).toHaveBeenCalled();
+    });
+
+    // createStageDetailHook calls apiFn(token, selectedPeriod)
+    expect(mockGetAttractionDetail).toHaveBeenCalledWith('mock-test-token', 'last_30_days');
   });
 
-  it('should cache results using React Query staleTime of 5 minutes', async () => {
-    // Arrange
-    // Hook is configured with staleTime: 1000 * 60 * 5 (5 min)
-    const expectedStaleTimeMs = 1000 * 60 * 5;
+  it('includes tenantId and period in the query key', async () => {
+    mockGetAttractionDetail.mockResolvedValue(mockAttractionData);
+    const { wrapper, queryClient } = createHookWrapper();
 
-    // Act & Assert
-    // TODO (Plan 11-01): Verify hook staleTime matches expected value
-    // Confirm no unnecessary refetch within staleTime window
-    expect(expectedStaleTimeMs).toBe(300000);
-  });
+    renderHook(() => useAttractionDetail(), { wrapper });
 
-  it('should use getToken from useAuth to authenticate API calls', async () => {
-    // Arrange
-    const getToken = vi.fn(() => Promise.resolve('mock-bearer-token'));
+    await waitFor(() => {
+      expect(mockGetAttractionDetail).toHaveBeenCalled();
+    });
 
-    // Act
-    const token = await getToken();
-
-    // Assert
-    // TODO (Plan 11-01): Verify hook calls getToken() before invoking metricsApi
-    expect(token).toBe('mock-bearer-token');
-    expect(getToken).toHaveBeenCalledTimes(1);
+    // Verify queryKey structure: ['attraction-detail', tenantId, period]
+    const queryCache = queryClient.getQueryCache();
+    const queries = queryCache.getAll();
+    const attractionQuery = queries.find(q => q.queryKey[0] === 'attraction-detail');
+    expect(attractionQuery).toBeDefined();
+    expect(attractionQuery?.queryKey).toEqual(['attraction-detail', 'test-tenant-id', 'last_30_days']);
   });
 });

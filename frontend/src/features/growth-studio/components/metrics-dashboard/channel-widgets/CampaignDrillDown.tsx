@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { CampaignMetric, MetricValue } from '../../../types/metrics';
+import { METRIC_LABELS } from '../../../lib/metric-labels';
 
 // Format helpers (inline to avoid cross-file dependency)
 function formatNumber(n: number): string {
@@ -21,11 +22,6 @@ function formatMetricValue(m: MetricValue): string {
   if (m.unit === 'percentage') return `${m.value.toFixed(1)}%`;
   return formatNumber(m.value);
 }
-
-const METRIC_LABELS: Record<string, string> = {
-  reach: 'Alcance', clicks: 'Clicks', spend: 'Gasto',
-  emails_sent: 'Enviados', open_rate: 'Apertura', click_rate: 'Clicks',
-};
 
 interface CampaignDrillDownProps {
   campaigns: CampaignMetric[];

@@ -12,6 +12,8 @@ import structlog
 from arq import Retry
 from sentry_sdk.crons import MonitorStatus, capture_checkin
 
+from src.modules.analytics.application.config import CacheConfig
+
 logger = structlog.get_logger(__name__)
 
 # Fibonacci backoff intervals in minutes
@@ -147,7 +149,7 @@ async def run_initial_load(
         def on_progress(loaded, total, status):
             if redis:
                 redis.setex(
-                    progress_key, 3600,
+                    progress_key, CacheConfig.CATALOG_TTL,
                     json.dumps({"status": status, "total_days": total, "completed_days": loaded}),
                 )
 
@@ -175,7 +177,7 @@ async def run_initial_load(
             tenant_id, provider, str(exc),
         )
         if redis:
-            redis.setex(progress_key, 3600, json.dumps({"status": "failed", "error": str(exc)}))
+            redis.setex(progress_key, CacheConfig.CATALOG_TTL, json.dumps({"status": "failed", "error": str(exc)}))
         return {"status": "revoked", "tenant_id": tenant_id, "error": str(exc)}
 
     except Exception as exc:
@@ -189,7 +191,7 @@ async def run_initial_load(
             tenant_id, provider, job_try, defer_seconds, str(exc),
         )
         if redis:
-            redis.setex(progress_key, 3600, json.dumps({"status": "failed", "error": str(exc)}))
+            redis.setex(progress_key, CacheConfig.CATALOG_TTL, json.dumps({"status": "failed", "error": str(exc)}))
         with sentry_sdk.push_scope() as scope:
             scope.set_tag("tenant_id", tenant_id)
             scope.set_tag("provider", provider)
@@ -551,7 +553,7 @@ async def run_manychat_subscriber_sync(
                 job_try,
                 str(exc),
             )
-            raise Retry(defer=300) from exc  # Retry in 5 minutes
+            raise Retry(defer=CacheConfig.DETAIL_STAGE_TTL) from exc  # Retry in 5 minutes
         logger.error(
             "ManyChat sync permanently failed for tenant=%s: %s",
             tenant_id,
