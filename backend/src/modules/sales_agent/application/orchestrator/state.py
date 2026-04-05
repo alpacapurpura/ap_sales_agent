@@ -1,3 +1,4 @@
+import uuid
 from typing import Any, TypedDict
 from uuid import UUID
 
@@ -104,7 +105,7 @@ def create_initial_state(
         "next_node": None,
         "user_id": uid,
         "tenant_id": tid,
-        "session_id": session_id,
+        "session_id": session_id or str(uuid.uuid4()),
         "current_state": current_state or "rapport",
         "detected_intent": None,
         "lead_score": lead_score if lead_score is not None else 0,

@@ -1,6 +1,7 @@
 import structlog
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from src.core.enums import ModelRole
 from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 from src.shared.infrastructure.llm.factory import LLMFactory
 
@@ -21,7 +22,7 @@ async def check_is_complete(text: str, tenant=None) -> bool:
             llm_service = LLMFactory.get_service_for_tenant(tenant)
         else:
             llm_service = LLMFactory.get_service()
-        llm = llm_service.fast_chat_model
+        llm = llm_service.get_client(ModelRole.FAST)
 
         sys_prompt = prompt_loader.render("message_completeness")
 

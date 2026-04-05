@@ -94,7 +94,7 @@ class OutputManager:
 
     @classmethod
     def _parse_response(
-        cls, raw_response: str, _channel_type: str = "telegram"
+        cls, raw_response: str, channel_type: str = "telegram"  # noqa: ARG003
     ) -> list[str]:
         """
         Parses the raw LLM response into user-facing chunks.
