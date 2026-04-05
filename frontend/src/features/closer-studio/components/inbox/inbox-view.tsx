@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname, useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useCloserStore } from "../../store/closer-store";
 import { ConversationList } from "./conversation-list";
@@ -9,17 +9,29 @@ import { ContactSidebar } from "./contact-sidebar";
 
 export function InboxView() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname() ?? "";
+  const params = useParams();
+  const tenantId = (params?.tenantId as string) ?? "";
   const selectedLeadId = useCloserStore((s) => s.selectedLeadId);
   const setSelectedLeadId = useCloserStore((s) => s.setSelectedLeadId);
   const sidebarOpen = useCloserStore((s) => s.sidebarOpen);
 
-  // Sync URL param → store
+  // Sync URL param → store, fallback to localStorage
   useEffect(() => {
     const leadParam = searchParams?.get("lead");
     if (leadParam && leadParam !== selectedLeadId) {
       setSelectedLeadId(leadParam);
+    } else if (!leadParam && !selectedLeadId) {
+      try {
+        const saved = localStorage.getItem(`closer-studio:lastLead:${tenantId}`);
+        if (saved) {
+          setSelectedLeadId(saved);
+          router.replace(`${pathname}?lead=${saved}`, { scroll: false });
+        }
+      } catch { /* localStorage unavailable — non-critical */ }
     }
-  }, [searchParams, selectedLeadId, setSelectedLeadId]);
+  }, [searchParams, selectedLeadId, setSelectedLeadId, tenantId, router, pathname]);
 
   return (
     <div className="flex h-full">
