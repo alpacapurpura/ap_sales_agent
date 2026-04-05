@@ -6,14 +6,8 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatNum(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
-  return n.toLocaleString('es-ES');
-}
+import { formatNum, formatMetricValue } from '../utils/format';
+import { getPrimaryMetricSpec, getExpandedMetrics, getChannelConfig, getSummaryMetrics } from '../../../config/channel-display-registry';
 
 function getMetricValue(metrics: MetricValue[], name: string): number {
   return metrics.find((m) => m.name === name)?.value ?? 0;
@@ -59,36 +53,6 @@ interface ChannelGroupProps {
   onConfigure?: (slug: string, name: string) => void;
 }
 
-// ─── Primary metric extraction per variant ──────────────────────────────────
-
-function getPrimaryMetric(
-  channel: ChannelMetric,
-  variant: ChannelGroupVariant,
-): { value: number; label: string } {
-  const metrics = channel.metrics;
-  switch (variant) {
-    case 'paid': {
-      const val = getMetricValue(metrics, 'impressions');
-      return { value: val, label: 'impresiones' };
-    }
-    case 'organic': {
-      const reach = getMetricValue(metrics, 'reach');
-      const sessions = getMetricValue(metrics, 'sessions');
-      if (reach > 0) return { value: reach, label: 'alcance' };
-      return { value: sessions, label: 'sesiones' };
-    }
-    case 'outbound': {
-      const contacts = getMetricValue(metrics, 'contacts') || getMetricValue(metrics, 'comment_triggers');
-      return { value: contacts, label: 'contactos' };
-    }
-    case 'capture_web':
-    case 'capture_messaging': {
-      const leads = getMetricValue(metrics, 'leads');
-      return { value: leads, label: 'leads' };
-    }
-  }
-}
-
 // ─── Channel icon wrapper (avoids creating components during render) ─────────
 
 /* eslint-disable react-hooks/static-components -- dynamic icon from registry */
@@ -98,15 +62,6 @@ function ChannelIconBadge({ slug, className }: { slug: string; className?: strin
   return <Icon className={className} style={{ color: iconColor }} />;
 }
 /* eslint-enable react-hooks/static-components */
-
-// ─── Website expanded metrics ────────────────────────────────────────────────
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  const min = Math.floor(seconds / 60);
-  const sec = Math.round(seconds % 60);
-  return `${min}m ${sec}s`;
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -169,7 +124,6 @@ export function ChannelGroup({
             <ChannelRowCard
               key={channel.slug}
               channel={channel}
-              variant={variant}
               baseColor={baseColor}
               onClick={onChannelClick ? () => onChannelClick(channel) : undefined}
             />
@@ -184,18 +138,24 @@ export function ChannelGroup({
 
 function ChannelRowCard({
   channel,
-  variant,
   baseColor,
   onClick,
 }: {
   channel: ChannelMetric;
-  variant: ChannelGroupVariant;
   baseColor: keyof typeof COLOR_MAP;
   onClick?: () => void;
 }) {
   const colors = COLOR_MAP[baseColor];
   const hasData = channel.metrics.length > 0 && channel.metrics.some((m) => m.value > 0);
-  const { value, label } = getPrimaryMetric(channel, variant);
+
+  // Use summaryMetrics if configured, otherwise fall back to primaryMetric
+  const config = getChannelConfig(channel.slug);
+  const summaryMetrics = config ? getSummaryMetrics(channel.slug, channel.metrics) : [];
+  const hasSummaryPills = summaryMetrics.length > 1;
+
+  // Fallback: primaryMetric for channels without summaryMetrics config
+  const spec = getPrimaryMetricSpec(channel.slug, channel.channelType);
+  const primaryValue = getMetricValue(channel.metrics, spec.name);
 
   return (
     <div
@@ -206,12 +166,12 @@ function ChannelRowCard({
       onClick={onClick}
     >
       {/* Left: icon + name + status */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0 shrink-0">
         <div className={cn('w-8 h-8 rounded flex items-center justify-center shrink-0', colors.iconBg)}>
           <ChannelIconBadge slug={channel.slug} className="w-4 h-4" />
         </div>
-        <div>
-          <p className="text-sm font-medium text-foreground">{channel.name}</p>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground truncate">{channel.name}</p>
           <p className={cn(
             'text-[10px] font-semibold',
             hasData ? 'text-emerald-600 dark:text-emerald-500' : 'text-amber-600 dark:text-amber-500',
@@ -221,16 +181,42 @@ function ChannelRowCard({
         </div>
       </div>
 
-      {/* Right: primary metric */}
-      <div className="text-right">
-        <p className={cn(
-          'text-sm font-bold underline decoration-dashed underline-offset-4 transition-colors',
-          hasData ? `text-foreground ${colors.hoverText}` : 'text-muted-foreground',
-        )}>
-          {hasData ? formatNum(value) : '0'}
-        </p>
-        <p className="text-[10px] text-muted-foreground">{label}</p>
-      </div>
+      {/* Right: summary pills or single primary metric */}
+      {hasData && hasSummaryPills ? (
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+          {summaryMetrics.map((m) => {
+            const metricSpec = config?.summaryMetrics.find(s => s.name === m.name);
+            const isCurrency = m.unit === 'currency' || metricSpec?.format === 'currency';
+            const formatted = isCurrency
+              ? formatMetricValue(m.value, 'currency')
+              : formatNum(m.value);
+            const metricLabel = metricSpec?.label ?? m.name;
+            const isResponsiveSm = metricSpec?.responsive === 'sm';
+
+            const pill = (
+              <div className="flex flex-col items-end min-w-[44px]">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">{metricLabel}</span>
+                <span className="text-sm font-semibold tabular-nums leading-tight">{formatted}</span>
+              </div>
+            );
+
+            if (isResponsiveSm) {
+              return <div key={m.name} className="hidden sm:flex">{pill}</div>;
+            }
+            return <div key={m.name}>{pill}</div>;
+          })}
+        </div>
+      ) : (
+        <div className="text-right">
+          <p className={cn(
+            'text-sm font-bold underline decoration-dashed underline-offset-4 transition-colors',
+            hasData ? `text-foreground ${colors.hoverText}` : 'text-muted-foreground',
+          )}>
+            {hasData ? formatNum(primaryValue) : '0'}
+          </p>
+          <p className="text-[10px] text-muted-foreground">{spec.label}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -248,12 +234,7 @@ function WebsiteExpandedRow({
 }) {
   const colors = COLOR_MAP[baseColor];
   const hasData = channel.connected && channel.metrics.some((m) => m.value > 0);
-
-  const users = getMetricValue(channel.metrics, 'users');
-  const sessions = getMetricValue(channel.metrics, 'sessions');
-  const engagementRate = getMetricValue(channel.metrics, 'engagementRate');
-  const bounceRate = getMetricValue(channel.metrics, 'bounceRate');
-  const avgDuration = getMetricValue(channel.metrics, 'avgSessionDuration');
+  const expandedSpecs = getExpandedMetrics(channel.slug);
 
   return (
     <div
@@ -276,30 +257,20 @@ function WebsiteExpandedRow({
       </div>
 
       {/* Metrics grid or empty state */}
-      {hasData ? (
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 ml-11">
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Visitantes</p>
-            <p className="text-base font-bold tabular-nums">{formatNum(users)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sesiones</p>
-            <p className="text-base font-bold tabular-nums">{formatNum(sessions)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Engagement</p>
-            <p className="text-base font-bold tabular-nums">{engagementRate.toFixed(1)}%</p>
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Bounce</p>
-            <p className="text-base font-bold tabular-nums">{bounceRate.toFixed(1)}%</p>
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Duracion</p>
-            <p className="text-base font-bold tabular-nums">{formatDuration(avgDuration)}</p>
-          </div>
+      {hasData && expandedSpecs ? (
+        <div className={`grid grid-cols-3 sm:grid-cols-${expandedSpecs.length} gap-3 ml-11`}>
+          {expandedSpecs.map((spec, i) => (
+            <div key={spec.name} className={cn(i >= 3 && 'hidden sm:block')}>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                {spec.label ?? spec.name}
+              </p>
+              <p className="text-base font-bold tabular-nums">
+                {formatMetricValue(getMetricValue(channel.metrics, spec.name), spec.format)}
+              </p>
+            </div>
+          ))}
         </div>
-      ) : (
+      ) : !hasData ? (
         <div className="ml-11">
           <p className="text-xs text-muted-foreground mb-2">
             Tu sitio web siempre esta aqui. Conecta Google Analytics o el Meta Pixel para medir visitas.
@@ -313,7 +284,7 @@ function WebsiteExpandedRow({
             </a>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

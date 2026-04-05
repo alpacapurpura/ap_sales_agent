@@ -90,6 +90,9 @@ from src.modules.analytics.application.services.channel_registry import (
 from src.modules.analytics.application.services.stage_cost_service import (
     StageCostService,
 )
+from src.modules.analytics.application.services.stage_services.attraction_stage import (
+    _enrich_with_derived_metrics,
+)
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.capture_repository import (
@@ -428,6 +431,15 @@ class MetricsService:
                         metrics.append(
                             MetricValueDTO(name=m_name, value=float(m_value))
                         )
+
+            # Enrich with DERIVED and NON_AGGREGABLE metrics
+            metrics = _enrich_with_derived_metrics(
+                metrics,
+                slug,
+                repo,
+                tenant_id,
+                provider_name,
+            )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})

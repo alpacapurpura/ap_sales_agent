@@ -3,7 +3,9 @@
 import React from 'react';
 import type { MetricValue, MetricClickData, StageId } from '../../../types/metrics';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
+import { getChannelConfig } from '../../../config/channel-display-registry';
 import { CostLink } from './CostLink';
+import { formatNum, formatCurrency } from '../utils/format';
 
 /* ── Formatting helpers ──────────────────────────────────────────────── */
 
@@ -21,21 +23,10 @@ const BREAKDOWN_LABELS: Record<string, string> = {
   direct: 'Directo',
 };
 
-function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
-  return n.toLocaleString();
-}
-
-function formatCurrency(n: number, currency?: string): string {
-  const symbol = currency === 'USD' || !currency ? '$' : currency;
-  return `${symbol}${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 function formatBreakdown(breakdown: Record<string, number>): string {
   return Object.entries(breakdown)
     .filter(([, v]) => v > 0)
-    .map(([key, val]) => `${BREAKDOWN_LABELS[key] ?? key} ${formatNumber(val)}`)
+    .map(([key, val]) => `${BREAKDOWN_LABELS[key] ?? key} ${formatNum(val)}`)
     .join(', ');
 }
 
@@ -55,7 +46,7 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByN
   const isCurrency = metric.unit === 'currency';
   const formatted = isCurrency
     ? formatCurrency(metric.value, metric.currency)
-    : formatNumber(metric.value);
+    : formatNum(metric.value);
 
   const canClick = onMetricClick && channelSlug && stageId;
 
@@ -148,6 +139,9 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
     );
   }
 
+  const config = getChannelConfig(channelSlug);
+  const specMap = new Map(config?.summaryMetrics.map(s => [s.name, s]));
+
   return (
     <>
       {displayMetrics.map((m) => {
@@ -165,7 +159,7 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
               <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">
                 {leadsLabel}
               </span>
-              <span className="text-sm font-semibold tabular-nums leading-tight">{formatNumber(m.value)}</span>
+              <span className="text-sm font-semibold tabular-nums leading-tight">{formatNum(m.value)}</span>
               <span className="text-[10px] text-muted-foreground">
                 de {conversationsMetric.value.toLocaleString('es-ES')} conversaciones
               </span>
@@ -191,7 +185,7 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
           return <div key={m.name}>{leadsContent}</div>;
         }
 
-        return (
+        const pill = (
           <MetricDisplay
             key={m.name}
             metric={m}
@@ -201,6 +195,13 @@ export const ChannelRowMetrics = React.memo(function ChannelRowMetrics({
             catalogByName={catalogByName}
           />
         );
+
+        const spec = specMap.get(m.name);
+        if (spec?.responsive === 'sm') {
+          return <div key={m.name} className="hidden sm:flex">{pill}</div>;
+        }
+
+        return pill;
       })}
     </>
   );

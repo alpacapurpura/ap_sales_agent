@@ -12,6 +12,7 @@ import { useMetricCatalog } from '../../../hooks/useMetricCatalog';
 import { ChannelRowHeader } from './ChannelRowHeader';
 import { ChannelRowMetrics } from './ChannelRowMetrics';
 import { ChannelRowActions } from './ChannelRowActions';
+import { getSummaryMetrics } from '../../../config/channel-display-registry';
 
 /** Convert hex color to rgba for backgrounds. */
 function hexToRgba(hex: string, alpha: number): string {
@@ -111,17 +112,8 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
   const hasNoData = channel.metrics.length === 0 || channel.metrics.every(m => m.value === 0);
   const conversationsMetric = channel.metrics.find(m => m.name === 'conversations');
 
-  // Summary metrics: only show top 3 in the row for channels with many metrics
-  const CHANNEL_ROW_SUMMARY_METRICS: Record<string, string[]> = {
-    'ig-organic': ['reach', 'total_interactions', 'ig_followers_count'],
-    'yt-organic': ['views', 'engagement', 'subscribers_gained'],
-    'meta-ads': ['reach', 'spend', 'meta_purchase_roas'],
-    'website-capture': ['visitors'],
-  };
-  const summaryFilter = CHANNEL_ROW_SUMMARY_METRICS[channel.slug];
-  const displayMetrics = channel.metrics
-    .filter(m => m.name !== 'conversations')
-    .filter(m => !summaryFilter || summaryFilter.includes(m.name));
+  // Summary metrics from registry (channels without config show all metrics)
+  const displayMetrics = getSummaryMetrics(channel.slug, channel.metrics);
 
   // Bottleneck badges
   const abandonmentMetric = channel.slug === 'abandoned-cart'

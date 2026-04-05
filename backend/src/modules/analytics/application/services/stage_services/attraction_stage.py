@@ -58,6 +58,67 @@ _DISPLAY_NAME_MAP: dict[str, str] = {
 }
 
 
+def _enrich_with_derived_metrics(
+    metrics: list[MetricValueDTO],
+    channel_slug: str,
+    repo: OfficialMetricsRepository,
+    tenant_id: UUID,
+    provider_name: str,
+) -> list[MetricValueDTO]:
+    """Compute DERIVED and NON_AGGREGABLE metrics missing from aggregations.
+
+    - DERIVED (cpc, cpm): calculated from components already in metrics.
+    - NON_AGGREGABLE (reach): fetched from last 30 days of official_metrics.
+    """
+    existing = {m.name: m.value for m in metrics}
+
+    # ── DERIVED metrics: cpc = spend / clicks, cpm = spend / impressions x 1000
+    spend = existing.get("spend")
+    if spend and spend > 0:
+        clicks = existing.get("clicks")
+        if clicks and clicks > 0 and "cpc" not in existing:
+            metrics.append(
+                MetricValueDTO(
+                    name="cpc",
+                    value=round(spend / clicks, 2),
+                    unit="currency",
+                    currency=next(
+                        (m.currency for m in metrics if m.name == "spend"), None
+                    ),
+                )
+            )
+        impressions = existing.get("impressions")
+        if impressions and impressions > 0 and "cpm" not in existing:
+            metrics.append(
+                MetricValueDTO(
+                    name="cpm",
+                    value=round(spend / impressions * 1000, 2),
+                    unit="currency",
+                    currency=next(
+                        (m.currency for m in metrics if m.name == "spend"), None
+                    ),
+                )
+            )
+
+    # ── NON_AGGREGABLE metrics: reach (last available value from official_metrics)
+    if "reach" not in existing and provider_name:
+        from datetime import timedelta
+
+        now = datetime.now(UTC)
+        raw = repo.get_channel_metrics(
+            tenant_id,
+            provider_name,
+            channel_slug,
+            (now - timedelta(days=30)).date(),
+            now.date(),
+        )
+        reach_val = raw.get("reach")
+        if isinstance(reach_val, (int, float)) and reach_val > 0:
+            metrics.append(MetricValueDTO(name="reach", value=float(reach_val)))
+
+    return metrics
+
+
 class AttractionStageService:
     """Provides attraction stage metrics for the Bowtie dashboard."""
 
@@ -211,6 +272,15 @@ class AttractionStageService:
                         metrics.append(
                             MetricValueDTO(name=m_name, value=float(m_value))
                         )
+
+            # Enrich with DERIVED and NON_AGGREGABLE metrics
+            metrics = _enrich_with_derived_metrics(
+                metrics,
+                slug,
+                repo,
+                tenant_id,
+                provider_name,
+            )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
