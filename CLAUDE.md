@@ -30,7 +30,9 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 | Start dev | `/dev-up` or `make dev` | `docker compose up -d` |
 | Start extended (admin, worker) | `make dev-extended` | `docker compose --profile extended up -d` |
 | Backend lint | `/test-backend` or `make ruff` | `docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cache"` |
+| Backend lint (native) | — | `cd backend && .venv/bin/ruff check src/ --no-cache` |
 | Backend tests | `/test-backend` or `make pytest` | `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short"` |
+| Arch tests (native) | — | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
 | Single backend test | `make pytest args="-k test_name"` | `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/modules/brand/ -x -q"` |
 | Frontend types | `/test-frontend` | `docker exec -t visionarias_client_dev npx tsc --noEmit` |
 | Frontend lint | `/test-frontend` | `docker exec -t visionarias_client_dev npx next lint` |
@@ -96,6 +98,24 @@ Key: `fetchClient` (in `lib/`) auto-injects `X-Tenant-ID` from Clerk session —
 ### CI/CD (`.github/workflows/deploy-prod.yml`)
 
 Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) → push images to GHCR (`ghcr.io/alpacapurpura/visionarias-{backend,frontend}:latest`).
+
+## Native Dev Tools (WSL)
+
+> **Why:** Docker volume mounts (`/app`) always point to the main repo clone. When running
+> parallel agents with git worktrees, the container sees stale code from the wrong worktree.
+> Native tools read the actual filesystem path, making them reliable for multiagent workflows.
+
+**virtualenv:** `backend/.venv` (already set up; excluded from git via `.gitignore`)
+
+| Task | Native command (run from repo root) |
+|---|---|
+| Lint | `cd backend && .venv/bin/ruff check src/ --no-cache` |
+| Architecture tests | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
+
+**When to use native vs Docker:**
+
+- **Native (lint + arch tests):** fast, no DB/Redis required, safe in worktrees. Use when Docker is unreliable or when running inside a git worktree.
+- **Docker (integration tests, migrations, full CI):** required for anything that touches PostgreSQL, Redis, Qdrant, or external services. Always use Docker for the full test suite before merging.
 
 ## Critical Rules
 
