@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -130,6 +130,9 @@ ruff:
 
 pytest-cov:
 	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -q $(args)
+
+arch-test:
+	docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/architecture/ -v"
 
 vitest-cov:
 	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npx vitest run --coverage $(args)

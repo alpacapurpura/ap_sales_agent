@@ -141,3 +141,29 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/module
 3. Pure functions → unit tests without DB. Services → integration with `db` fixture.
 4. No `any` types in test code
 5. Run `ruff check` on test files before committing
+
+## Architectural Fitness Tests
+
+Located at `backend/tests/architecture/`. These run as part of the regular pytest suite.
+
+### What they enforce
+| Test | Rule | Ratchet |
+|---|---|---|
+| `test_no_new_cross_module_imports` | Module A cannot import from Module B (except copilot, shared, core) | Allowlist in test file |
+| `test_domain_layer_has_no_framework_imports` | domain/ must be pure Python (no SQLAlchemy, FastAPI) | No allowlist — zero tolerance |
+| `test_all_endpoints_have_response_model` | Every @router endpoint needs response_model= | Allowlist in test file |
+| `test_no_hard_deletes` | No session.delete() — use soft delete | Allowlist in test file |
+| `test_no_sqlalchemy_1x_query_syntax` | No session.query() — use select().where() | Allowlist in test file |
+
+### Ratchet pattern
+Tests with allowlists have a `KNOWN_*` set listing legacy violations. The test passes if
+all violations are in the allowlist. **New violations fail the build.** To fix a violation:
+1. Refactor the code
+2. Remove the entry from the allowlist
+3. The allowlist can only shrink — never add new entries without code review justification
+
+### When to run
+- `make arch-test` — standalone
+- `make pytest` — included automatically (they're in `tests/architecture/`)
+- `/test-backend` — runs as step 3
+- `/test-all` — runs as step 2

@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Frontend: ESLint + TypeScript (handled by lint-staged in package.json if configured)
+
+# Backend: Ruff lint + format check on staged Python files
+STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$' | head -50)
+if [ -n "$STAGED_PY" ]; then
+  echo "Running ruff on staged Python files..."
+
+  # Check if the backend container is running
+  if ! docker ps --format '{{.Names}}' | grep -q visionarias_brain_dev; then
+    echo "Backend container not running. Skipping Python lint."
+    echo "Start with: make dev"
+    exit 0
+  fi
+
+  # Lint check (errors only, not auto-fix)
+  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check $STAGED_PY --no-cache --no-fix" || {
+    echo "Ruff lint failed. Fix errors before committing."
+    exit 1
+  }
+
+  # Format check (report only)
+  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff format --check $STAGED_PY --no-cache" || {
+    echo "Ruff format check failed. Run: docker exec -t visionarias_brain_dev bash -c 'cd /app && ruff format \$STAGED_PY'"
+    exit 1
+  }
+fi

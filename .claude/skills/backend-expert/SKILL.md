@@ -80,3 +80,4 @@ def upgrade():
 - **Sin logica de negocio en `api/`** — todo va al `application/service`.
 - **Sin Hard Deletes** — siempre soft delete con `deleted_at` o `is_active`.
 - **SQLAlchemy 2.0 only** — `session.execute(select(Model))`, nunca `Session.query(Model)`.
+- **Fitness tests:** New code must pass `pytest tests/architecture/ -v`. These enforce DDD boundaries (no cross-module imports), API contracts (response_model= required), and conventions (no hard deletes, SA 2.0). Run `make arch-test` to verify.

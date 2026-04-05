@@ -21,7 +21,15 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cac
 Use `--no-cache` to avoid permission issues with `.ruff_cache/`.
 If the user wants auto-fix: add `--fix` flag.
 
-### 3. Unit tests with coverage (pytest)
+### 3. Architectural fitness tests
+```bash
+docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/architecture/ -v"
+```
+These validate DDD boundaries (no cross-module imports), API contracts (response_model present),
+and coding conventions (no hard deletes, SA 2.0 syntax). Failures here mean a structural
+regression — fix before proceeding.
+
+### 4. Unit tests with coverage (pytest)
 ```bash
 docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short"
 ```
@@ -35,9 +43,13 @@ To run a specific module's tests:
 docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/modules/{module}/ -v"
 ```
 
-### 4. Report
+### 5. Report
 Summarize:
-- Lint: pass/fail
-- Tests: pass/fail count
-- Coverage: overall % and whether it meets the **60% threshold**
+
+| Step | Result | Coverage |
+|---|---|---|
+| Lint | pass/fail | — |
+| Arch fitness | pass/fail (5 tests) | — |
+| Tests | pass/fail count | XX% (min 60%) |
+
 - If coverage is below 60%, list the modules with lowest coverage

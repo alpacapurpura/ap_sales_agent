@@ -16,36 +16,43 @@ If anything fails, STOP and report the fix needed.
 docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cache"
 ```
 
-### 2. Backend tests with coverage (pytest)
+### 2. Backend architectural fitness tests
+```bash
+docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/architecture/ -v"
+```
+Validates DDD boundaries, API contracts, and coding conventions. If this fails,
+a structural rule was violated — fix before continuing with unit tests.
+
+### 3. Backend tests with coverage (pytest)
 ```bash
 docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term -x -q --tb=short"
 ```
 Note the overall coverage % from the output. Threshold: **60%** (CI will fail below this).
 
-### 3. Frontend types (tsc)
+### 4. Frontend types (tsc)
 ```bash
 docker exec -t visionarias_client_dev npx tsc --noEmit
 ```
 
-### 4. Frontend lint (ESLint)
+### 5. Frontend lint (ESLint)
 ```bash
 docker exec -t visionarias_client_dev npx next lint
 ```
 
-### 5. Frontend tests with coverage (vitest)
+### 6. Frontend tests with coverage (vitest)
 ```bash
 docker exec -t visionarias_client_dev npx vitest run --coverage
 ```
 Note the overall coverage % from the output. Thresholds: **statements 20%, branches 15%, functions 15%, lines 20%**.
 
-### 6. E2E Smoke Tests (Playwright)
+### 7. E2E Smoke Tests (Playwright)
 ```bash
 make e2e-smoke
 ```
 This runs `@smoke`-tagged Playwright tests against the running dev environment.
 If containers are not running, this step will FAIL — the dev must run `make dev` first.
 
-### 7. Migration verification (fresh DB)
+### 8. Migration verification (fresh DB)
 Creates a temporary database and runs ALL migrations from scratch to verify they're correct and idempotent.
 ```bash
 docker exec -t visionarias_postgres psql -U postgres -c "DROP DATABASE IF EXISTS migration_test;"
@@ -55,12 +62,13 @@ docker exec -t visionarias_postgres psql -U postgres -c "DROP DATABASE migration
 ```
 If `alembic upgrade head` fails on the fresh DB, there is a broken or non-idempotent migration. Fix it before deploying.
 
-### 8. Summary
+### 9. Summary
 Report a table:
 
 | Step | Result | Coverage |
 |---|---|---|
 | Backend lint | PASS/FAIL | — |
+| Arch fitness | PASS/FAIL (5 tests) | — |
 | Backend tests | X passed | XX% (min 60%) |
 | Frontend types | PASS/FAIL | — |
 | Frontend lint | PASS/FAIL (N warnings) | — |

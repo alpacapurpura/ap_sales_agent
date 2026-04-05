@@ -161,6 +161,9 @@ Run tests inside Docker:
 # Backend lint
 docker exec -it visionarias_brain_dev bash -c "cd /app && ruff check src --fix"
 
+# Architectural fitness (DDD boundaries, API contracts, conventions)
+docker exec -it visionarias_brain_dev bash -c "cd /app && pytest tests/architecture/ -v"
+
 # Backend tests with coverage
 docker exec -it visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term -x -q --tb=short"
 
@@ -192,6 +195,7 @@ Present results:
 | Step | Result | Coverage |
 |---|---|---|
 | Backend lint | PASS/FAIL | — |
+| Arch fitness | PASS/FAIL | — |
 | Backend tests | X passed | XX% (min 60%) |
 | Frontend types | PASS/FAIL | — |
 | Frontend lint | PASS/FAIL | — |
