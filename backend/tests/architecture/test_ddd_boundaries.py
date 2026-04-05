@@ -64,15 +64,8 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # --- landing ---
     "landing -> offer | landing/application/landing_service.py",
     # --- offer ---
-    "offer -> analytics | offer/application/services/offer_read_port_impl.py",
-    "offer -> analytics | offer/application/services/product_mapping_port_impl.py",
     "offer -> copilot | offer/api/offer_ai.py",
-    "offer -> crm | offer/api/definitions.py",
     "offer -> crm | offer/api/product_mappings.py",
-    "offer -> crm | offer/application/offer_service.py",
-    "offer -> crm | offer/domain/offer.py",
-    "offer -> crm | offer/infrastructure/repositories/enum_normalizer.py",
-    "offer -> landing | offer/domain/offer.py",
     # --- sales_agent ---
     "sales_agent -> brand | sales_agent/application/services/knowledge_builder.py",
     "sales_agent -> connections | sales_agent/application/orchestrator/chat.py",

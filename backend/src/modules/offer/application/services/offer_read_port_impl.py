@@ -11,8 +11,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.modules.analytics.domain.ports import OfferReadDTO, OfferReadPort
 from src.modules.offer.infrastructure.models.product_model import ProductModel
+from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 
 class OfferReadPortImpl(OfferReadPort):
