@@ -91,8 +91,9 @@ jobs:
           NEXT_PUBLIC_API_URL: http://api_dev:8000
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           INTERNAL_API_URL: http://api_dev:8000
-          CLERK_TESTING_TOKEN: ${{ secrets.CLERK_TESTING_TOKEN }}
-          E2E_CLERK_USER_USERNAME: ${{ secrets.E2E_CLERK_USER_USERNAME }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          E2E_CLERK_USER_EMAIL: ${{ secrets.E2E_CLERK_USER_EMAIL }}
+          E2E_CLERK_USER_USERNAME: ${{ secrets.E2E_CLERK_USER_EMAIL }}
           E2E_CLERK_USER_PASSWORD: ${{ secrets.E2E_CLERK_USER_PASSWORD }}
           E2E_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
           POSTGRES_USER: postgres
