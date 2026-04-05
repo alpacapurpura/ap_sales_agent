@@ -1,17 +1,20 @@
-from typing import List, Optional, BinaryIO
 import mimetypes
-from uuid import UUID
 import uuid
-from sqlalchemy.orm import Session
-from fastapi import BackgroundTasks
-import structlog
+from typing import BinaryIO
+from uuid import UUID
 
-from src.modules.assets.domain.entity import Asset
-from src.modules.assets.domain.enums import AssetType, StorageProvider, AssetStatus
-from src.modules.assets.infrastructure.repositories.asset_repository import AssetRepository
-from src.modules.assets.infrastructure.storage import get_storage_strategy
-from src.modules.assets.application.asset_processor import AssetProcessor
+import structlog
+from fastapi import BackgroundTasks
+from sqlalchemy.orm import Session
+
 from src.core.config import settings
+from src.modules.assets.application.asset_processor import AssetProcessor
+from src.modules.assets.domain.entity import Asset
+from src.modules.assets.domain.enums import AssetStatus, AssetType, StorageProvider
+from src.modules.assets.infrastructure.repositories.asset_repository import (
+    AssetRepository,
+)
+from src.modules.assets.infrastructure.storage import get_storage_strategy
 
 logger = structlog.get_logger()
 
@@ -26,12 +29,11 @@ class AssetsService:
     def _detect_type(self, mime_type: str) -> AssetType:
         if mime_type.startswith("image/"):
             return AssetType.IMAGE
-        elif mime_type.startswith("video/"):
+        if mime_type.startswith("video/"):
             return AssetType.VIDEO
-        elif mime_type.startswith("audio/"):
+        if mime_type.startswith("audio/"):
             return AssetType.AUDIO
-        else:
-            return AssetType.DOCUMENT
+        return AssetType.DOCUMENT
 
     def _get_storage_provider(self) -> StorageProvider:
         if settings.STORAGE_PROVIDER.upper() == "R2":
@@ -43,10 +45,10 @@ class AssetsService:
         tenant_id: UUID,
         file_obj: BinaryIO,
         filename: str,
-        mime_type: Optional[str] = None,
-        description: Optional[str] = None,
-        offer_id: Optional[UUID] = None,
-        background_tasks: Optional[BackgroundTasks] = None,
+        mime_type: str | None = None,
+        description: str | None = None,
+        offer_id: UUID | None = None,
+        background_tasks: BackgroundTasks | None = None,
     ) -> Asset:
 
         # 1. Detect MIME Type
@@ -58,7 +60,7 @@ class AssetsService:
         asset_type = self._detect_type(mime_type)
 
         # 2. Save File
-        path_prefix = f"{str(tenant_id)}/{asset_type.lower()}"
+        path_prefix = f"{tenant_id!s}/{asset_type.lower()}"
         storage_path, public_url = self.storage.save(file_obj, filename, path_prefix)
 
         # 3. Create Entity
@@ -139,20 +141,23 @@ class AssetsService:
         )
         db.commit()
 
-    def list_assets(self, tenant_id: UUID, asset_type: Optional[str] = None) -> List[Asset]:
+    def list_assets(
+        self, tenant_id: UUID, asset_type: str | None = None
+    ) -> list[Asset]:
         return self.repository.list_by_tenant(tenant_id, asset_type)
 
-    def list_by_offer(self, offer_id: UUID) -> List[Asset]:
+    def list_by_offer(self, offer_id: UUID) -> list[Asset]:
         return self.repository.list_by_offer(offer_id)
 
-    def delete_asset(self, tenant_id: UUID, asset_id: UUID, offer_id: Optional[UUID] = None) -> bool:
+    def delete_asset(
+        self, tenant_id: UUID, asset_id: UUID, offer_id: UUID | None = None
+    ) -> bool:
         asset = self.repository.get_by_id(asset_id)
         if not asset or str(asset.tenant_id) != str(tenant_id):
             return False
 
         if offer_id and asset.offer_id and str(asset.offer_id) != str(offer_id):
-            if str(asset.offer_id) != str(offer_id):
-                return False
+            return False
 
         if asset.storage_path:
             self.storage.delete(asset.storage_path)

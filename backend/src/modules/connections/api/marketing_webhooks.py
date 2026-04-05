@@ -8,13 +8,15 @@ events into journey_events with identity resolution and scoring.
 
 from uuid import UUID
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-import structlog
 
 from src.core.database import get_db
-from src.modules.connections.api.dependencies.webhook_security import verify_shopify_signature
+from src.modules.connections.api.dependencies.webhook_security import (
+    verify_shopify_signature,
+)
 
 logger = structlog.get_logger()
 
@@ -152,8 +154,13 @@ async def _handle_manychat_event(
     # This lookup prevents creating a duplicate profile.
     profile = None
     if ig_username:
-        from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
-        from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel as _CPM
+        from src.modules.crm.infrastructure.models.customer_model import (
+            CustomerProfileModel as _CPM,
+        )
+        from src.modules.crm.infrastructure.repositories.customer_repository import (
+            CustomerRepository,
+        )
+
         customer_repo = CustomerRepository(db)
         existing = customer_repo.find_by_trait(
             tenant_id=tenant_id,
@@ -331,7 +338,8 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
             JourneyEventModel.event_name == "checkout_initiated",
             sa_func.jsonb_extract_path_text(
                 JourneyEventModel.properties, "checkout_token"
-            ) == checkout_token,
+            )
+            == checkout_token,
         )
         existing = db.execute(existing_stmt).scalar_one_or_none()
         if existing:
@@ -416,9 +424,8 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
         existing_stmt = select(JourneyEventModel.id).where(
             JourneyEventModel.tenant_id == tenant_id,
             JourneyEventModel.event_name == "checkout_completed",
-            sa_func.jsonb_extract_path_text(
-                JourneyEventModel.properties, "order_id"
-            ) == order_id,
+            sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "order_id")
+            == order_id,
         )
         existing = db.execute(existing_stmt).scalar_one_or_none()
         if existing:
@@ -479,9 +486,10 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
     db.add(journey_event)
 
     # Publish one SaleCompletedEvent per line_item
-    from src.shared.domain.events import EventBus
-    from src.modules.crm.domain.events import SaleCompletedEvent
     import uuid as uuid_mod
+
+    from src.modules.crm.domain.events import SaleCompletedEvent
+    from src.shared.domain.events import EventBus
 
     for item in line_items_data:
         product_id = item["product_id"]
@@ -662,7 +670,9 @@ async def mailerlite_webhook_legacy(request: Request, db: Session = Depends(get_
     """Legacy Mailerlite webhook (no tenant_id). Kept for backward compatibility."""
     try:
         payload = await request.json()
-        logger.info("mailerlite_webhook_received_legacy", payload_keys=list(payload.keys()))
+        logger.info(
+            "mailerlite_webhook_received_legacy", payload_keys=list(payload.keys())
+        )
         return {"status": "received", "source": "mailerlite"}
     except Exception as e:
         logger.error("mailerlite_webhook_error", error=str(e))
@@ -684,10 +694,11 @@ async def handle_manychat_webhook(
     - field.updated: Custom field value changed
     - comment.trigger: Comment trigger activated
     """
+    from pydantic import ValidationError
+
     from src.modules.connections.api.dto.manychat_webhook_dto import (
         ManyChatWebhookPayload,
     )
-    from pydantic import ValidationError
 
     try:
         raw = await request.json()

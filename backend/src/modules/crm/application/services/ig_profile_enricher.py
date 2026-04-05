@@ -9,7 +9,6 @@ Permission required: instagram_business_manage_messages (already granted).
 Restriction: only works for users who initiated a conversation (implicit consent).
 """
 
-from typing import Optional
 from uuid import UUID
 
 import httpx
@@ -36,7 +35,7 @@ class InstagramProfileEnricher:
         igsid: str,
         customer_profile_id: UUID,
         access_token: str,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Fetch IG profile data and update customer traits.
 
         Returns the instagram_username if successfully fetched, None otherwise.
@@ -48,10 +47,14 @@ class InstagramProfileEnricher:
         username = profile_data.get("username")
 
         # Update the customer profile model directly
-        profile_model = self.db.query(CustomerProfileModel).filter(
-            CustomerProfileModel.id == customer_profile_id,
-            CustomerProfileModel.tenant_id == tenant_id,
-        ).first()
+        profile_model = (
+            self.db.query(CustomerProfileModel)
+            .filter(
+                CustomerProfileModel.id == customer_profile_id,
+                CustomerProfileModel.tenant_id == tenant_id,
+            )
+            .first()
+        )
 
         if not profile_model:
             return username
@@ -93,7 +96,9 @@ class InstagramProfileEnricher:
         self, tenant_id: UUID, target_id: UUID, username: str
     ) -> None:
         """If a ManyChat-created profile exists with same username, merge it."""
-        from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
+        from src.modules.crm.infrastructure.repositories.customer_repository import (
+            CustomerRepository,
+        )
 
         customer_repo = CustomerRepository(self.db)
         existing = customer_repo.find_by_trait(
@@ -108,9 +113,7 @@ class InstagramProfileEnricher:
                 tenant_id=tenant_id,
             )
 
-    async def _fetch_ig_profile(
-        self, igsid: str, access_token: str
-    ) -> Optional[dict]:
+    async def _fetch_ig_profile(self, igsid: str, access_token: str) -> dict | None:
         """Call Instagram User Profile API for the given IGSID."""
         url = f"https://graph.instagram.com/v24.0/{igsid}"
         params = {"fields": _IG_PROFILE_FIELDS, "access_token": access_token}

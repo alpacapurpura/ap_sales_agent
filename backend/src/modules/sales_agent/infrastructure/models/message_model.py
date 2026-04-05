@@ -1,15 +1,20 @@
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+import uuid
+
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import uuid
+
 from src.shared.domain.base_entity import Base
+
 
 class MessageModel(Base):
     __tablename__ = "messages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column("user_id", UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True, index=True)
+    user_id = Column(
+        "user_id", UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True, index=True
+    )
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
 
     role = Column("role", String, nullable=False)  # user / assistant / system

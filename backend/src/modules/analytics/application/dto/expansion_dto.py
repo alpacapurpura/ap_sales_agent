@@ -9,8 +9,6 @@ Provides the data contract for GET /metrics/expansion endpoint:
 Reuses MiniFunnelDTO from capture_dto and BottleneckDTO from opportunity_dto.
 """
 
-from typing import List, Optional
-
 from pydantic import BaseModel
 
 from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
@@ -25,7 +23,7 @@ class ExpansionOfferDTO(BaseModel):
     count: int
     revenue: float
     currency: str
-    usd_revenue: Optional[float] = None
+    usd_revenue: float | None = None
 
 
 class ExpansionGroupDTO(BaseModel):
@@ -36,20 +34,20 @@ class ExpansionGroupDTO(BaseModel):
     group_subtitle: str
     total_count: int
     total_revenue: float
-    total_revenue_usd: Optional[float] = None
+    total_revenue_usd: float | None = None
     currency: str
-    rate_pct: Optional[float] = None  # retention rate, expansion rate, or churn rate
-    offers: List[ExpansionOfferDTO]
+    rate_pct: float | None = None  # retention rate, expansion rate, or churn rate
+    offers: list[ExpansionOfferDTO]
 
 
 class ExpansionHeaderKpisDTO(BaseModel):
     """Net MRR, Avg LTV, Churn Rate."""
 
     net_mrr: float
-    net_mrr_usd: Optional[float] = None
+    net_mrr_usd: float | None = None
     currency: str
     avg_ltv: float
-    avg_ltv_usd: Optional[float] = None
+    avg_ltv_usd: float | None = None
     churn_rate_pct: float  # 0-100
 
 
@@ -61,6 +59,6 @@ class ExpansionDetailDTO(BaseModel):
     retencion: ExpansionGroupDTO
     crecimiento: ExpansionGroupDTO
     cancelaciones: ExpansionGroupDTO
-    bottlenecks: List[BottleneckDTO] = []
+    bottlenecks: list[BottleneckDTO] = []
     period: str = "last_30_days"
-    last_updated: Optional[str] = None
+    last_updated: str | None = None

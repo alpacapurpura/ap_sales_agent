@@ -7,10 +7,10 @@ Channel slugs:
 Uses TikTokAdapter for API calls. Gracefully handles missing credentials.
 """
 
-import structlog
 from datetime import date
-from typing import List
 from uuid import UUID
+
+import structlog
 
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
@@ -42,13 +42,11 @@ class TikTokProvider(BaseMetricsProvider):
     ) -> ExtractionResult:
         access_token = credentials.get("access_token")
         if not access_token:
-            logger.warning(
-                "tiktok_provider_no_access_token tenant=%s", tenant_id
-            )
+            logger.warning("tiktok_provider_no_access_token tenant=%s", tenant_id)
             return ExtractionResult()
 
         adapter = TikTokAdapter()
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         failures = []
 
         if stage == "nurturing":
@@ -57,7 +55,11 @@ class TikTokProvider(BaseMetricsProvider):
             if advertiser_id:
                 m, fail = await self._safe_extract(
                     self._extract_retargeting,
-                    adapter, access_token, advertiser_id, start_date, end_date,
+                    adapter,
+                    access_token,
+                    advertiser_id,
+                    start_date,
+                    end_date,
                     extractor_name="tiktok_retargeting",
                 )
                 metrics.extend(m)
@@ -68,7 +70,10 @@ class TikTokProvider(BaseMetricsProvider):
             # Organic metrics
             m, fail = await self._safe_extract(
                 self._extract_organic,
-                adapter, access_token, start_date, end_date,
+                adapter,
+                access_token,
+                start_date,
+                end_date,
                 extractor_name="tiktok_organic",
             )
             metrics.extend(m)
@@ -80,7 +85,11 @@ class TikTokProvider(BaseMetricsProvider):
             if advertiser_id:
                 m, fail = await self._safe_extract(
                     self._extract_ads,
-                    adapter, access_token, advertiser_id, start_date, end_date,
+                    adapter,
+                    access_token,
+                    advertiser_id,
+                    start_date,
+                    end_date,
                     extractor_name="tiktok_ads",
                 )
                 metrics.extend(m)
@@ -96,7 +105,7 @@ class TikTokProvider(BaseMetricsProvider):
         advertiser_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract TikTok Ads retargeting metrics (Custom Audience campaigns).
 
         TODO: TikTok Ads API audience_type filtering requires additional API call
@@ -116,8 +125,13 @@ class TikTokProvider(BaseMetricsProvider):
 
         for row in data:
             # Best-effort retargeting detection by campaign name
-            campaign_name = (row.get("dimensions", {}).get("campaign_name", "") or "").lower()
-            if "retargeting" not in campaign_name and "remarketing" not in campaign_name:
+            campaign_name = (
+                row.get("dimensions", {}).get("campaign_name", "") or ""
+            ).lower()
+            if (
+                "retargeting" not in campaign_name
+                and "remarketing" not in campaign_name
+            ):
                 continue
             row_metrics = row.get("metrics", {})
             total_reach += float(row_metrics.get("reach", 0))
@@ -160,11 +174,9 @@ class TikTokProvider(BaseMetricsProvider):
         access_token: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract TikTok organic reach and engagement."""
-        data = await adapter.get_organic_insights(
-            access_token, start_date, end_date
-        )
+        data = await adapter.get_organic_insights(access_token, start_date, end_date)
         if not data:
             return []
 
@@ -213,7 +225,7 @@ class TikTokProvider(BaseMetricsProvider):
         advertiser_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract TikTok Ads metrics."""
         data = await adapter.get_ads_report(
             access_token, advertiser_id, start_date, end_date

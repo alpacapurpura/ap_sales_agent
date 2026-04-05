@@ -1,10 +1,12 @@
-from typing import List
-from sqlalchemy.orm import Session
 from uuid import UUID
-from src.modules.sales_agent.domain.message import Message
+
+from sqlalchemy.orm import Session
+
 from src.modules.sales_agent.domain.enums import MessageSender
+from src.modules.sales_agent.domain.message import Message
 from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
- 
+
+
 class MessageRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -19,7 +21,7 @@ class MessageRepository:
             channel=model.channel,
             external_id=model.external_id,
             metadata_info=model.metadata_info or {},
-            created_at=model.created_at
+            created_at=model.created_at,
         )
 
     def _to_model(self, message: Message) -> MessageModel:
@@ -31,7 +33,7 @@ class MessageRepository:
             content=message.content,
             channel=message.channel,
             external_id=message.external_id,
-            metadata_info=message.metadata_info
+            metadata_info=message.metadata_info,
         )
 
     def create(self, message: Message) -> Message:
@@ -41,8 +43,12 @@ class MessageRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def get_history(self, lead_id: UUID, limit: int = 50) -> List[Message]:
-        models = self.db.query(MessageModel).filter(
-            MessageModel.lead_id == lead_id
-        ).order_by(MessageModel.created_at.asc()).limit(limit).all()
+    def get_history(self, lead_id: UUID, limit: int = 50) -> list[Message]:
+        models = (
+            self.db.query(MessageModel)
+            .filter(MessageModel.lead_id == lead_id)
+            .order_by(MessageModel.created_at.asc())
+            .limit(limit)
+            .all()
+        )
         return [self._to_domain(m) for m in models]

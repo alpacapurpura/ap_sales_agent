@@ -1,7 +1,7 @@
 import datetime
 import logging
 import os
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 from uuid import UUID
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -16,7 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class PromptLoader:
-    def __init__(self, templates_dir: str = "src/modules/copilot/infrastructure/prompts/templates"):
+    def __init__(
+        self,
+        templates_dir: str = "src/modules/copilot/infrastructure/prompts/templates",
+    ):
         base_path = os.getcwd()
         full_path = os.path.join(base_path, templates_dir)
         self.fs_env = Environment(
@@ -25,20 +28,28 @@ class PromptLoader:
             trim_blocks=True,
             lstrip_blocks=True,
         )
-        self._cache: Dict[Tuple[str, Optional[UUID]], Dict[str, Any]] = {}
-        self._tenant_config_cache: Dict[UUID, Dict[str, Any]] = {}
+        self._cache: dict[tuple[str, UUID | None], dict[str, Any]] = {}
+        self._tenant_config_cache: dict[UUID, dict[str, Any]] = {}
 
-    def _get_tenant_config(self, tenant_id: UUID) -> Dict[str, Any]:
+    def _get_tenant_config(self, tenant_id: UUID) -> dict[str, Any]:
         if tenant_id in self._tenant_config_cache:
             return self._tenant_config_cache[tenant_id]
 
         db = SessionLocal()
         try:
-            result = db.execute(
-                text("SELECT config_json FROM tenants WHERE id = :tenant_id LIMIT 1"),
-                {"tenant_id": str(tenant_id)},
-            ).mappings().first()
-            config = result["config_json"] if result and result.get("config_json") else {}
+            result = (
+                db.execute(
+                    text(
+                        "SELECT config_json FROM tenants WHERE id = :tenant_id LIMIT 1"
+                    ),
+                    {"tenant_id": str(tenant_id)},
+                )
+                .mappings()
+                .first()
+            )
+            config = (
+                result["config_json"] if result and result.get("config_json") else {}
+            )
             self._tenant_config_cache[tenant_id] = config
             return config
         except Exception as exc:
@@ -47,20 +58,23 @@ class PromptLoader:
         finally:
             db.close()
 
-    def _update_cache(self, key: str, tenant_id: Optional[UUID], prompt: Dict[str, Any]) -> None:
+    def _update_cache(
+        self, key: str, tenant_id: UUID | None, prompt: dict[str, Any]
+    ) -> None:
         self._cache[(key, tenant_id)] = {
             "content": prompt["content"],
             "version": prompt.get("version", 1),
             "loaded_at": datetime.datetime.now().timestamp(),
         }
 
-    def _get_from_db(self, key: str, tenant_id: Optional[UUID]) -> Optional[str]:
+    def _get_from_db(self, key: str, tenant_id: UUID | None) -> str | None:
         db = SessionLocal()
         try:
             if tenant_id:
-                tenant_prompt = db.execute(
-                    text(
-                        """
+                tenant_prompt = (
+                    db.execute(
+                        text(
+                            """
                         SELECT content, version
                         FROM prompt_versions
                         WHERE key = :key
@@ -69,16 +83,20 @@ class PromptLoader:
                         ORDER BY version DESC
                         LIMIT 1
                         """
-                    ),
-                    {"key": key, "tenant_id": str(tenant_id)},
-                ).mappings().first()
+                        ),
+                        {"key": key, "tenant_id": str(tenant_id)},
+                    )
+                    .mappings()
+                    .first()
+                )
                 if tenant_prompt:
                     self._update_cache(key, tenant_id, tenant_prompt)
                     return tenant_prompt["content"]
 
-            global_prompt = db.execute(
-                text(
-                    """
+            global_prompt = (
+                db.execute(
+                    text(
+                        """
                     SELECT content, version
                     FROM prompt_versions
                     WHERE key = :key
@@ -87,9 +105,12 @@ class PromptLoader:
                     ORDER BY version DESC
                     LIMIT 1
                     """
-                ),
-                {"key": key},
-            ).mappings().first()
+                    ),
+                    {"key": key},
+                )
+                .mappings()
+                .first()
+            )
             if global_prompt:
                 self._update_cache(key, tenant_id, global_prompt)
                 return global_prompt["content"]
@@ -119,7 +140,7 @@ class PromptLoader:
         if mode == PromptSource.FILE:
             return self._load_from_file(key, template_name, **full_context)
 
-        template_content: Optional[str] = None
+        template_content: str | None = None
         cache_key = (key, tenant_id)
         ttl_seconds = 60
         if cache_key in self._cache:

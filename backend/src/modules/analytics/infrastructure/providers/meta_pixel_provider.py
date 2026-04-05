@@ -7,7 +7,6 @@ GET /{pixel_id}/stats?aggregation=event&event=PageView,ViewContent,Lead,AddToCar
 import calendar
 import logging
 from datetime import date
-from typing import List
 from uuid import UUID
 
 import httpx
@@ -50,9 +49,7 @@ class MetaPixelProvider(BaseMetricsProvider):
         pixel_id = credentials.get("asset_id")
         access_token = credentials.get("access_token")
         if not pixel_id or not access_token:
-            logger.warning(
-                "meta_pixel_no_credentials tenant=%s", tenant_id
-            )
+            logger.warning("meta_pixel_no_credentials tenant=%s", tenant_id)
             return ExtractionResult()
 
         start_unix = int(calendar.timegm(start_date.timetuple()))
@@ -71,7 +68,7 @@ class MetaPixelProvider(BaseMetricsProvider):
             resp.raise_for_status()
             data = resp.json()
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for item in data.get("data", []):
             event_name = item.get("event")
             count = item.get("count", 0)

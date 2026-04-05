@@ -1,8 +1,10 @@
-from typing import List, Optional
-from sqlalchemy.orm import Session
 from uuid import UUID
+
+from sqlalchemy.orm import Session
+
 from src.modules.assets.domain.entity import GalleryImage
 from src.modules.assets.infrastructure.models.gallery_model import GalleryImageModel
+
 
 class GalleryRepository:
     def __init__(self, db: Session):
@@ -22,7 +24,7 @@ class GalleryRepository:
             status=model.status,
             error_message=model.error_message,
             created_at=model.created_at,
-            updated_at=model.updated_at
+            updated_at=model.updated_at,
         )
 
     def _to_model(self, entity: GalleryImage) -> GalleryImageModel:
@@ -37,7 +39,7 @@ class GalleryRepository:
             ai_description=entity.ai_description,
             ai_colors=entity.ai_colors,
             status=entity.status,
-            error_message=entity.error_message
+            error_message=entity.error_message,
         )
 
     def create(self, entity: GalleryImage) -> GalleryImage:
@@ -47,22 +49,38 @@ class GalleryRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def get_by_id(self, image_id: UUID) -> Optional[GalleryImage]:
-        model = self.db.query(GalleryImageModel).filter(GalleryImageModel.id == image_id).first()
+    def get_by_id(self, image_id: UUID) -> GalleryImage | None:
+        model = (
+            self.db.query(GalleryImageModel)
+            .filter(GalleryImageModel.id == image_id)
+            .first()
+        )
         if model:
             return self._to_domain(model)
         return None
 
-    def list_by_offer(self, offer_id: UUID) -> List[GalleryImage]:
-        models = self.db.query(GalleryImageModel).filter(GalleryImageModel.offer_id == offer_id).all()
+    def list_by_offer(self, offer_id: UUID) -> list[GalleryImage]:
+        models = (
+            self.db.query(GalleryImageModel)
+            .filter(GalleryImageModel.offer_id == offer_id)
+            .all()
+        )
         return [self._to_domain(m) for m in models]
 
-    def list_by_tenant(self, tenant_id: UUID) -> List[GalleryImage]:
-        models = self.db.query(GalleryImageModel).filter(GalleryImageModel.tenant_id == tenant_id).all()
+    def list_by_tenant(self, tenant_id: UUID) -> list[GalleryImage]:
+        models = (
+            self.db.query(GalleryImageModel)
+            .filter(GalleryImageModel.tenant_id == tenant_id)
+            .all()
+        )
         return [self._to_domain(m) for m in models]
 
     def delete(self, image_id: UUID) -> bool:
-        model = self.db.query(GalleryImageModel).filter(GalleryImageModel.id == image_id).first()
+        model = (
+            self.db.query(GalleryImageModel)
+            .filter(GalleryImageModel.id == image_id)
+            .first()
+        )
         if model:
             self.db.delete(model)
             self.db.commit()

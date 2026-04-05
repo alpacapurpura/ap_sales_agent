@@ -31,7 +31,9 @@ class CampaignSyncPipeline:
         self._repo = repository
 
     async def run_sync(
-        self, tenant_id: UUID, credentials: dict,
+        self,
+        tenant_id: UUID,
+        credentials: dict,
     ) -> dict:
         """Extract and upsert full campaign hierarchy + recommendations.
 
@@ -43,7 +45,9 @@ class CampaignSyncPipeline:
             campaigns_count = await self._repo.upsert_campaigns(tenant_id, campaigns)
 
             # 2. Ad Sets + inline recommendations
-            ad_sets, adset_recs = await self._provider.extract_ad_sets(client, credentials)
+            ad_sets, adset_recs = await self._provider.extract_ad_sets(
+                client, credentials
+            )
             adsets_count = await self._repo.upsert_ad_sets(tenant_id, ad_sets)
 
             # 3. Ads + inline recommendations
@@ -52,7 +56,8 @@ class CampaignSyncPipeline:
 
             # 4. Account-level recommendations
             account_recs = await self._provider.extract_account_recommendations(
-                client, credentials,
+                client,
+                credentials,
             )
 
             # 5. Merge all recommendations and upsert
@@ -65,13 +70,22 @@ class CampaignSyncPipeline:
             ad_ids = [a["external_id"] for a in ads]
 
             stale_camps = await self._repo.soft_delete_stale(
-                tenant_id, "meta", "ad_campaigns", campaign_ids,
+                tenant_id,
+                "meta",
+                "ad_campaigns",
+                campaign_ids,
             )
             stale_adsets = await self._repo.soft_delete_stale(
-                tenant_id, "meta", "ad_sets", adset_ids,
+                tenant_id,
+                "meta",
+                "ad_sets",
+                adset_ids,
             )
             stale_ads = await self._repo.soft_delete_stale(
-                tenant_id, "meta", "ads", ad_ids,
+                tenant_id,
+                "meta",
+                "ads",
+                ad_ids,
             )
 
         summary = {

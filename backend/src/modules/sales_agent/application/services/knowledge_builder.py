@@ -11,13 +11,20 @@ so new fields are automatically available without changing this builder.
 
 import logging
 from uuid import UUID
+
 from sqlalchemy.orm import Session
 
-from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
-from src.modules.brand.infrastructure.repositories.avatar_repository import AvatarRepository
-from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
+from src.modules.brand.infrastructure.repositories.avatar_repository import (
+    AvatarRepository,
+)
+from src.modules.brand.infrastructure.repositories.brand_repository import (
+    BrandRepository,
+)
+from src.modules.offer.infrastructure.repositories.offer_repository import (
+    OfferRepository,
+)
 from src.modules.sales_agent.application.services.semantic_router import SemanticRouter
+from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +54,17 @@ class TenantKnowledgeBuilder:
             # 2. Prepare template context using full model dumps
             # New fields added to these models will automatically flow into templates
             brand_data = brand.model_dump(mode="json") if brand else {}
-            avatar_data = [a.model_dump(mode="json") for a in avatars] if avatars else []
+            avatar_data = (
+                [a.model_dump(mode="json") for a in avatars] if avatars else []
+            )
 
             # Filter active offers only for the agent's knowledge
             active_offers = [o for o in offers if o.status.value in ("active", "draft")]
-            offers_data = [o.model_dump(mode="json") for o in active_offers] if active_offers else []
+            offers_data = (
+                [o.model_dump(mode="json") for o in active_offers]
+                if active_offers
+                else []
+            )
 
             # 3. Extract convenience variables for the template
             identity = brand_data.get("identity", {}) or {}
@@ -65,7 +78,7 @@ class TenantKnowledgeBuilder:
             # Default avatar (the primary ICP)
             default_avatar = next(
                 (a for a in avatar_data if a.get("is_default")),
-                avatar_data[0] if avatar_data else {}
+                avatar_data[0] if avatar_data else {},
             )
 
             # 4. Register tenant-specific semantic routes (objection trigger_phrases)
@@ -101,7 +114,10 @@ class TenantKnowledgeBuilder:
             return rendered
 
         except Exception as e:
-            logger.error(f"Error building agent identity for tenant {tenant_id}: {e}", exc_info=True)
+            logger.error(
+                f"Error building agent identity for tenant {tenant_id}: {e}",
+                exc_info=True,
+            )
             # Return a minimal fallback so the agent can still function
             return self._fallback_identity()
 

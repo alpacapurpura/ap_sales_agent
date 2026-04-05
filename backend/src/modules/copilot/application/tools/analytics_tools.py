@@ -4,20 +4,18 @@ Analytics tools — give the copilot access to funnel metrics and sales data.
 
 import json
 from datetime import datetime, timedelta
-from typing import Optional
 
+import structlog
 from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 
-import structlog
-
 logger = structlog.get_logger()
 
 
 @tool
-def get_funnel_metrics(period: Optional[str] = None) -> str:
+def get_funnel_metrics(period: str | None = None) -> str:
     """Consulta métricas del funnel de ventas (revenue, conversiones, leads).
 
     Args:
@@ -46,7 +44,9 @@ def get_funnel_metrics(period: Optional[str] = None) -> str:
 
         # Sales summary (grouped by stage, offer, source)
         summary = repo.get_sales_summary(tenant_id, start_date, end_date)
-        total_conversions = repo.get_total_conversion_customers(tenant_id, start_date, end_date)
+        total_conversions = repo.get_total_conversion_customers(
+            tenant_id, start_date, end_date
+        )
         total_sqls = repo.get_total_sql_count(tenant_id, start_date, end_date)
 
         if not summary and total_conversions == 0:
@@ -76,7 +76,9 @@ def get_funnel_metrics(period: Optional[str] = None) -> str:
                 stage_agg[stage]["count"] += s.count
                 stage_agg[stage]["revenue"] += s.total_revenue
             for stage, data in stage_agg.items():
-                lines.append(f"  - {stage}: {data['count']} ventas, ${data['revenue']:,.2f}")
+                lines.append(
+                    f"  - {stage}: {data['count']} ventas, ${data['revenue']:,.2f}"
+                )
 
         # Build ui_action payload for MetricSummaryCard
         ui_metrics = [
@@ -87,16 +89,18 @@ def get_funnel_metrics(period: Optional[str] = None) -> str:
             {"label": "SQLs", "value": str(total_sqls)},
         ]
 
-        return json.dumps({
-            "text": "\n".join(lines),
-            "ui_action": {
-                "type": "metric_summary",
-                "metrics": ui_metrics,
-            },
-        })
+        return json.dumps(
+            {
+                "text": "\n".join(lines),
+                "ui_action": {
+                    "type": "metric_summary",
+                    "metrics": ui_metrics,
+                },
+            }
+        )
     except Exception as e:
         logger.error("analytics_tools_error", error=str(e))
-        return f"Error consultando métricas: {str(e)}"
+        return f"Error consultando métricas: {e!s}"
     finally:
         db.close()
 

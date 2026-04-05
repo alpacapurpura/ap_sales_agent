@@ -7,8 +7,7 @@ Provides:
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -30,14 +29,14 @@ logger = logging.getLogger(__name__)
 class ActiveFailure(BaseModel):
     tenant_id: str
     provider: str
-    error: Optional[str] = None
-    failed_at: Optional[datetime] = None
+    error: str | None = None
+    failed_at: datetime | None = None
 
 
 class ETLHealthResponse(BaseModel):
-    last_successful_run: Optional[datetime] = None
+    last_successful_run: datetime | None = None
     pending_tenants: int = 0
-    active_failures: List[ActiveFailure] = []
+    active_failures: list[ActiveFailure] = []
     timestamp: datetime
 
 
@@ -55,15 +54,15 @@ class SubExtractorFailureDTO(BaseModel):
 class ExtractionStatusItem(BaseModel):
     provider: str
     status: str
-    last_updated: Optional[datetime] = None
-    error: Optional[str] = None
+    last_updated: datetime | None = None
+    error: str | None = None
     metrics_count: int = 0
-    sub_extractor_failures: List[SubExtractorFailureDTO] = []
+    sub_extractor_failures: list[SubExtractorFailureDTO] = []
 
 
 class ETLStatusResponse(BaseModel):
     tenant_id: str
-    extractions: List[ExtractionStatusItem]
+    extractions: list[ExtractionStatusItem]
 
 
 # --- Routers ---
@@ -91,13 +90,14 @@ def get_etl_health(db: Session = Depends(get_db)):
     last_success = db.execute(last_success_stmt).scalar_one_or_none()
 
     # Pending tenants (distinct tenant_ids with PENDING or RUNNING status)
-    pending_stmt = (
-        select(func.count(func.distinct(ExtractionRunModel.tenant_id)))
-        .where(
-            ExtractionRunModel.status.in_([
+    pending_stmt = select(
+        func.count(func.distinct(ExtractionRunModel.tenant_id))
+    ).where(
+        ExtractionRunModel.status.in_(
+            [
                 ExtractionStatus.PENDING.value,
                 ExtractionStatus.RUNNING.value,
-            ])
+            ]
         )
     )
     pending_count = db.execute(pending_stmt).scalar_one() or 0
@@ -125,7 +125,7 @@ def get_etl_health(db: Session = Depends(get_db)):
         last_successful_run=last_success,
         pending_tenants=pending_count,
         active_failures=active_failures,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
     )
 
 
@@ -153,17 +153,19 @@ async def retry_extraction(
         raise HTTPException(status_code=404, detail="Extraction run not found")
 
     # Cooldown check: no retry within 15 minutes for same tenant+provider
-    cooldown_threshold = datetime.now(timezone.utc) - timedelta(minutes=15)
+    cooldown_threshold = datetime.now(UTC) - timedelta(minutes=15)
     recent_stmt = (
         select(ExtractionRunModel)
         .where(
             ExtractionRunModel.tenant_id == tenant_id,
             ExtractionRunModel.provider == run.provider,
-            ExtractionRunModel.status.in_([
-                ExtractionStatus.PENDING.value,
-                ExtractionStatus.RUNNING.value,
-                ExtractionStatus.RETRYING.value,
-            ]),
+            ExtractionRunModel.status.in_(
+                [
+                    ExtractionStatus.PENDING.value,
+                    ExtractionStatus.RUNNING.value,
+                    ExtractionStatus.RETRYING.value,
+                ]
+            ),
             ExtractionRunModel.created_at > cooldown_threshold,
         )
         .limit(1)
@@ -178,7 +180,8 @@ async def retry_extraction(
 
     # Enqueue the retry job via ARQ
     try:
-        from arq.connections import create_pool, RedisSettings
+        from arq.connections import RedisSettings, create_pool
+
         from src.core.config import settings
 
         pool = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
@@ -226,14 +229,11 @@ def get_etl_status(
         .subquery()
     )
 
-    stmt = (
-        select(ExtractionRunModel)
-        .join(
-            subquery,
-            (ExtractionRunModel.provider == subquery.c.provider)
-            & (ExtractionRunModel.created_at == subquery.c.max_created)
-            & (ExtractionRunModel.tenant_id == tenant_id),
-        )
+    stmt = select(ExtractionRunModel).join(
+        subquery,
+        (ExtractionRunModel.provider == subquery.c.provider)
+        & (ExtractionRunModel.created_at == subquery.c.max_created)
+        & (ExtractionRunModel.tenant_id == tenant_id),
     )
     runs = db.execute(stmt).scalars().all()
 

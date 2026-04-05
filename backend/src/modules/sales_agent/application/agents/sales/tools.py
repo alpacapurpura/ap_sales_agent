@@ -8,14 +8,15 @@ The TOOL_REGISTRY maps tool names (as emitted by specialists in
 [TOOL_REQUEST: {"tool": "<name>"}] blocks) to their implementations.
 """
 
-import structlog
-from typing import Dict, Any
+from typing import Any
 from uuid import UUID
+
+import structlog
 
 logger = structlog.get_logger()
 
 
-def tool_send_payment_link(state: Dict[str, Any], db: Any = None) -> Dict[str, str]:
+def tool_send_payment_link(state: dict[str, Any], db: Any = None) -> dict[str, str]:
     """Returns the checkout URL for the active offer."""
     product = state.get("active_product") or {}
     url = product.get("checkout_page_url")
@@ -32,7 +33,7 @@ def tool_send_payment_link(state: Dict[str, Any], db: Any = None) -> Dict[str, s
     }
 
 
-def tool_check_schedule(state: Dict[str, Any], db: Any = None) -> Dict[str, Any]:
+def tool_check_schedule(state: dict[str, Any], db: Any = None) -> dict[str, Any]:
     """Returns scheduling availability info."""
     product = state.get("active_product") or {}
     calendar_type_id = product.get("calendar_type_id")
@@ -71,7 +72,7 @@ def tool_check_schedule(state: Dict[str, Any], db: Any = None) -> Dict[str, Any]
         return {"status": "error", "message": "Error verificando disponibilidad."}
 
 
-def tool_recommend_product(state: Dict[str, Any], db: Any = None) -> Dict[str, Any]:
+def tool_recommend_product(state: dict[str, Any], db: Any = None) -> dict[str, Any]:
     """Recommends best-fit offer based on lead profile."""
     qa = state.get("qualification_answers") or {}
     return {
@@ -85,7 +86,7 @@ def tool_recommend_product(state: Dict[str, Any], db: Any = None) -> Dict[str, A
     }
 
 
-def tool_escalate_to_human(state: Dict[str, Any], db: Any = None) -> Dict[str, str]:
+def tool_escalate_to_human(state: dict[str, Any], db: Any = None) -> dict[str, str]:
     """Flags the conversation for human takeover."""
     return {
         "status": "escalated",
@@ -96,7 +97,7 @@ def tool_escalate_to_human(state: Dict[str, Any], db: Any = None) -> Dict[str, s
     }
 
 
-TOOL_REGISTRY: Dict[str, Any] = {
+TOOL_REGISTRY: dict[str, Any] = {
     "send_payment_link": tool_send_payment_link,
     "check_schedule": tool_check_schedule,
     "recommend_product": tool_recommend_product,

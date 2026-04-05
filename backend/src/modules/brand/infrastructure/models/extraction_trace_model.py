@@ -1,7 +1,9 @@
-from sqlalchemy import Column, String, Integer, Float, Text, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.sql import func
 import uuid
+
+from sqlalchemy import Column, DateTime, Float, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.sql import func
+
 from src.shared.domain.base_entity import Base
 
 
@@ -13,14 +15,16 @@ class BrandExtractionTrace(Base):
     job_id = Column(String, nullable=False, index=True)
 
     # Config
-    mode = Column(String, nullable=False)            # "initial" | "update"
-    profile_name = Column(String, nullable=False)     # "safe" | "fast"
+    mode = Column(String, nullable=False)  # "initial" | "update"
+    profile_name = Column(String, nullable=False)  # "safe" | "fast"
     url = Column(Text, nullable=True)
     include_visuals = Column(String, default="false")
     include_assets = Column(String, default="false")
 
     # Results
-    status = Column(String, nullable=False, default="running")  # running | completed | failed
+    status = Column(
+        String, nullable=False, default="running"
+    )  # running | completed | failed
     content_length = Column(Integer, default=0)
     sections_total = Column(Integer, default=0)
     sections_succeeded = Column(Integer, default=0)

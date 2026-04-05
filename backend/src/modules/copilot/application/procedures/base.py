@@ -6,7 +6,6 @@ Completion is checked dynamically via schema_introspection — no hardcoded fiel
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from src.core.database import SessionLocal
@@ -21,11 +20,11 @@ from src.modules.copilot.domain.schema_introspection import (
 class ProcedureStep:
     step_id: str
     module_id: str  # "brand", "offer" → lookup in MODULE_REGISTRY
-    section_id: Optional[str]  # Section in the Pydantic model (auto-discovered)
+    section_id: str | None  # Section in the Pydantic model (auto-discovered)
     instruction: str  # What to tell the user
     validation: str  # "has_any_data" | "has_required_fields" | "custom"
-    tips: List[str] = field(default_factory=list)
-    route_hint: Optional[str] = None  # Suggested navigation route
+    tips: list[str] = field(default_factory=list)
+    route_hint: str | None = None  # Suggested navigation route
 
 
 @dataclass
@@ -33,7 +32,7 @@ class Procedure:
     procedure_id: str
     name: str
     description: str
-    steps: List[ProcedureStep]
+    steps: list[ProcedureStep]
 
     def get_current_step_index(self, tenant_id: UUID) -> int:
         """Find the first incomplete step. Uses MODULE_REGISTRY + schema_introspection."""
@@ -47,7 +46,7 @@ class Procedure:
         finally:
             db.close()
 
-    def get_completion_summary(self, tenant_id: UUID) -> Dict[str, bool]:
+    def get_completion_summary(self, tenant_id: UUID) -> dict[str, bool]:
         """Return {step_id: bool} indicating completion of each step."""
         db = SessionLocal()
         try:

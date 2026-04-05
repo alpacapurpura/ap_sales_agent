@@ -18,11 +18,15 @@ class ChannelCostSettingModel(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-    channel_slug = Column(String, nullable=False)  # "mailerlite", "whatsapp-inbound", etc.
+    channel_slug = Column(
+        String, nullable=False
+    )  # "mailerlite", "whatsapp-inbound", etc.
     cost_type = Column(String, nullable=False)  # "platform", "agency", "tool", "llm"
     monthly_amount = Column(Float, nullable=False)
     currency = Column(String(3), default="USD")
-    proration_category = Column(String, nullable=True)  # "organic_management", "paid_management", "video", "full_service"
+    proration_category = Column(
+        String, nullable=True
+    )  # "organic_management", "paid_management", "video", "full_service"
     description = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -31,7 +35,9 @@ class ChannelCostSettingModel(Base):
 
     __table_args__ = (
         UniqueConstraint(
-            "tenant_id", "channel_slug", "cost_type",
+            "tenant_id",
+            "channel_slug",
+            "cost_type",
             name="uq_channel_cost_tenant_slug_type",
         ),
     )

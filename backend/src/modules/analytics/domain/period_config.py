@@ -71,10 +71,10 @@ class TenantPeriodConfig:
         if period_type == "weekly":
             _, we = self.get_week_boundaries(d)
             return d == we
-        elif period_type == "monthly":
+        if period_type == "monthly":
             _, me = self.get_month_boundaries(d)
             return d == me
-        elif period_type == "quarterly":
+        if period_type == "quarterly":
             _, qe = self.get_quarter_boundaries(d)
             return d == qe
         return False

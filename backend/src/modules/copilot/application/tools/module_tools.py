@@ -7,8 +7,8 @@ via model_dump(). No copilot code changes needed.
 """
 
 import json
-from typing import Optional
 
+import structlog
 from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id
@@ -17,8 +17,6 @@ from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.domain.schema_introspection import (
     get_model_sections,
 )
-
-import structlog
 
 logger = structlog.get_logger()
 
@@ -42,7 +40,9 @@ def _format_section_data(section_name: str, data) -> str:
             if value in (None, "", [], {}):
                 continue
             if isinstance(value, (dict, list)):
-                lines.append(f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}")
+                lines.append(
+                    f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}"
+                )
             else:
                 lines.append(f"- **{key}:** {value}")
         lines.append("")
@@ -93,7 +93,9 @@ def _format_offer_list(offers: list) -> str:
         if o.get("pricing"):
             pricing = o["pricing"]
             currency = o.get("currency", "USD")
-            lines.append(f"   Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}")
+            lines.append(
+                f"   Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}"
+            )
         lines.append("")
 
     return "\n".join(lines)
@@ -143,7 +145,7 @@ def _format_landing_list(pages: list) -> str:
 
 
 @tool
-def get_module_data(module: str, section: Optional[str] = None) -> str:
+def get_module_data(module: str, section: str | None = None) -> str:
     """Lee datos de cualquier módulo del sistema.
 
     Args:
@@ -184,12 +186,11 @@ def get_module_data(module: str, section: Optional[str] = None) -> str:
         if isinstance(data, list):
             if module == "offer":
                 return _format_offer_list(data)
-            elif module == "connections":
+            if module == "connections":
                 return _format_connections_list(data)
-            elif module == "landing":
+            if module == "landing":
                 return _format_landing_list(data)
-            else:
-                return f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"
+            return f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"
 
         # Handle Pydantic model with introspection
         if hasattr(data, "model_dump"):
@@ -208,12 +209,11 @@ def get_module_data(module: str, section: Optional[str] = None) -> str:
         if descriptor.model_class:
             sections = get_model_sections(descriptor.model_class)
             return _format_module_summary(descriptor.label, raw, sections)
-        else:
-            return _format_section_data(descriptor.label, raw)
+        return _format_section_data(descriptor.label, raw)
 
     except Exception as e:
         logger.error("module_tools_error", module=module, error=str(e))
-        return f"Error leyendo {descriptor.label}: {str(e)}"
+        return f"Error leyendo {descriptor.label}: {e!s}"
     finally:
         db.close()
 

@@ -5,6 +5,7 @@ reads from the official_metrics table where webhook events have been
 promoted. This allows the ETL pipeline to include ManyChat in
 aggregation and cache invalidation flows.
 """
+
 from datetime import date
 from uuid import UUID
 

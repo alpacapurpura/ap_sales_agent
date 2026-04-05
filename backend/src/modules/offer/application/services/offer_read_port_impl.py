@@ -6,7 +6,6 @@ ProductModel directly without crossing DDD boundaries.
 """
 
 import asyncio
-from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -22,9 +21,7 @@ class OfferReadPortImpl(OfferReadPort):
     def __init__(self, db: Session):
         self.db = db
 
-    async def get_offers_by_tenant(
-        self, tenant_id: UUID
-    ) -> List[OfferReadDTO]:
+    async def get_offers_by_tenant(self, tenant_id: UUID) -> list[OfferReadDTO]:
         """All active offers for a tenant (excludes archived)."""
         stmt = select(ProductModel).where(
             ProductModel.tenant_id == tenant_id,
@@ -35,8 +32,8 @@ class OfferReadPortImpl(OfferReadPort):
         return [self._to_dto(m) for m in models]
 
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: Optional[UUID] = None
-    ) -> Optional[OfferReadDTO]:
+        self, offer_id: UUID, tenant_id: UUID | None = None
+    ) -> OfferReadDTO | None:
         """Single offer by ID, scoped to tenant when provided."""
         conditions = [ProductModel.id == offer_id]
         if tenant_id is not None:

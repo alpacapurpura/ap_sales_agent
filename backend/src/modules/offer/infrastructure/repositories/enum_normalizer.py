@@ -2,8 +2,8 @@
 
 All functions are pure (no side effects, no DB access) and can be tested in isolation.
 """
-from typing import Dict, List, Optional
 
+from src.modules.crm.domain.enums import FinancialCapacity
 from src.modules.offer.domain.enums import (
     DeliverableFormat,
     GuaranteeType,
@@ -13,10 +13,9 @@ from src.modules.offer.domain.enums import (
     OfferValueLevel,
     PaymentPlanType,
 )
-from src.modules.crm.domain.enums import FinancialCapacity
 
 
-def normalize_value_level(raw: Optional[str]) -> Optional[OfferValueLevel]:
+def normalize_value_level(raw: str | None) -> OfferValueLevel | None:
     if not raw:
         return None
     try:
@@ -28,7 +27,7 @@ def normalize_value_level(raw: Optional[str]) -> Optional[OfferValueLevel]:
             return None
 
 
-def normalize_delivery_model(raw: Optional[str]) -> Optional[str]:
+def normalize_delivery_model(raw: str | None) -> str | None:
     if not raw:
         return None
     try:
@@ -43,7 +42,7 @@ def normalize_delivery_model(raw: Optional[str]) -> Optional[str]:
             return None
 
 
-def normalize_guarantee_type(raw: Optional[str]) -> str:
+def normalize_guarantee_type(raw: str | None) -> str:
     value = raw or "none"
     if value.upper() == "NO_REFUNDS":
         return "none"
@@ -67,26 +66,27 @@ def normalize_archetype(raw: str, offer_id=None) -> OfferArchetype:
             return OfferArchetype(raw.lower())
         except (ValueError, AttributeError):
             import structlog
+
             structlog.get_logger().warning(
                 "invalid_archetype", raw=raw, offer_id=str(offer_id)
             )
             raise ValueError(f"Invalid OfferArchetype in DB: {raw}")
 
 
-def normalize_status(raw: Optional[str]) -> OfferStatus:
+def normalize_status(raw: str | None) -> OfferStatus:
     if not raw:
         return OfferStatus.DRAFT
     return OfferStatus(raw.lower())
 
 
-def normalize_financial_capacity(raw: Optional[str]) -> FinancialCapacity:
+def normalize_financial_capacity(raw: str | None) -> FinancialCapacity:
     value = raw or FinancialCapacity.LOW_INCOME
     if value == "LOW":
         return FinancialCapacity.LOW_INCOME
     return value
 
 
-def normalize_pricing_options(pricing_raw: List) -> List[Dict]:
+def normalize_pricing_options(pricing_raw: list) -> list[dict]:
     """Normalize legacy plan_type values in pricing JSONB."""
     result = []
     for p in pricing_raw:
@@ -111,7 +111,7 @@ def normalize_pricing_options(pricing_raw: List) -> List[Dict]:
     return result
 
 
-def normalize_deliverables(deliverables_raw: List) -> List[Dict]:
+def normalize_deliverables(deliverables_raw: list) -> list[dict]:
     """Normalize legacy format values in deliverables JSONB."""
     result = []
     for d in deliverables_raw:
@@ -146,7 +146,7 @@ _DETAILS_REPLACEMENTS = {
 }
 
 
-def normalize_specific_details(details_json: Dict) -> Dict:
+def normalize_specific_details(details_json: dict) -> dict:
     """Normalize legacy uppercase values in specific_details JSONB."""
     if not details_json:
         return details_json

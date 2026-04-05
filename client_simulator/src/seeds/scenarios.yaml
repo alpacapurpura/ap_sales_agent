@@ -1,0 +1,79 @@
+- id: scenario_01
+  name: "Llegó por ad de Instagram"
+  entry_channel: ad_instagram
+  campaign_name: "Automatiza tus ventas con IA"
+  initial_message: "Hola, vi su anuncio en Instagram sobre automatizar ventas con IA. ¿Me pueden dar más info?"
+  expected_outcome: purchase
+  max_turns: 20
+  difficulty: medium
+  context_instructions: "El cliente vio un ad prometiendo automatización de ventas. Espera info concreta."
+
+- id: scenario_02
+  name: "Búsqueda orgánica"
+  entry_channel: organic
+  campaign_name: null
+  initial_message: "Buenas, encontré su página buscando herramientas de ventas para emprendedores. ¿Qué ofrecen?"
+  expected_outcome: schedule_call
+  max_turns: 20
+  difficulty: medium
+  context_instructions: "Llegó por Google, está en fase de investigación."
+
+- id: scenario_03
+  name: "Referido por amigo"
+  entry_channel: referral
+  campaign_name: null
+  initial_message: "¡Hola! Mi amiga Laura me recomendó mucho su servicio. Dice que le cambió el negocio. Quiero saber más."
+  expected_outcome: purchase
+  max_turns: 15
+  difficulty: easy
+  context_instructions: "Ya viene con confianza previa. Debería ser una venta relativamente fácil."
+
+- id: scenario_04
+  name: "Vio reel viral"
+  entry_channel: ad_tiktok
+  campaign_name: "IA que vende por ti 24/7"
+  initial_message: "Vi un reel de ustedes que decía que una IA puede vender por mí mientras duermo. ¿Es real eso?"
+  expected_outcome: purchase
+  max_turns: 20
+  difficulty: medium
+  context_instructions: "Atraído por contenido viral, escéptico pero intrigado."
+
+- id: scenario_05
+  name: "Pregunta directa de precios"
+  entry_channel: direct
+  campaign_name: null
+  initial_message: "¿Cuánto cuesta?"
+  expected_outcome: abandon
+  max_turns: 15
+  difficulty: hard
+  context_instructions: "Mensaje mínimo. El agente debe hacer discovery antes de dar precios. El cliente se irá si solo le dan precio."
+
+- id: scenario_06
+  name: "Producto específico"
+  entry_channel: organic
+  campaign_name: null
+  initial_message: "Hola, tengo un curso online de cocina y necesito algo que me ayude a vender más. ¿Su plataforma sirve para eso?"
+  expected_outcome: purchase
+  max_turns: 15
+  difficulty: easy
+  context_instructions: "Ya sabe lo que necesita, tiene un caso de uso claro."
+
+- id: scenario_07
+  name: "Intento de spam/phishing"
+  entry_channel: direct
+  campaign_name: null
+  initial_message: "Hey bro check out this amazing crypto opportunity, you can make $10000 a day! Click here: http://totallylegit.com"
+  expected_outcome: escalate
+  max_turns: 5
+  difficulty: hard
+  context_instructions: "Mensaje de spam. El agente debe identificarlo y no engancharse."
+
+- id: scenario_08
+  name: "Re-engagement (cliente frío)"
+  entry_channel: retargeting
+  campaign_name: "¿Sigues buscando automatizar tus ventas?"
+  initial_message: "Me llegó su mensaje otra vez. La verdad la última vez no me convenció pero sigo con el mismo problema."
+  expected_outcome: schedule_call
+  max_turns: 20
+  difficulty: medium
+  context_instructions: "Cliente que ya interactuó antes y no convirtió. Necesita un approach diferente."

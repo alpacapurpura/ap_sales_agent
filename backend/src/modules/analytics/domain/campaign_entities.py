@@ -10,6 +10,7 @@ from enum import Enum
 
 class CampaignObjective(str, Enum):
     """Meta ODAX (Outcome-Driven Ad Experiences) objectives."""
+
     OUTCOME_AWARENESS = "OUTCOME_AWARENESS"
     OUTCOME_ENGAGEMENT = "OUTCOME_ENGAGEMENT"
     OUTCOME_TRAFFIC = "OUTCOME_TRAFFIC"
@@ -39,6 +40,7 @@ class CampaignStatus(str, Enum):
 
 class EffectiveStatus(str, Enum):
     """Effective status includes inherited states from parent objects."""
+
     ACTIVE = "ACTIVE"
     PAUSED = "PAUSED"
     DELETED = "DELETED"
@@ -67,7 +69,8 @@ class LearningStage(str, Enum):
 
 class RecommendationSource(str, Enum):
     """Where the recommendation came from."""
-    ACCOUNT = "account"      # GET /act_{id}/recommendations
-    CAMPAIGN = "campaign"    # campaign.recommendations field
-    AD_SET = "ad_set"        # adset.recommendations field
-    AD = "ad"                # ad.recommendations field
+
+    ACCOUNT = "account"  # GET /act_{id}/recommendations
+    CAMPAIGN = "campaign"  # campaign.recommendations field
+    AD_SET = "ad_set"  # adset.recommendations field
+    AD = "ad"  # ad.recommendations field

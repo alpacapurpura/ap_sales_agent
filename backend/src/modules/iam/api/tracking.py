@@ -24,7 +24,9 @@ async def get_tracking_config(
 ) -> TrackingConfig:
     """Get current tracking configuration for the tenant."""
     if not user.tenant_id:
-        raise HTTPException(status_code=400, detail="User is not associated with a tenant")
+        raise HTTPException(
+            status_code=400, detail="User is not associated with a tenant"
+        )
 
     result = db.execute(select(TenantModel).where(TenantModel.id == user.tenant_id))
     tenant = result.scalars().first()
@@ -35,7 +37,9 @@ async def get_tracking_config(
     return TrackingConfig(**(tenant.tracking_config or {}))
 
 
-@router.patch("/tracking", response_model=TrackingConfig, summary="Update tracking config")
+@router.patch(
+    "/tracking", response_model=TrackingConfig, summary="Update tracking config"
+)
 async def update_tracking_config(
     config: TrackingConfig,
     db: Session = Depends(get_db),
@@ -43,7 +47,9 @@ async def update_tracking_config(
 ) -> TrackingConfig:
     """Update GTM, Meta Pixel, GA4 tracking configuration for the tenant."""
     if not user.tenant_id:
-        raise HTTPException(status_code=400, detail="User is not associated with a tenant")
+        raise HTTPException(
+            status_code=400, detail="User is not associated with a tenant"
+        )
 
     result = db.execute(select(TenantModel).where(TenantModel.id == user.tenant_id))
     tenant = result.scalars().first()

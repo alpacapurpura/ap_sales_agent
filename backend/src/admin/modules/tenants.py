@@ -1,7 +1,9 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
 from src.core.database import SessionLocal
 from src.modules.iam.application.services.tenant_service import TenantService
+
 
 def get_tenants():
     db = SessionLocal()
@@ -11,13 +13,17 @@ def get_tenants():
     finally:
         db.close()
 
+
 def create_tenant(name, slug, can_use_keys, company_name, agent_persona):
     db = SessionLocal()
     try:
         service = TenantService(db)
-        return service.create_tenant(name, slug, can_use_keys, company_name, agent_persona)
+        return service.create_tenant(
+            name, slug, can_use_keys, company_name, agent_persona
+        )
     finally:
         db.close()
+
 
 def update_tenant(tenant_id, name, slug, can_use_keys, is_active):
     db = SessionLocal()
@@ -27,6 +33,7 @@ def update_tenant(tenant_id, name, slug, can_use_keys, is_active):
     finally:
         db.close()
 
+
 def render_tenants_view():
     st.title("🏢 Gestión de Tenants")
 
@@ -34,7 +41,9 @@ def render_tenants_view():
     tenants = get_tenants()
 
     # Tabs para organizar
-    tab_list, tab_create, tab_edit = st.tabs(["📋 Listado", "➕ Crear Nuevo", "✏️ Editar"])
+    tab_list, tab_create, tab_edit = st.tabs(
+        ["📋 Listado", "➕ Crear Nuevo", "✏️ Editar"]
+    )
 
     # --- TAB 1: LISTADO ---
     with tab_list:
@@ -46,14 +55,16 @@ def render_tenants_view():
             # Preparamos datos para mostrar
             data = []
             for t in tenants:
-                data.append({
-                    "ID": str(t.id),
-                    "Nombre": t.name,
-                    "Slug": t.slug,
-                    "Activo": t.is_active,
-                    "Usa Keys Plataforma": t.can_use_platform_keys,
-                    "Creado": t.created_at
-                })
+                data.append(
+                    {
+                        "ID": str(t.id),
+                        "Nombre": t.name,
+                        "Slug": t.slug,
+                        "Activo": t.is_active,
+                        "Usa Keys Plataforma": t.can_use_platform_keys,
+                        "Creado": t.created_at,
+                    }
+                )
 
             df = pd.DataFrame(data)
             st.dataframe(
@@ -71,7 +82,7 @@ def render_tenants_view():
                     ),
                 },
                 hide_index=True,
-                use_container_width=True
+                use_container_width=True,
             )
             st.caption(f"Total: {len(tenants)} tenants")
 
@@ -92,9 +103,14 @@ def render_tenants_view():
                 new_slug = st.text_input("Slug (URL identifier)")
             with col2:
                 new_company = st.text_input("Nombre de la Empresa (Config)")
-                new_persona = st.text_input("Persona del Agente (Config)", placeholder="Asistente útil y profesional")
+                new_persona = st.text_input(
+                    "Persona del Agente (Config)",
+                    placeholder="Asistente útil y profesional",
+                )
 
-            new_use_keys = st.checkbox("¿Permitir uso de Keys de Plataforma?", value=False)
+            new_use_keys = st.checkbox(
+                "¿Permitir uso de Keys de Plataforma?", value=False
+            )
 
             submitted = st.form_submit_button("Crear Tenant")
             if submitted:
@@ -106,11 +122,13 @@ def render_tenants_view():
                         slug=new_slug,
                         can_use_keys=new_use_keys,
                         company_name=new_company,
-                        agent_persona=new_persona or "Asistente útil y profesional"
+                        agent_persona=new_persona or "Asistente útil y profesional",
                     )
 
                     if new_tenant:
-                        st.session_state.tenant_created_success = f"✅ Tenant '{new_name}' creado exitosamente!"
+                        st.session_state.tenant_created_success = (
+                            f"✅ Tenant '{new_name}' creado exitosamente!"
+                        )
                         st.rerun()
                     else:
                         st.error(error)
@@ -123,7 +141,9 @@ def render_tenants_view():
         if not tenants_opts:
             st.warning("No hay tenants para editar.")
         else:
-            selected_name = st.selectbox("Seleccionar Tenant", list(tenants_opts.keys()))
+            selected_name = st.selectbox(
+                "Seleccionar Tenant", list(tenants_opts.keys())
+            )
             selected_id = tenants_opts[selected_name]
 
             # Usamos la lista ya cargada en memoria en lugar de hacer query directa
@@ -137,14 +157,25 @@ def render_tenants_view():
 
                     col_e1, col_e2 = st.columns(2)
                     with col_e1:
-                        edit_use_keys = st.checkbox("Usa Keys Plataforma", value=current_tenant.can_use_platform_keys)
+                        edit_use_keys = st.checkbox(
+                            "Usa Keys Plataforma",
+                            value=current_tenant.can_use_platform_keys,
+                        )
                     with col_e2:
-                        edit_active = st.checkbox("Activo", value=current_tenant.is_active)
+                        edit_active = st.checkbox(
+                            "Activo", value=current_tenant.is_active
+                        )
 
                     submitted_edit = st.form_submit_button("Guardar Cambios")
 
                     if submitted_edit:
-                        updated, error = update_tenant(selected_id, edit_name, edit_slug, edit_use_keys, edit_active)
+                        updated, error = update_tenant(
+                            selected_id,
+                            edit_name,
+                            edit_slug,
+                            edit_use_keys,
+                            edit_active,
+                        )
                         if updated:
                             st.success("Tenant actualizado correctamente.")
                             st.rerun()

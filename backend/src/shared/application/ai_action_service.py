@@ -4,8 +4,7 @@ import json
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Type, TypeVar, Union
-from uuid import UUID
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
 from pydantic import BaseModel, ValidationError
@@ -13,12 +12,15 @@ from pydantic import BaseModel, ValidationError
 from src.core.enums import ModelRole
 from src.shared.infrastructure.llm.factory import LLMFactory
 
+if TYPE_CHECKING:
+    from uuid import UUID
+
 TModel = TypeVar("TModel", bound=BaseModel)
 
 
 @dataclass(frozen=True)
 class AIModelPolicy:
-    model_type: Union[str, ModelRole] = ModelRole.REASONING
+    model_type: str | ModelRole = ModelRole.REASONING
     temperature: float = 0.7
     max_output_tokens: int = 800
 
@@ -38,18 +40,18 @@ class AIActionService:
         self,
         *,
         action_name: str,
-        tenant_id: Optional[UUID],
+        tenant_id: UUID | None,
         system_prompt: str,
         user_prompt: str,
-        response_model: Type[TModel],
-        policy: Optional[AIActionPolicy] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        response_model: type[TModel],
+        policy: AIActionPolicy | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> TModel:
         resolved_policy = policy or AIActionPolicy()
         request_metadata = metadata or {}
         self._validate_inputs(action_name, system_prompt, user_prompt, resolved_policy)
         started_at = time.perf_counter()
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
 
         for attempt in range(1, resolved_policy.retries + 1):
             attempt_started_at = time.perf_counter()
@@ -76,14 +78,20 @@ class AIActionService:
                     action_name=action_name,
                     tenant_id=str(tenant_id) if tenant_id else None,
                     attempt=attempt,
-                    duration_ms=round((time.perf_counter() - attempt_started_at) * 1000, 2),
-                    total_duration_ms=round((time.perf_counter() - started_at) * 1000, 2),
+                    duration_ms=round(
+                        (time.perf_counter() - attempt_started_at) * 1000, 2
+                    ),
+                    total_duration_ms=round(
+                        (time.perf_counter() - started_at) * 1000, 2
+                    ),
                     model_type=resolved_policy.model.model_type,
                 )
                 return parsed
             except (json.JSONDecodeError, ValidationError, Exception) as error:
                 last_error = error
-                raw_preview = llm_response[:300] if 'llm_response' in locals() else "N/A"
+                raw_preview = (
+                    llm_response[:300] if "llm_response" in locals() else "N/A"
+                )
                 self.logger.warning(
                     "ai_action_retry",
                     action_name=action_name,
@@ -92,7 +100,9 @@ class AIActionService:
                     retries=resolved_policy.retries,
                     error=str(error),
                     raw_response_preview=raw_preview,
-                    duration_ms=round((time.perf_counter() - attempt_started_at) * 1000, 2),
+                    duration_ms=round(
+                        (time.perf_counter() - attempt_started_at) * 1000, 2
+                    ),
                     model_type=resolved_policy.model.model_type,
                 )
                 if attempt < resolved_policy.retries:
@@ -107,7 +117,9 @@ class AIActionService:
             error=str(last_error) if last_error else "unknown",
             model_type=resolved_policy.model.model_type,
         )
-        raise ValueError("La IA generó una respuesta inválida para la acción solicitada.")
+        raise ValueError(
+            "La IA generó una respuesta inválida para la acción solicitada."
+        )
 
     @staticmethod
     def _extract_json(raw: str) -> str:

@@ -1,7 +1,7 @@
-from typing import List, Optional
+from uuid import UUID
+
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
-from uuid import UUID
 
 from src.modules.brand.domain import Avatar
 from src.modules.brand.infrastructure.models.avatar_model import AvatarModel
@@ -11,7 +11,7 @@ class AvatarRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_by_tenant(self, tenant_id: UUID, scope: Optional[str] = None) -> List[Avatar]:
+    def get_by_tenant(self, tenant_id: UUID, scope: str | None = None) -> list[Avatar]:
         stmt = select(AvatarModel).where(AvatarModel.tenant_id == tenant_id)
         if scope:
             stmt = stmt.where(AvatarModel.scope == scope)
@@ -19,7 +19,7 @@ class AvatarRepository:
         models = result.scalars().all()
         return [Avatar.model_validate(m) for m in models]
 
-    def get_by_id(self, avatar_id: UUID) -> Optional[Avatar]:
+    def get_by_id(self, avatar_id: UUID) -> Avatar | None:
         stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
         result = self.db.execute(stmt)
         model = result.scalars().first()
@@ -37,14 +37,14 @@ class AvatarRepository:
             icp_description=avatar.icp_description,
             anti_avatar=avatar.anti_avatar,
             voice_tone_config=avatar.voice_tone_config,
-            is_default=avatar.is_default
+            is_default=avatar.is_default,
         )
         self.db.add(db_avatar)
         self.db.commit()
         self.db.refresh(db_avatar)
         return Avatar.model_validate(db_avatar)
 
-    def update(self, avatar_id: UUID, data: dict) -> Optional[Avatar]:
+    def update(self, avatar_id: UUID, data: dict) -> Avatar | None:
         stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
         result = self.db.execute(stmt)
         model = result.scalars().first()
@@ -71,7 +71,7 @@ class AvatarRepository:
         self.db.commit()
         return True
 
-    def set_global_default(self, tenant_id: UUID, avatar_id: UUID) -> Optional[Avatar]:
+    def set_global_default(self, tenant_id: UUID, avatar_id: UUID) -> Avatar | None:
         # Unset all defaults for this tenant using SA 2.0 update()
         stmt_unset = (
             update(AvatarModel)

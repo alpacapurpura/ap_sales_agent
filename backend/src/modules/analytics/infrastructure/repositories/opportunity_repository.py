@@ -7,19 +7,19 @@ Follows the same pattern as NurtureMetricsRepository.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import Float, cast, func, select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
-    LifecycleTransitionModel,
-)
+from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.infrastructure.models.customer_model import (
     JourneyEventModel,
 )
-from src.modules.crm.domain.enums import LifecycleStage
+from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+    LifecycleTransitionModel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,14 +37,13 @@ class OpportunityMetricsRepository:
         end_date: datetime,
     ) -> int:
         """Count distinct profiles that transitioned TO SQL stage within period."""
-        stmt = (
-            select(func.count(func.distinct(LifecycleTransitionModel.profile_id)))
-            .where(
-                LifecycleTransitionModel.tenant_id == tenant_id,
-                LifecycleTransitionModel.to_stage == LifecycleStage.SQL,
-                LifecycleTransitionModel.occurred_at >= start_date,
-                LifecycleTransitionModel.occurred_at <= end_date,
-            )
+        stmt = select(
+            func.count(func.distinct(LifecycleTransitionModel.profile_id))
+        ).where(
+            LifecycleTransitionModel.tenant_id == tenant_id,
+            LifecycleTransitionModel.to_stage == LifecycleStage.SQL,
+            LifecycleTransitionModel.occurred_at >= start_date,
+            LifecycleTransitionModel.occurred_at <= end_date,
         )
         result = self.db.execute(stmt).scalar()
         return int(result) if result else 0
@@ -56,14 +55,13 @@ class OpportunityMetricsRepository:
         end_date: datetime,
     ) -> int:
         """Count distinct profiles that transitioned TO MQL stage (mini funnel source)."""
-        stmt = (
-            select(func.count(func.distinct(LifecycleTransitionModel.profile_id)))
-            .where(
-                LifecycleTransitionModel.tenant_id == tenant_id,
-                LifecycleTransitionModel.to_stage == LifecycleStage.MQL,
-                LifecycleTransitionModel.occurred_at >= start_date,
-                LifecycleTransitionModel.occurred_at <= end_date,
-            )
+        stmt = select(
+            func.count(func.distinct(LifecycleTransitionModel.profile_id))
+        ).where(
+            LifecycleTransitionModel.tenant_id == tenant_id,
+            LifecycleTransitionModel.to_stage == LifecycleStage.MQL,
+            LifecycleTransitionModel.occurred_at >= start_date,
+            LifecycleTransitionModel.occurred_at <= end_date,
         )
         result = self.db.execute(stmt).scalar()
         return int(result) if result else 0
@@ -73,7 +71,7 @@ class OpportunityMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> dict[str, dict[str, Any]]:
         """Count checkout_initiated and cart_abandoned journey_events.
 
         Returns: {
@@ -99,7 +97,7 @@ class OpportunityMetricsRepository:
         )
         count_rows = self.db.execute(count_stmt).all()
 
-        counts: Dict[str, Dict[str, Any]] = {
+        counts: dict[str, dict[str, Any]] = {
             name: {"count": 0, "value": 0.0} for name in event_names
         }
         for event_name, count in count_rows:
@@ -108,26 +106,23 @@ class OpportunityMetricsRepository:
         # Sum total_price from properties JSONB for each event type
         for name in event_names:
             if counts[name]["count"] > 0:
-                value_stmt = (
-                    select(
-                        func.coalesce(
-                            func.sum(
-                                cast(
-                                    func.jsonb_extract_path_text(
-                                        JourneyEventModel.properties, "total_price"
-                                    ),
-                                    Float,
-                                )
-                            ),
-                            0.0,
-                        )
+                value_stmt = select(
+                    func.coalesce(
+                        func.sum(
+                            cast(
+                                func.jsonb_extract_path_text(
+                                    JourneyEventModel.properties, "total_price"
+                                ),
+                                Float,
+                            )
+                        ),
+                        0.0,
                     )
-                    .where(
-                        JourneyEventModel.tenant_id == tenant_id,
-                        JourneyEventModel.event_name == name,
-                        JourneyEventModel.occurred_at >= start_date,
-                        JourneyEventModel.occurred_at <= end_date,
-                    )
+                ).where(
+                    JourneyEventModel.tenant_id == tenant_id,
+                    JourneyEventModel.event_name == name,
+                    JourneyEventModel.occurred_at >= start_date,
+                    JourneyEventModel.occurred_at <= end_date,
                 )
                 try:
                     value_result = self.db.execute(value_stmt).scalar()
@@ -143,7 +138,7 @@ class OpportunityMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Count meeting_booked, meeting_completed, meeting_no_show, meeting_rescheduled.
 
         Returns: {"booked": int, "completed": int, "no_show": int, "rescheduled": int}
@@ -187,19 +182,16 @@ class OpportunityMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Count payment_link_sent journey_events.
 
         Returns: {"count": int, "value": float}
         """
-        count_stmt = (
-            select(func.count(JourneyEventModel.id))
-            .where(
-                JourneyEventModel.tenant_id == tenant_id,
-                JourneyEventModel.event_name == "payment_link_sent",
-                JourneyEventModel.occurred_at >= start_date,
-                JourneyEventModel.occurred_at <= end_date,
-            )
+        count_stmt = select(func.count(JourneyEventModel.id)).where(
+            JourneyEventModel.tenant_id == tenant_id,
+            JourneyEventModel.event_name == "payment_link_sent",
+            JourneyEventModel.occurred_at >= start_date,
+            JourneyEventModel.occurred_at <= end_date,
         )
         count = int(self.db.execute(count_stmt).scalar() or 0)
         return {"count": count, "value": 0.0}

@@ -1,14 +1,16 @@
 """Streamlit admin: Explorador de Conversaciones — browse copilot conversations."""
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 
-def render_conversations_page():
+def render_conversations_page():  # noqa: C901
     st.title("💬 Explorador de Conversaciones")
 
     from src.admin.modules._shared import (
-        TOOLTIPS, render_tenant_selector, get_tenant_name,
+        TOOLTIPS,
+        get_tenant_name,
+        render_tenant_selector,
     )
     from src.core.database import SessionLocal
     from src.modules.copilot.infrastructure.repositories.conversation_repository import (
@@ -62,8 +64,16 @@ def render_conversations_page():
             avg_tools = round(total_tools / len(convs), 1) if convs else 0
 
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Total Conversaciones", total_convs, help="Conversaciones en el periodo seleccionado")
-            c2.metric("Promedio Msgs/Conv", avg_msgs, help="Promedio de mensajes por conversacion")
+            c1.metric(
+                "Total Conversaciones",
+                total_convs,
+                help="Conversaciones en el periodo seleccionado",
+            )
+            c2.metric(
+                "Promedio Msgs/Conv",
+                avg_msgs,
+                help="Promedio de mensajes por conversacion",
+            )
             c3.metric(
                 "Tenants con Copilot",
                 f"{stats['tenants_with_conversations']}/{len(convs)}",
@@ -86,10 +96,7 @@ def render_conversations_page():
 
     # Filter by search
     if search_query:
-        convs = [
-            c for c in convs
-            if search_query.lower() in (c.title or "").lower()
-        ]
+        convs = [c for c in convs if search_query.lower() in (c.title or "").lower()]
 
     # Build table
     table_rows = []
@@ -110,15 +117,19 @@ def render_conversations_page():
                 title = (first_msg.get("content", "") or "")[:50]
         title = title or "Sin titulo"
 
-        table_rows.append({
-            "_id": str(conv.id),
-            "Tenant": get_tenant_name(conv.tenant_id),
-            "Usuario": str(conv.user_id)[:8],
-            "Titulo": title,
-            "Msgs": msg_count,
-            "Tools": tool_count,
-            "Fecha": conv.updated_at.strftime("%Y-%m-%d %H:%M") if conv.updated_at else "—",
-        })
+        table_rows.append(
+            {
+                "_id": str(conv.id),
+                "Tenant": get_tenant_name(conv.tenant_id),
+                "Usuario": str(conv.user_id)[:8],
+                "Titulo": title,
+                "Msgs": msg_count,
+                "Tools": tool_count,
+                "Fecha": conv.updated_at.strftime("%Y-%m-%d %H:%M")
+                if conv.updated_at
+                else "—",
+            }
+        )
 
     display_df = pd.DataFrame(table_rows)
     st.dataframe(
@@ -146,11 +157,13 @@ def render_conversations_page():
     selected_conv = convs[selected_idx]
     msgs = selected_conv.messages or []
 
-    tab_msgs, tab_tools, tab_context = st.tabs([
-        "💬 Mensajes",
-        "🔧 Tools Usados",
-        "📋 Contexto",
-    ])
+    tab_msgs, tab_tools, tab_context = st.tabs(
+        [
+            "💬 Mensajes",
+            "🔧 Tools Usados",
+            "📋 Contexto",
+        ]
+    )
 
     # ── Messages Tab ──
     with tab_msgs:
@@ -176,11 +189,15 @@ def render_conversations_page():
                     for tc in tool_calls:
                         if isinstance(tc, dict):
                             args_str = str(tc.get("args", ""))[:80]
-                            st.markdown(f"**🟠 [tool_call]** `{tc.get('name', '?')}`({args_str})")
+                            st.markdown(
+                                f"**🟠 [tool_call]** `{tc.get('name', '?')}`({args_str})"
+                            )
             elif role == "tool":
                 tool_content = content or ""
                 if len(tool_content) > 200:
-                    with st.expander(f"⚪ [tool_result] {msg.get('name', '')} ({len(tool_content)} chars)"):
+                    with st.expander(
+                        f"⚪ [tool_result] {msg.get('name', '')} ({len(tool_content)} chars)"
+                    ):
                         st.code(tool_content[:2000])
                 else:
                     st.markdown(f"**⚪ [tool_result]** {tool_content[:200]}")
@@ -202,7 +219,9 @@ def render_conversations_page():
                 {"Tool": k, "Invocaciones": v}
                 for k, v in sorted(tool_counts.items(), key=lambda x: -x[1])
             ]
-            st.dataframe(pd.DataFrame(tool_rows), use_container_width=True, hide_index=True)
+            st.dataframe(
+                pd.DataFrame(tool_rows), use_container_width=True, hide_index=True
+            )
         else:
             st.info("No se usaron tools en esta conversacion.")
 

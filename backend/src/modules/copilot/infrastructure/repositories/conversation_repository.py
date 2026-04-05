@@ -1,4 +1,4 @@
-from typing import List, Optional
+from datetime import UTC
 from uuid import UUID
 
 import structlog
@@ -22,7 +22,7 @@ class ConversationRepository:
         conversation_id: UUID,
         tenant_id: UUID,
         user_id: UUID,
-        title: Optional[str] = None,
+        title: str | None = None,
     ) -> CopilotConversationModel:
         conv = CopilotConversationModel(
             id=conversation_id,
@@ -37,7 +37,7 @@ class ConversationRepository:
 
     def get_by_id(
         self, conversation_id: UUID, tenant_id: UUID
-    ) -> Optional[CopilotConversationModel]:
+    ) -> CopilotConversationModel | None:
         stmt = select(CopilotConversationModel).where(
             CopilotConversationModel.id == conversation_id,
             CopilotConversationModel.tenant_id == tenant_id,
@@ -63,9 +63,7 @@ class ConversationRepository:
         conv.messages = existing
         self.db.flush()
 
-    def update_title(
-        self, conversation_id: UUID, tenant_id: UUID, title: str
-    ) -> None:
+    def update_title(self, conversation_id: UUID, tenant_id: UUID, title: str) -> None:
         conv = self.get_by_id(conversation_id, tenant_id)
         if conv:
             conv.title = title
@@ -77,7 +75,7 @@ class ConversationRepository:
         user_id: UUID,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[CopilotConversationModel]:
+    ) -> list[CopilotConversationModel]:
         stmt = (
             select(CopilotConversationModel)
             .where(
@@ -97,7 +95,7 @@ class ConversationRepository:
         tenant_id: UUID,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[CopilotConversationModel]:
+    ) -> list[CopilotConversationModel]:
         """List conversations for a tenant (all users)."""
         stmt = (
             select(CopilotConversationModel)
@@ -110,10 +108,10 @@ class ConversationRepository:
 
     def list_all_paginated(
         self,
-        tenant_id: Optional[UUID] = None,
+        tenant_id: UUID | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[CopilotConversationModel]:
+    ) -> list[CopilotConversationModel]:
         """List conversations, optionally filtered by tenant."""
         stmt = (
             select(CopilotConversationModel)
@@ -125,9 +123,10 @@ class ConversationRepository:
             stmt = stmt.where(CopilotConversationModel.tenant_id == tenant_id)
         return list(self.db.execute(stmt).scalars().all())
 
-    def count_all(self, tenant_id: Optional[UUID] = None) -> int:
+    def count_all(self, tenant_id: UUID | None = None) -> int:
         """Count conversations, optionally filtered by tenant."""
         from sqlalchemy import func
+
         stmt = select(func.count()).select_from(CopilotConversationModel)
         if tenant_id:
             stmt = stmt.where(CopilotConversationModel.tenant_id == tenant_id)
@@ -135,21 +134,29 @@ class ConversationRepository:
 
     def get_global_stats(self, days: int = 30) -> dict:
         """Global conversation stats for admin dashboard."""
+        from datetime import datetime, timedelta
+
         from sqlalchemy import func
-        from datetime import datetime, timedelta, timezone
 
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
 
-        total = self.db.execute(
-            select(func.count())
-            .select_from(CopilotConversationModel)
-            .where(CopilotConversationModel.created_at >= cutoff)
-        ).scalar() or 0
+        total = (
+            self.db.execute(
+                select(func.count())
+                .select_from(CopilotConversationModel)
+                .where(CopilotConversationModel.created_at >= cutoff)
+            ).scalar()
+            or 0
+        )
 
-        tenants_with_convs = self.db.execute(
-            select(func.count(func.distinct(CopilotConversationModel.tenant_id)))
-            .where(CopilotConversationModel.created_at >= cutoff)
-        ).scalar() or 0
+        tenants_with_convs = (
+            self.db.execute(
+                select(
+                    func.count(func.distinct(CopilotConversationModel.tenant_id))
+                ).where(CopilotConversationModel.created_at >= cutoff)
+            ).scalar()
+            or 0
+        )
 
         return {
             "total": total,

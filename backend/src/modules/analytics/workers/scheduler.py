@@ -9,7 +9,7 @@ period extraction jobs for NON_AGGREGABLE metrics.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
@@ -39,7 +39,7 @@ async def run_tick_scheduler(ctx: dict) -> None:
         result = db.execute(stmt)
         tenants = result.scalars().all()
 
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
 
         for tenant in tenants:
             tz_name = tenant.timezone or "UTC"
@@ -56,7 +56,10 @@ async def run_tick_scheduler(ctx: dict) -> None:
             local_time = now_utc.astimezone(tz)
 
             # Check if it's extraction time in the tenant's local timezone
-            if local_time.hour == ETLConfig.DAILY_EXTRACTION_HOUR_LOCAL and local_time.minute == 0:
+            if (
+                local_time.hour == ETLConfig.DAILY_EXTRACTION_HOUR_LOCAL
+                and local_time.minute == 0
+            ):
                 redis = ctx.get("redis")
                 if not redis:
                     continue
@@ -82,8 +85,10 @@ async def run_tick_scheduler(ctx: dict) -> None:
                     ws, we = config.get_week_boundaries(yesterday)
                     await redis.enqueue_job(
                         "run_period_extraction",
-                        str(tenant.id), "weekly",
-                        ws.isoformat(), we.isoformat(),
+                        str(tenant.id),
+                        "weekly",
+                        ws.isoformat(),
+                        we.isoformat(),
                     )
                     period_enqueued += 1
 
@@ -92,8 +97,10 @@ async def run_tick_scheduler(ctx: dict) -> None:
                     ms, me = config.get_month_boundaries(yesterday)
                     await redis.enqueue_job(
                         "run_period_extraction",
-                        str(tenant.id), "monthly",
-                        ms.isoformat(), me.isoformat(),
+                        str(tenant.id),
+                        "monthly",
+                        ms.isoformat(),
+                        me.isoformat(),
                     )
                     period_enqueued += 1
 
@@ -102,8 +109,10 @@ async def run_tick_scheduler(ctx: dict) -> None:
                     qs, qe = config.get_quarter_boundaries(yesterday)
                     await redis.enqueue_job(
                         "run_period_extraction",
-                        str(tenant.id), "quarterly",
-                        qs.isoformat(), qe.isoformat(),
+                        str(tenant.id),
+                        "quarterly",
+                        qs.isoformat(),
+                        qe.isoformat(),
                     )
                     period_enqueued += 1
 

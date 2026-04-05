@@ -6,10 +6,9 @@ Metrics: impressions, clicks, ctr, avg_position, top_queries
 Uses SearchConsoleAdapter.query_analytics() wrapped in asyncio.to_thread()
 (sync Google SDK).
 """
-from datetime import date
-from typing import List
-from uuid import UUID
 
+from datetime import date
+from uuid import UUID
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
@@ -76,7 +75,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         adapter = SearchConsoleAdapter(credentials_data=credentials)
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
 
         try:
             # Aggregate totals (no dimensions)
@@ -87,40 +86,42 @@ class SearchConsoleProvider(BaseMetricsProvider):
             )
             if rows:
                 row = rows[0]
-                metrics.extend([
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="impressions",
-                        value=float(row.get("impressions", 0)),
-                        unit="count",
-                        date=end_date,
-                    ),
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="clicks",
-                        value=float(row.get("clicks", 0)),
-                        unit="count",
-                        date=end_date,
-                    ),
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="ctr",
-                        value=float(row.get("ctr", 0)) * 100,
-                        unit="percentage",
-                        date=end_date,
-                    ),
-                    ExtractedMetric(
-                        provider="search_console",
-                        channel_slug="search-console",
-                        metric_name="avg_position",
-                        value=float(row.get("position", 0)),
-                        unit="count",
-                        date=end_date,
-                    ),
-                ])
+                metrics.extend(
+                    [
+                        ExtractedMetric(
+                            provider="search_console",
+                            channel_slug="search-console",
+                            metric_name="impressions",
+                            value=float(row.get("impressions", 0)),
+                            unit="count",
+                            date=end_date,
+                        ),
+                        ExtractedMetric(
+                            provider="search_console",
+                            channel_slug="search-console",
+                            metric_name="clicks",
+                            value=float(row.get("clicks", 0)),
+                            unit="count",
+                            date=end_date,
+                        ),
+                        ExtractedMetric(
+                            provider="search_console",
+                            channel_slug="search-console",
+                            metric_name="ctr",
+                            value=float(row.get("ctr", 0)) * 100,
+                            unit="percentage",
+                            date=end_date,
+                        ),
+                        ExtractedMetric(
+                            provider="search_console",
+                            channel_slug="search-console",
+                            metric_name="avg_position",
+                            value=float(row.get("position", 0)),
+                            unit="count",
+                            date=end_date,
+                        ),
+                    ]
+                )
 
             # Top queries (dimension: query)
             query_rows = await adapter.query_analytics(

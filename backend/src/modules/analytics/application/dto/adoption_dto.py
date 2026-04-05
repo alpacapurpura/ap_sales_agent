@@ -8,8 +8,6 @@ Provides the data contract for GET /metrics/adoption endpoint:
 Reuses MiniFunnelDTO from capture_dto and BottleneckDTO from opportunity_dto.
 """
 
-from typing import List, Optional
-
 from pydantic import BaseModel
 
 from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
@@ -25,7 +23,7 @@ class OfferHealthDTO(BaseModel):
     active_count: int
     inactive_count: int
     health_pct: float  # 0-100
-    ttv_days: Optional[float] = None  # average TTV for this offer's customers
+    ttv_days: float | None = None  # average TTV for this offer's customers
 
 
 class AdoptionHeaderKpisDTO(BaseModel):
@@ -34,11 +32,11 @@ class AdoptionHeaderKpisDTO(BaseModel):
     active_customers: int
     inactive_customers: int
     health_pct: float  # active / total * 100
-    avg_ttv_days: Optional[float] = None
+    avg_ttv_days: float | None = None
     refund_count: int = 0
     refund_amount: float = 0.0
     refund_currency: str = "USD"
-    refund_amount_usd: Optional[float] = None
+    refund_amount_usd: float | None = None
 
 
 class AdoptionDetailDTO(BaseModel):
@@ -46,7 +44,7 @@ class AdoptionDetailDTO(BaseModel):
 
     header_kpis: AdoptionHeaderKpisDTO
     mini_funnel: MiniFunnelDTO  # Ventas -> Activos
-    offers: List[OfferHealthDTO]
-    bottlenecks: List[BottleneckDTO] = []
+    offers: list[OfferHealthDTO]
+    bottlenecks: list[BottleneckDTO] = []
     period: str = "last_30_days"
-    last_updated: Optional[str] = None
+    last_updated: str | None = None

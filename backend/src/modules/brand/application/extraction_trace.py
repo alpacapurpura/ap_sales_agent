@@ -7,13 +7,16 @@ to the brand_extraction_traces table when the job finishes.
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
-from typing import Optional, Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
-from sqlalchemy.orm import Session
+from src.modules.brand.infrastructure.models.extraction_trace_model import (
+    BrandExtractionTrace,
+)
 
-from src.modules.brand.infrastructure.models.extraction_trace_model import BrandExtractionTrace
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class ExtractionTraceCollector:
@@ -27,7 +30,7 @@ class ExtractionTraceCollector:
         *,
         mode: str = "initial",
         profile_name: str = "safe",
-        url: Optional[str] = None,
+        url: str | None = None,
         include_visuals: bool = False,
         include_assets: bool = False,
     ):
@@ -50,11 +53,17 @@ class ExtractionTraceCollector:
     # Event recording
     # ------------------------------------------------------------------
 
-    def _append(self, event: str, *, section: str | None = None,
-                duration_s: float | None = None, **meta: Any) -> None:
+    def _append(
+        self,
+        event: str,
+        *,
+        section: str | None = None,
+        duration_s: float | None = None,
+        **meta: Any,
+    ) -> None:
         entry: dict[str, Any] = {
             "event": event,
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
         }
         if section:
             entry["section"] = section
@@ -73,10 +82,15 @@ class ExtractionTraceCollector:
     def crawl_start(self, url: str) -> None:
         self._append("crawl_start", url=url)
 
-    def crawl_end(self, duration_s: float, *, content_len: int = 0,
-                  visual_len: int = 0) -> None:
-        self._append("crawl_end", duration_s=duration_s,
-                     content_len=content_len, visual_len=visual_len)
+    def crawl_end(
+        self, duration_s: float, *, content_len: int = 0, visual_len: int = 0
+    ) -> None:
+        self._append(
+            "crawl_end",
+            duration_s=duration_s,
+            content_len=content_len,
+            visual_len=visual_len,
+        )
 
     def wave_start(self, wave: int, sections: list[str]) -> None:
         self._append("wave_start", wave=wave, sections=sections)
@@ -87,20 +101,42 @@ class ExtractionTraceCollector:
     def section_start(self, section: str, *, prompt_length: int = 0) -> None:
         self._append("section_start", section=section, prompt_length=prompt_length)
 
-    def section_success(self, section: str, duration_s: float, *,
-                        field_count: int = 0, fields: list[str] | None = None) -> None:
-        self._append("section_success", section=section, duration_s=duration_s,
-                     field_count=field_count, fields=fields)
+    def section_success(
+        self,
+        section: str,
+        duration_s: float,
+        *,
+        field_count: int = 0,
+        fields: list[str] | None = None,
+    ) -> None:
+        self._append(
+            "section_success",
+            section=section,
+            duration_s=duration_s,
+            field_count=field_count,
+            fields=fields,
+        )
 
-    def section_failed(self, section: str, duration_s: float, *,
-                       error: str = "", error_type: str = "") -> None:
-        self._append("section_failed", section=section, duration_s=duration_s,
-                     error=error, error_type=error_type)
+    def section_failed(
+        self, section: str, duration_s: float, *, error: str = "", error_type: str = ""
+    ) -> None:
+        self._append(
+            "section_failed",
+            section=section,
+            duration_s=duration_s,
+            error=error,
+            error_type=error_type,
+        )
 
-    def section_timeout(self, section: str, duration_s: float, *,
-                        timeout_limit: float = 0) -> None:
-        self._append("section_timeout", section=section, duration_s=duration_s,
-                     timeout_limit=timeout_limit)
+    def section_timeout(
+        self, section: str, duration_s: float, *, timeout_limit: float = 0
+    ) -> None:
+        self._append(
+            "section_timeout",
+            section=section,
+            duration_s=duration_s,
+            timeout_limit=timeout_limit,
+        )
 
     def merge_start(self) -> None:
         self._append("merge_start")
@@ -112,9 +148,13 @@ class ExtractionTraceCollector:
     # Persistence
     # ------------------------------------------------------------------
 
-    def finish(self, *, status: str = "completed",
-               sections_succeeded: int = 0,
-               error_message: Optional[str] = None) -> UUID:
+    def finish(
+        self,
+        *,
+        status: str = "completed",
+        sections_succeeded: int = 0,
+        error_message: str | None = None,
+    ) -> UUID:
         """Flush the trace to the database. Returns the trace ID."""
         total_duration = round(time.monotonic() - self._t0, 3)
 

@@ -6,8 +6,8 @@ source through a uniform interface.
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from datetime import date, timedelta
-from typing import Callable, Dict, List, Optional, Tuple
 from uuid import UUID
 
 import sentry_sdk
@@ -34,12 +34,12 @@ class ExtractedMetric(BaseModel):
     metric_name: str
     value: float
     unit: str
-    currency: Optional[str] = None
+    currency: str | None = None
     date: date
-    campaign_id: Optional[str] = None
-    ad_set_id: Optional[str] = None
-    ad_id: Optional[str] = None
-    extra: Dict = Field(default_factory=dict)
+    campaign_id: str | None = None
+    ad_set_id: str | None = None
+    ad_id: str | None = None
+    extra: dict = Field(default_factory=dict)
 
 
 class BaseMetricsProvider(ABC):
@@ -74,8 +74,8 @@ class BaseMetricsProvider(ABC):
         Default implementation iterates day-by-day calling extract_metrics.
         Providers should override for optimized daily queries (e.g. date dimension).
         """
-        all_metrics: List[ExtractedMetric] = []
-        all_failures: List[SubExtractorFailure] = []
+        all_metrics: list[ExtractedMetric] = []
+        all_failures: list[SubExtractorFailure] = []
         current = start_date
         while current <= end_date:
             day_result = await self.extract_metrics(
@@ -91,7 +91,7 @@ class BaseMetricsProvider(ABC):
         fn: Callable,
         *args,
         extractor_name: str,
-    ) -> Tuple[List[ExtractedMetric], Optional[SubExtractorFailure]]:
+    ) -> tuple[list[ExtractedMetric], SubExtractorFailure | None]:
         """Run a sub-extractor safely, capturing exceptions as SubExtractorFailure.
 
         Tags the Sentry event with provider + sub_extractor info so alerts
@@ -105,9 +105,7 @@ class BaseMetricsProvider(ABC):
             sentry_sdk.set_tag("sub_extractor", extractor_name)
             sentry_sdk.set_tag("failure_type", "partial")
             sentry_sdk.capture_exception(exc)
-            logger.exception(
-                "%s_%s_failed", self.provider_name(), extractor_name
-            )
+            logger.exception("%s_%s_failed", self.provider_name(), extractor_name)
             error_str = str(exc).lower()
             if "timeout" in error_str:
                 error_type = "timeout"
@@ -130,7 +128,7 @@ class BaseMetricsProvider(ABC):
         period_type: str,
         period_start: date,
         period_end: date,
-        metric_names: List[str],
+        metric_names: list[str],
         stage: str = "attraction",
     ) -> ExtractionResult:
         """Extract deduplicated metrics for an entire period.

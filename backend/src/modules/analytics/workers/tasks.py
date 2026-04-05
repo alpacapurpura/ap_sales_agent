@@ -48,8 +48,12 @@ async def run_tenant_extraction(
     try:
         # Late imports to avoid circular/missing imports during development
         from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-        from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
+        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+            MetricsCache,
+        )
+        from src.modules.connections.application.services.connection_port_impl import (
+            ConnectionPortImpl,
+        )
 
         redis = ctx.get("redis_cache")
         cache = MetricsCache(redis)
@@ -139,8 +143,12 @@ async def run_initial_load(
 
     try:
         from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-        from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
+        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+            MetricsCache,
+        )
+        from src.modules.connections.application.services.connection_port_impl import (
+            ConnectionPortImpl,
+        )
 
         cache = MetricsCache(redis)
         connection_port = ConnectionPortImpl(db)
@@ -149,19 +157,31 @@ async def run_initial_load(
         def on_progress(loaded, total, status):
             if redis:
                 redis.setex(
-                    progress_key, CacheConfig.CATALOG_TTL,
-                    json.dumps({"status": status, "total_days": total, "completed_days": loaded}),
+                    progress_key,
+                    CacheConfig.CATALOG_TTL,
+                    json.dumps(
+                        {
+                            "status": status,
+                            "total_days": total,
+                            "completed_days": loaded,
+                        }
+                    ),
                 )
 
         on_progress(0, initial_days, "running")
         result = await etl_service.run_initial_load(
-            UUID(tenant_id), provider, days=initial_days, progress_callback=on_progress,
+            UUID(tenant_id),
+            provider,
+            days=initial_days,
+            progress_callback=on_progress,
         )
         on_progress(result["loaded"], result["total"], "completed")
 
         logger.info(
             "Initial load completed for tenant=%s provider=%s (last %d days)",
-            tenant_id, provider, initial_days,
+            tenant_id,
+            provider,
+            initial_days,
         )
         return {
             "status": "success",
@@ -174,10 +194,16 @@ async def run_initial_load(
     except ConnectionRevokedException as exc:
         logger.error(
             "Connection revoked during initial load for tenant=%s provider=%s: %s",
-            tenant_id, provider, str(exc),
+            tenant_id,
+            provider,
+            str(exc),
         )
         if redis:
-            redis.setex(progress_key, CacheConfig.CATALOG_TTL, json.dumps({"status": "failed", "error": str(exc)}))
+            redis.setex(
+                progress_key,
+                CacheConfig.CATALOG_TTL,
+                json.dumps({"status": "failed", "error": str(exc)}),
+            )
         return {"status": "revoked", "tenant_id": tenant_id, "error": str(exc)}
 
     except Exception as exc:
@@ -188,10 +214,18 @@ async def run_initial_load(
         logger.warning(
             "Initial load failed for tenant=%s provider=%s (attempt %d), "
             "retrying in %d seconds: %s",
-            tenant_id, provider, job_try, defer_seconds, str(exc),
+            tenant_id,
+            provider,
+            job_try,
+            defer_seconds,
+            str(exc),
         )
         if redis:
-            redis.setex(progress_key, CacheConfig.CATALOG_TTL, json.dumps({"status": "failed", "error": str(exc)}))
+            redis.setex(
+                progress_key,
+                CacheConfig.CATALOG_TTL,
+                json.dumps({"status": "failed", "error": str(exc)}),
+            )
         with sentry_sdk.push_scope() as scope:
             scope.set_tag("tenant_id", tenant_id)
             scope.set_tag("provider", provider)
@@ -222,8 +256,12 @@ async def run_period_extraction(
 
     try:
         from src.modules.analytics.application.services.etl_service import ETLService
-        from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-        from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
+        from src.modules.analytics.infrastructure.cache.metrics_cache import (
+            MetricsCache,
+        )
+        from src.modules.connections.application.services.connection_port_impl import (
+            ConnectionPortImpl,
+        )
 
         redis = ctx.get("redis_cache")
         cache = MetricsCache(redis)
@@ -239,7 +277,11 @@ async def run_period_extraction(
 
         logger.info(
             "Period extraction completed for tenant=%s period=%s %s→%s results=%s",
-            tenant_id, period_type, period_start, period_end, results,
+            tenant_id,
+            period_type,
+            period_start,
+            period_end,
+            results,
         )
         return {
             "status": "success",
@@ -255,9 +297,13 @@ async def run_period_extraction(
 
         logger.warning(
             "Period extraction failed for tenant=%s period=%s (attempt %d): %s",
-            tenant_id, period_type, job_try, str(exc),
+            tenant_id,
+            period_type,
+            job_try,
+            str(exc),
         )
         import sentry_sdk as _sentry
+
         with _sentry.push_scope() as scope:
             scope.set_tag("tenant_id", tenant_id)
             scope.set_tag("period_type", period_type)
@@ -300,7 +346,8 @@ async def run_campaign_sync(
 
         connection_port = ConnectionPortImpl(db)
         credentials = await connection_port.get_credentials(
-            UUID(tenant_id), provider,
+            UUID(tenant_id),
+            provider,
         )
 
         campaign_repo = CampaignRepository(db)
@@ -315,14 +362,23 @@ async def run_campaign_sync(
 
         logger.info(
             "Campaign sync completed for tenant=%s provider=%s: %s",
-            tenant_id, provider, result,
+            tenant_id,
+            provider,
+            result,
         )
-        return {"status": "success", "tenant_id": tenant_id, "provider": provider, **result}
+        return {
+            "status": "success",
+            "tenant_id": tenant_id,
+            "provider": provider,
+            **result,
+        }
 
     except ConnectionRevokedException as exc:
         logger.error(
             "Connection revoked for campaign sync tenant=%s provider=%s: %s",
-            tenant_id, provider, str(exc),
+            tenant_id,
+            provider,
+            str(exc),
         )
         return {"status": "revoked", "tenant_id": tenant_id, "error": str(exc)}
 
@@ -334,7 +390,11 @@ async def run_campaign_sync(
         logger.warning(
             "Campaign sync failed for tenant=%s provider=%s (attempt %d), "
             "retrying in %d seconds: %s",
-            tenant_id, provider, job_try, defer_seconds, str(exc),
+            tenant_id,
+            provider,
+            job_try,
+            defer_seconds,
+            str(exc),
         )
         with sentry_sdk.push_scope() as scope:
             scope.set_tag("tenant_id", tenant_id)
@@ -357,7 +417,7 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
 
     This catches events missed by webhooks (webhook downtime, delivery failures).
     """
-    from sqlalchemy import select, and_
+    from sqlalchemy import and_, select
 
     logger.info("Starting Mailerlite ETL backup sync")
     db_factory = ctx.get("db_factory")
@@ -425,12 +485,12 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
                 activities = await connector.get_recent_campaign_activity(hours=7)
 
                 # 4. For each activity, check if journey_event already exists
+                from src.modules.crm.application.services.lifecycle_service import (
+                    LifecycleService,
+                )
                 from src.modules.crm.infrastructure.models.customer_model import (
                     CustomerProfileModel,
                     JourneyEventModel,
-                )
-                from src.modules.crm.application.services.lifecycle_service import (
-                    LifecycleService,
                 )
 
                 lifecycle_svc = LifecycleService(db)
@@ -454,7 +514,9 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
                     if not profile:
                         continue
 
-                    event_name = "email_opened" if event_type == "open" else "email_clicked"
+                    event_name = (
+                        "email_opened" if event_type == "open" else "email_clicked"
+                    )
 
                     # Dedup: check if this exact event already exists
 
@@ -464,7 +526,8 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
                                 JourneyEventModel.profile_id == profile.id,
                                 JourneyEventModel.tenant_id == tenant_id,
                                 JourneyEventModel.event_name == event_name,
-                                JourneyEventModel.properties["campaign_id"].astext == str(campaign_id),
+                                JourneyEventModel.properties["campaign_id"].astext
+                                == str(campaign_id),
                             )
                         )
                     )
@@ -491,11 +554,15 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
 
                 db.commit()
             except Exception as e:
-                logger.error("Mailerlite ETL sync failed for tenant %s: %s", tenant_id, e)
+                logger.error(
+                    "Mailerlite ETL sync failed for tenant %s: %s", tenant_id, e
+                )
                 sentry_sdk.capture_exception(e)
                 db.rollback()
 
-        logger.info("Mailerlite ETL backup sync complete: %d events synced", synced_count)
+        logger.info(
+            "Mailerlite ETL backup sync complete: %d events synced", synced_count
+        )
         capture_checkin(
             monitor_slug="mailerlite-etl-sync",
             check_in_id=check_in_id,
@@ -553,7 +620,9 @@ async def run_manychat_subscriber_sync(
                 job_try,
                 str(exc),
             )
-            raise Retry(defer=CacheConfig.DETAIL_STAGE_TTL) from exc  # Retry in 5 minutes
+            raise Retry(
+                defer=CacheConfig.DETAIL_STAGE_TTL
+            ) from exc  # Retry in 5 minutes
         logger.error(
             "ManyChat sync permanently failed for tenant=%s: %s",
             tenant_id,

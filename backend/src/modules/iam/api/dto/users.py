@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class TenantSchema(BaseModel):
     id: str
     name: str

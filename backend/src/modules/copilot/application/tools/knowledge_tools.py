@@ -2,21 +2,26 @@
 Knowledge tools — search the copilot knowledge base.
 """
 
+import structlog
 from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id, get_user_id
-from src.modules.copilot.infrastructure.knowledge.vector_store import CopilotKnowledgeStore
-
-import structlog
+from src.modules.copilot.infrastructure.knowledge.vector_store import (
+    CopilotKnowledgeStore,
+)
 
 logger = structlog.get_logger()
 
 
-def _track_knowledge_search(tenant_id, query: str, scope: str, results_count: int) -> None:
+def _track_knowledge_search(
+    tenant_id, query: str, scope: str, results_count: int
+) -> None:
     """Best-effort server-side event tracking for knowledge searches."""
     try:
         from src.core.database import SessionLocal
-        from src.modules.copilot.infrastructure.repositories.event_repository import CopilotEventRepository
+        from src.modules.copilot.infrastructure.repositories.event_repository import (
+            CopilotEventRepository,
+        )
 
         user_id = get_user_id()
         if not user_id:
@@ -28,7 +33,11 @@ def _track_knowledge_search(tenant_id, query: str, scope: str, results_count: in
                 tenant_id=tenant_id,
                 user_id=user_id,
                 event_type="knowledge_searched",
-                event_data={"query": query, "scope": scope, "results_count": results_count},
+                event_data={
+                    "query": query,
+                    "scope": scope,
+                    "results_count": results_count,
+                },
             )
             db.commit()
         finally:

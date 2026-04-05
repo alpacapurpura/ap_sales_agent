@@ -15,20 +15,19 @@ All queries use SQLAlchemy 2.0 select() syntax with tenant_id isolation.
 """
 
 from datetime import datetime
-from typing import List
 from uuid import UUID
 
-from sqlalchemy import func, select, and_, case
+from sqlalchemy import and_, case, func, select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.enums import LifecycleStage, SaleStatus
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
-from src.modules.crm.infrastructure.models.sale_model import SaleModel
-from src.modules.crm.infrastructure.models.referral_code_model import ReferralCodeModel
 from src.modules.crm.infrastructure.models.nps_models import (
-    NpsSurveyModel,
     NpsResponseModel,
+    NpsSurveyModel,
 )
+from src.modules.crm.infrastructure.models.referral_code_model import ReferralCodeModel
+from src.modules.crm.infrastructure.models.sale_model import SaleModel
 
 
 class EvangelizationRepository:
@@ -56,16 +55,18 @@ class EvangelizationRepository:
             stats = self._get_referral_stats_for_code(
                 tenant_id, ev["code"], start_date, end_date
             )
-            referidos.append({
-                "customer_id": str(ev["customer_id"]),
-                "full_name": ev["full_name"] or "Sin nombre",
-                "referral_code": ev["code"],
-                "referrals_sent": stats["referrals_sent"],
-                "conversions": stats["conversions"],
-                "revenue_attributed": stats["revenue"],
-                "currency": stats["currency"],
-                "is_active": ev["is_active"],
-            })
+            referidos.append(
+                {
+                    "customer_id": str(ev["customer_id"]),
+                    "full_name": ev["full_name"] or "Sin nombre",
+                    "referral_code": ev["code"],
+                    "referrals_sent": stats["referrals_sent"],
+                    "conversions": stats["conversions"],
+                    "revenue_attributed": stats["revenue"],
+                    "currency": stats["currency"],
+                    "is_active": ev["is_active"],
+                }
+            )
 
         # 3. K-Factor
         k_factor_data = self._compute_k_factor(tenant_id, start_date, end_date)
@@ -109,7 +110,7 @@ class EvangelizationRepository:
             "surveys_sent": nps_data["surveys_sent"],
         }
 
-    def _get_active_evangelists(self, tenant_id: UUID) -> List[dict]:
+    def _get_active_evangelists(self, tenant_id: UUID) -> list[dict]:
         """Get evangelists with active referral codes."""
         stmt = (
             select(
@@ -168,9 +169,8 @@ class EvangelizationRepository:
             )
             .where(
                 SaleModel.tenant_id == tenant_id,
-                func.jsonb_extract_path_text(
-                    SaleModel.metadata_info, "referral_code"
-                ) == referral_code,
+                func.jsonb_extract_path_text(SaleModel.metadata_info, "referral_code")
+                == referral_code,
             )
             .group_by(SaleModel.currency)
         )
@@ -208,31 +208,25 @@ class EvangelizationRepository:
         With division-by-zero protection.
         """
         # Count active referral codes
-        codes_stmt = (
-            select(func.count(ReferralCodeModel.id))
-            .where(
-                ReferralCodeModel.tenant_id == tenant_id,
-                ReferralCodeModel.is_active == True,  # noqa: E712
-            )
+        codes_stmt = select(func.count(ReferralCodeModel.id)).where(
+            ReferralCodeModel.tenant_id == tenant_id,
+            ReferralCodeModel.is_active == True,  # noqa: E712
         )
         evangelists_with_codes = self.db.execute(codes_stmt).scalar() or 0
 
         # Count all sales with referral_code in metadata_info within date range
-        referral_sales_stmt = (
-            select(
-                func.count(SaleModel.id).label("total"),
-                func.count(SaleModel.id)
-                .filter(SaleModel.status == SaleStatus.COMPLETED)
-                .label("conversions"),
-            )
-            .where(
-                SaleModel.tenant_id == tenant_id,
-                SaleModel.occurred_at >= start_date,
-                SaleModel.occurred_at <= end_date,
-                func.jsonb_extract_path_text(
-                    SaleModel.metadata_info, "referral_code"
-                ).isnot(None),
-            )
+        referral_sales_stmt = select(
+            func.count(SaleModel.id).label("total"),
+            func.count(SaleModel.id)
+            .filter(SaleModel.status == SaleStatus.COMPLETED)
+            .label("conversions"),
+        ).where(
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.occurred_at >= start_date,
+            SaleModel.occurred_at <= end_date,
+            func.jsonb_extract_path_text(
+                SaleModel.metadata_info, "referral_code"
+            ).isnot(None),
         )
         result = self.db.execute(referral_sales_stmt).first()
         total_referrals_sent = int(result[0]) if result else 0
@@ -259,41 +253,40 @@ class EvangelizationRepository:
     def _get_nps_summary(self, tenant_id: UUID) -> dict:
         """Aggregate NPS data: score distribution, average, standard NPS, response rate."""
         # Count by score ranges using case expressions
-        stmt = (
-            select(
-                func.count(NpsResponseModel.id).label("total"),
-                func.count(
-                    case(
-                        (NpsResponseModel.score >= 9, NpsResponseModel.id),
-                    )
-                ).label("promoters"),
-                func.count(
-                    case(
-                        (
-                            and_(
-                                NpsResponseModel.score >= 7,
-                                NpsResponseModel.score <= 8,
-                            ),
-                            NpsResponseModel.id,
+        stmt = select(
+            func.count(NpsResponseModel.id).label("total"),
+            func.count(
+                case(
+                    (NpsResponseModel.score >= 9, NpsResponseModel.id),
+                )
+            ).label("promoters"),
+            func.count(
+                case(
+                    (
+                        and_(
+                            NpsResponseModel.score >= 7,
+                            NpsResponseModel.score <= 8,
                         ),
-                    )
-                ).label("passives"),
-                func.count(
-                    case(
-                        (NpsResponseModel.score <= 6, NpsResponseModel.id),
-                    )
-                ).label("detractors"),
-                func.avg(NpsResponseModel.score).label("avg_score"),
-            )
-            .where(NpsResponseModel.tenant_id == tenant_id)
-        )
+                        NpsResponseModel.id,
+                    ),
+                )
+            ).label("passives"),
+            func.count(
+                case(
+                    (NpsResponseModel.score <= 6, NpsResponseModel.id),
+                )
+            ).label("detractors"),
+            func.avg(NpsResponseModel.score).label("avg_score"),
+        ).where(NpsResponseModel.tenant_id == tenant_id)
         result = self.db.execute(stmt).first()
 
         total = int(result[0]) if result else 0
         promoters = int(result[1]) if result else 0
         passives = int(result[2]) if result else 0
         detractors = int(result[3]) if result else 0
-        avg_score = round(float(result[4]), 1) if result and result[4] is not None else None
+        avg_score = (
+            round(float(result[4]), 1) if result and result[4] is not None else None
+        )
 
         # Standard NPS: ((promoters - detractors) / total) * 100
         standard_nps = None
@@ -301,17 +294,16 @@ class EvangelizationRepository:
             standard_nps = round(((promoters - detractors) / total) * 100, 1)
 
         # Surveys sent (non-pending)
-        surveys_stmt = (
-            select(func.count(NpsSurveyModel.id))
-            .where(
-                NpsSurveyModel.tenant_id == tenant_id,
-                NpsSurveyModel.status != "pending",
-            )
+        surveys_stmt = select(func.count(NpsSurveyModel.id)).where(
+            NpsSurveyModel.tenant_id == tenant_id,
+            NpsSurveyModel.status != "pending",
         )
         surveys_sent = self.db.execute(surveys_stmt).scalar() or 0
 
         # Response rate
-        response_rate = round((total / surveys_sent * 100), 1) if surveys_sent > 0 else 0.0
+        response_rate = (
+            round((total / surveys_sent * 100), 1) if surveys_sent > 0 else 0.0
+        )
 
         return {
             "nps_score": avg_score,
@@ -324,7 +316,7 @@ class EvangelizationRepository:
             "response_rate_pct": response_rate,
         }
 
-    def _get_evangelist_candidates(self, tenant_id: UUID) -> List[dict]:
+    def _get_evangelist_candidates(self, tenant_id: UUID) -> list[dict]:
         """Get customers with NPS >= 9 not yet EVANGELIST lifecycle stage."""
         stmt = (
             select(
@@ -343,7 +335,9 @@ class EvangelizationRepository:
                 NpsResponseModel.score >= 9,
                 CustomerProfileModel.lifecycle_stage != LifecycleStage.EVANGELIST,
             )
-            .order_by(NpsResponseModel.score.desc(), NpsResponseModel.responded_at.desc())
+            .order_by(
+                NpsResponseModel.score.desc(), NpsResponseModel.responded_at.desc()
+            )
         )
         results = self.db.execute(stmt).all()
         return [
@@ -358,23 +352,20 @@ class EvangelizationRepository:
 
     def _get_ugc_counts(self, tenant_id: UUID) -> dict:
         """Count UGC: testimonials with consent_public_use = true."""
-        stmt = (
-            select(
-                func.count(NpsResponseModel.id)
-                .filter(
-                    NpsResponseModel.consent_public_use == True,  # noqa: E712
-                    NpsResponseModel.testimonial_text.isnot(None),
-                )
-                .label("written"),
-                func.count(NpsResponseModel.id)
-                .filter(
-                    NpsResponseModel.consent_public_use == True,  # noqa: E712
-                    NpsResponseModel.testimonial_audio_url.isnot(None),
-                )
-                .label("audio"),
+        stmt = select(
+            func.count(NpsResponseModel.id)
+            .filter(
+                NpsResponseModel.consent_public_use == True,  # noqa: E712
+                NpsResponseModel.testimonial_text.isnot(None),
             )
-            .where(NpsResponseModel.tenant_id == tenant_id)
-        )
+            .label("written"),
+            func.count(NpsResponseModel.id)
+            .filter(
+                NpsResponseModel.consent_public_use == True,  # noqa: E712
+                NpsResponseModel.testimonial_audio_url.isnot(None),
+            )
+            .label("audio"),
+        ).where(NpsResponseModel.tenant_id == tenant_id)
         result = self.db.execute(stmt).first()
         written = int(result[0]) if result else 0
         audio = int(result[1]) if result else 0
@@ -388,32 +379,28 @@ class EvangelizationRepository:
     def _get_mini_funnel(self, tenant_id: UUID) -> dict:
         """MiniFunnel: Clientes Activos -> Evangelistas."""
         # Source: active customers (CUSTOMER or EVANGELIST, not inactive)
-        source_stmt = (
-            select(func.count(CustomerProfileModel.id))
-            .where(
-                CustomerProfileModel.tenant_id == tenant_id,
-                CustomerProfileModel.lifecycle_stage.in_([
+        source_stmt = select(func.count(CustomerProfileModel.id)).where(
+            CustomerProfileModel.tenant_id == tenant_id,
+            CustomerProfileModel.lifecycle_stage.in_(
+                [
                     LifecycleStage.CUSTOMER,
                     LifecycleStage.EVANGELIST,
-                ]),
-                CustomerProfileModel.is_inactive == False,  # noqa: E712
-            )
+                ]
+            ),
+            CustomerProfileModel.is_inactive == False,  # noqa: E712
         )
         source_value = self.db.execute(source_stmt).scalar() or 0
 
         # Target: evangelists
-        target_stmt = (
-            select(func.count(CustomerProfileModel.id))
-            .where(
-                CustomerProfileModel.tenant_id == tenant_id,
-                CustomerProfileModel.lifecycle_stage == LifecycleStage.EVANGELIST,
-            )
+        target_stmt = select(func.count(CustomerProfileModel.id)).where(
+            CustomerProfileModel.tenant_id == tenant_id,
+            CustomerProfileModel.lifecycle_stage == LifecycleStage.EVANGELIST,
         )
         target_value = self.db.execute(target_stmt).scalar() or 0
 
-        conversion_rate = round(
-            (target_value / source_value * 100), 1
-        ) if source_value > 0 else 0.0
+        conversion_rate = (
+            round((target_value / source_value * 100), 1) if source_value > 0 else 0.0
+        )
 
         return {
             "source_label": "Clientes Activos",

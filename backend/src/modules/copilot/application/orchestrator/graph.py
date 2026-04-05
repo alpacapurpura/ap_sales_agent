@@ -12,11 +12,11 @@ The system prompt is enriched with a completion snapshot and module list.
 
 from typing import Literal
 
+import structlog
 from langchain_core.messages import AIMessage, SystemMessage
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import END, START, StateGraph
 
 from src.core.enums import ModelRole
-from src.shared.infrastructure.llm.factory import LLMFactory
 from src.modules.copilot.application.orchestrator.state import CopilotState
 from src.modules.copilot.application.tools.registry import (
     get_all_tools,
@@ -24,8 +24,7 @@ from src.modules.copilot.application.tools.registry import (
 )
 from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
-
-import structlog
+from src.shared.infrastructure.llm.factory import LLMFactory
 
 logger = structlog.get_logger()
 
@@ -39,13 +38,14 @@ def _get_completion_snapshot(tenant_id) -> str:
     Uses the awareness tool logic directly (not via tool invocation)
     to avoid a tool call just for the system prompt.
     """
+    from sqlalchemy import text
+
     from src.core.database import SessionLocal
     from src.modules.copilot.domain.schema_introspection import (
         check_section_completion,
         format_completion_markdown,
         get_model_sections,
     )
-    from sqlalchemy import text
 
     registry = get_module_registry()
     db = SessionLocal()
@@ -61,7 +61,11 @@ def _get_completion_snapshot(tenant_id) -> str:
                     raw = data.model_dump(mode="json")
                     sections = get_model_sections(brand_desc.model_class)
                     completion = check_section_completion(raw, sections)
-                    lines.append(format_completion_markdown(brand_desc.label, completion, sections))
+                    lines.append(
+                        format_completion_markdown(
+                            brand_desc.label, completion, sections
+                        )
+                    )
                 else:
                     lines.append(f"### ⚠️ {brand_desc.label}\n  Sin datos configurados")
             except Exception:
@@ -69,24 +73,34 @@ def _get_completion_snapshot(tenant_id) -> str:
 
         # Offer (SQL count)
         try:
-            count = db.execute(
-                text("SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true"),
-                {"tid": str(tenant_id)},
-            ).scalar() or 0
+            count = (
+                db.execute(
+                    text(
+                        "SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true"
+                    ),
+                    {"tid": str(tenant_id)},
+                ).scalar()
+                or 0
+            )
             icon = "✅" if count > 0 else "⚠️"
             lines.append(f"### {icon} Offer Studio\n  {count} oferta(s) configurada(s)")
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
         # Connections (SQL count)
         try:
-            conn_count = db.execute(
-                text("SELECT COUNT(*) FROM channel_connections WHERE tenant_id = :tid AND is_active = true"),
-                {"tid": str(tenant_id)},
-            ).scalar() or 0
+            conn_count = (
+                db.execute(
+                    text(
+                        "SELECT COUNT(*) FROM channel_connections WHERE tenant_id = :tid AND is_active = true"
+                    ),
+                    {"tid": str(tenant_id)},
+                ).scalar()
+                or 0
+            )
             icon = "✅" if conn_count > 0 else "⚠️"
             lines.append(f"### {icon} Conexiones\n  {conn_count} activa(s)")
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
     except Exception as e:
@@ -100,7 +114,9 @@ def _get_completion_snapshot(tenant_id) -> str:
 def _get_behavior_summary(tenant_id, user_id) -> str:
     """Build a user behavior summary from copilot events for the system prompt."""
     from src.core.database import SessionLocal
-    from src.modules.copilot.infrastructure.repositories.event_repository import CopilotEventRepository
+    from src.modules.copilot.infrastructure.repositories.event_repository import (
+        CopilotEventRepository,
+    )
 
     db = SessionLocal()
     try:
@@ -116,13 +132,17 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
         if accepted or rejected:
             total = accepted + rejected
             rate = round(accepted / total * 100) if total else 0
-            lines.append(f"- Propuestas: acepta {rate}% ({accepted} aceptadas, {rejected} rechazadas)")
+            lines.append(
+                f"- Propuestas: acepta {rate}% ({accepted} aceptadas, {rejected} rechazadas)"
+            )
 
         # Nudges
         nudge_clicked = summary.get("nudge_clicked", 0)
         nudge_dismissed = summary.get("nudge_dismissed", 0)
         if nudge_clicked or nudge_dismissed:
-            lines.append(f"- Nudges: {nudge_clicked} aceptados, {nudge_dismissed} descartados")
+            lines.append(
+                f"- Nudges: {nudge_clicked} aceptados, {nudge_dismissed} descartados"
+            )
 
         # Navigation
         nav = summary.get("navigation_clicked", 0)
@@ -132,7 +152,9 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
         # Messages
         msgs = summary.get("message_sent", 0)
         if msgs:
-            activity = "muy activo" if msgs > 30 else "activo" if msgs > 10 else "moderado"
+            activity = (
+                "muy activo" if msgs > 30 else "activo" if msgs > 10 else "moderado"
+            )
             lines.append(f"- Mensajes enviados: {msgs} (usuario {activity})")
 
         # Copilot opens — friction map for this user
@@ -143,8 +165,14 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
         # RAG searches
         ks = repo.get_knowledge_search_stats(tenant_id, user_id, days=30)
         if ks["search_count"]:
-            scope_info = f" (scope preferido: {ks['most_queried_scope']})" if ks["most_queried_scope"] else ""
-            lines.append(f"- Busquedas en knowledge base: {ks['search_count']}{scope_info}")
+            scope_info = (
+                f" (scope preferido: {ks['most_queried_scope']})"
+                if ks["most_queried_scope"]
+                else ""
+            )
+            lines.append(
+                f"- Busquedas en knowledge base: {ks['search_count']}{scope_info}"
+            )
 
         # Procedures
         proc_rates = repo.get_procedure_completion_rates(tenant_id, days=30)
@@ -154,7 +182,9 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
             avg_step = info.get("avg_abandoned_step")
             total = info.get("started", 0)
             if abandoned and avg_step is not None:
-                lines.append(f"- Procedimiento '{name}': abandonado {abandoned}/{total} veces en paso ~{avg_step}")
+                lines.append(
+                    f"- Procedimiento '{name}': abandonado {abandoned}/{total} veces en paso ~{avg_step}"
+                )
 
         return "\n".join(lines) if lines else ""
     except Exception as e:
@@ -200,7 +230,10 @@ def build_system_prompt(state: CopilotState) -> str:
     active_procedure_ctx = None
     active_proc = state.get("active_procedure")
     if active_proc:
-        from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_REGISTRY
+        from src.modules.copilot.application.tools.procedure_tools import (
+            PROCEDURE_REGISTRY,
+        )
+
         proc = PROCEDURE_REGISTRY.get(active_proc.get("procedure_id", ""))
         if proc:
             idx = active_proc.get("current_step_index", 0)
@@ -253,7 +286,7 @@ def agent_node(state: CopilotState) -> dict:
         llm = llm.bind_tools(tools)
 
     system_prompt = build_system_prompt(state)
-    messages = [SystemMessage(content=system_prompt)] + list(state["messages"])
+    messages = [SystemMessage(content=system_prompt), *list(state["messages"])]
     response = llm.invoke(messages)
 
     # Store active tool names for logging/state
@@ -303,7 +336,7 @@ def tool_executor_node(state: CopilotState) -> dict:
                 logger.error("copilot_tool_error", tool=tool_name, error=str(e))
                 tool_messages.append(
                     ToolMessage(
-                        content=f"Error ejecutando {tool_name}: {str(e)}",
+                        content=f"Error ejecutando {tool_name}: {e!s}",
                         tool_call_id=tool_call["id"],
                         name=tool_name,
                     )

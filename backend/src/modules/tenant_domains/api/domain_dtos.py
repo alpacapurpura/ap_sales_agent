@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -30,13 +29,13 @@ class DomainResponse(BaseModel):
     domain_type: DomainType
     status: DomainStatus
     is_primary: bool
-    ssl_status: Optional[str] = None
-    verification_method: Optional[str] = None
-    verification_cname_target: Optional[str] = None
-    verification_txt_name: Optional[str] = None
-    verification_txt_value: Optional[str] = None
-    verified_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    ssl_status: str | None = None
+    verification_method: str | None = None
+    verification_cname_target: str | None = None
+    verification_txt_name: str | None = None
+    verification_txt_value: str | None = None
+    verified_at: datetime | None = None
+    created_at: datetime | None = None
 
 
 class DomainConflictDetail(BaseModel):
@@ -49,13 +48,13 @@ class DomainConflictDetail(BaseModel):
 class DnsRecord(BaseModel):
     type: str
     name: str
-    target: Optional[str] = None
-    value: Optional[str] = None
+    target: str | None = None
+    value: str | None = None
 
 
 class DomainInstructionsResponse(BaseModel):
     hostname: str
     domain_type: DomainType
     status: DomainStatus
-    cname_record: Optional[DnsRecord] = None
-    txt_record: Optional[DnsRecord] = None
+    cname_record: DnsRecord | None = None
+    txt_record: DnsRecord | None = None

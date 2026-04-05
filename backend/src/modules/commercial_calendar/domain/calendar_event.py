@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Optional
 from uuid import UUID
 
 
@@ -12,11 +11,11 @@ class CalendarEvent:
     year: int
     week_number: int
     name: str
-    tenant_id: Optional[UUID] = None
-    category: Optional[str] = None
-    description: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    tenant_id: UUID | None = None
+    category: str | None = None
+    description: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     @property
     def is_system(self) -> bool:

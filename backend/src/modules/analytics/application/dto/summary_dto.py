@@ -6,20 +6,19 @@ without needing full detail data.
 """
 
 from pydantic import BaseModel
-from typing import Optional
 
 
 class StageSummaryKpiDTO(BaseModel):
     stage: str
     main_kpi: float
     main_label: str
-    main_unit: Optional[str] = None
+    main_unit: str | None = None
     secondary_kpi: float
     secondary_label: str
-    secondary_unit: Optional[str] = None
+    secondary_unit: str | None = None
 
 
 class BowtiesSummaryDTO(BaseModel):
     stages: list[StageSummaryKpiDTO]
     period: str
-    last_updated: Optional[str] = None
+    last_updated: str | None = None

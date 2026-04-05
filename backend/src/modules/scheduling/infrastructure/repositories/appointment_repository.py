@@ -1,10 +1,14 @@
-from typing import List
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
+
 from sqlalchemy.orm import Session
+
 from src.modules.scheduling.domain.appointment import Appointment
-from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel
 from src.modules.scheduling.domain.enums import AppointmentStatus
+from src.modules.scheduling.infrastructure.models.appointment_model import (
+    AppointmentModel,
+)
+
 
 class AppointmentRepository:
     def __init__(self, db: Session):
@@ -30,13 +34,20 @@ class AppointmentRepository:
             external_event_id=model.external_event_id,
             metadata_info=model.metadata_info or {},
             created_at=model.created_at,
-            updated_at=model.updated_at
+            updated_at=model.updated_at,
         )
 
-    def get_appointments_by_date_range(self, start: datetime, end: datetime, tenant_id: UUID) -> List[Appointment]:
-        models = self.db.query(AppointmentModel).filter(
-            AppointmentModel.tenant_id == tenant_id,
-            AppointmentModel.start_time >= start,
-            AppointmentModel.start_time <= end
-        ).order_by(AppointmentModel.start_time.asc()).all()
+    def get_appointments_by_date_range(
+        self, start: datetime, end: datetime, tenant_id: UUID
+    ) -> list[Appointment]:
+        models = (
+            self.db.query(AppointmentModel)
+            .filter(
+                AppointmentModel.tenant_id == tenant_id,
+                AppointmentModel.start_time >= start,
+                AppointmentModel.start_time <= end,
+            )
+            .order_by(AppointmentModel.start_time.asc())
+            .all()
+        )
         return [self._to_domain(m) for m in models]

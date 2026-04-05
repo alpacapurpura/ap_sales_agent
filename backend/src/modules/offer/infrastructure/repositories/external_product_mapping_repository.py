@@ -1,6 +1,5 @@
 """Repository for external product → offer mappings."""
 
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -17,7 +16,7 @@ class ExternalProductMappingRepository:
 
     def get_by_external_id(
         self, tenant_id: UUID, source: str, external_id: str
-    ) -> Optional[ExternalProductMappingModel]:
+    ) -> ExternalProductMappingModel | None:
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
             ExternalProductMappingModel.source == source,
@@ -27,7 +26,7 @@ class ExternalProductMappingRepository:
 
     def get_by_offer_id(
         self, tenant_id: UUID, offer_id: UUID
-    ) -> List[ExternalProductMappingModel]:
+    ) -> list[ExternalProductMappingModel]:
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
             ExternalProductMappingModel.offer_id == offer_id,
@@ -36,7 +35,7 @@ class ExternalProductMappingRepository:
 
     def list_by_source(
         self, tenant_id: UUID, source: str
-    ) -> List[ExternalProductMappingModel]:
+    ) -> list[ExternalProductMappingModel]:
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
             ExternalProductMappingModel.source == source,
@@ -49,8 +48,8 @@ class ExternalProductMappingRepository:
         offer_id: UUID,
         source: str,
         external_id: str,
-        external_name: Optional[str] = None,
-        metadata_info: Optional[dict] = None,
+        external_name: str | None = None,
+        metadata_info: dict | None = None,
     ) -> ExternalProductMappingModel:
         mapping = ExternalProductMappingModel(
             tenant_id=tenant_id,
@@ -73,8 +72,8 @@ class ExternalProductMappingRepository:
         return result.rowcount > 0
 
     def bulk_resolve(
-        self, tenant_id: UUID, source: str, external_ids: List[str]
-    ) -> Dict[str, UUID]:
+        self, tenant_id: UUID, source: str, external_ids: list[str]
+    ) -> dict[str, UUID]:
         """Batch lookup: returns {external_id: offer_id} for found mappings."""
         if not external_ids:
             return {}
@@ -87,4 +86,4 @@ class ExternalProductMappingRepository:
             ExternalProductMappingModel.external_id.in_(external_ids),
         )
         rows = self.db.execute(stmt).all()
-        return {ext_id: offer_id for ext_id, offer_id in rows}
+        return dict(rows)

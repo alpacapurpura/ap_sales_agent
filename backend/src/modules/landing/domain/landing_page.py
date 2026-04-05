@@ -1,17 +1,18 @@
-from typing import Optional
-from uuid import UUID
 from datetime import datetime
-from src.shared.domain.base_entity import BaseEntity
+from uuid import UUID
+
 from src.modules.landing.domain.content import LandingPageConfig
+from src.shared.domain.base_entity import BaseEntity
+
 
 class LandingPage(BaseEntity):
     id: UUID
-    tenant_id: Optional[UUID] = None
-    offer_id: Optional[UUID] = None
-    
+    tenant_id: UUID | None = None
+    offer_id: UUID | None = None
+
     slug: str
     config: LandingPageConfig
-    
+
     is_published: bool = False
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

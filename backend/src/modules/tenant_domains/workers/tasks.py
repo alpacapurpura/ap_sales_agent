@@ -4,11 +4,15 @@ Finds domains in PENDING_VERIFICATION or VERIFYING state older than 5 minutes
 and calls verify_domain() for each one to sync status from Cloudflare.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import sentry_sdk
 import structlog
 from sentry_sdk.crons import MonitorStatus, capture_checkin
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger(__name__)
 
@@ -22,11 +26,12 @@ async def poll_domain_verification(ctx: dict) -> dict:
     created more than 5 minutes ago, to allow Cloudflare propagation time.
     """
     from sqlalchemy import select
-    from sqlalchemy.orm import Session
 
     from src.modules.tenant_domains.application.domain_service import DomainService
     from src.modules.tenant_domains.domain.domain_entity import DomainStatus
-    from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import TenantDomainModel
+    from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
+        TenantDomainModel,
+    )
 
     db_factory = ctx.get("db_factory")
     if db_factory is None:
@@ -43,20 +48,17 @@ async def poll_domain_verification(ctx: dict) -> dict:
         },
     )
 
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=_PENDING_THRESHOLD_MINUTES)
+    cutoff = datetime.now(UTC) - timedelta(minutes=_PENDING_THRESHOLD_MINUTES)
     pending_statuses = [DomainStatus.PENDING_VERIFICATION, DomainStatus.VERIFYING]
 
     db: Session = db_factory()
     try:
-        stmt = (
-            select(TenantDomainModel)
-            .where(
-                TenantDomainModel.status.in_(pending_statuses),
-                TenantDomainModel.domain_type == "custom",
-                TenantDomainModel.cloudflare_hostname_id.isnot(None),
-                TenantDomainModel.created_at <= cutoff,
-                TenantDomainModel.deleted_at.is_(None),
-            )
+        stmt = select(TenantDomainModel).where(
+            TenantDomainModel.status.in_(pending_statuses),
+            TenantDomainModel.domain_type == "custom",
+            TenantDomainModel.cloudflare_hostname_id.isnot(None),
+            TenantDomainModel.created_at <= cutoff,
+            TenantDomainModel.deleted_at.is_(None),
         )
         result = db.execute(stmt)
         candidates = result.scalars().all()

@@ -17,36 +17,23 @@ Stage services:
 - TimeseriesStageService   -> get_stage_timeseries()
 """
 
-from datetime import datetime
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
-from typing import Dict, Any, Optional
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    JourneyEventRepository,
-    CustomerRepository,
-)
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
-    LeadRepository,
-)
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
-    ChannelConnectionRepository,
-)
-from src.modules.connections.domain.enums import ChannelType
+from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO
 from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
+from src.modules.analytics.application.dto.evangelization_dto import (
+    EvangelizationDetailDTO,
+)
+from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
 from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
-from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
-from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
-from src.modules.analytics.application.dto.evangelization_dto import EvangelizationDetailDTO
 from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
 from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.application.services.stage_services import (
     AdoptionStageService,
     AttractionStageService,
@@ -59,9 +46,26 @@ from src.modules.analytics.application.services.stage_services import (
     SummaryStageService,
     TimeseriesStageService,
 )
+from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
+from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+    ChannelConnectionRepository,
+)
+from src.modules.crm.domain.enums import LifecycleStage
+from src.modules.crm.infrastructure.repositories.customer_repository import (
+    CustomerRepository,
+    JourneyEventRepository,
+)
+from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
+    LeadRepository,
+)
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 # Maps our channel slugs to the ChannelType enum for connection lookups (sankey legacy)
-_CHANNEL_CONNECTION_MAP: Dict[str, ChannelType] = {
+_CHANNEL_CONNECTION_MAP: dict[str, ChannelType] = {
     "ig-organic": ChannelType.INSTAGRAM_ACCOUNT,
     "yt-organic": ChannelType.YOUTUBE_ANALYTICS,
     "fb-organic": ChannelType.FACEBOOK_PAGE,
@@ -84,9 +88,9 @@ class MetricsService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
-        offer_port: Optional[OfferReadPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
+        offer_port: OfferReadPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -117,7 +121,7 @@ class MetricsService:
     # Sankey (legacy — stays in MetricsService)
     # ------------------------------------------------------------------
 
-    def get_marketing_sankey_metrics(self, tenant_id: UUID) -> Dict[str, Any]:
+    def get_marketing_sankey_metrics(self, tenant_id: UUID) -> dict[str, Any]:
         """
         Obtiene metricas para el diagrama de Sankey de marketing (7 nodos).
 

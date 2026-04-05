@@ -1,22 +1,30 @@
-from typing import List, Any
-from src.shared.domain.messages import OutgoingMessage
+from typing import Any
+
 import structlog
 
+from src.shared.domain.messages import OutgoingMessage
+
 logger = structlog.get_logger()
+
 
 class WebhookAdapter:
     """
     Adapter for generic Webhook/API integration.
     Collects responses in-memory to return them in the HTTP response.
     """
+
     def __init__(self):
-        self.responses: List[str] = []
+        self.responses: list[str] = []
 
     async def send_message(self, message: OutgoingMessage):
         """
         Stores the message content.
         """
-        logger.info("webhook_adapter_collecting_message", user_id=message.user_id, text=message.text)
+        logger.info(
+            "webhook_adapter_collecting_message",
+            user_id=message.user_id,
+            text=message.text,
+        )
         self.responses.append(message.text)
 
     async def set_typing_status(self, user_id: str):
@@ -30,4 +38,3 @@ class WebhookAdapter:
         """
         Not used in the synchronous flow, but kept for interface consistency.
         """
-        pass

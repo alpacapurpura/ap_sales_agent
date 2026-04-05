@@ -5,13 +5,12 @@ Analyzes the tenant's current offer ladder (5 value levels) and identifies
 gaps, suggesting what to create next with priorities and archetypes.
 """
 
+import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
-
-import structlog
 
 logger = structlog.get_logger()
 
@@ -64,7 +63,13 @@ DEFAULT_SUGGESTIONS = {
     },
 }
 
-LEVEL_ORDER = ["lead_magnet", "activacion", "transformacion", "maximizacion", "corporativo"]
+LEVEL_ORDER = [
+    "lead_magnet",
+    "activacion",
+    "transformacion",
+    "maximizacion",
+    "corporativo",
+]
 
 GAP_REASONING = {
     "lead_magnet": (
@@ -93,32 +98,42 @@ GAP_REASONING = {
 def _fetch_brand_context(db, tenant_id: str) -> dict | None:
     """Fetch brand info for contextual suggestions."""
     try:
-        row = db.execute(
-            text(
-                "SELECT niche, industry, target_audience "
-                "FROM brands WHERE tenant_id = :tid AND is_active = true "
-                "LIMIT 1"
-            ),
-            {"tid": tenant_id},
-        ).mappings().first()
+        row = (
+            db.execute(
+                text(
+                    "SELECT niche, industry, target_audience "
+                    "FROM brands WHERE tenant_id = :tid AND is_active = true "
+                    "LIMIT 1"
+                ),
+                {"tid": tenant_id},
+            )
+            .mappings()
+            .first()
+        )
         return dict(row) if row else None
     except Exception as e:
-        logger.warning("offer_ladder_brand_fetch_error", tenant_id=tenant_id, error=str(e))
+        logger.warning(
+            "offer_ladder_brand_fetch_error", tenant_id=tenant_id, error=str(e)
+        )
         return None
 
 
 def _fetch_offers(db, tenant_id: str) -> list[dict]:
     """Fetch active offers grouped by value level."""
     try:
-        rows = db.execute(
-            text(
-                "SELECT id, name, archetype, format_hint, offer_value_level, "
-                "delivery_model, status "
-                "FROM products WHERE tenant_id = :tid AND is_active = true "
-                "ORDER BY created_at"
-            ),
-            {"tid": tenant_id},
-        ).mappings().all()
+        rows = (
+            db.execute(
+                text(
+                    "SELECT id, name, archetype, format_hint, offer_value_level, "
+                    "delivery_model, status "
+                    "FROM products WHERE tenant_id = :tid AND is_active = true "
+                    "ORDER BY created_at"
+                ),
+                {"tid": tenant_id},
+            )
+            .mappings()
+            .all()
+        )
         return [dict(r) for r in rows]
     except Exception as e:
         logger.warning("offer_ladder_fetch_error", tenant_id=tenant_id, error=str(e))
@@ -196,14 +211,20 @@ def _calculate_completeness(groups: dict[str, list[dict]]) -> str:
     lines = [f"\n## Completitud: {filled}/{total} ({pct}%)\n"]
 
     if pct == 100:
-        lines.append("Tu offer ladder esta completo. Revisa cada oferta para asegurar "
-                      "que los detalles esten bien configurados.")
+        lines.append(
+            "Tu offer ladder esta completo. Revisa cada oferta para asegurar "
+            "que los detalles esten bien configurados."
+        )
     elif pct >= 60:
-        lines.append("Buen avance. Completa los niveles faltantes para maximizar "
-                      "el valor de cada cliente en tu embudo.")
+        lines.append(
+            "Buen avance. Completa los niveles faltantes para maximizar "
+            "el valor de cada cliente en tu embudo."
+        )
     else:
-        lines.append("Tu offer ladder necesita mas ofertas. Empieza por los gaps "
-                      "marcados como CRITICO.")
+        lines.append(
+            "Tu offer ladder necesita mas ofertas. Empieza por los gaps "
+            "marcados como CRITICO."
+        )
 
     return "\n".join(lines)
 

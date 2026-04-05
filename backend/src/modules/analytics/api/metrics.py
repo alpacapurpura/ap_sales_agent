@@ -1,28 +1,33 @@
-from datetime import date, datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db, redis_client
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 from src.modules.analytics.application.config import ETLConfig
-from src.modules.analytics.application.services.metrics_service import MetricsService
-from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
+from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO
 from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
+from src.modules.analytics.application.dto.evangelization_dto import (
+    EvangelizationDetailDTO,
+)
+from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
 from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
 from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
-from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
-from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
-from src.modules.analytics.application.dto.evangelization_dto import EvangelizationDetailDTO
+from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
 from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
+from src.modules.analytics.application.services.metrics_service import MetricsService
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.connections.application.services.connection_port_impl import ConnectionPortImpl
-from src.modules.offer.application.services.offer_read_port_impl import OfferReadPortImpl
+from src.modules.connections.application.services.connection_port_impl import (
+    ConnectionPortImpl,
+)
+from src.modules.iam.api.dependencies import get_current_user
+from src.modules.iam.domain.user import User
+from src.modules.offer.application.services.offer_read_port_impl import (
+    OfferReadPortImpl,
+)
 
 router = APIRouter(prefix="/metrics", tags=["Marketing Metrics"])
 
@@ -32,14 +37,15 @@ _REFRESH_COOLDOWN = timedelta(seconds=ETLConfig.PER_PROVIDER_REFRESH_COOLDOWN)
 
 # ─── Sync All DTOs ────────────────────────────────────────────────────────────
 
+
 class SyncProviderResult(BaseModel):
     provider: str
     status: str  # "ok" | "skipped_cooldown" | "failed"
-    loaded: Optional[int] = None
-    skipped: Optional[int] = None
-    total: Optional[int] = None
-    remaining_minutes: Optional[int] = None
-    error: Optional[str] = None
+    loaded: int | None = None
+    skipped: int | None = None
+    total: int | None = None
+    remaining_minutes: int | None = None
+    error: str | None = None
 
 
 class SyncAllResponse(BaseModel):
@@ -50,6 +56,7 @@ class SyncAllResponse(BaseModel):
     total_loaded: int
     total_skipped: int
     details: list[SyncProviderResult]
+
 
 # Map channel slugs to their provider names for refresh routing
 _SLUG_TO_PROVIDER: dict[str, str] = {
@@ -95,8 +102,7 @@ async def get_summary_metrics(
 
 @router.get("/sankey")
 async def get_marketing_sankey(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ):
     """
     Get Marketing Sankey Metrics (7 Nodes).
@@ -170,7 +176,7 @@ async def get_opportunity_metrics(
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
     return await service.get_opportunity_metrics(user.tenant_id, start_date, now)
 
@@ -192,7 +198,7 @@ async def get_sales_metrics(
     service = MetricsService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
     return await service.get_sales_metrics(user.tenant_id, start_date, now)
 
@@ -213,7 +219,7 @@ async def get_adoption_metrics(
     service = MetricsService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
     return await service.get_adoption_metrics(user.tenant_id, start_date, now)
 
@@ -235,7 +241,7 @@ async def get_expansion_metrics(
     service = MetricsService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
     return await service.get_expansion_metrics(user.tenant_id, start_date, now)
 
@@ -256,14 +262,20 @@ async def get_evangelization_metrics(
     service = MetricsService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
     return await service.get_evangelization_metrics(user.tenant_id, start_date, now)
 
 
 _VALID_STAGES = {
-    "attraction", "capture", "nurture", "opportunity",
-    "sales", "adoption", "expansion", "evangelization",
+    "attraction",
+    "capture",
+    "nurture",
+    "opportunity",
+    "sales",
+    "adoption",
+    "expansion",
+    "evangelization",
 }
 _VALID_GRANULARITIES = {"daily", "weekly"}
 _VALID_RANGES = {7, 30, 90}
@@ -286,9 +298,14 @@ async def get_stage_timeseries(
     if stage not in _VALID_STAGES:
         raise HTTPException(status_code=400, detail=f"Invalid stage: {stage}")
     if granularity not in _VALID_GRANULARITIES:
-        raise HTTPException(status_code=400, detail=f"Invalid granularity: {granularity}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid granularity: {granularity}"
+        )
     if range_days not in _VALID_RANGES:
-        raise HTTPException(status_code=400, detail=f"Invalid range_days: {range_days}. Use 7, 30, or 90.")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid range_days: {range_days}. Use 7, 30, or 90.",
+        )
 
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
@@ -321,14 +338,18 @@ async def sync_all_sources(
     if redis_client:
         last_sync = redis_client.get(cooldown_key)
         if last_sync:
-            elapsed = datetime.now(timezone.utc) - datetime.fromisoformat(last_sync)
+            elapsed = datetime.now(UTC) - datetime.fromisoformat(last_sync)
             remaining = _SYNC_ALL_COOLDOWN - elapsed
             if remaining.total_seconds() > 0:
                 raise HTTPException(
                     status_code=429,
                     detail=f"Sync en progreso o muy reciente. Espera {int(remaining.total_seconds())}s antes de volver a sincronizar.",
                 )
-        redis_client.setex(cooldown_key, int(_SYNC_ALL_COOLDOWN.total_seconds()), datetime.now(timezone.utc).isoformat())
+        redis_client.setex(
+            cooldown_key,
+            int(_SYNC_ALL_COOLDOWN.total_seconds()),
+            datetime.now(UTC).isoformat(),
+        )
 
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
@@ -350,8 +371,8 @@ class MetricCatalogEntryResponse(BaseModel):
     is_unique_metric: bool
     higher_is_better: bool
     providers: list[str]
-    weight_metric: Optional[str] = None
-    formula: Optional[str] = None
+    weight_metric: str | None = None
+    formula: str | None = None
     formula_components: list[str] = []
 
 
@@ -367,7 +388,7 @@ class SyncIgDmResponse(BaseModel):
     synced_messages: int
     new_leads: int
     skipped: int
-    remaining_minutes: Optional[int] = None
+    remaining_minutes: int | None = None
 
 
 @router.post("/sync-ig-dm", response_model=SyncIgDmResponse)
@@ -386,10 +407,12 @@ async def sync_ig_dm(
         last_sync = redis_client.get(cooldown_key)
         if last_sync:
             import json
+
             elapsed_info = json.loads(last_sync)
             from datetime import datetime as dt
+
             last_ts = dt.fromisoformat(elapsed_info["ts"])
-            elapsed = datetime.now(timezone.utc) - last_ts
+            elapsed = datetime.now(UTC) - last_ts
             if elapsed < _REFRESH_COOLDOWN:
                 remaining = _REFRESH_COOLDOWN - elapsed
                 remaining_min = int(remaining.total_seconds() // 60) + 1
@@ -413,16 +436,17 @@ async def sync_ig_dm(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"IG DM sync failed: {str(exc)}",
+            detail=f"IG DM sync failed: {exc!s}",
         )
 
     # Set cooldown
     if redis_client:
         import json
+
         redis_client.setex(
             cooldown_key,
             int(_REFRESH_COOLDOWN.total_seconds()),
-            json.dumps({"ts": datetime.now(timezone.utc).isoformat()}),
+            json.dumps({"ts": datetime.now(UTC).isoformat()}),
         )
 
     return SyncIgDmResponse(
@@ -463,7 +487,7 @@ async def refresh_channel_metrics(
     latest_run = run_repo.get_latest(user.tenant_id, provider_name)
 
     if latest_run and latest_run.started_at:
-        elapsed = datetime.now(timezone.utc) - latest_run.started_at
+        elapsed = datetime.now(UTC) - latest_run.started_at
         if elapsed < _REFRESH_COOLDOWN:
             remaining = _REFRESH_COOLDOWN - elapsed
             remaining_min = int(remaining.total_seconds() // 60) + 1
@@ -490,7 +514,7 @@ async def refresh_channel_metrics(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Extraction failed: {str(exc)}",
+            detail=f"Extraction failed: {exc!s}",
         )
 
 
@@ -552,7 +576,7 @@ async def trigger_initial_load(
     latest_run = run_repo.get_latest(user.tenant_id, provider)
 
     if latest_run and latest_run.started_at:
-        elapsed = datetime.now(timezone.utc) - latest_run.started_at
+        elapsed = datetime.now(UTC) - latest_run.started_at
         if elapsed < _REFRESH_COOLDOWN:
             remaining = _REFRESH_COOLDOWN - elapsed
             remaining_min = int(remaining.total_seconds() // 60) + 1
@@ -578,7 +602,7 @@ async def trigger_initial_load(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Initial load failed: {str(exc)}",
+            detail=f"Initial load failed: {exc!s}",
         )
 
 
@@ -618,10 +642,10 @@ class PeriodExtractionRequest(BaseModel):
 class PeriodExtractionResultDTO(BaseModel):
     provider: str
     status: str
-    metrics_count: Optional[int] = None
-    period_type: Optional[str] = None
-    reason: Optional[str] = None
-    error: Optional[str] = None
+    metrics_count: int | None = None
+    period_type: str | None = None
+    reason: str | None = None
+    error: str | None = None
 
 
 class PeriodExtractionResponse(BaseModel):
@@ -643,10 +667,14 @@ async def trigger_period_extraction(
     that support period-level extraction.
     """
     if period_type not in {"weekly", "monthly", "quarterly"}:
-        raise HTTPException(status_code=400, detail=f"Invalid period_type: {period_type}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid period_type: {period_type}"
+        )
 
     if period_end < period_start:
-        raise HTTPException(status_code=400, detail="period_end must be >= period_start")
+        raise HTTPException(
+            status_code=400, detail="period_end must be >= period_start"
+        )
 
     from src.modules.analytics.application.services.etl_service import ETLService
 
@@ -668,7 +696,7 @@ async def trigger_period_extraction(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Period extraction failed: {str(exc)}",
+            detail=f"Period extraction failed: {exc!s}",
         )
 
 
@@ -682,9 +710,9 @@ class TenantPeriodConfigDTO(BaseModel):
 
 
 class TenantPeriodConfigUpdateDTO(BaseModel):
-    weekly_start_day: Optional[int] = None
-    fiscal_year_start_month: Optional[int] = None
-    fiscal_year_start_day: Optional[int] = None
+    weekly_start_day: int | None = None
+    fiscal_year_start_month: int | None = None
+    fiscal_year_start_day: int | None = None
 
 
 @router.get("/period-config", response_model=TenantPeriodConfigDTO)
@@ -694,6 +722,7 @@ async def get_period_config(
 ):
     """Get the tenant's period configuration."""
     from sqlalchemy import select as sa_select
+
     from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
     tenant = db.execute(
@@ -720,7 +749,9 @@ async def update_period_config(
 
     Changes affect future aggregation calculations and period boundary detection.
     """
-    from sqlalchemy import select as sa_select, update as sa_update
+    from sqlalchemy import select as sa_select
+    from sqlalchemy import update as sa_update
+
     from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
     tenant = db.execute(
@@ -737,11 +768,15 @@ async def update_period_config(
         updates["weekly_start_day"] = payload.weekly_start_day
     if payload.fiscal_year_start_month is not None:
         if not 1 <= payload.fiscal_year_start_month <= 12:
-            raise HTTPException(status_code=400, detail="fiscal_year_start_month must be 1-12")
+            raise HTTPException(
+                status_code=400, detail="fiscal_year_start_month must be 1-12"
+            )
         updates["fiscal_year_start_month"] = payload.fiscal_year_start_month
     if payload.fiscal_year_start_day is not None:
         if not 1 <= payload.fiscal_year_start_day <= 31:
-            raise HTTPException(status_code=400, detail="fiscal_year_start_day must be 1-31")
+            raise HTTPException(
+                status_code=400, detail="fiscal_year_start_day must be 1-31"
+            )
         updates["fiscal_year_start_day"] = payload.fiscal_year_start_day
 
     if updates:

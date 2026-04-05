@@ -1,11 +1,14 @@
-from langgraph.graph import StateGraph, START, END
-from typing import TypedDict, Optional, Dict, Any
+from typing import Any, TypedDict
+
+from langgraph.graph import END, START, StateGraph
+
 
 class WebExtractorState(TypedDict):
     url: str
-    content: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    error: Optional[str]
+    content: str | None
+    metadata: dict[str, Any] | None
+    error: str | None
+
 
 def extract_node(state: WebExtractorState):
     """
@@ -13,9 +16,10 @@ def extract_node(state: WebExtractorState):
     """
     # In real impl, this would use Firecrawl or similar
     return {
-        "content": f"Mock content from {state['url']}", 
-        "metadata": {"title": "Mock Title"}
+        "content": f"Mock content from {state['url']}",
+        "metadata": {"title": "Mock Title"},
     }
+
 
 workflow = StateGraph(WebExtractorState)
 workflow.add_node("extract", extract_node)

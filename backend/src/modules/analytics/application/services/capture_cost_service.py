@@ -7,10 +7,9 @@ Stage 0 paid channel spend.
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.infrastructure.models.channel_cost_model import (
@@ -33,7 +32,7 @@ class CaptureCostService:
         self,
         tenant_id: UUID,
         stage: str = "capture",
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Get total monthly cost per channel slug from channel_cost_settings.
 
         Sums multiple cost entries per channel (platform + agency + tool).
@@ -48,7 +47,9 @@ class CaptureCostService:
                 ChannelCostSettingModel.tenant_id == tenant_id,
                 ChannelCostSettingModel.is_active.is_(True),
                 ChannelCostSettingModel.deleted_at.is_(None),
-                ChannelCostSettingModel.proration_category.is_(None),  # exclude prorated costs
+                ChannelCostSettingModel.proration_category.is_(
+                    None
+                ),  # exclude prorated costs
             )
             .group_by(ChannelCostSettingModel.channel_slug)
         )
@@ -69,14 +70,11 @@ class CaptureCostService:
             MetricAggregationModel,
         )
 
-        stmt = (
-            select(func.coalesce(func.sum(MetricAggregationModel.value), 0.0))
-            .where(
-                MetricAggregationModel.tenant_id == tenant_id,
-                MetricAggregationModel.channel_slug.in_(_PAID_CHANNEL_SLUGS),
-                MetricAggregationModel.metric_name == "spend",
-                MetricAggregationModel.period_type == "last_30_days",
-            )
+        stmt = select(func.coalesce(func.sum(MetricAggregationModel.value), 0.0)).where(
+            MetricAggregationModel.tenant_id == tenant_id,
+            MetricAggregationModel.channel_slug.in_(_PAID_CHANNEL_SLUGS),
+            MetricAggregationModel.metric_name == "spend",
+            MetricAggregationModel.period_type == "last_30_days",
         )
         result = self.db.execute(stmt).scalar()
         return float(result) if result else 0.0
@@ -85,7 +83,7 @@ class CaptureCostService:
         self,
         total_costs: float,
         total_leads: int,
-    ) -> Optional[float]:
+    ) -> float | None:
         """CAL = total costs / total leads. Returns None if leads == 0."""
         if total_leads == 0:
             return None
@@ -94,8 +92,8 @@ class CaptureCostService:
     def get_prorated_agency_costs(
         self,
         tenant_id: UUID,
-        connected_channels: List[str],
-    ) -> Dict[str, float]:
+        connected_channels: list[str],
+    ) -> dict[str, float]:
         """Distribute agency costs across channels based on proration_category.
 
         Categories:
@@ -104,14 +102,11 @@ class CaptureCostService:
         - video: evenly across video-capable channels (ig-dm, tiktok-dm)
         - full_service: evenly across all connected channels
         """
-        stmt = (
-            select(ChannelCostSettingModel)
-            .where(
-                ChannelCostSettingModel.tenant_id == tenant_id,
-                ChannelCostSettingModel.is_active.is_(True),
-                ChannelCostSettingModel.deleted_at.is_(None),
-                ChannelCostSettingModel.proration_category.isnot(None),
-            )
+        stmt = select(ChannelCostSettingModel).where(
+            ChannelCostSettingModel.tenant_id == tenant_id,
+            ChannelCostSettingModel.is_active.is_(True),
+            ChannelCostSettingModel.deleted_at.is_(None),
+            ChannelCostSettingModel.proration_category.isnot(None),
         )
         rows = self.db.execute(stmt).scalars().all()
 
@@ -126,7 +121,7 @@ class CaptureCostService:
             "full_service": None,  # all connected channels
         }
 
-        result: Dict[str, float] = {}
+        result: dict[str, float] = {}
         connected_set = set(connected_channels)
 
         for cost_entry in rows:

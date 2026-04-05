@@ -9,55 +9,72 @@ After decomposition, this module contains:
 Crawling utilities live in extraction_crawler.py.
 Wave orchestration and merge logic live in extraction_orchestrator.py.
 """
+
 from __future__ import annotations
 
-from typing import Optional, Literal, Callable, TYPE_CHECKING
-from uuid import UUID
-from dataclasses import dataclass
-from sqlalchemy.orm import Session
-import structlog
-import json
 import asyncio
+import json
 import time
-from pydantic import BaseModel
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Literal
+
+import structlog
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from uuid import UUID
+
+    from pydantic import BaseModel
+    from sqlalchemy.orm import Session
+
     from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
 
-from src.modules.brand.domain import (
-    BrandSettings, BrandIdentity, BrandStory, BrandStrategy, BrandVisuals,
-    BrandPositioning, BrandNarrative, CommunicationAssets,
-)
-from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
-from src.modules.copilot.infrastructure.prompts.base import prompt_loader
+import traceback
 
 from src.core.enums import ModelRole
-from src.shared.application.ai_action_service import AIActionService, AIActionPolicy, AIModelPolicy
-import traceback
 
 # Import crawler functions/class
 from src.modules.brand.application.extraction_crawler import (
-    score_link,
-    extract_text_from_html,
-    extract_css_relevant,
-    extract_html_with_styles,
-    truncate_at_page_boundary,
-    BrandCrawler,
-    # Constants (re-exported for backward compat)
-    _SKIP_PATTERNS,  # noqa: F401
-    _SKIP_EXTENSIONS,  # noqa: F401
     _HIGH_KEYWORDS,  # noqa: F401
     _MEDIUM_KEYWORDS,  # noqa: F401
+    _SKIP_EXTENSIONS,  # noqa: F401
+    # Constants (re-exported for backward compat)
+    _SKIP_PATTERNS,  # noqa: F401
+    BrandCrawler,
+    extract_css_relevant,
+    extract_html_with_styles,
+    extract_text_from_html,
+    score_link,
+    truncate_at_page_boundary,
 )
 
 # Import orchestrator models/functions
 from src.modules.brand.application.extraction_orchestrator import (
+    BrandAuthorityExtraction,
     BrandPeopleContactExtraction,
     BrandTestimonialsExtraction,
-    BrandAuthorityExtraction,
-    summarize_settings,
-    is_empty,
     ExtractionOrchestrator,
+    is_empty,
+    summarize_settings,
+)
+from src.modules.brand.domain import (
+    BrandIdentity,
+    BrandNarrative,
+    BrandPositioning,
+    BrandSettings,
+    BrandStory,
+    BrandStrategy,
+    BrandVisuals,
+    CommunicationAssets,
+)
+from src.modules.brand.infrastructure.repositories.brand_repository import (
+    BrandRepository,
+)
+from src.modules.copilot.infrastructure.prompts.base import prompt_loader
+from src.shared.application.ai_action_service import (
+    AIActionPolicy,
+    AIActionService,
+    AIModelPolicy,
 )
 
 # Backward-compat alias
@@ -70,16 +87,18 @@ logger = structlog.get_logger()
 # Extraction Profiles — both always exist, switch via BRAND_EXTRACTION_PROFILE
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class ExtractionProfile:
     """Immutable configuration for how brand extraction behaves."""
+
     name: str
-    model_type: ModelRole      # Semantic role — maps to LLM factory via registry
-    max_output_tokens: int    # max completion tokens (model-dependent limit)
-    retries: int              # how many attempts per section
+    model_type: ModelRole  # Semantic role — maps to LLM factory via registry
+    max_output_tokens: int  # max completion tokens (model-dependent limit)
+    retries: int  # how many attempts per section
     retry_delay_seconds: float  # base delay between retries
-    concurrency_waves: int    # 1 = all-6-concurrent, 2 = two-waves-of-3
-    wave_delay_seconds: float # pause between waves (only when waves > 1)
+    concurrency_waves: int  # 1 = all-6-concurrent, 2 = two-waves-of-3
+    wave_delay_seconds: float  # pause between waves (only when waves > 1)
 
 
 # "safe" — conservative with 3 waves and longer delays.
@@ -113,6 +132,7 @@ _PROFILES = {
 def _get_active_profile() -> ExtractionProfile:
     """Resolve active profile from settings.BRAND_EXTRACTION_PROFILE (default: safe)."""
     from src.core.config import settings as app_settings
+
     name = app_settings.BRAND_EXTRACTION_PROFILE.lower()
     profile = _PROFILES.get(name)
     if not profile:
@@ -124,6 +144,7 @@ def _get_active_profile() -> ExtractionProfile:
 # ---------------------------------------------------------------------------
 # BrandExtractionService
 # ---------------------------------------------------------------------------
+
 
 class BrandExtractionService:
     """Coordinates LLM-based brand data extraction from web content.
@@ -146,7 +167,7 @@ class BrandExtractionService:
         self.tenant_id = tenant_id
         self.repository = BrandRepository(db)
         self.ai_action_service = AIActionService()
-        self._trace: Optional[ExtractionTraceCollector] = None
+        self._trace: ExtractionTraceCollector | None = None
 
         # Resolve extraction profile from env
         self.profile = _get_active_profile()
@@ -164,12 +185,14 @@ class BrandExtractionService:
         self.crawler = BrandCrawler()
         self.orchestrator = ExtractionOrchestrator(self)
 
-        logger.info("extraction_profile_loaded",
-                     profile=self.profile.name,
-                     model_type=self.profile.model_type,
-                     max_output_tokens=self.profile.max_output_tokens,
-                     concurrency_waves=self.profile.concurrency_waves,
-                     retries=self.profile.retries)
+        logger.info(
+            "extraction_profile_loaded",
+            profile=self.profile.name,
+            model_type=self.profile.model_type,
+            max_output_tokens=self.profile.max_output_tokens,
+            concurrency_waves=self.profile.concurrency_waves,
+            retries=self.profile.retries,
+        )
 
     # ------------------------------------------------------------------
     # Policy helpers
@@ -203,7 +226,14 @@ class BrandExtractionService:
     # Prompt rendering
     # ------------------------------------------------------------------
 
-    def _render_prompt(self, template_name: str, content: str, current_data: str, instructions: str, max_chars: int = 50000) -> str:
+    def _render_prompt(
+        self,
+        template_name: str,
+        content: str,
+        current_data: str,
+        instructions: str,
+        max_chars: int = 50000,
+    ) -> str:
         """Render a brand extraction prompt using the PromptLoader (Jinja2 + DB fallback)."""
         try:
             rendered = prompt_loader.render(
@@ -212,15 +242,27 @@ class BrandExtractionService:
                 current_data=current_data or "None",
                 instructions=instructions or "None",
             )
-            logger.info("prompt_rendered", template=template_name, prompt_length=len(rendered),
-                         content_input_length=len(content), current_data_length=len(current_data or ""))
+            logger.info(
+                "prompt_rendered",
+                template=template_name,
+                prompt_length=len(rendered),
+                content_input_length=len(content),
+                current_data_length=len(current_data or ""),
+            )
             return rendered
         except Exception as e:
-            logger.error("prompt_render_failed", template=template_name, error=str(e),
-                         error_type=type(e).__name__, traceback=traceback.format_exc())
+            logger.error(
+                "prompt_render_failed",
+                template=template_name,
+                error=str(e),
+                error_type=type(e).__name__,
+                traceback=traceback.format_exc(),
+            )
             raise
 
-    def _append_schema_instruction(self, prompt: str, schema_model: type[BaseModel]) -> str:
+    def _append_schema_instruction(
+        self, prompt: str, schema_model: type[BaseModel]
+    ) -> str:
         schema_json = json.dumps(schema_model.model_json_schema(), indent=2)
         return f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
 
@@ -230,15 +272,15 @@ class BrandExtractionService:
 
     async def extract_all(
         self,
-        url: Optional[str] = None,
-        text: Optional[str] = None,
+        url: str | None = None,
+        text: str | None = None,
         mode: Literal["initial", "update"] = "initial",
-        update_instructions: Optional[str] = None,
+        update_instructions: str | None = None,
         dry_run: bool = False,
         include_visuals: bool = False,
         include_assets: bool = False,
-        progress_callback: Optional[Callable[[int, str], None]] = None,
-        trace: Optional[ExtractionTraceCollector] = None,
+        progress_callback: Callable[[int, str], None] | None = None,
+        trace: ExtractionTraceCollector | None = None,
     ) -> BrandSettings:
         """Orchestrate the full brand extraction process. Delegates to ExtractionOrchestrator."""
         return await self.orchestrator.run(
@@ -262,10 +304,16 @@ class BrandExtractionService:
         content = await self.crawler.crawl_content_with_styles(url)
         if not content.strip():
             raise ValueError("Could not crawl content from URL")
-        prompt = self._render_prompt("brand_extract_visuals", content, "", "", max_chars=40000)
+        prompt = self._render_prompt(
+            "brand_extract_visuals", content, "", "", max_chars=40000
+        )
         return await self._run_section(
-            "visuals", "brand_extract_visuals", prompt,
-            BrandVisuals, BrandVisuals(), "Extract the visual identity (colors, fonts, design style).",
+            "visuals",
+            "brand_extract_visuals",
+            prompt,
+            BrandVisuals,
+            BrandVisuals(),
+            "Extract the visual identity (colors, fonts, design style).",
             policy=self._visuals_policy(),
         )
 
@@ -282,11 +330,17 @@ class BrandExtractionService:
     # Generic section runner
     # ------------------------------------------------------------------
 
-    async def _run_section(self, section_name: str, action_name: str, prompt: str,
-                           response_model: type[BaseModel], default_result: BaseModel,
-                           user_prompt: str,
-                           per_call_timeout: float = 120.0,
-                           policy: Optional[AIActionPolicy] = None) -> BaseModel:
+    async def _run_section(
+        self,
+        section_name: str,
+        action_name: str,
+        prompt: str,
+        response_model: type[BaseModel],
+        default_result: BaseModel,
+        user_prompt: str,
+        per_call_timeout: float = 120.0,
+        policy: AIActionPolicy | None = None,
+    ) -> BaseModel:
         """Generic wrapper for running a single extraction section with timing and timeout."""
         effective_policy = policy or self.default_policy
         trace = self._trace
@@ -300,7 +354,9 @@ class BrandExtractionService:
                     self.ai_action_service.run_structured_action,
                     action_name=action_name,
                     tenant_id=self.tenant_id,
-                    system_prompt=self._append_schema_instruction(prompt, response_model),
+                    system_prompt=self._append_schema_instruction(
+                        prompt, response_model
+                    ),
                     user_prompt=user_prompt,
                     response_model=response_model,
                     policy=effective_policy,
@@ -310,94 +366,217 @@ class BrandExtractionService:
             )
             elapsed = time.time() - t0
             extracted = result.model_dump(exclude_unset=True, exclude_none=True)
-            logger.info(f"extract_{section_name}_success",
-                        fields_extracted=list(extracted.keys()),
-                        field_count=len(extracted),
-                        duration_s=round(elapsed, 2))
+            logger.info(
+                f"extract_{section_name}_success",
+                fields_extracted=list(extracted.keys()),
+                field_count=len(extracted),
+                duration_s=round(elapsed, 2),
+            )
             if trace:
-                trace.section_success(section_name, elapsed,
-                                      field_count=len(extracted),
-                                      fields=list(extracted.keys()))
+                trace.section_success(
+                    section_name,
+                    elapsed,
+                    field_count=len(extracted),
+                    fields=list(extracted.keys()),
+                )
             return result
-        except asyncio.TimeoutError:
+        except TimeoutError:
             elapsed = time.time() - t0
-            logger.error(f"extract_{section_name}_timeout",
-                         timeout=per_call_timeout, duration_s=round(elapsed, 2))
+            logger.error(
+                f"extract_{section_name}_timeout",
+                timeout=per_call_timeout,
+                duration_s=round(elapsed, 2),
+            )
             if trace:
-                trace.section_timeout(section_name, elapsed, timeout_limit=per_call_timeout)
+                trace.section_timeout(
+                    section_name, elapsed, timeout_limit=per_call_timeout
+                )
             return default_result
         except Exception as e:
             elapsed = time.time() - t0
-            logger.error(f"extract_{section_name}_failed",
-                         error=str(e), error_type=type(e).__name__,
-                         duration_s=round(elapsed, 2),
-                         traceback=traceback.format_exc())
+            logger.error(
+                f"extract_{section_name}_failed",
+                error=str(e),
+                error_type=type(e).__name__,
+                duration_s=round(elapsed, 2),
+                traceback=traceback.format_exc(),
+            )
             if trace:
-                trace.section_failed(section_name, elapsed,
-                                     error=str(e), error_type=type(e).__name__)
+                trace.section_failed(
+                    section_name, elapsed, error=str(e), error_type=type(e).__name__
+                )
             return default_result
 
     # ------------------------------------------------------------------
     # Individual section extractors
     # ------------------------------------------------------------------
 
-    async def _extract_identity(self, content: str, current_data: str, instructions: Optional[str]) -> BrandIdentity:
-        prompt = self._render_prompt("brand_extract_identity", content, current_data, instructions)
-        return await self._run_section("identity", "brand_extract_identity", prompt,
-                                       BrandIdentity, BrandIdentity(), "Extract the Brand Identity.")
-
-    async def _extract_story(self, content: str, current_data: str, instructions: Optional[str]) -> BrandStory:
-        prompt = self._render_prompt("brand_extract_story", content, current_data, instructions)
-        return await self._run_section("story", "brand_extract_story", prompt,
-                                       BrandStory, BrandStory(), "Extract the Brand Story.")
-
-    async def _extract_strategy(self, content: str, current_data: str, instructions: Optional[str]) -> BrandStrategy:
-        prompt = self._render_prompt("brand_extract_strategy", content, current_data, instructions, max_chars=65000)
-        return await self._run_section("strategy", "brand_extract_strategy", prompt,
-                                       BrandStrategy, BrandStrategy(), "Extract the Brand Strategy.")
-
-    async def _extract_people_contact(self, content: str, current_data: str, instructions: Optional[str]) -> BrandPeopleContactExtraction:
-        prompt = self._render_prompt("brand_extract_people_contact", content, current_data, instructions, max_chars=65000)
-        return await self._run_section("people_contact", "brand_extract_people_contact", prompt,
-                                       BrandPeopleContactExtraction, BrandPeopleContactExtraction(),
-                                       "Extract People and Contact information.")
-
-    async def _extract_testimonials(self, content: str, current_data: str, instructions: Optional[str]) -> BrandTestimonialsExtraction:
-        prompt = self._render_prompt("brand_extract_testimonials", content, current_data, instructions)
-        return await self._run_section("testimonials", "brand_extract_testimonials", prompt,
-                                       BrandTestimonialsExtraction, BrandTestimonialsExtraction(),
-                                       "Extract Testimonials.")
-
-    async def _extract_authority(self, content: str, current_data: str, instructions: Optional[str]) -> BrandAuthorityExtraction:
-        prompt = self._render_prompt("brand_extract_authority", content, current_data, instructions)
-        return await self._run_section("authority", "brand_extract_authority", prompt,
-                                       BrandAuthorityExtraction, BrandAuthorityExtraction(),
-                                       "Extract Authority elements.")
-
-    async def _extract_visuals(self, content: str, current_data: str, instructions: Optional[str]) -> BrandVisuals:
-        """Extract visual identity (colors, fonts, design style) from CSS-enriched content."""
-        prompt = self._render_prompt("brand_extract_visuals", content, current_data, instructions, max_chars=40000)
+    async def _extract_identity(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandIdentity:
+        prompt = self._render_prompt(
+            "brand_extract_identity", content, current_data, instructions
+        )
         return await self._run_section(
-            "visuals", "brand_extract_visuals", prompt,
-            BrandVisuals, BrandVisuals(), "Extract the visual identity (colors, fonts, design style).",
+            "identity",
+            "brand_extract_identity",
+            prompt,
+            BrandIdentity,
+            BrandIdentity(),
+            "Extract the Brand Identity.",
+        )
+
+    async def _extract_story(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandStory:
+        prompt = self._render_prompt(
+            "brand_extract_story", content, current_data, instructions
+        )
+        return await self._run_section(
+            "story",
+            "brand_extract_story",
+            prompt,
+            BrandStory,
+            BrandStory(),
+            "Extract the Brand Story.",
+        )
+
+    async def _extract_strategy(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandStrategy:
+        prompt = self._render_prompt(
+            "brand_extract_strategy",
+            content,
+            current_data,
+            instructions,
+            max_chars=65000,
+        )
+        return await self._run_section(
+            "strategy",
+            "brand_extract_strategy",
+            prompt,
+            BrandStrategy,
+            BrandStrategy(),
+            "Extract the Brand Strategy.",
+        )
+
+    async def _extract_people_contact(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandPeopleContactExtraction:
+        prompt = self._render_prompt(
+            "brand_extract_people_contact",
+            content,
+            current_data,
+            instructions,
+            max_chars=65000,
+        )
+        return await self._run_section(
+            "people_contact",
+            "brand_extract_people_contact",
+            prompt,
+            BrandPeopleContactExtraction,
+            BrandPeopleContactExtraction(),
+            "Extract People and Contact information.",
+        )
+
+    async def _extract_testimonials(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandTestimonialsExtraction:
+        prompt = self._render_prompt(
+            "brand_extract_testimonials", content, current_data, instructions
+        )
+        return await self._run_section(
+            "testimonials",
+            "brand_extract_testimonials",
+            prompt,
+            BrandTestimonialsExtraction,
+            BrandTestimonialsExtraction(),
+            "Extract Testimonials.",
+        )
+
+    async def _extract_authority(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandAuthorityExtraction:
+        prompt = self._render_prompt(
+            "brand_extract_authority", content, current_data, instructions
+        )
+        return await self._run_section(
+            "authority",
+            "brand_extract_authority",
+            prompt,
+            BrandAuthorityExtraction,
+            BrandAuthorityExtraction(),
+            "Extract Authority elements.",
+        )
+
+    async def _extract_visuals(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandVisuals:
+        """Extract visual identity (colors, fonts, design style) from CSS-enriched content."""
+        prompt = self._render_prompt(
+            "brand_extract_visuals",
+            content,
+            current_data,
+            instructions,
+            max_chars=40000,
+        )
+        return await self._run_section(
+            "visuals",
+            "brand_extract_visuals",
+            prompt,
+            BrandVisuals,
+            BrandVisuals(),
+            "Extract the visual identity (colors, fonts, design style).",
             policy=self._visuals_policy(),
         )
 
-    async def _extract_positioning(self, content: str, current_data: str, instructions: Optional[str]) -> BrandPositioning:
+    async def _extract_positioning(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandPositioning:
         """Extract Brand Love Key positioning from content."""
-        prompt = self._render_prompt("brand_extract_positioning", content, current_data, instructions, max_chars=65000)
-        return await self._run_section("positioning", "brand_extract_positioning", prompt,
-                                       BrandPositioning, BrandPositioning(), "Extract Brand Love Key positioning.")
+        prompt = self._render_prompt(
+            "brand_extract_positioning",
+            content,
+            current_data,
+            instructions,
+            max_chars=65000,
+        )
+        return await self._run_section(
+            "positioning",
+            "brand_extract_positioning",
+            prompt,
+            BrandPositioning,
+            BrandPositioning(),
+            "Extract Brand Love Key positioning.",
+        )
 
-    async def _extract_narrative(self, content: str, current_data: str, instructions: Optional[str]) -> BrandNarrative:
+    async def _extract_narrative(
+        self, content: str, current_data: str, instructions: str | None
+    ) -> BrandNarrative:
         """Extract StoryBrand narrative from content."""
-        prompt = self._render_prompt("brand_extract_narrative", content, current_data, instructions, max_chars=65000)
-        return await self._run_section("narrative", "brand_extract_narrative", prompt,
-                                       BrandNarrative, BrandNarrative(), "Extract StoryBrand narrative.")
+        prompt = self._render_prompt(
+            "brand_extract_narrative",
+            content,
+            current_data,
+            instructions,
+            max_chars=65000,
+        )
+        return await self._run_section(
+            "narrative",
+            "brand_extract_narrative",
+            prompt,
+            BrandNarrative,
+            BrandNarrative(),
+            "Extract StoryBrand narrative.",
+        )
 
     async def _extract_communication_assets(
-        self, content: str, current_data: str, instructions: Optional[str],
-        positioning_ctx: str, narrative_ctx: str,
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
+        positioning_ctx: str,
+        narrative_ctx: str,
     ) -> CommunicationAssets:
         """Generate communication assets using positioning + narrative as context."""
         try:
@@ -410,12 +589,19 @@ class BrandExtractionService:
                 instructions=instructions or "None",
             )
         except Exception as e:
-            logger.error("prompt_render_failed", template="brand_extract_communication_assets", error=str(e))
+            logger.error(
+                "prompt_render_failed",
+                template="brand_extract_communication_assets",
+                error=str(e),
+            )
             return CommunicationAssets()
 
         return await self._run_section(
-            "communication_assets", "brand_extract_communication_assets", rendered,
-            CommunicationAssets, CommunicationAssets(),
+            "communication_assets",
+            "brand_extract_communication_assets",
+            rendered,
+            CommunicationAssets,
+            CommunicationAssets(),
             "Generate strategic communication assets for the brand.",
             policy=self._communication_assets_policy(),
         )

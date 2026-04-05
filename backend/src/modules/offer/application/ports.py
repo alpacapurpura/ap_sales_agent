@@ -3,6 +3,7 @@
 Defines abstract interfaces that external modules must implement
 to provide services to the offer bounded context.
 """
+
 from abc import ABC, abstractmethod
 from uuid import UUID
 

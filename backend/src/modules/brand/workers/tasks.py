@@ -3,7 +3,7 @@
 import json
 import logging
 import traceback
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 logger = logging.getLogger(__name__)
@@ -14,12 +14,15 @@ def _fail_progress(redis, progress_key: str, error_msg: str, log_detail: str):
     logger.error("Brand extraction task error: %s", log_detail)
     if redis:
         redis.setex(
-            progress_key, 3600,
-            json.dumps({
-                "status": "failed",
-                "progress": 0,
-                "error": error_msg,
-            }),
+            progress_key,
+            3600,
+            json.dumps(
+                {
+                    "status": "failed",
+                    "progress": 0,
+                    "error": error_msg,
+                }
+            ),
         )
 
 
@@ -60,30 +63,37 @@ async def run_brand_extraction(
         db = db_factory()
     except Exception as exc:
         _fail_progress(
-            redis, progress_key,
+            redis,
+            progress_key,
             "Error interno al conectar con la base de datos. Intenta de nuevo.",
             f"DB factory failed for tenant={tenant_id} job={job_id}: {exc}\n{traceback.format_exc()}",
         )
         return {"status": "failed", "tenant_id": tenant_id, "error": str(exc)}
 
-    started_at = datetime.now(timezone.utc).isoformat()
+    started_at = datetime.now(UTC).isoformat()
 
     def on_progress(progress_pct: int, stage: str):
         if redis:
             redis.setex(
-                progress_key, 3600,
-                json.dumps({
-                    "status": "processing",
-                    "progress": progress_pct,
-                    "stage": stage,
-                    "started_at": started_at,
-                }),
+                progress_key,
+                3600,
+                json.dumps(
+                    {
+                        "status": "processing",
+                        "progress": progress_pct,
+                        "stage": stage,
+                        "started_at": started_at,
+                    }
+                ),
             )
 
     # Create trace collector for this job
     trace = None
     try:
-        from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
+        from src.modules.brand.application.extraction_trace import (
+            ExtractionTraceCollector,
+        )
+
         trace = ExtractionTraceCollector(
             db=db,
             tenant_id=UUID(tenant_id),
@@ -124,17 +134,21 @@ async def run_brand_extraction(
 
         if redis:
             redis.setex(
-                progress_key, 3600,
-                json.dumps({
-                    "status": "completed",
-                    "progress": 100,
-                    "stage": "¡Análisis completado!",
-                }),
+                progress_key,
+                3600,
+                json.dumps(
+                    {
+                        "status": "completed",
+                        "progress": 100,
+                        "stage": "¡Análisis completado!",
+                    }
+                ),
             )
 
         logger.info(
             "Brand extraction completed for tenant=%s job=%s",
-            tenant_id, job_id,
+            tenant_id,
+            job_id,
         )
         return {"status": "success", "tenant_id": tenant_id, "job_id": job_id}
 
@@ -147,7 +161,8 @@ async def run_brand_extraction(
                 logger.warning("Could not save failure trace", exc_info=True)
 
         _fail_progress(
-            redis, progress_key,
+            redis,
+            progress_key,
             "Ocurrió un error durante el análisis. Intenta de nuevo.",
             f"Brand extraction failed for tenant={tenant_id} job={job_id}: {exc}\n{traceback.format_exc()}",
         )

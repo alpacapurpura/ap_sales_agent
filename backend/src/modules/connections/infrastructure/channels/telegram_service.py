@@ -1,12 +1,15 @@
+from typing import Any
+from uuid import UUID
+
 import httpx
 import structlog
 from sqlalchemy.orm import Session
-from uuid import UUID
-from typing import Dict, Any
 
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.domain.enums import ChannelType
 from src.core.config import settings
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 
 logger = structlog.get_logger()
 
@@ -16,7 +19,7 @@ class TelegramService:
         self.db = db
         self.repo = ChannelConnectionRepository(db)
 
-    def get_status(self, tenant_id: UUID) -> Dict[str, Any]:
+    def get_status(self, tenant_id: UUID) -> dict[str, Any]:
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:
@@ -30,20 +33,28 @@ class TelegramService:
             "config": connection.config,
         }
 
-    async def connect(self, tenant_id: UUID, token: str) -> Dict[str, Any]:
+    async def connect(self, tenant_id: UUID, token: str) -> dict[str, Any]:
         token = token.strip()
 
         # 1. Validate Token with Telegram
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.get(f"https://api.telegram.org/bot{token}/getMe", timeout=10.0)
+                resp = await client.get(
+                    f"https://api.telegram.org/bot{token}/getMe", timeout=10.0
+                )
                 if resp.status_code != 200:
-                    logger.warning("invalid_telegram_token", status_code=resp.status_code, body=resp.text)
-                    raise ValueError("Token de Telegram invalido. Verifique e intente nuevamente.")
+                    logger.warning(
+                        "invalid_telegram_token",
+                        status_code=resp.status_code,
+                        body=resp.text,
+                    )
+                    raise ValueError(
+                        "Token de Telegram invalido. Verifique e intente nuevamente."
+                    )
                 bot_info = resp.json().get("result", {})
             except httpx.RequestError as e:
                 logger.error("telegram_connection_error", error=str(e))
-                raise RuntimeError(f"Error conectando con Telegram: {str(e)}")
+                raise RuntimeError(f"Error conectando con Telegram: {e!s}")
 
         # 2. Set Webhook
         final_domain = None
@@ -58,7 +69,9 @@ class TelegramService:
         else:
             base_url = f"https://{final_domain}"
 
-        webhook_url = f"{base_url}/api/v1/connections/telegram/webhooks/telegram/{tenant_id}"
+        webhook_url = (
+            f"{base_url}/api/v1/connections/telegram/webhooks/telegram/{tenant_id}"
+        )
         logger.info("setting_telegram_webhook", webhook_url=webhook_url)
 
         async with httpx.AsyncClient() as client:
@@ -80,7 +93,9 @@ class TelegramService:
                     try:
                         error_json = webhook_resp.json()
                         if error_json.get("description"):
-                            error_detail = f"Telegram Error: {error_json.get('description')}"
+                            error_detail = (
+                                f"Telegram Error: {error_json.get('description')}"
+                            )
                     except Exception as e:
                         logger.warning("failed_to_parse_telegram_error", error=str(e))
                     raise RuntimeError(error_detail)
@@ -89,7 +104,7 @@ class TelegramService:
 
             except httpx.RequestError as e:
                 logger.error("webhook_network_error", error=str(e))
-                raise RuntimeError(f"Error configurando Webhook: {str(e)}")
+                raise RuntimeError(f"Error configurando Webhook: {e!s}")
 
         # 3. Save to DB
         metadata = {
@@ -107,7 +122,7 @@ class TelegramService:
 
         return {"status": "connected", "bot": metadata}
 
-    async def test_connection(self, tenant_id: UUID) -> Dict[str, Any]:
+    async def test_connection(self, tenant_id: UUID) -> dict[str, Any]:
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:
@@ -119,15 +134,23 @@ class TelegramService:
 
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.get(f"https://api.telegram.org/bot{token}/getMe", timeout=5.0)
+                resp = await client.get(
+                    f"https://api.telegram.org/bot{token}/getMe", timeout=5.0
+                )
                 if resp.status_code == 200:
-                    return {"status": "ok", "message": "Conexion exitosa", "data": resp.json()}
-                else:
-                    return {"status": "error", "message": "El token parece invalido o expirado."}
+                    return {
+                        "status": "ok",
+                        "message": "Conexion exitosa",
+                        "data": resp.json(),
+                    }
+                return {
+                    "status": "error",
+                    "message": "El token parece invalido o expirado.",
+                }
             except Exception as e:
-                return {"status": "error", "message": f"Error de red: {str(e)}"}
+                return {"status": "error", "message": f"Error de red: {e!s}"}
 
-    async def disconnect(self, tenant_id: UUID) -> Dict[str, Any]:
+    async def disconnect(self, tenant_id: UUID) -> dict[str, Any]:
         connection = self.repo.get_active(tenant_id, ChannelType.TELEGRAM)
 
         if not connection:
@@ -137,7 +160,9 @@ class TelegramService:
         if token:
             async with httpx.AsyncClient() as client:
                 try:
-                    await client.get(f"https://api.telegram.org/bot{token}/deleteWebhook")
+                    await client.get(
+                        f"https://api.telegram.org/bot{token}/deleteWebhook"
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to delete webhook during disconnect: {e}")
 

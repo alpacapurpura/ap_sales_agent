@@ -1,33 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Query
+import structlog
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel as PydanticBaseModel
 from sqlalchemy.orm import Session
-from typing import Optional
-import structlog
 
-from src.core.database import get_db
-from src.core.context import set_tenant_id
 from src.core.config import settings
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.models import ChannelConnectionModel
-from src.modules.connections.infrastructure.channels.meta import MetaAdapter
-from src.modules.connections.infrastructure.channels.instagram import InstagramChannel
-from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
+from src.core.context import set_tenant_id
+from src.core.database import get_db
+from src.modules.connections.api.dependencies.webhook_security import (
+    verify_meta_signature,
+)
 from src.modules.connections.api.dto.meta import (
-    MetaConfigRequest,
-    MetaStatusResponse,
-    MetaAssetsResponse,
     FacebookPageAsset,
     InstagramAccountAsset,
     MetaAdsAccountAsset,
+    MetaAssetsResponse,
+    MetaConfigRequest,
     MetaPixelAsset,
+    MetaStatusResponse,
+    ToggleAssetRequest,
     WhatsAppBusinessAsset,
     WhatsAppPhoneNumber,
-    ToggleAssetRequest,
 )
-from src.modules.connections.api.dependencies.webhook_security import verify_meta_signature
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.channels.instagram import InstagramChannel
+from src.modules.connections.infrastructure.channels.meta import MetaAdapter
+from src.modules.connections.infrastructure.models import ChannelConnectionModel
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
+from src.modules.iam.api.dependencies import get_current_user
+from src.modules.iam.domain.user import User
+from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
 
 router = APIRouter(tags=["meta"])
 logger = structlog.get_logger()
@@ -60,7 +63,11 @@ async def _sync_assets_for_tenant(
     # Check token permissions for diagnostics
     try:
         permissions = await adapter.get_token_permissions()
-        logger.info("meta_sync_token_permissions", tenant_id=str(tenant_id), permissions=permissions)
+        logger.info(
+            "meta_sync_token_permissions",
+            tenant_id=str(tenant_id),
+            permissions=permissions,
+        )
         if "instagram_basic" not in permissions:
             warnings.append(
                 "El token no tiene el permiso instagram_basic. "
@@ -182,7 +189,9 @@ async def _sync_assets_for_tenant(
             "phone_numbers": wa.get("phone_numbers", []),
             "parent_connection_id": str(master.id),
         }
-        conn = repo.get_by_asset_id(tenant_id, ChannelType.WHATSAPP_BUSINESS_ACCOUNT, waba_id)
+        conn = repo.get_by_asset_id(
+            tenant_id, ChannelType.WHATSAPP_BUSINESS_ACCOUNT, waba_id
+        )
         if conn:
             conn.config = config
             repo.db.commit()
@@ -198,10 +207,16 @@ async def _sync_assets_for_tenant(
     # Remove assets from DB that Meta no longer returns (e.g. permissions revoked)
     synced_ids = {
         ChannelType.FACEBOOK_PAGE: {p["page_id"] for p in raw.get("pages", [])},
-        ChannelType.INSTAGRAM_ACCOUNT: {ig["ig_account_id"] for ig in raw.get("instagram_accounts", [])},
-        ChannelType.META_ADS_ACCOUNT: {ad["ad_account_id"] for ad in raw.get("ads_accounts", [])},
+        ChannelType.INSTAGRAM_ACCOUNT: {
+            ig["ig_account_id"] for ig in raw.get("instagram_accounts", [])
+        },
+        ChannelType.META_ADS_ACCOUNT: {
+            ad["ad_account_id"] for ad in raw.get("ads_accounts", [])
+        },
         ChannelType.META_PIXEL: {px["pixel_id"] for px in raw.get("pixels", [])},
-        ChannelType.WHATSAPP_BUSINESS_ACCOUNT: {wa["waba_id"] for wa in raw.get("whatsapp_accounts", [])},
+        ChannelType.WHATSAPP_BUSINESS_ACCOUNT: {
+            wa["waba_id"] for wa in raw.get("whatsapp_accounts", [])
+        },
     }
 
     existing = repo.get_all_by_tenant_and_types(tenant_id, list(synced_ids.keys()))
@@ -210,7 +225,12 @@ async def _sync_assets_for_tenant(
         asset_id = cfg.get("asset_id", "")
         ct = ChannelType(conn.channel_type)
         if asset_id and asset_id not in synced_ids.get(ct, set()):
-            logger.info("meta_sync_removing_stale_asset", channel_type=ct.value, asset_id=asset_id, tenant_id=str(tenant_id))
+            logger.info(
+                "meta_sync_removing_stale_asset",
+                channel_type=ct.value,
+                asset_id=asset_id,
+                tenant_id=str(tenant_id),
+            )
             repo.delete(conn)
 
     # Warn if pages exist but none have IG linked
@@ -237,16 +257,31 @@ def _flatten_asset_ids_to_master(
     master_config = master.config or {}
 
     # Get all child assets
-    children = repo.get_all_by_tenant_and_types(tenant_id, [
-        ChannelType.FACEBOOK_PAGE,
-        ChannelType.INSTAGRAM_ACCOUNT,
-        ChannelType.META_ADS_ACCOUNT,
-    ])
+    children = repo.get_all_by_tenant_and_types(
+        tenant_id,
+        [
+            ChannelType.FACEBOOK_PAGE,
+            ChannelType.INSTAGRAM_ACCOUNT,
+            ChannelType.META_ADS_ACCOUNT,
+        ],
+    )
 
     # Group by type
-    pages = [c for c in children if c.channel_type == ChannelType.FACEBOOK_PAGE.value and c.is_active]
-    ig_accounts = [c for c in children if c.channel_type == ChannelType.INSTAGRAM_ACCOUNT.value and c.is_active]
-    ad_accounts = [c for c in children if c.channel_type == ChannelType.META_ADS_ACCOUNT.value and c.is_active]
+    pages = [
+        c
+        for c in children
+        if c.channel_type == ChannelType.FACEBOOK_PAGE.value and c.is_active
+    ]
+    ig_accounts = [
+        c
+        for c in children
+        if c.channel_type == ChannelType.INSTAGRAM_ACCOUNT.value and c.is_active
+    ]
+    ad_accounts = [
+        c
+        for c in children
+        if c.channel_type == ChannelType.META_ADS_ACCOUNT.value and c.is_active
+    ]
 
     creds_update = {}
     config_update = {}
@@ -255,7 +290,10 @@ def _flatten_asset_ids_to_master(
     primary_page_id = master_config.get("primary_page_id")
     page = None
     if primary_page_id:
-        page = next((p for p in pages if (p.config or {}).get("asset_id") == primary_page_id), None)
+        page = next(
+            (p for p in pages if (p.config or {}).get("asset_id") == primary_page_id),
+            None,
+        )
     if not page and pages:
         page = pages[0]
 
@@ -263,7 +301,9 @@ def _flatten_asset_ids_to_master(
         page_cfg = page.config or {}
         page_creds = page.credentials or {}
         creds_update["page_id"] = page_cfg.get("asset_id")
-        creds_update["page_access_token"] = page_creds.get("access_token", master.credentials.get("access_token"))
+        creds_update["page_access_token"] = page_creds.get(
+            "access_token", master.credentials.get("access_token")
+        )
         config_update["tracked_page_name"] = page_cfg.get("page_name")
         config_update["tracked_page_id"] = page_cfg.get("asset_id")
 
@@ -271,7 +311,14 @@ def _flatten_asset_ids_to_master(
     primary_ig_id = master_config.get("primary_ig_id")
     ig = None
     if primary_ig_id:
-        ig = next((i for i in ig_accounts if (i.config or {}).get("asset_id") == primary_ig_id), None)
+        ig = next(
+            (
+                i
+                for i in ig_accounts
+                if (i.config or {}).get("asset_id") == primary_ig_id
+            ),
+            None,
+        )
     if not ig and ig_accounts:
         ig = ig_accounts[0]
 
@@ -285,7 +332,14 @@ def _flatten_asset_ids_to_master(
     primary_ad_id = master_config.get("primary_ad_account_id")
     ad = None
     if primary_ad_id:
-        ad = next((a for a in ad_accounts if (a.config or {}).get("asset_id") == primary_ad_id), None)
+        ad = next(
+            (
+                a
+                for a in ad_accounts
+                if (a.config or {}).get("asset_id") == primary_ad_id
+            ),
+            None,
+        )
     if not ad and ad_accounts:
         ad = ad_accounts[0]
 
@@ -326,6 +380,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 # Webhook (no auth — called by Meta)
 # ---------------------------------------------------------------------------
 
+
 @router.get("/webhook")
 async def verify_webhook(
     mode: str = Query(..., alias="hub.mode"),
@@ -334,7 +389,9 @@ async def verify_webhook(
 ):
     verify_token = settings.META_VERIFY_TOKEN
     if not verify_token:
-        raise HTTPException(status_code=500, detail="META_VERIFY_TOKEN not configured on server")
+        raise HTTPException(
+            status_code=500, detail="META_VERIFY_TOKEN not configured on server"
+        )
     if mode == "subscribe" and token == verify_token:
         return int(challenge)
     raise HTTPException(status_code=403, detail="Verification failed")
@@ -397,6 +454,7 @@ async def webhook_event(
 # Configuration (app_id / app_secret per-tenant)
 # ---------------------------------------------------------------------------
 
+
 @router.put("/configure")
 async def configure(
     data: MetaConfigRequest,
@@ -430,16 +488,19 @@ async def configure(
 # OAuth flow
 # ---------------------------------------------------------------------------
 
+
 @router.get("/auth-url")
 async def get_auth_url(
-    redirect_uri: Optional[str] = None,
+    redirect_uri: str | None = None,
     user: User = Depends(get_current_user),
 ):
     if not redirect_uri:
         raise HTTPException(status_code=400, detail="Redirect URI is required")
 
     if not settings.META_APP_ID or not settings.META_APP_SECRET:
-        raise HTTPException(status_code=500, detail="Meta no configurado en el servidor.")
+        raise HTTPException(
+            status_code=500, detail="Meta no configurado en el servidor."
+        )
 
     adapter = MetaAdapter()
     url, state = adapter.get_authorization_url(redirect_uri)
@@ -470,7 +531,9 @@ async def oauth_callback(
             has_access_token=bool(creds_data.get("access_token")),
         )
     except Exception as e:
-        logger.error("meta_oauth_exchange_failed", error=str(e), tenant_id=str(user.tenant_id))
+        logger.error(
+            "meta_oauth_exchange_failed", error=str(e), tenant_id=str(user.tenant_id)
+        )
         raise HTTPException(status_code=400, detail="Error de autenticacion con Meta")
 
     try:
@@ -487,8 +550,12 @@ async def oauth_callback(
             meta_name=name,
         )
     except Exception as e:
-        logger.error("meta_oauth_profile_failed", error=str(e), tenant_id=str(user.tenant_id))
-        raise HTTPException(status_code=400, detail="No se pudo obtener el perfil de Meta.")
+        logger.error(
+            "meta_oauth_profile_failed", error=str(e), tenant_id=str(user.tenant_id)
+        )
+        raise HTTPException(
+            status_code=400, detail="No se pudo obtener el perfil de Meta."
+        )
 
     # Log and store granted permissions for diagnostics
     granted_permissions: list[str] = []
@@ -502,7 +569,11 @@ async def oauth_callback(
     except Exception as e:
         logger.warning("meta_oauth_permissions_fetch_failed", error=str(e))
 
-    config = {"user_id": user_id, "name": name, "granted_permissions": granted_permissions}
+    config = {
+        "user_id": user_id,
+        "name": name,
+        "granted_permissions": granted_permissions,
+    }
     master = repo.upsert(
         tenant_id=user.tenant_id,
         channel_type=ChannelType.META,
@@ -525,7 +596,9 @@ async def oauth_callback(
             tenant_id=str(user.tenant_id),
             readback_is_active=verification.is_active,
             readback_has_token=bool(
-                verification.credentials.get("access_token") if verification.credentials else False
+                verification.credentials.get("access_token")
+                if verification.credentials
+                else False
             ),
             readback_id=str(verification.id),
         )
@@ -539,7 +612,9 @@ async def oauth_callback(
     # Auto-sync business assets after successful OAuth
     assets_synced = False
     try:
-        raw, _warnings = await _sync_assets_for_tenant(adapter_with_token, repo, user.tenant_id, master)
+        raw, _warnings = await _sync_assets_for_tenant(
+            adapter_with_token, repo, user.tenant_id, master
+        )
         assets_synced = True
         logger.info(
             "meta_oauth_auto_sync_ok",
@@ -549,7 +624,9 @@ async def oauth_callback(
             ads=len(raw.get("ads_accounts", [])),
         )
     except Exception as e:
-        logger.warning("meta_oauth_auto_sync_failed", error=str(e), tenant_id=str(user.tenant_id))
+        logger.warning(
+            "meta_oauth_auto_sync_failed", error=str(e), tenant_id=str(user.tenant_id)
+        )
 
     # Flatten primary asset IDs to master for ETL
     try:
@@ -557,7 +634,12 @@ async def oauth_callback(
     except Exception as e:
         logger.warning("meta_flatten_after_oauth_failed", error=str(e))
 
-    return {"status": "connected", "is_connected": True, "profile": profile, "assets_synced": assets_synced}
+    return {
+        "status": "connected",
+        "is_connected": True,
+        "profile": profile,
+        "assets_synced": assets_synced,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -591,7 +673,9 @@ async def set_primary_asset(
 
     master = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
     if not master:
-        raise HTTPException(status_code=404, detail="Conecta tu cuenta de Meta primero.")
+        raise HTTPException(
+            status_code=404, detail="Conecta tu cuenta de Meta primero."
+        )
 
     # Save primary selection to master config
     repo.update_config(master, {config_key: body.asset_id})
@@ -599,12 +683,17 @@ async def set_primary_asset(
     # Re-flatten with new primary
     _flatten_asset_ids_to_master(repo, user.tenant_id, master)
 
-    return {"status": "primary_set", "asset_type": body.asset_type, "asset_id": body.asset_id}
+    return {
+        "status": "primary_set",
+        "asset_type": body.asset_type,
+        "asset_id": body.asset_id,
+    }
 
 
 # ---------------------------------------------------------------------------
 # Status / Test / Disconnect
 # ---------------------------------------------------------------------------
+
 
 @router.get("/status")
 async def get_status(
@@ -625,8 +714,12 @@ async def get_status(
             result["debug"] = {
                 "connection_exists": connection is not None,
                 "is_active": connection.is_active if connection else None,
-                "has_credentials": bool(connection.credentials) if connection else False,
-                "updated_at": str(connection.updated_at) if connection and hasattr(connection, "updated_at") else None,
+                "has_credentials": bool(connection.credentials)
+                if connection
+                else False,
+                "updated_at": str(connection.updated_at)
+                if connection and hasattr(connection, "updated_at")
+                else None,
             }
         return result
 
@@ -646,7 +739,9 @@ async def get_status(
             "is_active": connection.is_active,
             "has_credentials": bool(connection.credentials),
             "has_access_token": bool(connection.credentials.get("access_token")),
-            "updated_at": str(connection.updated_at) if hasattr(connection, "updated_at") else None,
+            "updated_at": str(connection.updated_at)
+            if hasattr(connection, "updated_at")
+            else None,
             "connection_id": str(connection.id),
         }
 
@@ -661,12 +756,18 @@ async def disconnect(
     connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
     if connection:
         # Deactivate all child asset connections first
-        child_assets = repo.get_all_by_tenant_and_types(user.tenant_id, _ASSET_CHANNEL_TYPES)
+        child_assets = repo.get_all_by_tenant_and_types(
+            user.tenant_id, _ASSET_CHANNEL_TYPES
+        )
         for asset in child_assets:
             repo.deactivate(asset)
         # Then deactivate master
         repo.deactivate(connection)
-        logger.info("meta_disconnect_complete", tenant_id=str(user.tenant_id), child_assets_deactivated=len(child_assets))
+        logger.info(
+            "meta_disconnect_complete",
+            tenant_id=str(user.tenant_id),
+            child_assets_deactivated=len(child_assets),
+        )
     return {"status": "disconnected"}
 
 
@@ -682,7 +783,10 @@ async def test_connection(
 
     access_token = connection.credentials.get("access_token")
     if not access_token:
-        raise HTTPException(status_code=400, detail="Token de acceso no encontrado. Conecta tu cuenta primero.")
+        raise HTTPException(
+            status_code=400,
+            detail="Token de acceso no encontrado. Conecta tu cuenta primero.",
+        )
 
     try:
         adapter = MetaAdapter(access_token=access_token)
@@ -696,6 +800,7 @@ async def test_connection(
 # ---------------------------------------------------------------------------
 # Business Assets
 # ---------------------------------------------------------------------------
+
 
 @router.get("/assets", response_model=MetaAssetsResponse)
 async def get_assets(
@@ -719,59 +824,69 @@ async def get_assets(
         channel = conn.channel_type
 
         if channel == ChannelType.FACEBOOK_PAGE.value:
-            pages.append(FacebookPageAsset(
-                page_id=cfg.get("asset_id", ""),
-                page_name=cfg.get("page_name", ""),
-                category=cfg.get("category"),
-                picture_url=cfg.get("picture_url"),
-                fan_count=cfg.get("fan_count"),
-                instagram_account_id=cfg.get("instagram_account_id"),
-                instagram_username=cfg.get("instagram_username"),
-                is_active=conn.is_active,
-                has_credentials=bool(conn.credentials),
-            ))
+            pages.append(
+                FacebookPageAsset(
+                    page_id=cfg.get("asset_id", ""),
+                    page_name=cfg.get("page_name", ""),
+                    category=cfg.get("category"),
+                    picture_url=cfg.get("picture_url"),
+                    fan_count=cfg.get("fan_count"),
+                    instagram_account_id=cfg.get("instagram_account_id"),
+                    instagram_username=cfg.get("instagram_username"),
+                    is_active=conn.is_active,
+                    has_credentials=bool(conn.credentials),
+                )
+            )
         elif channel == ChannelType.INSTAGRAM_ACCOUNT.value:
-            instagram_accounts.append(InstagramAccountAsset(
-                ig_account_id=cfg.get("asset_id", ""),
-                ig_username=cfg.get("ig_username", ""),
-                profile_picture_url=cfg.get("profile_picture_url"),
-                follower_count=cfg.get("follower_count"),
-                linked_page_id=cfg.get("linked_page_id"),
-                linked_page_name=cfg.get("linked_page_name"),
-                is_active=conn.is_active,
-                has_credentials=bool(conn.credentials),
-            ))
+            instagram_accounts.append(
+                InstagramAccountAsset(
+                    ig_account_id=cfg.get("asset_id", ""),
+                    ig_username=cfg.get("ig_username", ""),
+                    profile_picture_url=cfg.get("profile_picture_url"),
+                    follower_count=cfg.get("follower_count"),
+                    linked_page_id=cfg.get("linked_page_id"),
+                    linked_page_name=cfg.get("linked_page_name"),
+                    is_active=conn.is_active,
+                    has_credentials=bool(conn.credentials),
+                )
+            )
         elif channel == ChannelType.META_ADS_ACCOUNT.value:
-            ads_accounts.append(MetaAdsAccountAsset(
-                ad_account_id=cfg.get("asset_id", ""),
-                ad_account_name=cfg.get("ad_account_name", ""),
-                currency=cfg.get("currency"),
-                account_status=cfg.get("account_status"),
-                is_active=conn.is_active,
-                has_credentials=bool(conn.credentials),
-            ))
+            ads_accounts.append(
+                MetaAdsAccountAsset(
+                    ad_account_id=cfg.get("asset_id", ""),
+                    ad_account_name=cfg.get("ad_account_name", ""),
+                    currency=cfg.get("currency"),
+                    account_status=cfg.get("account_status"),
+                    is_active=conn.is_active,
+                    has_credentials=bool(conn.credentials),
+                )
+            )
         elif channel == ChannelType.META_PIXEL.value:
-            pixels.append(MetaPixelAsset(
-                pixel_id=cfg.get("asset_id", ""),
-                pixel_name=cfg.get("pixel_name", ""),
-                linked_ad_account_id=cfg.get("linked_ad_account_id"),
-                is_active=conn.is_active,
-                has_credentials=bool(conn.credentials),
-            ))
+            pixels.append(
+                MetaPixelAsset(
+                    pixel_id=cfg.get("asset_id", ""),
+                    pixel_name=cfg.get("pixel_name", ""),
+                    linked_ad_account_id=cfg.get("linked_ad_account_id"),
+                    is_active=conn.is_active,
+                    has_credentials=bool(conn.credentials),
+                )
+            )
         elif channel == ChannelType.WHATSAPP_BUSINESS_ACCOUNT.value:
-            whatsapp_accounts.append(WhatsAppBusinessAsset(
-                waba_id=cfg.get("asset_id", ""),
-                waba_name=cfg.get("waba_name", ""),
-                currency=cfg.get("currency"),
-                timezone_id=cfg.get("timezone_id"),
-                business_id=cfg.get("business_id"),
-                business_name=cfg.get("business_name"),
-                phone_numbers=[
-                    WhatsAppPhoneNumber(**ph) for ph in cfg.get("phone_numbers", [])
-                ],
-                is_active=conn.is_active,
-                has_credentials=bool(conn.credentials),
-            ))
+            whatsapp_accounts.append(
+                WhatsAppBusinessAsset(
+                    waba_id=cfg.get("asset_id", ""),
+                    waba_name=cfg.get("waba_name", ""),
+                    currency=cfg.get("currency"),
+                    timezone_id=cfg.get("timezone_id"),
+                    business_id=cfg.get("business_id"),
+                    business_name=cfg.get("business_name"),
+                    phone_numbers=[
+                        WhatsAppPhoneNumber(**ph) for ph in cfg.get("phone_numbers", [])
+                    ],
+                    is_active=conn.is_active,
+                    has_credentials=bool(conn.credentials),
+                )
+            )
 
     return MetaAssetsResponse(
         pages=pages,
@@ -794,7 +909,9 @@ async def sync_assets(
     """
     master = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.META)
     if not master or not master.credentials:
-        raise HTTPException(status_code=400, detail="Conecta tu cuenta de Meta primero.")
+        raise HTTPException(
+            status_code=400, detail="Conecta tu cuenta de Meta primero."
+        )
 
     access_token = master.credentials.get("access_token")
     if not access_token:
@@ -802,10 +919,14 @@ async def sync_assets(
 
     adapter = MetaAdapter(access_token=access_token)
     try:
-        _raw, warnings = await _sync_assets_for_tenant(adapter, repo, user.tenant_id, master)
+        _raw, warnings = await _sync_assets_for_tenant(
+            adapter, repo, user.tenant_id, master
+        )
     except Exception as e:
         logger.error("meta_sync_assets_failed", error=str(e))
-        raise HTTPException(status_code=502, detail=f"Error consultando activos de Meta: {e}")
+        raise HTTPException(
+            status_code=502, detail=f"Error consultando activos de Meta: {e}"
+        )
 
     # Flatten primary asset IDs to master for ETL
     try:
@@ -838,7 +959,9 @@ async def toggle_asset(
 
     conn = repo.get_by_asset_id(user.tenant_id, type_map[channel_type], asset_id)
     if not conn:
-        raise HTTPException(status_code=404, detail="Activo no encontrado. Sincroniza primero.")
+        raise HTTPException(
+            status_code=404, detail="Activo no encontrado. Sincroniza primero."
+        )
 
     if body.is_active:
         repo.activate(conn)
@@ -853,4 +976,9 @@ async def toggle_asset(
     except Exception as e:
         logger.warning("meta_flatten_after_toggle_failed", error=str(e))
 
-    return {"status": "updated", "channel_type": channel_type, "asset_id": asset_id, "is_active": body.is_active}
+    return {
+        "status": "updated",
+        "channel_type": channel_type,
+        "asset_id": asset_id,
+        "is_active": body.is_active,
+    }

@@ -11,12 +11,12 @@ from uuid import UUID
 
 import sentry_sdk
 import structlog
-
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.application.cost_type_mapping import get_cost_type
 from src.modules.analytics.domain.enums import ExtractionStatus
 from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+from src.modules.analytics.domain.period_config import TenantPeriodConfig
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.etl.aggregations import (
@@ -31,7 +31,6 @@ from src.modules.analytics.infrastructure.models.metric_aggregation_model import
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
-from src.modules.analytics.domain.period_config import TenantPeriodConfig
 from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
 from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
@@ -111,9 +110,7 @@ class ETLPipeline:
 
         try:
             # Step 2: Get credentials
-            creds = await self.connection_port.get_credentials(
-                tenant_id, provider_name
-            )
+            creds = await self.connection_port.get_credentials(tenant_id, provider_name)
 
             # Step 3: Extract metrics from provider API
             # Merge config into credentials so providers have access to
@@ -218,7 +215,9 @@ class ETLPipeline:
                         "error_type": f.error_type,
                     }
                     for f in result.failures
-                ] if result.failures else None,
+                ]
+                if result.failures
+                else None,
             )
 
             # Commit the transaction
@@ -229,8 +228,12 @@ class ETLPipeline:
 
             logger.info(
                 "ETL pipeline completed: tenant=%s provider=%s status=%s metrics=%d failures=%d duration=%.2fs",
-                tenant_id, provider_name, final_status.value, len(extracted),
-                len(result.failures), duration,
+                tenant_id,
+                provider_name,
+                final_status.value,
+                len(extracted),
+                len(result.failures),
+                duration,
             )
 
             return run
@@ -254,7 +257,8 @@ class ETLPipeline:
                 sentry_sdk.capture_exception(exc)
             logger.warning(
                 "ETL pipeline failed (connection revoked): tenant=%s provider=%s",
-                tenant_id, provider_name,
+                tenant_id,
+                provider_name,
             )
             return run
 
@@ -277,7 +281,9 @@ class ETLPipeline:
                 sentry_sdk.capture_exception(exc)
             logger.error(
                 "ETL pipeline failed: tenant=%s provider=%s error=%s",
-                tenant_id, provider_name, exc,
+                tenant_id,
+                provider_name,
+                exc,
                 exc_info=True,
             )
             return run

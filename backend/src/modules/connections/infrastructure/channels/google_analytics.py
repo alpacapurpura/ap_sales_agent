@@ -1,49 +1,58 @@
 import asyncio
 import json
 import os
-from typing import Dict, Any, Optional, List
+from typing import Any
 
 import structlog
-from google.auth.exceptions import RefreshError, TransportError
-from google_auth_oauthlib.flow import Flow
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
-    DateRange, Dimension, Metric, RunReportRequest,
+    DateRange,
+    Dimension,
+    Metric,
+    RunReportRequest,
 )
+from google.auth.exceptions import RefreshError, TransportError
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
 
 from src.core.config import settings
 
 # Allow OAuth scope to change
-os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
 
 logger = structlog.get_logger(__name__)
 
 # Scopes for Google Analytics 4 (Read Only)
-SCOPES = [
-    'https://www.googleapis.com/auth/analytics.readonly'
-]
+SCOPES = ["https://www.googleapis.com/auth/analytics.readonly"]
+
 
 class GoogleAnalyticsAdapter:
     """
     Adapter for Google Analytics 4 API.
     Handles OAuth2 flow and wraps analytics operations.
     """
-    def __init__(self, client_config: Dict[str, str], credentials_data: Optional[Dict[str, Any]] = None):
+
+    def __init__(
+        self,
+        client_config: dict[str, str],
+        credentials_data: dict[str, Any] | None = None,
+    ):
         self.client_config = client_config
         self.credentials_data = credentials_data
         self.creds = None
         if credentials_data:
             # Ensure client_id and client_secret are in credentials_data for refresh
-            if 'client_id' not in credentials_data and client_config.get('client_id'):
-                credentials_data['client_id'] = client_config['client_id']
-            if 'client_secret' not in credentials_data and client_config.get('client_secret'):
-                credentials_data['client_secret'] = client_config['client_secret']
-                
+            if "client_id" not in credentials_data and client_config.get("client_id"):
+                credentials_data["client_id"] = client_config["client_id"]
+            if "client_secret" not in credentials_data and client_config.get(
+                "client_secret"
+            ):
+                credentials_data["client_secret"] = client_config["client_secret"]
+
             self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
-    def get_client_config(self) -> Dict[str, Any]:
+    def get_client_config(self) -> dict[str, Any]:
         return {
             "web": {
                 "client_id": self.client_config.get("client_id"),
@@ -55,28 +64,20 @@ class GoogleAnalyticsAdapter:
 
     def get_authorization_url(self, redirect_uri: str = None) -> tuple[str, str]:
         """Generates the authorization URL and state."""
-        flow = Flow.from_client_config(
-            self.get_client_config(),
-            scopes=SCOPES
-        )
+        flow = Flow.from_client_config(self.get_client_config(), scopes=SCOPES)
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
-        
+
         authorization_url, state = flow.authorization_url(
-            access_type='offline',
-            include_granted_scopes='true',
-            prompt='consent'
+            access_type="offline", include_granted_scopes="true", prompt="consent"
         )
         return authorization_url, state
 
-    def exchange_code(self, code: str, redirect_uri: str = None) -> Dict[str, Any]:
+    def exchange_code(self, code: str, redirect_uri: str = None) -> dict[str, Any]:
         """Exchanges the authorization code for tokens."""
-        flow = Flow.from_client_config(
-            self.get_client_config(),
-            scopes=SCOPES
-        )
-        
+        flow = Flow.from_client_config(self.get_client_config(), scopes=SCOPES)
+
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
-        
+
         try:
             flow.fetch_token(code=code)
             creds = flow.credentials
@@ -89,15 +90,15 @@ class GoogleAnalyticsAdapter:
         """Returns the Google Analytics Admin service resource."""
         if not self.creds:
             raise ValueError("Credentials not initialized")
-        return build('analyticsadmin', 'v1beta', credentials=self.creds)
+        return build("analyticsadmin", "v1beta", credentials=self.creds)
 
-    def get_account_summaries(self) -> List[Dict[str, Any]]:
+    def get_account_summaries(self) -> list[dict[str, Any]]:
         """Gets a list of account summaries which includes accounts and properties."""
         service = self.get_service()
         try:
             # accountSummaries.list returns a structure with account summaries
             response = service.accountSummaries().list().execute()
-            return response.get('accountSummaries', [])
+            return response.get("accountSummaries", [])
         except Exception as e:
             logger.error(f"Error fetching account summaries: {e}")
             raise
@@ -119,12 +120,16 @@ class GoogleAnalyticsAdapter:
             account_name = account.get("displayName", "")
             for prop in account.get("propertySummaries", []):
                 raw_property = prop.get("property", "")
-                property_id = raw_property.split("/")[-1] if "/" in raw_property else raw_property
-                properties.append({
-                    "property_id": property_id,
-                    "display_name": prop.get("displayName", property_id),
-                    "account_name": account_name,
-                })
+                property_id = (
+                    raw_property.split("/")[-1] if "/" in raw_property else raw_property
+                )
+                properties.append(
+                    {
+                        "property_id": property_id,
+                        "display_name": prop.get("displayName", property_id),
+                        "account_name": account_name,
+                    }
+                )
         return properties
 
     def _get_data_client(self) -> BetaAnalyticsDataClient:
@@ -183,10 +188,12 @@ class GoogleAnalyticsAdapter:
         """Convert GA4 RunReportResponse to a plain dict."""
         rows = []
         for row in response.rows:
-            rows.append({
-                "dimensions": [dv.value for dv in row.dimension_values],
-                "metrics": [mv.value for mv in row.metric_values],
-            })
+            rows.append(
+                {
+                    "dimensions": [dv.value for dv in row.dimension_values],
+                    "metrics": [mv.value for mv in row.metric_values],
+                }
+            )
         return {
             "row_count": response.row_count,
             "rows": rows,

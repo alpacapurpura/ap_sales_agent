@@ -106,7 +106,9 @@ class CampaignService:
             """),
             {"tenant_id": str(tenant_id)},
         ).fetchone()
-        last_synced = last_synced_row._mapping["last_synced"] if last_synced_row else None
+        last_synced = (
+            last_synced_row._mapping["last_synced"] if last_synced_row else None
+        )
 
         return CampaignOverviewDTO(
             campaigns=campaigns,
@@ -177,7 +179,7 @@ class CampaignService:
 
     async def trigger_sync(self, tenant_id: UUID) -> dict:
         """Enqueue a campaign sync job via ARQ."""
-        from arq.connections import ArqRedis, create_pool, RedisSettings
+        from arq.connections import ArqRedis, RedisSettings, create_pool
 
         from src.core.config import settings as app_settings
 

@@ -1,15 +1,22 @@
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy import func, cast, String, select
-from uuid import UUID
-from src.modules.crm.domain.customer import CustomerProfile, CustomerIdentity
-from src.modules.crm.domain.enums import IdentityType, LifecycleStage
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel, JourneyEventModel
 import uuid
+from datetime import UTC, datetime
+from typing import Any
+from uuid import UUID
+
 import structlog
+from sqlalchemy import String, cast, func, select
+from sqlalchemy.orm import Session
+
+from src.modules.crm.domain.customer import CustomerIdentity, CustomerProfile
+from src.modules.crm.domain.enums import IdentityType, LifecycleStage
+from src.modules.crm.infrastructure.models.customer_model import (
+    CustomerIdentityModel,
+    CustomerProfileModel,
+    JourneyEventModel,
+)
 
 logger = structlog.get_logger()
+
 
 class CustomerRepository:
     def __init__(self, db: Session):
@@ -25,8 +32,9 @@ class CustomerRepository:
                 value=i.value,
                 is_primary=i.is_primary,
                 verification_status=i.verification_status,
-                last_seen_at=i.last_seen_at
-            ) for i in model.identities
+                last_seen_at=i.last_seen_at,
+            )
+            for i in model.identities
         ]
         return CustomerProfile(
             id=model.id,
@@ -41,10 +49,12 @@ class CustomerRepository:
             computed_traits=model.computed_traits or {},
             created_at=model.created_at,
             updated_at=model.updated_at,
-            identities=identities
+            identities=identities,
         )
 
-    def find_by_identity(self, identity_type: IdentityType, identity_value: str, tenant_id: UUID) -> Optional[CustomerProfile]:
+    def find_by_identity(
+        self, identity_type: IdentityType, identity_value: str, tenant_id: UUID
+    ) -> CustomerProfile | None:
         """
         Find a profile by one of its identities.
         Compares using the enum value (lowercase) which matches the PostgreSQL
@@ -72,7 +82,7 @@ class CustomerRepository:
             lead_score=profile.lead_score,
             rfm_segment=profile.rfm_segment,
             traits=profile.traits,
-            computed_traits=profile.computed_traits
+            computed_traits=profile.computed_traits,
         )
         self.db.add(model)
 
@@ -84,7 +94,7 @@ class CustomerRepository:
                 type=ident.type,
                 value=ident.value,
                 is_primary=ident.is_primary,
-                verification_status=ident.verification_status
+                verification_status=ident.verification_status,
             )
             self.db.add(i_model)
 
@@ -97,9 +107,9 @@ class CustomerRepository:
         tenant_id: UUID,
         identity_type: IdentityType,
         identity_value: str,
-        profile_data: Dict[str, Any],
-        lead_source: Optional[str] = None,
-        lead_source_detail: Optional[str] = None,
+        profile_data: dict[str, Any],
+        lead_source: str | None = None,
+        lead_source_detail: str | None = None,
     ) -> CustomerProfile:
         """
         Creates a new customer profile with an initial identity.
@@ -107,16 +117,19 @@ class CustomerRepository:
         """
         profile_id = uuid.uuid4()
 
-        full_name = f"{profile_data.get('first_name', '')} {profile_data.get('last_name', '')}".strip() or None
+        full_name = (
+            f"{profile_data.get('first_name', '')} {profile_data.get('last_name', '')}".strip()
+            or None
+        )
 
         profile_model = CustomerProfileModel(
             id=profile_id,
             tenant_id=tenant_id,
             full_name=full_name,
-            traits=profile_data.get('traits', {}),
+            traits=profile_data.get("traits", {}),
             lead_source=lead_source,
             lead_source_detail=lead_source_detail,
-            first_seen_at=datetime.now(timezone.utc),
+            first_seen_at=datetime.now(UTC),
         )
         self.db.add(profile_model)
 
@@ -126,7 +139,7 @@ class CustomerRepository:
             tenant_id=tenant_id,
             type=identity_type,
             value=identity_value,
-            is_primary=True
+            is_primary=True,
         )
         self.db.add(identity_model)
 
@@ -137,7 +150,7 @@ class CustomerRepository:
 
     def find_by_trait(
         self, tenant_id: UUID, trait_key: str, trait_value: str
-    ) -> Optional[CustomerProfile]:
+    ) -> CustomerProfile | None:
         """Find a profile by a specific JSONB trait key/value.
 
         Used for ManyChat↔Meta identity bridge: find profiles by
@@ -145,9 +158,8 @@ class CustomerRepository:
         """
         stmt = select(CustomerProfileModel).where(
             CustomerProfileModel.tenant_id == tenant_id,
-            func.jsonb_extract_path_text(
-                CustomerProfileModel.traits, trait_key
-            ) == trait_value,
+            func.jsonb_extract_path_text(CustomerProfileModel.traits, trait_key)
+            == trait_value,
             CustomerProfileModel.is_inactive == False,  # noqa: E712
         )
         model = self.db.execute(stmt).scalars().first()
@@ -155,9 +167,7 @@ class CustomerRepository:
             return self._to_domain(model)
         return None
 
-    def merge_profiles(
-        self, source_id: UUID, target_id: UUID, tenant_id: UUID
-    ) -> None:
+    def merge_profiles(self, source_id: UUID, target_id: UUID, tenant_id: UUID) -> None:
         """Merge source profile into target: move identities + journey_events.
 
         The source profile is soft-deleted after merge. Used when the enricher
@@ -185,21 +195,29 @@ class CustomerRepository:
         )
 
         # Soft-delete the source profile
-        source = self.db.execute(
-            select(CustomerProfileModel).where(
-                CustomerProfileModel.id == source_id,
-                CustomerProfileModel.tenant_id == tenant_id,
+        source = (
+            self.db.execute(
+                select(CustomerProfileModel).where(
+                    CustomerProfileModel.id == source_id,
+                    CustomerProfileModel.tenant_id == tenant_id,
+                )
             )
-        ).scalars().first()
+            .scalars()
+            .first()
+        )
         if source:
             source.is_inactive = True
             # Carry over any traits the target might be missing
-            target = self.db.execute(
-                select(CustomerProfileModel).where(
-                    CustomerProfileModel.id == target_id,
-                    CustomerProfileModel.tenant_id == tenant_id,
+            target = (
+                self.db.execute(
+                    select(CustomerProfileModel).where(
+                        CustomerProfileModel.id == target_id,
+                        CustomerProfileModel.tenant_id == tenant_id,
+                    )
                 )
-            ).scalars().first()
+                .scalars()
+                .first()
+            )
             if target and source.traits:
                 merged_traits = dict(target.traits or {})
                 for k, v in source.traits.items():
@@ -217,12 +235,15 @@ class CustomerRepository:
 
     def count_by_stage(self, tenant_id: UUID, stage: Any) -> int:
         result = self.db.execute(
-            select(func.count()).select_from(CustomerProfileModel).where(
+            select(func.count())
+            .select_from(CustomerProfileModel)
+            .where(
                 CustomerProfileModel.tenant_id == tenant_id,
                 CustomerProfileModel.lifecycle_stage == stage,
             )
         )
         return result.scalar() or 0
+
 
 class JourneyEventRepository:
     def __init__(self, db: Session):
@@ -244,7 +265,7 @@ class JourneyEventRepository:
         """
         from sqlalchemy import select as sa_select
 
-        now = occurred_at or datetime.now(timezone.utc)
+        now = occurred_at or datetime.now(UTC)
 
         event = JourneyEventModel(
             id=uuid.uuid4(),
@@ -258,12 +279,16 @@ class JourneyEventRepository:
         self.db.add(event)
 
         # Update profile last_activity_at
-        profile = self.db.execute(
-            sa_select(CustomerProfileModel).where(
-                CustomerProfileModel.id == profile_id,
-                CustomerProfileModel.tenant_id == tenant_id,
+        profile = (
+            self.db.execute(
+                sa_select(CustomerProfileModel).where(
+                    CustomerProfileModel.id == profile_id,
+                    CustomerProfileModel.tenant_id == tenant_id,
+                )
             )
-        ).scalars().first()
+            .scalars()
+            .first()
+        )
         if profile:
             profile.last_activity_at = now
 
@@ -273,7 +298,9 @@ class JourneyEventRepository:
     def get_unique_visitors(self, tenant_id: UUID) -> int:
         try:
             result = self.db.execute(
-                select(func.count()).select_from(JourneyEventModel).where(
+                select(func.count())
+                .select_from(JourneyEventModel)
+                .where(
                     JourneyEventModel.tenant_id == tenant_id,
                     JourneyEventModel.event_name == "page_view",
                 )

@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from src.core.database import get_db
+from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
+from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+    AuditRepository,
+)
 
 router = APIRouter()
 
@@ -24,8 +27,11 @@ def list_audit_leads(
     except Exception:
         # Fallback: if agent_traces table is empty or has issues,
         # return leads that have messages instead
-        from src.modules.sales_agent.infrastructure.models.message_model import MessageModel
         from sqlalchemy import func
+
+        from src.modules.sales_agent.infrastructure.models.message_model import (
+            MessageModel,
+        )
 
         subq = (
             db.query(
@@ -46,16 +52,20 @@ def list_audit_leads(
 
     result = []
     for lead, last_activity in rows:
-        result.append({
-            "lead": {
-                "id": str(lead.id),
-                "full_name": _lead_name(lead),
-                "telegram_id": lead.telegram_id,
-                "whatsapp_id": lead.whatsapp_id,
-                "created_at": lead.created_at.isoformat() if lead.created_at else None,
-            },
-            "last_activity": last_activity.isoformat() if last_activity else None,
-        })
+        result.append(
+            {
+                "lead": {
+                    "id": str(lead.id),
+                    "full_name": _lead_name(lead),
+                    "telegram_id": lead.telegram_id,
+                    "whatsapp_id": lead.whatsapp_id,
+                    "created_at": lead.created_at.isoformat()
+                    if lead.created_at
+                    else None,
+                },
+                "last_activity": last_activity.isoformat() if last_activity else None,
+            }
+        )
     return result
 
 
@@ -66,10 +76,14 @@ def get_lead_details(
     user: User = Depends(get_current_user),
 ):
     """Get full lead profile details."""
-    lead = db.query(LeadModel).filter(
-        LeadModel.id == UUID(lead_id),
-        LeadModel.tenant_id == user.tenant_id,
-    ).first()
+    lead = (
+        db.query(LeadModel)
+        .filter(
+            LeadModel.id == UUID(lead_id),
+            LeadModel.tenant_id == user.tenant_id,
+        )
+        .first()
+    )
 
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -97,10 +111,14 @@ def get_lead_timeline(
 ):
     """Get combined message + trace timeline for a lead."""
     # Verify lead belongs to tenant
-    lead = db.query(LeadModel).filter(
-        LeadModel.id == UUID(lead_id),
-        LeadModel.tenant_id == user.tenant_id,
-    ).first()
+    lead = (
+        db.query(LeadModel)
+        .filter(
+            LeadModel.id == UUID(lead_id),
+            LeadModel.tenant_id == user.tenant_id,
+        )
+        .first()
+    )
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
 
@@ -113,8 +131,12 @@ def get_lead_timeline(
         item = {
             "type": event["type"],
             "id": event["id"],
-            "created_at": event["created_at"].isoformat() if event.get("created_at") else None,
-            "timestamp": event["created_at"].timestamp() if event.get("created_at") else 0,
+            "created_at": event["created_at"].isoformat()
+            if event.get("created_at")
+            else None,
+            "timestamp": event["created_at"].timestamp()
+            if event.get("created_at")
+            else 0,
         }
         if event["type"] == "message":
             item["role"] = event.get("role")
@@ -135,10 +157,14 @@ def clear_lead_history(
     user: User = Depends(get_current_user),
 ):
     """Clear all traces for a lead."""
-    lead = db.query(LeadModel).filter(
-        LeadModel.id == UUID(lead_id),
-        LeadModel.tenant_id == user.tenant_id,
-    ).first()
+    lead = (
+        db.query(LeadModel)
+        .filter(
+            LeadModel.id == UUID(lead_id),
+            LeadModel.tenant_id == user.tenant_id,
+        )
+        .first()
+    )
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
 
@@ -167,7 +193,9 @@ def get_trace_details(
         "input_state": trace["input"],
         "output_state": trace["output"],
         "execution_time_ms": trace["execution_time"],
-        "created_at": trace["created_at"].isoformat() if hasattr(trace["created_at"], "isoformat") else trace["created_at"],
+        "created_at": trace["created_at"].isoformat()
+        if hasattr(trace["created_at"], "isoformat")
+        else trace["created_at"],
         "llm_logs": [
             {
                 "id": log["id"],

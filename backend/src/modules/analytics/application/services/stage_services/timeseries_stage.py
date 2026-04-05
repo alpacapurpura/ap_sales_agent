@@ -5,8 +5,7 @@ for any funnel stage, grouped by channel.
 """
 
 from collections import OrderedDict
-from datetime import datetime
-from typing import Dict, Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 # Suggested hex colors per channel slug (frontend may override)
-_CHANNEL_COLORS: Dict[str, str] = {
+_CHANNEL_COLORS: dict[str, str] = {
     "meta-ads": "#1877F2",
     "ig-organic": "#E4405F",
     "fb-organic": "#1877F2",
@@ -45,8 +44,8 @@ class TimeseriesStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -81,9 +80,7 @@ class TimeseriesStageService:
 
         # 2. Get channel slugs for this stage
         stage_channels = get_stage_channels(stage)
-        slug_to_info = {
-            ch["slug"]: ch for ch in stage_channels
-        }
+        slug_to_info = {ch["slug"]: ch for ch in stage_channels}
         channel_slugs = list(slug_to_info.keys())
 
         if not channel_slugs:
@@ -99,9 +96,10 @@ class TimeseriesStageService:
             )
 
         # 3. Query current period
-        from datetime import date as date_type, timedelta, timezone as tz
+        from datetime import date as date_type
+        from datetime import timedelta
 
-        now = datetime.now(tz.utc).date()
+        now = datetime.now(UTC).date()
         start_date = now - timedelta(days=range_days)
         prev_start = start_date - timedelta(days=range_days)
 
@@ -112,7 +110,9 @@ class TimeseriesStageService:
         elif metric_name == "leads":
             db_metric_names = ["leads", "new_subscribers"]
 
-        from sqlalchemy import select as sa_select, func as sa_f
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
+
         from src.modules.analytics.infrastructure.models.official_metrics_model import (
             OfficialMetricModel,
         )
@@ -139,7 +139,7 @@ class TimeseriesStageService:
         rows = self.db.execute(stmt).all()
 
         # 4. Build data points
-        date_map: Dict[date_type, Dict[str, float]] = OrderedDict()
+        date_map: dict[date_type, dict[str, float]] = OrderedDict()
         channels_seen: set = set()
 
         for row in rows:
@@ -153,7 +153,7 @@ class TimeseriesStageService:
 
         # Weekly aggregation if requested
         if granularity == "weekly" and date_map:
-            weekly_map: Dict[date_type, Dict[str, float]] = OrderedDict()
+            weekly_map: dict[date_type, dict[str, float]] = OrderedDict()
             for d, ch_vals in date_map.items():
                 # ISO week start (Monday)
                 week_start = d - timedelta(days=d.weekday())
@@ -174,7 +174,7 @@ class TimeseriesStageService:
         ]
 
         # 5. Period totals
-        period_totals: Dict[str, float] = {}
+        period_totals: dict[str, float] = {}
         for ch_vals in date_map.values():
             for slug, val in ch_vals.items():
                 period_totals[slug] = period_totals.get(slug, 0) + val
@@ -195,19 +195,23 @@ class TimeseriesStageService:
             .group_by(M.channel_slug)
         )
         prev_rows = self.db.execute(prev_stmt).all()
-        previous_period_totals = {
-            row.channel_slug: float(row.total) for row in prev_rows
-        } if prev_rows else None
+        previous_period_totals = (
+            {row.channel_slug: float(row.total) for row in prev_rows}
+            if prev_rows
+            else None
+        )
 
         # 7. Build channels_present
         channels_present = []
         for slug in sorted(channels_seen):
             info = slug_to_info.get(slug, {})
-            channels_present.append(ChannelInfoDTO(
-                slug=slug,
-                name=info.get("name", slug),
-                color=_CHANNEL_COLORS.get(slug, "#6B7280"),
-            ))
+            channels_present.append(
+                ChannelInfoDTO(
+                    slug=slug,
+                    name=info.get("name", slug),
+                    color=_CHANNEL_COLORS.get(slug, "#6B7280"),
+                )
+            )
 
         result = StageTimeSeriesDTO(
             stage=stage,

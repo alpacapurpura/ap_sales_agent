@@ -1,20 +1,34 @@
-from typing import List, Optional, Union, Dict, Type, Any
+from typing import Any
 from uuid import UUID
-from pydantic import Field, model_validator, computed_field
-from src.shared.domain.base_entity import BaseEntity
-from src.modules.offer.domain.enums import (
-    OfferArchetype, OfferDeliveryModel, GuaranteeType, OfferStatus, DeliverableFormat,
-    OfferValueLevel, PaymentPlanType, AccessDuration, PrerequisiteType, OnboardingMechanism,
-    ARCHETYPE_DEFAULT_DELIVERY
-)
-from src.modules.crm.domain.enums import FinancialCapacity, AvatarPersona
+
+from pydantic import Field, computed_field, model_validator
+
+from src.modules.crm.domain.enums import AvatarPersona, FinancialCapacity
 from src.modules.landing.domain.content import LandingPageConfig
 from src.modules.offer.domain.details import (
-    ProductDetails, ServiceDetails, ProgramDetails, SubscriptionDetails, EventDetails
+    EventDetails,
+    ProductDetails,
+    ProgramDetails,
+    ServiceDetails,
+    SubscriptionDetails,
 )
+from src.modules.offer.domain.enums import (
+    ARCHETYPE_DEFAULT_DELIVERY,
+    AccessDuration,
+    DeliverableFormat,
+    GuaranteeType,
+    OfferArchetype,
+    OfferDeliveryModel,
+    OfferStatus,
+    OfferValueLevel,
+    OnboardingMechanism,
+    PaymentPlanType,
+    PrerequisiteType,
+)
+from src.shared.domain.base_entity import BaseEntity
 
 # --- ARCHETYPE → DETAILS MAPPING ---
-ARCHETYPE_TO_DETAILS_MAPPING: Dict[OfferArchetype, Type[BaseEntity]] = {
+ARCHETYPE_TO_DETAILS_MAPPING: dict[OfferArchetype, type[BaseEntity]] = {
     OfferArchetype.PRODUCTO: ProductDetails,
     OfferArchetype.PROGRAMA: ProgramDetails,
     OfferArchetype.SERVICIO: ServiceDetails,
@@ -22,19 +36,21 @@ ARCHETYPE_TO_DETAILS_MAPPING: Dict[OfferArchetype, Type[BaseEntity]] = {
     OfferArchetype.EXPERIENCIA: EventDetails,
 }
 
+
 class PricingStructure(BaseEntity):
     label: str
-    plan_type: Optional[PaymentPlanType] = None
+    plan_type: PaymentPlanType | None = None
     total_amount: float
     deposit_required: float = 0.0
     number_of_installments: int = 1
     installment_amount: float = 0.0
     is_default: bool = False
-    savings_claim: Optional[str] = None
+    savings_claim: str | None = None
     # Membership tier fields (stored in JSONB, no migration needed)
-    benefits: List[str] = []
+    benefits: list[str] = []
     is_highlighted: bool = False
-    cta_text: Optional[str] = None
+    cta_text: str | None = None
+
 
 class DeliverableItem(BaseEntity):
     name: str
@@ -42,73 +58,86 @@ class DeliverableItem(BaseEntity):
     quantity: str
     value_stack_price: float
 
+
 class ObjectionItem(BaseEntity):
     """An anticipated objection with a rebuttal strategy for the Sales Agent."""
-    id: Optional[str] = None
+
+    id: str | None = None
     type: str  # e.g. "price", "time", "trust", "partner", "custom"
-    trigger_phrases: List[str] = []  # semantic anchors for SemanticRouter
+    trigger_phrases: list[str] = []  # semantic anchors for SemanticRouter
     strategy: str = ""  # e.g. "ROI Reframing", "Paradox", "Risk Reversal"
     rebuttal: str = ""  # the actual script/response
+
 
 class Offer(BaseEntity):
     """
     La Entidad Oferta Maestra con Detalles Polimórficos.
     """
-    id: Optional[UUID] = None
-    tenant_id: Optional[UUID] = None
+
+    id: UUID | None = None
+    tenant_id: UUID | None = None
     internal_sku: str
     public_name: str
     archetype: OfferArchetype
-    format_hint: Optional[str] = None
+    format_hint: str | None = None
     is_lead_magnet: bool = False
-    
-    value_level: Optional[OfferValueLevel] = Field(None, serialization_alias="offer_value_level")
-    delivery_model: Optional[OfferDeliveryModel] = None
-    
+
+    value_level: OfferValueLevel | None = Field(
+        None, serialization_alias="offer_value_level"
+    )
+    delivery_model: OfferDeliveryModel | None = None
+
     headline_promise: str
-    target_avatar_match: List[AvatarPersona]
+    target_avatar_match: list[AvatarPersona]
     primary_outcome: str
     time_to_value: str
-    
-    access_duration: Optional[AccessDuration] = None
-    access_duration_text: Optional[str] = None
-    support_duration_days: Optional[int] = None
-    instructors: List[str] = []
-    
+
+    access_duration: AccessDuration | None = None
+    access_duration_text: str | None = None
+    support_duration_days: int | None = None
+    instructors: list[str] = []
+
     requires_application: bool
     min_financial_capacity: FinancialCapacity
-    prerequisites: List[Union[PrerequisiteType, str]] = []
-    anti_avatar_keywords: List[str] = []
-    
-    pricing_options: List[PricingStructure]
-    price_pay_in_full: Optional[float] = None
+    prerequisites: list[PrerequisiteType | str] = []
+    anti_avatar_keywords: list[str] = []
+
+    pricing_options: list[PricingStructure]
+    price_pay_in_full: float | None = None
     currency: str = "USD"
-    
+
     guarantee_type: GuaranteeType
     guarantee_terms: str
-    
-    downsell_offer_id: Optional[UUID] = None
-    upsell_offer_id: Optional[UUID] = None
-    includes_offers: List[UUID] = []
-    deliverables: List[DeliverableItem] = []
 
-    onboarding_action: Optional[OnboardingMechanism] = None
-    onboarding_url: Optional[str] = None
-    
-    vsl_link: Optional[str] = None
-    checkout_page_url: Optional[str] = None
-    calendar_type_id: Optional[str] = None
-    
-    marketing_pain_points: List[str] = []
-    marketing_desires: List[str] = []
-    objections: List[ObjectionItem] = []
-    metadata_info: Dict[str, Any] = {}
+    downsell_offer_id: UUID | None = None
+    upsell_offer_id: UUID | None = None
+    includes_offers: list[UUID] = []
+    deliverables: list[DeliverableItem] = []
+
+    onboarding_action: OnboardingMechanism | None = None
+    onboarding_url: str | None = None
+
+    vsl_link: str | None = None
+    checkout_page_url: str | None = None
+    calendar_type_id: str | None = None
+
+    marketing_pain_points: list[str] = []
+    marketing_desires: list[str] = []
+    objections: list[ObjectionItem] = []
+    metadata_info: dict[str, Any] = {}
 
     status: OfferStatus
-    
-    specific_details: Optional[Union[ProductDetails, ServiceDetails, ProgramDetails, SubscriptionDetails, EventDetails]] = None
 
-    landing_page_config: Optional[LandingPageConfig] = None
+    specific_details: (
+        ProductDetails
+        | ServiceDetails
+        | ProgramDetails
+        | SubscriptionDetails
+        | EventDetails
+        | None
+    ) = None
+
+    landing_page_config: LandingPageConfig | None = None
 
     @computed_field
     @property
@@ -116,72 +145,95 @@ class Offer(BaseEntity):
         """Only True when the user explicitly marks the offer as lead magnet."""
         return self.is_lead_magnet
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_consistency(self):
         if self.delivery_model is None:
             self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
 
         expected_detail_class = ARCHETYPE_TO_DETAILS_MAPPING.get(self.archetype)
-        if expected_detail_class and self.specific_details is not None:
-            if not isinstance(self.specific_details, expected_detail_class):
-                raise ValueError(
-                    f"Polymorphism Error: Archetype {self.archetype.value} expects "
-                    f"{expected_detail_class.__name__}, got {type(self.specific_details).__name__}"
-                )
+        if (
+            expected_detail_class
+            and self.specific_details is not None
+            and not isinstance(self.specific_details, expected_detail_class)
+        ):
+            raise ValueError(
+                f"Polymorphism Error: Archetype {self.archetype.value} expects "
+                f"{expected_detail_class.__name__}, got {type(self.specific_details).__name__}"
+            )
 
         return self
 
+
 class OfferIdentityUpdate(BaseEntity):
-    internal_sku: Optional[str] = None
-    public_name: Optional[str] = None
+    internal_sku: str | None = None
+    public_name: str | None = None
+
 
 class OfferStrategyUpdate(BaseEntity):
-    value_level: Optional[OfferValueLevel] = Field(None, serialization_alias="offer_value_level")
-    delivery_model: Optional[OfferDeliveryModel] = None
+    value_level: OfferValueLevel | None = Field(
+        None, serialization_alias="offer_value_level"
+    )
+    delivery_model: OfferDeliveryModel | None = None
+
 
 class OfferPromiseUpdate(BaseEntity):
-    headline_promise: Optional[str] = None
-    primary_outcome: Optional[str] = None
-    time_to_value: Optional[str] = None
+    headline_promise: str | None = None
+    primary_outcome: str | None = None
+    time_to_value: str | None = None
+
 
 class OfferPsychologyUpdate(BaseEntity):
-    target_avatar_match: Optional[List[AvatarPersona]] = None
-    anti_avatar_keywords: Optional[List[str]] = None
-    marketing_pain_points: Optional[List[str]] = None
-    marketing_desires: Optional[List[str]] = None
-    objections: Optional[List[ObjectionItem]] = None
+    target_avatar_match: list[AvatarPersona] | None = None
+    anti_avatar_keywords: list[str] | None = None
+    marketing_pain_points: list[str] | None = None
+    marketing_desires: list[str] | None = None
+    objections: list[ObjectionItem] | None = None
+
 
 class OfferValueStackUpdate(BaseEntity):
-    deliverables: Optional[List[DeliverableItem]] = None
-    includes_offers: Optional[List[UUID]] = None
+    deliverables: list[DeliverableItem] | None = None
+    includes_offers: list[UUID] | None = None
+
 
 class OfferPricingUpdate(BaseEntity):
-    pricing_options: Optional[List[PricingStructure]] = None
-    price_pay_in_full: Optional[float] = None
-    currency: Optional[str] = None
+    pricing_options: list[PricingStructure] | None = None
+    price_pay_in_full: float | None = None
+    currency: str | None = None
+
 
 class OfferDetailsUpdate(BaseEntity):
-    specific_details: Optional[Union[ProductDetails, ServiceDetails, ProgramDetails, SubscriptionDetails, EventDetails]] = None
-    access_duration: Optional[AccessDuration] = None
-    access_duration_text: Optional[str] = None
-    support_duration_days: Optional[int] = None
+    specific_details: (
+        ProductDetails
+        | ServiceDetails
+        | ProgramDetails
+        | SubscriptionDetails
+        | EventDetails
+        | None
+    ) = None
+    access_duration: AccessDuration | None = None
+    access_duration_text: str | None = None
+    support_duration_days: int | None = None
+
 
 class OfferVisualsUpdate(BaseEntity):
-    vsl_link: Optional[str] = None
-    metadata_info: Optional[Dict[str, Any]] = None
+    vsl_link: str | None = None
+    metadata_info: dict[str, Any] | None = None
+
 
 class OfferClosingUpdate(BaseEntity):
-    guarantee_type: Optional[GuaranteeType] = None
-    guarantee_terms: Optional[str] = None
-    checkout_page_url: Optional[str] = None
-    calendar_type_id: Optional[str] = None
-    onboarding_action: Optional[OnboardingMechanism] = None
-    onboarding_url: Optional[str] = None
-    downsell_offer_id: Optional[UUID] = None
-    upsell_offer_id: Optional[UUID] = None
+    guarantee_type: GuaranteeType | None = None
+    guarantee_terms: str | None = None
+    checkout_page_url: str | None = None
+    calendar_type_id: str | None = None
+    onboarding_action: OnboardingMechanism | None = None
+    onboarding_url: str | None = None
+    downsell_offer_id: UUID | None = None
+    upsell_offer_id: UUID | None = None
+
 
 class OfferResourcesUpdate(BaseEntity):
-    landing_page_config: Optional[LandingPageConfig] = None
+    landing_page_config: LandingPageConfig | None = None
+
 
 class OfferInstructorsUpdate(BaseEntity):
-    instructors: Optional[List[str]] = None
+    instructors: list[str] | None = None

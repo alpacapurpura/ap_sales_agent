@@ -1,28 +1,31 @@
-from typing import Optional, List, Dict, Any
-from uuid import UUID
 from datetime import datetime
+from typing import Any
+from uuid import UUID
+
 from src.shared.domain.base_entity import BaseEntity
+
 
 class AssetDto(BaseEntity):
     id: UUID
-    tenant_id: Optional[UUID] = None
-    offer_id: Optional[UUID] = None # Optional now
-    
+    tenant_id: UUID | None = None
+    offer_id: UUID | None = None  # Optional now
+
     type: str
     filename: str
-    mime_type: Optional[str] = None
+    mime_type: str | None = None
     public_url: str
-    
-    user_description: Optional[str] = None
-    ai_metadata: Dict[str, Any] = {}
-    ai_description: Optional[str] = None
-    ai_colors: List[str] = []
-    
+
+    user_description: str | None = None
+    ai_metadata: dict[str, Any] = {}
+    ai_description: str | None = None
+    ai_colors: list[str] = []
+
     status: str
-    error_message: Optional[str] = None
-    
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    error_message: str | None = None
+
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
 
 # Backward Compatibility
 class GalleryImageDto(AssetDto):

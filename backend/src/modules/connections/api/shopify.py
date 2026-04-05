@@ -1,18 +1,23 @@
+import uuid
+from typing import Any
+
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
-from typing import Dict, Any, Optional
 from pydantic import BaseModel
-import uuid
-import structlog
+from sqlalchemy.orm import Session
 
-from src.core.database import get_db
 from src.core.config import settings
+from src.core.database import get_db
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.marketing_connectors.shopify import (
+    ShopifyConnector,
+)
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.marketing_connectors.shopify import ShopifyConnector
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -27,21 +32,21 @@ class ShopifyExchangeRequest(BaseModel):
     code: str
     shop: str
     hmac: str
-    state: Optional[str] = None
-    host: Optional[str] = None
-    timestamp: Optional[str] = None
+    state: str | None = None
+    host: str | None = None
+    timestamp: str | None = None
 
 
 class ShopifyStatusResponse(BaseModel):
     is_connected: bool
-    shop_url: Optional[str] = None
-    shop_info: Optional[Dict[str, Any]] = None
+    shop_url: str | None = None
+    shop_info: dict[str, Any] | None = None
 
 
 class ConnectionResponse(BaseModel):
     status: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 
 
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
@@ -51,7 +56,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 def _resolve_tenant_id(
     repo: ChannelConnectionRepository,
     shop: str,
-    state: Optional[str],
+    state: str | None,
 ) -> uuid.UUID:
     if state:
         try:
@@ -93,7 +98,7 @@ async def generate_auth_url(
     base_url = settings.DASHBOARD_DOMAIN.rstrip("/")
     # Point to the Next.js frontend API route that handles the callback and proxies to the backend
     redirect_uri = f"{base_url}/api/auth/shopify/callback"
-    
+
     # Ensure URL is HTTPS
     if redirect_uri.startswith("http://"):
         redirect_uri = redirect_uri.replace("http://", "https://")
@@ -123,13 +128,19 @@ async def exchange_shopify_token(
         state=request.state,
     )
 
-    access_token, error = await ShopifyConnector.exchange_token(request.shop, request.code)
+    access_token, error = await ShopifyConnector.exchange_token(
+        request.shop, request.code
+    )
     if error:
         raise HTTPException(status_code=400, detail=f"Token exchange failed: {error}")
 
-    is_valid, shop_details = await ShopifyConnector.verify_connection(request.shop, access_token)
+    is_valid, shop_details = await ShopifyConnector.verify_connection(
+        request.shop, access_token
+    )
     if not is_valid:
-        raise HTTPException(status_code=400, detail="Failed to verify connection with Shopify")
+        raise HTTPException(
+            status_code=400, detail="Failed to verify connection with Shopify"
+        )
 
     repo.upsert(
         tenant_id=tenant_id,
@@ -172,9 +183,13 @@ async def auth_callback(
     if error:
         raise HTTPException(status_code=400, detail=f"Token exchange failed: {error}")
 
-    is_valid, shop_details = await ShopifyConnector.verify_connection(shop, access_token)
+    is_valid, shop_details = await ShopifyConnector.verify_connection(
+        shop, access_token
+    )
     if not is_valid:
-        raise HTTPException(status_code=400, detail="Failed to verify connection with Shopify")
+        raise HTTPException(
+            status_code=400, detail="Failed to verify connection with Shopify"
+        )
 
     repo.upsert(
         tenant_id=tenant_id,
@@ -185,8 +200,12 @@ async def auth_callback(
 
     dashboard_url = settings.DASHBOARD_DOMAIN
     if not dashboard_url:
-        raise HTTPException(status_code=500, detail="DASHBOARD_DOMAIN not configured on server")
-    return RedirectResponse(url=f"{dashboard_url}/growth-studio/connections?status=success&channel=shopify")
+        raise HTTPException(
+            status_code=500, detail="DASHBOARD_DOMAIN not configured on server"
+        )
+    return RedirectResponse(
+        url=f"{dashboard_url}/growth-studio/connections?status=success&channel=shopify"
+    )
 
 
 @router.post("/quick-connect", response_model=ConnectionResponse)
@@ -199,17 +218,25 @@ async def quick_connect_shopify(
     Connect to Shopify using Client Credentials Grant (no browser redirect).
     Only works for stores in the same Shopify organization as the app.
     """
-    shop_url = request.shop_url.replace("https://", "").replace("http://", "").strip("/")
+    shop_url = (
+        request.shop_url.replace("https://", "").replace("http://", "").strip("/")
+    )
     if not shop_url.endswith("myshopify.com") and "." not in shop_url:
         shop_url = f"{shop_url}.myshopify.com"
 
     access_token, error = await ShopifyConnector.client_credentials_token(shop_url)
     if error:
-        raise HTTPException(status_code=400, detail=f"Client credentials failed: {error}")
+        raise HTTPException(
+            status_code=400, detail=f"Client credentials failed: {error}"
+        )
 
-    is_valid, shop_details = await ShopifyConnector.verify_connection(shop_url, access_token)
+    is_valid, shop_details = await ShopifyConnector.verify_connection(
+        shop_url, access_token
+    )
     if not is_valid:
-        raise HTTPException(status_code=400, detail="Failed to verify connection with Shopify")
+        raise HTTPException(
+            status_code=400, detail="Failed to verify connection with Shopify"
+        )
 
     repo.upsert(
         tenant_id=user.tenant_id,
@@ -251,7 +278,9 @@ async def test_shopify_connection(
     connection = repo.get_active(user.tenant_id, ChannelType.SHOPIFY)
 
     if not connection:
-        raise HTTPException(status_code=404, detail="No active Shopify connection found")
+        raise HTTPException(
+            status_code=404, detail="No active Shopify connection found"
+        )
 
     access_token = connection.credentials.get("access_token")
     shop_url = connection.config.get("shop_url")
@@ -266,6 +295,10 @@ async def test_shopify_connection(
 
     if is_valid:
         repo.update_config(connection, {"shop_info": result})
-        return ConnectionResponse(status="active", message="Connection is valid", details=result)
+        return ConnectionResponse(
+            status="active", message="Connection is valid", details=result
+        )
 
-    return ConnectionResponse(status="error", message="Connection test failed", details=result)
+    return ConnectionResponse(
+        status="error", message="Connection test failed", details=result
+    )

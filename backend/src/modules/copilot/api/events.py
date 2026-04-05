@@ -1,6 +1,5 @@
 """Copilot event tracking API — record and query behavioral events."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -20,15 +19,15 @@ router = APIRouter()
 class RecordEventRequest(BaseModel):
     event_type: str = Field(..., max_length=50)
     event_data: dict = Field(default_factory=dict)
-    conversation_id: Optional[str] = None
-    route: Optional[str] = None
+    conversation_id: str | None = None
+    route: str | None = None
 
 
 @router.post("/record", status_code=201)
 def record_event(
     request: RecordEventRequest,
     current_user: User = Depends(get_current_user),
-    tenant_id: Optional[UUID] = Depends(get_tenant_context),
+    tenant_id: UUID | None = Depends(get_tenant_context),
     db: Session = Depends(get_db),
 ):
     if not tenant_id:
@@ -52,7 +51,7 @@ def record_event(
 def event_summary(
     days: int = 30,
     current_user: User = Depends(get_current_user),
-    tenant_id: Optional[UUID] = Depends(get_tenant_context),
+    tenant_id: UUID | None = Depends(get_tenant_context),
     db: Session = Depends(get_db),
 ):
     if not tenant_id:
@@ -67,7 +66,7 @@ def event_summary(
 def event_insights(
     days: int = 30,
     current_user: User = Depends(get_current_user),
-    tenant_id: Optional[UUID] = Depends(get_tenant_context),
+    tenant_id: UUID | None = Depends(get_tenant_context),
     db: Session = Depends(get_db),
 ):
     if not tenant_id:

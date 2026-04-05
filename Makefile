@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -160,3 +160,14 @@ shopify-config-prod:
 
 shopify-config-status:
 	cd shopify_app && grep -E "^(name|application_url|client_id)" shopify.app.toml
+
+# --- Dependency Audit ---
+audit:
+	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pip-audit --strict --desc
+	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npm audit --audit-level=high
+
+audit-backend:
+	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pip-audit --strict --desc
+
+audit-frontend:
+	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npm audit --audit-level=high

@@ -6,6 +6,7 @@ Called once at app startup via register_event_handlers().
 
 Handler exceptions are caught and logged -- never propagated to the publisher.
 """
+
 import logging
 
 from src.shared.domain.events import DomainEvent, EventBus
@@ -17,7 +18,9 @@ def handle_sale_completed_event(event: DomainEvent) -> None:
     """Handle sale_completed events by transitioning the customer's lifecycle."""
     try:
         from src.core.database import SessionLocal
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         db = SessionLocal()
         try:
@@ -40,7 +43,9 @@ def handle_churn_event(event: DomainEvent) -> None:
     """Handle churn_detected events by setting lifecycle_stage=CHURNED."""
     try:
         from src.core.database import SessionLocal
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         db = SessionLocal()
         try:
@@ -86,15 +91,19 @@ def _handle_appointment_event(event: DomainEvent, journey_event_name: str) -> No
     later reconciliation.
     """
     try:
+        from uuid import UUID
+
+        from sqlalchemy import select
+
         from src.core.database import SessionLocal
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
         from src.modules.crm.infrastructure.models.customer_model import (
             CustomerProfileModel,
             JourneyEventModel,
         )
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
         from src.modules.crm.infrastructure.models.lead_model import LeadModel
-        from sqlalchemy import select
-        from uuid import UUID
 
         db = SessionLocal()
         try:

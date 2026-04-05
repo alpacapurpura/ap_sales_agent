@@ -1,7 +1,8 @@
 """NPS survey and response models for Net Promoter Score tracking."""
+
 import uuid
 
-from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -20,8 +21,12 @@ class NpsSurveyModel(Base):
         ForeignKey("customer_profiles.id"),
         nullable=True,
     )
-    delivery_channel = Column(String, default="universal_link")  # "universal_link" | "whatsapp"
-    status = Column(String, default="pending")  # "pending" | "sent" | "responded" | "expired"
+    delivery_channel = Column(
+        String, default="universal_link"
+    )  # "universal_link" | "whatsapp"
+    status = Column(
+        String, default="pending"
+    )  # "pending" | "sent" | "responded" | "expired"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     sent_at = Column(DateTime(timezone=True), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)

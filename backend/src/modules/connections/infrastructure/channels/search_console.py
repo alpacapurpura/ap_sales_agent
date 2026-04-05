@@ -3,9 +3,10 @@
 Provides analytics from Google Search Console's searchanalytics.query endpoint.
 Uses the same Google OAuth credentials as google_analytics (workspace flow).
 """
+
 import asyncio
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
@@ -24,7 +25,7 @@ class SearchConsoleAdapter:
     from the Google Workspace OAuth flow.
     """
 
-    def __init__(self, credentials_data: Dict[str, Any]):
+    def __init__(self, credentials_data: dict[str, Any]):
         self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
     def _get_service(self):
@@ -35,9 +36,9 @@ class SearchConsoleAdapter:
         site_url: str,
         start_date: date,
         end_date: date,
-        dimensions: Optional[List[str]] = None,
+        dimensions: list[str] | None = None,
         row_limit: int = 1000,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Query Search Console analytics data."""
         return await asyncio.to_thread(
             self._query_sync, site_url, start_date, end_date, dimensions, row_limit
@@ -48,12 +49,12 @@ class SearchConsoleAdapter:
         site_url: str,
         start_date: date,
         end_date: date,
-        dimensions: Optional[List[str]],
+        dimensions: list[str] | None,
         row_limit: int,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         try:
             service = self._get_service()
-            body: Dict[str, Any] = {
+            body: dict[str, Any] = {
                 "startDate": start_date.isoformat(),
                 "endDate": end_date.isoformat(),
                 "rowLimit": row_limit,
@@ -61,9 +62,7 @@ class SearchConsoleAdapter:
             if dimensions:
                 body["dimensions"] = dimensions
             response = (
-                service.searchanalytics()
-                .query(siteUrl=site_url, body=body)
-                .execute()
+                service.searchanalytics().query(siteUrl=site_url, body=body).execute()
             )
             return response.get("rows", [])
         except (RefreshError, TransportError) as exc:
@@ -77,11 +76,11 @@ class SearchConsoleAdapter:
             logger.exception("search_console_query_failed site=%s", site_url)
             return []
 
-    async def list_sites(self) -> List[Dict[str, Any]]:
+    async def list_sites(self) -> list[dict[str, Any]]:
         """List verified sites for the authenticated user."""
         return await asyncio.to_thread(self._list_sites_sync)
 
-    def _list_sites_sync(self) -> List[Dict[str, Any]]:
+    def _list_sites_sync(self) -> list[dict[str, Any]]:
         try:
             service = self._get_service()
             response = service.sites().list().execute()

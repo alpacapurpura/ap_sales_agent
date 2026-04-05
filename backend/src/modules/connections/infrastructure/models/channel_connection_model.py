@@ -1,7 +1,9 @@
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
+import uuid
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
-import uuid
+
 from src.shared.domain.base_entity import Base
 from src.shared.infrastructure.database.types import EncryptedJSON
 
@@ -10,7 +12,9 @@ class ChannelConnectionModel(Base):
     __tablename__ = "channel_connections"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
+    tenant_id = Column(
+        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True
+    )
 
     channel_type = Column(String, nullable=False)
 

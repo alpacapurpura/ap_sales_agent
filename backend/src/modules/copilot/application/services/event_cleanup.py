@@ -1,10 +1,10 @@
 """ARQ task for soft-deleting copilot events older than 90 days."""
 
-import sentry_sdk
-from datetime import datetime, timedelta, timezone
-from sentry_sdk.crons import MonitorStatus, capture_checkin
+from datetime import UTC, datetime, timedelta
 
+import sentry_sdk
 import structlog
+from sentry_sdk.crons import MonitorStatus, capture_checkin
 
 from src.core.database import SessionLocal
 from src.modules.copilot.infrastructure.repositories.event_repository import (
@@ -26,7 +26,7 @@ async def cleanup_old_events(ctx):
         },
     )
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=90)
+    cutoff = datetime.now(UTC) - timedelta(days=90)
     db = SessionLocal()
     try:
         repo = CopilotEventRepository(db)

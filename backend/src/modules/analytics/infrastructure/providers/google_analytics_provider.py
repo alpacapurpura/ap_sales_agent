@@ -13,8 +13,6 @@ asyncio.to_thread() (sync Google SDK).
 """
 
 from datetime import date
-
-from typing import Dict, List
 from uuid import UUID
 
 import structlog
@@ -78,7 +76,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         period_type: str,
         period_start: date,
         period_end: date,
-        metric_names: List[str],
+        metric_names: list[str],
         stage: str = "attraction",
     ) -> ExtractionResult:
         """Extract GA4 users/activeUsers for an exact date range.
@@ -124,16 +122,22 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             metric_values = row.get("metricValues", [])
             for i, ga4_name in enumerate(ga4_metrics):
                 our_name = "users" if ga4_name == "totalUsers" else ga4_name
-                val = float(metric_values[i].get("value", 0)) if i < len(metric_values) else 0
-                extracted.append(ExtractedMetric(
-                    provider="google_analytics",
-                    channel_slug="website-total",
-                    metric_name=our_name,
-                    value=val,
-                    unit="count",
-                    date=period_start,
-                    extra={"period_type": period_type, "period_exact": True},
-                ))
+                val = (
+                    float(metric_values[i].get("value", 0))
+                    if i < len(metric_values)
+                    else 0
+                )
+                extracted.append(
+                    ExtractedMetric(
+                        provider="google_analytics",
+                        channel_slug="website-total",
+                        metric_name=our_name,
+                        value=val,
+                        unit="count",
+                        date=period_start,
+                        extra={"period_type": period_type, "period_exact": True},
+                    )
+                )
 
         return ExtractionResult(metrics=extracted)
 
@@ -161,9 +165,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
     ) -> ExtractionResult:
         property_id = credentials.get("property_id")
         if not property_id:
-            logger.warning(
-                "ga_provider_no_property_id tenant=%s", tenant_id
-            )
+            logger.warning("ga_provider_no_property_id tenant=%s", tenant_id)
             return ExtractionResult()
 
         adapter = self._build_adapter(credentials)
@@ -173,9 +175,14 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 property_id=property_id,
                 dimensions=["sessionSource", "sessionMedium"],
                 metrics=[
-                    "sessions", "totalUsers", "bounceRate",
-                    "engagedSessions", "newUsers", "screenPageViews",
-                    "activeUsers", "engagementRate",
+                    "sessions",
+                    "totalUsers",
+                    "bounceRate",
+                    "engagedSessions",
+                    "newUsers",
+                    "screenPageViews",
+                    "activeUsers",
+                    "engagementRate",
                 ],
                 start_date=start_date.isoformat(),
                 end_date=end_date.isoformat(),
@@ -196,7 +203,10 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
         metrics, failure = await self._safe_extract(
             self._extract_website_aggregate,
-            adapter, property_id, start_date, end_date,
+            adapter,
+            property_id,
+            start_date,
+            end_date,
             extractor_name="website_aggregate",
         )
         results.extend(metrics)
@@ -205,7 +215,10 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
         metrics, failure = await self._safe_extract(
             self._extract_top_pages,
-            adapter, property_id, start_date, end_date,
+            adapter,
+            property_id,
+            start_date,
+            end_date,
             extractor_name="top_pages",
         )
         results.extend(metrics)
@@ -214,7 +227,10 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
         metrics, failure = await self._safe_extract(
             self._extract_traffic_sources,
-            adapter, property_id, start_date, end_date,
+            adapter,
+            property_id,
+            start_date,
+            end_date,
             extractor_name="traffic_sources",
         )
         results.extend(metrics)
@@ -223,7 +239,10 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
         metrics, failure = await self._safe_extract(
             self._extract_device_split,
-            adapter, property_id, start_date, end_date,
+            adapter,
+            property_id,
+            start_date,
+            end_date,
             extractor_name="device_split",
         )
         results.extend(metrics)
@@ -240,7 +259,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         property_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Site-wide totals with NO dimensions (aggregate across all traffic)."""
         report = await adapter.run_report(
             property_id=property_id,
@@ -250,7 +269,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             end_date=end_date.isoformat(),
         )
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for row in report.get("rows", []):
             mets = row.get("metrics", [])
             for i, ga4_name in enumerate(_WEBSITE_GA4_METRICS):
@@ -275,7 +294,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         property_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Top 10 pages by screenPageViews."""
         report = await adapter.run_report(
             property_id=property_id,
@@ -285,15 +304,17 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             end_date=end_date.isoformat(),
         )
 
-        pages: List[Dict] = []
+        pages: list[dict] = []
         for row in report.get("rows", []):
             dims = row.get("dimensions", [])
             mets = row.get("metrics", [])
             if dims and mets:
-                pages.append({
-                    "path": dims[0],
-                    "views": int(float(mets[0])),
-                })
+                pages.append(
+                    {
+                        "path": dims[0],
+                        "views": int(float(mets[0])),
+                    }
+                )
 
         # Sort descending by views, take top 10
         pages.sort(key=lambda p: p["views"], reverse=True)
@@ -320,7 +341,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         property_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Traffic sources by sessionDefaultChannelGroup."""
         report = await adapter.run_report(
             property_id=property_id,
@@ -330,15 +351,17 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             end_date=end_date.isoformat(),
         )
 
-        sources: List[Dict] = []
+        sources: list[dict] = []
         for row in report.get("rows", []):
             dims = row.get("dimensions", [])
             mets = row.get("metrics", [])
             if dims and mets:
-                sources.append({
-                    "channel": dims[0],
-                    "sessions": int(float(mets[0])),
-                })
+                sources.append(
+                    {
+                        "channel": dims[0],
+                        "sessions": int(float(mets[0])),
+                    }
+                )
 
         # Sort descending by sessions
         sources.sort(key=lambda s: s["sessions"], reverse=True)
@@ -364,7 +387,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         property_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Device category split as percentages (mobile/desktop/tablet)."""
         report = await adapter.run_report(
             property_id=property_id,
@@ -374,7 +397,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             end_date=end_date.isoformat(),
         )
 
-        device_counts: Dict[str, float] = {}
+        device_counts: dict[str, float] = {}
         total = 0.0
         for row in report.get("rows", []):
             dims = row.get("dimensions", [])
@@ -405,23 +428,28 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             )
         ]
 
-    def _segment_report(
-        self, report: dict, metric_date: date
-    ) -> List[ExtractedMetric]:
+    def _segment_report(self, report: dict, metric_date: date) -> list[ExtractedMetric]:
         """Segment GA4 report rows into channel slugs."""
         _EMPTY_CHANNEL = {
-            "sessions": 0.0, "users": 0.0, "bounceRate": 0.0,
-            "engagedSessions": 0.0, "newUsers": 0.0, "screenPageViews": 0.0,
-            "activeUsers": 0.0, "engagementRate": 0.0,
+            "sessions": 0.0,
+            "users": 0.0,
+            "bounceRate": 0.0,
+            "engagedSessions": 0.0,
+            "newUsers": 0.0,
+            "screenPageViews": 0.0,
+            "activeUsers": 0.0,
+            "engagementRate": 0.0,
         }
-        channel_data: Dict[str, Dict[str, float]] = {
+        channel_data: dict[str, dict[str, float]] = {
             "google-organic": {**_EMPTY_CHANNEL},
             "direct": {**_EMPTY_CHANNEL},
             "ai-search-organic": {**_EMPTY_CHANNEL},
         }
         # Track session counts for weighted bounceRate averaging
-        _session_counts: Dict[str, float] = {
-            "google-organic": 0.0, "direct": 0.0, "ai-search-organic": 0.0,
+        _session_counts: dict[str, float] = {
+            "google-organic": 0.0,
+            "direct": 0.0,
+            "ai-search-organic": 0.0,
         }
 
         for row in report.get("rows", []):
@@ -473,12 +501,16 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 channel_data[slug]["engagementRate"] = 0.0
 
         # Convert to ExtractedMetric objects (skip channels with zero data)
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for slug, data in channel_data.items():
             if data["sessions"] == 0.0 and data["users"] == 0.0:
                 continue
             for metric_name, value in data.items():
-                unit = "percentage" if metric_name in ("bounceRate", "engagementRate") else "count"
+                unit = (
+                    "percentage"
+                    if metric_name in ("bounceRate", "engagementRate")
+                    else "count"
+                )
                 metrics.append(
                     ExtractedMetric(
                         provider="google_analytics",
@@ -513,9 +545,14 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 property_id=property_id,
                 dimensions=["sessionSource", "sessionMedium", "date"],
                 metrics=[
-                    "sessions", "totalUsers", "bounceRate",
-                    "engagedSessions", "newUsers", "screenPageViews",
-                    "activeUsers", "engagementRate",
+                    "sessions",
+                    "totalUsers",
+                    "bounceRate",
+                    "engagedSessions",
+                    "newUsers",
+                    "screenPageViews",
+                    "activeUsers",
+                    "engagementRate",
                 ],
                 start_date=start_date.isoformat(),
                 end_date=end_date.isoformat(),
@@ -537,7 +574,10 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         # Website-total daily (date only, no source/medium)
         metrics, failure = await self._safe_extract(
             self._extract_website_daily,
-            adapter, property_id, start_date, end_date,
+            adapter,
+            property_id,
+            start_date,
+            end_date,
             extractor_name="website_daily",
         )
         results.extend(metrics)
@@ -552,7 +592,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         property_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Website-total metrics per day — date dimension only, no source/medium."""
         from datetime import datetime as dt
 
@@ -564,7 +604,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             end_date=end_date.isoformat(),
         )
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for row in report.get("rows", []):
             dims = row.get("dimensions", [])
             mets = row.get("metrics", [])
@@ -592,21 +632,24 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 )
         return metrics
 
-    def _segment_report_daily(
-        self, report: dict
-    ) -> List[ExtractedMetric]:
+    def _segment_report_daily(self, report: dict) -> list[ExtractedMetric]:
         """Segment GA4 report rows with date dimension into per-day metrics."""
         from datetime import datetime as dt
 
         _METRIC_NAMES = [
-            "sessions", "users", "bounceRate",
-            "engagedSessions", "newUsers", "screenPageViews",
-            "activeUsers", "engagementRate",
+            "sessions",
+            "users",
+            "bounceRate",
+            "engagedSessions",
+            "newUsers",
+            "screenPageViews",
+            "activeUsers",
+            "engagementRate",
         ]
 
         # Accumulate: (slug, date_str) -> {metric: value}
-        day_data: Dict[tuple, Dict[str, float]] = {}
-        day_sessions: Dict[tuple, float] = {}
+        day_data: dict[tuple, dict[str, float]] = {}
+        day_sessions: dict[tuple, float] = {}
 
         for row in report.get("rows", []):
             dims = row.get("dimensions", [])
@@ -638,7 +681,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
             key = (slug, date_str)
             if key not in day_data:
-                day_data[key] = {m: 0.0 for m in _METRIC_NAMES}
+                day_data[key] = dict.fromkeys(_METRIC_NAMES, 0.0)
                 day_sessions[key] = 0.0
 
             day_data[key]["sessions"] += sessions
@@ -652,7 +695,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             # engagementRate: weighted sum (multiply by sessions, divide later)
             day_data[key]["engagementRate"] += engagement_rate * sessions
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for (slug, date_str), data in day_data.items():
             # Parse GA4 date (YYYYMMDD)
             try:
@@ -673,7 +716,11 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 continue
 
             for metric_name, value in data.items():
-                unit = "percentage" if metric_name in ("bounceRate", "engagementRate") else "count"
+                unit = (
+                    "percentage"
+                    if metric_name in ("bounceRate", "engagementRate")
+                    else "count"
+                )
                 metrics.append(
                     ExtractedMetric(
                         provider="google_analytics",

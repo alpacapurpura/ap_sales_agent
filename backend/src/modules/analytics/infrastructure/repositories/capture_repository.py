@@ -6,7 +6,6 @@ not import CRM models directly in the service layer).
 
 import logging
 from datetime import datetime
-from typing import Dict
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -31,7 +30,7 @@ class CaptureMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Count net-new profiles by lead_source within date range.
 
         Returns: {"ig-dm": 45, "landing-form": 120, ...}
@@ -71,7 +70,7 @@ class CaptureMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Like count_leads_by_source but WITHOUT consolidation.
 
         Returns raw per-source counts for sub_sources breakdown.
@@ -98,7 +97,7 @@ class CaptureMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """Count distinct conversation sessions per messaging channel.
 
         Queries journey_events where event_name='message_received' grouped by
@@ -117,7 +116,9 @@ class CaptureMetricsRepository:
         stmt = (
             select(
                 channel_col,
-                func.count(func.distinct(JourneyEventModel.profile_id)).label("conv_count"),
+                func.count(func.distinct(JourneyEventModel.profile_id)).label(
+                    "conv_count"
+                ),
             )
             .where(
                 JourneyEventModel.tenant_id == tenant_id,

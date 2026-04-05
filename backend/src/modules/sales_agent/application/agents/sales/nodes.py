@@ -1,28 +1,28 @@
 import json
 import re
-from typing import Dict, Any
+from typing import Any
 
 from src.core.enums import ModelRole
 from src.modules.sales_agent.application.orchestrator.state import AgentState
-from src.shared.infrastructure.llm.factory import LLMFactory
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
-from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
 from src.modules.sales_agent.domain.tuning import (
     BUYING_SIGNAL_WEIGHT,
-    QUALIFICATION_FIELD_WEIGHT,
     LEAD_SCORE_MAX,
     MAX_INTERNAL_TURNS,
+    QUALIFICATION_FIELD_WEIGHT,
     STAGE_CLOSING_SCORE,
     STAGE_CLOSING_SIGNALS,
-    STAGE_PRESENTATION_QA,
     STAGE_DISCOVERY_QA,
+    STAGE_PRESENTATION_QA,
     SUPERVISOR_MESSAGE_WINDOW,
 )
-
+from src.modules.sales_agent.infrastructure.monitoring.tracing import trace_node
+from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
+from src.shared.infrastructure.llm.factory import LLMFactory
 
 # ---------------------------------------------------------------------------
 # Helpers (shared across nodes)
 # ---------------------------------------------------------------------------
+
 
 def _build_system_prompt(state: AgentState, skill_prompt: str) -> str:
     """Prepend agent_identity (the tenant's 'CLAUDE.md') to any skill prompt."""
@@ -34,7 +34,7 @@ def _build_system_prompt(state: AgentState, skill_prompt: str) -> str:
 
 def _extract_json_block(text: str, block_name: str) -> dict | None:
     """Extract [BLOCK_NAME: {...}] from text."""
-    pattern = rf'\[{block_name}:\s*(\{{.*?\}})\]'
+    pattern = rf"\[{block_name}:\s*(\{{.*?\}})\]"
     match = re.search(pattern, text, re.DOTALL)
     if match:
         try:
@@ -47,8 +47,8 @@ def _extract_json_block(text: str, block_name: str) -> dict | None:
 def _strip_blocks(text: str) -> str:
     """Remove all structured [BLOCK: {...}] from text."""
     cleaned = re.sub(
-        r'\[(?:QUALIFICATION_DATA|SIGNALS|TOOL_REQUEST):\s*\{.*?\}\]',
-        '',
+        r"\[(?:QUALIFICATION_DATA|SIGNALS|TOOL_REQUEST):\s*\{.*?\}\]",
+        "",
         text,
         flags=re.DOTALL,
     )
@@ -57,29 +57,31 @@ def _strip_blocks(text: str) -> str:
 
 def _determine_stage(state: dict, updates: dict) -> str:
     """Determine conversation stage based on accumulated data."""
-    qa = updates.get("qualification_answers") or state.get("qualification_answers") or {}
+    qa = (
+        updates.get("qualification_answers") or state.get("qualification_answers") or {}
+    )
     signals = updates.get("buying_signals") or state.get("buying_signals") or []
     score = updates.get("lead_score", state.get("lead_score", 0))
     turn = state.get("turn_count", 0)
 
     if score >= STAGE_CLOSING_SCORE and len(signals) >= STAGE_CLOSING_SIGNALS:
         return "closing"
-    elif len(qa) >= STAGE_PRESENTATION_QA:
+    if len(qa) >= STAGE_PRESENTATION_QA:
         return "presentation"
-    elif len(qa) >= STAGE_DISCOVERY_QA:
+    if len(qa) >= STAGE_DISCOVERY_QA:
         return "discovery"
-    elif turn == 0:
+    if turn == 0:
         return "rapport"
-    else:
-        return state.get("current_state", "rapport")
+    return state.get("current_state", "rapport")
 
 
 # ---------------------------------------------------------------------------
 # Supervisor
 # ---------------------------------------------------------------------------
 
+
 @trace_node("sales_supervisor")
-def node_sales_supervisor(state: AgentState) -> Dict[str, Any]:
+def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
     """
     Orchestrator: Decides which specialist should handle the next turn.
     Uses accumulated signals and context for smarter routing.
@@ -109,7 +111,7 @@ def node_sales_supervisor(state: AgentState) -> Dict[str, Any]:
             max_output_tokens=10,
             metadata={"prompt_template": "supervisor_routing"},
         )
-        decision = decision.strip().lower().replace('"', '')
+        decision = decision.strip().lower().replace('"', "")
     except Exception:
         decision = "qualifier"
 
@@ -128,8 +130,9 @@ def node_sales_supervisor(state: AgentState) -> Dict[str, Any]:
 # Specialists
 # ---------------------------------------------------------------------------
 
+
 @trace_node("qualifier")
-def node_qualifier(state: AgentState) -> Dict[str, Any]:
+def node_qualifier(state: AgentState) -> dict[str, Any]:
     skill_prompt = prompt_loader.render("specialist_qualifier")
     system_prompt = _build_system_prompt(state, skill_prompt)
     response = LLMFactory.get_service().generate_response(
@@ -143,7 +146,7 @@ def node_qualifier(state: AgentState) -> Dict[str, Any]:
 
 
 @trace_node("product_expert")
-def node_product_expert(state: AgentState) -> Dict[str, Any]:
+def node_product_expert(state: AgentState) -> dict[str, Any]:
     skill_prompt = prompt_loader.render(
         "specialist_product_expert",
         context_rag=state.get("context_rag"),
@@ -160,7 +163,7 @@ def node_product_expert(state: AgentState) -> Dict[str, Any]:
 
 
 @trace_node("closer")
-def node_closer(state: AgentState) -> Dict[str, Any]:
+def node_closer(state: AgentState) -> dict[str, Any]:
     skill_prompt = prompt_loader.render("specialist_closer")
     system_prompt = _build_system_prompt(state, skill_prompt)
     response = LLMFactory.get_service().generate_response(
@@ -177,11 +180,12 @@ def node_closer(state: AgentState) -> Dict[str, Any]:
 # Signal Accumulator (post-processing hub)
 # ---------------------------------------------------------------------------
 
+
 @trace_node("signal_accumulator")
-def node_signal_accumulator(state: AgentState) -> Dict[str, Any]:
+def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
     """Post-processes specialist output: extracts structured blocks, updates scores, strips blocks."""
     last_msg = state["messages"][-1]["content"] if state["messages"] else ""
-    updates: Dict[str, Any] = {}
+    updates: dict[str, Any] = {}
 
     # Parse structured blocks from specialist output
     qual_data = _extract_json_block(last_msg, "QUALIFICATION_DATA")
@@ -204,7 +208,9 @@ def node_signal_accumulator(state: AgentState) -> Dict[str, Any]:
         # Update objection history
         current_obj = list(state.get("objection_history") or [])
         for obj in signals.get("objections", []):
-            current_obj.append({"type": obj, "turn": state.get("turn_count", 0), "resolved": False})
+            current_obj.append(
+                {"type": obj, "turn": state.get("turn_count", 0), "resolved": False}
+            )
         updates["objection_history"] = current_obj
 
     # Update lead score
@@ -241,17 +247,20 @@ def node_signal_accumulator(state: AgentState) -> Dict[str, Any]:
 # Escalation (human handoff)
 # ---------------------------------------------------------------------------
 
+
 @trace_node("escalation")
-def node_escalation(state: AgentState) -> Dict[str, Any]:
+def node_escalation(state: AgentState) -> dict[str, Any]:
     """Sends empathetic handoff message when conversation needs human intervention."""
     return {
-        "messages": [{
-            "role": "assistant",
-            "content": (
-                "Entiendo perfectamente. Voy a conectarte con alguien de nuestro "
-                "equipo que puede ayudarte mejor con esto. Dame un momento."
-            ),
-        }],
+        "messages": [
+            {
+                "role": "assistant",
+                "content": (
+                    "Entiendo perfectamente. Voy a conectarte con alguien de nuestro "
+                    "equipo que puede ayudarte mejor con esto. Dame un momento."
+                ),
+            }
+        ],
         "next_node": "respond",
     }
 
@@ -260,8 +269,9 @@ def node_escalation(state: AgentState) -> Dict[str, Any]:
 # Tool Executor
 # ---------------------------------------------------------------------------
 
+
 @trace_node("tool_executor")
-def node_tool_executor(state: AgentState) -> Dict[str, Any]:
+def node_tool_executor(state: AgentState) -> dict[str, Any]:
     """Executes tools requested by specialists via [TOOL_REQUEST: {...}] blocks.
 
     After execution the graph edge routes back to supervisor, which will
@@ -282,7 +292,10 @@ def node_tool_executor(state: AgentState) -> Dict[str, Any]:
                 {
                     "role": "tool",
                     "content": json.dumps(
-                        {"status": "error", "message": f"Tool '{tool_name}' not found."},
+                        {
+                            "status": "error",
+                            "message": f"Tool '{tool_name}' not found.",
+                        },
                         ensure_ascii=False,
                     ),
                 }

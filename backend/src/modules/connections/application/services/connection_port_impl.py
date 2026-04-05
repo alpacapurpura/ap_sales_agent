@@ -9,8 +9,7 @@ Transparently refreshes expired OAuth tokens before returning credentials.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import List
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import httpx
@@ -100,9 +99,7 @@ class ConnectionPortImpl(ConnectionPort):
                 channel_type=channel_type,
             )
 
-        conn = await asyncio.to_thread(
-            self.repo.get_active, tenant_id, channel_enum
-        )
+        conn = await asyncio.to_thread(self.repo.get_active, tenant_id, channel_enum)
 
         if conn is None:
             raise ConnectionRevokedException(
@@ -122,9 +119,7 @@ class ConnectionPortImpl(ConnectionPort):
                 refreshed = await self._refresh_token(conn)
                 # Persist refreshed credentials
                 conn.credentials = refreshed
-                await asyncio.to_thread(
-                    self.repo.update_credentials, conn, refreshed
-                )
+                await asyncio.to_thread(self.repo.update_credentials, conn, refreshed)
                 credentials = refreshed
             except TokenRefreshFailed:
                 raise
@@ -176,11 +171,9 @@ class ConnectionPortImpl(ConnectionPort):
 
     async def list_active_connections(
         self, tenant_id: UUID
-    ) -> List[ConnectionCredentials]:
+    ) -> list[ConnectionCredentials]:
         """List all active connections for a tenant."""
-        connections = await asyncio.to_thread(
-            self.repo.get_all_by_tenant, tenant_id
-        )
+        connections = await asyncio.to_thread(self.repo.get_all_by_tenant, tenant_id)
 
         return [
             ConnectionCredentials(
@@ -201,9 +194,9 @@ class ConnectionPortImpl(ConnectionPort):
         try:
             expires_at = datetime.fromisoformat(expires_at_str)
             if expires_at.tzinfo is None:
-                expires_at = expires_at.replace(tzinfo=timezone.utc)
+                expires_at = expires_at.replace(tzinfo=UTC)
             buffer = timedelta(seconds=EXPIRY_BUFFER_SECONDS)
-            return datetime.now(timezone.utc) >= (expires_at - buffer)
+            return datetime.now(UTC) >= (expires_at - buffer)
         except (ValueError, TypeError):
             logger.warning("Could not parse expires_at: %s", expires_at_str)
             return False
@@ -219,17 +212,14 @@ class ConnectionPortImpl(ConnectionPort):
 
         if channel_type in META_CHANNEL_TYPES:
             return await self._refresh_meta_token(credentials, config)
-        elif channel_type in GOOGLE_CHANNEL_TYPES:
+        if channel_type in GOOGLE_CHANNEL_TYPES:
             return await self._refresh_google_token(credentials, config)
-        else:
-            raise TokenRefreshFailed(
-                f"Token refresh not implemented for {channel_type}",
-                provider=channel_type,
-            )
+        raise TokenRefreshFailed(
+            f"Token refresh not implemented for {channel_type}",
+            provider=channel_type,
+        )
 
-    async def _refresh_meta_token(
-        self, credentials: dict, config: dict
-    ) -> dict:
+    async def _refresh_meta_token(self, credentials: dict, config: dict) -> dict:
         """Refresh a Meta/Facebook access token via token exchange."""
         access_token = credentials.get("access_token")
         client_id = config.get("client_id") or config.get("app_id")
@@ -261,16 +251,12 @@ class ConnectionPortImpl(ConnectionPort):
         new_credentials = {**credentials}
         new_credentials["access_token"] = data["access_token"]
         if "expires_in" in data:
-            expires_at = datetime.now(timezone.utc) + timedelta(
-                seconds=data["expires_in"]
-            )
+            expires_at = datetime.now(UTC) + timedelta(seconds=data["expires_in"])
             new_credentials["expires_at"] = expires_at.isoformat()
 
         return new_credentials
 
-    async def _refresh_google_token(
-        self, credentials: dict, config: dict
-    ) -> dict:
+    async def _refresh_google_token(self, credentials: dict, config: dict) -> dict:
         """Refresh a Google OAuth token via refresh_token grant."""
         refresh_token = credentials.get("refresh_token")
         client_id = credentials.get("client_id") or config.get("client_id")
@@ -302,9 +288,7 @@ class ConnectionPortImpl(ConnectionPort):
         new_credentials = {**credentials}
         new_credentials["access_token"] = data["access_token"]
         if "expires_in" in data:
-            expires_at = datetime.now(timezone.utc) + timedelta(
-                seconds=data["expires_in"]
-            )
+            expires_at = datetime.now(UTC) + timedelta(seconds=data["expires_in"])
             new_credentials["expires_at"] = expires_at.isoformat()
 
         return new_credentials

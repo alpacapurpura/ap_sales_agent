@@ -62,11 +62,96 @@ indent-width = 4
 target-version = "py311"
 
 [tool.ruff.lint]
-# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
-# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
-# McCabe complexity (`C901`) by default.
-select = ["E4", "E7", "E9", "F"]
-ignore = []
+select = [
+    # --- Core ---
+    "E4", "E7", "E9", "F",  # pycodestyle errors + pyflakes
+    "W",                       # pycodestyle warnings (trailing whitespace, etc.)
+    "I",                       # isort: orden de imports
+    "UP",                      # pyupgrade: Python 3.11+ patterns
+    # --- Bugs & Security ---
+    "B",                       # flake8-bugbear: bugs comunes
+    "S",                       # flake8-bandit: seguridad
+    "C901",                    # Complejidad ciclomática
+    "PERF",                    # perflint: anti-patrones de performance
+    "DTZ",                     # flake8-datetimez: timezone awareness
+    # --- Code Quality ---
+    "SIM",                     # flake8-simplify
+    "PIE",                     # flake8-pie: unnecessary code
+    "RET",                     # flake8-return: simplificar returns
+    "RSE",                     # flake8-raise: raise style
+    "C4",                      # flake8-comprehensions
+    "FURB",                    # refurb: modernizations
+    "FLY",                     # flynt: f-string conversions
+    # --- Style & Naming ---
+    "N",                       # pep8-naming
+    "A",                       # flake8-builtins: shadow builtins
+    "ISC",                     # flake8-implicit-str-concat
+    "T20",                     # flake8-print: detectar print()
+    "LOG",                     # flake8-logging
+    "ERA",                     # eradicate: commented-out code
+    "PGH",                     # pygrep-hooks
+    # --- Testing ---
+    "PT",                      # flake8-pytest-style
+    # --- Type Safety ---
+    "TCH",                     # flake8-type-checking: imports behind TYPE_CHECKING
+    # --- Pylint subset ---
+    "PL",                      # pylint rules (PLC, PLE, PLR, PLW)
+    # --- Ruff-specific ---
+    "RUF",                     # ruff-specific rules
+    # --- Arguments & Patterns ---
+    "ARG",                     # flake8-unused-arguments
+    "FBT",                     # flake8-boolean-trap
+    "EM",                      # flake8-errmsg: exception messages
+]
+ignore = [
+    # === Permanent ignores (false positives for our stack) ===
+    "B008",     # Function calls in defaults — FastAPI Depends/Header/Query
+    "RET504",   # Unnecessary var before return — readability
+    "UP017",    # datetime.UTC alias — prefer explicit timezone.utc
+    "PLR2004",  # Magic values in comparisons — too noisy, low value
+    "PLR0913",  # Too many function arguments — FastAPI/DDD pattern
+    "PLC0415",  # import not at top — conditional imports are intentional
+    "ARG001",   # Unused function argument — interface contracts, FastAPI deps
+    "ARG002",   # Unused method argument — interface implementations
+    "RUF001",   # Ambiguous unicode — Spanish text in prompts is intentional
+    "RUF012",   # Mutable ClassVar — Pydantic models handle this differently
+    "RUF013",   # PEP 484 Optional — overlap with UP045
+    "DTZ005",   # datetime.now() without tz — will fix progressively
+    "FBT001",   # Boolean positional arg in function def — common in services
+    "FBT002",   # Boolean default value in function def — common pattern
+    "ISC001",   # Implicit string concat — conflicts with ruff format
+    # === Progressive adoption: fix gradually, remove from ignore ===
+    "B904",     # raise-without-from (109) — refactor incrementally
+    "UP042",    # StrEnum migration (61) — coordinate with tests
+    "T201",     # print statements (60) — replace with structlog
+    "SIM105",   # contextlib.suppress (12)
+    "EM101",    # Raw string in exception (94) — refactor to variables
+    "EM102",    # f-string in exception — same as EM101
+    "PLR0912",  # Too many branches (44) — refactor complex functions
+    "PLR0915",  # Too many statements (42) — same
+    "ERA001",   # Commented-out code (33) — cleanup debt
+    "DTZ003",   # datetime.utcnow() — migrate to timezone-aware
+    "DTZ006",   # datetime.fromtimestamp without tz
+    "DTZ007",   # datetime.strptime without tz
+    "DTZ011",   # datetime.date.today() �� migrate to timezone-aware
+    "PERF203",  # try-except in loop (26) — review case by case
+    "PERF401",  # manual-list-comprehension (24) — convert loops to list comp
+    "N818",     # Exception suffix naming — existing patterns
+    "N806",     # non-lowercase variable (8) — API_URL patterns in functions
+    "N801",     # invalid class name (5) — existing naming patterns
+    "N802",     # invalid function name (4) — test_ endpoints in FastAPI
+    "N811",     # constant imported as non-constant (2)
+    "N814",     # camelcase imported as constant (1)
+    "N815",     # mixed case variable in class scope (1)
+    "PT028",    # pytest param with default (22) — false positive on FastAPI test_ endpoints
+    "PLR0911",  # too many return statements (7) — refactor complex functions
+    "FBT003",   # boolean positional value in call (6) — common FastAPI/Pydantic pattern
+    "A002",     # builtin argument shadowing (3) — `type`, `id` common in domain models
+    "RUF002",   # ambiguous unicode in docstring (1) — Spanish text
+    "PLW0603",  # global statement (1) — review
+    "PLW2901",  # redefined loop name (1) — review
+    "PLC0206",  # dict index missing items (1) — review
+]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -74,6 +159,25 @@ unfixable = []
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",    # assert in tests is standard
+    "ARG",     # unused args common in fixtures/parametrize
+    "PT",      # pytest style — legacy tests have mixed patterns
+    "PLR2004", # magic values in test assertions are fine
+]
+"src/tests/**/*.py" = [
+    "S101", "ARG", "PT", "PLR2004",
+]
+"src/admin/**/*.py" = [
+    "PLR0911",  # too many return statements — Streamlit pages
+    "PLR0912",  # too many branches — Streamlit pages
+    "PLR0915",  # too many statements — Streamlit pages
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 20  # Start permissive, lower to 15 gradually
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.

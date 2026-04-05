@@ -7,10 +7,10 @@ Unlike the daily ETL pipeline, this pipeline:
 """
 
 import time
-import structlog
 from datetime import date
 from uuid import UUID
 
+import structlog
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.application.cost_type_mapping import get_cost_type
@@ -66,7 +66,11 @@ class PeriodExtractionPipeline:
         # Determine NON_AGGREGABLE metrics for this provider
         metric_names = get_non_aggregable_for_provider(provider_name)
         if not metric_names:
-            return {"provider": provider_name, "status": "skipped", "reason": "no_non_aggregable_metrics"}
+            return {
+                "provider": provider_name,
+                "status": "skipped",
+                "reason": "no_non_aggregable_metrics",
+            }
 
         # Create extraction run
         run = self.run_repo.create(tenant_id, provider_name)
@@ -74,9 +78,11 @@ class PeriodExtractionPipeline:
 
         # Update run with period metadata
         from sqlalchemy import update
+
         from src.modules.analytics.infrastructure.models.extraction_run_model import (
             ExtractionRunModel,
         )
+
         self.db.execute(
             update(ExtractionRunModel)
             .where(ExtractionRunModel.id == run_id)
@@ -107,24 +113,28 @@ class PeriodExtractionPipeline:
             period_dicts = []
             for m in result.metrics:
                 cost_type = get_cost_type(m.channel_slug, "attraction")
-                period_dicts.append({
-                    "tenant_id": tenant_id,
-                    "provider": m.provider,
-                    "channel_slug": m.channel_slug,
-                    "metric_name": m.metric_name,
-                    "value": m.value,
-                    "unit": m.unit,
-                    "currency": m.currency,
-                    "period_type": period_type,
-                    "period_start": period_start,
-                    "period_end": period_end,
-                    "campaign_id": m.campaign_id,
-                    "ad_set_id": m.ad_set_id,
-                    "ad_id": m.ad_id,
-                    "cost_type": cost_type.value if hasattr(cost_type, "value") else cost_type,
-                    "extra": m.extra,
-                    "source_extraction_run_id": run_id,
-                })
+                period_dicts.append(
+                    {
+                        "tenant_id": tenant_id,
+                        "provider": m.provider,
+                        "channel_slug": m.channel_slug,
+                        "metric_name": m.metric_name,
+                        "value": m.value,
+                        "unit": m.unit,
+                        "currency": m.currency,
+                        "period_type": period_type,
+                        "period_start": period_start,
+                        "period_end": period_end,
+                        "campaign_id": m.campaign_id,
+                        "ad_set_id": m.ad_set_id,
+                        "ad_id": m.ad_id,
+                        "cost_type": cost_type.value
+                        if hasattr(cost_type, "value")
+                        else cost_type,
+                        "extra": m.extra,
+                        "source_extraction_run_id": run_id,
+                    }
+                )
 
             rows_upserted = self.period_repo.upsert_period_metrics(period_dicts)
 
@@ -151,8 +161,12 @@ class PeriodExtractionPipeline:
 
             logger.info(
                 "Period extraction completed: tenant=%s provider=%s period=%s %s→%s metrics=%d",
-                tenant_id, provider_name, period_type,
-                period_start, period_end, len(result.metrics),
+                tenant_id,
+                provider_name,
+                period_type,
+                period_start,
+                period_end,
+                len(result.metrics),
             )
 
             return {
@@ -174,7 +188,8 @@ class PeriodExtractionPipeline:
             self.db.commit()
             logger.warning(
                 "Period extraction failed (revoked): tenant=%s provider=%s",
-                tenant_id, provider_name,
+                tenant_id,
+                provider_name,
             )
             return {"provider": provider_name, "status": "revoked", "error": str(exc)}
 
@@ -190,6 +205,9 @@ class PeriodExtractionPipeline:
             self.db.commit()
             logger.error(
                 "Period extraction failed: tenant=%s provider=%s error=%s",
-                tenant_id, provider_name, exc, exc_info=True,
+                tenant_id,
+                provider_name,
+                exc,
+                exc_info=True,
             )
             return {"provider": provider_name, "status": "failed", "error": str(exc)}

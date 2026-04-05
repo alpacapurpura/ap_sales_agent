@@ -1,12 +1,13 @@
 """API endpoints for external product → offer mappings."""
 
 import uuid as uuid_mod
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
-from sqlalchemy import func as sa_func, select
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -45,6 +46,7 @@ class CreateProductMappingIn(BaseModel):
 
 class CreateProductMappingOut(BaseModel):
     """Extended response with backfill stats."""
+
     id: UUID
     tenant_id: UUID
     offer_id: UUID
@@ -129,20 +131,16 @@ async def list_source_products(
         offer_stmt = select(ProductModel.id, ProductModel.name).where(
             ProductModel.id.in_(offer_ids),
         )
-        for oid, oname in db.execute(offer_stmt).all():
-            offer_names[oid] = oname
+        offer_names.update(dict(db.execute(offer_stmt).all()))
 
     # 3. Scan journey_events (checkout_initiated + checkout_completed)
     stmt = select(
         JourneyEventModel.properties,
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
-        JourneyEventModel.event_name.in_(
-            ["checkout_initiated", "checkout_completed"]
-        ),
-        sa_func.jsonb_extract_path_text(
-            JourneyEventModel.properties, "source"
-        ) == source,
+        JourneyEventModel.event_name.in_(["checkout_initiated", "checkout_completed"]),
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
+        == source,
     )
     events = db.execute(stmt).all()
 
@@ -187,7 +185,7 @@ async def list_source_products(
         product_map[ext_id]["mapping_id"] = minfo["mapping_id"]
 
     # Fill is_mapped=False for products without mapping
-    for pid, pdata in product_map.items():
+    for pdata in product_map.values():
         if "is_mapped" not in pdata:
             pdata["is_mapped"] = False
 
@@ -217,12 +215,9 @@ async def list_unmatched_products(
         JourneyEventModel.properties,
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
-        JourneyEventModel.event_name.in_(
-            ["checkout_initiated", "checkout_completed"]
-        ),
-        sa_func.jsonb_extract_path_text(
-            JourneyEventModel.properties, "source"
-        ) == source,
+        JourneyEventModel.event_name.in_(["checkout_initiated", "checkout_completed"]),
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
+        == source,
     )
     events = db.execute(stmt).all()
 
@@ -254,7 +249,9 @@ async def list_unmatched_products(
     return list(product_map.values())
 
 
-@router.post("/product-mappings", response_model=CreateProductMappingOut, status_code=201)
+@router.post(
+    "/product-mappings", response_model=CreateProductMappingOut, status_code=201
+)
 async def create_product_mapping(
     payload: CreateProductMappingIn,
     db: Session = Depends(get_db),
@@ -297,9 +294,8 @@ async def create_product_mapping(
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
         JourneyEventModel.event_name == "checkout_completed",
-        sa_func.jsonb_extract_path_text(
-            JourneyEventModel.properties, "source"
-        ) == payload.source,
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
+        == payload.source,
     )
     checkout_events = db.execute(checkout_stmt).all()
 
@@ -321,10 +317,12 @@ async def create_product_mapping(
 
             # Dedup by transaction_id
             existing_sale = db.execute(
-                select(SaleModel.id).where(
+                select(SaleModel.id)
+                .where(
                     SaleModel.tenant_id == user.tenant_id,
                     SaleModel.transaction_id == txn_id,
-                ).limit(1)
+                )
+                .limit(1)
             ).scalar_one_or_none()
             if existing_sale:
                 continue
@@ -443,7 +441,9 @@ async def get_offer_products_detail(
         select(
             sa_func.count(SaleModel.id).label("sales_count"),
             sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label("total_revenue"),
-            sa_func.count(sa_func.distinct(SaleModel.customer_id)).label("unique_customers"),
+            sa_func.count(sa_func.distinct(SaleModel.customer_id)).label(
+                "unique_customers"
+            ),
             sa_func.min(SaleModel.occurred_at).label("first_sale"),
             sa_func.max(SaleModel.occurred_at).label("last_sale"),
         ).where(
@@ -461,11 +461,13 @@ async def get_offer_products_detail(
 
     # Currency from first sale
     currency_row = db.execute(
-        select(SaleModel.currency).where(
+        select(SaleModel.currency)
+        .where(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
-        ).limit(1)
+        )
+        .limit(1)
     ).scalar_one_or_none()
     currency = currency_row or "USD"
 
@@ -474,24 +476,28 @@ async def get_offer_products_detail(
         select(
             SaleModel.source,
             sa_func.count(SaleModel.id),
-        ).where(
+        )
+        .where(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
-        ).group_by(SaleModel.source)
+        )
+        .group_by(SaleModel.source)
     ).all()
-    source_breakdown = {src: cnt for src, cnt in source_rows}
+    source_breakdown = dict(source_rows)
 
     # 4. Repeat customers
     repeat_subq = (
         select(
             SaleModel.customer_id,
             sa_func.count(SaleModel.id).label("purchase_count"),
-        ).where(
+        )
+        .where(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
-        ).group_by(SaleModel.customer_id)
+        )
+        .group_by(SaleModel.customer_id)
         .having(sa_func.count(SaleModel.id) > 1)
         .subquery()
     )
@@ -499,25 +505,29 @@ async def get_offer_products_detail(
         select(sa_func.count()).select_from(repeat_subq)
     ).scalar_one()
     repeat_rate = (
-        (repeat_customer_count / unique_customers * 100) if unique_customers > 0 else 0.0
+        (repeat_customer_count / unique_customers * 100)
+        if unique_customers > 0
+        else 0.0
     )
 
     # 5. Weekly revenue (last 12 weeks)
-    twelve_weeks_ago = datetime.now(timezone.utc) - timedelta(weeks=12)
+    twelve_weeks_ago = datetime.now(UTC) - timedelta(weeks=12)
     weekly_rows = db.execute(
         select(
             sa_func.date_trunc("week", SaleModel.occurred_at).label("week"),
             sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label("revenue"),
-        ).where(
+        )
+        .where(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
             SaleModel.occurred_at >= twelve_weeks_ago,
-        ).group_by("week").order_by("week")
+        )
+        .group_by("week")
+        .order_by("week")
     ).all()
     weekly_revenue = [
-        {"week": w.strftime("%G-W%V"), "revenue": float(rev)}
-        for w, rev in weekly_rows
+        {"week": w.strftime("%G-W%V"), "revenue": float(rev)} for w, rev in weekly_rows
     ]
 
     # 6. Product-level metrics from journey_events

@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
@@ -6,10 +5,10 @@ class TrackingConfig(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     # GTM-XXXX
-    gtm_container_id: Optional[str] = None
+    gtm_container_id: str | None = None
     # https://ss.example.com
-    gtm_server_url: Optional[str] = None
+    gtm_server_url: str | None = None
     # 123456789
-    meta_pixel_id: Optional[str] = None
+    meta_pixel_id: str | None = None
     # G-XXXXXXXXXX
-    ga_measurement_id: Optional[str] = None
+    ga_measurement_id: str | None = None

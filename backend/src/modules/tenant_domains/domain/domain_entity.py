@@ -1,7 +1,6 @@
-from enum import Enum
-from typing import Optional
-from uuid import UUID
 from datetime import datetime
+from enum import Enum
+from uuid import UUID
 
 from src.shared.domain.base_entity import BaseEntity
 
@@ -26,13 +25,13 @@ class TenantDomain(BaseEntity):
     domain_type: DomainType
     status: DomainStatus = DomainStatus.PENDING_VERIFICATION
     is_primary: bool = False
-    cloudflare_hostname_id: Optional[str] = None
-    ssl_status: Optional[str] = None
-    verification_method: Optional[str] = None
-    verification_cname_target: Optional[str] = None
-    verification_txt_name: Optional[str] = None
-    verification_txt_value: Optional[str] = None
-    verified_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    deleted_at: Optional[datetime] = None
+    cloudflare_hostname_id: str | None = None
+    ssl_status: str | None = None
+    verification_method: str | None = None
+    verification_cname_target: str | None = None
+    verification_txt_name: str | None = None
+    verification_txt_value: str | None = None
+    verified_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    deleted_at: datetime | None = None

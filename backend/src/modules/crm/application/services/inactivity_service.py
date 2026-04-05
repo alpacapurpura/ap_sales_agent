@@ -10,9 +10,9 @@ Responsibilities:
 
 CUSTOMER stage profiles: decay is PAUSED but is_inactive flag still applies.
 """
+
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -41,13 +41,13 @@ class InactivityService:
         self.db = db
         self.lifecycle_repo = LifecycleRepository(db)
 
-    def run_batch(self, tenant_id: Optional[UUID] = None) -> Dict[str, int]:
+    def run_batch(self, tenant_id: UUID | None = None) -> dict[str, int]:
         """Run inactivity detection and score decay for all (or one) tenant.
 
         Returns dict with counts:
             profiles_flagged_inactive, profiles_recovered, scores_decayed, transitions
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         threshold_date = now - timedelta(days=INACTIVITY_CONFIG.inactive_days)
 
         stats = {
@@ -94,11 +94,10 @@ class InactivityService:
                         # Was just set above
                         pass
 
-                else:
-                    # Profile is active -- recover if previously inactive
-                    if profile.is_inactive:
-                        profile.is_inactive = False
-                        stats["profiles_recovered"] += 1
+                # Profile is active -- recover if previously inactive
+                elif profile.is_inactive:
+                    profile.is_inactive = False
+                    stats["profiles_recovered"] += 1
 
             self.db.flush()
             offset += BATCH_SIZE
@@ -128,7 +127,7 @@ class InactivityService:
         self,
         profile: CustomerProfileModel,
         now: datetime,
-        stats: Dict[str, int],
+        stats: dict[str, int],
     ) -> None:
         """Apply exponential score decay based on days inactive."""
         if profile.last_activity_at is None:
@@ -138,7 +137,7 @@ class InactivityService:
             last_activity = profile.last_activity_at
             # Handle timezone-naive datetimes from SQLite test db
             if last_activity.tzinfo is None:
-                last_activity = last_activity.replace(tzinfo=timezone.utc)
+                last_activity = last_activity.replace(tzinfo=UTC)
             delta = now - last_activity
             days_inactive = max(delta.days, 0)
 
@@ -169,12 +168,11 @@ class InactivityService:
         """Determine lifecycle stage from score thresholds (same logic as LifecycleService)."""
         if score >= SCORING_THRESHOLDS.sql:
             return LifecycleStage.SQL
-        elif score >= SCORING_THRESHOLDS.mql:
+        if score >= SCORING_THRESHOLDS.mql:
             return LifecycleStage.MQL
-        elif score >= SCORING_THRESHOLDS.lead:
+        if score >= SCORING_THRESHOLDS.lead:
             return LifecycleStage.LEAD
-        else:
-            return LifecycleStage.SUBSCRIBER
+        return LifecycleStage.SUBSCRIBER
 
     def _backward_transition(
         self,
@@ -183,7 +181,7 @@ class InactivityService:
         previous_score: float,
         new_score: float,
         days_inactive: int,
-        stats: Dict[str, int],
+        stats: dict[str, int],
     ) -> None:
         """Record backward stage transition triggered by score decay."""
         old_stage = profile.lifecycle_stage

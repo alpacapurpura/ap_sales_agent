@@ -1,12 +1,13 @@
-from datetime import date, datetime, timezone
-from typing import List, Optional
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
-from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import CalendarEventModel
+from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
+    CalendarEventModel,
+)
 
 
 class CalendarEventRepository:
@@ -45,10 +46,10 @@ class CalendarEventRepository:
         self,
         country_code: str,
         year: int,
-        tenant_id: Optional[UUID] = None,
-        week: Optional[int] = None,
-        category: Optional[str] = None,
-    ) -> List[CalendarEvent]:
+        tenant_id: UUID | None = None,
+        week: int | None = None,
+        category: str | None = None,
+    ) -> list[CalendarEvent]:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.year == year,
@@ -56,7 +57,8 @@ class CalendarEventRepository:
         )
         if tenant_id is not None:
             stmt = stmt.where(
-                (CalendarEventModel.tenant_id == None) | (CalendarEventModel.tenant_id == tenant_id)  # noqa: E711
+                (CalendarEventModel.tenant_id == None)  # noqa: E711
+                | (CalendarEventModel.tenant_id == tenant_id)
             )
         else:
             stmt = stmt.where(CalendarEventModel.tenant_id == None)  # noqa: E711
@@ -69,15 +71,16 @@ class CalendarEventRepository:
         return [self._to_domain(m) for m in result.scalars().all()]
 
     def get_by_id(
-        self, event_id: UUID, tenant_id: Optional[UUID] = None
-    ) -> Optional[CalendarEvent]:
+        self, event_id: UUID, tenant_id: UUID | None = None
+    ) -> CalendarEvent | None:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == event_id,
             CalendarEventModel.deleted_at == None,  # noqa: E711
         )
         if tenant_id is not None:
             stmt = stmt.where(
-                (CalendarEventModel.tenant_id == tenant_id) | (CalendarEventModel.tenant_id == None)  # noqa: E711
+                (CalendarEventModel.tenant_id == tenant_id)
+                | (CalendarEventModel.tenant_id == None)  # noqa: E711
             )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
@@ -90,7 +93,7 @@ class CalendarEventRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def bulk_create(self, entities: List[CalendarEvent]) -> List[CalendarEvent]:
+    def bulk_create(self, entities: list[CalendarEvent]) -> list[CalendarEvent]:
         models = [self._to_model(e) for e in entities]
         self.db.add_all(models)
         self.db.commit()
@@ -98,7 +101,7 @@ class CalendarEventRepository:
             self.db.refresh(m)
         return [self._to_domain(m) for m in models]
 
-    def update(self, entity: CalendarEvent) -> Optional[CalendarEvent]:
+    def update(self, entity: CalendarEvent) -> CalendarEvent | None:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == entity.id,
             CalendarEventModel.deleted_at == None,  # noqa: E711
@@ -127,11 +130,13 @@ class CalendarEventRepository:
         model = result.scalar_one_or_none()
         if model is None:
             return False
-        model.deleted_at = datetime.now(timezone.utc)
+        model.deleted_at = datetime.now(UTC)
         self.db.commit()
         return True
 
-    def exists(self, country_code: str, event_date: date, name: str, tenant_id: Optional[UUID]) -> bool:
+    def exists(
+        self, country_code: str, event_date: date, name: str, tenant_id: UUID | None
+    ) -> bool:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.country_code == country_code,
             CalendarEventModel.date == event_date,

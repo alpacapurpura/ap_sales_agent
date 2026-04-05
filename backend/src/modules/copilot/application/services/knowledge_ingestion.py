@@ -9,7 +9,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from src.core.database import SessionLocal
 from src.modules.copilot.domain.module_registry import get_module_registry
-from src.modules.copilot.infrastructure.knowledge.vector_store import CopilotKnowledgeStore
+from src.modules.copilot.infrastructure.knowledge.vector_store import (
+    CopilotKnowledgeStore,
+)
 
 logger = structlog.get_logger()
 
@@ -70,7 +72,11 @@ class KnowledgeIngestionService:
                 repo = brand_desc.repo_factory(db)
                 data = brand_desc.read_fn(repo, tenant_id)
                 if data:
-                    raw = data.model_dump(mode="json") if hasattr(data, "model_dump") else {}
+                    raw = (
+                        data.model_dump(mode="json")
+                        if hasattr(data, "model_dump")
+                        else {}
+                    )
                     if raw:
                         parts.append("## Brand Studio\n")
                         for key, val in raw.items():
@@ -90,8 +96,10 @@ class KnowledgeIngestionService:
                 offers = offer_desc.read_fn(repo, tenant_id)
                 if offers:
                     parts.append("\n## Ofertas")
-                    for o in (offers if isinstance(offers, list) else [offers]):
-                        name = getattr(o, "name", None) or getattr(o, "title", "Sin nombre")
+                    for o in offers if isinstance(offers, list) else [offers]:
+                        name = getattr(o, "name", None) or getattr(
+                            o, "title", "Sin nombre"
+                        )
                         parts.append(f"- {name}")
 
             # Connections
@@ -101,7 +109,7 @@ class KnowledgeIngestionService:
                 conns = conn_desc.read_fn(repo, tenant_id)
                 if conns:
                     parts.append("\n## Conexiones Activas")
-                    for c in (conns if isinstance(conns, list) else [conns]):
+                    for c in conns if isinstance(conns, list) else [conns]:
                         ch_type = getattr(c, "channel_type", "unknown")
                         active = getattr(c, "is_active", False)
                         if active:

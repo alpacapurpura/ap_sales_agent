@@ -1,27 +1,29 @@
 from pydantic_settings import BaseSettings
-from src.core.enums import PromptSource, AIProvider, ModelRole
+
+from src.core.enums import AIProvider, ModelRole, PromptSource
+
 
 class Settings(BaseSettings):
     # API Config
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Visionarias Brain"
-    LOG_LEVEL: str # Defined in .env
-    DOMAIN_NAME: str # Defined in .env
-    TRAEFIK_NETWORK: str # Defined in .env
-    
+    LOG_LEVEL: str  # Defined in .env
+    DOMAIN_NAME: str  # Defined in .env
+    TRAEFIK_NETWORK: str  # Defined in .env
+
     # Security
-    API_SECRET_KEY: str # Must be set in environment!
-    
+    API_SECRET_KEY: str  # Must be set in environment!
+
     # WhatsApp / Meta
     WHATSAPP_API_TOKEN: str
     WHATSAPP_PHONE_NUMBER_ID: str
     WHATSAPP_VERIFY_TOKEN: str
-    
+
     # Evolution API (Self-Hosted)
     EVOLUTION_API_URL: str = ""
     EVOLUTION_API_KEY: str = ""
-    EVOLUTION_API_VERSION: str = "v1" # Options: "v1", "v2"
-    
+    EVOLUTION_API_VERSION: str = "v1"  # Options: "v1", "v2"
+
     # Telegram
     TELEGRAM_BOT_TOKEN: str = ""
 
@@ -40,8 +42,10 @@ class Settings(BaseSettings):
     # Shopify
     SHOPIFY_API_KEY: str = ""
     SHOPIFY_API_SECRET: str = ""
-    SHOPIFY_APP_URL: str = "" # The URL where the app is hosted (e.g. https://api.visionarias.ai)
-    
+    SHOPIFY_APP_URL: str = (
+        ""  # The URL where the app is hosted (e.g. https://api.visionarias.ai)
+    )
+
     # OpenAI
     OPENAI_API_KEY: str
 
@@ -79,25 +83,27 @@ class Settings(BaseSettings):
     # Gemini
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-pro"
-    
+
     # Provider Selection
-    AI_PROVIDER: AIProvider = AIProvider.OPENAI # openai, gemini, etc.
-    PROMPT_SOURCE: PromptSource = PromptSource.HYBRID # hybrid, file, db
+    AI_PROVIDER: AIProvider = AIProvider.OPENAI  # openai, gemini, etc.
+    PROMPT_SOURCE: PromptSource = PromptSource.HYBRID  # hybrid, file, db
 
     # Brand Extraction Profile: "safe" (2-wave, low rate-limit) or "fast" (all-concurrent, high rate-limit)
     BRAND_EXTRACTION_PROFILE: str = "safe"
-    
+
     # Redis
     REDIS_URL: str  # Must be set in .env (e.g. redis://redis:6379/0)
 
     # Qdrant
     QDRANT_URL: str  # Must be set in .env (e.g. http://qdrant:6333)
-    QDRANT_API_KEY: str = "" # Optional if running locally without auth, but required for prod
+    QDRANT_API_KEY: str = (
+        ""  # Optional if running locally without auth, but required for prod
+    )
     QDRANT_COLLECTION: str = "visionarias_knowledge"
     QDRANT_COLLECTION_HYBRID: str = "visionarias_hybrid"
-    QDRANT_VECTOR_SIZE: int = 3072 # Default for text-embedding-3-large
-    QDRANT_SPARSE_MODEL: str = "Qdrant/bm25" # or "prithivida/Splade_PP_en_v1"
-    
+    QDRANT_VECTOR_SIZE: int = 3072  # Default for text-embedding-3-large
+    QDRANT_SPARSE_MODEL: str = "Qdrant/bm25"  # or "prithivida/Splade_PP_en_v1"
+
     # Postgres
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
@@ -126,14 +132,16 @@ class Settings(BaseSettings):
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""
     R2_PUBLIC_URL: str = ""  # Public base URL, e.g. https://assets-dev.nicolify.com
-    
+
     # Clerk
     CLERK_SECRET_KEY: str = ""
     CLERK_WEBHOOK_SECRET: str = ""
 
     # Sentry / Environment
     SENTRY_DSN: str = ""
-    SENTRY_WORKER_DSN: str = ""  # Workers project DSN — falls back to SENTRY_DSN if empty
+    SENTRY_WORKER_DSN: str = (
+        ""  # Workers project DSN — falls back to SENTRY_DSN if empty
+    )
     ENVIRONMENT: str = "dev"
     SENTRY_TRACES_SAMPLE_RATE: float = 0.1
     SENTRY_PROFILES_SAMPLE_RATE: float = 0.1
@@ -149,5 +157,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         extra = "ignore"
+
 
 settings = Settings()

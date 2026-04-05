@@ -5,8 +5,8 @@ Returns markdown for the LLM + ui_action for the frontend stepper.
 """
 
 import json
-from typing import Dict
 
+import structlog
 from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id
@@ -15,18 +15,18 @@ from src.modules.copilot.application.procedures.brand_setup import BRAND_SETUP
 from src.modules.copilot.application.procedures.first_setup import FIRST_SETUP
 from src.modules.copilot.application.procedures.offer_creation import OFFER_CREATION
 
-import structlog
-
 logger = structlog.get_logger()
 
-PROCEDURE_REGISTRY: Dict[str, Procedure] = {
+PROCEDURE_REGISTRY: dict[str, Procedure] = {
     "brand_setup": BRAND_SETUP,
     "offer_creation": OFFER_CREATION,
     "first_setup": FIRST_SETUP,
 }
 
 
-def _build_ui_action(procedure: Procedure, summary: Dict[str, bool], current_idx: int) -> dict:
+def _build_ui_action(
+    procedure: Procedure, summary: dict[str, bool], current_idx: int
+) -> dict:
     """Build a procedure_progress ui_action payload."""
     steps = []
     for i, step in enumerate(procedure.steps):
@@ -37,12 +37,14 @@ def _build_ui_action(procedure: Procedure, summary: Dict[str, bool], current_idx
             status = "current"
         else:
             status = "pending"
-        steps.append({
-            "id": step.step_id,
-            "label": step.instruction.split(":")[0].split("—")[0].strip()[:30],
-            "status": status,
-            "routeHint": step.route_hint,
-        })
+        steps.append(
+            {
+                "id": step.step_id,
+                "label": step.instruction.split(":")[0].split("—")[0].strip()[:30],
+                "status": status,
+                "routeHint": step.route_hint,
+            }
+        )
 
     return {
         "type": "procedure_progress",

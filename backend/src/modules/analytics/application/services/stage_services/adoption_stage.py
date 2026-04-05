@@ -4,7 +4,7 @@ Handles get_adoption_metrics() logic: customer health per offer,
 TTV, refunds, bottleneck detection.
 """
 
-from typing import Dict, List, Optional
+from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -27,9 +27,9 @@ class AdoptionStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
-        offer_port: Optional[OfferReadPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
+        offer_port: OfferReadPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -54,24 +54,21 @@ class AdoptionStageService:
         7. Detect bottlenecks (overall health < 70%, per-offer health < 60%)
         8. Cache result and return AdoptionDetailDTO
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+
         from src.modules.analytics.infrastructure.repositories.adoption_repository import (
             AdoptionMetricsRepository,
         )
 
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "adoption", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "adoption", "last_30_days")
             if cached is not None:
                 return AdoptionDetailDTO(**cached)
 
         # 2. Query repository
         repo = AdoptionMetricsRepository(self.db)
-        health_rows = repo.get_customer_health_by_offer(
-            tenant_id, start_date, end_date
-        )
+        health_rows = repo.get_customer_health_by_offer(tenant_id, start_date, end_date)
         ttv_map = repo.get_avg_ttv_by_offer(tenant_id, start_date, end_date)
         total_customers, total_sales = repo.get_total_customers_and_sales(
             tenant_id, start_date, end_date
@@ -81,13 +78,13 @@ class AdoptionStageService:
         )
 
         # 3. Get offer names via OfferReadPort
-        offer_name_map: Dict[str, str] = {}
+        offer_name_map: dict[str, str] = {}
         if self.offer_port is not None:
             offers = await self.offer_port.get_offers_by_tenant(tenant_id)
             offer_name_map = {str(o.id): o.public_name for o in offers}
 
         # 4. Build per-offer OfferHealthDTOs
-        offer_list: List[OfferHealthDTO] = []
+        offer_list: list[OfferHealthDTO] = []
         for row in health_rows:
             offer_id_str = str(row[0])
             total = int(row[1])
@@ -113,10 +110,9 @@ class AdoptionStageService:
         total_inactive_per_offer = sum(int(row[3]) for row in health_rows)
 
         # If per-offer sums exceed distinct total, customer bought multiple offers
-        if total_active_per_offer + total_inactive_per_offer > total_customers and total_customers > 0:
+        if total_active_per_offer + total_inactive_per_offer > total_customers > 0:
             active_customers = total_customers - total_inactive_per_offer
-            if active_customers < 0:
-                active_customers = 0
+            active_customers = max(active_customers, 0)
             inactive_customers = total_customers - active_customers
         else:
             active_customers = total_active_per_offer
@@ -130,9 +126,7 @@ class AdoptionStageService:
 
         # Global avg TTV
         all_ttvs = list(ttv_map.values())
-        avg_ttv = (
-            round(sum(all_ttvs) / len(all_ttvs), 1) if all_ttvs else None
-        )
+        avg_ttv = round(sum(all_ttvs) / len(all_ttvs), 1) if all_ttvs else None
 
         refund_amount_usd = convert_to_usd(refund_amount, refund_currency)
 
@@ -149,9 +143,7 @@ class AdoptionStageService:
 
         # 6. Mini funnel: Ventas -> Activos
         conv_rate = (
-            round(active_customers / total_sales * 100, 1)
-            if total_sales > 0
-            else 0.0
+            round(active_customers / total_sales * 100, 1) if total_sales > 0 else 0.0
         )
         mini_funnel = MiniFunnelDTO(
             source_label="Ventas",
@@ -204,7 +196,7 @@ class AdoptionStageService:
                     )
                 )
 
-        now = dt_cls.now(tz.utc)
+        now = dt_cls.now(UTC)
 
         result = AdoptionDetailDTO(
             header_kpis=header_kpis,

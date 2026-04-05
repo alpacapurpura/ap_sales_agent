@@ -1,8 +1,10 @@
-from typing import List, Optional
-from sqlalchemy.orm import Session
 from uuid import UUID
+
+from sqlalchemy.orm import Session
+
 from src.modules.assets.domain.entity import Asset
 from src.modules.assets.infrastructure.models.asset_model import AssetModel
+
 
 class AssetRepository:
     def __init__(self, db: Session):
@@ -26,7 +28,7 @@ class AssetRepository:
             status=model.status,
             error_message=model.error_message,
             created_at=model.created_at,
-            updated_at=model.updated_at
+            updated_at=model.updated_at,
         )
 
     def _to_model(self, entity: Asset) -> AssetModel:
@@ -45,7 +47,7 @@ class AssetRepository:
             ai_description=entity.ai_description,
             ai_colors=entity.ai_colors,
             status=entity.status,
-            error_message=entity.error_message
+            error_message=entity.error_message,
         )
 
     def create(self, entity: Asset) -> Asset:
@@ -55,20 +57,22 @@ class AssetRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def get_by_id(self, asset_id: UUID) -> Optional[Asset]:
+    def get_by_id(self, asset_id: UUID) -> Asset | None:
         model = self.db.query(AssetModel).filter(AssetModel.id == asset_id).first()
         if model:
             return self._to_domain(model)
         return None
 
-    def list_by_tenant(self, tenant_id: UUID, asset_type: Optional[str] = None) -> List[Asset]:
+    def list_by_tenant(
+        self, tenant_id: UUID, asset_type: str | None = None
+    ) -> list[Asset]:
         query = self.db.query(AssetModel).filter(AssetModel.tenant_id == tenant_id)
         if asset_type:
             query = query.filter(AssetModel.type == asset_type)
         models = query.all()
         return [self._to_domain(m) for m in models]
 
-    def list_by_offer(self, offer_id: UUID) -> List[Asset]:
+    def list_by_offer(self, offer_id: UUID) -> list[Asset]:
         models = self.db.query(AssetModel).filter(AssetModel.offer_id == offer_id).all()
         return [self._to_domain(m) for m in models]
 

@@ -4,6 +4,7 @@ Called after webhook ingestion to make metrics available to the dashboard.
 Uses the same transform + upsert pattern as the ETL pipeline but optimized
 for single-event insertion (no full extraction run needed).
 """
+
 from datetime import date
 from uuid import UUID
 
@@ -45,6 +46,8 @@ class ManyChatMetricsPromoter:
             value=value,
             unit="count",
             metric_date=metric_date,
-            cost_type=cost_type.value if cost_type and hasattr(cost_type, "value") else cost_type,
+            cost_type=cost_type.value
+            if cost_type and hasattr(cost_type, "value")
+            else cost_type,
             extra=extra or {},
         )

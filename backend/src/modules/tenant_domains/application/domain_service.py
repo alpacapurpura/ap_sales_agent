@@ -1,14 +1,19 @@
 import socket
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import structlog
 from sqlalchemy.orm import Session
 
-from src.modules.tenant_domains.domain.domain_entity import TenantDomain, DomainStatus, DomainType
+from src.modules.tenant_domains.domain.domain_entity import (
+    DomainStatus,
+    DomainType,
+    TenantDomain,
+)
 from src.modules.tenant_domains.infrastructure.cloudflare_client import CloudflareClient
-from src.modules.tenant_domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
+from src.modules.tenant_domains.infrastructure.domain_repository_impl import (
+    DomainRepositoryImpl,
+)
 
 logger = structlog.get_logger()
 
@@ -38,11 +43,14 @@ class DomainService:
         )
         saved = self.repo.create(domain)
         try:
-            self.cf.put_kv(hostname, {
-                "tenant_id": str(tenant_id),
-                "slug": slug,
-                "type": "platform",
-            })
+            self.cf.put_kv(
+                hostname,
+                {
+                    "tenant_id": str(tenant_id),
+                    "slug": slug,
+                    "type": "platform",
+                },
+            )
         except Exception as e:
             logger.warning("cf_kv_sync_failed", hostname=hostname, error=str(e))
         return saved
@@ -65,11 +73,15 @@ class DomainService:
             if ownership.get("type") == "txt":
                 domain.verification_txt_name = ownership.get("name")
                 domain.verification_txt_value = ownership.get("value")
-            cname_target = cf_result.get("ownership_verification_http", {}).get("http_url")
+            cname_target = cf_result.get("ownership_verification_http", {}).get(
+                "http_url"
+            )
             if cname_target:
                 domain.verification_cname_target = cname_target
         except Exception as e:
-            logger.error("cf_custom_hostname_create_failed", hostname=hostname, error=str(e))
+            logger.error(
+                "cf_custom_hostname_create_failed", hostname=hostname, error=str(e)
+            )
             domain.status = DomainStatus.FAILED
         return self.repo.create(domain)
 
@@ -86,14 +98,19 @@ class DomainService:
         if ssl.get("status") == "active":
             domain.status = DomainStatus.ACTIVE
             domain.ssl_status = "active"
-            domain.verified_at = datetime.now(timezone.utc)
+            domain.verified_at = datetime.now(UTC)
             try:
-                self.cf.put_kv(domain.hostname, {
-                    "tenant_id": str(tenant_id),
-                    "type": "custom",
-                })
+                self.cf.put_kv(
+                    domain.hostname,
+                    {
+                        "tenant_id": str(tenant_id),
+                        "type": "custom",
+                    },
+                )
             except Exception as e:
-                logger.warning("cf_kv_sync_failed", hostname=domain.hostname, error=str(e))
+                logger.warning(
+                    "cf_kv_sync_failed", hostname=domain.hostname, error=str(e)
+                )
         else:
             domain.status = DomainStatus.VERIFYING
             domain.ssl_status = ssl.get("status")
@@ -116,10 +133,10 @@ class DomainService:
             logger.warning("cf_kv_delete_failed", error=str(e))
         self.repo.soft_delete(domain_id, tenant_id)
 
-    def list_domains(self, tenant_id: UUID) -> List[TenantDomain]:
+    def list_domains(self, tenant_id: UUID) -> list[TenantDomain]:
         return self.repo.list_by_tenant(tenant_id)
 
-    def get_domain(self, domain_id: UUID, tenant_id: UUID) -> Optional[TenantDomain]:
+    def get_domain(self, domain_id: UUID, tenant_id: UUID) -> TenantDomain | None:
         return self.repo.get_by_id(domain_id, tenant_id)
 
     def set_primary(self, domain_id: UUID, tenant_id: UUID) -> TenantDomain:
@@ -143,7 +160,7 @@ class DomainService:
             return ".".join(parts[-2:])
         return hostname
 
-    def detect_domain_conflict(self, hostname: str) -> Optional[dict]:
+    def detect_domain_conflict(self, hostname: str) -> dict | None:
         """
         Check if the root domain's A record points to a known provider (e.g. Shopify).
         Returns conflict info with a subdomain suggestion, or None if clean.
@@ -175,6 +192,8 @@ class DomainService:
             pass
         return None
 
-    def get_domain_instructions(self, domain_id: UUID, tenant_id: UUID) -> Optional[TenantDomain]:
+    def get_domain_instructions(
+        self, domain_id: UUID, tenant_id: UUID
+    ) -> TenantDomain | None:
         """Return the domain entity so the API layer can build DNS setup instructions."""
         return self.repo.get_by_id(domain_id, tenant_id)

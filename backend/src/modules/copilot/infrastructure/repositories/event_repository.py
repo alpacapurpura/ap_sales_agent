@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import structlog
@@ -21,9 +20,9 @@ class CopilotEventRepository:
         tenant_id: UUID,
         user_id: UUID,
         event_type: str,
-        event_data: Optional[dict] = None,
-        conversation_id: Optional[UUID] = None,
-        route: Optional[str] = None,
+        event_data: dict | None = None,
+        conversation_id: UUID | None = None,
+        route: str | None = None,
     ) -> CopilotEventModel:
         event = CopilotEventModel(
             tenant_id=tenant_id,
@@ -42,8 +41,8 @@ class CopilotEventRepository:
 
     def get_user_behavior_summary(
         self, tenant_id: UUID, user_id: UUID, days: int = 30
-    ) -> Dict[str, int]:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    ) -> dict[str, int]:
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.event_type, func.count().label("cnt"))
             .where(
@@ -57,8 +56,8 @@ class CopilotEventRepository:
         rows = self.db.execute(stmt).all()
         return {row.event_type: row.cnt for row in rows}
 
-    def get_tenant_summary(self, tenant_id: UUID, days: int = 30) -> Dict[str, int]:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    def get_tenant_summary(self, tenant_id: UUID, days: int = 30) -> dict[str, int]:
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.event_type, func.count().label("cnt"))
             .where(
@@ -75,8 +74,8 @@ class CopilotEventRepository:
         self,
         tenant_id: UUID,
         limit: int = 100,
-        event_type: Optional[str] = None,
-    ) -> List[CopilotEventModel]:
+        event_type: str | None = None,
+    ) -> list[CopilotEventModel]:
         stmt = (
             select(CopilotEventModel)
             .where(
@@ -93,31 +92,30 @@ class CopilotEventRepository:
     def get_knowledge_search_stats(
         self, tenant_id: UUID, user_id: UUID, days: int = 30
     ) -> dict:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-        stmt = (
-            select(CopilotEventModel)
-            .where(
-                CopilotEventModel.tenant_id == tenant_id,
-                CopilotEventModel.user_id == user_id,
-                CopilotEventModel.event_type == "knowledge_searched",
-                CopilotEventModel.created_at >= cutoff,
-                self._active_filter(),
-            )
+        cutoff = datetime.now(UTC) - timedelta(days=days)
+        stmt = select(CopilotEventModel).where(
+            CopilotEventModel.tenant_id == tenant_id,
+            CopilotEventModel.user_id == user_id,
+            CopilotEventModel.event_type == "knowledge_searched",
+            CopilotEventModel.created_at >= cutoff,
+            self._active_filter(),
         )
         events = list(self.db.execute(stmt).scalars().all())
         search_count = len(events)
 
         # Find most queried scope
-        scope_counts: Dict[str, int] = {}
+        scope_counts: dict[str, int] = {}
         for ev in events:
             scope = (ev.event_data or {}).get("scope", "all")
             scope_counts[scope] = scope_counts.get(scope, 0) + 1
 
-        most_queried_scope = max(scope_counts, key=scope_counts.get) if scope_counts else None
+        most_queried_scope = (
+            max(scope_counts, key=scope_counts.get) if scope_counts else None
+        )
         return {"search_count": search_count, "most_queried_scope": most_queried_scope}
 
-    def get_friction_map(self, tenant_id: UUID, days: int = 30) -> Dict[str, int]:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    def get_friction_map(self, tenant_id: UUID, days: int = 30) -> dict[str, int]:
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.route, func.count().label("cnt"))
             .where(
@@ -134,7 +132,7 @@ class CopilotEventRepository:
         return {row.route: row.cnt for row in rows}
 
     def get_engagement_metrics(self, tenant_id: UUID, days: int = 30) -> dict:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
 
         # Total messages
         msg_count_stmt = (
@@ -150,18 +148,19 @@ class CopilotEventRepository:
         total_messages = self.db.execute(msg_count_stmt).scalar() or 0
 
         # Active users (unique user_ids on message_sent)
-        active_stmt = (
-            select(func.count(func.distinct(CopilotEventModel.user_id)))
-            .where(
-                CopilotEventModel.tenant_id == tenant_id,
-                CopilotEventModel.event_type == "message_sent",
-                CopilotEventModel.created_at >= cutoff,
-                self._active_filter(),
-            )
+        active_stmt = select(
+            func.count(func.distinct(CopilotEventModel.user_id))
+        ).where(
+            CopilotEventModel.tenant_id == tenant_id,
+            CopilotEventModel.event_type == "message_sent",
+            CopilotEventModel.created_at >= cutoff,
+            self._active_filter(),
         )
         active_users = self.db.execute(active_stmt).scalar() or 0
 
-        messages_per_user_avg = round(total_messages / active_users, 1) if active_users else 0
+        messages_per_user_avg = (
+            round(total_messages / active_users, 1) if active_users else 0
+        )
 
         # Suggested vs typed
         suggested_stmt = (
@@ -187,21 +186,18 @@ class CopilotEventRepository:
         }
 
     def get_procedure_completion_rates(self, tenant_id: UUID, days: int = 30) -> dict:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
 
         # Get procedure-related events
-        stmt = (
-            select(CopilotEventModel)
-            .where(
-                CopilotEventModel.tenant_id == tenant_id,
-                CopilotEventModel.event_type.in_(["procedure_abandoned"]),
-                CopilotEventModel.created_at >= cutoff,
-                self._active_filter(),
-            )
+        stmt = select(CopilotEventModel).where(
+            CopilotEventModel.tenant_id == tenant_id,
+            CopilotEventModel.event_type.in_(["procedure_abandoned"]),
+            CopilotEventModel.created_at >= cutoff,
+            self._active_filter(),
         )
         events = list(self.db.execute(stmt).scalars().all())
 
-        procedures: Dict[str, dict] = {}
+        procedures: dict[str, dict] = {}
         for ev in events:
             data = ev.event_data or {}
             proc_id = data.get("procedure_id", "unknown")
@@ -224,16 +220,18 @@ class CopilotEventRepository:
         result = {}
         for proc_id, info in procedures.items():
             steps = info.pop("abandoned_steps")
-            info["avg_abandoned_step"] = round(sum(steps) / len(steps), 1) if steps else None
+            info["avg_abandoned_step"] = (
+                round(sum(steps) / len(steps), 1) if steps else None
+            )
             result[proc_id] = info
 
         return result
 
     # ── Cross-tenant methods (admin) ─────────────────────────────────────
 
-    def get_global_summary(self, days: int = 30) -> Dict[str, int]:
+    def get_global_summary(self, days: int = 30) -> dict[str, int]:
         """Event type counts without tenant filter."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.event_type, func.count().label("cnt"))
             .where(
@@ -245,9 +243,9 @@ class CopilotEventRepository:
         rows = self.db.execute(stmt).all()
         return {row.event_type: row.cnt for row in rows}
 
-    def get_global_friction_map(self, days: int = 30) -> Dict[str, int]:
+    def get_global_friction_map(self, days: int = 30) -> dict[str, int]:
         """copilot_opened by route, cross-tenant."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(CopilotEventModel.route, func.count().label("cnt"))
             .where(
@@ -264,41 +262,51 @@ class CopilotEventRepository:
 
     def get_global_engagement(self, days: int = 30) -> dict:
         """Cross-tenant engagement metrics."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
 
-        msg_count = self.db.execute(
-            select(func.count())
-            .select_from(CopilotEventModel)
-            .where(
-                CopilotEventModel.event_type == "message_sent",
-                CopilotEventModel.created_at >= cutoff,
-                self._active_filter(),
-            )
-        ).scalar() or 0
+        msg_count = (
+            self.db.execute(
+                select(func.count())
+                .select_from(CopilotEventModel)
+                .where(
+                    CopilotEventModel.event_type == "message_sent",
+                    CopilotEventModel.created_at >= cutoff,
+                    self._active_filter(),
+                )
+            ).scalar()
+            or 0
+        )
 
-        active_users = self.db.execute(
-            select(func.count(func.distinct(CopilotEventModel.user_id)))
-            .where(
-                CopilotEventModel.event_type == "message_sent",
-                CopilotEventModel.created_at >= cutoff,
-                self._active_filter(),
-            )
-        ).scalar() or 0
+        active_users = (
+            self.db.execute(
+                select(func.count(func.distinct(CopilotEventModel.user_id))).where(
+                    CopilotEventModel.event_type == "message_sent",
+                    CopilotEventModel.created_at >= cutoff,
+                    self._active_filter(),
+                )
+            ).scalar()
+            or 0
+        )
 
-        suggested_count = self.db.execute(
-            select(func.count())
-            .select_from(CopilotEventModel)
-            .where(
-                CopilotEventModel.event_type == "suggested_action_clicked",
-                CopilotEventModel.created_at >= cutoff,
-                self._active_filter(),
-            )
-        ).scalar() or 0
+        suggested_count = (
+            self.db.execute(
+                select(func.count())
+                .select_from(CopilotEventModel)
+                .where(
+                    CopilotEventModel.event_type == "suggested_action_clicked",
+                    CopilotEventModel.created_at >= cutoff,
+                    self._active_filter(),
+                )
+            ).scalar()
+            or 0
+        )
 
         return {
             "total_messages": msg_count,
             "active_users": active_users,
-            "messages_per_user_avg": round(msg_count / active_users, 1) if active_users else 0,
+            "messages_per_user_avg": round(msg_count / active_users, 1)
+            if active_users
+            else 0,
             "suggested_vs_typed": {
                 "suggested": suggested_count,
                 "typed": max(0, msg_count - suggested_count),
@@ -307,18 +315,17 @@ class CopilotEventRepository:
 
     def get_global_procedure_rates(self, days: int = 30) -> dict:
         """Procedure completion rates cross-tenant."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-        stmt = (
-            select(CopilotEventModel)
-            .where(
-                CopilotEventModel.event_type.in_(["procedure_abandoned", "procedure_completed"]),
-                CopilotEventModel.created_at >= cutoff,
-                self._active_filter(),
-            )
+        cutoff = datetime.now(UTC) - timedelta(days=days)
+        stmt = select(CopilotEventModel).where(
+            CopilotEventModel.event_type.in_(
+                ["procedure_abandoned", "procedure_completed"]
+            ),
+            CopilotEventModel.created_at >= cutoff,
+            self._active_filter(),
         )
         events = list(self.db.execute(stmt).scalars().all())
 
-        procedures: Dict[str, dict] = {}
+        procedures: dict[str, dict] = {}
         for ev in events:
             data = ev.event_data or {}
             proc_id = data.get("procedure_id", "unknown")
@@ -343,13 +350,15 @@ class CopilotEventRepository:
         result = {}
         for proc_id, info in procedures.items():
             steps = info.pop("abandoned_steps")
-            info["avg_abandoned_step"] = round(sum(steps) / len(steps), 1) if steps else None
+            info["avg_abandoned_step"] = (
+                round(sum(steps) / len(steps), 1) if steps else None
+            )
             result[proc_id] = info
         return result
 
-    def get_events_grouped_by_tenant(self, days: int = 30) -> List[dict]:
+    def get_events_grouped_by_tenant(self, days: int = 30) -> list[dict]:
         """Event counts per tenant for ranking."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
             select(
                 CopilotEventModel.tenant_id,
@@ -363,11 +372,13 @@ class CopilotEventRepository:
             .order_by(func.count().desc())
         )
         rows = self.db.execute(stmt).all()
-        return [{"tenant_id": row.tenant_id, "event_count": row.event_count} for row in rows]
+        return [
+            {"tenant_id": row.tenant_id, "event_count": row.event_count} for row in rows
+        ]
 
     def get_recent_events_all(
-        self, limit: int = 50, event_type: Optional[str] = None
-    ) -> List[CopilotEventModel]:
+        self, limit: int = 50, event_type: str | None = None
+    ) -> list[CopilotEventModel]:
         """Recent events without tenant filter (admin only)."""
         stmt = (
             select(CopilotEventModel)
@@ -386,7 +397,7 @@ class CopilotEventRepository:
                 CopilotEventModel.created_at < cutoff_date,
                 self._active_filter(),
             )
-            .values(deleted_at=datetime.now(timezone.utc))
+            .values(deleted_at=datetime.now(UTC))
         )
         result = self.db.execute(stmt)
         return result.rowcount

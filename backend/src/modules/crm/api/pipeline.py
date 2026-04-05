@@ -3,8 +3,8 @@ CRM Pipeline API: lead pipeline view, manual stage override, and transition audi
 
 All endpoints require X-Tenant-ID header for multitenant isolation.
 """
+
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -12,10 +12,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session, joinedload
 
 from src.core.database import get_db
+from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
 router = APIRouter(tags=["CRM - Pipeline"])
 
@@ -25,34 +24,39 @@ router = APIRouter(tags=["CRM - Pipeline"])
 
 class PipelineItem(BaseModel):
     id: UUID
-    full_name: Optional[str]
+    full_name: str | None
     intent_score: int
     temperature: str
-    last_interaction: Optional[datetime]
-    channel: Optional[str]
-    avatar_url: Optional[str] = None
+    last_interaction: datetime | None
+    channel: str | None
+    avatar_url: str | None = None
 
 
 class StageOverrideRequest(BaseModel):
     """Request body for manual stage override."""
-    new_stage: str = Field(..., description="Target lifecycle stage (e.g. 'customer', 'mql')")
+
+    new_stage: str = Field(
+        ..., description="Target lifecycle stage (e.g. 'customer', 'mql')"
+    )
     note: str = Field("", description="Optional note explaining the override")
 
 
 class TransitionResponse(BaseModel):
     """Single lifecycle transition audit record."""
+
     id: UUID
-    from_stage: Optional[str]
+    from_stage: str | None
     to_stage: str
     reason: str
     triggered_by: str
-    score_at_transition: Optional[float]
-    metadata: Optional[dict] = None
-    occurred_at: Optional[datetime]
+    score_at_transition: float | None
+    metadata: dict | None = None
+    occurred_at: datetime | None
 
 
 class StageOverrideResponse(BaseModel):
     """Response for successful stage override."""
+
     profile_id: UUID
     previous_stage: str
     new_stage: str
@@ -62,7 +66,7 @@ class StageOverrideResponse(BaseModel):
 # --- Endpoints ---
 
 
-@router.get("/pipeline", response_model=List[PipelineItem])
+@router.get("/pipeline", response_model=list[PipelineItem])
 async def get_pipeline(
     min_score: int = 50,
     limit: int = 20,
@@ -116,8 +120,8 @@ async def override_stage(
 
     Requires X-Tenant-ID header. Creates audit trail with triggered_by='manual'.
     """
-    from src.modules.crm.domain.enums import LifecycleStage
     from src.modules.crm.application.services.lifecycle_service import LifecycleService
+    from src.modules.crm.domain.enums import LifecycleStage
 
     # Validate stage value
     try:
@@ -132,20 +136,29 @@ async def override_stage(
     svc = LifecycleService(db)
 
     # Get current stage for response
-    from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
     from sqlalchemy import select
 
-    profile = db.execute(
-        select(CustomerProfileModel).where(
-            CustomerProfileModel.id == profile_id,
-            CustomerProfileModel.tenant_id == user.tenant_id,
+    from src.modules.crm.infrastructure.models.customer_model import (
+        CustomerProfileModel,
+    )
+
+    profile = (
+        db.execute(
+            select(CustomerProfileModel).where(
+                CustomerProfileModel.id == profile_id,
+                CustomerProfileModel.tenant_id == user.tenant_id,
+            )
         )
-    ).scalars().first()
+        .scalars()
+        .first()
+    )
 
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    previous_stage = profile.lifecycle_stage.value if profile.lifecycle_stage else "unknown"
+    previous_stage = (
+        profile.lifecycle_stage.value if profile.lifecycle_stage else "unknown"
+    )
 
     svc.force_stage(
         profile_id=profile_id,
@@ -164,7 +177,9 @@ async def override_stage(
     )
 
 
-@router.get("/pipeline/{profile_id}/transitions", response_model=List[TransitionResponse])
+@router.get(
+    "/pipeline/{profile_id}/transitions", response_model=list[TransitionResponse]
+)
 async def get_transitions(
     profile_id: UUID,
     limit: int = Query(50, ge=1, le=200),

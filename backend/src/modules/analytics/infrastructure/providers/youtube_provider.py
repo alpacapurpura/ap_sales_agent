@@ -8,11 +8,10 @@ Uses existing YouTubeAnalyticsAdapter wrapped in asyncio.to_thread() (sync Googl
 """
 
 import asyncio
-
-import structlog
 from datetime import date
 from uuid import UUID
 
+import structlog
 from google.auth.exceptions import RefreshError, TransportError
 
 from src.modules.analytics.domain.exceptions import ConnectionRevokedException
@@ -58,9 +57,7 @@ class YouTubeProvider(BaseMetricsProvider):
         stage: str = "attraction",
     ) -> ExtractionResult:
         if not credentials.get("token") and not credentials.get("refresh_token"):
-            logger.warning(
-                "youtube_provider_no_credentials tenant=%s", tenant_id
-            )
+            logger.warning("youtube_provider_no_credentials tenant=%s", tenant_id)
             return ExtractionResult()
 
         adapter = YouTubeAnalyticsAdapter(credentials_data=credentials)
@@ -118,28 +115,32 @@ class YouTubeProvider(BaseMetricsProvider):
         # Engagement (likes + dislikes) — special case with breakdown
         likes = float(overview.get("likes", 0))
         dislikes = float(overview.get("dislikes", 0))
-        metrics.append(ExtractedMetric(
-            provider="youtube",
-            channel_slug="yt-organic",
-            metric_name="engagement",
-            value=likes + dislikes,
-            unit="count",
-            date=metric_date,
-            extra={"likes": int(likes), "dislikes": int(dislikes)},
-        ))
+        metrics.append(
+            ExtractedMetric(
+                provider="youtube",
+                channel_slug="yt-organic",
+                metric_name="engagement",
+                value=likes + dislikes,
+                unit="count",
+                date=metric_date,
+                extra={"likes": int(likes), "dislikes": int(dislikes)},
+            )
+        )
 
         # Direct-mapped metrics
         for api_key, (metric_name, unit) in _DIRECT_MAP.items():
             value = float(overview.get(api_key, 0))
             if value or metric_name == "views":  # Always emit views even if 0
-                metrics.append(ExtractedMetric(
-                    provider="youtube",
-                    channel_slug="yt-organic",
-                    metric_name=metric_name,
-                    value=value,
-                    unit=unit,
-                    date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="youtube",
+                        channel_slug="yt-organic",
+                        metric_name=metric_name,
+                        value=value,
+                        unit=unit,
+                        date=metric_date,
+                    )
+                )
 
         return metrics
 
@@ -174,34 +175,40 @@ class YouTubeProvider(BaseMetricsProvider):
             ("end_screen_impressions", end_impressions),
         ]:
             if value:
-                metrics.append(ExtractedMetric(
-                    provider="youtube",
-                    channel_slug="yt-organic",
-                    metric_name=metric_name,
-                    value=value,
-                    unit="count",
-                    date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="youtube",
+                        channel_slug="yt-organic",
+                        metric_name=metric_name,
+                        value=value,
+                        unit="count",
+                        date=metric_date,
+                    )
+                )
 
         # Calculated rates (only if impressions > 0)
         if card_impressions > 0:
-            metrics.append(ExtractedMetric(
-                provider="youtube",
-                channel_slug="yt-organic",
-                metric_name="card_click_rate",
-                value=round((card_clicks / card_impressions) * 100, 2),
-                unit="percentage",
-                date=metric_date,
-            ))
+            metrics.append(
+                ExtractedMetric(
+                    provider="youtube",
+                    channel_slug="yt-organic",
+                    metric_name="card_click_rate",
+                    value=round((card_clicks / card_impressions) * 100, 2),
+                    unit="percentage",
+                    date=metric_date,
+                )
+            )
 
         if end_impressions > 0:
-            metrics.append(ExtractedMetric(
-                provider="youtube",
-                channel_slug="yt-organic",
-                metric_name="end_screen_click_rate",
-                value=round((end_clicks / end_impressions) * 100, 2),
-                unit="percentage",
-                date=metric_date,
-            ))
+            metrics.append(
+                ExtractedMetric(
+                    provider="youtube",
+                    channel_slug="yt-organic",
+                    metric_name="end_screen_click_rate",
+                    value=round((end_clicks / end_impressions) * 100, 2),
+                    unit="percentage",
+                    date=metric_date,
+                )
+            )
 
         return metrics

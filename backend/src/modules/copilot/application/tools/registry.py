@@ -5,24 +5,21 @@ Maps frontend routes to the subset of tools the LLM should have access to.
 This keeps the tool set focused and reduces noise for the LLM.
 """
 
-from typing import Dict, List
-
 from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
+from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
 from src.modules.copilot.application.tools.module_tools import MODULE_TOOLS
 from src.modules.copilot.application.tools.mutations import MUTATION_TOOLS
 from src.modules.copilot.application.tools.navigation import NAVIGATION_TOOLS
-from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
-from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.offer_ladder_tools import OFFER_LADDER_TOOLS
+from src.modules.copilot.application.tools.procedure_tools import PROCEDURE_TOOLS
 from src.modules.copilot.application.tools.sales_agent_tools import SALES_AGENT_TOOLS
 
-
 # Named tool groups for route mapping
-TOOL_GROUPS: Dict[str, list] = {
+TOOL_GROUPS: dict[str, list] = {
     "navigation": NAVIGATION_TOOLS,
     "awareness": AWARENESS_TOOLS,
     "mutation": MUTATION_TOOLS,
@@ -40,15 +37,67 @@ TOOL_GROUPS: Dict[str, list] = {
 # Route prefix -> which tool groups are available.
 # More specific routes should be listed before generic ones.
 # "*" is the fallback for any unmatched route.
-ROUTE_TOOL_MAP: Dict[str, List[str]] = {
-    "brand-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
-    "offer-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge", "offer_ladder"],
-    "growth-studio": ["navigation", "awareness", "module_data", "analytics", "crm", "procedure", "knowledge"],
-    "sales": ["navigation", "awareness", "module_data", "sales_agent", "crm", "procedure", "knowledge"],
-    "connections": ["navigation", "awareness", "module_data", "connections", "procedure", "knowledge"],
-    "landing": ["navigation", "awareness", "module_data", "landing", "procedure", "knowledge"],
+ROUTE_TOOL_MAP: dict[str, list[str]] = {
+    "brand-studio": [
+        "navigation",
+        "awareness",
+        "mutation",
+        "module_data",
+        "procedure",
+        "knowledge",
+    ],
+    "offer-studio": [
+        "navigation",
+        "awareness",
+        "mutation",
+        "module_data",
+        "procedure",
+        "knowledge",
+        "offer_ladder",
+    ],
+    "growth-studio": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "analytics",
+        "crm",
+        "procedure",
+        "knowledge",
+    ],
+    "sales": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "sales_agent",
+        "crm",
+        "procedure",
+        "knowledge",
+    ],
+    "connections": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "connections",
+        "procedure",
+        "knowledge",
+    ],
+    "landing": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "landing",
+        "procedure",
+        "knowledge",
+    ],
     "settings": ["navigation", "awareness", "module_data", "procedure", "knowledge"],
-    "*": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
+    "*": [
+        "navigation",
+        "awareness",
+        "mutation",
+        "module_data",
+        "procedure",
+        "knowledge",
+    ],
 }
 
 
@@ -73,7 +122,7 @@ def get_tools_for_route(route: str | None) -> list:
     return tools
 
 
-def get_tool_names_for_route(route: str | None) -> List[str]:
+def get_tool_names_for_route(route: str | None) -> list[str]:
     """Return tool names for a route (useful for state/logging)."""
     return [t.name for t in get_tools_for_route(route)]
 
@@ -90,7 +139,7 @@ def get_all_tools() -> list:
     return tools
 
 
-def _match_route(route: str | None) -> List[str]:
+def _match_route(route: str | None) -> list[str]:
     """Find which tool groups match the current route."""
     if not route:
         return ROUTE_TOOL_MAP["*"]

@@ -17,7 +17,9 @@ class CopilotEventModel(Base):
     event_type = Column(String(50), nullable=False)
     event_data = Column(JSONB, nullable=False, default=dict)
     route = Column(String(255), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:

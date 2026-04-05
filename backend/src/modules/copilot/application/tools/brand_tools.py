@@ -6,22 +6,22 @@ informed suggestions and proposals.
 """
 
 import json
-from typing import Optional
 from uuid import UUID
 
+import structlog
 from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
-
-import structlog
 
 logger = structlog.get_logger()
 
 
 def _get_brand_settings(db, tenant_id: UUID):
     """Fetch and return the BrandSettings model for a tenant."""
-    from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
+    from src.modules.brand.infrastructure.repositories.brand_repository import (
+        BrandRepository,
+    )
 
     repo = BrandRepository(db)
     try:
@@ -41,7 +41,9 @@ def _format_section(section_name: str, data: dict) -> str:
         if value in (None, "", [], {}):
             continue
         if isinstance(value, (dict, list)):
-            lines.append(f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}")
+            lines.append(
+                f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}"
+            )
         else:
             lines.append(f"- **{key}:** {value}")
     lines.append("")
@@ -49,7 +51,7 @@ def _format_section(section_name: str, data: dict) -> str:
 
 
 @tool
-def get_brand_data(section: Optional[str] = None) -> str:
+def get_brand_data(section: str | None = None) -> str:
     """Read the current brand configuration for this tenant.
 
     Args:
@@ -97,12 +99,11 @@ def get_brand_data(section: Optional[str] = None) -> str:
 
             if isinstance(section_data, dict):
                 return _format_section(section.title(), section_data)
-            elif isinstance(section_data, list):
+            if isinstance(section_data, list):
                 if not section_data:
                     return f"La sección '{section}' está vacía."
                 return f"### {section.title()}\n{json.dumps(section_data, ensure_ascii=False, indent=2, default=str)}"
-            else:
-                return f"### {section.title()}\n{section_data}"
+            return f"### {section.title()}\n{section_data}"
 
         # Return summary of all sections
         lines = ["## Datos de Marca\n"]
@@ -128,7 +129,9 @@ def get_brand_data(section: Optional[str] = None) -> str:
                 if not section_data:
                     lines.append(f"### {display_name}\n(sin datos)\n")
                 else:
-                    lines.append(f"### {display_name}\n{len(section_data)} elemento(s) configurado(s)\n")
+                    lines.append(
+                        f"### {display_name}\n{len(section_data)} elemento(s) configurado(s)\n"
+                    )
             else:
                 lines.append(f"### {display_name}\n{section_data}\n")
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.core.enums import ModelRole
 
@@ -11,7 +11,13 @@ class BaseLLMService(ABC):
     """
 
     @abstractmethod
-    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, model_type: str = "smart", **kwargs) -> str:
+    def generate_response(
+        self,
+        messages: list[dict[str, str]],
+        system_prompt: str | None = None,
+        model_type: str = "smart",
+        **kwargs,
+    ) -> str:
         """
         Generates a text response from the LLM.
 
@@ -24,14 +30,11 @@ class BaseLLMService(ABC):
         Returns:
             str: The generated text response.
         """
-        pass
 
     @abstractmethod
     def get_embedding_model(self) -> Any:
         """Returns a LangChain-compatible embedding model object."""
-        pass
 
     @abstractmethod
     def get_client(self, role: ModelRole = ModelRole.REASONING) -> Any:
         """Returns the underlying chat model client for the given role."""
-        pass

@@ -1,19 +1,28 @@
-from typing import Dict, Any
+from typing import Any
+
 from sqlalchemy.orm import Session
-from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile
+
 from src.modules.crm.domain.enums import IdentityType
+from src.modules.crm.infrastructure.models.customer_model import (
+    CustomerProfileModel as CustomerProfile,
+)
+from src.modules.crm.infrastructure.repositories.customer_repository import (
+    CustomerRepository,
+)
+
 
 class IdentityResolutionEngine:
     def __init__(self, db: Session):
         self.repository = CustomerRepository(db)
 
-    def resolve(self, identity_type: IdentityType, value: str, traits: Dict[str, Any] = None) -> CustomerProfile:
+    def resolve(
+        self, identity_type: IdentityType, value: str, traits: dict[str, Any] = None
+    ) -> CustomerProfile:
         """
         Resuelve una identidad a un perfil de cliente unificado.
         Si la identidad existe, devuelve el perfil asociado.
         Si no, crea un nuevo perfil y asocia la identidad.
-        
+
         Args:
             identity_type: Tipo de identidad (email, phone, etc.)
             value: Valor de la identidad (ej. usuario@email.com)
@@ -24,7 +33,7 @@ class IdentityResolutionEngine:
 
         # 1. Buscar perfil existente por identidad
         profile = self.repository.find_by_identity(value, identity_type)
-        
+
         if profile:
             # TODO: Actualizar traits si es necesario (merge)
             return profile
@@ -39,9 +48,9 @@ class IdentityResolutionEngine:
         profile_data = {
             "tenant_id": tenant_id,
             "properties": traits,
-            "computed_traits": {}
+            "computed_traits": {},
         }
-        
+
         new_profile = self.repository.create(profile_data)
 
         # 3. Asociar la identidad al nuevo perfil
@@ -49,11 +58,11 @@ class IdentityResolutionEngine:
             "tenant_id": tenant_id,
             "type": identity_type,
             "value": value,
-            "is_primary": True, # Primera identidad es primaria por defecto
+            "is_primary": True,  # Primera identidad es primaria por defecto
             "is_verified": False,
-            "source": traits.get("source", "unknown")
+            "source": traits.get("source", "unknown"),
         }
-        
+
         self.repository.add_identity(new_profile.id, identity_data)
-        
+
         return new_profile

@@ -12,11 +12,11 @@ Aggregation strategy by metric type (from METRIC_CATALOG):
 - Unknown:           SUM with warning (backward compatibility)
 """
 
-import structlog
 from collections import defaultdict
 from datetime import date, timedelta
-from typing import Dict, List, Optional
 from uuid import UUID
+
+import structlog
 
 from src.modules.analytics.domain.enums import AggregationType
 from src.modules.analytics.domain.metric_catalog import get_metric_def
@@ -26,12 +26,12 @@ logger = structlog.get_logger(__name__)
 
 
 def compute_aggregations(
-    official_rows: List[Dict],
+    official_rows: list[dict],
     tenant_id: UUID,
     weekly_cutoff_day: int = 0,
-    extraction_run_id: Optional[UUID] = None,
-    period_config: Optional[TenantPeriodConfig] = None,
-) -> List[Dict]:
+    extraction_run_id: UUID | None = None,
+    period_config: TenantPeriodConfig | None = None,
+) -> list[dict]:
     """Compute daily, weekly, monthly, quarterly, and last_30_days aggregations.
 
     Uses METRIC_CATALOG to determine the correct aggregation strategy per metric.
@@ -57,7 +57,7 @@ def compute_aggregations(
     aggregations = []
 
     # Group by (channel_slug, metric_name, unit, currency, cost_type)
-    groups: Dict[tuple, List[Dict]] = defaultdict(list)
+    groups: dict[tuple, list[dict]] = defaultdict(list)
     for row in official_rows:
         key = (
             row["channel_slug"],
@@ -84,7 +84,7 @@ def compute_aggregations(
             agg_type = defn.aggregation
 
         # Daily aggregations (always compute — intra-day SUM is always correct)
-        daily_by_date: Dict[date, float] = defaultdict(float)
+        daily_by_date: dict[date, float] = defaultdict(float)
         for row in sorted_rows:
             metric_date = row["metric_date"]
             if isinstance(metric_date, str):
@@ -92,19 +92,21 @@ def compute_aggregations(
             daily_by_date[metric_date] += row["value"]
 
         for d, total in daily_by_date.items():
-            aggregations.append(_agg_dict(
-                tenant_id=tenant_id,
-                channel_slug=channel_slug,
-                metric_name=metric_name,
-                period_type="daily",
-                period_start=d,
-                period_end=d,
-                value=total,
-                unit=unit,
-                currency=currency,
-                cost_type=cost_type,
-                extraction_run_id=extraction_run_id,
-            ))
+            aggregations.append(
+                _agg_dict(
+                    tenant_id=tenant_id,
+                    channel_slug=channel_slug,
+                    metric_name=metric_name,
+                    period_type="daily",
+                    period_start=d,
+                    period_end=d,
+                    value=total,
+                    unit=unit,
+                    currency=currency,
+                    cost_type=cost_type,
+                    extraction_run_id=extraction_run_id,
+                )
+            )
 
         # Multi-period aggregations: only for ADDITIVE and SNAPSHOT.
         # NON_AGGREGABLE, WEIGHTED_AVERAGE, DERIVED: skip (computed elsewhere or unsafe).
@@ -116,9 +118,9 @@ def compute_aggregations(
 
         all_dates = sorted(daily_by_date.keys())
 
-        def _aggregate_period(period_values: Dict[date, float]) -> float:
+        def _aggregate_period(period_values: dict[date, float]) -> float:
             """Aggregate values for a period based on metric type."""
-            if agg_type == AggregationType.SNAPSHOT:
+            if agg_type == AggregationType.SNAPSHOT:  # noqa: B023
                 # Last value in the period (snapshot = state, not flow)
                 last_date = max(period_values.keys())
                 return period_values[last_date]
@@ -128,68 +130,76 @@ def compute_aggregations(
         # Weekly aggregations
         weeks = _group_by_week(all_dates, daily_by_date, period_config)
         for (ws, we), week_daily in weeks.items():
-            aggregations.append(_agg_dict(
-                tenant_id=tenant_id,
-                channel_slug=channel_slug,
-                metric_name=metric_name,
-                period_type="weekly",
-                period_start=ws,
-                period_end=we,
-                value=_aggregate_period(week_daily),
-                unit=unit,
-                currency=currency,
-                cost_type=cost_type,
-                extraction_run_id=extraction_run_id,
-            ))
+            aggregations.append(
+                _agg_dict(
+                    tenant_id=tenant_id,
+                    channel_slug=channel_slug,
+                    metric_name=metric_name,
+                    period_type="weekly",
+                    period_start=ws,
+                    period_end=we,
+                    value=_aggregate_period(week_daily),
+                    unit=unit,
+                    currency=currency,
+                    cost_type=cost_type,
+                    extraction_run_id=extraction_run_id,
+                )
+            )
 
         # Monthly aggregations
         months = _group_by_month(daily_by_date)
         for (ms, me), month_daily in months.items():
-            aggregations.append(_agg_dict(
-                tenant_id=tenant_id,
-                channel_slug=channel_slug,
-                metric_name=metric_name,
-                period_type="monthly",
-                period_start=ms,
-                period_end=me,
-                value=_aggregate_period(month_daily),
-                unit=unit,
-                currency=currency,
-                cost_type=cost_type,
-                extraction_run_id=extraction_run_id,
-            ))
+            aggregations.append(
+                _agg_dict(
+                    tenant_id=tenant_id,
+                    channel_slug=channel_slug,
+                    metric_name=metric_name,
+                    period_type="monthly",
+                    period_start=ms,
+                    period_end=me,
+                    value=_aggregate_period(month_daily),
+                    unit=unit,
+                    currency=currency,
+                    cost_type=cost_type,
+                    extraction_run_id=extraction_run_id,
+                )
+            )
 
         # Quarterly aggregations
         quarters = _group_by_quarter(daily_by_date, period_config)
         for (qs, qe), quarter_daily in quarters.items():
-            aggregations.append(_agg_dict(
+            aggregations.append(
+                _agg_dict(
+                    tenant_id=tenant_id,
+                    channel_slug=channel_slug,
+                    metric_name=metric_name,
+                    period_type="quarterly",
+                    period_start=qs,
+                    period_end=qe,
+                    value=_aggregate_period(quarter_daily),
+                    unit=unit,
+                    currency=currency,
+                    cost_type=cost_type,
+                    extraction_run_id=extraction_run_id,
+                )
+            )
+
+        # Last 30 days aggregation
+        aggregations.append(
+            _agg_dict(
                 tenant_id=tenant_id,
                 channel_slug=channel_slug,
                 metric_name=metric_name,
-                period_type="quarterly",
-                period_start=qs,
-                period_end=qe,
-                value=_aggregate_period(quarter_daily),
+                period_type="last_30_days",
+                period_start=all_dates[0],
+                period_end=all_dates[-1],
+                value=_aggregate_period(daily_by_date),
                 unit=unit,
                 currency=currency,
                 cost_type=cost_type,
                 extraction_run_id=extraction_run_id,
-            ))
-
-        # Last 30 days aggregation
-        aggregations.append(_agg_dict(
-            tenant_id=tenant_id,
-            channel_slug=channel_slug,
-            metric_name=metric_name,
-            period_type="last_30_days",
-            period_start=all_dates[0],
-            period_end=all_dates[-1],
-            value=_aggregate_period(daily_by_date),
-            unit=unit,
-            currency=currency,
-            cost_type=cost_type,
-            extraction_run_id=extraction_run_id,
-        ))
+            )
+        )
 
     logger.info(
         "Computed %d aggregation records for tenant %s",
@@ -199,21 +209,21 @@ def compute_aggregations(
     return aggregations
 
 
-def _agg_dict(**kwargs) -> Dict:
+def _agg_dict(**kwargs) -> dict:
     """Build a dict matching MetricAggregationModel columns."""
     return kwargs
 
 
 def _group_by_week(
-    dates: List[date],
-    daily_values: Dict[date, float],
+    dates: list[date],
+    daily_values: dict[date, float],
     period_config: TenantPeriodConfig,
-) -> Dict[tuple, Dict[date, float]]:
+) -> dict[tuple, dict[date, float]]:
     """Group daily values by week using tenant-specific week start day.
 
     Returns dict of (week_start, week_end) -> {date: value} for that week.
     """
-    weeks: Dict[tuple, Dict[date, float]] = defaultdict(dict)
+    weeks: dict[tuple, dict[date, float]] = defaultdict(dict)
     for d in dates:
         ws, we = period_config.get_week_boundaries(d)
         weeks[(ws, we)][d] = daily_values[d]
@@ -221,13 +231,13 @@ def _group_by_week(
 
 
 def _group_by_month(
-    daily_values: Dict[date, float],
-) -> Dict[tuple, Dict[date, float]]:
+    daily_values: dict[date, float],
+) -> dict[tuple, dict[date, float]]:
     """Group daily values by calendar month.
 
     Returns dict of (month_start, month_end) -> {date: value} for that month.
     """
-    months: Dict[tuple, Dict[date, float]] = defaultdict(dict)
+    months: dict[tuple, dict[date, float]] = defaultdict(dict)
     for d, val in daily_values.items():
         month_start = d.replace(day=1)
         if d.month == 12:
@@ -239,14 +249,14 @@ def _group_by_month(
 
 
 def _group_by_quarter(
-    daily_values: Dict[date, float],
+    daily_values: dict[date, float],
     period_config: TenantPeriodConfig,
-) -> Dict[tuple, Dict[date, float]]:
+) -> dict[tuple, dict[date, float]]:
     """Group daily values by quarter using tenant fiscal year config.
 
     Returns dict of (quarter_start, quarter_end) -> {date: value}.
     """
-    quarters: Dict[tuple, Dict[date, float]] = defaultdict(dict)
+    quarters: dict[tuple, dict[date, float]] = defaultdict(dict)
     for d, val in daily_values.items():
         qs, qe = period_config.get_quarter_boundaries(d)
         quarters[(qs, qe)][d] = val

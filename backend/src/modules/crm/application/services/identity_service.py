@@ -1,8 +1,14 @@
-from typing import Dict, Any, Optional
+from typing import Any
 from uuid import UUID
-from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel as CustomerProfile
+
 from src.modules.crm.domain.enums import IdentityType
+from src.modules.crm.infrastructure.models.customer_model import (
+    CustomerProfileModel as CustomerProfile,
+)
+from src.modules.crm.infrastructure.repositories.customer_repository import (
+    CustomerRepository,
+)
+
 
 class IdentityService:
     def __init__(self, customer_repository: CustomerRepository):
@@ -13,9 +19,9 @@ class IdentityService:
         tenant_id: UUID,
         identity_type: IdentityType,
         identity_value: str,
-        profile_data: Dict[str, Any],
-        lead_source: Optional[str] = None,
-        lead_source_detail: Optional[str] = None,
+        profile_data: dict[str, Any],
+        lead_source: str | None = None,
+        lead_source_detail: str | None = None,
     ) -> tuple[CustomerProfile, bool]:
         """
         Busca un cliente por su identidad. Si no existe, lo crea.
@@ -27,7 +33,7 @@ class IdentityService:
         existing_customer = self.customer_repository.find_by_identity(
             identity_value=identity_value,
             identity_type=identity_type,
-            tenant_id=tenant_id
+            tenant_id=tenant_id,
         )
 
         if existing_customer:

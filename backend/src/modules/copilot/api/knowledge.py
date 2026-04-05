@@ -1,6 +1,5 @@
 """REST endpoints for copilot knowledge base management."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -35,7 +34,7 @@ async def ingest_document(
     file: UploadFile = File(...),
     scope: str = Form("business"),
     source_label: str = Form("upload"),
-    tenant_id: Optional[UUID] = Depends(get_tenant_context),
+    tenant_id: UUID | None = Depends(get_tenant_context),
 ):
     """Ingest a document (PDF/DOCX/TXT/MD) into the knowledge base."""
     if not tenant_id:
@@ -61,7 +60,7 @@ async def search_knowledge(
     query: str,
     scope: str = "all",
     limit: int = 5,
-    tenant_id: Optional[UUID] = Depends(get_tenant_context),
+    tenant_id: UUID | None = Depends(get_tenant_context),
 ):
     """Search the knowledge base."""
     if not tenant_id:
@@ -85,7 +84,7 @@ async def search_knowledge(
 @router.delete("/{document_id}")
 async def delete_document(
     document_id: str,
-    tenant_id: Optional[UUID] = Depends(get_tenant_context),
+    tenant_id: UUID | None = Depends(get_tenant_context),
 ):
     """Delete a document from the knowledge base."""
     if not tenant_id:
@@ -95,6 +94,8 @@ async def delete_document(
     deleted = service.delete_document(str(tenant_id), document_id)
 
     if not deleted:
-        raise HTTPException(status_code=404, detail="Document not found or error deleting")
+        raise HTTPException(
+            status_code=404, detail="Document not found or error deleting"
+        )
 
     return {"deleted": True}

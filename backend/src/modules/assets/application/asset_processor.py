@@ -1,5 +1,7 @@
-from typing import Dict, Any, Optional, Union
+from typing import Any
+
 import structlog
+
 from src.modules.assets.domain.entity import Asset
 from src.modules.assets.domain.enums import AssetType
 
@@ -10,7 +12,9 @@ class AssetProcessor:
     def __init__(self):
         pass
 
-    async def process_asset(self, asset: Asset, file_data: Union[bytes, str]) -> Dict[str, Any]:
+    async def process_asset(
+        self, asset: Asset, file_data: bytes | str
+    ) -> dict[str, Any]:
         """
         Process asset to extract AI metadata.
         file_data can be raw bytes (from R2/cloud) or a local filesystem path (legacy).
@@ -21,9 +25,13 @@ class AssetProcessor:
         # Future: Video/Audio processing
         return {}
 
-    async def _analyze_image(self, file_data: Union[bytes, str], context: Optional[str]) -> Dict[str, Any]:
+    async def _analyze_image(
+        self, file_data: bytes | str, context: str | None
+    ) -> dict[str, Any]:
         try:
-            from src.shared.infrastructure.files.image_analysis import ImageAnalysisService
+            from src.shared.infrastructure.files.image_analysis import (
+                ImageAnalysisService,
+            )
 
             service = ImageAnalysisService()
             result = await service.analyze(file_data, user_context=context or "")

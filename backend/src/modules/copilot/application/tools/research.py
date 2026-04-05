@@ -7,4 +7,5 @@ class ResearchService:
         # Mock implementation
         return f"Mock analysis for: {url}"
 
+
 research_service = ResearchService()

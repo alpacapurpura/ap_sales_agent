@@ -4,7 +4,7 @@ Handles get_evangelization_metrics() logic: K-Factor, referrals,
 NPS, UGC, bottleneck detection.
 """
 
-from typing import Optional
+from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -12,9 +12,9 @@ from sqlalchemy.orm import Session
 from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
 from src.modules.analytics.application.dto.evangelization_dto import (
     CandidatoDTO,
+    EvangelistDTO,
     EvangelizationDetailDTO,
     EvangelizationHeaderKpisDTO,
-    EvangelistDTO,
     NpsSummaryDTO,
 )
 from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
@@ -28,9 +28,9 @@ class EvangelizationStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
-        offer_port: Optional[OfferReadPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
+        offer_port: OfferReadPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -52,7 +52,8 @@ class EvangelizationStageService:
         4. Assemble EvangelizationDetailDTO
         5. Cache result and return
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+
         from src.modules.analytics.infrastructure.repositories.evangelization_repository import (
             EvangelizationRepository,
         )
@@ -74,48 +75,56 @@ class EvangelizationStageService:
 
         k_factor = data.get("k_factor", 0.0)
         if k_factor < 0.5:
-            bottlenecks.append(BottleneckDTO(
-                type="low_k_factor",
-                metric_label="K-Factor bajo",
-                current_rate=k_factor,
-                severity="critical",
-                threshold=0.5,
-                tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="low_k_factor",
+                    metric_label="K-Factor bajo",
+                    current_rate=k_factor,
+                    severity="critical",
+                    threshold=0.5,
+                    tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
+                )
+            )
         elif k_factor < 1.0:
-            bottlenecks.append(BottleneckDTO(
-                type="low_k_factor",
-                metric_label="K-Factor bajo",
-                current_rate=k_factor,
-                severity="warning",
-                threshold=1.0,
-                tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="low_k_factor",
+                    metric_label="K-Factor bajo",
+                    current_rate=k_factor,
+                    severity="warning",
+                    threshold=1.0,
+                    tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
+                )
+            )
 
         nps_response_rate = data.get("nps_response_rate_pct", 0.0)
         surveys_sent = data.get("surveys_sent", 0)
         if surveys_sent > 0:
             if nps_response_rate < 15:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_nps_response",
-                    metric_label="Pocas respuestas NPS",
-                    current_rate=nps_response_rate,
-                    severity="critical",
-                    threshold=15,
-                    tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_nps_response",
+                        metric_label="Pocas respuestas NPS",
+                        current_rate=nps_response_rate,
+                        severity="critical",
+                        threshold=15,
+                        tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
+                    )
+                )
             elif nps_response_rate < 30:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_nps_response",
-                    metric_label="Pocas respuestas NPS",
-                    current_rate=nps_response_rate,
-                    severity="warning",
-                    threshold=30,
-                    tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_nps_response",
+                        metric_label="Pocas respuestas NPS",
+                        current_rate=nps_response_rate,
+                        severity="warning",
+                        threshold=30,
+                        tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
+                    )
+                )
 
         # 4. Assemble DTO
-        now = dt_cls.now(tz.utc)
+        now = dt_cls.now(UTC)
 
         result = EvangelizationDetailDTO(
             header_kpis=EvangelizationHeaderKpisDTO(**data["header_kpis"]),

@@ -58,9 +58,7 @@ class CRMInternalProvider(BaseMetricsProvider):
     ) -> ExtractionResult:
         db = credentials.get("db_session")
         if db is None:
-            logger.warning(
-                "crm_internal_provider_no_db_session tenant=%s", tenant_id
-            )
+            logger.warning("crm_internal_provider_no_db_session tenant=%s", tenant_id)
             return ExtractionResult()
 
         # Count outbound contacts
@@ -91,21 +89,23 @@ class CRMInternalProvider(BaseMetricsProvider):
         responses_result = db.execute(responses_stmt)
         responses_count = responses_result.scalar() or 0
 
-        return ExtractionResult(metrics=[
-            ExtractedMetric(
-                provider="crm_internal",
-                channel_slug="cold-contact",
-                metric_name="contacts",
-                value=float(contacts_count),
-                unit="count",
-                date=end_date,
-            ),
-            ExtractedMetric(
-                provider="crm_internal",
-                channel_slug="cold-contact",
-                metric_name="responses",
-                value=float(responses_count),
-                unit="count",
-                date=end_date,
-            ),
-        ])
+        return ExtractionResult(
+            metrics=[
+                ExtractedMetric(
+                    provider="crm_internal",
+                    channel_slug="cold-contact",
+                    metric_name="contacts",
+                    value=float(contacts_count),
+                    unit="count",
+                    date=end_date,
+                ),
+                ExtractedMetric(
+                    provider="crm_internal",
+                    channel_slug="cold-contact",
+                    metric_name="responses",
+                    value=float(responses_count),
+                    unit="count",
+                    date=end_date,
+                ),
+            ]
+        )

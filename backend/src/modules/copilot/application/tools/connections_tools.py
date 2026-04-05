@@ -2,13 +2,12 @@
 Connections tools — give the copilot access to integration status details.
 """
 
+import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
-
-import structlog
 
 logger = structlog.get_logger()
 
@@ -27,14 +26,18 @@ def get_connections_detail() -> str:
 
     db = SessionLocal()
     try:
-        rows = db.execute(
-            text(
-                "SELECT channel_type, is_active, config, created_at, updated_at "
-                "FROM channel_connections WHERE tenant_id = :tid "
-                "ORDER BY channel_type"
-            ),
-            {"tid": str(tenant_id)},
-        ).mappings().all()
+        rows = (
+            db.execute(
+                text(
+                    "SELECT channel_type, is_active, config, created_at, updated_at "
+                    "FROM channel_connections WHERE tenant_id = :tid "
+                    "ORDER BY channel_type"
+                ),
+                {"tid": str(tenant_id)},
+            )
+            .mappings()
+            .all()
+        )
 
         if not rows:
             return (
@@ -47,7 +50,9 @@ def get_connections_detail() -> str:
         active = [r for r in rows if r["is_active"]]
         inactive = [r for r in rows if not r["is_active"]]
 
-        lines = [f"## Conexiones ({len(active)} activa(s), {len(inactive)} inactiva(s))\n"]
+        lines = [
+            f"## Conexiones ({len(active)} activa(s), {len(inactive)} inactiva(s))\n"
+        ]
 
         for r in rows:
             icon = "✅" if r["is_active"] else "❌"
@@ -77,7 +82,7 @@ def get_connections_detail() -> str:
         return "\n".join(lines)
     except Exception as e:
         logger.error("connections_tools_error", error=str(e))
-        return f"Error consultando conexiones: {str(e)}"
+        return f"Error consultando conexiones: {e!s}"
     finally:
         db.close()
 

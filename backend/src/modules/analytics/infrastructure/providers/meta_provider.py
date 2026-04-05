@@ -13,7 +13,6 @@ import json
 import logging
 from collections import defaultdict
 from datetime import date, datetime, timedelta
-from typing import List
 from uuid import UUID
 
 import httpx
@@ -58,7 +57,9 @@ _ADS_EXPANDED_FIELDS = (
 )
 
 
-_IG_INSIGHTS_MAX_DAYS = ETLConfig.IG_INSIGHTS_MAX_CHUNK_DAYS  # Meta enforces ≤30 days for period=day
+_IG_INSIGHTS_MAX_DAYS = (
+    ETLConfig.IG_INSIGHTS_MAX_CHUNK_DAYS
+)  # Meta enforces ≤30 days for period=day
 
 
 def _ig_day_chunks(start_date: date, end_date: date):
@@ -81,7 +82,9 @@ def _raise_for_meta_error(response: httpx.Response, context: str) -> None:
         body = response.text[:500]
         logger.error(
             "meta_api_error context=%s status=%s body=%s",
-            context, response.status_code, body,
+            context,
+            response.status_code,
+            body,
         )
         response.raise_for_status()
 
@@ -126,10 +129,16 @@ class MetaProvider(BaseMetricsProvider):
         ad_account_id = credentials.get("ad_account_id")
 
         # ── IG Organic period extraction ──
-        if ig_user_id and any(m in metric_names for m in ("reach", "ig_accounts_engaged")):
+        if ig_user_id and any(
+            m in metric_names for m in ("reach", "ig_accounts_engaged")
+        ):
             ig_metrics, ig_fail = await self._safe_extract(
                 self._extract_ig_organic_period,
-                access_token, ig_user_id, period_type, period_start, period_end,
+                access_token,
+                ig_user_id,
+                period_type,
+                period_start,
+                period_end,
                 extractor_name="ig_organic_period",
             )
             all_metrics.extend(ig_metrics)
@@ -140,7 +149,10 @@ class MetaProvider(BaseMetricsProvider):
         if ad_account_id and any(m in metric_names for m in ("reach", "frequency")):
             ads_metrics, ads_fail = await self._safe_extract(
                 self._extract_meta_ads_period,
-                access_token, ad_account_id, period_start, period_end,
+                access_token,
+                ad_account_id,
+                period_start,
+                period_end,
                 extractor_name="meta_ads_period",
             )
             all_metrics.extend(ads_metrics)
@@ -160,7 +172,11 @@ class MetaProvider(BaseMetricsProvider):
         """Extract IG organic reach/engaged for a period using Meta period param."""
         metrics = []
         since_ts = int(datetime.combine(period_start, datetime.min.time()).timestamp())
-        until_ts = int(datetime.combine(period_end + timedelta(days=1), datetime.min.time()).timestamp())
+        until_ts = int(
+            datetime.combine(
+                period_end + timedelta(days=1), datetime.min.time()
+            ).timestamp()
+        )
 
         if period_type == "weekly":
             meta_period = "week"
@@ -179,13 +195,17 @@ class MetaProvider(BaseMetricsProvider):
                 "since": since_ts,
                 "until": until_ts,
             }
-            resp = await client.get(url, headers=_auth_headers(access_token), params=params)
+            resp = await client.get(
+                url, headers=_auth_headers(access_token), params=params
+            )
             _raise_for_meta_error(resp, f"ig_organic_period_{period_type}")
 
             data = resp.json().get("data", [])
             for item in data:
                 name = item.get("name", "")
-                metric_name = "ig_accounts_engaged" if name == "accounts_engaged" else name
+                metric_name = (
+                    "ig_accounts_engaged" if name == "accounts_engaged" else name
+                )
                 # metric_type=total_value → {total_value: {value: N}}
                 val = item.get("total_value", {}).get("value")
                 if val is None:
@@ -193,15 +213,20 @@ class MetaProvider(BaseMetricsProvider):
                     values = item.get("values", [])
                     val = values[-1].get("value", 0) if values else 0
                 if val:
-                    metrics.append(ExtractedMetric(
-                        provider="meta",
-                        channel_slug="ig-organic",
-                        metric_name=metric_name,
-                        value=float(val),
-                        unit="count",
-                        date=period_start,
-                        extra={"period_type": period_type, "meta_period": meta_period},
-                    ))
+                    metrics.append(
+                        ExtractedMetric(
+                            provider="meta",
+                            channel_slug="ig-organic",
+                            metric_name=metric_name,
+                            value=float(val),
+                            unit="count",
+                            date=period_start,
+                            extra={
+                                "period_type": period_type,
+                                "meta_period": meta_period,
+                            },
+                        )
+                    )
 
         return metrics
 
@@ -214,10 +239,12 @@ class MetaProvider(BaseMetricsProvider):
     ) -> list[ExtractedMetric]:
         """Extract Meta Ads reach/frequency for an exact date range."""
         metrics = []
-        time_range = json.dumps({
-            "since": period_start.isoformat(),
-            "until": period_end.isoformat(),
-        })
+        time_range = json.dumps(
+            {
+                "since": period_start.isoformat(),
+                "until": period_end.isoformat(),
+            }
+        )
 
         async with httpx.AsyncClient(timeout=30) as client:
             url = f"{GRAPH_API_BASE}/act_{ad_account_id}/insights"
@@ -225,7 +252,9 @@ class MetaProvider(BaseMetricsProvider):
                 "fields": "reach,impressions,frequency",
                 "time_range": time_range,
             }
-            resp = await client.get(url, headers=_auth_headers(access_token), params=params)
+            resp = await client.get(
+                url, headers=_auth_headers(access_token), params=params
+            )
             _raise_for_meta_error(resp, "meta_ads_period")
 
             data = resp.json().get("data", [])
@@ -234,15 +263,17 @@ class MetaProvider(BaseMetricsProvider):
                 for field in ("reach", "frequency"):
                     val = row.get(field)
                     if val is not None:
-                        metrics.append(ExtractedMetric(
-                            provider="meta",
-                            channel_slug="meta-ads",
-                            metric_name=field,
-                            value=float(val),
-                            unit="count" if field == "reach" else "ratio",
-                            date=period_start,
-                            extra={"period_exact": True},
-                        ))
+                        metrics.append(
+                            ExtractedMetric(
+                                provider="meta",
+                                channel_slug="meta-ads",
+                                metric_name=field,
+                                value=float(val),
+                                unit="count" if field == "reach" else "ratio",
+                                date=period_start,
+                                extra={"period_exact": True},
+                            )
+                        )
 
         return metrics
 
@@ -262,13 +293,16 @@ class MetaProvider(BaseMetricsProvider):
             logger.warning("meta_provider_no_access_token tenant=%s", tenant_id)
             return ExtractionResult()
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         failures = []
         async with httpx.AsyncClient(timeout=30.0) as client:
             if stage == "nurturing":
                 ig_metrics, fail = await self._safe_extract(
                     self._extract_meta_retargeting,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="meta_retargeting",
                 )
                 metrics.extend(ig_metrics)
@@ -277,7 +311,10 @@ class MetaProvider(BaseMetricsProvider):
             else:
                 ig_metrics, fail = await self._safe_extract(
                     self._extract_instagram_organic,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="instagram_organic",
                 )
                 metrics.extend(ig_metrics)
@@ -286,7 +323,10 @@ class MetaProvider(BaseMetricsProvider):
 
                 fb_metrics, fail = await self._safe_extract(
                     self._extract_facebook_organic,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="facebook_organic",
                 )
                 metrics.extend(fb_metrics)
@@ -295,7 +335,10 @@ class MetaProvider(BaseMetricsProvider):
 
                 ads_metrics, fail = await self._safe_extract(
                     self._extract_meta_ads,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="meta_ads",
                 )
                 metrics.extend(ads_metrics)
@@ -304,7 +347,10 @@ class MetaProvider(BaseMetricsProvider):
 
                 campaigns_metrics, fail = await self._safe_extract(
                     self._extract_meta_ads_campaigns,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="meta_ads_campaigns",
                 )
                 metrics.extend(campaigns_metrics)
@@ -313,7 +359,10 @@ class MetaProvider(BaseMetricsProvider):
 
                 breakdowns_metrics, fail = await self._safe_extract(
                     self._extract_meta_ads_breakdowns,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="meta_ads_breakdowns",
                 )
                 metrics.extend(breakdowns_metrics)
@@ -350,7 +399,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract Instagram organic metrics (15 metrics, 3-4 API calls)."""
         access_token = credentials.get("access_token", "")
         ig_account_id = (
@@ -362,7 +411,7 @@ class MetaProvider(BaseMetricsProvider):
             return []
 
         headers = _auth_headers(access_token)
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
 
         # ── Call 1: Account Insights (total_value format, ≤30-day chunks) ──
         # Meta API with metric_type=total_value returns {total_value: {value: N}}
@@ -395,9 +444,7 @@ class MetaProvider(BaseMetricsProvider):
                 if not metric_name:
                     continue
 
-                val = float(
-                    item.get("total_value", {}).get("value", 0)
-                )
+                val = float(item.get("total_value", {}).get("value", 0))
                 if api_name in self._IG_NON_AGGREGABLE:
                     last_values[metric_name] = val
                 else:
@@ -498,10 +545,12 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract Facebook page organic reach and engagement."""
         page_id = credentials.get("page_id")
-        page_token = credentials.get("page_access_token", credentials.get("access_token", ""))
+        page_token = credentials.get(
+            "page_access_token", credentials.get("access_token", "")
+        )
         if not page_id:
             return []
 
@@ -525,9 +574,7 @@ class MetaProvider(BaseMetricsProvider):
         _raise_for_meta_error(reach_resp, "fb_organic_reach")
         reach_data = reach_resp.json().get("data", [])
         total_reach = sum(
-            v.get("value", 0)
-            for item in reach_data
-            for v in item.get("values", [])
+            v.get("value", 0) for item in reach_data for v in item.get("values", [])
         )
 
         # Page post engagements
@@ -578,7 +625,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract Meta Ads retargeting metrics (adsets with custom_audiences).
 
         Filters to adsets that target custom audiences (audience-first classification
@@ -601,7 +648,9 @@ class MetaProvider(BaseMetricsProvider):
             headers=headers,
             params={
                 "fields": "id,name,targeting,insights.time_range("
-                + json.dumps({"since": start_date.isoformat(), "until": end_date.isoformat()})
+                + json.dumps(
+                    {"since": start_date.isoformat(), "until": end_date.isoformat()}
+                )
                 + "){reach,clicks,spend}",
                 "limit": 200,
             },
@@ -656,7 +705,9 @@ class MetaProvider(BaseMetricsProvider):
 
     @staticmethod
     def _parse_ads_row(
-        data: dict, currency: str, metric_date: date,
+        data: dict,
+        currency: str,
+        metric_date: date,
     ) -> list["ExtractedMetric"]:
         """Parse a single Ads Insights API row into ExtractedMetric list.
 
@@ -677,38 +728,54 @@ class MetaProvider(BaseMetricsProvider):
             ("spend", "spend", "currency", currency),
             ("inline_link_clicks", "meta_inline_link_clicks", "count", None),
             ("inline_post_engagement", "meta_post_engagement", "count", None),
-            ("cost_per_inline_link_click", "meta_cost_per_link_click", "currency", currency),
+            (
+                "cost_per_inline_link_click",
+                "meta_cost_per_link_click",
+                "currency",
+                currency,
+            ),
         ]
         for api_field, metric_name, unit, cur in _SIMPLE_FIELDS:
             val = data.get(api_field)
             if val is not None:
-                metrics.append(ExtractedMetric(
-                    provider="meta",
-                    channel_slug="meta-ads",
-                    metric_name=metric_name,
-                    value=float(val),
-                    unit=unit,
-                    currency=cur,
-                    date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="meta-ads",
+                        metric_name=metric_name,
+                        value=float(val),
+                        unit=unit,
+                        currency=cur,
+                        date=metric_date,
+                    )
+                )
 
         # B) Outbound clicks (list of AdsActionStats)
         for entry in data.get("outbound_clicks", []):
             if entry.get("action_type") == "outbound_click":
-                metrics.append(ExtractedMetric(
-                    provider="meta", channel_slug="meta-ads",
-                    metric_name="meta_outbound_clicks",
-                    value=float(entry.get("value", 0)),
-                    unit="count", date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="meta-ads",
+                        metric_name="meta_outbound_clicks",
+                        value=float(entry.get("value", 0)),
+                        unit="count",
+                        date=metric_date,
+                    )
+                )
         for entry in data.get("cost_per_outbound_click", []):
             if entry.get("action_type") == "outbound_click":
-                metrics.append(ExtractedMetric(
-                    provider="meta", channel_slug="meta-ads",
-                    metric_name="meta_cost_per_outbound_click",
-                    value=float(entry.get("value", 0)),
-                    unit="currency", currency=currency, date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="meta-ads",
+                        metric_name="meta_cost_per_outbound_click",
+                        value=float(entry.get("value", 0)),
+                        unit="currency",
+                        currency=currency,
+                        date=metric_date,
+                    )
+                )
 
         # C) Actions → expanded conversions (using _META_ACTION_MAP)
         action_counts: dict[str, float] = defaultdict(float)
@@ -718,11 +785,16 @@ class MetaProvider(BaseMetricsProvider):
             if mapped:
                 action_counts[mapped] += float(action.get("value", 0))
         for mapped_name, value in action_counts.items():
-            metrics.append(ExtractedMetric(
-                provider="meta", channel_slug="meta-ads",
-                metric_name=mapped_name,
-                value=value, unit="count", date=metric_date,
-            ))
+            metrics.append(
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="meta-ads",
+                    metric_name=mapped_name,
+                    value=value,
+                    unit="count",
+                    date=metric_date,
+                )
+            )
 
         # D) Action values → monetary conversion value
         for entry in data.get("action_values", []):
@@ -730,12 +802,17 @@ class MetaProvider(BaseMetricsProvider):
                 "offsite_conversion.fb_pixel_purchase",
                 "onsite_conversion.purchase",
             ):
-                metrics.append(ExtractedMetric(
-                    provider="meta", channel_slug="meta-ads",
-                    metric_name="meta_conversion_value",
-                    value=float(entry.get("value", 0)),
-                    unit="currency", currency=currency, date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="meta-ads",
+                        metric_name="meta_conversion_value",
+                        value=float(entry.get("value", 0)),
+                        unit="currency",
+                        currency=currency,
+                        date=metric_date,
+                    )
+                )
 
         # E) Cost per action type
         for entry in data.get("cost_per_action_type", []):
@@ -744,29 +821,43 @@ class MetaProvider(BaseMetricsProvider):
                 "offsite_conversion.fb_pixel_purchase",
                 "onsite_conversion.purchase",
             ):
-                metrics.append(ExtractedMetric(
-                    provider="meta", channel_slug="meta-ads",
-                    metric_name="meta_cost_per_purchase",
-                    value=float(entry.get("value", 0)),
-                    unit="currency", currency=currency, date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="meta-ads",
+                        metric_name="meta_cost_per_purchase",
+                        value=float(entry.get("value", 0)),
+                        unit="currency",
+                        currency=currency,
+                        date=metric_date,
+                    )
+                )
             elif action_type in ("offsite_conversion.fb_pixel_lead", "lead"):
-                metrics.append(ExtractedMetric(
-                    provider="meta", channel_slug="meta-ads",
-                    metric_name="meta_cost_per_lead",
-                    value=float(entry.get("value", 0)),
-                    unit="currency", currency=currency, date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="meta-ads",
+                        metric_name="meta_cost_per_lead",
+                        value=float(entry.get("value", 0)),
+                        unit="currency",
+                        currency=currency,
+                        date=metric_date,
+                    )
+                )
 
         # F) ROAS
         for entry in data.get("purchase_roas", []):
             if entry.get("action_type") == "omni_purchase":
-                metrics.append(ExtractedMetric(
-                    provider="meta", channel_slug="meta-ads",
-                    metric_name="meta_purchase_roas",
-                    value=float(entry.get("value", 0)),
-                    unit="ratio", date=metric_date,
-                ))
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="meta-ads",
+                        metric_name="meta_purchase_roas",
+                        value=float(entry.get("value", 0)),
+                        unit="ratio",
+                        date=metric_date,
+                    )
+                )
 
         # G) Video metrics
         _VIDEO_FIELDS = [
@@ -781,12 +872,16 @@ class MetaProvider(BaseMetricsProvider):
             for entry in data.get(api_field, []):
                 if entry.get("action_type") == "video_view":
                     unit = "seconds" if "avg" in api_field else "count"
-                    metrics.append(ExtractedMetric(
-                        provider="meta", channel_slug="meta-ads",
-                        metric_name=metric_name,
-                        value=float(entry.get("value", 0)),
-                        unit=unit, date=metric_date,
-                    ))
+                    metrics.append(
+                        ExtractedMetric(
+                            provider="meta",
+                            channel_slug="meta-ads",
+                            metric_name=metric_name,
+                            value=float(entry.get("value", 0)),
+                            unit=unit,
+                            date=metric_date,
+                        )
+                    )
 
         return metrics
 
@@ -796,7 +891,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract Meta Ads account-level metrics."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -845,13 +940,16 @@ class MetaProvider(BaseMetricsProvider):
             logger.warning("meta_provider_no_access_token tenant=%s", tenant_id)
             return ExtractionResult()
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         failures = []
         async with httpx.AsyncClient(timeout=30.0) as client:
             if stage == "nurturing":
                 m, fail = await self._safe_extract(
                     self._extract_meta_retargeting_daily,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="meta_retargeting_daily",
                 )
                 metrics.extend(m)
@@ -860,7 +958,10 @@ class MetaProvider(BaseMetricsProvider):
             else:
                 ig, fail = await self._safe_extract(
                     self._extract_instagram_organic_daily,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="instagram_organic_daily",
                 )
                 metrics.extend(ig)
@@ -869,7 +970,10 @@ class MetaProvider(BaseMetricsProvider):
 
                 fb, fail = await self._safe_extract(
                     self._extract_facebook_organic_daily,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="facebook_organic_daily",
                 )
                 metrics.extend(fb)
@@ -878,7 +982,10 @@ class MetaProvider(BaseMetricsProvider):
 
                 ads, fail = await self._safe_extract(
                     self._extract_meta_ads_daily,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="meta_ads_daily",
                 )
                 metrics.extend(ads)
@@ -887,7 +994,10 @@ class MetaProvider(BaseMetricsProvider):
 
                 camps, fail = await self._safe_extract(
                     self._extract_meta_ads_campaigns_daily,
-                    client, credentials, start_date, end_date,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
                     extractor_name="meta_ads_campaigns_daily",
                 )
                 metrics.extend(camps)
@@ -902,7 +1012,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Parse IG insights values[] array to emit one metric per day per metric."""
         access_token = credentials.get("access_token", "")
         ig_account_id = (
@@ -914,7 +1024,7 @@ class MetaProvider(BaseMetricsProvider):
             return []
 
         headers = _auth_headers(access_token)
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
 
         # ── Call 1: Account Insights per day (total_value format) ──
         # metric_type=total_value returns {total_value: {value: N}} not values[].
@@ -945,9 +1055,7 @@ class MetaProvider(BaseMetricsProvider):
                 if not metric_name:
                     continue
 
-                val = float(
-                    item.get("total_value", {}).get("value", 0)
-                )
+                val = float(item.get("total_value", {}).get("value", 0))
                 metrics.append(
                     ExtractedMetric(
                         provider="meta",
@@ -1032,15 +1140,17 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Parse FB insights values[] array to emit per-day metrics."""
         page_id = credentials.get("page_id")
-        page_token = credentials.get("page_access_token", credentials.get("access_token", ""))
+        page_token = credentials.get(
+            "page_access_token", credentials.get("access_token", "")
+        )
         if not page_id:
             return []
 
         headers = _auth_headers(page_token)
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
 
         for metric_name, channel_metric in [
             ("page_impressions_unique", "reach"),
@@ -1067,9 +1177,7 @@ class MetaProvider(BaseMetricsProvider):
                 for v in item.get("values", []):
                     end_time = v.get("end_time", "")
                     try:
-                        metric_date = datetime.fromisoformat(
-                            end_time.replace("Z", "+00:00")
-                        ).date()
+                        metric_date = datetime.fromisoformat(end_time).date()
                     except (ValueError, AttributeError):
                         continue
                     metrics.append(
@@ -1090,7 +1198,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Use time_increment=1 to get per-day Ads breakdowns."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -1118,7 +1226,7 @@ class MetaProvider(BaseMetricsProvider):
         _raise_for_meta_error(response, "meta_ads_insights_daily")
         rows = response.json().get("data", [])
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for row in rows:
             date_str = row.get("date_start", "")
             try:
@@ -1137,7 +1245,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract Meta Ads metrics at campaign level."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -1165,7 +1273,7 @@ class MetaProvider(BaseMetricsProvider):
         _raise_for_meta_error(response, "meta_ads_campaigns")
         rows = response.json().get("data", [])
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for row in rows:
             campaign_id = row.get("campaign_id")
             parsed = self._parse_ads_row(row, currency, end_date)
@@ -1180,7 +1288,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract Meta Ads campaign-level metrics with daily granularity."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -1209,7 +1317,7 @@ class MetaProvider(BaseMetricsProvider):
         _raise_for_meta_error(response, "meta_ads_campaigns_daily")
         rows = response.json().get("data", [])
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for row in rows:
             date_str = row.get("date_start", "")
             try:
@@ -1233,7 +1341,7 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract demographic and placement breakdowns for Meta Ads."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -1245,7 +1353,7 @@ class MetaProvider(BaseMetricsProvider):
             {"since": start_date.isoformat(), "until": end_date.isoformat()}
         )
         fields = ",".join(self._BREAKDOWN_METRICS)
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
 
         breakdown_configs = [
             ("age", "age"),
@@ -1308,9 +1416,9 @@ class MetaProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Iterate day by day calling _extract_meta_retargeting for each day."""
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         current = start_date
         while current <= end_date:
             day_metrics = await self._extract_meta_retargeting(

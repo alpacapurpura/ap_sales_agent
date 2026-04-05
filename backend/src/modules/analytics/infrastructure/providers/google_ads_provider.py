@@ -11,13 +11,11 @@ Uses GoogleAdsAdapter.run_gaql_query() wrapped in asyncio.to_thread()
 """
 
 import os
-
-import structlog
 from collections import defaultdict
 from datetime import date
-from typing import Dict, List
 from uuid import UUID
 
+import structlog
 from google.auth.exceptions import RefreshError, TransportError
 
 from src.modules.analytics.domain.exceptions import ConnectionRevokedException
@@ -103,7 +101,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         adapter = GoogleAdsAdapter()
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         failures = []
 
         try:
@@ -158,7 +156,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Run the main GAQL campaign query and aggregate by channel or retargeting."""
         rows = await adapter.run_gaql_query(
             customer_id=customer_id,
@@ -182,7 +180,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         credentials: dict,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract top search terms as a JSON snapshot metric."""
         search_terms = await adapter.run_search_terms_query(
             customer_id=customer_id,
@@ -215,8 +213,8 @@ class GoogleAdsProvider(BaseMetricsProvider):
         ]
 
     def _aggregate_retargeting(
-        self, rows: List[dict], metric_date: date
-    ) -> List[ExtractedMetric]:
+        self, rows: list[dict], metric_date: date
+    ) -> list[ExtractedMetric]:
         """Aggregate remarketing campaign rows into google-retargeting slug.
 
         Filters campaigns with 'remarketing' or 'retargeting' in name.
@@ -261,17 +259,23 @@ class GoogleAdsProvider(BaseMetricsProvider):
         ]
 
     def _aggregate_by_channel(
-        self, rows: List[dict], metric_date: date
-    ) -> List[ExtractedMetric]:
+        self, rows: list[dict], metric_date: date
+    ) -> list[ExtractedMetric]:
         """Aggregate campaign rows into google-ads and yt-ads slugs."""
-        channel_data: Dict[str, Dict[str, float]] = {
+        channel_data: dict[str, dict[str, float]] = {
             "google-ads": {
-                "impressions": 0.0, "clicks": 0.0, "conversions": 0.0,
-                "spend": 0.0, "conversion_value": 0.0,
+                "impressions": 0.0,
+                "clicks": 0.0,
+                "conversions": 0.0,
+                "spend": 0.0,
+                "conversion_value": 0.0,
             },
             "yt-ads": {
-                "impressions": 0.0, "clicks": 0.0, "conversions": 0.0,
-                "spend": 0.0, "conversion_value": 0.0,
+                "impressions": 0.0,
+                "clicks": 0.0,
+                "conversions": 0.0,
+                "spend": 0.0,
+                "conversion_value": 0.0,
             },
         }
 
@@ -288,7 +292,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 row.get("conversions_value", 0)
             )
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for slug, data in channel_data.items():
             # Skip slugs with zero activity
             if all(v == 0.0 for v in data.values()):
@@ -378,7 +382,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Run the daily GAQL campaign query and aggregate per-day."""
         rows = await adapter.run_gaql_query(
             customer_id=customer_id,
@@ -392,12 +396,12 @@ class GoogleAdsProvider(BaseMetricsProvider):
             return []
 
         # Group rows by date, then aggregate
-        by_date: Dict[str, List[dict]] = defaultdict(list)
+        by_date: dict[str, list[dict]] = defaultdict(list)
         for row in rows:
             date_str = row.get("segments_date", row.get("date", ""))
             by_date[date_str].append(row)
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for date_str, day_rows in by_date.items():
             try:
                 metric_date = date.fromisoformat(date_str)

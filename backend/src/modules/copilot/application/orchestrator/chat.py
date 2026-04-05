@@ -4,7 +4,7 @@ CopilotOrchestrator — Manages conversation state and streams responses via SSE
 
 import json
 import uuid
-from typing import AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
 from uuid import UUID
 
 import structlog
@@ -44,8 +44,8 @@ class CopilotOrchestrator:
         user_id: UUID,
         tenant_id: UUID,
         message: str,
-        conversation_id: Optional[str] = None,
-        context: Optional[ClientContextDTO] = None,
+        conversation_id: str | None = None,
+        context: ClientContextDTO | None = None,
     ) -> AsyncGenerator[str, None]:
         """
         Process a user message and yield SSE events.
@@ -67,7 +67,10 @@ class CopilotOrchestrator:
         # 2. Build state
         client_ctx = {
             "current_route": context.current_route if context else None,
-            "selected_fields": [f.model_dump() if hasattr(f, "model_dump") else f for f in (context.selected_fields if context else [])],
+            "selected_fields": [
+                f.model_dump() if hasattr(f, "model_dump") else f
+                for f in (context.selected_fields if context else [])
+            ],
             "form_data": context.form_data if context else {},
             "locale": context.locale if context else "es",
         }
@@ -81,7 +84,7 @@ class CopilotOrchestrator:
 
         # 3. Load conversation history from Redis (fast) or DB (fallback)
         history_messages = self._load_history(conv_id, tenant_id, existing_conv)
-        state["messages"] = history_messages + [HumanMessage(content=message)]
+        state["messages"] = [*history_messages, HumanMessage(content=message)]
 
         # 4. Emit status: thinking
         yield SSEEvent(event="status", data={"state": "thinking"}).to_sse()
@@ -94,9 +97,7 @@ class CopilotOrchestrator:
             yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
 
             # Use astream_events for granular streaming
-            async for event in copilot_graph.astream_events(
-                state, version="v2"
-            ):
+            async for event in copilot_graph.astream_events(state, version="v2"):
                 kind = event.get("event")
 
                 # Stream text chunks from the LLM
@@ -137,7 +138,11 @@ class CopilotOrchestrator:
                     elif isinstance(tool_output, str):
                         tool_call_id = last_tool_call_ids.pop(tool_name, "")
                         accumulated_messages.append(
-                            ToolMessage(content=tool_output, name=tool_name, tool_call_id=tool_call_id)
+                            ToolMessage(
+                                content=tool_output,
+                                name=tool_name,
+                                tool_call_id=tool_call_id,
+                            )
                         )
 
                     yield SSEEvent(
@@ -165,7 +170,9 @@ class CopilotOrchestrator:
             logger.error("copilot_stream_error", error=str(e), conversation_id=conv_id)
             yield SSEEvent(
                 event="error",
-                data={"message": "Ocurrió un error procesando tu mensaje. Intenta de nuevo."},
+                data={
+                    "message": "Ocurrió un error procesando tu mensaje. Intenta de nuevo."
+                },
             ).to_sse()
             full_response = ""
             accumulated_messages = []
@@ -173,7 +180,7 @@ class CopilotOrchestrator:
         # 6. Persist messages (full chain including tool_calls)
         if full_response or accumulated_messages:
             new_messages = self._serialize_messages(
-                [HumanMessage(content=message)] + accumulated_messages
+                [HumanMessage(content=message), *accumulated_messages]
             )
             # Fallback: if no accumulated messages, persist simple format
             if not accumulated_messages:
@@ -220,7 +227,7 @@ class CopilotOrchestrator:
                         REDIS_CONV_TTL,
                         json.dumps(conv_model.messages, ensure_ascii=False),
                     )
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
             return self._deserialize_messages(conv_model.messages)
 
@@ -263,12 +270,14 @@ class CopilotOrchestrator:
                     ]
                 result.append(d)
             elif isinstance(msg, ToolMessage):
-                result.append({
-                    "role": "tool",
-                    "content": msg.content,
-                    "tool_call_id": msg.tool_call_id,
-                    "name": msg.name,
-                })
+                result.append(
+                    {
+                        "role": "tool",
+                        "content": msg.content,
+                        "tool_call_id": msg.tool_call_id,
+                        "name": msg.name,
+                    }
+                )
         return result
 
     @staticmethod
@@ -286,13 +295,17 @@ class CopilotOrchestrator:
                 result.append(HumanMessage(content=content))
             elif role == "assistant":
                 if msg.get("tool_calls"):
-                    result.append(AIMessage(content=content, tool_calls=msg["tool_calls"]))
+                    result.append(
+                        AIMessage(content=content, tool_calls=msg["tool_calls"])
+                    )
                 else:
                     result.append(AIMessage(content=content))
             elif role == "tool":
-                result.append(ToolMessage(
-                    content=content,
-                    tool_call_id=msg.get("tool_call_id", ""),
-                    name=msg.get("name", ""),
-                ))
+                result.append(
+                    ToolMessage(
+                        content=content,
+                        tool_call_id=msg.get("tool_call_id", ""),
+                        name=msg.get("name", ""),
+                    )
+                )
         return result

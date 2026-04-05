@@ -10,7 +10,6 @@ All queries use SQLAlchemy 2.0 select() syntax with tenant_id isolation.
 """
 
 from datetime import datetime
-from typing import Dict, List, Tuple
 from uuid import UUID
 
 from sqlalchemy import distinct, func, select
@@ -22,7 +21,6 @@ from src.modules.crm.infrastructure.models.customer_model import (
     JourneyEventModel,
 )
 from src.modules.crm.infrastructure.models.sale_model import SaleModel
-
 
 # Lifecycle stages that represent post-purchase customers
 _CUSTOMER_STAGES = [
@@ -43,7 +41,7 @@ class AdoptionMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> List[Tuple]:
+    ) -> list[tuple]:
         """Count active vs inactive customers grouped by offer_id.
 
         Joins SaleModel (CONVERSION + COMPLETED) with CustomerProfileModel
@@ -81,7 +79,7 @@ class AdoptionMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Average Time-to-Value per offer_id.
 
         TTV = days from first_conversion_at to first post-purchase journey_event.
@@ -125,8 +123,7 @@ class AdoptionMetricsRepository:
                 SaleModel.stage == SaleStage.CONVERSION,
                 SaleModel.status == SaleStatus.COMPLETED,
                 CustomerProfileModel.first_conversion_at.isnot(None),
-                first_event.c.first_event_at
-                > CustomerProfileModel.first_conversion_at,
+                first_event.c.first_event_at > CustomerProfileModel.first_conversion_at,
             )
             .group_by(SaleModel.offer_id)
         )
@@ -142,30 +139,24 @@ class AdoptionMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         """Return (total_customers, total_sales_count) for MiniFunnel.
 
         total_customers: distinct profiles with lifecycle_stage in CUSTOMER/EVANGELIST/CHURNED
         total_sales_count: count of CONVERSION + COMPLETED sales
         """
         # Total customers
-        cust_stmt = (
-            select(func.count(distinct(CustomerProfileModel.id)))
-            .where(
-                CustomerProfileModel.tenant_id == tenant_id,
-                CustomerProfileModel.lifecycle_stage.in_(_CUSTOMER_STAGES),
-            )
+        cust_stmt = select(func.count(distinct(CustomerProfileModel.id))).where(
+            CustomerProfileModel.tenant_id == tenant_id,
+            CustomerProfileModel.lifecycle_stage.in_(_CUSTOMER_STAGES),
         )
         total_customers = self.db.execute(cust_stmt).scalar() or 0
 
         # Total sales count (CONVERSION + COMPLETED)
-        sales_stmt = (
-            select(func.count(SaleModel.id))
-            .where(
-                SaleModel.tenant_id == tenant_id,
-                SaleModel.stage == SaleStage.CONVERSION,
-                SaleModel.status == SaleStatus.COMPLETED,
-            )
+        sales_stmt = select(func.count(SaleModel.id)).where(
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.stage == SaleStage.CONVERSION,
+            SaleModel.status == SaleStatus.COMPLETED,
         )
         total_sales = self.db.execute(sales_stmt).scalar() or 0
 
@@ -176,7 +167,7 @@ class AdoptionMetricsRepository:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Tuple[int, float, str]:
+    ) -> tuple[int, float, str]:
         """Return (refund_count, refund_total_amount, currency) for refunded sales.
 
         Source-agnostic per CONTEXT.md -- no filtering by source column.

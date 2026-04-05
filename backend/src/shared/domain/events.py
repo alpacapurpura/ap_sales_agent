@@ -11,11 +11,13 @@ Usage:
     # Publish with immediate dispatch (no DB context)
     EventBus.publish(event, session=None)
 """
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
-from uuid import UUID
+
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Any
+from uuid import UUID
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +25,11 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DomainEvent:
     """Base domain event. All cross-module events extend this."""
+
     event_name: str
     tenant_id: UUID
-    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    payload: Dict[str, Any] = field(default_factory=dict)
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    payload: dict[str, Any] = field(default_factory=dict)
 
 
 class EventBus:
@@ -36,7 +39,7 @@ class EventBus:
     Handler exceptions are caught and logged, never propagated to the publisher.
     """
 
-    _handlers: Dict[str, List[Callable]] = {}
+    _handlers: dict[str, list[Callable]] = {}
 
     @classmethod
     def subscribe(cls, event_name: str, handler: Callable) -> None:
@@ -44,7 +47,7 @@ class EventBus:
         cls._handlers.setdefault(event_name, []).append(handler)
 
     @classmethod
-    def publish(cls, event: DomainEvent, session: Optional[Any] = None) -> None:
+    def publish(cls, event: DomainEvent, session: Any | None = None) -> None:
         """Publish an event.
 
         If session is provided, dispatch is deferred until after session.commit().

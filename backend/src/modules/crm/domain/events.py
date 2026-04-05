@@ -4,8 +4,8 @@ CRM-specific domain events.
 Typed event classes for cross-module communication via the shared EventBus.
 Each event has a factory classmethod that sets event_name automatically.
 """
+
 from dataclasses import dataclass
-from typing import Optional
 from uuid import UUID
 
 from src.shared.domain.events import DomainEvent
@@ -65,7 +65,7 @@ class ChurnEvent(DomainEvent):
         profile_id: UUID,
         source: str,
         subscription_id: str,
-        cancellation_reason: Optional[str] = None,
+        cancellation_reason: str | None = None,
     ) -> "ChurnEvent":
         """Factory method. Sets event_name='churn_detected' automatically."""
         return cls(
@@ -142,7 +142,7 @@ class AppointmentEvent(DomainEvent):
         lead_id: UUID,
         appointment_id: UUID,
         appointment_status: str,
-        email: Optional[str] = None,
+        email: str | None = None,
     ) -> "AppointmentEvent":
         """Factory method. Maps appointment status to event_name automatically."""
         event_names = {
@@ -152,7 +152,9 @@ class AppointmentEvent(DomainEvent):
             "CANCELLED": "appointment_cancelled",
         }
         return cls(
-            event_name=event_names.get(appointment_status, f"appointment_{appointment_status.lower()}"),
+            event_name=event_names.get(
+                appointment_status, f"appointment_{appointment_status.lower()}"
+            ),
             tenant_id=tenant_id,
             payload={
                 "lead_id": str(lead_id),

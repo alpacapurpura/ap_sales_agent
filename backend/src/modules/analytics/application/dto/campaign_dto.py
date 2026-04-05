@@ -2,25 +2,27 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class CampaignDTO(BaseModel):
     external_id: str
     name: str
-    objective: Optional[str] = None
-    status: Optional[str] = None
-    effective_status: Optional[str] = None
-    bid_strategy: Optional[str] = None
-    daily_budget: Optional[int] = None
-    lifetime_budget: Optional[int] = None
-    budget_remaining: Optional[int] = None
-    buying_type: Optional[str] = None
-    start_time: Optional[datetime] = None
-    stop_time: Optional[datetime] = None
+    objective: str | None = None
+    status: str | None = None
+    effective_status: str | None = None
+    bid_strategy: str | None = None
+    daily_budget: int | None = None
+    lifetime_budget: int | None = None
+    budget_remaining: int | None = None
+    buying_type: str | None = None
+    start_time: datetime | None = None
+    stop_time: datetime | None = None
     ad_sets_count: int = 0
     ads_count: int = 0
 
@@ -29,35 +31,35 @@ class AdSetDTO(BaseModel):
     external_id: str
     campaign_external_id: str
     name: str
-    status: Optional[str] = None
-    effective_status: Optional[str] = None
-    optimization_goal: Optional[str] = None
-    targeting_summary: Optional[dict] = None
-    learning_stage: Optional[str] = None
-    daily_budget: Optional[int] = None
+    status: str | None = None
+    effective_status: str | None = None
+    optimization_goal: str | None = None
+    targeting_summary: dict | None = None
+    learning_stage: str | None = None
+    daily_budget: int | None = None
     ads_count: int = 0
 
 
 class AdDTO(BaseModel):
     external_id: str
     name: str
-    status: Optional[str] = None
-    effective_status: Optional[str] = None
-    creative_thumbnail_url: Optional[str] = None
-    creative_title: Optional[str] = None
-    creative_cta: Optional[str] = None
-    preview_shareable_link: Optional[str] = None
+    status: str | None = None
+    effective_status: str | None = None
+    creative_thumbnail_url: str | None = None
+    creative_title: str | None = None
+    creative_cta: str | None = None
+    preview_shareable_link: str | None = None
 
 
 class RecommendationDTO(BaseModel):
     recommendation_type: str
     source: str
-    title: Optional[str] = None
-    body: Optional[str] = None
-    importance: Optional[str] = None
-    lift_estimate: Optional[str] = None
-    opportunity_score: Optional[float] = None
-    url: Optional[str] = None
+    title: str | None = None
+    body: str | None = None
+    importance: str | None = None
+    lift_estimate: str | None = None
+    opportunity_score: float | None = None
+    url: str | None = None
     object_ids: list = []
 
 
@@ -66,4 +68,4 @@ class CampaignOverviewDTO(BaseModel):
     recommendations: list[RecommendationDTO]
     total_campaigns: int
     active_campaigns: int
-    last_synced: Optional[datetime] = None
+    last_synced: datetime | None = None

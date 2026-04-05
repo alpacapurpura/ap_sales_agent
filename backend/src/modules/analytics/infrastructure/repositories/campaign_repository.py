@@ -6,7 +6,6 @@ Uses raw SQL for COALESCE-based ON CONFLICT (matching existing metric pattern).
 
 import json
 import logging
-from typing import List
 from uuid import UUID
 
 from sqlalchemy import text
@@ -63,30 +62,37 @@ class CampaignRepository:
     """)
 
     async def upsert_campaigns(
-        self, tenant_id: UUID, campaigns: List[dict],
+        self,
+        tenant_id: UUID,
+        campaigns: list[dict],
     ) -> int:
         count = 0
         for c in campaigns:
-            await self._session.execute(self._UPSERT_CAMPAIGN_SQL, {
-                "tenant_id": str(tenant_id),
-                "provider": c.get("provider", "meta"),
-                "external_id": c["external_id"],
-                "name": c.get("name", ""),
-                "objective": c.get("objective"),
-                "status": c.get("status"),
-                "effective_status": c.get("effective_status"),
-                "bid_strategy": c.get("bid_strategy"),
-                "daily_budget": c.get("daily_budget"),
-                "lifetime_budget": c.get("lifetime_budget"),
-                "budget_remaining": c.get("budget_remaining"),
-                "buying_type": c.get("buying_type", "AUCTION"),
-                "special_ad_categories": json.dumps(c.get("special_ad_categories", [])),
-                "start_time": c.get("start_time"),
-                "stop_time": c.get("stop_time"),
-                "external_created_time": c.get("external_created_time"),
-                "external_updated_time": c.get("external_updated_time"),
-                "extra": json.dumps(c.get("extra", {})),
-            })
+            await self._session.execute(
+                self._UPSERT_CAMPAIGN_SQL,
+                {
+                    "tenant_id": str(tenant_id),
+                    "provider": c.get("provider", "meta"),
+                    "external_id": c["external_id"],
+                    "name": c.get("name", ""),
+                    "objective": c.get("objective"),
+                    "status": c.get("status"),
+                    "effective_status": c.get("effective_status"),
+                    "bid_strategy": c.get("bid_strategy"),
+                    "daily_budget": c.get("daily_budget"),
+                    "lifetime_budget": c.get("lifetime_budget"),
+                    "budget_remaining": c.get("budget_remaining"),
+                    "buying_type": c.get("buying_type", "AUCTION"),
+                    "special_ad_categories": json.dumps(
+                        c.get("special_ad_categories", [])
+                    ),
+                    "start_time": c.get("start_time"),
+                    "stop_time": c.get("stop_time"),
+                    "external_created_time": c.get("external_created_time"),
+                    "external_updated_time": c.get("external_updated_time"),
+                    "extra": json.dumps(c.get("extra", {})),
+                },
+            )
             count += 1
         return count
 
@@ -131,31 +137,36 @@ class CampaignRepository:
     """)
 
     async def upsert_ad_sets(
-        self, tenant_id: UUID, ad_sets: List[dict],
+        self,
+        tenant_id: UUID,
+        ad_sets: list[dict],
     ) -> int:
         count = 0
         for a in ad_sets:
-            await self._session.execute(self._UPSERT_ADSET_SQL, {
-                "tenant_id": str(tenant_id),
-                "provider": a.get("provider", "meta"),
-                "external_id": a["external_id"],
-                "campaign_external_id": a["campaign_external_id"],
-                "name": a.get("name", ""),
-                "status": a.get("status"),
-                "effective_status": a.get("effective_status"),
-                "optimization_goal": a.get("optimization_goal"),
-                "billing_event": a.get("billing_event"),
-                "bid_strategy": a.get("bid_strategy"),
-                "daily_budget": a.get("daily_budget"),
-                "lifetime_budget": a.get("lifetime_budget"),
-                "budget_remaining": a.get("budget_remaining"),
-                "targeting": json.dumps(a.get("targeting", {})),
-                "destination_type": a.get("destination_type"),
-                "learning_stage": a.get("learning_stage"),
-                "start_time": a.get("start_time"),
-                "end_time": a.get("end_time"),
-                "extra": json.dumps(a.get("extra", {})),
-            })
+            await self._session.execute(
+                self._UPSERT_ADSET_SQL,
+                {
+                    "tenant_id": str(tenant_id),
+                    "provider": a.get("provider", "meta"),
+                    "external_id": a["external_id"],
+                    "campaign_external_id": a["campaign_external_id"],
+                    "name": a.get("name", ""),
+                    "status": a.get("status"),
+                    "effective_status": a.get("effective_status"),
+                    "optimization_goal": a.get("optimization_goal"),
+                    "billing_event": a.get("billing_event"),
+                    "bid_strategy": a.get("bid_strategy"),
+                    "daily_budget": a.get("daily_budget"),
+                    "lifetime_budget": a.get("lifetime_budget"),
+                    "budget_remaining": a.get("budget_remaining"),
+                    "targeting": json.dumps(a.get("targeting", {})),
+                    "destination_type": a.get("destination_type"),
+                    "learning_stage": a.get("learning_stage"),
+                    "start_time": a.get("start_time"),
+                    "end_time": a.get("end_time"),
+                    "extra": json.dumps(a.get("extra", {})),
+                },
+            )
             count += 1
         return count
 
@@ -201,30 +212,35 @@ class CampaignRepository:
     """)
 
     async def upsert_ads(
-        self, tenant_id: UUID, ads: List[dict],
+        self,
+        tenant_id: UUID,
+        ads: list[dict],
     ) -> int:
         count = 0
         for ad in ads:
-            await self._session.execute(self._UPSERT_AD_SQL, {
-                "tenant_id": str(tenant_id),
-                "provider": ad.get("provider", "meta"),
-                "external_id": ad["external_id"],
-                "campaign_external_id": ad["campaign_external_id"],
-                "ad_set_external_id": ad["ad_set_external_id"],
-                "name": ad.get("name", ""),
-                "status": ad.get("status"),
-                "effective_status": ad.get("effective_status"),
-                "creative_id": ad.get("creative_id"),
-                "creative_thumbnail_url": ad.get("creative_thumbnail_url"),
-                "creative_image_url": ad.get("creative_image_url"),
-                "creative_video_id": ad.get("creative_video_id"),
-                "creative_title": ad.get("creative_title"),
-                "creative_body": ad.get("creative_body"),
-                "creative_cta": ad.get("creative_cta"),
-                "creative_link_url": ad.get("creative_link_url"),
-                "preview_shareable_link": ad.get("preview_shareable_link"),
-                "extra": json.dumps(ad.get("extra", {})),
-            })
+            await self._session.execute(
+                self._UPSERT_AD_SQL,
+                {
+                    "tenant_id": str(tenant_id),
+                    "provider": ad.get("provider", "meta"),
+                    "external_id": ad["external_id"],
+                    "campaign_external_id": ad["campaign_external_id"],
+                    "ad_set_external_id": ad["ad_set_external_id"],
+                    "name": ad.get("name", ""),
+                    "status": ad.get("status"),
+                    "effective_status": ad.get("effective_status"),
+                    "creative_id": ad.get("creative_id"),
+                    "creative_thumbnail_url": ad.get("creative_thumbnail_url"),
+                    "creative_image_url": ad.get("creative_image_url"),
+                    "creative_video_id": ad.get("creative_video_id"),
+                    "creative_title": ad.get("creative_title"),
+                    "creative_body": ad.get("creative_body"),
+                    "creative_cta": ad.get("creative_cta"),
+                    "creative_link_url": ad.get("creative_link_url"),
+                    "preview_shareable_link": ad.get("preview_shareable_link"),
+                    "extra": json.dumps(ad.get("extra", {})),
+                },
+            )
             count += 1
         return count
 
@@ -248,34 +264,41 @@ class CampaignRepository:
     """)
 
     async def upsert_recommendations(
-        self, tenant_id: UUID, recommendations: List[dict],
+        self,
+        tenant_id: UUID,
+        recommendations: list[dict],
     ) -> int:
         count = 0
         for r in recommendations:
-            await self._session.execute(self._UPSERT_RECOMMENDATION_SQL, {
-                "tenant_id": str(tenant_id),
-                "provider": r.get("provider", "meta"),
-                "source": r.get("source", "account"),
-                "recommendation_type": r["recommendation_type"],
-                "object_ids": json.dumps(r.get("object_ids", [])),
-                "title": r.get("title"),
-                "body": r.get("body"),
-                "blame_field": r.get("blame_field"),
-                "importance": r.get("importance"),
-                "confidence": r.get("confidence"),
-                "lift_estimate": r.get("lift_estimate"),
-                "opportunity_score": r.get("opportunity_score"),
-                "url": r.get("url"),
-                "recommendation_signature": r.get("recommendation_signature"),
-                "extra": json.dumps(r.get("extra", {})),
-            })
+            await self._session.execute(
+                self._UPSERT_RECOMMENDATION_SQL,
+                {
+                    "tenant_id": str(tenant_id),
+                    "provider": r.get("provider", "meta"),
+                    "source": r.get("source", "account"),
+                    "recommendation_type": r["recommendation_type"],
+                    "object_ids": json.dumps(r.get("object_ids", [])),
+                    "title": r.get("title"),
+                    "body": r.get("body"),
+                    "blame_field": r.get("blame_field"),
+                    "importance": r.get("importance"),
+                    "confidence": r.get("confidence"),
+                    "lift_estimate": r.get("lift_estimate"),
+                    "opportunity_score": r.get("opportunity_score"),
+                    "url": r.get("url"),
+                    "recommendation_signature": r.get("recommendation_signature"),
+                    "extra": json.dumps(r.get("extra", {})),
+                },
+            )
             count += 1
         return count
 
     # ── Queries ──
 
     async def get_campaigns(
-        self, tenant_id: UUID, provider: str = "meta",
+        self,
+        tenant_id: UUID,
+        provider: str = "meta",
     ) -> list:
         result = await self._session.execute(
             text("""
@@ -290,7 +313,9 @@ class CampaignRepository:
         return [dict(row._mapping) for row in result.fetchall()]
 
     async def get_ad_sets(
-        self, tenant_id: UUID, campaign_external_id: str,
+        self,
+        tenant_id: UUID,
+        campaign_external_id: str,
     ) -> list:
         result = await self._session.execute(
             text("""
@@ -305,7 +330,9 @@ class CampaignRepository:
         return [dict(row._mapping) for row in result.fetchall()]
 
     async def get_ads(
-        self, tenant_id: UUID, ad_set_external_id: str,
+        self,
+        tenant_id: UUID,
+        ad_set_external_id: str,
     ) -> list:
         result = await self._session.execute(
             text("""
@@ -320,7 +347,9 @@ class CampaignRepository:
         return [dict(row._mapping) for row in result.fetchall()]
 
     async def get_recommendations(
-        self, tenant_id: UUID, provider: str = "meta",
+        self,
+        tenant_id: UUID,
+        provider: str = "meta",
     ) -> list:
         result = await self._session.execute(
             text("""
@@ -336,7 +365,11 @@ class CampaignRepository:
         return [dict(row._mapping) for row in result.fetchall()]
 
     async def soft_delete_stale(
-        self, tenant_id: UUID, provider: str, table: str, active_external_ids: list,
+        self,
+        tenant_id: UUID,
+        provider: str,
+        table: str,
+        active_external_ids: list,
     ) -> int:
         """Soft-delete entities no longer returned by the API."""
         if not active_external_ids:
@@ -345,14 +378,16 @@ class CampaignRepository:
         params: dict = {"tenant_id": str(tenant_id), "provider": provider}
         params.update({f"id_{i}": eid for i, eid in enumerate(active_external_ids)})
         result = await self._session.execute(
-            text(f"""
+            text(
+                f"""
                 UPDATE {table}
                 SET deleted_at = NOW(), updated_at = NOW()
                 WHERE tenant_id = :tenant_id
                   AND provider = :provider
                   AND deleted_at IS NULL
                   AND external_id NOT IN ({placeholders})
-            """),
+            """  # noqa: S608 — table is a trusted internal constant, not user input
+            ),
             params,
         )
         return result.rowcount

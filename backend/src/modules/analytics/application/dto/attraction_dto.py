@@ -6,8 +6,6 @@ the first metric's value (or 0.0 when empty) so callers migrating
 incrementally keep working.
 """
 
-from typing import Optional
-
 from pydantic import BaseModel, computed_field
 
 
@@ -24,14 +22,14 @@ class MetricValueDTO(BaseModel):
     name: str
     value: float
     unit: str = "count"
-    currency: Optional[str] = None
-    breakdown: Optional[dict] = None
+    currency: str | None = None
+    breakdown: dict | None = None
 
 
 class SubSourceDTO(BaseModel):
     """Breakdown of a unified channel by data source (e.g., Meta Direct vs ManyChat)."""
 
-    name: str    # "Meta Direct", "ManyChat"
+    name: str  # "Meta Direct", "ManyChat"
     leads: int
     conversations: int = 0
 
@@ -52,19 +50,19 @@ class ChannelMetricDTO(BaseModel):
     connected: bool
 
     # ETL-enriched fields (backward-compatible defaults)
-    cost_type: Optional[str] = None
-    last_updated: Optional[str] = None
+    cost_type: str | None = None
+    last_updated: str | None = None
 
     # Error / staleness indicators
     stale: bool = False
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
     # Source attribution — display which specific property/channel/page data comes from
-    source_display_name: Optional[str] = None  # "Visionarias_Lat", "Visionarias Latam"
-    provider_name: Optional[str] = None         # "google_analytics", "youtube", "meta"
+    source_display_name: str | None = None  # "Visionarias_Lat", "Visionarias Latam"
+    provider_name: str | None = None  # "google_analytics", "youtube", "meta"
 
     # Sub-source breakdown (e.g., Meta Direct + ManyChat for unified IG DM card)
-    sub_sources: Optional[list["SubSourceDTO"]] = None
+    sub_sources: list["SubSourceDTO"] | None = None
 
     @computed_field  # type: ignore[misc]
     @property
@@ -104,7 +102,7 @@ class AttractionDetailDTO(BaseModel):
     ga4_search: TrafficGroupDTO
     paid: TrafficGroupDTO
     outbound: TrafficGroupDTO
-    website: Optional[TrafficGroupDTO] = None
-    available: Optional[AvailableChannelsDTO] = None
+    website: TrafficGroupDTO | None = None
+    available: AvailableChannelsDTO | None = None
     period: str = "last_30_days"
-    last_updated: Optional[str] = None
+    last_updated: str | None = None

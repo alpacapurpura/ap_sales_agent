@@ -8,7 +8,6 @@ This mapping drives how each metric is classified in dashboard rollups:
 """
 
 import logging
-from typing import Optional
 
 from src.modules.analytics.domain.enums import CostType
 
@@ -54,7 +53,7 @@ COST_TYPE_MAP: dict[tuple[str, str], CostType] = {
 }
 
 
-def get_cost_type(channel_slug: str, stage_slug: str) -> Optional[CostType]:
+def get_cost_type(channel_slug: str, stage_slug: str) -> CostType | None:
     """Look up the CostType for a (channel, stage) pair.
 
     Returns None and logs a warning for unmapped pairs so new channels

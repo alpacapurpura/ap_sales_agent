@@ -1,18 +1,22 @@
 """Streamlit admin module for Copilot Knowledge Base monitoring."""
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-from src.modules.copilot.infrastructure.knowledge.vector_store import CopilotKnowledgeStore
-from src.modules.copilot.application.services.knowledge_ingestion import KnowledgeIngestionService
-from src.admin.modules._shared import render_tenant_selector, get_tenant_name
+from src.admin.modules._shared import get_tenant_name, render_tenant_selector
+from src.modules.copilot.application.services.knowledge_ingestion import (
+    KnowledgeIngestionService,
+)
+from src.modules.copilot.infrastructure.knowledge.vector_store import (
+    CopilotKnowledgeStore,
+)
 
 
 def get_store() -> CopilotKnowledgeStore:
     return CopilotKnowledgeStore()
 
 
-def render_knowledge_page():
+def render_knowledge_page():  # noqa: C901
     st.title("🧠 Knowledge Base — Copilot")
 
     # ── Guia contextual permanente ──
@@ -37,14 +41,18 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
 **conoce el negocio de cada cliente** y puede dar respuestas contextuales e informadas.
 """)
 
-    tab_overview, tab_dashboard, tab_explore, tab_search, tab_ingest, tab_delete = st.tabs([
-        "🌐 Vista General",
-        "📊 Dashboard",
-        "📋 Explorar Documentos",
-        "🔍 Buscar",
-        "📥 Ingestar Docs",
-        "🗑️ Eliminar",
-    ])
+    tab_overview, tab_dashboard, tab_explore, tab_search, tab_ingest, tab_delete = (
+        st.tabs(
+            [
+                "🌐 Vista General",
+                "📊 Dashboard",
+                "📋 Explorar Documentos",
+                "🔍 Buscar",
+                "📥 Ingestar Docs",
+                "🗑️ Eliminar",
+            ]
+        )
+    )
 
     # --- TAB 0: Vista General ---
     with tab_overview:
@@ -60,6 +68,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
             if all_docs:
                 # Group by tenant + scope
                 from collections import defaultdict
+
                 groups = defaultdict(lambda: {"docs": set(), "chunks": 0, "last": None})
                 for doc in all_docs:
                     key = (doc.get("tenant_id", "?"), doc.get("scope", "?"))
@@ -68,14 +77,18 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
 
                 rows = []
                 for (tid, scope), info in sorted(groups.items()):
-                    rows.append({
-                        "Tenant": get_tenant_name(tid),
-                        "Scope": scope,
-                        "Documentos": len(info["docs"]),
-                        "Chunks": info["chunks"],
-                    })
+                    rows.append(
+                        {
+                            "Tenant": get_tenant_name(tid),
+                            "Scope": scope,
+                            "Documentos": len(info["docs"]),
+                            "Chunks": info["chunks"],
+                        }
+                    )
 
-                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                st.dataframe(
+                    pd.DataFrame(rows), use_container_width=True, hide_index=True
+                )
                 st.caption(f"Total: {len(all_docs)} chunks")
             else:
                 st.info("No hay documentos indexados.")
@@ -85,7 +98,9 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
     # --- TAB 1: Dashboard ---
     with tab_dashboard:
         st.header("Stats de Colección")
-        st.caption("Health check tecnico: verifica que Qdrant (motor de busqueda vectorial) esta funcionando y cuantos vectores hay.")
+        st.caption(
+            "Health check tecnico: verifica que Qdrant (motor de busqueda vectorial) esta funcionando y cuantos vectores hay."
+        )
         try:
             store = get_store()
             stats = store.get_collection_stats()
@@ -111,10 +126,14 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
 
         col1, col2 = st.columns(2)
         with col1:
-            explore_tid = render_tenant_selector(key="kb_explore_tenant", allow_all=True)
+            explore_tid = render_tenant_selector(
+                key="kb_explore_tenant", allow_all=True
+            )
             tenant_filter = str(explore_tid) if explore_tid else None
         with col2:
-            scope_filter = st.selectbox("Scope", ["all", "help", "business"], key="explore_scope")
+            scope_filter = st.selectbox(
+                "Scope", ["all", "help", "business"], key="explore_scope"
+            )
 
         explore_limit = st.slider("Límite", 10, 500, 100, key="explore_limit")
 
@@ -122,7 +141,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
             try:
                 store = get_store()
                 docs = store.list_documents(
-                    tenant_id=tenant_filter if tenant_filter else None,
+                    tenant_id=tenant_filter or None,
                     scope=scope_filter if scope_filter != "all" else None,
                     limit=explore_limit,
                 )
@@ -149,7 +168,9 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
             search_tid = render_tenant_selector(key="kb_search_tenant", allow_all=False)
             search_tenant = str(search_tid) if search_tid else ""
         with col2:
-            search_scope = st.selectbox("Scope", ["all", "help", "business"], key="search_scope")
+            search_scope = st.selectbox(
+                "Scope", ["all", "help", "business"], key="search_scope"
+            )
 
         if st.button("Buscar", key="search_btn") and search_query and search_tenant:
             try:
@@ -168,7 +189,9 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                         source = meta.get("source", "—")
                         scope_val = meta.get("scope", "—")
 
-                        with st.expander(f"#{i+1} — Score: {score:.4f} | {source} ({scope_val})"):
+                        with st.expander(
+                            f"#{i + 1} — Score: {score:.4f} | {source} ({scope_val})"
+                        ):
                             st.write(text)
                             st.json(meta)
                 else:
@@ -191,9 +214,15 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
         with st.form("ingest_form", clear_on_submit=True):
             ingest_tid = render_tenant_selector(key="kb_ingest_tenant", allow_all=False)
             ingest_tenant = str(ingest_tid) if ingest_tid else ""
-            ingest_scope = st.selectbox("Scope", ["help", "business"], key="ingest_scope")
-            ingest_source = st.text_input("Source Label", value="upload", key="ingest_source")
-            uploaded_file = st.file_uploader("Archivo (PDF/DOCX/TXT/MD)", type=["pdf", "docx", "txt", "md"])
+            ingest_scope = st.selectbox(
+                "Scope", ["help", "business"], key="ingest_scope"
+            )
+            ingest_source = st.text_input(
+                "Source Label", value="upload", key="ingest_source"
+            )
+            uploaded_file = st.file_uploader(
+                "Archivo (PDF/DOCX/TXT/MD)", type=["pdf", "docx", "txt", "md"]
+            )
 
             submitted = st.form_submit_button("Ingestar")
             if submitted and uploaded_file and ingest_tenant:
@@ -203,10 +232,16 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                     filename = uploaded_file.name.lower()
 
                     if filename.endswith(".pdf"):
-                        from src.shared.infrastructure.files.file_parsing_service import FileParsingService
+                        from src.shared.infrastructure.files.file_parsing_service import (
+                            FileParsingService,
+                        )
+
                         text = FileParsingService.parse_pdf(content_bytes)
                     elif filename.endswith(".docx"):
-                        from src.shared.infrastructure.files.file_parsing_service import FileParsingService
+                        from src.shared.infrastructure.files.file_parsing_service import (
+                            FileParsingService,
+                        )
+
                         text = FileParsingService.parse_docx(content_bytes)
                     else:
                         try:
@@ -222,7 +257,9 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                             source=ingest_source,
                             scope=ingest_scope,
                         )
-                        st.success(f"✅ Documento ingestado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}")
+                        st.success(
+                            f"✅ Documento ingestado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}"
+                        )
                     else:
                         st.warning("No se pudo extraer texto del archivo.")
                 except Exception as e:
@@ -238,9 +275,13 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                 service = KnowledgeIngestionService()
                 result = service.ingest_product_summary(auto_tenant)
                 if result["chunks_indexed"] > 0:
-                    st.success(f"✅ Auto-resumen generado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}")
+                    st.success(
+                        f"✅ Auto-resumen generado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}"
+                    )
                 else:
-                    st.warning("No se encontraron datos del tenant para generar resumen.")
+                    st.warning(
+                        "No se encontraron datos del tenant para generar resumen."
+                    )
             except Exception as e:
                 st.error(f"Error: {e}")
 
@@ -258,7 +299,9 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
         del_doc_id = st.text_input("Document ID", key="del_doc_id")
 
         if st.button("🗑️ Eliminar", key="del_btn") and del_tenant and del_doc_id:
-            confirm = st.checkbox("Confirmo que quiero eliminar este documento", key="del_confirm")
+            confirm = st.checkbox(
+                "Confirmo que quiero eliminar este documento", key="del_confirm"
+            )
             if confirm:
                 try:
                     service = KnowledgeIngestionService()

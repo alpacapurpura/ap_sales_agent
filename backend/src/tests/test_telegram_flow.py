@@ -5,9 +5,11 @@ type errors, and constraint violations BEFORE manual testing.
 
 Run: docker exec visionarias_brain_dev pytest src/tests/test_telegram_flow.py -v
 """
+
 import socket
-import pytest
 import uuid
+
+import pytest
 
 
 def _postgres_available() -> bool:
@@ -25,21 +27,39 @@ if not _postgres_available():
     )
 
 from uuid import UUID  # noqa: E402
+
 from sqlalchemy import text  # noqa: E402
 
-from src.core.database import SessionLocal  # noqa: E402
-from src.modules.crm.infrastructure.repositories.customer_repository import CustomerRepository  # noqa: E402
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import LeadRepository  # noqa: E402
-from src.modules.crm.application.services.identity_service import IdentityService  # noqa: E402
-from src.modules.crm.domain.enums import IdentityType, LifecycleStage  # noqa: E402
-from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel, CustomerIdentityModel  # noqa: E402
-from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository  # noqa: E402
 from src.core.context import set_tenant_id  # noqa: E402
-# Import all related models so SQLAlchemy can resolve relationships
-from src.modules.iam.infrastructure.models.tenant_model import TenantModel  # noqa: F401, E402
-from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel  # noqa: F401, E402
-from src.modules.sales_agent.infrastructure.models.message_model import MessageModel  # noqa: F401, E402
+from src.core.database import SessionLocal  # noqa: E402
+from src.modules.crm.application.services.identity_service import (  # noqa: E402
+    IdentityService,
+)
+from src.modules.crm.domain.enums import IdentityType, LifecycleStage  # noqa: E402
+from src.modules.crm.infrastructure.models.customer_model import (  # noqa: E402
+    CustomerIdentityModel,
+    CustomerProfileModel,
+)
+from src.modules.crm.infrastructure.repositories.customer_repository import (  # noqa: E402
+    CustomerRepository,
+)
+from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (  # noqa: E402
+    LeadRepository,
+)
 
+# Import all related models so SQLAlchemy can resolve relationships
+from src.modules.iam.infrastructure.models.tenant_model import (  # noqa: E402, F401
+    TenantModel,
+)
+from src.modules.sales_agent.infrastructure.memory.audit_repository import (  # noqa: E402
+    AuditRepository,
+)
+from src.modules.sales_agent.infrastructure.models.message_model import (  # noqa: E402, F401
+    MessageModel,
+)
+from src.modules.scheduling.infrastructure.models.appointment_model import (  # noqa: E402, F401
+    AppointmentModel,
+)
 
 TENANT_ID = UUID("6347e21e-8112-4aa1-80d3-6adaa73bf6f9")
 
@@ -58,18 +78,27 @@ def cleanup_test_data(db):
     test_user_id = f"test_{uuid.uuid4().hex[:8]}"
     yield test_user_id
     # Cleanup: remove test data created during the test
-    db.execute(text(
-        "DELETE FROM messages WHERE user_id IN "
-        "(SELECT id FROM leads WHERE telegram_id = :tid)"
-    ), {"tid": test_user_id})
-    db.execute(text("DELETE FROM leads WHERE telegram_id = :tid"), {"tid": test_user_id})
-    db.execute(text(
-        "DELETE FROM customer_identities WHERE value = :tid"
-    ), {"tid": test_user_id})
-    db.execute(text(
-        "DELETE FROM customer_profiles WHERE id IN "
-        "(SELECT profile_id FROM customer_identities WHERE value = :tid)"
-    ), {"tid": test_user_id})
+    db.execute(
+        text(
+            "DELETE FROM messages WHERE user_id IN "
+            "(SELECT id FROM leads WHERE telegram_id = :tid)"
+        ),
+        {"tid": test_user_id},
+    )
+    db.execute(
+        text("DELETE FROM leads WHERE telegram_id = :tid"), {"tid": test_user_id}
+    )
+    db.execute(
+        text("DELETE FROM customer_identities WHERE value = :tid"),
+        {"tid": test_user_id},
+    )
+    db.execute(
+        text(
+            "DELETE FROM customer_profiles WHERE id IN "
+            "(SELECT profile_id FROM customer_identities WHERE value = :tid)"
+        ),
+        {"tid": test_user_id},
+    )
     db.commit()
 
 
@@ -93,7 +122,7 @@ class TestStep1_IdentityResolution:
         """Unknown channels should fall back to EXTERNAL_ID."""
         try:
             IdentityType("unknown_channel")
-            assert False, "Should have raised ValueError"
+            raise AssertionError("Should have raised ValueError")
         except ValueError:
             identity_type = IdentityType.EXTERNAL_ID
             assert identity_type == IdentityType.EXTERNAL_ID
@@ -117,8 +146,8 @@ class TestStep2_CustomerProfileCreation:
             profile_data={
                 "first_name": "Test",
                 "last_name": "User",
-                "traits": {"source": "telegram"}
-            }
+                "traits": {"source": "telegram"},
+            },
         )
 
         assert customer is not None
@@ -126,10 +155,14 @@ class TestStep2_CustomerProfileCreation:
         assert customer.tenant_id == TENANT_ID
 
         # Verify identity was created
-        identity = db.query(CustomerIdentityModel).filter(
-            CustomerIdentityModel.value == test_user_id,
-            CustomerIdentityModel.tenant_id == TENANT_ID
-        ).first()
+        identity = (
+            db.query(CustomerIdentityModel)
+            .filter(
+                CustomerIdentityModel.value == test_user_id,
+                CustomerIdentityModel.tenant_id == TENANT_ID,
+            )
+            .first()
+        )
         assert identity is not None
         assert identity.profile_id == customer.id
 
@@ -146,7 +179,7 @@ class TestStep2_CustomerProfileCreation:
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
-            profile_data={"first_name": "Test", "last_name": "User", "traits": {}}
+            profile_data={"first_name": "Test", "last_name": "User", "traits": {}},
         )
 
         # Second call should find existing
@@ -154,10 +187,12 @@ class TestStep2_CustomerProfileCreation:
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
-            profile_data={"first_name": "Test", "last_name": "User", "traits": {}}
+            profile_data={"first_name": "Test", "last_name": "User", "traits": {}},
         )
 
-        assert customer1.id == customer2.id, "Should return same customer, not create duplicate"
+        assert customer1.id == customer2.id, (
+            "Should return same customer, not create duplicate"
+        )
 
     def test_lifecycle_stage_default(self, db, cleanup_test_data):
         """New customer should get SUBSCRIBER lifecycle stage (tests enum compatibility)."""
@@ -171,13 +206,15 @@ class TestStep2_CustomerProfileCreation:
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
-            profile_data={"first_name": "Test", "last_name": "Enum", "traits": {}}
+            profile_data={"first_name": "Test", "last_name": "Enum", "traits": {}},
         )
 
         # Verify the DB accepted the lifecycle_stage enum value
-        profile = db.query(CustomerProfileModel).filter(
-            CustomerProfileModel.id == customer.id
-        ).first()
+        profile = (
+            db.query(CustomerProfileModel)
+            .filter(CustomerProfileModel.id == customer.id)
+            .first()
+        )
         assert profile is not None
         assert profile.lifecycle_stage == LifecycleStage.SUBSCRIBER
 
@@ -198,7 +235,7 @@ class TestStep3_LeadCreation:
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
-            profile_data={"first_name": "Test", "last_name": "Lead", "traits": {}}
+            profile_data={"first_name": "Test", "last_name": "Lead", "traits": {}},
         )
 
         # Simulate orchestrator flow: get_active_lead -> create_lead
@@ -206,9 +243,7 @@ class TestStep3_LeadCreation:
         assert user is None, "No lead should exist yet"
 
         user = lead_repo.create_lead(
-            customer_id=customer.id,
-            channel="telegram",
-            channel_user_id=test_user_id
+            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
         )
 
         assert user is not None
@@ -228,21 +263,17 @@ class TestStep3_LeadCreation:
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
-            profile_data={"first_name": "Test", "last_name": "Dup", "traits": {}}
+            profile_data={"first_name": "Test", "last_name": "Dup", "traits": {}},
         )
 
         # Create first lead
         lead1 = lead_repo.create_lead(
-            customer_id=customer.id,
-            channel="telegram",
-            channel_user_id=test_user_id
+            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
         )
 
         # Create second lead with same telegram_id — should return existing
         lead2 = lead_repo.create_lead(
-            customer_id=customer.id,
-            channel="telegram",
-            channel_user_id=test_user_id
+            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
         )
 
         assert lead1.id == lead2.id, "Should return same lead, not create duplicate"
@@ -265,13 +296,11 @@ class TestStep4_AuditLogging:
             tenant_id=TENANT_ID,
             identity_type=IdentityType.TELEGRAM,
             identity_value=test_user_id,
-            profile_data={"first_name": "Test", "last_name": "Audit", "traits": {}}
+            profile_data={"first_name": "Test", "last_name": "Audit", "traits": {}},
         )
 
         user = lead_repo.create_lead(
-            customer_id=customer.id,
-            channel="telegram",
-            channel_user_id=test_user_id
+            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
         )
 
         # Log message
@@ -279,7 +308,7 @@ class TestStep4_AuditLogging:
             user_id=user.id,
             role="user",
             content="Hola, quiero información",
-            channel="telegram"
+            channel="telegram",
         )
 
         # Retrieve
@@ -332,8 +361,8 @@ class TestStep5_FullFlowIntegration:
             profile_data={
                 "first_name": metadata.get("first_name"),
                 "last_name": metadata.get("last_name"),
-                "traits": metadata
-            }
+                "traits": metadata,
+            },
         )
         assert customer is not None
         assert customer.full_name == "Integration Test"
@@ -345,7 +374,7 @@ class TestStep5_FullFlowIntegration:
             user = lead_repo.create_lead(
                 customer_id=customer.id,
                 channel=channel_type,
-                channel_user_id=test_user_id
+                channel_user_id=test_user_id,
             )
         assert user is not None
         assert user.telegram_id == test_user_id
@@ -353,10 +382,7 @@ class TestStep5_FullFlowIntegration:
         # Step 4: Log message
         audit_repo = AuditRepository(db)
         audit_repo.log_message(
-            user_id=user.id,
-            role="user",
-            content="hola amiga",
-            channel=channel_type
+            user_id=user.id, role="user", content="hola amiga", channel=channel_type
         )
 
         # Step 5: Session state
@@ -374,8 +400,8 @@ class TestStep5_FullFlowIntegration:
             profile_data={
                 "first_name": metadata.get("first_name"),
                 "last_name": metadata.get("last_name"),
-                "traits": metadata
-            }
+                "traits": metadata,
+            },
         )
         assert customer2.id == customer.id, "Second message should find same customer"
 

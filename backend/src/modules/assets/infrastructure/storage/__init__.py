@@ -12,4 +12,9 @@ def get_storage_strategy() -> StorageStrategy:
     return LocalStorageStrategy()
 
 
-__all__ = ["StorageStrategy", "LocalStorageStrategy", "R2StorageStrategy", "get_storage_strategy"]
+__all__ = [
+    "LocalStorageStrategy",
+    "R2StorageStrategy",
+    "StorageStrategy",
+    "get_storage_strategy",
+]

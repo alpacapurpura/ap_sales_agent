@@ -6,7 +6,7 @@ The X-Tenant-ID header is required. In Phase 1 it will be injected by the
 Cloudflare Worker that resolves custom domains. Until then clients must
 supply it explicitly.
 """
-from typing import Optional
+
 from uuid import UUID
 
 import structlog
@@ -41,7 +41,7 @@ class PublicLandingResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    offer_id: Optional[UUID] = None
+    offer_id: UUID | None = None
     slug: str
     config: LandingPageConfig
     is_published: bool
@@ -64,7 +64,7 @@ class PublicLandingResponse(BaseModel):
 )
 def get_public_landing(
     slug: str,
-    x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-ID"),
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-ID"),
     db: Session = Depends(get_db),
 ) -> PublicLandingResponse:
     """Return a landing page by slug scoped to the given tenant.

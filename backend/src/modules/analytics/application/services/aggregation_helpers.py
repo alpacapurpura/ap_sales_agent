@@ -6,7 +6,7 @@ Used by metrics_service.py to aggregate channel metrics into group totals.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 logger = structlog.get_logger(__name__)
 
 
-def compute_channel_totals(channels: "List[ChannelMetricDTO]") -> Dict[str, float]:
+def compute_channel_totals(channels: list[ChannelMetricDTO]) -> dict[str, float]:
     """Compute totals across a list of channels, skipping non-additive metrics.
 
     For ADDITIVE metrics: sum values across channels (clicks, spend, sessions).
@@ -32,7 +32,7 @@ def compute_channel_totals(channels: "List[ChannelMetricDTO]") -> Dict[str, floa
     Returns:
         Dict mapping metric name to total value (ADDITIVE only).
     """
-    totals: Dict[str, float] = defaultdict(float)
+    totals: dict[str, float] = defaultdict(float)
     skipped: set[str] = set()
 
     for ch in channels:

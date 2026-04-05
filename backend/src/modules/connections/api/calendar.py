@@ -1,25 +1,38 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
-from sqlalchemy.orm import Session
-from sqlalchemy import select
 import datetime
-from typing import List, Optional
+import secrets
+
 import structlog
+from fastapi import APIRouter, Body, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.channels.google_calendar import (
+    GoogleCalendarAdapter,
+)
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
+from src.modules.crm.domain.lead import Lead
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.shared.links.models import ShareableLink
-from src.modules.scheduling.infrastructure.models.booking_link import BookingLink
-from src.modules.crm.domain.lead import Lead
-import secrets
-from src.modules.connections.infrastructure.channels.google_calendar import GoogleCalendarAdapter
-from src.modules.scheduling.application.services.availability_service import AvailabilityService
-from src.shared.links.service import LinkService
-from src.modules.scheduling.domain.availability_schema import AvailabilitySchedule, ScheduleUpdate
-from src.modules.scheduling.api.dto.calendar import CalendarStatusResponse, BookMeetingRequest, CreateBookingLinkRequest
+from src.modules.scheduling.api.dto.calendar import (
+    BookMeetingRequest,
+    CalendarStatusResponse,
+    CreateBookingLinkRequest,
+)
 from src.modules.scheduling.application.booking_url import get_booking_base_url
+from src.modules.scheduling.application.services.availability_service import (
+    AvailabilityService,
+)
+from src.modules.scheduling.domain.availability_schema import (
+    AvailabilitySchedule,
+    ScheduleUpdate,
+)
+from src.modules.scheduling.infrastructure.models.booking_link import BookingLink
+from src.shared.links.models import ShareableLink
+from src.shared.links.service import LinkService
 
 router = APIRouter(tags=["calendar"])
 logger = structlog.get_logger()
@@ -31,7 +44,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 @router.get("/auth-url")
 async def get_auth_url(
-    redirect_uri: Optional[str] = None,
+    redirect_uri: str | None = None,
     user: User = Depends(get_current_user),
 ):
     url, state = GoogleCalendarAdapter.get_authorization_url(redirect_uri)
@@ -41,7 +54,7 @@ async def get_auth_url(
 @router.post("/callback")
 async def oauth_callback(
     code: str = Body(..., embed=True),
-    redirect_uri: Optional[str] = Body(None, embed=True),
+    redirect_uri: str | None = Body(None, embed=True),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -127,12 +140,18 @@ async def create_personalized_link(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    lead = db.query(Lead).filter(Lead.id == payload.lead_id, Lead.tenant_id == user.tenant_id).first()
+    lead = (
+        db.query(Lead)
+        .filter(Lead.id == payload.lead_id, Lead.tenant_id == user.tenant_id)
+        .first()
+    )
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
 
     token = secrets.token_urlsafe(16)
-    expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=payload.expiration_days)
+    expires_at = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
+        days=payload.expiration_days
+    )
 
     link = BookingLink(
         tenant_id=user.tenant_id,
@@ -161,7 +180,9 @@ async def disconnect(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
-    connection = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.GOOGLE_CALENDAR)
+    connection = repo.get_by_tenant_and_type(
+        user.tenant_id, ChannelType.GOOGLE_CALENDAR
+    )
     if connection:
         repo.deactivate(connection)
     return {"status": "disconnected"}
@@ -179,7 +200,7 @@ async def test_connection(
 
     try:
         adapter = GoogleCalendarAdapter(connection.credentials)
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         end = now + datetime.timedelta(days=1)
         busy = adapter.list_busy_periods(now, end)
         return {
@@ -255,7 +276,8 @@ async def list_appointments(
 
 # --- Availability Management Endpoints ---
 
-@router.get("/schedules", response_model=List[AvailabilitySchedule])
+
+@router.get("/schedules", response_model=list[AvailabilitySchedule])
 async def list_schedules(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -297,5 +319,7 @@ async def delete_schedule(
     service = AvailabilityService(db, user.tenant_id)
     deleted = service.delete_schedule(schedule_id)
     if not deleted:
-        raise HTTPException(status_code=404, detail="Schedule not found or is last remaining")
+        raise HTTPException(
+            status_code=404, detail="Schedule not found or is last remaining"
+        )
     return {"status": "deleted"}

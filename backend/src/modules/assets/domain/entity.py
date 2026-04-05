@@ -1,39 +1,44 @@
-from typing import Optional, List, Dict, Any
-from pydantic import Field
-from uuid import UUID
 from datetime import datetime
+from typing import Any
+from uuid import UUID
+
+from pydantic import Field
+
+from src.modules.assets.domain.enums import AssetStatus, AssetType, StorageProvider
 from src.shared.domain.base_entity import BaseEntity
-from src.modules.assets.domain.enums import AssetType, StorageProvider, AssetStatus
+
 
 class Asset(BaseEntity):
     """
     Asset Domain Model.
     """
+
     id: UUID
-    tenant_id: Optional[UUID] = None
-    offer_id: Optional[UUID] = None # Now Optional
-    
+    tenant_id: UUID | None = None
+    offer_id: UUID | None = None  # Now Optional
+
     type: str = AssetType.IMAGE.value
     filename: str
-    mime_type: Optional[str] = None
-    
+    mime_type: str | None = None
+
     storage_provider: str = StorageProvider.LOCAL.value
-    storage_path: Optional[str] = None # Internal path
+    storage_path: str | None = None  # Internal path
     public_url: str
-    
-    user_description: Optional[str] = None
-    
+
+    user_description: str | None = None
+
     # AI Metadata
-    ai_metadata: Dict[str, Any] = Field(default_factory=dict)
+    ai_metadata: dict[str, Any] = Field(default_factory=dict)
     # Legacy fields mapping
-    ai_description: Optional[str] = None
-    ai_colors: List[str] = Field(default_factory=list)
-    
+    ai_description: str | None = None
+    ai_colors: list[str] = Field(default_factory=list)
+
     status: str = AssetStatus.PROCESSING.value
-    error_message: Optional[str] = None
-    
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    error_message: str | None = None
+
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
 
 # Alias for backward compatibility (Deprecated)
 GalleryImage = Asset

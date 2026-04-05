@@ -4,15 +4,13 @@ Concrete providers (Meta, Google, TikTok, etc.) register themselves here.
 The ETL pipeline uses get_provider() to resolve the correct adapter at runtime.
 """
 
-from typing import Dict, Type
-
 from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
 
 # Maps provider name strings (e.g. "meta", "google_analytics") to provider classes
-PROVIDER_REGISTRY: Dict[str, Type[BaseMetricsProvider]] = {}
+PROVIDER_REGISTRY: dict[str, type[BaseMetricsProvider]] = {}
 
 
-def register_provider(name: str, cls: Type[BaseMetricsProvider]) -> None:
+def register_provider(name: str, cls: type[BaseMetricsProvider]) -> None:
     """Register a provider adapter class under the given name.
 
     Args:
@@ -38,8 +36,7 @@ def get_provider(provider_name: str) -> BaseMetricsProvider:
     if cls is None:
         registered = ", ".join(sorted(PROVIDER_REGISTRY.keys())) or "(none)"
         raise ValueError(
-            f"Unknown provider: '{provider_name}'. "
-            f"Registered providers: {registered}"
+            f"Unknown provider: '{provider_name}'. Registered providers: {registered}"
         )
     return cls()
 
@@ -50,17 +47,39 @@ def _register_all() -> None:
     Uses late-binding imports to avoid circular imports and ensure
     providers are registered at module import time.
     """
-    from src.modules.analytics.infrastructure.providers.meta_provider import MetaProvider
-    from src.modules.analytics.infrastructure.providers.google_analytics_provider import GoogleAnalyticsProvider
-    from src.modules.analytics.infrastructure.providers.google_ads_provider import GoogleAdsProvider
-    from src.modules.analytics.infrastructure.providers.tiktok_provider import TikTokProvider
-    from src.modules.analytics.infrastructure.providers.youtube_provider import YouTubeProvider
-    from src.modules.analytics.infrastructure.providers.crm_internal_provider import CRMInternalProvider
-    from src.modules.analytics.infrastructure.providers.shopify_provider import ShopifyProvider
-    from src.modules.analytics.infrastructure.providers.manychat_provider import ManyChatProvider
-    from src.modules.analytics.infrastructure.providers.mailerlite_provider import MailerLiteProvider
-    from src.modules.analytics.infrastructure.providers.meta_pixel_provider import MetaPixelProvider
-    from src.modules.analytics.infrastructure.providers.search_console_provider import SearchConsoleProvider
+    from src.modules.analytics.infrastructure.providers.crm_internal_provider import (
+        CRMInternalProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.google_ads_provider import (
+        GoogleAdsProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.google_analytics_provider import (
+        GoogleAnalyticsProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+        MailerLiteProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.manychat_provider import (
+        ManyChatProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.meta_pixel_provider import (
+        MetaPixelProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.meta_provider import (
+        MetaProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.search_console_provider import (
+        SearchConsoleProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.shopify_provider import (
+        ShopifyProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.tiktok_provider import (
+        TikTokProvider,
+    )
+    from src.modules.analytics.infrastructure.providers.youtube_provider import (
+        YouTubeProvider,
+    )
 
     register_provider("meta", MetaProvider)
     register_provider("google_analytics", GoogleAnalyticsProvider)

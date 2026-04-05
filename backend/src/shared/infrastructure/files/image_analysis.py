@@ -1,10 +1,11 @@
 import base64
-from typing import Union
+import json
+
+import structlog
 from langchain_core.messages import HumanMessage
+
 from src.core.enums import ModelRole
 from src.shared.infrastructure.llm.factory import LLMFactory
-import structlog
-import json
 
 logger = structlog.get_logger()
 
@@ -18,14 +19,14 @@ class ImageAnalysisService:
             response_format={"type": "json_object"},
         )
 
-    def encode_image(self, image_data: Union[bytes, str]) -> str:
+    def encode_image(self, image_data: bytes | str) -> str:
         """Accept raw bytes (from cloud storage) or a local file path."""
         if isinstance(image_data, bytes):
             return base64.b64encode(image_data).decode("utf-8")
         with open(image_data, "rb") as f:
             return base64.b64encode(f.read()).decode("utf-8")
 
-    async def analyze(self, image_data: Union[bytes, str], user_context: str = "") -> dict:
+    async def analyze(self, image_data: bytes | str, user_context: str = "") -> dict:
         try:
             base64_image = self.encode_image(image_data)
 

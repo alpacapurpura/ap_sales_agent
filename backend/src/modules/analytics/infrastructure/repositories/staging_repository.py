@@ -4,8 +4,7 @@ Staging data is temporary (30-day retention) and gets promoted
 to official_metrics after transformation.
 """
 
-from datetime import date, datetime, timedelta, timezone
-from typing import List
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -22,7 +21,7 @@ class StagingMetricsRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def bulk_insert(self, metrics: List[StagingMetricModel]) -> int:
+    def bulk_insert(self, metrics: list[StagingMetricModel]) -> int:
         """Bulk insert staging metrics. Returns the count inserted.
 
         Deduplicates by natural key before inserting to avoid
@@ -52,7 +51,7 @@ class StagingMetricsRepository:
         self.db.flush()
         return len(deduped)
 
-    def get_by_run(self, extraction_run_id: UUID) -> List[StagingMetricModel]:
+    def get_by_run(self, extraction_run_id: UUID) -> list[StagingMetricModel]:
         """Get all staging metrics for a specific extraction run."""
         stmt = select(StagingMetricModel).where(
             StagingMetricModel.extraction_run_id == extraction_run_id
@@ -65,7 +64,7 @@ class StagingMetricsRepository:
         provider: str,
         start_date: date,
         end_date: date,
-    ) -> List[StagingMetricModel]:
+    ) -> list[StagingMetricModel]:
         """Get staging metrics filtered by tenant, provider, and date range."""
         stmt = select(StagingMetricModel).where(
             StagingMetricModel.tenant_id == tenant_id,
@@ -93,10 +92,8 @@ class StagingMetricsRepository:
 
         Returns the number of rows deleted.
         """
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-        stmt = delete(StagingMetricModel).where(
-            StagingMetricModel.created_at < cutoff
-        )
+        cutoff = datetime.now(UTC) - timedelta(days=days)
+        stmt = delete(StagingMetricModel).where(StagingMetricModel.created_at < cutoff)
         result = self.db.execute(stmt)
         self.db.flush()
         return result.rowcount

@@ -1,6 +1,5 @@
 """SSE streaming chat endpoint for the Copilot agent."""
 
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,7 +20,7 @@ router = APIRouter()
 async def copilot_chat(
     request: CopilotChatRequest,
     current_user: User = Depends(get_current_user),
-    tenant_id: Optional[UUID] = Depends(get_tenant_context),
+    tenant_id: UUID | None = Depends(get_tenant_context),
     db: Session = Depends(get_db),
 ):
     """

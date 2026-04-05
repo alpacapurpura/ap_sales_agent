@@ -4,8 +4,7 @@ Each extraction run records status, timing, and error information
 for monitoring and retry logic.
 """
 
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -29,7 +28,7 @@ class ExtractionRunRepository:
             tenant_id=tenant_id,
             provider=provider,
             status=ExtractionStatus.PENDING.value,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         self.db.add(run)
         self.db.flush()
@@ -39,12 +38,12 @@ class ExtractionRunRepository:
         self,
         run_id: UUID,
         status: ExtractionStatus,
-        error: Optional[str] = None,
+        error: str | None = None,
         metrics_count: int = 0,
         rows_extracted: int = 0,
-        duration_seconds: Optional[float] = None,
-        rate_limit_headroom: Optional[float] = None,
-        sub_extractor_failures: Optional[list] = None,
+        duration_seconds: float | None = None,
+        rate_limit_headroom: float | None = None,
+        sub_extractor_failures: list | None = None,
     ) -> ExtractionRunModel:
         """Update the status and metadata of an extraction run."""
         stmt = select(ExtractionRunModel).where(ExtractionRunModel.id == run_id)
@@ -66,14 +65,14 @@ class ExtractionRunRepository:
             ExtractionStatus.FAILED,
             ExtractionStatus.PARTIAL_SUCCESS,
         ):
-            run.completed_at = datetime.now(timezone.utc)
+            run.completed_at = datetime.now(UTC)
 
         self.db.flush()
         return run
 
     def get_latest(
-        self, tenant_id: UUID, provider: Optional[str] = None
-    ) -> Optional[ExtractionRunModel]:
+        self, tenant_id: UUID, provider: str | None = None
+    ) -> ExtractionRunModel | None:
         """Get the latest extraction run for a tenant, optionally filtered by provider."""
         stmt = select(ExtractionRunModel).where(
             ExtractionRunModel.tenant_id == tenant_id
@@ -85,7 +84,7 @@ class ExtractionRunRepository:
         stmt = stmt.order_by(ExtractionRunModel.created_at.desc()).limit(1)
         return self.db.execute(stmt).scalars().first()
 
-    def get_failed(self, limit: int = 50) -> List[ExtractionRunModel]:
+    def get_failed(self, limit: int = 50) -> list[ExtractionRunModel]:
         """Get failed extraction runs for the retry queue."""
         stmt = (
             select(ExtractionRunModel)

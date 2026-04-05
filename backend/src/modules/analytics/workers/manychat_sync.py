@@ -7,13 +7,14 @@ CRM customer_profiles with enrichment data (tags, custom fields, score).
 Schedule: Every 6 hours via ARQ.
 Rate limit aware: 10 req/s max to ManyChat API.
 """
+
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import structlog
-
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.connections.infrastructure.marketing_connectors.manychat import (
@@ -47,7 +48,7 @@ async def sync_manychat_subscribers(tenant_id: UUID, db: Session) -> dict:
         return {"status": "skipped", "reason": "no_api_key"}
 
     # 2. Get unique subscriber_ids from recent journey_events
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=6)
+    cutoff = datetime.now(UTC) - timedelta(hours=6)
     sub_stmt = (
         select(
             sa_func.jsonb_extract_path_text(
@@ -125,8 +126,7 @@ def _enrich_profile(db: Session, tenant_id: UUID, mc_data: dict) -> None:
         "last_interaction": mc_data.get("last_interaction"),
         "tags": [t.get("name") for t in mc_data.get("tags", [])],
         "custom_fields": {
-            cf.get("name"): cf.get("value")
-            for cf in mc_data.get("custom_fields", [])
+            cf.get("name"): cf.get("value") for cf in mc_data.get("custom_fields", [])
         },
         "score": next(
             (
@@ -136,7 +136,7 @@ def _enrich_profile(db: Session, tenant_id: UUID, mc_data: dict) -> None:
             ),
             None,
         ),
-        "synced_at": datetime.now(timezone.utc).isoformat(),
+        "synced_at": datetime.now(UTC).isoformat(),
     }
     profile.traits = traits
 

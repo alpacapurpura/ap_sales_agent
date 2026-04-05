@@ -1,11 +1,13 @@
-from typing import List, Optional
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from uuid import UUID
 
 from src.modules.connections.domain.channel import ChannelConnection
 from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.models.channel_connection_model import ChannelConnectionModel
+from src.modules.connections.infrastructure.models.channel_connection_model import (
+    ChannelConnectionModel,
+)
 
 
 class ChannelConnectionRepository:
@@ -34,91 +36,84 @@ class ChannelConnectionRepository:
 
     # --- Queries ---
 
-    def get_active(self, tenant_id: UUID, channel_type: ChannelType) -> Optional[ChannelConnectionModel]:
+    def get_active(
+        self, tenant_id: UUID, channel_type: ChannelType
+    ) -> ChannelConnectionModel | None:
         """Get the active connection for a tenant + channel type."""
-        stmt = (
-            select(ChannelConnectionModel)
-            .where(
-                ChannelConnectionModel.tenant_id == tenant_id,
-                ChannelConnectionModel.channel_type == channel_type.value,
-                ChannelConnectionModel.is_active.is_(True),
-            )
+        stmt = select(ChannelConnectionModel).where(
+            ChannelConnectionModel.tenant_id == tenant_id,
+            ChannelConnectionModel.channel_type == channel_type.value,
+            ChannelConnectionModel.is_active.is_(True),
         )
         return self.db.execute(stmt).scalars().first()
 
-    def get_by_tenant_and_type(self, tenant_id: UUID, channel_type: ChannelType) -> Optional[ChannelConnectionModel]:
+    def get_by_tenant_and_type(
+        self, tenant_id: UUID, channel_type: ChannelType
+    ) -> ChannelConnectionModel | None:
         """Get connection (active or not) for a tenant + channel type."""
-        stmt = (
-            select(ChannelConnectionModel)
-            .where(
-                ChannelConnectionModel.tenant_id == tenant_id,
-                ChannelConnectionModel.channel_type == channel_type.value,
-            )
+        stmt = select(ChannelConnectionModel).where(
+            ChannelConnectionModel.tenant_id == tenant_id,
+            ChannelConnectionModel.channel_type == channel_type.value,
         )
         return self.db.execute(stmt).scalars().first()
 
     def get_all_by_tenant_and_types(
-        self, tenant_id: UUID, channel_types: List[ChannelType]
-    ) -> List[ChannelConnectionModel]:
+        self, tenant_id: UUID, channel_types: list[ChannelType]
+    ) -> list[ChannelConnectionModel]:
         """Get all connections (active or not) for a tenant filtered by a list of channel types."""
         type_values = [ct.value for ct in channel_types]
-        stmt = (
-            select(ChannelConnectionModel)
-            .where(
-                ChannelConnectionModel.tenant_id == tenant_id,
-                ChannelConnectionModel.channel_type.in_(type_values),
-            )
+        stmt = select(ChannelConnectionModel).where(
+            ChannelConnectionModel.tenant_id == tenant_id,
+            ChannelConnectionModel.channel_type.in_(type_values),
         )
         return list(self.db.execute(stmt).scalars().all())
 
     def get_by_asset_id(
         self, tenant_id: UUID, channel_type: ChannelType, asset_id: str
-    ) -> Optional[ChannelConnectionModel]:
+    ) -> ChannelConnectionModel | None:
         """Get a specific asset connection by its stored asset_id in config."""
-        stmt = (
-            select(ChannelConnectionModel)
-            .where(
-                ChannelConnectionModel.tenant_id == tenant_id,
-                ChannelConnectionModel.channel_type == channel_type.value,
-                ChannelConnectionModel.config["asset_id"].astext == asset_id,
-            )
+        stmt = select(ChannelConnectionModel).where(
+            ChannelConnectionModel.tenant_id == tenant_id,
+            ChannelConnectionModel.channel_type == channel_type.value,
+            ChannelConnectionModel.config["asset_id"].astext == asset_id,
         )
         return self.db.execute(stmt).scalars().first()
 
-    def get_all_active_by_type(self, channel_types: List[str]) -> List[ChannelConnectionModel]:
+    def get_all_active_by_type(
+        self, channel_types: list[str]
+    ) -> list[ChannelConnectionModel]:
         """Get all active connections across tenants for given channel types."""
-        stmt = (
-            select(ChannelConnectionModel)
-            .where(
-                ChannelConnectionModel.channel_type.in_(channel_types),
-                ChannelConnectionModel.is_active.is_(True),
-            )
+        stmt = select(ChannelConnectionModel).where(
+            ChannelConnectionModel.channel_type.in_(channel_types),
+            ChannelConnectionModel.is_active.is_(True),
         )
         return list(self.db.execute(stmt).scalars().all())
 
-    def get_all_by_tenant(self, tenant_id: UUID) -> List[ChannelConnectionModel]:
+    def get_all_by_tenant(self, tenant_id: UUID) -> list[ChannelConnectionModel]:
         """Get all connections for a tenant."""
-        stmt = (
-            select(ChannelConnectionModel)
-            .where(ChannelConnectionModel.tenant_id == tenant_id)
+        stmt = select(ChannelConnectionModel).where(
+            ChannelConnectionModel.tenant_id == tenant_id
         )
         return list(self.db.execute(stmt).scalars().all())
 
     @staticmethod
     def _normalize_shop_domain(shop: str) -> str:
-        normalized = shop.replace("https://", "").replace("http://", "").strip().strip("/").lower()
+        normalized = (
+            shop.replace("https://", "")
+            .replace("http://", "")
+            .strip()
+            .strip("/")
+            .lower()
+        )
         if not normalized.endswith("myshopify.com") and "." not in normalized:
             normalized = f"{normalized}.myshopify.com"
         return normalized
 
-    def get_active_shopify_by_shop(self, shop: str) -> Optional[ChannelConnectionModel]:
+    def get_active_shopify_by_shop(self, shop: str) -> ChannelConnectionModel | None:
         normalized_shop = self._normalize_shop_domain(shop)
-        stmt = (
-            select(ChannelConnectionModel)
-            .where(
-                ChannelConnectionModel.channel_type == ChannelType.SHOPIFY.value,
-                ChannelConnectionModel.is_active.is_(True),
-            )
+        stmt = select(ChannelConnectionModel).where(
+            ChannelConnectionModel.channel_type == ChannelType.SHOPIFY.value,
+            ChannelConnectionModel.is_active.is_(True),
         )
         connections = self.db.execute(stmt).scalars().all()
 
@@ -191,7 +186,9 @@ class ChannelConnectionRepository:
         self.db.refresh(connection)
         return connection
 
-    def update_config(self, connection: ChannelConnectionModel, config_updates: dict) -> ChannelConnectionModel:
+    def update_config(
+        self, connection: ChannelConnectionModel, config_updates: dict
+    ) -> ChannelConnectionModel:
         """Merge updates into config JSONB."""
         from sqlalchemy.orm.attributes import flag_modified
 
@@ -203,7 +200,9 @@ class ChannelConnectionRepository:
         self.db.refresh(connection)
         return connection
 
-    def update_credentials(self, connection: ChannelConnectionModel, credentials: dict) -> ChannelConnectionModel:
+    def update_credentials(
+        self, connection: ChannelConnectionModel, credentials: dict
+    ) -> ChannelConnectionModel:
         """Replace credentials."""
         connection.credentials = credentials
         self.db.commit()

@@ -1,7 +1,7 @@
 """Referral code generation, management, and Shopify extraction service."""
+
 import logging
 import secrets
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -42,7 +42,9 @@ class ReferralService:
                 self.db.flush()
                 logger.info(
                     "Referral code generated: %s for customer %s (tenant %s)",
-                    code, customer_id, tenant_id,
+                    code,
+                    customer_id,
+                    tenant_id,
                 )
                 return record
             except IntegrityError:
@@ -60,9 +62,7 @@ class ReferralService:
         self, tenant_id: UUID, active_only: bool = True
     ) -> list[ReferralCodeModel]:
         """List all referral codes for tenant. Filter by is_active if active_only."""
-        stmt = select(ReferralCodeModel).where(
-            ReferralCodeModel.tenant_id == tenant_id
-        )
+        stmt = select(ReferralCodeModel).where(ReferralCodeModel.tenant_id == tenant_id)
         if active_only:
             stmt = stmt.where(ReferralCodeModel.is_active.is_(True))
         result = self.db.execute(stmt)
@@ -70,7 +70,7 @@ class ReferralService:
 
     def get_code_by_customer(
         self, tenant_id: UUID, customer_id: UUID
-    ) -> Optional[ReferralCodeModel]:
+    ) -> ReferralCodeModel | None:
         """Get active referral code for a specific customer."""
         stmt = select(ReferralCodeModel).where(
             ReferralCodeModel.tenant_id == tenant_id,
@@ -138,11 +138,7 @@ class ReferralService:
                 resp.raise_for_status()
                 data = resp.json()
 
-            nodes = (
-                data.get("data", {})
-                .get("codeDiscountNodes", {})
-                .get("nodes", [])
-            )
+            nodes = data.get("data", {}).get("codeDiscountNodes", {}).get("nodes", [])
 
             for node in nodes:
                 discount = node.get("codeDiscount", {})
@@ -153,12 +149,16 @@ class ReferralService:
                         continue
 
                     # Check if already exists
-                    existing = self.db.execute(
-                        select(ReferralCodeModel).where(
-                            ReferralCodeModel.code == code_str,
-                            ReferralCodeModel.tenant_id == tenant_id,
+                    existing = (
+                        self.db.execute(
+                            select(ReferralCodeModel).where(
+                                ReferralCodeModel.code == code_str,
+                                ReferralCodeModel.tenant_id == tenant_id,
+                            )
                         )
-                    ).scalars().first()
+                        .scalars()
+                        .first()
+                    )
 
                     if existing:
                         continue
@@ -177,13 +177,15 @@ class ReferralService:
                 self.db.flush()
                 logger.info(
                     "Imported %d Shopify discount codes for tenant %s",
-                    len(imported), tenant_id,
+                    len(imported),
+                    tenant_id,
                 )
 
         except Exception as e:
             logger.error(
                 "Failed to extract Shopify codes for tenant %s: %s",
-                tenant_id, str(e),
+                tenant_id,
+                str(e),
             )
 
         return imported

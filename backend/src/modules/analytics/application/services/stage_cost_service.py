@@ -7,7 +7,6 @@ cost/MQL calculations (locked CONTEXT.md decision).
 
 import logging
 from datetime import datetime
-from typing import Dict, Optional
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -40,7 +39,7 @@ class StageCostService:
         self,
         tenant_id: UUID,
         stage: str = "nurture",
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Get total monthly cost per channel slug from channel_cost_settings.
 
         Sums multiple cost entries per channel (platform + agency + tool).
@@ -67,7 +66,7 @@ class StageCostService:
         tenant_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Get retargeting ad spend from MetricAggregationModel.
 
         Queries spend metric for meta-retargeting, google-retargeting,
@@ -81,7 +80,9 @@ class StageCostService:
         stmt = (
             select(
                 MetricAggregationModel.channel_slug,
-                func.coalesce(func.sum(MetricAggregationModel.value), 0.0).label("total"),
+                func.coalesce(func.sum(MetricAggregationModel.value), 0.0).label(
+                    "total"
+                ),
             )
             .where(
                 MetricAggregationModel.tenant_id == tenant_id,
@@ -98,7 +99,7 @@ class StageCostService:
         self,
         total_costs: float,
         total_mqls: int,
-    ) -> Optional[float]:
+    ) -> float | None:
         """Cost per MQL = total costs / total MQLs. Returns None if mqls == 0."""
         if total_mqls == 0:
             return None
@@ -111,7 +112,7 @@ class StageCostService:
         start_date: datetime,
         end_date: datetime,
         total_mqls: int,
-    ) -> Optional[float]:
+    ) -> float | None:
         """Calculate cost/MQL for a specific group.
 
         For 'retargeting': sum retargeting ad spend only.
@@ -125,14 +126,15 @@ class StageCostService:
             return None
 
         if group == "retargeting":
-            retargeting_spend = self.get_retargeting_spend(tenant_id, start_date, end_date)
+            retargeting_spend = self.get_retargeting_spend(
+                tenant_id, start_date, end_date
+            )
             group_cost = sum(retargeting_spend.values())
         elif group == "automation":
             # Get manual costs for automation channels
             all_costs = self.get_channel_costs(tenant_id, "nurture")
             group_cost = sum(
-                cost for slug, cost in all_costs.items()
-                if slug in _AUTOMATION_SLUGS
+                cost for slug, cost in all_costs.items() if slug in _AUTOMATION_SLUGS
             )
         else:
             logger.warning("Unknown cost group: %s", group)
@@ -165,14 +167,13 @@ class StageCostService:
 
         # Stage 0: paid ad spend
         ad_slugs = {"meta-ads", "google-ads", "tiktok-ads"}
-        stmt_ads = (
-            select(func.coalesce(func.sum(MetricAggregationModel.value), 0.0))
-            .where(
-                MetricAggregationModel.tenant_id == tenant_id,
-                MetricAggregationModel.channel_slug.in_(ad_slugs),
-                MetricAggregationModel.metric_name == "spend",
-                MetricAggregationModel.period_type == "last_30_days",
-            )
+        stmt_ads = select(
+            func.coalesce(func.sum(MetricAggregationModel.value), 0.0)
+        ).where(
+            MetricAggregationModel.tenant_id == tenant_id,
+            MetricAggregationModel.channel_slug.in_(ad_slugs),
+            MetricAggregationModel.metric_name == "spend",
+            MetricAggregationModel.period_type == "last_30_days",
         )
         ad_spend = float(self.db.execute(stmt_ads).scalar() or 0.0)
 

@@ -6,8 +6,8 @@ The copilot never hardcodes field names; instead it uses the model_class for
 Pydantic introspection and the repo/read functions for data access.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Type
 
 from pydantic import BaseModel
 
@@ -23,19 +23,19 @@ class ModuleDescriptor:
 
     # Optional Pydantic model — enables automatic introspection of sections/fields.
     # Not all modules have a single root model (e.g. analytics uses SQL queries).
-    model_class: Optional[Type[BaseModel]] = None
+    model_class: type[BaseModel] | None = None
 
     # Factory: (db_session) -> repository_instance
-    repo_factory: Optional[Callable] = None
+    repo_factory: Callable | None = None
 
     # Read function: (repo, tenant_id) -> data (model instance or dict/list)
-    read_fn: Optional[Callable] = None
+    read_fn: Callable | None = None
 
     # Extra keywords for fuzzy matching
-    keywords: List[str] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
 
 
-def _build_registry() -> Dict[str, ModuleDescriptor]:
+def _build_registry() -> dict[str, ModuleDescriptor]:
     """Build the registry lazily to avoid circular imports at module load time."""
     return {
         "brand": ModuleDescriptor(
@@ -66,7 +66,14 @@ def _build_registry() -> Dict[str, ModuleDescriptor]:
             model_class=None,
             repo_factory=_connections_repo_factory,
             read_fn=_connections_read_fn,
-            keywords=["conexión", "integración", "meta", "instagram", "whatsapp", "shopify"],
+            keywords=[
+                "conexión",
+                "integración",
+                "meta",
+                "instagram",
+                "whatsapp",
+                "shopify",
+            ],
         ),
         "crm": ModuleDescriptor(
             module_id="crm",
@@ -86,7 +93,14 @@ def _build_registry() -> Dict[str, ModuleDescriptor]:
             model_class=None,
             repo_factory=None,  # Uses SalesMetricsRepository — handled by dedicated tool
             read_fn=None,
-            keywords=["funnel", "bowtie", "métricas", "analytics", "growth", "conversión"],
+            keywords=[
+                "funnel",
+                "bowtie",
+                "métricas",
+                "analytics",
+                "growth",
+                "conversión",
+            ],
         ),
         "sales_agent": ModuleDescriptor(
             module_id="sales_agent",
@@ -106,7 +120,15 @@ def _build_registry() -> Dict[str, ModuleDescriptor]:
             model_class=None,  # CalendarEvent is a dataclass, not Pydantic
             repo_factory=_calendar_repo_factory,
             read_fn=_calendar_read_fn,
-            keywords=["calendario", "feriado", "campana", "temporada", "cyber", "holiday", "sale"],
+            keywords=[
+                "calendario",
+                "feriado",
+                "campana",
+                "temporada",
+                "cyber",
+                "holiday",
+                "sale",
+            ],
         ),
         "landing": ModuleDescriptor(
             module_id="landing",
@@ -127,11 +149,15 @@ def _build_registry() -> Dict[str, ModuleDescriptor]:
 def _lazy_brand_settings():
     """Return BrandSettings class — imported lazily."""
     from src.modules.brand.domain.aggregates import BrandSettings
+
     return BrandSettings
 
 
 def _brand_repo_factory(db):
-    from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
+    from src.modules.brand.infrastructure.repositories.brand_repository import (
+        BrandRepository,
+    )
+
     return BrandRepository(db)
 
 
@@ -140,7 +166,10 @@ def _brand_read_fn(repo, tenant_id):
 
 
 def _offer_repo_factory(db):
-    from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
+    from src.modules.offer.infrastructure.repositories.offer_repository import (
+        OfferRepository,
+    )
+
     return OfferRepository(db)
 
 
@@ -152,6 +181,7 @@ def _connections_repo_factory(db):
     from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
         ChannelConnectionRepository,
     )
+
     return ChannelConnectionRepository(db)
 
 
@@ -163,11 +193,13 @@ def _calendar_repo_factory(db):
     from src.modules.commercial_calendar.infrastructure.repositories.calendar_event_repository import (
         CalendarEventRepository,
     )
+
     return CalendarEventRepository(db)
 
 
 def _calendar_read_fn(repo, tenant_id):
     from datetime import date
+
     today = date.today()
     return repo.list_events(
         country_code="PE",
@@ -177,7 +209,10 @@ def _calendar_read_fn(repo, tenant_id):
 
 
 def _landing_repo_factory(db):
-    from src.modules.landing.infrastructure.repositories.landing_repository import LandingRepository
+    from src.modules.landing.infrastructure.repositories.landing_repository import (
+        LandingRepository,
+    )
+
     return LandingRepository(db)
 
 
@@ -187,10 +222,10 @@ def _landing_read_fn(repo, tenant_id):
 
 # ── Singleton ─────────────────────────────────────────────────────────
 
-_registry: Optional[Dict[str, ModuleDescriptor]] = None
+_registry: dict[str, ModuleDescriptor] | None = None
 
 
-def get_module_registry() -> Dict[str, ModuleDescriptor]:
+def get_module_registry() -> dict[str, ModuleDescriptor]:
     """Return the module registry, building it on first access."""
     global _registry
     if _registry is None:

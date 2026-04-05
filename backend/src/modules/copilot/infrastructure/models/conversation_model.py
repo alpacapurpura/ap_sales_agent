@@ -17,8 +17,15 @@ class CopilotConversationModel(Base):
     messages = Column(JSONB, nullable=False, default=list)
     client_context = Column(JSONB, nullable=True)
     summary = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     def __repr__(self) -> str:
         return f"<CopilotConversation id={self.id} tenant={self.tenant_id}>"

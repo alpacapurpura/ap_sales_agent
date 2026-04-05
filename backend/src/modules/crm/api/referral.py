@@ -1,5 +1,5 @@
 """CRM Referral API: code generation, listing, and evangelist promotion."""
-from typing import List
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -41,7 +41,7 @@ class PromoteResponse(BaseModel):
 # --- Endpoints ---
 
 
-@router.get("", response_model=List[ReferralCodeResponse])
+@router.get("", response_model=list[ReferralCodeResponse])
 async def list_referral_codes(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),

@@ -6,18 +6,17 @@ All queries use SQLAlchemy 2.0 select() syntax with tenant_id filtering.
 """
 
 from datetime import datetime
-from typing import Dict, List, Tuple
 from uuid import UUID
 
-from sqlalchemy import func, select, distinct
+from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.models.sale_model import SaleModel
+from src.modules.crm.domain.enums import LifecycleStage, SaleStage, SaleStatus
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
-from src.modules.crm.domain.enums import SaleStatus, SaleStage, LifecycleStage
+from src.modules.crm.infrastructure.models.sale_model import SaleModel
 
 
 class ExpansionMetricsRepository:
@@ -28,7 +27,7 @@ class ExpansionMetricsRepository:
 
     def get_expansion_sales_grouped(
         self, tenant_id: UUID, start_date: datetime, end_date: datetime
-    ) -> Dict[str, List[tuple]]:
+    ) -> dict[str, list[tuple]]:
         """Return expansion sales grouped as renewals vs upsells.
 
         Classification:
@@ -57,9 +56,8 @@ class ExpansionMetricsRepository:
             )
             .where(
                 *base_where,
-                func.jsonb_extract_path_text(
-                    SaleModel.metadata_info, "event_name"
-                ) == "subscription_cycle",
+                func.jsonb_extract_path_text(SaleModel.metadata_info, "event_name")
+                == "subscription_cycle",
             )
             .group_by(SaleModel.offer_id, SaleModel.currency)
         )
@@ -76,11 +74,10 @@ class ExpansionMetricsRepository:
             .where(
                 *base_where,
                 func.coalesce(
-                    func.jsonb_extract_path_text(
-                        SaleModel.metadata_info, "event_name"
-                    ),
+                    func.jsonb_extract_path_text(SaleModel.metadata_info, "event_name"),
                     "",
-                ) != "subscription_cycle",
+                )
+                != "subscription_cycle",
             )
             .group_by(SaleModel.offer_id, SaleModel.currency)
         )
@@ -93,7 +90,7 @@ class ExpansionMetricsRepository:
 
     def get_churn_data_by_offer(
         self, tenant_id: UUID, start_date: datetime, end_date: datetime
-    ) -> List[tuple]:
+    ) -> list[tuple]:
         """Get churn counts grouped by the churned customer's last known offer.
 
         Joins LifecycleTransitionModel (to_stage=CHURNED) with SaleModel
@@ -103,8 +100,7 @@ class ExpansionMetricsRepository:
         """
         # Subquery: get churned profile_ids in period
         churned_profiles = (
-            select(LifecycleTransitionModel.profile_id)
-            .where(
+            select(LifecycleTransitionModel.profile_id).where(
                 LifecycleTransitionModel.tenant_id == tenant_id,
                 LifecycleTransitionModel.to_stage == LifecycleStage.CHURNED,
                 LifecycleTransitionModel.occurred_at >= start_date,
@@ -120,12 +116,13 @@ class ExpansionMetricsRepository:
                 SaleModel.offer_id,
                 SaleModel.amount,
                 SaleModel.currency,
-                func.row_number().over(
+                func.row_number()
+                .over(
                     partition_by=SaleModel.customer_id,
                     order_by=SaleModel.occurred_at.desc(),
-                ).label("rn"),
-            )
-            .where(
+                )
+                .label("rn"),
+            ).where(
                 SaleModel.tenant_id == tenant_id,
                 SaleModel.stage == SaleStage.EXPANSION,
                 SaleModel.status == SaleStatus.COMPLETED,
@@ -150,48 +147,43 @@ class ExpansionMetricsRepository:
         self, tenant_id: UUID, start_date: datetime, end_date: datetime
     ) -> int:
         """Count distinct profiles that churned in the period."""
-        stmt = (
-            select(func.count(distinct(LifecycleTransitionModel.profile_id)))
-            .where(
-                LifecycleTransitionModel.tenant_id == tenant_id,
-                LifecycleTransitionModel.to_stage == LifecycleStage.CHURNED,
-                LifecycleTransitionModel.occurred_at >= start_date,
-                LifecycleTransitionModel.occurred_at <= end_date,
-            )
+        stmt = select(func.count(distinct(LifecycleTransitionModel.profile_id))).where(
+            LifecycleTransitionModel.tenant_id == tenant_id,
+            LifecycleTransitionModel.to_stage == LifecycleStage.CHURNED,
+            LifecycleTransitionModel.occurred_at >= start_date,
+            LifecycleTransitionModel.occurred_at <= end_date,
         )
         result = self.db.execute(stmt).scalar()
         return result or 0
 
     def get_active_customer_count(self, tenant_id: UUID) -> int:
         """Count active customers (CUSTOMER or EVANGELIST lifecycle stage)."""
-        stmt = (
-            select(func.count(CustomerProfileModel.id))
-            .where(
-                CustomerProfileModel.tenant_id == tenant_id,
-                CustomerProfileModel.lifecycle_stage.in_([
+        stmt = select(func.count(CustomerProfileModel.id)).where(
+            CustomerProfileModel.tenant_id == tenant_id,
+            CustomerProfileModel.lifecycle_stage.in_(
+                [
                     LifecycleStage.CUSTOMER,
                     LifecycleStage.EVANGELIST,
-                ]),
-            )
+                ]
+            ),
         )
         result = self.db.execute(stmt).scalar()
         return result or 0
 
-    def get_avg_ltv(self, tenant_id: UUID) -> Tuple[float, str]:
+    def get_avg_ltv(self, tenant_id: UUID) -> tuple[float, str]:
         """Average lifetime_value for active customers.
 
         Returns: (avg_ltv, currency_from_most_recent_sale)
         """
-        stmt = (
-            select(func.avg(CustomerProfileModel.lifetime_value))
-            .where(
-                CustomerProfileModel.tenant_id == tenant_id,
-                CustomerProfileModel.lifecycle_stage.in_([
+        stmt = select(func.avg(CustomerProfileModel.lifetime_value)).where(
+            CustomerProfileModel.tenant_id == tenant_id,
+            CustomerProfileModel.lifecycle_stage.in_(
+                [
                     LifecycleStage.CUSTOMER,
                     LifecycleStage.EVANGELIST,
-                ]),
-                CustomerProfileModel.lifetime_value > 0,
-            )
+                ]
+            ),
+            CustomerProfileModel.lifetime_value > 0,
         )
         avg_val = self.db.execute(stmt).scalar()
 
@@ -213,21 +205,17 @@ class ExpansionMetricsRepository:
         self, tenant_id: UUID, start_date: datetime, end_date: datetime
     ) -> int:
         """Count distinct customers with EXPANSION sales (upsells only, not renewals)."""
-        stmt = (
-            select(func.count(distinct(SaleModel.customer_id)))
-            .where(
-                SaleModel.tenant_id == tenant_id,
-                SaleModel.stage == SaleStage.EXPANSION,
-                SaleModel.status == SaleStatus.COMPLETED,
-                SaleModel.occurred_at >= start_date,
-                SaleModel.occurred_at <= end_date,
-                func.coalesce(
-                    func.jsonb_extract_path_text(
-                        SaleModel.metadata_info, "event_name"
-                    ),
-                    "",
-                ) != "subscription_cycle",
+        stmt = select(func.count(distinct(SaleModel.customer_id))).where(
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.stage == SaleStage.EXPANSION,
+            SaleModel.status == SaleStatus.COMPLETED,
+            SaleModel.occurred_at >= start_date,
+            SaleModel.occurred_at <= end_date,
+            func.coalesce(
+                func.jsonb_extract_path_text(SaleModel.metadata_info, "event_name"),
+                "",
             )
+            != "subscription_cycle",
         )
         result = self.db.execute(stmt).scalar()
         return result or 0

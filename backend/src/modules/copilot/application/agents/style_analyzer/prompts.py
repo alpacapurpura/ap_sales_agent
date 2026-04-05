@@ -34,8 +34,8 @@ Look for:
 3. **Emoji Density**: High, Low, None? Specific favorite emojis? Placement (start/end)?
 4. **Structure**: Bullet points vs paragraphs? Long vs short sentences?
 5. **Closing Mechanisms**: How do they end messages?
-6. **Empathy Style** (Based on Proto-Persona Theory): 
-   - *Cognitive Empathy*: Do they explain they understand ("Entiendo lo que dices")? 
+6. **Empathy Style** (Based on Proto-Persona Theory):
+   - *Cognitive Empathy*: Do they explain they understand ("Entiendo lo que dices")?
    - *Affective Empathy*: Do they show emotional resonance ("Qué difícil situación", "Me alegra mucho")?
 7. **Persuasion Tactic**: Do they use logic (ROI, facts) or emotion (dreams, fears)?
 

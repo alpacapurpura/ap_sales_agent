@@ -1,20 +1,28 @@
-from langgraph.graph import StateGraph, START, END
-from src.modules.sales_agent.application.orchestrator.state import AgentState
+from langgraph.graph import END, START, StateGraph
+
 from src.modules.sales_agent.application.agents.sales.nodes import (
-    node_sales_supervisor,
-    node_qualifier,
-    node_product_expert,
     node_closer,
-    node_signal_accumulator,
     node_escalation,
+    node_product_expert,
+    node_qualifier,
+    node_sales_supervisor,
+    node_signal_accumulator,
     node_tool_executor,
 )
+from src.modules.sales_agent.application.orchestrator.state import AgentState
 
 
 def _route_after_supervisor(state: AgentState) -> str:
     """Route from supervisor to the appropriate specialist or special node."""
     next_node = state.get("next_node", "qualifier")
-    valid = {"qualifier", "product_expert", "closer", "tool_executor", "escalate", "respond"}
+    valid = {
+        "qualifier",
+        "product_expert",
+        "closer",
+        "tool_executor",
+        "escalate",
+        "respond",
+    }
     if next_node in valid:
         return next_node
     return "qualifier"
@@ -44,14 +52,18 @@ def create_sales_subgraph():
     workflow.add_edge(START, "supervisor")
 
     # Supervisor routes to specialists or special nodes
-    workflow.add_conditional_edges("supervisor", _route_after_supervisor, {
-        "qualifier": "qualifier",
-        "product_expert": "product_expert",
-        "closer": "closer",
-        "tool_executor": "tool_executor",
-        "escalate": "escalation",
-        "respond": END,
-    })
+    workflow.add_conditional_edges(
+        "supervisor",
+        _route_after_supervisor,
+        {
+            "qualifier": "qualifier",
+            "product_expert": "product_expert",
+            "closer": "closer",
+            "tool_executor": "tool_executor",
+            "escalate": "escalation",
+            "respond": END,
+        },
+    )
 
     # Every specialist → signal_accumulator
     workflow.add_edge("qualifier", "signal_accumulator")
@@ -59,10 +71,14 @@ def create_sales_subgraph():
     workflow.add_edge("closer", "signal_accumulator")
 
     # Signal accumulator routes to END or tool_executor
-    workflow.add_conditional_edges("signal_accumulator", _route_after_accumulator, {
-        "respond": END,
-        "tool_executor": "tool_executor",
-    })
+    workflow.add_conditional_edges(
+        "signal_accumulator",
+        _route_after_accumulator,
+        {
+            "respond": END,
+            "tool_executor": "tool_executor",
+        },
+    )
 
     # Tool executor loops back to supervisor
     workflow.add_edge("tool_executor", "supervisor")

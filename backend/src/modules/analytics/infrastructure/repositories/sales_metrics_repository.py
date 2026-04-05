@@ -5,14 +5,14 @@ Groups completed sales by stage, offer_id, source, currency for revenue analysis
 """
 
 from datetime import datetime
-from typing import List, NamedTuple
+from typing import NamedTuple
 from uuid import UUID
 
-from sqlalchemy import func, select, distinct
+from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import Session
 
+from src.modules.crm.domain.enums import SaleStage, SaleStatus
 from src.modules.crm.infrastructure.models.sale_model import SaleModel
-from src.modules.crm.domain.enums import SaleStatus, SaleStage
 
 
 class SaleAggregation(NamedTuple):
@@ -33,7 +33,7 @@ class SalesMetricsRepository:
 
     def get_sales_summary(
         self, tenant_id: UUID, start_date: datetime, end_date: datetime
-    ) -> List[SaleAggregation]:
+    ) -> list[SaleAggregation]:
         """Aggregate completed sales by stage, offer_id, source, currency."""
         stmt = (
             select(
@@ -64,15 +64,12 @@ class SalesMetricsRepository:
         self, tenant_id: UUID, start_date: datetime, end_date: datetime
     ) -> int:
         """Count distinct customers with CONVERSION sales in period."""
-        stmt = (
-            select(func.count(distinct(SaleModel.customer_id)))
-            .where(
-                SaleModel.tenant_id == tenant_id,
-                SaleModel.status == SaleStatus.COMPLETED,
-                SaleModel.stage == SaleStage.CONVERSION,
-                SaleModel.occurred_at >= start_date,
-                SaleModel.occurred_at <= end_date,
-            )
+        stmt = select(func.count(distinct(SaleModel.customer_id))).where(
+            SaleModel.tenant_id == tenant_id,
+            SaleModel.status == SaleStatus.COMPLETED,
+            SaleModel.stage == SaleStage.CONVERSION,
+            SaleModel.occurred_at >= start_date,
+            SaleModel.occurred_at <= end_date,
         )
         result = self.db.execute(stmt).scalar()
         return result or 0
@@ -84,19 +81,16 @@ class SalesMetricsRepository:
 
         Uses lifecycle_transitions to count profiles that entered SQL stage.
         """
+        from src.modules.crm.domain.enums import LifecycleStage
         from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
             LifecycleTransitionModel,
         )
-        from src.modules.crm.domain.enums import LifecycleStage
 
-        stmt = (
-            select(func.count(distinct(LifecycleTransitionModel.profile_id)))
-            .where(
-                LifecycleTransitionModel.tenant_id == tenant_id,
-                LifecycleTransitionModel.to_stage == LifecycleStage.SQL,
-                LifecycleTransitionModel.occurred_at >= start_date,
-                LifecycleTransitionModel.occurred_at <= end_date,
-            )
+        stmt = select(func.count(distinct(LifecycleTransitionModel.profile_id))).where(
+            LifecycleTransitionModel.tenant_id == tenant_id,
+            LifecycleTransitionModel.to_stage == LifecycleStage.SQL,
+            LifecycleTransitionModel.occurred_at >= start_date,
+            LifecycleTransitionModel.occurred_at <= end_date,
         )
         result = self.db.execute(stmt).scalar()
         return result or 0

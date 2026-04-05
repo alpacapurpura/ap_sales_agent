@@ -5,3 +5,4 @@ pytest-cov>=6.0.0
 ruff>=0.3.0
 factory-boy>=3.3.0
 faker>=30.0.0
+pip-audit>=2.7.0

@@ -5,7 +5,6 @@ Uses the same credential pattern (access_token, ad_account_id from ConnectionPor
 """
 
 import logging
-from typing import List, Tuple
 
 import httpx
 
@@ -48,15 +47,23 @@ def _auth_headers(access_token: str) -> dict:
 def _raise_for_meta_error(response: httpx.Response, context: str) -> None:
     if response.status_code >= 400:
         body = response.text[:500]
-        logger.error("meta_campaign_api_error context=%s status=%s body=%s",
-                      context, response.status_code, body)
+        logger.error(
+            "meta_campaign_api_error context=%s status=%s body=%s",
+            context,
+            response.status_code,
+            body,
+        )
         response.raise_for_status()
 
 
 async def _paginate(
-    client: httpx.AsyncClient, url: str, headers: dict,
-    params: dict, context: str, max_pages: int = 20,
-) -> List[dict]:
+    client: httpx.AsyncClient,
+    url: str,
+    headers: dict,
+    params: dict,
+    context: str,
+    max_pages: int = 20,
+) -> list[dict]:
     """Fetch all pages of a Meta API response."""
     all_data = []
     for _ in range(max_pages):
@@ -79,8 +86,10 @@ class MetaCampaignProvider:
     """Extracts campaign hierarchy and recommendations from Meta Marketing API."""
 
     async def extract_campaigns(
-        self, client: httpx.AsyncClient, credentials: dict,
-    ) -> List[dict]:
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+    ) -> list[dict]:
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
         if not ad_account_id:
@@ -96,28 +105,38 @@ class MetaCampaignProvider:
 
         campaigns = []
         for row in rows:
-            campaigns.append({
-                "external_id": row["id"],
-                "name": row.get("name", ""),
-                "objective": row.get("objective"),
-                "status": row.get("status"),
-                "effective_status": row.get("effective_status"),
-                "bid_strategy": row.get("bid_strategy"),
-                "daily_budget": int(row["daily_budget"]) if row.get("daily_budget") else None,
-                "lifetime_budget": int(row["lifetime_budget"]) if row.get("lifetime_budget") else None,
-                "budget_remaining": int(row["budget_remaining"]) if row.get("budget_remaining") else None,
-                "buying_type": row.get("buying_type", "AUCTION"),
-                "special_ad_categories": row.get("special_ad_categories", []),
-                "start_time": row.get("start_time"),
-                "stop_time": row.get("stop_time"),
-                "external_created_time": row.get("created_time"),
-                "external_updated_time": row.get("updated_time"),
-            })
+            campaigns.append(
+                {
+                    "external_id": row["id"],
+                    "name": row.get("name", ""),
+                    "objective": row.get("objective"),
+                    "status": row.get("status"),
+                    "effective_status": row.get("effective_status"),
+                    "bid_strategy": row.get("bid_strategy"),
+                    "daily_budget": int(row["daily_budget"])
+                    if row.get("daily_budget")
+                    else None,
+                    "lifetime_budget": int(row["lifetime_budget"])
+                    if row.get("lifetime_budget")
+                    else None,
+                    "budget_remaining": int(row["budget_remaining"])
+                    if row.get("budget_remaining")
+                    else None,
+                    "buying_type": row.get("buying_type", "AUCTION"),
+                    "special_ad_categories": row.get("special_ad_categories", []),
+                    "start_time": row.get("start_time"),
+                    "stop_time": row.get("stop_time"),
+                    "external_created_time": row.get("created_time"),
+                    "external_updated_time": row.get("updated_time"),
+                }
+            )
         return campaigns
 
     async def extract_ad_sets(
-        self, client: httpx.AsyncClient, credentials: dict,
-    ) -> Tuple[List[dict], List[dict]]:
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+    ) -> tuple[list[dict], list[dict]]:
         """Returns (ad_sets, inline_recommendations)."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -136,41 +155,55 @@ class MetaCampaignProvider:
         inline_recs = []
         for row in rows:
             learning_info = row.get("learning_stage_info", {})
-            ad_sets.append({
-                "external_id": row["id"],
-                "campaign_external_id": row.get("campaign_id", ""),
-                "name": row.get("name", ""),
-                "status": row.get("status"),
-                "effective_status": row.get("effective_status"),
-                "optimization_goal": row.get("optimization_goal"),
-                "billing_event": row.get("billing_event"),
-                "bid_strategy": row.get("bid_strategy"),
-                "daily_budget": int(row["daily_budget"]) if row.get("daily_budget") else None,
-                "lifetime_budget": int(row["lifetime_budget"]) if row.get("lifetime_budget") else None,
-                "budget_remaining": int(row["budget_remaining"]) if row.get("budget_remaining") else None,
-                "targeting": row.get("targeting", {}),
-                "destination_type": row.get("destination_type"),
-                "learning_stage": learning_info.get("status") if learning_info else None,
-                "start_time": row.get("start_time"),
-                "end_time": row.get("end_time"),
-            })
+            ad_sets.append(
+                {
+                    "external_id": row["id"],
+                    "campaign_external_id": row.get("campaign_id", ""),
+                    "name": row.get("name", ""),
+                    "status": row.get("status"),
+                    "effective_status": row.get("effective_status"),
+                    "optimization_goal": row.get("optimization_goal"),
+                    "billing_event": row.get("billing_event"),
+                    "bid_strategy": row.get("bid_strategy"),
+                    "daily_budget": int(row["daily_budget"])
+                    if row.get("daily_budget")
+                    else None,
+                    "lifetime_budget": int(row["lifetime_budget"])
+                    if row.get("lifetime_budget")
+                    else None,
+                    "budget_remaining": int(row["budget_remaining"])
+                    if row.get("budget_remaining")
+                    else None,
+                    "targeting": row.get("targeting", {}),
+                    "destination_type": row.get("destination_type"),
+                    "learning_stage": learning_info.get("status")
+                    if learning_info
+                    else None,
+                    "start_time": row.get("start_time"),
+                    "end_time": row.get("end_time"),
+                }
+            )
 
             for rec in row.get("recommendations", []):
-                inline_recs.append({
-                    "source": "ad_set",
-                    "recommendation_type": str(rec.get("code", "")),
-                    "object_ids": [row["id"]],
-                    "title": rec.get("title"),
-                    "body": rec.get("message"),
-                    "blame_field": rec.get("blame_field"),
-                    "importance": rec.get("importance"),
-                    "confidence": rec.get("confidence"),
-                })
+                inline_recs.append(
+                    {
+                        "source": "ad_set",
+                        "recommendation_type": str(rec.get("code", "")),
+                        "object_ids": [row["id"]],
+                        "title": rec.get("title"),
+                        "body": rec.get("message"),
+                        "blame_field": rec.get("blame_field"),
+                        "importance": rec.get("importance"),
+                        "confidence": rec.get("confidence"),
+                    }
+                )
         return ad_sets, inline_recs
 
     async def extract_ads(
-        self, client: httpx.AsyncClient, credentials: dict,
-    ) -> Tuple[List[dict], List[dict]]:
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+    ) -> tuple[list[dict], list[dict]]:
         """Returns (ads, inline_recommendations)."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -189,40 +222,46 @@ class MetaCampaignProvider:
         inline_recs = []
         for row in rows:
             creative = row.get("creative", {})
-            ads.append({
-                "external_id": row["id"],
-                "campaign_external_id": row.get("campaign_id", ""),
-                "ad_set_external_id": row.get("adset_id", ""),
-                "name": row.get("name", ""),
-                "status": row.get("status"),
-                "effective_status": row.get("effective_status"),
-                "creative_id": creative.get("id"),
-                "creative_thumbnail_url": creative.get("thumbnail_url"),
-                "creative_image_url": creative.get("image_url"),
-                "creative_video_id": creative.get("video_id"),
-                "creative_title": creative.get("title"),
-                "creative_body": creative.get("body"),
-                "creative_cta": creative.get("call_to_action_type"),
-                "creative_link_url": None,  # Extracted from object_story_spec if needed
-                "preview_shareable_link": row.get("preview_shareable_link"),
-            })
+            ads.append(
+                {
+                    "external_id": row["id"],
+                    "campaign_external_id": row.get("campaign_id", ""),
+                    "ad_set_external_id": row.get("adset_id", ""),
+                    "name": row.get("name", ""),
+                    "status": row.get("status"),
+                    "effective_status": row.get("effective_status"),
+                    "creative_id": creative.get("id"),
+                    "creative_thumbnail_url": creative.get("thumbnail_url"),
+                    "creative_image_url": creative.get("image_url"),
+                    "creative_video_id": creative.get("video_id"),
+                    "creative_title": creative.get("title"),
+                    "creative_body": creative.get("body"),
+                    "creative_cta": creative.get("call_to_action_type"),
+                    "creative_link_url": None,  # Extracted from object_story_spec if needed
+                    "preview_shareable_link": row.get("preview_shareable_link"),
+                }
+            )
 
             for rec in row.get("recommendations", []):
-                inline_recs.append({
-                    "source": "ad",
-                    "recommendation_type": str(rec.get("code", "")),
-                    "object_ids": [row["id"]],
-                    "title": rec.get("title"),
-                    "body": rec.get("message"),
-                    "blame_field": rec.get("blame_field"),
-                    "importance": rec.get("importance"),
-                    "confidence": rec.get("confidence"),
-                })
+                inline_recs.append(
+                    {
+                        "source": "ad",
+                        "recommendation_type": str(rec.get("code", "")),
+                        "object_ids": [row["id"]],
+                        "title": rec.get("title"),
+                        "body": rec.get("message"),
+                        "blame_field": rec.get("blame_field"),
+                        "importance": rec.get("importance"),
+                        "confidence": rec.get("confidence"),
+                    }
+                )
         return ads, inline_recs
 
     async def extract_account_recommendations(
-        self, client: httpx.AsyncClient, credentials: dict,
-    ) -> List[dict]:
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+    ) -> list[dict]:
         """Extract account-level performance recommendations."""
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
@@ -241,14 +280,18 @@ class MetaCampaignProvider:
         for row in rows:
             rec_data = row.get("recommendation_data", row)
             content = rec_data.get("recommendation_content", {})
-            recs.append({
-                "source": "account",
-                "recommendation_type": rec_data.get("type", "UNKNOWN"),
-                "object_ids": rec_data.get("object_ids", []),
-                "body": content.get("body"),
-                "lift_estimate": content.get("lift_estimate"),
-                "opportunity_score": content.get("opportunity_score_lift"),
-                "url": rec_data.get("url"),
-                "recommendation_signature": rec_data.get("recommendation_signature"),
-            })
+            recs.append(
+                {
+                    "source": "account",
+                    "recommendation_type": rec_data.get("type", "UNKNOWN"),
+                    "object_ids": rec_data.get("object_ids", []),
+                    "body": content.get("body"),
+                    "lift_estimate": content.get("lift_estimate"),
+                    "opportunity_score": content.get("opportunity_score_lift"),
+                    "url": rec_data.get("url"),
+                    "recommendation_signature": rec_data.get(
+                        "recommendation_signature"
+                    ),
+                }
+            )
         return recs

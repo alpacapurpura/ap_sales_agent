@@ -4,7 +4,7 @@ Handles get_expansion_metrics() logic: Net MRR, Avg LTV, Churn Rate,
 renewal/upsell/churn grouping, bottleneck detection.
 """
 
-from typing import List, Optional
+from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -28,9 +28,9 @@ class ExpansionStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
-        offer_port: Optional[OfferReadPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
+        offer_port: OfferReadPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -55,16 +55,15 @@ class ExpansionStageService:
         7. Detect bottlenecks (churn rate > 3% warning, > 5% critical)
         8. Cache result and return ExpansionDetailDTO
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+
         from src.modules.analytics.infrastructure.repositories.expansion_repository import (
             ExpansionMetricsRepository,
         )
 
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "expansion", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "expansion", "last_30_days")
             if cached is not None:
                 return ExpansionDetailDTO(**cached)
 
@@ -103,8 +102,8 @@ class ExpansionStageService:
         # 4. Build ExpansionGroupDTOs
 
         def _build_offers(
-            raw_items: List[tuple], is_churn: bool = False
-        ) -> List[ExpansionOfferDTO]:
+            raw_items: list[tuple], is_churn: bool = False
+        ) -> list[ExpansionOfferDTO]:
             result_offers = []
             for item in raw_items:
                 offer_id_str = str(item[0])
@@ -114,14 +113,16 @@ class ExpansionStageService:
                 offer = offer_map.get(offer_id_str)
                 name = offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
                 usd_rev = convert_to_usd(revenue, currency)
-                result_offers.append(ExpansionOfferDTO(
-                    offer_id=offer_id_str,
-                    public_name=name,
-                    count=count,
-                    revenue=revenue,
-                    currency=currency,
-                    usd_revenue=usd_rev,
-                ))
+                result_offers.append(
+                    ExpansionOfferDTO(
+                        offer_id=offer_id_str,
+                        public_name=name,
+                        count=count,
+                        revenue=revenue,
+                        currency=currency,
+                        usd_revenue=usd_rev,
+                    )
+                )
             return result_offers
 
         # Retencion group (renewals)
@@ -129,7 +130,12 @@ class ExpansionStageService:
         renewal_total_count = sum(o.count for o in renewal_offers)
         renewal_total_revenue = sum(o.revenue for o in renewal_offers)
         retention_rate = (
-            round((active_customer_count - total_churn_count) / active_customer_count * 100, 1)
+            round(
+                (active_customer_count - total_churn_count)
+                / active_customer_count
+                * 100,
+                1,
+            )
             if active_customer_count > 0
             else 100.0
         )
@@ -225,25 +231,29 @@ class ExpansionStageService:
 
         if churn_rate_pct > 5.0:
             tip = "Revisa la calidad y satisfaccion de tu producto o servicio"
-            bottlenecks.append(BottleneckDTO(
-                type="high_churn_rate",
-                metric_label="Tasa de Cancelacion",
-                current_rate=churn_rate_pct,
-                severity="critical",
-                threshold=5.0,
-                tip=tip,
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="high_churn_rate",
+                    metric_label="Tasa de Cancelacion",
+                    current_rate=churn_rate_pct,
+                    severity="critical",
+                    threshold=5.0,
+                    tip=tip,
+                )
+            )
         elif churn_rate_pct > 3.0:
-            bottlenecks.append(BottleneckDTO(
-                type="high_churn_rate",
-                metric_label="Tasa de Cancelacion",
-                current_rate=churn_rate_pct,
-                severity="warning",
-                threshold=3.0,
-                tip="Revisa la calidad y satisfaccion de tu producto o servicio",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="high_churn_rate",
+                    metric_label="Tasa de Cancelacion",
+                    current_rate=churn_rate_pct,
+                    severity="warning",
+                    threshold=3.0,
+                    tip="Revisa la calidad y satisfaccion de tu producto o servicio",
+                )
+            )
 
-        now = dt_cls.now(tz.utc)
+        now = dt_cls.now(UTC)
 
         result = ExpansionDetailDTO(
             header_kpis=header_kpis,

@@ -1,0 +1,26 @@
+services:
+  simulator:
+    build: .
+    container_name: nicolify_simulator
+    restart: unless-stopped
+    command: >
+      streamlit run src/dashboard/app.py
+      --server.port 8501
+      --server.address 0.0.0.0
+      --browser.gatherUsageStats false
+    env_file: .env
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    ports:
+      - "8503:8501"
+    networks:
+      - simulator_net
+      - aisalesht_internal_net
+
+networks:
+  simulator_net:
+    driver: bridge
+  aisalesht_internal_net:
+    external: true
+    name: aisalesht_internal_net

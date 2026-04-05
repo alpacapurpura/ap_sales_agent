@@ -1,9 +1,10 @@
 """Streamlit admin: Salud de Tenants — cross-tenant health overview with drill-down."""
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
+
+import pandas as pd
+import streamlit as st
 
 
 def _get_module_completion(db, tenant_id, module_id, registry) -> float:
@@ -12,6 +13,7 @@ def _get_module_completion(db, tenant_id, module_id, registry) -> float:
         check_section_completion,
         get_model_sections,
     )
+
     descriptor = registry.get(module_id)
     if not descriptor or not descriptor.repo_factory:
         return 0.0
@@ -35,15 +37,15 @@ def _get_module_completion(db, tenant_id, module_id, registry) -> float:
     return 1.0
 
 
-def render_tenant_health():
+def render_tenant_health():  # noqa: C901
     st.title("🏥 Salud de Tenants")
 
     from src.admin.modules._shared import (
+        TOOLTIPS,
+        completion_flag,
         get_all_tenants_summary,
         get_tenant_options,
-        completion_flag,
         health_flag,
-        TOOLTIPS,
     )
     from src.core.database import SessionLocal
 
@@ -52,22 +54,30 @@ def render_tenant_health():
     with col_search:
         search = st.text_input("Buscar tenant", key="health_search")
     with col_status:
-        status_filter = st.selectbox("Estado", ["Todos", "Activos", "Inactivos"], key="health_status")
+        status_filter = st.selectbox(
+            "Estado", ["Todos", "Activos", "Inactivos"], key="health_status"
+        )
     with col_sort:
-        sort_by = st.selectbox("Ordenar", ["Mas activo", "Menos activo", "Mas reciente"], key="health_sort")
+        sort_by = st.selectbox(
+            "Ordenar", ["Mas activo", "Menos activo", "Mas reciente"], key="health_sort"
+        )
     with col_period:
         period = st.slider("Periodo (dias)", 7, 90, 30, key="health_period")
 
     # ── Main Table ──
     try:
         tenants_data = get_all_tenants_summary()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         db = SessionLocal()
         try:
-            from src.modules.copilot.infrastructure.repositories.event_repository import CopilotEventRepository
+            from src.modules.copilot.infrastructure.repositories.event_repository import (
+                CopilotEventRepository,
+            )
+
             event_repo = CopilotEventRepository(db)
             from src.modules.copilot.domain.module_registry import get_module_registry
+
             registry = get_module_registry()
 
             rows = []
@@ -86,7 +96,11 @@ def render_tenant_health():
                 # Compute days inactive
                 if t["last_event"]:
                     days_inactive = (now - t["last_event"]).days
-                    last_act = t["last_event"].strftime("%Y-%m-%d") if days_inactive > 1 else "Hoy"
+                    last_act = (
+                        t["last_event"].strftime("%Y-%m-%d")
+                        if days_inactive > 1
+                        else "Hoy"
+                    )
                 else:
                     days_inactive = 999
                     last_act = "Nunca"
@@ -100,19 +114,21 @@ def render_tenant_health():
                 summary = event_repo.get_tenant_summary(tid, days=period)
                 msg_count = summary.get("message_sent", 0)
 
-                rows.append({
-                    "_id": str(tid),
-                    "_days_inactive": days_inactive,
-                    "_msg_count": msg_count,
-                    "Tenant": t["name"],
-                    "Estado": health_flag(days_inactive),
-                    "Brand": brand_ratio,
-                    "Offer": offer_ratio,
-                    "Conn": conn_ratio,
-                    "Msgs": msg_count,
-                    "Users": t["user_count"],
-                    "Ultima Act.": last_act,
-                })
+                rows.append(
+                    {
+                        "_id": str(tid),
+                        "_days_inactive": days_inactive,
+                        "_msg_count": msg_count,
+                        "Tenant": t["name"],
+                        "Estado": health_flag(days_inactive),
+                        "Brand": brand_ratio,
+                        "Offer": offer_ratio,
+                        "Conn": conn_ratio,
+                        "Msgs": msg_count,
+                        "Users": t["user_count"],
+                        "Ultima Act.": last_act,
+                    }
+                )
 
             # Sort
             if sort_by == "Mas activo":
@@ -124,21 +140,32 @@ def render_tenant_health():
 
             if rows:
                 display_df = pd.DataFrame(rows)
-                display_df = display_df.drop(columns=["_id", "_days_inactive", "_msg_count"])
+                display_df = display_df.drop(
+                    columns=["_id", "_days_inactive", "_msg_count"]
+                )
 
                 st.dataframe(
                     display_df,
                     column_config={
                         "Brand": st.column_config.ProgressColumn(
-                            "Brand", min_value=0, max_value=1, format="%.0f%%",
+                            "Brand",
+                            min_value=0,
+                            max_value=1,
+                            format="%.0f%%",
                             help=TOOLTIPS["module_completion"],
                         ),
                         "Offer": st.column_config.ProgressColumn(
-                            "Offer", min_value=0, max_value=1, format="%.0f%%",
+                            "Offer",
+                            min_value=0,
+                            max_value=1,
+                            format="%.0f%%",
                             help=TOOLTIPS["module_completion"],
                         ),
                         "Conn": st.column_config.ProgressColumn(
-                            "Conn", min_value=0, max_value=1, format="%.0f%%",
+                            "Conn",
+                            min_value=0,
+                            max_value=1,
+                            format="%.0f%%",
                             help=TOOLTIPS["module_completion"],
                         ),
                     },
@@ -155,6 +182,7 @@ def render_tenant_health():
     except Exception as e:
         st.error(f"Error: {e}")
         import traceback
+
         st.code(traceback.format_exc())
         return
 
@@ -167,7 +195,9 @@ def render_tenant_health():
         return
 
     tenant_names = [t["name"] for t in tenant_opts]
-    selected_name = st.selectbox("Ver detalle de:", tenant_names, key="health_detail_tenant")
+    selected_name = st.selectbox(
+        "Ver detalle de:", tenant_names, key="health_detail_tenant"
+    )
     selected_tenant = next((t for t in tenant_opts if t["name"] == selected_name), None)
 
     if not selected_tenant:
@@ -175,12 +205,14 @@ def render_tenant_health():
 
     sel_tid = UUID(selected_tenant["id"])
 
-    tab_modules, tab_copilot, tab_users, tab_convs = st.tabs([
-        "📦 Modulos",
-        "🧠 Uso Copilot",
-        "👥 Usuarios",
-        "💬 Conversaciones",
-    ])
+    tab_modules, tab_copilot, tab_users, tab_convs = st.tabs(
+        [
+            "📦 Modulos",
+            "🧠 Uso Copilot",
+            "👥 Usuarios",
+            "💬 Conversaciones",
+        ]
+    )
 
     # ── Tab: Modulos ──
     with tab_modules:
@@ -191,6 +223,7 @@ def render_tenant_health():
                 check_section_completion,
                 get_model_sections,
             )
+
             registry = get_module_registry()
 
             for mod_id in ["brand", "offer", "connections", "landing"]:
@@ -214,7 +247,7 @@ def render_tenant_health():
                             for sec_name, sec_status in completion.items():
                                 icon = "✅" if sec_status.is_configured else "❌"
                                 st.caption(f"  {icon} {sec_name}")
-                    except Exception:
+                    except Exception:  # noqa: S110
                         pass
 
                 # Count for list-based modules
@@ -224,7 +257,7 @@ def render_tenant_health():
                         data = descriptor.read_fn(repo, sel_tid)
                         count = len(data) if isinstance(data, list) else 0
                         st.caption(f"  {count} items")
-                    except Exception:
+                    except Exception:  # noqa: S110
                         pass
         finally:
             db_detail.close()
@@ -233,7 +266,10 @@ def render_tenant_health():
     with tab_copilot:
         db_copilot = SessionLocal()
         try:
-            from src.modules.copilot.infrastructure.repositories.event_repository import CopilotEventRepository
+            from src.modules.copilot.infrastructure.repositories.event_repository import (
+                CopilotEventRepository,
+            )
+
             repo_cp = CopilotEventRepository(db_copilot)
 
             # Engagement KPIs
@@ -248,7 +284,10 @@ def render_tenant_health():
             if summary:
                 st.subheader("Eventos por Tipo")
                 df_ev = pd.DataFrame(
-                    [{"Tipo": k, "Cantidad": v} for k, v in sorted(summary.items(), key=lambda x: -x[1])]
+                    [
+                        {"Tipo": k, "Cantidad": v}
+                        for k, v in sorted(summary.items(), key=lambda x: -x[1])
+                    ]
                 )
                 st.bar_chart(df_ev.set_index("Tipo"))
 
@@ -261,8 +300,19 @@ def render_tenant_health():
                 for route, count in friction.items():
                     pct = round(count / total_f * 100, 1)
                     flag = "🔴" if pct > 20 else "🟡" if pct > 10 else "🟢"
-                    friction_rows.append({"Ruta": route, "Aperturas": count, "%": f"{pct}%", "Flag": flag})
-                st.dataframe(pd.DataFrame(friction_rows), use_container_width=True, hide_index=True)
+                    friction_rows.append(
+                        {
+                            "Ruta": route,
+                            "Aperturas": count,
+                            "%": f"{pct}%",
+                            "Flag": flag,
+                        }
+                    )
+                st.dataframe(
+                    pd.DataFrame(friction_rows),
+                    use_container_width=True,
+                    hide_index=True,
+                )
 
             # Procedure rates
             proc = repo_cp.get_procedure_completion_rates(sel_tid, days=period)
@@ -273,13 +323,17 @@ def render_tenant_health():
                     started = info.get("started", 0)
                     completed = info.get("completed", 0)
                     pct = round(completed / started * 100) if started else 0
-                    proc_rows.append({
-                        "Procedimiento": info.get("name", pid),
-                        "Iniciados": started,
-                        "Completados": completed,
-                        "% OK": f"{pct}%",
-                    })
-                st.dataframe(pd.DataFrame(proc_rows), use_container_width=True, hide_index=True)
+                    proc_rows.append(
+                        {
+                            "Procedimiento": info.get("name", pid),
+                            "Iniciados": started,
+                            "Completados": completed,
+                            "% OK": f"{pct}%",
+                        }
+                    )
+                st.dataframe(
+                    pd.DataFrame(proc_rows), use_container_width=True, hide_index=True
+                )
         finally:
             db_copilot.close()
 
@@ -289,7 +343,9 @@ def render_tenant_health():
         db_users = SessionLocal()
         try:
             from sqlalchemy import text
-            result = db_users.execute(text("""
+
+            result = db_users.execute(
+                text("""
                 SELECT
                     u.id, u.full_name, u.email, u.role,
                     COUNT(ce.id) AS msg_count,
@@ -303,20 +359,26 @@ def render_tenant_health():
                 WHERE u.is_active = true
                 GROUP BY u.id, u.full_name, u.email, u.role
                 ORDER BY msg_count DESC
-            """), {"tid": sel_tid})
+            """),
+                {"tid": sel_tid},
+            )
             user_rows = []
             for r in result:
                 row = dict(r._mapping)
                 last = row["last_activity"]
-                user_rows.append({
-                    "Nombre": row["full_name"] or "—",
-                    "Email": row["email"] or "—",
-                    "Rol": row["role"] or "—",
-                    "Msgs": row["msg_count"],
-                    "Ultima Act.": last.strftime("%Y-%m-%d") if last else "—",
-                })
+                user_rows.append(
+                    {
+                        "Nombre": row["full_name"] or "—",
+                        "Email": row["email"] or "—",
+                        "Rol": row["role"] or "—",
+                        "Msgs": row["msg_count"],
+                        "Ultima Act.": last.strftime("%Y-%m-%d") if last else "—",
+                    }
+                )
             if user_rows:
-                st.dataframe(pd.DataFrame(user_rows), use_container_width=True, hide_index=True)
+                st.dataframe(
+                    pd.DataFrame(user_rows), use_container_width=True, hide_index=True
+                )
             else:
                 st.info("Sin usuarios para este tenant.")
         finally:
@@ -326,14 +388,21 @@ def render_tenant_health():
     with tab_convs:
         db_conv = SessionLocal()
         try:
-            from src.modules.copilot.infrastructure.repositories.conversation_repository import ConversationRepository
+            from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+                ConversationRepository,
+            )
+
             conv_repo = ConversationRepository(db_conv)
             convs = conv_repo.list_by_tenant(sel_tid, limit=10)
             if convs:
                 for conv in convs:
                     msgs = conv.messages or []
-                    title = conv.title or (msgs[0].get("content", "")[:50] if msgs else "Sin titulo")
-                    with st.expander(f"💬 {title} ({len(msgs)} msgs) — {conv.updated_at.strftime('%Y-%m-%d %H:%M') if conv.updated_at else ''}"):
+                    title = conv.title or (
+                        msgs[0].get("content", "")[:50] if msgs else "Sin titulo"
+                    )
+                    with st.expander(
+                        f"💬 {title} ({len(msgs)} msgs) — {conv.updated_at.strftime('%Y-%m-%d %H:%M') if conv.updated_at else ''}"
+                    ):
                         for msg in msgs[:20]:
                             if isinstance(msg, dict):
                                 role = msg.get("role", "?")
@@ -347,7 +416,9 @@ def render_tenant_health():
                                     if tool_calls:
                                         for tc in tool_calls:
                                             if isinstance(tc, dict):
-                                                st.caption(f"🔧 {tc.get('name', '?')}({str(tc.get('args', ''))[:80]})")
+                                                st.caption(
+                                                    f"🔧 {tc.get('name', '?')}({str(tc.get('args', ''))[:80]})"
+                                                )
             else:
                 st.info("Sin conversaciones para este tenant.")
         finally:

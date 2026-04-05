@@ -8,7 +8,6 @@ import json
 import uuid
 from collections import defaultdict
 from datetime import date
-from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select, text
@@ -62,7 +61,7 @@ class OfficialMetricsRepository:
             updated_at = NOW()
     """)
 
-    def upsert_from_staging(self, metrics: List[dict]) -> int:
+    def upsert_from_staging(self, metrics: list[dict]) -> int:
         """Insert or update official metrics from transformed staging data.
 
         Uses PostgreSQL ON CONFLICT DO UPDATE on the composite key
@@ -114,11 +113,11 @@ class OfficialMetricsRepository:
     def get_metrics(
         self,
         tenant_id: UUID,
-        channel_slug: Optional[str] = None,
-        metric_name: Optional[str] = None,
-        start_date: Optional[date] = None,
-        end_date: Optional[date] = None,
-    ) -> List[OfficialMetricModel]:
+        channel_slug: str | None = None,
+        metric_name: str | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
+    ) -> list[OfficialMetricModel]:
         """Flexible query with optional filters for dashboard display."""
         stmt = select(OfficialMetricModel).where(
             OfficialMetricModel.tenant_id == tenant_id
@@ -154,14 +153,14 @@ class OfficialMetricsRepository:
             )
             .distinct()
         )
-        return {row for row in self.db.execute(stmt).scalars().all()}
+        return set(self.db.execute(stmt).scalars().all())
 
     def get_channel_summary(
         self,
         tenant_id: UUID,
         stage_slug: str,
         period_type: str = "last_30_days",
-    ) -> List:
+    ) -> list:
         """Aggregated metrics for dashboard display.
 
         Returns channel-level summaries for the given stage and period.
@@ -223,20 +222,23 @@ class OfficialMetricsRepository:
                 updated_at = NOW()
         """)
 
-        self.db.execute(sql, {
-            "tenant_id": tenant_id,
-            "provider": provider,
-            "channel_slug": channel_slug,
-            "metric_name": metric_name,
-            "value": value,
-            "unit": unit,
-            "metric_date": metric_date,
-            "cost_type": cost_type,
-            "extra": json.dumps(extra or {}),
-            "campaign_id": campaign_id,
-            "ad_set_id": ad_set_id,
-            "ad_id": ad_id,
-        })
+        self.db.execute(
+            sql,
+            {
+                "tenant_id": tenant_id,
+                "provider": provider,
+                "channel_slug": channel_slug,
+                "metric_name": metric_name,
+                "value": value,
+                "unit": unit,
+                "metric_date": metric_date,
+                "cost_type": cost_type,
+                "extra": json.dumps(extra or {}),
+                "campaign_id": campaign_id,
+                "ad_set_id": ad_set_id,
+                "ad_id": ad_id,
+            },
+        )
         self.db.flush()
 
     def get_channel_metrics(

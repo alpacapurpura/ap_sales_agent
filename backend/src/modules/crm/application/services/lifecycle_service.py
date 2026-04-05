@@ -11,16 +11,17 @@ Responsibilities:
 
 CUSTOMER stage profiles are exempt from scoring-driven transitions.
 """
+
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.crm.domain.scoring import SCORING_WEIGHTS, SCORING_THRESHOLDS
+from src.modules.crm.domain.scoring import SCORING_THRESHOLDS, SCORING_WEIGHTS
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
@@ -111,7 +112,7 @@ class LifecycleService:
             )
             profile.lifetime_value = (profile.lifetime_value or 0) + amount
             if not profile.first_conversion_at:
-                profile.first_conversion_at = datetime.now(timezone.utc)
+                profile.first_conversion_at = datetime.now(UTC)
             self.db.flush()
             return
 
@@ -128,7 +129,7 @@ class LifecycleService:
                 },
             )
             if not profile.first_conversion_at:
-                profile.first_conversion_at = datetime.now(timezone.utc)
+                profile.first_conversion_at = datetime.now(UTC)
             profile.lifetime_value = (profile.lifetime_value or 0) + amount
 
         elif stage == "EXPANSION":
@@ -199,7 +200,7 @@ class LifecycleService:
         profile_id: UUID,
         tenant_id: UUID,
         new_stage: LifecycleStage,
-        admin_user_id: Optional[str] = None,
+        admin_user_id: str | None = None,
         note: str = "",
     ) -> None:
         """Manual override for admin API."""
@@ -210,9 +211,14 @@ class LifecycleService:
         self._transition(
             profile,
             new_stage,
-            reason=f"Manual stage override: {note}" if note else "Manual stage override",
+            reason=f"Manual stage override: {note}"
+            if note
+            else "Manual stage override",
             triggered_by="manual",
-            metadata={"admin_user_id": str(admin_user_id) if admin_user_id else "", "note": note},
+            metadata={
+                "admin_user_id": str(admin_user_id) if admin_user_id else "",
+                "note": note,
+            },
         )
         self.db.flush()
 
@@ -228,7 +234,9 @@ class LifecycleService:
         Returns (profile, referral_code).
         """
         # Lazy import to avoid circular dependency
-        from src.modules.crm.application.services.referral_service import ReferralService
+        from src.modules.crm.application.services.referral_service import (
+            ReferralService,
+        )
 
         profile = self._load_profile_for_update(profile_id, tenant_id)
         if profile is None:
@@ -251,7 +259,8 @@ class LifecycleService:
 
         logger.info(
             "Customer %s promoted to EVANGELIST with referral code %s",
-            profile_id, referral_code.code,
+            profile_id,
+            referral_code.code,
         )
         return (profile, referral_code)
 
@@ -261,30 +270,24 @@ class LifecycleService:
 
     def _load_profile_for_update(
         self, profile_id: UUID, tenant_id: UUID
-    ) -> Optional[CustomerProfileModel]:
+    ) -> CustomerProfileModel | None:
         """Load profile with FOR UPDATE lock (degrades gracefully on SQLite)."""
-        stmt = (
-            select(CustomerProfileModel)
-            .where(
-                CustomerProfileModel.id == profile_id,
-                CustomerProfileModel.tenant_id == tenant_id,
-            )
+        stmt = select(CustomerProfileModel).where(
+            CustomerProfileModel.id == profile_id,
+            CustomerProfileModel.tenant_id == tenant_id,
         )
         try:
             stmt = stmt.with_for_update()
-        except Exception:
-            pass  # SQLite doesn't support FOR UPDATE
+        except Exception:  # noqa: S110 — SQLite doesn't support FOR UPDATE
+            pass
         result = self.db.execute(stmt)
         return result.scalars().first()
 
     def _sum_event_weights(self, profile_id: UUID, tenant_id: UUID) -> float:
         """Sum scoring weights from all journey_events for this profile."""
-        stmt = (
-            select(JourneyEventModel.event_name)
-            .where(
-                JourneyEventModel.profile_id == profile_id,
-                JourneyEventModel.tenant_id == tenant_id,
-            )
+        stmt = select(JourneyEventModel.event_name).where(
+            JourneyEventModel.profile_id == profile_id,
+            JourneyEventModel.tenant_id == tenant_id,
         )
         result = self.db.execute(stmt)
         event_names = [row[0] for row in result]
@@ -349,12 +352,11 @@ class LifecycleService:
         """Determine lifecycle stage from score thresholds."""
         if score >= SCORING_THRESHOLDS.sql:
             return LifecycleStage.SQL
-        elif score >= SCORING_THRESHOLDS.mql:
+        if score >= SCORING_THRESHOLDS.mql:
             return LifecycleStage.MQL
-        elif score >= SCORING_THRESHOLDS.lead:
+        if score >= SCORING_THRESHOLDS.lead:
             return LifecycleStage.LEAD
-        else:
-            return LifecycleStage.SUBSCRIBER
+        return LifecycleStage.SUBSCRIBER
 
     def _check_threshold_transition(
         self, profile: CustomerProfileModel, score: float
@@ -375,7 +377,7 @@ class LifecycleService:
         new_stage: LifecycleStage,
         reason: str,
         triggered_by: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """Execute stage transition with audit trail."""
         old_stage = profile.lifecycle_stage

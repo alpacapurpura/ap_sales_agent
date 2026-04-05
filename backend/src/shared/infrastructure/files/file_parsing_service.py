@@ -1,16 +1,18 @@
 import io
-from fastapi import UploadFile
-import pypdf
+
 import docx
+import pypdf
 import structlog
+from fastapi import UploadFile
 
 logger = structlog.get_logger()
+
 
 class FileParsingService:
     """
     Service for parsing text from uploaded files (PDF, DOCX, TXT/MD).
     """
-    
+
     @staticmethod
     async def parse_file(file: UploadFile) -> str:
         """
@@ -18,13 +20,13 @@ class FileParsingService:
         """
         content = await file.read()
         filename = file.filename.lower()
-        
+
         try:
             if filename.endswith(".pdf"):
                 return FileParsingService.parse_pdf(content)
-            elif filename.endswith(".docx"):
+            if filename.endswith(".docx"):
                 return FileParsingService.parse_docx(content)
-            elif filename.endswith(".txt") or filename.endswith(".md"):
+            if filename.endswith((".txt", ".md")):
                 # Try UTF-8, fallback to latin-1 if needed
                 try:
                     return content.decode("utf-8")

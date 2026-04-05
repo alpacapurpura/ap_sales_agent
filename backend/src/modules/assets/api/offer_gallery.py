@@ -1,14 +1,24 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, BackgroundTasks, HTTPException
+from uuid import UUID
+
+import structlog
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 from sqlalchemy.orm import Session
-from src.modules.iam.api.dependencies import get_db, get_current_tenant_id
+
 from src.modules.assets.application.assets_service import AssetsService
 from src.modules.assets.domain.schemas import AssetDto
-from uuid import UUID
-import structlog
-from typing import List
+from src.modules.iam.api.dependencies import get_current_tenant_id, get_db
 
 logger = structlog.get_logger()
 router = APIRouter()
+
 
 # Keep using AssetDto as response model (compatible with GalleryImageDto)
 @router.post("/{offer_id}/gallery/upload", response_model=AssetDto)
@@ -18,7 +28,7 @@ async def upload_offer_image(
     file: UploadFile = File(...),
     description: str = Form(""),
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_current_tenant_id)
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     try:
         service = AssetsService(db)
@@ -29,17 +39,18 @@ async def upload_offer_image(
             mime_type=file.content_type,
             description=description,
             background_tasks=background_tasks,
-            offer_id=UUID(offer_id)
+            offer_id=UUID(offer_id),
         )
     except Exception as e:
         logger.error("offer_upload_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{offer_id}/gallery", response_model=List[AssetDto])
+
+@router.get("/{offer_id}/gallery", response_model=list[AssetDto])
 def list_offer_images(
     offer_id: str,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_current_tenant_id)
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     service = AssetsService(db)
     # This might need a new method in service or just use list_by_offer
@@ -49,18 +60,21 @@ def list_offer_images(
     # For now, rely on offer_id.
     return service.list_by_offer(offer_id=UUID(offer_id))
 
+
 @router.delete("/{offer_id}/gallery/{image_id}")
 def delete_offer_image(
-    offer_id: str, # Kept for URL compatibility
+    offer_id: str,  # Kept for URL compatibility
     image_id: str,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_current_tenant_id)
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     service = AssetsService(db)
     # Pass offer_id to ensure ownership check
-    success = service.delete_asset(tenant_id=UUID(tenant_id), asset_id=UUID(image_id), offer_id=UUID(offer_id))
-    
+    success = service.delete_asset(
+        tenant_id=UUID(tenant_id), asset_id=UUID(image_id), offer_id=UUID(offer_id)
+    )
+
     if not success:
         raise HTTPException(status_code=404, detail="Image not found")
-        
+
     return {"status": "deleted"}

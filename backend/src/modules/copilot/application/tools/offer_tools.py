@@ -6,47 +6,55 @@ make informed suggestions and proposals.
 """
 
 import json
-from typing import Optional
 from uuid import UUID
 
+import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 
-import structlog
-
 logger = structlog.get_logger()
 
 
-def _fetch_offers(db, tenant_id: UUID, offer_id: Optional[str] = None) -> list[dict]:
+def _fetch_offers(db, tenant_id: UUID, offer_id: str | None = None) -> list[dict]:
     """Fetch offers from the products table."""
     try:
         if offer_id:
-            rows = db.execute(
-                text(
-                    "SELECT id, name, archetype, format_hint, status, headline_promise, primary_outcome, "
-                    "pricing, currency, offer_value_level AS value_level, delivery_model, access_duration, "
-                    "access_duration_text, guarantee_type, guarantee_terms, "
-                    "marketing_pain_points, marketing_desires, objections, "
-                    "target_avatar_match, requires_application, checkout_page_url "
-                    "FROM products WHERE tenant_id = :tid AND id = :oid AND is_active = true"
-                ),
-                {"tid": str(tenant_id), "oid": offer_id},
-            ).mappings().all()
+            rows = (
+                db.execute(
+                    text(
+                        "SELECT id, name, archetype, format_hint, status, headline_promise, primary_outcome, "
+                        "pricing, currency, offer_value_level AS value_level, delivery_model, access_duration, "
+                        "access_duration_text, guarantee_type, guarantee_terms, "
+                        "marketing_pain_points, marketing_desires, objections, "
+                        "target_avatar_match, requires_application, checkout_page_url "
+                        "FROM products WHERE tenant_id = :tid AND id = :oid AND is_active = true"
+                    ),
+                    {"tid": str(tenant_id), "oid": offer_id},
+                )
+                .mappings()
+                .all()
+            )
         else:
-            rows = db.execute(
-                text(
-                    "SELECT id, name, archetype, format_hint, status, headline_promise, primary_outcome, "
-                    "pricing, currency, offer_value_level AS value_level, delivery_model, access_duration "
-                    "FROM products WHERE tenant_id = :tid AND is_active = true "
-                    "ORDER BY created_at DESC"
-                ),
-                {"tid": str(tenant_id)},
-            ).mappings().all()
+            rows = (
+                db.execute(
+                    text(
+                        "SELECT id, name, archetype, format_hint, status, headline_promise, primary_outcome, "
+                        "pricing, currency, offer_value_level AS value_level, delivery_model, access_duration "
+                        "FROM products WHERE tenant_id = :tid AND is_active = true "
+                        "ORDER BY created_at DESC"
+                    ),
+                    {"tid": str(tenant_id)},
+                )
+                .mappings()
+                .all()
+            )
     except Exception as e:
-        logger.warning("offer_tools_fetch_error", tenant_id=str(tenant_id), error=str(e))
+        logger.warning(
+            "offer_tools_fetch_error", tenant_id=str(tenant_id), error=str(e)
+        )
         return []
 
     return [dict(r) for r in rows]
@@ -78,7 +86,9 @@ def _format_offer_summary(offer: dict) -> str:
                 pass
         if isinstance(pricing, list) and pricing:
             currency = offer.get("currency", "USD")
-            lines.append(f"  Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}")
+            lines.append(
+                f"  Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}"
+            )
 
     if offer.get("access_duration"):
         lines.append(f"  Duración de acceso: {offer['access_duration']}")
@@ -135,7 +145,7 @@ def _format_offer_detail(offer: dict) -> str:
 
 
 @tool
-def get_offer_data(offer_id: Optional[str] = None) -> str:
+def get_offer_data(offer_id: str | None = None) -> str:
     """Read the current offers/products for this tenant.
 
     Args:

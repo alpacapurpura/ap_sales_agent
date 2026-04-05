@@ -33,6 +33,9 @@ jobs:
       - name: Run backend lint
         run: docker run --rm visionarias/backend-lint:ci
 
+      - name: Check backend formatting
+        run: docker run --rm visionarias/backend-lint:ci ruff format --check src
+
       - name: Build backend test image
         uses: docker/build-push-action@v5
         with:
@@ -66,6 +69,14 @@ jobs:
           docker cp frontend-test-ci:/app/coverage-frontend.json coverage-frontend.json
           docker rm frontend-test-ci
 
+      - name: Python dependency audit
+        run: docker run --rm visionarias/backend-test:ci pip-audit --strict --desc
+        continue-on-error: true
+
+      - name: Frontend dependency audit
+        run: docker run --rm visionarias/frontend-test:ci npm audit --audit-level=high
+        continue-on-error: true
+
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -75,6 +86,15 @@ jobs:
             coverage-backend.xml
             coverage-frontend.json
           retention-days: 30
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          files: coverage-backend.xml,coverage-frontend.json
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: backend,frontend
+          fail_ci_if_error: false
 
   e2e-smoke:
     name: 🎭 E2E Smoke Tests

@@ -1,8 +1,9 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from src.core.config import settings
 import redis
 import structlog
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from src.core.config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -42,8 +43,8 @@ def get_db():
     finally:
         db.close()
 
+
 def init_db(base_metadata=None):
     """Initialize database tables."""
     if base_metadata:
         base_metadata.create_all(bind=engine)
-

@@ -1,11 +1,12 @@
-from typing import Optional
-from src.modules.iam.domain.user import User
-from src.modules.iam.infrastructure.models import UserModel
-from src.core.base_repository import BaseRepository
 import uuid
 
+from src.core.base_repository import BaseRepository
+from src.modules.iam.domain.user import User
+from src.modules.iam.infrastructure.models import UserModel
+
+
 class UserRepository(BaseRepository):
-    def get_by_id(self, user_id: str | uuid.UUID) -> Optional[User]:
+    def get_by_id(self, user_id: str | uuid.UUID) -> User | None:
         """
         Fetch user by ID using UserModel (ORM) and return User (Domain).
         """
@@ -14,13 +15,13 @@ class UserRepository(BaseRepository):
                 user_id = uuid.UUID(user_id)
             except ValueError:
                 return None
-                
+
         user_orm = self.db.query(UserModel).filter(UserModel.id == user_id).first()
         if user_orm:
             return User.model_validate(user_orm)
         return None
 
-    def get_by_email(self, email: str) -> Optional[User]:
+    def get_by_email(self, email: str) -> User | None:
         """
         Fetch user by email.
         """
@@ -29,11 +30,13 @@ class UserRepository(BaseRepository):
             return User.model_validate(user_orm)
         return None
 
-    def get_by_clerk_id(self, clerk_id: str) -> Optional[User]:
+    def get_by_clerk_id(self, clerk_id: str) -> User | None:
         """
         Fetch user by Clerk ID.
         """
-        user_orm = self.db.query(UserModel).filter(UserModel.clerk_id == clerk_id).first()
+        user_orm = (
+            self.db.query(UserModel).filter(UserModel.clerk_id == clerk_id).first()
+        )
         if user_orm:
             return User.model_validate(user_orm)
         return None
@@ -53,11 +56,11 @@ class UserRepository(BaseRepository):
             is_active=user.is_active,
             # tenant_id logic is handled via M2M relationship usually, or context
         )
-            
+
         self.db.add(user_orm)
         self.db.commit()
         self.db.refresh(user_orm)
-        
+
         return User.model_validate(user_orm)
 
     def update_user(self, user: User) -> User:
@@ -75,8 +78,8 @@ class UserRepository(BaseRepository):
         user_orm.clerk_id = user.clerk_id
         user_orm.role = user.role
         user_orm.is_active = user.is_active
-        
+
         self.db.commit()
         self.db.refresh(user_orm)
-        
+
         return User.model_validate(user_orm)

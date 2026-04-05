@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 import structlog
@@ -6,17 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.iam.api.dependencies import get_current_user
+from src.modules.iam.domain.user import User
 from src.modules.tenant_domains.api.domain_dtos import (
+    DnsRecord,
     DomainCreate,
     DomainInstructionsResponse,
     DomainResponse,
     DomainSetPrimary,
-    DnsRecord,
 )
 from src.modules.tenant_domains.application.domain_service import DomainService
 from src.modules.tenant_domains.domain.domain_entity import DomainType
-from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
 
 logger = structlog.get_logger()
 
@@ -79,11 +78,11 @@ async def create_domain(
     return _to_response(domain)
 
 
-@router.get("/", response_model=List[DomainResponse])
+@router.get("/", response_model=list[DomainResponse])
 async def list_domains(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-) -> List[DomainResponse]:
+) -> list[DomainResponse]:
     service = DomainService(db)
     domains = service.list_domains(tenant_id=user.tenant_id)
     return [_to_response(d) for d in domains]
@@ -110,7 +109,9 @@ async def set_primary(
     user: User = Depends(get_current_user),
 ) -> DomainResponse:
     if not body.is_primary:
-        raise HTTPException(status_code=400, detail="Use is_primary=true to set a domain as primary")
+        raise HTTPException(
+            status_code=400, detail="Use is_primary=true to set a domain as primary"
+        )
     service = DomainService(db)
     try:
         domain = service.set_primary(domain_id=domain_id, tenant_id=user.tenant_id)
@@ -157,7 +158,9 @@ async def get_domain_instructions(
 ) -> DomainInstructionsResponse:
     """Return DNS setup instructions for a custom domain."""
     service = DomainService(db)
-    domain = service.get_domain_instructions(domain_id=domain_id, tenant_id=user.tenant_id)
+    domain = service.get_domain_instructions(
+        domain_id=domain_id, tenant_id=user.tenant_id
+    )
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
 

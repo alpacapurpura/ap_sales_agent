@@ -10,7 +10,7 @@ Gracefully handles missing developer token by returning empty results.
 
 import asyncio
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
@@ -27,9 +27,9 @@ class GoogleAdsAdapter:
 
     def __init__(
         self,
-        developer_token: Optional[str] = None,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
+        developer_token: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
     ):
         self.developer_token = developer_token
         self.client_id = client_id
@@ -43,7 +43,7 @@ class GoogleAdsAdapter:
         query: str,
         start_date: date,
         end_date: date,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Run a GAQL query against the Google Ads API.
 
         Args:
@@ -107,7 +107,7 @@ class GoogleAdsAdapter:
                 AND campaign.status = 'ENABLED'
             ORDER BY metrics.impressions DESC
             LIMIT 50
-        """
+        """  # noqa: S608
         if not developer_token:
             return []
         try:
@@ -156,13 +156,15 @@ class GoogleAdsAdapter:
         try:
             response = ga_service.search(customer_id=customer_id, query=query)
             for row in response:
-                results.append({
-                    "search_term": row.search_term_view.search_term,
-                    "impressions": row.metrics.impressions,
-                    "clicks": row.metrics.clicks,
-                    "conversions": row.metrics.conversions,
-                    "cost_micros": row.metrics.cost_micros,
-                })
+                results.append(
+                    {
+                        "search_term": row.search_term_view.search_term,
+                        "impressions": row.metrics.impressions,
+                        "clicks": row.metrics.clicks,
+                        "conversions": row.metrics.conversions,
+                        "cost_micros": row.metrics.cost_micros,
+                    }
+                )
         except Exception:
             logger.exception("google_ads_search_terms_search_exception")
         return results
@@ -173,7 +175,7 @@ class GoogleAdsAdapter:
         developer_token: str,
         credentials: dict,
         query: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Synchronous GAQL query execution using google-ads client.
 
         Imports google.ads.googleads lazily to avoid import errors when
@@ -197,11 +199,9 @@ class GoogleAdsAdapter:
         client = GoogleAdsClient.load_from_dict(config)
         ga_service = client.get_service("GoogleAdsService")
 
-        rows: List[Dict[str, Any]] = []
+        rows: list[dict[str, Any]] = []
         try:
-            response = ga_service.search(
-                customer_id=customer_id, query=query
-            )
+            response = ga_service.search(customer_id=customer_id, query=query)
             for row in response:
                 rows.append(
                     {
@@ -215,7 +215,9 @@ class GoogleAdsAdapter:
                         "conversions_value": row.metrics.conversions_value,
                         "ctr": row.metrics.ctr,
                         "average_cpc": row.metrics.average_cpc,
-                        "segments_date": getattr(getattr(row, "segments", None), "date", ""),
+                        "segments_date": getattr(
+                            getattr(row, "segments", None), "date", ""
+                        ),
                     }
                 )
         except Exception:

@@ -1,9 +1,11 @@
-from typing import Optional, List
-from sqlalchemy.orm import Session
 from uuid import UUID
+
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
+
 from src.modules.crm.domain.lead import Lead, UserProfile
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
+
 
 class LeadRepository:
     def __init__(self, db: Session):
@@ -12,7 +14,7 @@ class LeadRepository:
     def _to_domain(self, model: LeadModel) -> Lead:
         # Convert JSON profile data back to Domain Object
         profile = UserProfile(**(model.profile_data or {}))
-        
+
         return Lead(
             id=model.id,
             tenant_id=model.tenant_id,
@@ -34,7 +36,7 @@ class LeadRepository:
             style_profile=model.style_profile,
             custom_system_instruction=model.custom_system_instruction,
             created_at=model.created_at,
-            updated_at=model.updated_at
+            updated_at=model.updated_at,
         )
 
     def _to_model(self, lead: Lead) -> LeadModel:
@@ -47,7 +49,7 @@ class LeadRepository:
             instagram_id=lead.instagram_id,
             tiktok_id=lead.tiktok_id,
             api_id=lead.api_id,
-            profile_data=lead.profile_data.model_dump(mode='json'),
+            profile_data=lead.profile_data.model_dump(mode="json"),
             fit_score=lead.fit_score,
             intent_score=lead.intent_score,
             temperature=lead.temperature,
@@ -57,21 +59,23 @@ class LeadRepository:
             conversation_summary=lead.conversation_summary,
             key_objections_history=lead.key_objections_history,
             style_profile=lead.style_profile,
-            custom_system_instruction=lead.custom_system_instruction
+            custom_system_instruction=lead.custom_system_instruction,
         )
 
-    def get_by_id(self, lead_id: UUID) -> Optional[Lead]:
+    def get_by_id(self, lead_id: UUID) -> Lead | None:
         model = self.db.query(LeadModel).filter(LeadModel.id == lead_id).first()
         if model:
             return self._to_domain(model)
         return None
 
-    def get_by_channel_id(self, channel: str, channel_id: str, tenant_id: UUID) -> Optional[Lead]:
+    def get_by_channel_id(
+        self, channel: str, channel_id: str, tenant_id: UUID
+    ) -> Lead | None:
         """
         Generic fetch by channel ID (telegram_id, whatsapp_id, etc.)
         """
         query = self.db.query(LeadModel).filter(LeadModel.tenant_id == tenant_id)
-        
+
         if channel == "telegram":
             query = query.filter(LeadModel.telegram_id == channel_id)
         elif channel == "whatsapp":
@@ -82,18 +86,26 @@ class LeadRepository:
             query = query.filter(LeadModel.api_id == channel_id)
         else:
             return None
-            
+
         model = query.first()
         if model:
             return self._to_domain(model)
         return None
 
-    def get_high_intent_leads(self, tenant_id: UUID, min_score: int = 50, limit: int = 20) -> List[Lead]:
-        models = self.db.query(LeadModel).filter(
-            LeadModel.tenant_id == tenant_id,
-            LeadModel.intent_score >= min_score,
-            LeadModel.is_blacklisted.is_(False)
-        ).order_by(desc(LeadModel.intent_score)).limit(limit).all()
+    def get_high_intent_leads(
+        self, tenant_id: UUID, min_score: int = 50, limit: int = 20
+    ) -> list[Lead]:
+        models = (
+            self.db.query(LeadModel)
+            .filter(
+                LeadModel.tenant_id == tenant_id,
+                LeadModel.intent_score >= min_score,
+                LeadModel.is_blacklisted.is_(False),
+            )
+            .order_by(desc(LeadModel.intent_score))
+            .limit(limit)
+            .all()
+        )
         return [self._to_domain(m) for m in models]
 
     def create(self, lead: Lead) -> Lead:
@@ -107,11 +119,11 @@ class LeadRepository:
         model = self.db.query(LeadModel).filter(LeadModel.id == lead.id).first()
         if not model:
             raise ValueError("Lead not found")
-            
+
         # Update fields
         # Note: A smarter merge/update strategy is needed for production to avoid overwriting race conditions
         # For now, explicit field update
-        model.profile_data = lead.profile_data.model_dump(mode='json')
+        model.profile_data = lead.profile_data.model_dump(mode="json")
         model.fit_score = lead.fit_score
         model.intent_score = lead.intent_score
         model.temperature = lead.temperature
@@ -120,7 +132,7 @@ class LeadRepository:
         model.key_objections_history = lead.key_objections_history
         model.style_profile = lead.style_profile
         model.custom_system_instruction = lead.custom_system_instruction
-        
+
         self.db.commit()
         self.db.refresh(model)
         return self._to_domain(model)

@@ -1,5 +1,4 @@
 """CRM NPS API: survey creation, public response, and evangelist candidate listing."""
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -16,8 +15,8 @@ router = APIRouter(prefix="/nps", tags=["CRM - NPS"])
 
 
 class CreateSurveyRequest(BaseModel):
-    customer_id: Optional[str] = None  # null = per-offer batch
-    offer_id: Optional[str] = None
+    customer_id: str | None = None  # null = per-offer batch
+    offer_id: str | None = None
     delivery_channel: str = "universal_link"
 
 
@@ -31,15 +30,15 @@ class SurveyResponse(BaseModel):
 
 class SubmitNpsRequest(BaseModel):
     score: int  # 0-10
-    feedback_text: Optional[str] = None
-    testimonial_text: Optional[str] = None
-    testimonial_audio_url: Optional[str] = None
+    feedback_text: str | None = None
+    testimonial_text: str | None = None
+    testimonial_audio_url: str | None = None
     consent_public_use: bool = False
 
 
 class NpsSummaryResponse(BaseModel):
-    nps_score: Optional[float]
-    standard_nps: Optional[float]
+    nps_score: float | None
+    standard_nps: float | None
     promoter_count: int
     passive_count: int
     detractor_count: int
@@ -50,9 +49,9 @@ class NpsSummaryResponse(BaseModel):
 
 class EvangelistCandidateResponse(BaseModel):
     customer_id: str
-    full_name: Optional[str]
+    full_name: str | None
     nps_score: int
-    responded_at: Optional[str]
+    responded_at: str | None
 
 
 # --- Endpoints ---
@@ -66,6 +65,7 @@ async def create_survey(
 ):
     """Create NPS survey. Returns survey with unique token URL."""
     from uuid import UUID
+
     from src.modules.crm.application.services.nps_service import NpsService
 
     customer_id = UUID(body.customer_id) if body.customer_id else None
@@ -191,7 +191,7 @@ async def get_nps_summary(
     return NpsSummaryResponse(**summary)
 
 
-@router.get("/candidates", response_model=List[EvangelistCandidateResponse])
+@router.get("/candidates", response_model=list[EvangelistCandidateResponse])
 async def get_evangelist_candidates(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),

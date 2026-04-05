@@ -6,7 +6,9 @@ import pandas as pd
 import streamlit as st
 
 from src.core.database import SessionLocal
-from src.modules.commercial_calendar.application.calendar_event_service import CalendarEventService
+from src.modules.commercial_calendar.application.calendar_event_service import (
+    CalendarEventService,
+)
 from src.modules.commercial_calendar.domain.enums import EventCategory
 
 COUNTRIES = {
@@ -52,11 +54,13 @@ def render_commercial_calendar_page():
             index=0,
         )
     with col_ano:
-        year = st.number_input("Año", min_value=2024, max_value=2030, value=date.today().year, step=1)
+        year = st.number_input(
+            "Año", min_value=2024, max_value=2030, value=date.today().year, step=1
+        )
 
     service, db = _get_service()
     try:
-        current_week, current_year = service.get_current_week_number()
+        current_week, _current_year = service.get_current_week_number()
     finally:
         db.close()
 
@@ -65,13 +69,15 @@ def render_commercial_calendar_page():
 
     st.divider()
 
-    tab_cal, tab_crear, tab_editar, tab_eliminar, tab_stats = st.tabs([
-        "📋 Calendario",
-        "➕ Crear Evento",
-        "✏️ Editar",
-        "🗑️ Eliminar",
-        "📊 Stats",
-    ])
+    tab_cal, tab_crear, tab_editar, tab_eliminar, tab_stats = st.tabs(
+        [
+            "📋 Calendario",
+            "➕ Crear Evento",
+            "✏️ Editar",
+            "🗑️ Eliminar",
+            "📊 Stats",
+        ]
+    )
 
     # ── TAB 1: CALENDARIO ───────────────────────────────────────────────────
     with tab_cal:
@@ -86,19 +92,25 @@ def render_commercial_calendar_page():
             db.close()
 
         if not events:
-            st.info(f"No hay eventos para {COUNTRIES.get(country_code, country_code)} {int(year)}.")
+            st.info(
+                f"No hay eventos para {COUNTRIES.get(country_code, country_code)} {int(year)}."
+            )
         else:
             rows = []
             for e in events:
-                rows.append({
-                    "Fecha": e.date.strftime("%d/%m/%Y"),
-                    "Sem.": e.week_number,
-                    "Nombre": e.name,
-                    "Categoría": CATEGORY_LABELS.get(e.category or "", e.category or "—"),
-                    "Fuente": "🔵 Sistema" if e.is_system else "🟢 Tenant",
-                    "_week": e.week_number,
-                    "_id": str(e.id),
-                })
+                rows.append(
+                    {
+                        "Fecha": e.date.strftime("%d/%m/%Y"),
+                        "Sem.": e.week_number,
+                        "Nombre": e.name,
+                        "Categoría": CATEGORY_LABELS.get(
+                            e.category or "", e.category or "—"
+                        ),
+                        "Fuente": "🔵 Sistema" if e.is_system else "🟢 Tenant",
+                        "_week": e.week_number,
+                        "_id": str(e.id),
+                    }
+                )
 
             df = pd.DataFrame(rows)
 
@@ -112,7 +124,17 @@ def render_commercial_calendar_page():
                     return [""] * len(row)
 
                 st.dataframe(
-                    df[["Fecha", "Sem.", "Nombre", "Categoría", "Fuente", "_week", "_id"]]
+                    df[
+                        [
+                            "Fecha",
+                            "Sem.",
+                            "Nombre",
+                            "Categoría",
+                            "Fuente",
+                            "_week",
+                            "_id",
+                        ]
+                    ]
                     .style.apply(highlight_week, axis=1)
                     .hide(subset=["_week", "_id"], axis="columns"),
                     use_container_width=True,
@@ -125,7 +147,9 @@ def render_commercial_calendar_page():
                     height=500,
                 )
 
-            st.caption(f"Total: **{len(events)} filas** ({len(set(e.name for e in events))} eventos únicos)")
+            st.caption(
+                f"Total: **{len(events)} filas** ({len({e.name for e in events})} eventos únicos)"
+            )
 
     # ── TAB 2: CREAR EVENTO ─────────────────────────────────────────────────
     with tab_crear:
@@ -133,7 +157,11 @@ def render_commercial_calendar_page():
         with st.form("form_crear"):
             c1, c2 = st.columns(2)
             with c1:
-                pais = st.selectbox("País", list(COUNTRIES.keys()), format_func=lambda k: f"{k} — {COUNTRIES[k]}")
+                pais = st.selectbox(
+                    "País",
+                    list(COUNTRIES.keys()),
+                    format_func=lambda k: f"{k} — {COUNTRIES[k]}",
+                )
                 nombre = st.text_input("Nombre del evento")
                 categoria = st.selectbox(
                     "Categoría",
@@ -142,7 +170,9 @@ def render_commercial_calendar_page():
                 )
             with c2:
                 fecha_inicio = st.date_input("Fecha inicio", value=date.today())
-                fecha_fin = st.date_input("Fecha fin (opcional — para rangos)", value=None)
+                fecha_fin = st.date_input(
+                    "Fecha fin (opcional — para rangos)", value=None
+                )
             descripcion = st.text_area("Descripción (opcional)")
             submitted = st.form_submit_button("✅ Crear Evento(s)", type="primary")
 
@@ -156,7 +186,9 @@ def render_commercial_calendar_page():
                         country_code=pais,
                         name=nombre,
                         date_start=fecha_inicio,
-                        date_end=fecha_fin if fecha_fin and fecha_fin >= fecha_inicio else None,
+                        date_end=fecha_fin
+                        if fecha_fin and fecha_fin >= fecha_inicio
+                        else None,
                         category=categoria,
                         description=descripcion or None,
                         tenant_id=None,  # admin crea eventos del sistema
@@ -172,7 +204,9 @@ def render_commercial_calendar_page():
         if buscar:
             service, db = _get_service()
             try:
-                all_events = service.list_events(country_code=country_code, year=int(year), tenant_id=None)
+                all_events = service.list_events(
+                    country_code=country_code, year=int(year), tenant_id=None
+                )
             finally:
                 db.close()
 
@@ -192,12 +226,22 @@ def render_commercial_calendar_page():
                         nueva_cat = st.selectbox(
                             "Categoría",
                             [e.value for e in EventCategory],
-                            index=[e.value for e in EventCategory].index(sel_event.category) if sel_event.category in [e.value for e in EventCategory] else 0,
+                            index=[e.value for e in EventCategory].index(
+                                sel_event.category
+                            )
+                            if sel_event.category in [e.value for e in EventCategory]
+                            else 0,
                             format_func=lambda v: CATEGORY_LABELS.get(v, v),
                         )
-                        nueva_desc = st.text_area("Descripción", value=sel_event.description or "")
-                        st.caption(f"⚠️ Solo se editará la primera fila encontrada ({sel_event.date}). Para rangos, eliminar y recrear.")
-                        submitted_edit = st.form_submit_button("💾 Guardar cambios", type="primary")
+                        nueva_desc = st.text_area(
+                            "Descripción", value=sel_event.description or ""
+                        )
+                        st.caption(
+                            f"⚠️ Solo se editará la primera fila encontrada ({sel_event.date}). Para rangos, eliminar y recrear."
+                        )
+                        submitted_edit = st.form_submit_button(
+                            "💾 Guardar cambios", type="primary"
+                        )
 
                     if submitted_edit:
                         service, db = _get_service()
@@ -218,11 +262,15 @@ def render_commercial_calendar_page():
     # ── TAB 4: ELIMINAR ─────────────────────────────────────────────────────
     with tab_eliminar:
         st.subheader("Eliminar Evento")
-        buscar_del = st.text_input("Buscar por nombre (parcial):", key="buscar_eliminar")
+        buscar_del = st.text_input(
+            "Buscar por nombre (parcial):", key="buscar_eliminar"
+        )
         if buscar_del:
             service, db = _get_service()
             try:
-                all_events = service.list_events(country_code=country_code, year=int(year), tenant_id=None)
+                all_events = service.list_events(
+                    country_code=country_code, year=int(year), tenant_id=None
+                )
             finally:
                 db.close()
 
@@ -232,10 +280,14 @@ def render_commercial_calendar_page():
             if not unique_names:
                 st.warning("No se encontraron eventos.")
             else:
-                sel_name_del = st.selectbox("Seleccionar evento a eliminar:", unique_names)
+                sel_name_del = st.selectbox(
+                    "Seleccionar evento a eliminar:", unique_names
+                )
                 sel_events_del = [e for e in matches if e.name == sel_name_del]
 
-                st.warning(f"Se eliminarán **{len(sel_events_del)} filas** para '{sel_name_del}'.")
+                st.warning(
+                    f"Se eliminarán **{len(sel_events_del)} filas** para '{sel_name_del}'."
+                )
                 confirmar = st.checkbox("Confirmo que quiero eliminar estos eventos")
                 if confirmar and st.button("🗑️ Eliminar", type="primary"):
                     service, db = _get_service()
@@ -252,14 +304,23 @@ def render_commercial_calendar_page():
     with tab_stats:
         service, db = _get_service()
         try:
-            events = service.list_events(country_code=country_code, year=int(year), tenant_id=None)
+            events = service.list_events(
+                country_code=country_code, year=int(year), tenant_id=None
+            )
         finally:
             db.close()
 
         if not events:
             st.info("Sin datos para mostrar.")
         else:
-            rows = [{"month": e.date.month, "week": e.week_number, "category": e.category or "sin_categoria"} for e in events]
+            rows = [
+                {
+                    "month": e.date.month,
+                    "week": e.week_number,
+                    "category": e.category or "sin_categoria",
+                }
+                for e in events
+            ]
             df = pd.DataFrame(rows)
 
             col_a, col_b = st.columns(2)
@@ -267,14 +328,34 @@ def render_commercial_calendar_page():
                 st.subheader("Eventos por mes")
                 mes_counts = df.groupby("month").size().reset_index(name="count")
                 mes_counts["mes"] = mes_counts["month"].apply(
-                    lambda m: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][m-1]
+                    lambda m: [
+                        "Ene",
+                        "Feb",
+                        "Mar",
+                        "Abr",
+                        "May",
+                        "Jun",
+                        "Jul",
+                        "Ago",
+                        "Sep",
+                        "Oct",
+                        "Nov",
+                        "Dic",
+                    ][m - 1]
                 )
                 st.bar_chart(mes_counts.set_index("mes")["count"])
 
             with col_b:
                 st.subheader("Eventos por categoría")
-                cat_counts = df.groupby("category").size().reset_index(name="count").sort_values("count", ascending=False)
-                cat_counts["cat_label"] = cat_counts["category"].apply(lambda v: CATEGORY_LABELS.get(v, v))
+                cat_counts = (
+                    df.groupby("category")
+                    .size()
+                    .reset_index(name="count")
+                    .sort_values("count", ascending=False)
+                )
+                cat_counts["cat_label"] = cat_counts["category"].apply(
+                    lambda v: CATEGORY_LABELS.get(v, v)
+                )
                 st.bar_chart(cat_counts.set_index("cat_label")["count"])
 
             st.subheader("Distribución semanal")

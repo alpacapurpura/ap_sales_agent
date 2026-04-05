@@ -1,4 +1,3 @@
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -10,7 +9,9 @@ from src.modules.commercial_calendar.api.dto.calendar_events import (
     CalendarEventResponse,
     CalendarEventUpdate,
 )
-from src.modules.commercial_calendar.application.calendar_event_service import CalendarEventService
+from src.modules.commercial_calendar.application.calendar_event_service import (
+    CalendarEventService,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 
@@ -34,12 +35,12 @@ def _to_response(event) -> CalendarEventResponse:
     )
 
 
-@router.get("/events", response_model=List[CalendarEventResponse])
+@router.get("/events", response_model=list[CalendarEventResponse])
 def list_events(
     country_code: str = Query(..., min_length=2, max_length=2),
     year: int = Query(...),
-    week: Optional[int] = Query(None),
-    category: Optional[str] = Query(None),
+    week: int | None = Query(None),
+    category: str | None = Query(None),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -54,7 +55,7 @@ def list_events(
     return [_to_response(e) for e in events]
 
 
-@router.get("/events/current-week", response_model=List[CalendarEventResponse])
+@router.get("/events/current-week", response_model=list[CalendarEventResponse])
 def get_current_week(
     country_code: str = Query(..., min_length=2, max_length=2),
     db: Session = Depends(get_db),
@@ -68,7 +69,7 @@ def get_current_week(
     return [_to_response(e) for e in events]
 
 
-@router.post("/events", response_model=List[CalendarEventResponse], status_code=201)
+@router.post("/events", response_model=list[CalendarEventResponse], status_code=201)
 def create_event(
     body: CalendarEventCreate,
     db: Session = Depends(get_db),
@@ -99,7 +100,9 @@ def update_event(
     if existing is None:
         raise HTTPException(status_code=404, detail="Event not found")
     if existing.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=403, detail="Cannot modify events from another tenant")
+        raise HTTPException(
+            status_code=403, detail="Cannot modify events from another tenant"
+        )
 
     updated = service.update_event(
         event_id=event_id,
@@ -128,5 +131,7 @@ def delete_event(
     if existing.tenant_id is None:
         raise HTTPException(status_code=403, detail="Cannot delete system events")
     if existing.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=403, detail="Cannot delete events from another tenant")
+        raise HTTPException(
+            status_code=403, detail="Cannot delete events from another tenant"
+        )
     service.delete_event(event_id, tenant_id=user.tenant_id)

@@ -3,21 +3,19 @@ CRM tools — give the copilot access to lead and sales pipeline data.
 """
 
 import json
-from typing import Optional
 
+import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 
-import structlog
-
 logger = structlog.get_logger()
 
 
 @tool
-def get_lead_summary(temperature: Optional[str] = None, limit: int = 10) -> str:
+def get_lead_summary(temperature: str | None = None, limit: int = 10) -> str:
     """Consulta un resumen de leads del CRM.
 
     Args:
@@ -65,7 +63,10 @@ def get_lead_summary(temperature: Optional[str] = None, limit: int = 10) -> str:
         for temp, cnt in sorted(temp_counts.items(), key=lambda x: x[1], reverse=True):
             lines.append(f"  - {temp}: {cnt}")
 
-        lines.append(f"\n### Top {len(rows)} Leads" + (f" ({temperature})" if temperature else ""))
+        lines.append(
+            f"\n### Top {len(rows)} Leads"
+            + (f" ({temperature})" if temperature else "")
+        )
 
         for r in rows:
             profile = r["profile_data"] or {}
@@ -87,7 +88,7 @@ def get_lead_summary(temperature: Optional[str] = None, limit: int = 10) -> str:
         return "\n".join(lines)
     except Exception as e:
         logger.error("crm_tools_lead_error", error=str(e))
-        return f"Error consultando leads: {str(e)}"
+        return f"Error consultando leads: {e!s}"
     finally:
         db.close()
 
@@ -106,17 +107,21 @@ def get_pipeline_overview() -> str:
     db = SessionLocal()
     try:
         # Sales by stage
-        rows = db.execute(
-            text(
-                "SELECT stage, status, COUNT(*) as cnt, "
-                "COALESCE(SUM(amount), 0) as total_amount, "
-                "currency "
-                "FROM sales WHERE tenant_id = :tid "
-                "GROUP BY stage, status, currency "
-                "ORDER BY stage, status"
-            ),
-            {"tid": str(tenant_id)},
-        ).mappings().all()
+        rows = (
+            db.execute(
+                text(
+                    "SELECT stage, status, COUNT(*) as cnt, "
+                    "COALESCE(SUM(amount), 0) as total_amount, "
+                    "currency "
+                    "FROM sales WHERE tenant_id = :tid "
+                    "GROUP BY stage, status, currency "
+                    "ORDER BY stage, status"
+                ),
+                {"tid": str(tenant_id)},
+            )
+            .mappings()
+            .all()
+        )
 
         if not rows:
             return "No hay ventas registradas en el pipeline."
@@ -137,7 +142,7 @@ def get_pipeline_overview() -> str:
         return "\n".join(lines)
     except Exception as e:
         logger.error("crm_tools_pipeline_error", error=str(e))
-        return f"Error consultando pipeline: {str(e)}"
+        return f"Error consultando pipeline: {e!s}"
     finally:
         db.close()
 

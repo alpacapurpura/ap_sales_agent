@@ -1,79 +1,82 @@
-from typing import TypedDict, List, Dict, Any, Optional
+from typing import Any, TypedDict
 from uuid import UUID
+
 
 class AgentState(TypedDict):
     """
     Shared state for all LangGraph agents.
     Provides context for multi-tenant isolation and session management.
     """
+
     # Messaging
-    messages: List[Dict[str, Any]] # [{"role": "user", "content": "..."}, ...]
-    
+    messages: list[dict[str, Any]]  # [{"role": "user", "content": "..."}, ...]
+
     # Routing
-    next_node: Optional[str]
-    
+    next_node: str | None
+
     # Context
-    user_id: Optional[UUID]
-    tenant_id: Optional[UUID]
-    session_id: Optional[str]
-    
+    user_id: UUID | None
+    tenant_id: UUID | None
+    session_id: str | None
+
     # Agent Memory (Short Term)
-    current_state: Optional[str] # e.g. "rapport", "discovery", "closing"
-    detected_intent: Optional[str]
-    lead_score: Optional[int]
-    
+    current_state: str | None  # e.g. "rapport", "discovery", "closing"
+    detected_intent: str | None
+    lead_score: int | None
+
     # Lead Data (Captured Information)
-    lead_data: Optional[Dict[str, Any]] # { "name": "...", "budget": "..." }
+    lead_data: dict[str, Any] | None  # { "name": "...", "budget": "..." }
 
     # Configuration & History
-    tenant_config: Optional[Dict[str, Any]]
-    history: List[Dict[str, Any]]
-    user_profile: Optional[Dict[str, Any]]
-    
+    tenant_config: dict[str, Any] | None
+    history: list[dict[str, Any]]
+    user_profile: dict[str, Any] | None
+
     # Session Status
     session_active: bool
-    active_enrollment: Optional[Dict[str, Any]]
-    active_product: Optional[Dict[str, Any]]
-    last_intent: Optional[str]
-    launch_stage: Optional[str]
-    
+    active_enrollment: dict[str, Any] | None
+    active_product: dict[str, Any] | None
+    last_intent: str | None
+    launch_stage: str | None
+
     # Agent Knowledge System (AKS)
-    agent_identity: Optional[str]  # Rendered tenant-specific identity prompt
+    agent_identity: str | None  # Rendered tenant-specific identity prompt
 
     # Accumulated Signals (persisted via checkpoint)
-    buying_signals: Optional[List[Dict[str, Any]]]
-    objection_history: Optional[List[Dict[str, Any]]]
-    qualification_answers: Optional[Dict[str, Any]]
-    turn_count: Optional[int]
-    customer_profile_id: Optional[UUID]
-    channel_type: Optional[str]
-    close_strategy: Optional[str]
+    buying_signals: list[dict[str, Any]] | None
+    objection_history: list[dict[str, Any]] | None
+    qualification_answers: dict[str, Any] | None
+    turn_count: int | None
+    customer_profile_id: UUID | None
+    channel_type: str | None
+    close_strategy: str | None
 
     # Internal (graph loop control)
-    internal_turn: Optional[int]
-    _pending_tool: Optional[Dict[str, Any]]
+    internal_turn: int | None
+    _pending_tool: dict[str, Any] | None
 
     # Errors
-    error: Optional[str]
+    error: str | None
+
 
 def create_initial_state(
     user_id: str,
     tenant_id: str,
     session_id: str = None,
-    lead_data: Dict = None,
-    tenant_config: Dict = None,
-    history: List[Dict[str, Any]] = None,
-    user_profile: Dict = None,
+    lead_data: dict = None,
+    tenant_config: dict = None,
+    history: list[dict[str, Any]] = None,
+    user_profile: dict = None,
     session_active: bool = True,
-    active_enrollment: Dict = None,
-    active_product: Dict = None,
+    active_enrollment: dict = None,
+    active_product: dict = None,
     last_intent: str = None,
     launch_stage: str = None,
     agent_identity: str = None,
     # Checkpoint-persisted fields
-    buying_signals: List[Dict[str, Any]] = None,
-    objection_history: List[Dict[str, Any]] = None,
-    qualification_answers: Dict = None,
+    buying_signals: list[dict[str, Any]] = None,
+    objection_history: list[dict[str, Any]] = None,
+    qualification_answers: dict = None,
     turn_count: int = None,
     customer_profile_id: UUID = None,
     channel_type: str = None,

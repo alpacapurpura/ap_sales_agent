@@ -2,21 +2,18 @@
 Landing page tools — give the copilot access to landing page status.
 """
 
-from typing import Optional
-
+import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
 
-import structlog
-
 logger = structlog.get_logger()
 
 
 @tool
-def get_landing_pages(status: Optional[str] = None) -> str:
+def get_landing_pages(status: str | None = None) -> str:
     """Consulta las landing pages del tenant.
 
     Args:
@@ -57,7 +54,9 @@ def get_landing_pages(status: Optional[str] = None) -> str:
         published_count = sum(1 for r in rows if r["is_published"])
         draft_count = len(rows) - published_count
 
-        lines = [f"## Landing Pages ({len(rows)} total: {published_count} publicadas, {draft_count} borradores)\n"]
+        lines = [
+            f"## Landing Pages ({len(rows)} total: {published_count} publicadas, {draft_count} borradores)\n"
+        ]
 
         for r in rows:
             icon = "✅" if r["is_published"] else "📝"
@@ -70,7 +69,7 @@ def get_landing_pages(status: Optional[str] = None) -> str:
         return "\n".join(lines)
     except Exception as e:
         logger.error("landing_tools_error", error=str(e))
-        return f"Error consultando landing pages: {str(e)}"
+        return f"Error consultando landing pages: {e!s}"
     finally:
         db.close()
 

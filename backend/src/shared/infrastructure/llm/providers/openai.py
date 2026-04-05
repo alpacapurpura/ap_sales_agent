@@ -1,16 +1,19 @@
-from typing import List, Dict, Any, Optional, Union
+from typing import Any
+
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from src.shared.infrastructure.llm.base import BaseLLMService
+
 from src.core.config import settings
 from src.core.enums import ModelRole
-
-from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
-from src.modules.sales_agent.infrastructure.memory.audit_repository import AuditRepository
 from src.modules.sales_agent.infrastructure.db.database import SessionLocal
+from src.modules.sales_agent.infrastructure.memory.audit_repository import (
+    AuditRepository,
+)
+from src.modules.sales_agent.infrastructure.monitoring.tracing import current_trace_id
+from src.shared.infrastructure.llm.base import BaseLLMService
 
 # Legacy string → ModelRole mapping (backwards-compat)
-_LEGACY_MODEL_TYPE_MAP: Dict[str, ModelRole] = {
+_LEGACY_MODEL_TYPE_MAP: dict[str, ModelRole] = {
     "smart": ModelRole.REASONING,
     "fast": ModelRole.FAST,
     "vision": ModelRole.VISION,
@@ -24,9 +27,9 @@ class OpenAIService(BaseLLMService):
     Uses role-based model selection via ModelRole enum.
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or settings.OPENAI_API_KEY
-        self._models: Dict[str, ChatOpenAI] = {}  # cache by model name
+        self._models: dict[str, ChatOpenAI] = {}  # cache by model name
 
         self.embeddings = OpenAIEmbeddings(
             model=settings.get_model(ModelRole.EMBEDDING),
@@ -45,13 +48,19 @@ class OpenAIService(BaseLLMService):
         return self._models[model_name]
 
     @staticmethod
-    def _resolve_role(model_type: Union[str, ModelRole]) -> ModelRole:
+    def _resolve_role(model_type: str | ModelRole) -> ModelRole:
         """Resolve a legacy string or ModelRole to a ModelRole."""
         if isinstance(model_type, ModelRole):
             return model_type
         return _LEGACY_MODEL_TYPE_MAP.get(model_type, ModelRole.REASONING)
 
-    def generate_response(self, messages: List[Dict[str, str]], system_prompt: Optional[str] = None, model_type: Union[str, ModelRole] = "smart", **kwargs) -> str:
+    def generate_response(
+        self,
+        messages: list[dict[str, str]],
+        system_prompt: str | None = None,
+        model_type: str | ModelRole = "smart",
+        **kwargs,
+    ) -> str:
         """
         Adapts the generic message format to LangChain's format and invokes the model.
         Args:
@@ -87,30 +96,30 @@ class OpenAIService(BaseLLMService):
             # Select Model based on Role
             resolved_role = self._resolve_role(model_type)
             selected_model = self._get_chat_model(resolved_role)
-            
+
             # --- PARAMETER OVERRIDE ---
             # Allow overriding generation parameters per call
             # Note: LangChain 'invoke' might not accept all params directly as kwargs depending on version/method.
             # For ChatOpenAI, we usually pass them to the constructor OR bind them.
             # But 'invoke' often propagates extra args to the underlying API call (e.g. temperature, max_tokens).
-            
+
             # Explicitly extract known OpenAI params
             # temperature, max_tokens, top_p, presence_penalty, frequency_penalty
-            
+
             call_params = {}
             if "temperature" in kwargs:
                 call_params["temperature"] = kwargs.pop("temperature")
             if "max_tokens" in kwargs:
                 call_params["max_tokens"] = kwargs.pop("max_tokens")
             if "max_output_tokens" in kwargs:
-                call_params["max_tokens"] = kwargs.pop("max_output_tokens") # Alias
+                call_params["max_tokens"] = kwargs.pop("max_output_tokens")  # Alias
             if "top_p" in kwargs:
                 call_params["top_p"] = kwargs.pop("top_p")
             if "presence_penalty" in kwargs:
                 call_params["presence_penalty"] = kwargs.pop("presence_penalty")
             if "frequency_penalty" in kwargs:
                 call_params["frequency_penalty"] = kwargs.pop("frequency_penalty")
-            
+
             # Extract metadata passed in kwargs (e.g. RAG context) BEFORE invoke
             # to avoid collision with LangChain internals
             if "metadata" in kwargs:
@@ -124,15 +133,15 @@ class OpenAIService(BaseLLMService):
             # --- LLM CALL ---
             response = selected_model.invoke(lc_messages, **kwargs)
             response_text = response.content
-            
+
             # Extract Usage Metadata
             usage = response.response_metadata.get("token_usage", {})
             tokens_in = usage.get("prompt_tokens", 0)
             tokens_out = usage.get("completion_tokens", 0)
-            
+
         except Exception as e:
             # We still want to log the error if possible
-            response_text = f"ERROR: {str(e)}"
+            response_text = f"ERROR: {e!s}"
             raise e
         finally:
             # --- TRACING LOGIC ---
@@ -143,10 +152,12 @@ class OpenAIService(BaseLLMService):
                     repo = AuditRepository(db)
                     # Reconstruct prompt for logging
                     full_prompt_str = f"System: {system_prompt}\nMessages: {messages}"
-                    
+
                     # Ensure model name is captured even if selection failed
-                    model_name = selected_model.model_name if selected_model else "unknown"
-                    
+                    model_name = (
+                        selected_model.model_name if selected_model else "unknown"
+                    )
+
                     # Extract metadata passed in kwargs (e.g. RAG context)
                     meta_log = kwargs.get("metadata", {})
 
@@ -156,9 +167,9 @@ class OpenAIService(BaseLLMService):
                         prompt_template=meta_log.get("prompt_template", "unknown"),
                         prompt_rendered=full_prompt_str,
                         response_text=response_text,
-                        tokens_input=tokens_in, 
+                        tokens_input=tokens_in,
                         tokens_output=tokens_out,
-                        metadata=meta_log
+                        metadata=meta_log,
                     )
                     repo.close()
                 except Exception as log_err:

@@ -5,20 +5,20 @@ for a given provider. Used by the ChannelDetailSidebar in the frontend.
 """
 
 from datetime import date
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from sqlalchemy import select, func
-from sqlalchemy.orm import Session
 
 import structlog
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
 
 router = APIRouter(tags=["channel-info"])
 logger = structlog.get_logger()
@@ -69,12 +69,12 @@ class ChannelInfoResponse(BaseModel):
     provider: str
     is_connected: bool
     is_configured: bool = False
-    display_name: Optional[str] = None
-    account_name: Optional[str] = None
+    display_name: str | None = None
+    account_name: str | None = None
     details: dict = {}
     children: list[dict] = []
-    last_extraction: Optional[dict] = None
-    data_range: Optional[dict] = None
+    last_extraction: dict | None = None
+    data_range: dict | None = None
 
 
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
@@ -89,14 +89,14 @@ def _build_details(provider: str, config: dict, credentials: dict) -> dict:
             "property_display_name": config.get("property_display_name"),
             "account_name": config.get("account_name"),
         }
-    elif provider == "youtube":
+    if provider == "youtube":
         return {
             "channel_id": config.get("channel_id"),
             "channel_title": config.get("channel_title"),
             "customUrl": config.get("customUrl"),
             "statistics": config.get("statistics", {}),
         }
-    elif provider == "meta":
+    if provider == "meta":
         return {
             "name": config.get("name"),
             "user_id": config.get("user_id"),
@@ -105,18 +105,18 @@ def _build_details(provider: str, config: dict, credentials: dict) -> dict:
             "tracked_ad_account_name": config.get("tracked_ad_account_name"),
             "granted_permissions": config.get("granted_permissions", []),
         }
-    elif provider == "google_ads":
+    if provider == "google_ads":
         return {
             "property_id": config.get("property_id"),
             "property_display_name": config.get("property_display_name"),
             "developer_token_configured": bool(credentials.get("developer_token")),
         }
-    elif provider == "shopify":
+    if provider == "shopify":
         return {
             "shop_url": config.get("shop_url"),
             "shop_name": (config.get("shop_info") or {}).get("name"),
         }
-    elif provider == "meta_pixel":
+    if provider == "meta_pixel":
         return {
             "pixel_id": config.get("asset_id"),
             "pixel_name": config.get("pixel_name"),
@@ -136,13 +136,19 @@ def _get_meta_children(repo: ChannelConnectionRepository, tenant_id) -> list[dic
     result = []
     for child in children:
         cfg = child.config or {}
-        result.append({
-            "channel_type": child.channel_type,
-            "asset_id": cfg.get("asset_id"),
-            "name": cfg.get("page_name") or cfg.get("ig_username") or cfg.get("ad_account_name"),
-            "is_active": child.is_active,
-            "details": {k: v for k, v in cfg.items() if k != "parent_connection_id"},
-        })
+        result.append(
+            {
+                "channel_type": child.channel_type,
+                "asset_id": cfg.get("asset_id"),
+                "name": cfg.get("page_name")
+                or cfg.get("ig_username")
+                or cfg.get("ad_account_name"),
+                "is_active": child.is_active,
+                "details": {
+                    k: v for k, v in cfg.items() if k != "parent_connection_id"
+                },
+            }
+        )
     return result
 
 
@@ -156,7 +162,9 @@ async def get_channel_info(
     """Get enriched connection info for a provider, used by ChannelDetailSidebar."""
     channel_types = _PROVIDER_CHANNEL_TYPES.get(provider)
     if not channel_types:
-        raise HTTPException(status_code=400, detail=f"Proveedor desconocido: {provider}")
+        raise HTTPException(
+            status_code=400, detail=f"Proveedor desconocido: {provider}"
+        )
 
     # Find active connection
     connection = None
@@ -196,13 +204,18 @@ async def get_channel_info(
         from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
             ExtractionRunRepository,
         )
+
         run_repo = ExtractionRunRepository(db)
         latest_run = run_repo.get_latest(user.tenant_id, provider)
         if latest_run:
             last_extraction = {
                 "status": latest_run.status,
-                "started_at": latest_run.started_at.isoformat() if latest_run.started_at else None,
-                "completed_at": latest_run.completed_at.isoformat() if latest_run.completed_at else None,
+                "started_at": latest_run.started_at.isoformat()
+                if latest_run.started_at
+                else None,
+                "completed_at": latest_run.completed_at.isoformat()
+                if latest_run.completed_at
+                else None,
                 "metrics_count": latest_run.metrics_count,
                 "error": latest_run.error,
                 "duration_seconds": latest_run.duration_seconds,
@@ -216,22 +229,24 @@ async def get_channel_info(
         from src.modules.analytics.infrastructure.models.official_metrics_model import (
             OfficialMetricModel,
         )
-        stmt = (
-            select(
-                func.min(OfficialMetricModel.metric_date),
-                func.max(OfficialMetricModel.metric_date),
-                func.count(OfficialMetricModel.id),
-            )
-            .where(
-                OfficialMetricModel.tenant_id == user.tenant_id,
-                OfficialMetricModel.provider == provider,
-            )
+
+        stmt = select(
+            func.min(OfficialMetricModel.metric_date),
+            func.max(OfficialMetricModel.metric_date),
+            func.count(OfficialMetricModel.id),
+        ).where(
+            OfficialMetricModel.tenant_id == user.tenant_id,
+            OfficialMetricModel.provider == provider,
         )
         row = db.execute(stmt).first()
         if row and row[0]:
             data_range = {
-                "min_date": row[0].isoformat() if isinstance(row[0], date) else str(row[0]),
-                "max_date": row[1].isoformat() if isinstance(row[1], date) else str(row[1]),
+                "min_date": row[0].isoformat()
+                if isinstance(row[0], date)
+                else str(row[0]),
+                "max_date": row[1].isoformat()
+                if isinstance(row[1], date)
+                else str(row[1]),
                 "total_records": row[2],
             }
     except Exception as e:

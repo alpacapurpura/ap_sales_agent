@@ -5,32 +5,34 @@ Handles a single OAuth flow that grants access to all Google services
 (Gmail, Calendar, Analytics, YouTube) at once. The code is exchanged
 ONCE and the resulting credentials are distributed to each service.
 """
-from typing import Any, Dict, Optional
 
-import sentry_sdk
-from fastapi import APIRouter, Depends, HTTPException, Body
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
 import json
 import os
-import structlog
+from typing import Any
 
+import sentry_sdk
+import structlog
+from fastapi import APIRouter, Body, Depends, HTTPException
 from google.auth.exceptions import RefreshError
-from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from src.core.config import settings
 from src.core.database import get_db
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
 
 # Allow OAuth scope changes (e.g. if user granted extra scopes previously)
-os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
 
 router = APIRouter(tags=["google-workspace"])
 logger = structlog.get_logger()
@@ -39,7 +41,8 @@ logger = structlog.get_logger()
 class ConnectionTestResponse(BaseModel):
     status: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
+
 
 # Combined scopes for all supported Google services
 WORKSPACE_SCOPES = [
@@ -129,7 +132,10 @@ async def oauth_callback(
         creds_data = json.loads(creds.to_json())
     except Exception as e:
         logger.error("google_workspace_oauth_exchange_failed", error=str(e))
-        raise HTTPException(status_code=400, detail="Error de autenticación con Google. Intenta de nuevo.")
+        raise HTTPException(
+            status_code=400,
+            detail="Error de autenticación con Google. Intenta de nuevo.",
+        )
 
     # Get user profile to obtain email address
     try:
@@ -144,9 +150,7 @@ async def oauth_callback(
     # Store the SAME credentials for all 5 services
     for service_slug, channel_type in SERVICE_MAP.items():
         service_config: dict = {}
-        if service_slug == "gmail":
-            service_config = {"email": email}
-        elif service_slug == "calendar":
+        if service_slug in {"gmail", "calendar"}:
             service_config = {"email": email}
 
         repo.upsert(
@@ -181,7 +185,9 @@ async def oauth_callback(
                 repo.update_config(yt_conn, youtube_channel)
 
             # Update YOUTUBE_ANALYTICS connection config with same channel data
-            yta_conn = repo.get_by_tenant_and_type(user.tenant_id, ChannelType.YOUTUBE_ANALYTICS)
+            yta_conn = repo.get_by_tenant_and_type(
+                user.tenant_id, ChannelType.YOUTUBE_ANALYTICS
+            )
             if yta_conn:
                 repo.update_config(yta_conn, youtube_channel)
 
@@ -198,7 +204,9 @@ async def oauth_callback(
             error=str(e),
         )
 
-    logger.info("google_workspace_connected", tenant_id=str(user.tenant_id), email=email)
+    logger.info(
+        "google_workspace_connected", tenant_id=str(user.tenant_id), email=email
+    )
     return {"status": "connected", "email": email, "youtube_channel": youtube_channel}
 
 
@@ -285,6 +293,7 @@ async def disconnect_all(
 
 # ── Service-specific test helpers ────────────────────────────────────────────
 
+
 def _test_gmail(creds_data: dict) -> dict:
     """Test Gmail: fetch user profile."""
     creds = Credentials.from_authorized_user_info(creds_data)
@@ -306,7 +315,11 @@ def _test_calendar(creds_data: dict) -> dict:
     return {
         "calendars_found": len(calendars),
         "calendars": [
-            {"id": c.get("id"), "summary": c.get("summary"), "primary": c.get("primary", False)}
+            {
+                "id": c.get("id"),
+                "summary": c.get("summary"),
+                "primary": c.get("primary", False),
+            }
             for c in calendars[:5]
         ],
     }
@@ -321,7 +334,10 @@ def _test_analytics(creds_data: dict) -> dict:
     return {
         "accounts_found": len(summaries),
         "accounts": [
-            {"name": s.get("displayName"), "properties": len(s.get("propertySummaries", []))}
+            {
+                "name": s.get("displayName"),
+                "properties": len(s.get("propertySummaries", [])),
+            }
             for s in summaries[:5]
         ],
     }
@@ -393,7 +409,10 @@ async def test_connection(
             continue
         conn = repo.get_by_tenant_and_type(user.tenant_id, channel_type)
         if not conn or not conn.is_active:
-            results[service_slug] = {"status": "skipped", "reason": "Servicio desactivado"}
+            results[service_slug] = {
+                "status": "skipped",
+                "reason": "Servicio desactivado",
+            }
             continue
 
         try:

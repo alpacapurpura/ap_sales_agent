@@ -1,9 +1,13 @@
 """Shared Sentry initialisation for all backend services (api, worker, scheduler)."""
 
+from typing import TYPE_CHECKING
+
 import sentry_sdk
 
 from src.core.config import settings
 
+if TYPE_CHECKING:
+    from sentry_sdk.integrations import Integration
 
 _SENSITIVE_KEYS = frozenset(
     {
@@ -17,8 +21,11 @@ _SENSITIVE_KEYS = frozenset(
 )
 
 
-def _redact_event(event: dict[str, object], hint: dict[str, object]) -> dict[str, object]:  # noqa: ARG001 — required by sentry_sdk before_send signature
+def _redact_event(
+    event: dict[str, object], hint: dict[str, object]
+) -> dict[str, object]:
     """Strip sensitive keys from Sentry event extras/data."""
+
     def _scrub(obj: object) -> object:
         if isinstance(obj, dict):
             return {
@@ -41,18 +48,18 @@ def _redact_event(event: dict[str, object], hint: dict[str, object]) -> dict[str
 
 
 _EXCLUDED_PATHS = frozenset({"/health", "/metrics"})
-_LOW_SAMPLE_PATH_PREFIXES = ("/api/v1/connections/webhook", "/api/v1/iam/webhooks", "/api/v1/connections/shopify/compliance")
+_LOW_SAMPLE_PATH_PREFIXES = (
+    "/api/v1/connections/webhook",
+    "/api/v1/iam/webhooks",
+    "/api/v1/connections/shopify/compliance",
+)
 
 
 def _traces_sampler(sampling_context: dict[str, object]) -> float:
     """Dynamic sampling: exclude health checks, reduce webhook noise."""
     wsgi_env = sampling_context.get("wsgi_environ") or {}
     asgi_scope = sampling_context.get("asgi_scope") or {}
-    path = (
-        wsgi_env.get("PATH_INFO")
-        or asgi_scope.get("path")
-        or ""
-    )
+    path = wsgi_env.get("PATH_INFO") or asgi_scope.get("path") or ""
     if path in _EXCLUDED_PATHS:
         return 0.0
     if path.startswith(_LOW_SAMPLE_PATH_PREFIXES):
@@ -75,26 +82,29 @@ def init_sentry(service_name: str) -> None:
     if not dsn:
         return
 
-    from sentry_sdk.integrations import Integration
     from sentry_sdk.integrations.logging import LoggingIntegration
 
     logging_integration = LoggingIntegration(
-        level=logging.WARNING,       # WARNING+ → Sentry breadcrumbs
-        event_level=logging.ERROR,   # ERROR+ → Sentry events
+        level=logging.WARNING,  # WARNING+ → Sentry breadcrumbs
+        event_level=logging.ERROR,  # ERROR+ → Sentry events
     )
     integrations: list[Integration] = [logging_integration]
 
     if service_name == "api":
         from sentry_sdk.integrations.fastapi import FastApiIntegration
-        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
         from sentry_sdk.integrations.httpx import HttpxIntegration
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-        integrations += [FastApiIntegration(), SqlalchemyIntegration(), HttpxIntegration()]
+        integrations += [
+            FastApiIntegration(),
+            SqlalchemyIntegration(),
+            HttpxIntegration(),
+        ]
 
     elif service_name in ("worker", "scheduler"):
         from sentry_sdk.integrations.arq import ArqIntegration
-        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
         from sentry_sdk.integrations.httpx import HttpxIntegration
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
         integrations += [ArqIntegration(), SqlalchemyIntegration(), HttpxIntegration()]
 

@@ -4,8 +4,6 @@ Reuses TrafficGroupDTO and AvailableChannelsDTO from attraction_dto
 and MiniFunnelDTO from capture_dto to maintain a consistent API shape.
 """
 
-from typing import Optional
-
 from pydantic import BaseModel
 
 from src.modules.analytics.application.dto.attraction_dto import (
@@ -20,14 +18,14 @@ class NurtureHeaderKpisDTO(BaseModel):
 
     total_mqls: int
     conversion_rate: float  # percentage 0-100
-    cost_per_mql: Optional[float] = None  # None when no costs configured
+    cost_per_mql: float | None = None  # None when no costs configured
 
 
 class CampaignMetricDTO(BaseModel):
     """Individual campaign metrics within a retargeting channel."""
 
     campaign_name: str
-    campaign_id: Optional[str] = None
+    campaign_id: str | None = None
     metrics: list  # List of MetricValueDTO
 
 
@@ -43,6 +41,6 @@ class NurtureDetailDTO(BaseModel):
     mini_funnel: MiniFunnelDTO  # Leads -> MQLs
     retargeting: TrafficGroupDTO
     automation: TrafficGroupDTO
-    available: Optional[AvailableChannelsDTO] = None
+    available: AvailableChannelsDTO | None = None
     period: str = "last_30_days"
-    last_updated: Optional[str] = None
+    last_updated: str | None = None

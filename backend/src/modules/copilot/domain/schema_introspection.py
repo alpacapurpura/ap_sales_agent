@@ -7,7 +7,7 @@ the change automatically via model_fields introspection.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Type, get_args, get_origin
+from typing import Any, get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -19,8 +19,8 @@ class SectionInfo:
     name: str  # Field name in the parent model (e.g. "identity")
     label: str  # Human-readable label (e.g. "Identidad")
     description: str  # From field_info.description or auto-generated
-    fields: List[str] = field(default_factory=list)  # Sub-field names
-    field_descriptions: Dict[str, str] = field(default_factory=dict)  # fname -> label
+    fields: list[str] = field(default_factory=list)  # Sub-field names
+    field_descriptions: dict[str, str] = field(default_factory=dict)  # fname -> label
     is_list: bool = False  # True if this is a List[Model] section
     inner_type_name: str = ""  # Name of the inner Pydantic model
 
@@ -32,7 +32,7 @@ class CompletionStatus:
     filled: int = 0
     total: int = 0
     is_configured: bool = False
-    details: Dict[str, bool] = field(default_factory=dict)  # field_name -> has_value
+    details: dict[str, bool] = field(default_factory=dict)  # field_name -> has_value
 
 
 def unwrap_optional(annotation) -> Any:
@@ -73,7 +73,7 @@ def is_list_type(tp) -> bool:
     return get_origin(tp) is list
 
 
-def get_model_sections(model_class: Type[BaseModel]) -> Dict[str, SectionInfo]:
+def get_model_sections(model_class: type[BaseModel]) -> dict[str, SectionInfo]:
     """
     Discover sections and fields of any Pydantic model dynamically.
 
@@ -84,7 +84,7 @@ def get_model_sections(model_class: Type[BaseModel]) -> Dict[str, SectionInfo]:
 
     Returns a dict mapping field_name -> SectionInfo.
     """
-    sections: Dict[str, SectionInfo] = {}
+    sections: dict[str, SectionInfo] = {}
 
     for name, field_info in model_class.model_fields.items():
         annotation = field_info.annotation
@@ -138,8 +138,8 @@ def get_model_sections(model_class: Type[BaseModel]) -> Dict[str, SectionInfo]:
 
 
 def check_section_completion(
-    data: dict, sections: Dict[str, SectionInfo]
-) -> Dict[str, CompletionStatus]:
+    data: dict, sections: dict[str, SectionInfo]
+) -> dict[str, CompletionStatus]:
     """
     Check completion status dynamically — NEVER hardcodes field names.
 
@@ -150,7 +150,7 @@ def check_section_completion(
     Returns:
         Dict mapping section_name -> CompletionStatus
     """
-    results: Dict[str, CompletionStatus] = {}
+    results: dict[str, CompletionStatus] = {}
 
     for name, section in sections.items():
         section_data = data.get(name)
@@ -195,14 +195,16 @@ def check_section_completion(
 
 def format_completion_markdown(
     module_label: str,
-    completion: Dict[str, CompletionStatus],
-    sections: Dict[str, SectionInfo],
+    completion: dict[str, CompletionStatus],
+    sections: dict[str, SectionInfo],
 ) -> str:
     """Render completion status as markdown for LLM consumption."""
     configured_count = sum(1 for s in completion.values() if s.is_configured)
     total = len(completion)
 
-    lines = [f"### {'✅' if configured_count == total else '⚠️'} {module_label} ({configured_count}/{total} secciones)"]
+    lines = [
+        f"### {'✅' if configured_count == total else '⚠️'} {module_label} ({configured_count}/{total} secciones)"
+    ]
 
     for name, status in completion.items():
         section_info = sections.get(name)

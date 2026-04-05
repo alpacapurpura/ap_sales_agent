@@ -1,35 +1,42 @@
+from typing import Any
+
 from fastapi import APIRouter
-from typing import Dict, Any
+
+from src.modules.crm.domain.enums import (
+    AvatarPersona,
+    FinancialCapacity,
+    LeadTemperature,
+)
 from src.modules.offer.domain.enums import (
+    GUARANTEE_METADATA,
+    AccessDuration,
+    AccommodationType,
+    BillingFrequency,
+    CommunityPlatform,
+    DeliverableFormat,
+    DigitalFormat,
+    EventLocationType,
+    FulfillmentType,
+    GuaranteeType,
+    InteractionMode,
+    LiveInteractionType,
     OfferArchetype,
     OfferDeliveryModel,
-    GuaranteeType,
     OfferStatus,
-    DeliverableFormat,
     OfferValueLevel,
-    PaymentPlanType,
-    AccessDuration,
-    PrerequisiteType,
     OnboardingMechanism,
-    EventLocationType,
-    BillingFrequency,
-    DigitalFormat,
-    FulfillmentType,
+    PaymentPlanType,
+    PrerequisiteType,
     ProgramStructure,
-    LiveInteractionType,
-    CommunityPlatform,
     ServiceCategory,
-    InteractionMode,
     ServiceFrequency,
-    AccommodationType,
-    GUARANTEE_METADATA,
     get_enum_options,
 )
-from src.modules.crm.domain.enums import FinancialCapacity, AvatarPersona, LeadTemperature
 
 router = APIRouter(tags=["System Definitions"])
 
-@router.get("/definitions/offer-studio", response_model=Dict[str, Any])
+
+@router.get("/definitions/offer-studio", response_model=dict[str, Any])
 async def get_offer_studio_definitions():
     """
     Returns all the Enum options and Metadata required to build the Offer Studio Form dynamically.
@@ -57,14 +64,10 @@ async def get_offer_studio_definitions():
         "interaction_modes": get_enum_options(InteractionMode),
         "service_frequencies": get_enum_options(ServiceFrequency),
         "accommodation_types": get_enum_options(AccommodationType),
-
         # Lead/Avatar Context for Targeting
         "financial_capacities": get_enum_options(FinancialCapacity),
         "avatar_personas": get_enum_options(AvatarPersona),
         "lead_temperatures": get_enum_options(LeadTemperature),
-
         # Raw Metadata Maps for client-side logic lookup
-        "metadata_map": {
-            "guarantees": GUARANTEE_METADATA
-        }
+        "metadata_map": {"guarantees": GUARANTEE_METADATA},
     }

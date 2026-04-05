@@ -1,17 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from typing import Any
+
+import structlog
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
-from typing import Optional, Dict, Any
-import structlog
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.youtube import YoutubeStatusResponse
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
-from src.modules.connections.api.dto.youtube import YoutubeStatusResponse
 
 router = APIRouter(tags=["youtube"])
 logger = structlog.get_logger()
@@ -21,7 +24,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
     return ChannelConnectionRepository(db)
 
 
-def _get_youtube_config(db: Session, tenant_id: Any) -> Dict[str, str]:
+def _get_youtube_config(db: Session, tenant_id: Any) -> dict[str, str]:
     """Retrieve YouTube App configuration from Tenant config."""
     from sqlalchemy import select
 
@@ -73,12 +76,15 @@ async def update_config(
     db.add(tenant)
     db.commit()
 
-    return {"status": "updated", "message": "Configuracion de YouTube guardada correctamente"}
+    return {
+        "status": "updated",
+        "message": "Configuracion de YouTube guardada correctamente",
+    }
 
 
 @router.get("/auth-url")
 async def get_auth_url(
-    redirect_uri: Optional[str] = None,
+    redirect_uri: str | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -91,7 +97,7 @@ async def get_auth_url(
 @router.post("/callback")
 async def oauth_callback(
     code: str = Body(..., embed=True),
-    redirect_uri: Optional[str] = Body(None, embed=True),
+    redirect_uri: str | None = Body(None, embed=True),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -103,10 +109,14 @@ async def oauth_callback(
         creds_data = adapter.exchange_code(code, redirect_uri)
     except Exception as e:
         logger.error("youtube_oauth_exchange_failed", error=str(e))
-        raise HTTPException(status_code=400, detail=f"Error de autenticacion con Google: {str(e)}")
+        raise HTTPException(
+            status_code=400, detail=f"Error de autenticacion con Google: {e!s}"
+        )
 
     try:
-        authenticated_adapter = YoutubeAdapter(client_config=client_config, credentials_data=creds_data)
+        authenticated_adapter = YoutubeAdapter(
+            client_config=client_config, credentials_data=creds_data
+        )
         channel_info = authenticated_adapter.get_channel_info()
         channel_id = channel_info.get("id")
         if not channel_id:
@@ -188,7 +198,9 @@ async def test_connection(
     client_config = _get_youtube_config(db, user.tenant_id)
 
     try:
-        adapter = YoutubeAdapter(client_config=client_config, credentials_data=connection.credentials)
+        adapter = YoutubeAdapter(
+            client_config=client_config, credentials_data=connection.credentials
+        )
         channel_info = adapter.get_channel_info()
         return {"status": "ok", "message": "Conexion exitosa", "data": channel_info}
     except Exception as e:

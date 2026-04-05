@@ -1,14 +1,17 @@
 """Streamlit admin: Inteligencia Copilot — cross-tenant event analytics and insights."""
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 
-def render_events_page():
+def render_events_page():  # noqa: C901
     st.title("🧠 Inteligencia Copilot")
 
     from src.admin.modules._shared import (
-        TOOLTIPS, render_tenant_selector, get_tenant_name, pct_flag,
+        TOOLTIPS,
+        get_tenant_name,
+        pct_flag,
+        render_tenant_selector,
     )
     from src.core.database import SessionLocal
     from src.modules.copilot.infrastructure.repositories.event_repository import (
@@ -27,13 +30,15 @@ def render_events_page():
     st.divider()
 
     # Tabs
-    tab_dash, tab_friction, tab_procs, tab_engage, tab_explore = st.tabs([
-        "📈 Dashboard",
-        "🔥 Friccion",
-        "📋 Procedimientos",
-        "💡 Engagement",
-        "🔍 Explorar",
-    ])
+    tab_dash, tab_friction, tab_procs, tab_engage, tab_explore = st.tabs(
+        [
+            "📈 Dashboard",
+            "🔥 Friccion",
+            "📋 Procedimientos",
+            "💡 Engagement",
+            "🔍 Explorar",
+        ]
+    )
 
     # ── Tab 1: Dashboard ──
     with tab_dash:
@@ -55,19 +60,36 @@ def render_events_page():
                 accepted = summary.get("proposal_accepted", 0)
                 rejected = summary.get("proposal_rejected", 0)
                 total_p = accepted + rejected
-                acceptance_rate = f"{round(accepted / total_p * 100)}%" if total_p else "N/A"
+                acceptance_rate = (
+                    f"{round(accepted / total_p * 100)}%" if total_p else "N/A"
+                )
 
                 c1, c2, c3, c4 = st.columns(4)
                 c1.metric("Total Eventos", total_events, help=TOOLTIPS["total_events"])
-                c2.metric("Usuarios Activos", engagement["active_users"], help="Usuarios unicos con mensajes en el periodo")
-                c3.metric("Msgs/User Avg", engagement["messages_per_user_avg"], help=TOOLTIPS["msgs_per_user"])
-                c4.metric("Aceptacion Propuestas", acceptance_rate, help=TOOLTIPS["proposal_acceptance"])
+                c2.metric(
+                    "Usuarios Activos",
+                    engagement["active_users"],
+                    help="Usuarios unicos con mensajes en el periodo",
+                )
+                c3.metric(
+                    "Msgs/User Avg",
+                    engagement["messages_per_user_avg"],
+                    help=TOOLTIPS["msgs_per_user"],
+                )
+                c4.metric(
+                    "Aceptacion Propuestas",
+                    acceptance_rate,
+                    help=TOOLTIPS["proposal_acceptance"],
+                )
 
                 # Pie chart: event type distribution
                 if summary:
                     st.subheader("Distribucion de Eventos")
                     df_events = pd.DataFrame(
-                        [{"Tipo": k, "Cantidad": v} for k, v in sorted(summary.items(), key=lambda x: -x[1])]
+                        [
+                            {"Tipo": k, "Cantidad": v}
+                            for k, v in sorted(summary.items(), key=lambda x: -x[1])
+                        ]
                     )
                     st.bar_chart(df_events.set_index("Tipo"))
                     st.dataframe(df_events, use_container_width=True, hide_index=True)
@@ -79,10 +101,12 @@ def render_events_page():
                     if by_tenant:
                         tenant_rows = []
                         for item in by_tenant[:10]:
-                            tenant_rows.append({
-                                "Tenant": get_tenant_name(item["tenant_id"]),
-                                "Eventos": item["event_count"],
-                            })
+                            tenant_rows.append(
+                                {
+                                    "Tenant": get_tenant_name(item["tenant_id"]),
+                                    "Eventos": item["event_count"],
+                                }
+                            )
                         df_t = pd.DataFrame(tenant_rows)
                         st.bar_chart(df_t.set_index("Tenant"))
             finally:
@@ -107,12 +131,14 @@ def render_events_page():
                     rows = []
                     for route, count in friction.items():
                         pct = round(count / total * 100, 1)
-                        rows.append({
-                            "Ruta": route,
-                            "Aperturas": count,
-                            "% Total": f"{pct}%",
-                            "Flag": pct_flag(pct),
-                        })
+                        rows.append(
+                            {
+                                "Ruta": route,
+                                "Aperturas": count,
+                                "% Total": f"{pct}%",
+                                "Flag": pct_flag(pct),
+                            }
+                        )
                     df = pd.DataFrame(rows)
                     st.dataframe(df, use_container_width=True, hide_index=True)
 
@@ -140,7 +166,9 @@ def render_events_page():
                 if is_global:
                     rates = repo.get_global_procedure_rates(days=days)
                 else:
-                    rates = repo.get_procedure_completion_rates(selected_tenant, days=days)
+                    rates = repo.get_procedure_completion_rates(
+                        selected_tenant, days=days
+                    )
 
                 if rates:
                     rows = []
@@ -151,18 +179,27 @@ def render_events_page():
                         avg_step = info.get("avg_abandoned_step")
                         pct = round(completed / started * 100) if started else 0
                         flag = "🔴" if pct < 50 else "🟡" if pct < 75 else "🟢"
-                        rows.append({
-                            "Procedimiento": info.get("name", proc_id),
-                            "Iniciados": started,
-                            "Completados": completed,
-                            "Abandonados": abandoned,
-                            "Avg Paso Abandono": avg_step or "—",
-                            "% Completado": f"{pct}%",
-                            "Flag": flag,
-                        })
-                    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                        rows.append(
+                            {
+                                "Procedimiento": info.get("name", proc_id),
+                                "Iniciados": started,
+                                "Completados": completed,
+                                "Abandonados": abandoned,
+                                "Avg Paso Abandono": avg_step or "—",
+                                "% Completado": f"{pct}%",
+                                "Flag": flag,
+                            }
+                        )
+                    st.dataframe(
+                        pd.DataFrame(rows), use_container_width=True, hide_index=True
+                    )
 
-                    low = [r for r in rows if int(r["% Completado"].rstrip("%")) < 50 and r["Abandonados"] > 0]
+                    low = [
+                        r
+                        for r in rows
+                        if int(r["% Completado"].rstrip("%")) < 50
+                        and r["Abandonados"] > 0
+                    ]
                     for r in low:
                         st.warning(
                             f"**{r['Procedimiento']}** — {r['% Completado']} completado. "
@@ -194,10 +231,12 @@ def render_events_page():
                 st.subheader("Sugeridos vs Escritos")
                 st.caption(TOOLTIPS["suggested_vs_typed"])
                 if sv["suggested"] or sv["typed"]:
-                    sv_df = pd.DataFrame([
-                        {"Tipo": "Sugeridos", "Cantidad": sv["suggested"]},
-                        {"Tipo": "Escritos", "Cantidad": sv["typed"]},
-                    ])
+                    sv_df = pd.DataFrame(
+                        [
+                            {"Tipo": "Sugeridos", "Cantidad": sv["suggested"]},
+                            {"Tipo": "Escritos", "Cantidad": sv["typed"]},
+                        ]
+                    )
                     st.bar_chart(sv_df.set_index("Tipo"))
                 else:
                     st.info("Sin datos de mensajes.")
@@ -208,10 +247,12 @@ def render_events_page():
                 accepted = summary.get("proposal_accepted", 0)
                 rejected = summary.get("proposal_rejected", 0)
                 if accepted or rejected:
-                    prop_df = pd.DataFrame([
-                        {"Resultado": "Aceptadas", "Cantidad": accepted},
-                        {"Resultado": "Rechazadas", "Cantidad": rejected},
-                    ])
+                    prop_df = pd.DataFrame(
+                        [
+                            {"Resultado": "Aceptadas", "Cantidad": accepted},
+                            {"Resultado": "Rechazadas", "Cantidad": rejected},
+                        ]
+                    )
                     st.bar_chart(prop_df.set_index("Resultado"))
                 else:
                     st.info("Sin datos de propuestas.")
@@ -224,7 +265,9 @@ def render_events_page():
                 total_nudge = clicked + dismissed
                 if total_nudge:
                     ctr = round(clicked / total_nudge * 100, 1)
-                    st.metric("CTR", f"{ctr}%", help="nudge_clicked / (clicked + dismissed)")
+                    st.metric(
+                        "CTR", f"{ctr}%", help="nudge_clicked / (clicked + dismissed)"
+                    )
                     st.write(f"Clicked: {clicked} | Dismissed: {dismissed}")
                 else:
                     st.info("Sin datos de nudges.")
@@ -243,7 +286,9 @@ def render_events_page():
     with tab_explore:
         col_type, col_limit = st.columns(2)
         with col_type:
-            event_type_filter = st.text_input("Filtrar por Event Type (opcional)", key="intel_type")
+            event_type_filter = st.text_input(
+                "Filtrar por Event Type (opcional)", key="intel_type"
+            )
         with col_limit:
             explore_limit = st.slider("Limite", 10, 500, 100, key="intel_limit")
 
@@ -267,15 +312,22 @@ def render_events_page():
                     rows = []
                     for ev in events:
                         data_str = str(ev.event_data or {})
-                        rows.append({
-                            "Fecha": ev.created_at.strftime("%Y-%m-%d %H:%M") if ev.created_at else "—",
-                            "Tenant": get_tenant_name(ev.tenant_id),
-                            "Usuario": str(ev.user_id)[:8],
-                            "Tipo": ev.event_type,
-                            "Ruta": ev.route or "—",
-                            "Data": data_str[:100] + ("..." if len(data_str) > 100 else ""),
-                        })
-                    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                        rows.append(
+                            {
+                                "Fecha": ev.created_at.strftime("%Y-%m-%d %H:%M")
+                                if ev.created_at
+                                else "—",
+                                "Tenant": get_tenant_name(ev.tenant_id),
+                                "Usuario": str(ev.user_id)[:8],
+                                "Tipo": ev.event_type,
+                                "Ruta": ev.route or "—",
+                                "Data": data_str[:100]
+                                + ("..." if len(data_str) > 100 else ""),
+                            }
+                        )
+                    st.dataframe(
+                        pd.DataFrame(rows), use_container_width=True, hide_index=True
+                    )
                     st.caption(f"Mostrando {len(events)} eventos")
 
                     # Expandable JSON details

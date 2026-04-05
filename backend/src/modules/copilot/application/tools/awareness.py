@@ -7,9 +7,9 @@ the copilot detects it automatically.
 """
 
 import json
-from typing import Optional
 from uuid import UUID
 
+import structlog
 from langchain_core.tools import tool
 from sqlalchemy import text
 
@@ -22,8 +22,6 @@ from src.modules.copilot.domain.schema_introspection import (
     get_model_sections,
 )
 
-import structlog
-
 logger = structlog.get_logger()
 
 
@@ -33,7 +31,9 @@ def _check_introspectable_module(db, tenant_id: UUID, descriptor) -> dict:
         repo = descriptor.repo_factory(db)
         data = descriptor.read_fn(repo, tenant_id)
     except Exception as e:
-        logger.warning("awareness_read_error", module=descriptor.module_id, error=str(e))
+        logger.warning(
+            "awareness_read_error", module=descriptor.module_id, error=str(e)
+        )
         return {"configured": False, "message": f"Error leyendo {descriptor.label}"}
 
     if not data:
@@ -52,27 +52,40 @@ def _check_introspectable_module(db, tenant_id: UUID, descriptor) -> dict:
 def _check_offer_completion(db, tenant_id: UUID) -> dict:
     """Check offer configuration status via SQL count."""
     try:
-        count = db.execute(
-            text("SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true"),
-            {"tid": str(tenant_id)},
-        ).scalar() or 0
+        count = (
+            db.execute(
+                text(
+                    "SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true"
+                ),
+                {"tid": str(tenant_id)},
+            ).scalar()
+            or 0
+        )
     except Exception:
         count = 0
 
     configured = count > 0
     return {
         "configured": configured,
-        "markdown": f"### {'✅' if configured else '⚠️'} Offer Studio\n  {count} oferta(s) configurada(s)" if count else "### ⚠️ Offer Studio\n  Sin ofertas configuradas",
+        "markdown": f"### {'✅' if configured else '⚠️'} Offer Studio\n  {count} oferta(s) configurada(s)"
+        if count
+        else "### ⚠️ Offer Studio\n  Sin ofertas configuradas",
     }
 
 
 def _check_connections_completion(db, tenant_id: UUID) -> dict:
     """Check which integrations are connected."""
     try:
-        rows = db.execute(
-            text("SELECT channel_type, is_active FROM channel_connections WHERE tenant_id = :tid"),
-            {"tid": str(tenant_id)},
-        ).mappings().all()
+        rows = (
+            db.execute(
+                text(
+                    "SELECT channel_type, is_active FROM channel_connections WHERE tenant_id = :tid"
+                ),
+                {"tid": str(tenant_id)},
+            )
+            .mappings()
+            .all()
+        )
     except Exception:
         rows = []
 
@@ -91,14 +104,22 @@ def _check_connections_completion(db, tenant_id: UUID) -> dict:
 def _check_landing_completion(db, tenant_id: UUID) -> dict:
     """Check landing page status."""
     try:
-        total = db.execute(
-            text("SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid"),
-            {"tid": str(tenant_id)},
-        ).scalar() or 0
-        published = db.execute(
-            text("SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid AND is_published = true"),
-            {"tid": str(tenant_id)},
-        ).scalar() or 0
+        total = (
+            db.execute(
+                text("SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid"),
+                {"tid": str(tenant_id)},
+            ).scalar()
+            or 0
+        )
+        published = (
+            db.execute(
+                text(
+                    "SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid AND is_published = true"
+                ),
+                {"tid": str(tenant_id)},
+            ).scalar()
+            or 0
+        )
     except Exception:
         total, published = 0, 0
 
@@ -110,14 +131,20 @@ def _check_landing_completion(db, tenant_id: UUID) -> dict:
 def _check_crm_completion(db, tenant_id: UUID) -> dict:
     """Check CRM data status."""
     try:
-        lead_count = db.execute(
-            text("SELECT COUNT(*) FROM leads WHERE tenant_id = :tid"),
-            {"tid": str(tenant_id)},
-        ).scalar() or 0
-        sale_count = db.execute(
-            text("SELECT COUNT(*) FROM sales WHERE tenant_id = :tid"),
-            {"tid": str(tenant_id)},
-        ).scalar() or 0
+        lead_count = (
+            db.execute(
+                text("SELECT COUNT(*) FROM leads WHERE tenant_id = :tid"),
+                {"tid": str(tenant_id)},
+            ).scalar()
+            or 0
+        )
+        sale_count = (
+            db.execute(
+                text("SELECT COUNT(*) FROM sales WHERE tenant_id = :tid"),
+                {"tid": str(tenant_id)},
+            ).scalar()
+            or 0
+        )
     except Exception:
         lead_count, sale_count = 0, 0
 
@@ -136,7 +163,7 @@ _SPECIAL_CHECKERS = {
 
 
 @tool
-def get_module_completion_status(module: Optional[str] = None) -> str:
+def get_module_completion_status(module: str | None = None) -> str:
     """Verifica el estado de configuración de los módulos del sistema.
 
     Args:
@@ -183,19 +210,23 @@ def get_module_completion_status(module: Optional[str] = None) -> str:
             lines.append(result["markdown"])
             lines.append("")
 
-            checklist_items.append({
-                "label": descriptor.label,
-                "done": result["configured"],
-                "route": f"/{{tenantId}}/{descriptor.route_prefix}",
-            })
+            checklist_items.append(
+                {
+                    "label": descriptor.label,
+                    "done": result["configured"],
+                    "route": f"/{{tenantId}}/{descriptor.route_prefix}",
+                }
+            )
 
-        return json.dumps({
-            "text": "\n".join(lines),
-            "ui_action": {
-                "type": "checklist",
-                "items": checklist_items,
-            },
-        })
+        return json.dumps(
+            {
+                "text": "\n".join(lines),
+                "ui_action": {
+                    "type": "checklist",
+                    "items": checklist_items,
+                },
+            }
+        )
     finally:
         db.close()
 

@@ -5,8 +5,7 @@ ChannelRegistry, grouping into organic_social/ga4_search/paid/outbound/website.
 """
 
 from collections import defaultdict
-from datetime import datetime
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -29,7 +28,7 @@ from src.modules.analytics.infrastructure.repositories.official_metrics_reposito
 )
 
 # Channel types -> group mapping for the 5-group structure
-_GROUP_MAP: Dict[str, str] = {
+_GROUP_MAP: dict[str, str] = {
     "social": "organic_social",
     "search": "ga4_search",
     "direct": "ga4_search",
@@ -39,7 +38,7 @@ _GROUP_MAP: Dict[str, str] = {
 }
 
 # Error message mapping from extraction run errors to user-facing messages
-_ERROR_MESSAGES: Dict[str, str] = {
+_ERROR_MESSAGES: dict[str, str] = {
     "token_expired": "Token expirado",
     "token_refresh_failed": "Token expirado",
     "connection_revoked": "Token expirado",
@@ -51,7 +50,7 @@ _ERROR_MESSAGES: Dict[str, str] = {
 }
 
 # Maps provider_name -> config key that holds the display name
-_DISPLAY_NAME_MAP: Dict[str, str] = {
+_DISPLAY_NAME_MAP: dict[str, str] = {
     "google_analytics": "property_display_name",
     "youtube": "channel_title",
     "meta": "tracked_ig_username",
@@ -65,15 +64,15 @@ class AttractionStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
     ):
         self.db = db
         self.cache = cache
         self.connection_port = connection_port
 
     @staticmethod
-    def _classify_error(error_text: Optional[str]) -> Optional[str]:
+    def _classify_error(error_text: str | None) -> str | None:
         """Map extraction error to a user-facing message."""
         if not error_text:
             return None
@@ -97,26 +96,20 @@ class AttractionStageService:
         """
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "attraction", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "attraction", "last_30_days")
             if cached is not None:
                 return AttractionDetailDTO(**cached)
 
         # 2. Get dynamic channel list from ChannelRegistry
         registry = ChannelRegistry(self.connection_port)
-        channel_split = await registry.get_available_channels(
-            tenant_id, "attraction"
-        )
+        channel_split = await registry.get_available_channels(tenant_id, "attraction")
 
         # 3. Get aggregated metrics from official tables
         repo = OfficialMetricsRepository(self.db)
-        aggregations = repo.get_channel_summary(
-            tenant_id, "attraction", "last_30_days"
-        )
+        aggregations = repo.get_channel_summary(tenant_id, "attraction", "last_30_days")
 
         # Build lookup: channel_slug -> list of aggregation rows (multi-metric)
-        agg_by_slug: Dict[str, list] = defaultdict(list)
+        agg_by_slug: dict[str, list] = defaultdict(list)
         for agg in aggregations:
             agg_by_slug[agg.channel_slug].append(agg)
 
@@ -124,21 +117,22 @@ class AttractionStageService:
         from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
             ExtractionRunRepository,
         )
+
         run_repo = ExtractionRunRepository(self.db)
 
         # Build provider -> latest run lookup (deduplicate per provider)
-        provider_runs: Dict[str, object] = {}
+        provider_runs: dict[str, object] = {}
 
         # 5. Build ChannelMetricDTO lists grouped by section
-        groups: Dict[str, List[ChannelMetricDTO]] = {
+        groups: dict[str, list[ChannelMetricDTO]] = {
             "organic_social": [],
             "ga4_search": [],
             "paid": [],
             "outbound": [],
             "website": [],
         }
-        available_channels: List[ChannelMetricDTO] = []
-        latest_updated: Optional[str] = None
+        available_channels: list[ChannelMetricDTO] = []
+        latest_updated: str | None = None
 
         # Connected channels
         for ch in channel_split.get("connected", []):
@@ -148,20 +142,24 @@ class AttractionStageService:
 
             # Build MetricValueDTO list from aggregation rows
             agg_rows = agg_by_slug.get(slug, [])
-            metrics: List[MetricValueDTO] = []
-            last_updated: Optional[str] = None
+            metrics: list[MetricValueDTO] = []
+            last_updated: str | None = None
 
             for agg in agg_rows:
                 extra_data = getattr(agg, "extra", None) or {}
-                breakdown = extra_data if isinstance(extra_data, dict) and extra_data else None
+                breakdown = (
+                    extra_data if isinstance(extra_data, dict) and extra_data else None
+                )
 
-                metrics.append(MetricValueDTO(
-                    name=agg.metric_name,
-                    value=agg.value,
-                    unit=agg.unit or "count",
-                    currency=getattr(agg, "currency", None),
-                    breakdown=breakdown,
-                ))
+                metrics.append(
+                    MetricValueDTO(
+                        name=agg.metric_name,
+                        value=agg.value,
+                        unit=agg.unit or "count",
+                        currency=getattr(agg, "currency", None),
+                        breakdown=breakdown,
+                    )
+                )
 
                 # Track latest computed_at for this channel
                 if hasattr(agg, "computed_at") and agg.computed_at:
@@ -197,9 +195,9 @@ class AttractionStageService:
 
             # For ManyChat channels, read from official_metrics directly
             if provider_name == "manychat":
-                from datetime import timedelta, timezone as _tz
+                from datetime import timedelta
 
-                now_mc = datetime.now(_tz.utc)
+                now_mc = datetime.now(UTC)
                 mc_metrics = OfficialMetricsRepository(self.db).get_channel_metrics(
                     tenant_id,
                     "manychat",
@@ -210,12 +208,16 @@ class AttractionStageService:
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics.items():
                     if m_name not in existing_names:
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = conn_config.get(display_name_key) if display_name_key else None
+            source_display = (
+                conn_config.get(display_name_key) if display_name_key else None
+            )
 
             dto = ChannelMetricDTO(
                 slug=slug,

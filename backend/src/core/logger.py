@@ -1,12 +1,14 @@
-import structlog
 import logging
 import sys
+
+import structlog
+
 
 def configure_logging():
     """
     Configures structlog to work with standard logging and output JSON.
     """
-    
+
     # 1. Configure Standard Library Logging (for libraries like uvicorn, sqlalchemy)
     logging.basicConfig(
         format="%(message)s",
@@ -17,13 +19,13 @@ def configure_logging():
     # 2. Configure Structlog Processors
     structlog.configure(
         processors=[
-            structlog.contextvars.merge_contextvars, # Merge async context (request_id)
+            structlog.contextvars.merge_contextvars,  # Merge async context (request_id)
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer() # Output as JSON
+            structlog.processors.JSONRenderer(),  # Output as JSON
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,

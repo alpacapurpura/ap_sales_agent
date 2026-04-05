@@ -12,7 +12,6 @@ Credentials: access_token + shop_domain from connection config.
 import logging
 from collections import defaultdict
 from datetime import date, datetime
-from typing import Dict, List, Optional
 from uuid import UUID
 
 import httpx
@@ -32,14 +31,14 @@ class ShopifyProvider(BaseMetricsProvider):
     """Extracts metrics from Shopify Admin API for opportunity and sales stages."""
 
     def __init__(self):
-        self._last_orders: List[dict] = []
-        self._last_checkouts: List[dict] = []
+        self._last_orders: list[dict] = []
+        self._last_checkouts: list[dict] = []
 
-    def get_last_extracted_orders(self) -> List[dict]:
+    def get_last_extracted_orders(self) -> list[dict]:
         """Return raw orders cached during the last sales-stage extraction."""
         return self._last_orders
 
-    def get_last_extracted_checkouts(self) -> List[dict]:
+    def get_last_extracted_checkouts(self) -> list[dict]:
         """Return raw checkouts cached during the last opportunity-stage extraction."""
         return self._last_checkouts
 
@@ -74,6 +73,7 @@ class ShopifyProvider(BaseMetricsProvider):
 
         # Fetch orders for the period
         import httpx
+
         all_orders = []
         url = f"https://{shop_domain}/admin/api/2024-01/orders.json"
         params = {
@@ -92,6 +92,7 @@ class ShopifyProvider(BaseMetricsProvider):
 
         # Count customers with >1 order in the period
         from collections import Counter
+
         customer_ids = [
             o.get("customer", {}).get("id")
             for o in all_orders
@@ -101,15 +102,21 @@ class ShopifyProvider(BaseMetricsProvider):
         repeat_count = sum(1 for c in customer_counts.values() if c > 1)
 
         from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
-        metrics = [ExtractedMetric(
-            provider="shopify",
-            channel_slug="shopify",
-            metric_name="repeat_customers",
-            value=float(repeat_count),
-            unit="count",
-            date=period_start,
-            extra={"period_type": period_type, "total_customers": len(customer_counts)},
-        )]
+
+        metrics = [
+            ExtractedMetric(
+                provider="shopify",
+                channel_slug="shopify",
+                metric_name="repeat_customers",
+                value=float(repeat_count),
+                unit="count",
+                date=period_start,
+                extra={
+                    "period_type": period_type,
+                    "total_customers": len(customer_counts),
+                },
+            )
+        ]
 
         return ExtractionResult(metrics=metrics)
 
@@ -229,14 +236,14 @@ class ShopifyProvider(BaseMetricsProvider):
         access_token: str,
         endpoint: str,
         params: dict,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Fetch all pages via Shopify Link header pagination."""
         headers = {
             "X-Shopify-Access-Token": access_token,
             "Content-Type": "application/json",
         }
         url = f"https://{shop_domain}/admin/api/{API_VERSION}/{endpoint}"
-        all_items: List[dict] = []
+        all_items: list[dict] = []
 
         # Determine the resource key from endpoint (e.g. "orders.json" -> "orders")
         resource_key = endpoint.replace(".json", "")
@@ -264,7 +271,7 @@ class ShopifyProvider(BaseMetricsProvider):
         return all_items
 
     @staticmethod
-    def _parse_next_link(link_header: str) -> Optional[str]:
+    def _parse_next_link(link_header: str) -> str | None:
         """Parse Shopify Link header to extract the next page URL."""
         if not link_header:
             return None
@@ -281,7 +288,7 @@ class ShopifyProvider(BaseMetricsProvider):
         access_token: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract checkout/abandoned cart metrics for opportunity stage."""
         # Get orders to calculate completed checkouts
         orders = await self._paginated_get(
@@ -316,7 +323,7 @@ class ShopifyProvider(BaseMetricsProvider):
         self._last_checkouts = checkouts
 
         # Group by date
-        by_date: Dict[date, dict] = defaultdict(
+        by_date: dict[date, dict] = defaultdict(
             lambda: {
                 "checkout_count": 0,
                 "checkout_value": 0.0,
@@ -328,7 +335,9 @@ class ShopifyProvider(BaseMetricsProvider):
 
         completed_tokens = set()
         for order in orders:
-            d = self._parse_date(order.get("processed_at") or order.get("created_at", ""))
+            d = self._parse_date(
+                order.get("processed_at") or order.get("created_at", "")
+            )
             if d:
                 by_date[d]["order_count"] += 1
                 token = order.get("checkout_token")
@@ -345,11 +354,9 @@ class ShopifyProvider(BaseMetricsProvider):
             token = checkout.get("token", "")
             if token and token not in completed_tokens:
                 by_date[d]["abandoned_count"] += 1
-                by_date[d]["abandoned_value"] += float(
-                    checkout.get("total_price", 0)
-                )
+                by_date[d]["abandoned_value"] += float(checkout.get("total_price", 0))
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for metric_date, data in by_date.items():
             checkout_count = data["checkout_count"]
             abandoned_count = data["abandoned_count"]
@@ -392,7 +399,7 @@ class ShopifyProvider(BaseMetricsProvider):
         access_token: str,
         start_date: date,
         end_date: date,
-    ) -> List[ExtractedMetric]:
+    ) -> list[ExtractedMetric]:
         """Extract order/revenue metrics for sales stage.
 
         Extracts 12 metrics per day:
@@ -423,7 +430,7 @@ class ShopifyProvider(BaseMetricsProvider):
         self._last_orders = orders
 
         # Group by date
-        by_date: Dict[date, dict] = defaultdict(
+        by_date: dict[date, dict] = defaultdict(
             lambda: {
                 "revenue": 0.0,
                 "order_count": 0,
@@ -442,10 +449,12 @@ class ShopifyProvider(BaseMetricsProvider):
         for order in orders:
             # Skip cancelled/voided orders
             fin_status = order.get("financial_status", "")
-            if fin_status in ("voided",):
+            if fin_status == "voided":
                 continue
 
-            d = self._parse_date(order.get("processed_at") or order.get("created_at", ""))
+            d = self._parse_date(
+                order.get("processed_at") or order.get("created_at", "")
+            )
             if not d:
                 continue
 
@@ -497,7 +506,7 @@ class ShopifyProvider(BaseMetricsProvider):
             for item in order.get("line_items", []):
                 by_date[d]["units_sold"] += int(item.get("quantity", 1))
 
-        metrics: List[ExtractedMetric] = []
+        metrics: list[ExtractedMetric] = []
         for metric_date, data in by_date.items():
             order_count = data["order_count"]
             revenue = data["revenue"]
@@ -518,8 +527,18 @@ class ShopifyProvider(BaseMetricsProvider):
                 ("refund_amount", data["refund_amount"], "currency", currency),
                 ("refund_count", float(data["refund_count"]), "count", None),
                 ("shipping_revenue", data["shipping_revenue"], "currency", currency),
-                ("repeat_customers", float(len(data["repeat_customer_ids"])), "count", None),
-                ("discount_usage_count", float(data["discount_usage_count"]), "count", None),
+                (
+                    "repeat_customers",
+                    float(len(data["repeat_customer_ids"])),
+                    "count",
+                    None,
+                ),
+                (
+                    "discount_usage_count",
+                    float(data["discount_usage_count"]),
+                    "count",
+                    None,
+                ),
             ]
 
             for name, value, unit, cur in metric_tuples:
@@ -538,10 +557,10 @@ class ShopifyProvider(BaseMetricsProvider):
         return metrics
 
     @staticmethod
-    def _parse_date(iso_str: str) -> Optional[date]:
+    def _parse_date(iso_str: str) -> date | None:
         if not iso_str:
             return None
         try:
-            return datetime.fromisoformat(iso_str.replace("Z", "+00:00")).date()
+            return datetime.fromisoformat(iso_str).date()
         except (ValueError, AttributeError):
             return None

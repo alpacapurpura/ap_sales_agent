@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
-from sqlalchemy.orm import Session
-from typing import Optional
 import structlog
+from fastapi import APIRouter, Body, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.gmail import GmailStatusResponse
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.channels.gmail import GmailAdapter
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.channels.gmail import GmailAdapter
-from src.modules.connections.api.dto.gmail import GmailStatusResponse
 
 router = APIRouter(tags=["gmail"])
 logger = structlog.get_logger()
@@ -21,7 +22,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 @router.get("/auth-url")
 async def get_auth_url(
-    redirect_uri: Optional[str] = None,
+    redirect_uri: str | None = None,
     user: User = Depends(get_current_user),
 ):
     url, state = GmailAdapter.get_authorization_url(redirect_uri)
@@ -31,7 +32,7 @@ async def get_auth_url(
 @router.post("/callback")
 async def oauth_callback(
     code: str = Body(..., embed=True),
-    redirect_uri: Optional[str] = Body(None, embed=True),
+    redirect_uri: str | None = Body(None, embed=True),
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
@@ -49,7 +50,10 @@ async def oauth_callback(
             raise ValueError("Email address not found in profile")
     except Exception as e:
         logger.error("failed_to_get_gmail_profile", error=str(e))
-        raise HTTPException(status_code=400, detail="No se pudo obtener el perfil de Gmail. Verifica los permisos.")
+        raise HTTPException(
+            status_code=400,
+            detail="No se pudo obtener el perfil de Gmail. Verifica los permisos.",
+        )
 
     repo.upsert(
         tenant_id=user.tenant_id,

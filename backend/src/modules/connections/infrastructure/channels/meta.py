@@ -1,12 +1,13 @@
-import secrets
-from typing import Dict, Any, Optional, List
-import httpx
-import urllib.parse
 import asyncio
-from facebook_business.api import FacebookAdsApi
-from facebook_business.adobjects.user import User
-from facebook_business.session import FacebookSession
+import secrets
+import urllib.parse
+from typing import Any
+
+import httpx
 import structlog
+from facebook_business.adobjects.user import User
+from facebook_business.api import FacebookAdsApi
+from facebook_business.session import FacebookSession
 
 from src.core.config import settings
 
@@ -26,9 +27,9 @@ class MetaAdapter:
 
     def __init__(
         self,
-        app_id: Optional[str] = None,
-        app_secret: Optional[str] = None,
-        access_token: Optional[str] = None,
+        app_id: str | None = None,
+        app_secret: str | None = None,
+        access_token: str | None = None,
     ):
         self.app_id = app_id or settings.META_APP_ID
         self.app_secret = app_secret or settings.META_APP_SECRET
@@ -54,7 +55,9 @@ class MetaAdapter:
             logger.error(f"Failed to initialize FacebookAdsApi: {e}")
             raise
 
-    def get_authorization_url(self, redirect_uri: str, state: Optional[str] = None) -> tuple[str, str]:
+    def get_authorization_url(
+        self, redirect_uri: str, state: str | None = None
+    ) -> tuple[str, str]:
         """Generates the OAuth authorization URL and state token.
         State is always prefixed with 'meta_' so the frontend callback
         can distinguish Meta from Google OAuth redirects."""
@@ -87,7 +90,7 @@ class MetaAdapter:
         url = f"https://www.facebook.com/{self.API_VERSION}/dialog/oauth?{urllib.parse.urlencode(params)}"
         return url, state
 
-    async def exchange_code(self, code: str, redirect_uri: str) -> Dict[str, Any]:
+    async def exchange_code(self, code: str, redirect_uri: str) -> dict[str, Any]:
         """Exchanges the authorization code for an access token, then
         automatically extends it to a long-lived token (~60 days)."""
         params = {
@@ -123,7 +126,9 @@ class MetaAdapter:
                     )
                     if long_lived.status_code == 200:
                         long_data = long_lived.json()
-                        token_data["access_token"] = long_data.get("access_token", short_lived_token)
+                        token_data["access_token"] = long_data.get(
+                            "access_token", short_lived_token
+                        )
                         token_data["token_type"] = long_data.get("token_type", "bearer")
                         token_data["expires_in"] = long_data.get("expires_in")
                         logger.info("meta_token_extended_to_long_lived")
@@ -134,7 +139,7 @@ class MetaAdapter:
 
             return token_data
 
-    async def get_user_profile(self) -> Dict[str, Any]:
+    async def get_user_profile(self) -> dict[str, Any]:
         """Gets the user's profile (id, name) via the facebook_business SDK."""
         if not self._api_instance:
             raise ValueError("Access token not initialized")
@@ -148,7 +153,7 @@ class MetaAdapter:
         profile = await asyncio.to_thread(_get_profile)
         return profile.export_all_data()
 
-    async def get_token_permissions(self) -> List[str]:
+    async def get_token_permissions(self) -> list[str]:
         """Returns granted permissions for the current access token."""
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(
@@ -168,7 +173,7 @@ class MetaAdapter:
             )
             return []
 
-    async def get_business_assets(self) -> Dict[str, Any]:
+    async def get_business_assets(self) -> dict[str, Any]:  # noqa: C901
         """
         Fetches all business assets accessible with the current user/system token:
         - Facebook Pages (with page_access_tokens)
@@ -201,9 +206,9 @@ class MetaAdapter:
                 ),
             )
 
-        pages: List[Dict[str, Any]] = []
-        instagram_accounts: List[Dict[str, Any]] = []
-        ads_accounts: List[Dict[str, Any]] = []
+        pages: list[dict[str, Any]] = []
+        instagram_accounts: list[dict[str, Any]] = []
+        ads_accounts: list[dict[str, Any]] = []
 
         # ── Facebook Pages ────────────────────────────────────────────────────
         if pages_raw.status_code == 200:
@@ -225,8 +230,8 @@ class MetaAdapter:
                     return_exceptions=True,
                 )
 
-            for page, ig_resp in zip(pages_data, ig_responses):
-                page_entry: Dict[str, Any] = {
+            for page, ig_resp in zip(pages_data, ig_responses, strict=False):
+                page_entry: dict[str, Any] = {
                     "page_id": page["id"],
                     "page_name": page.get("name", ""),
                     "category": page.get("category"),
@@ -268,11 +273,21 @@ class MetaAdapter:
                                 "page_access_token": page.get("access_token"),
                             }
                         )
+                elif isinstance(ig_resp, Exception):
+                    logger.warning(
+                        "meta_ig_fetch_exception",
+                        page_id=page["id"],
+                        page_name=page.get("name"),
+                        error=str(ig_resp),
+                    )
                 else:
-                    if isinstance(ig_resp, Exception):
-                        logger.warning("meta_ig_fetch_exception", page_id=page["id"], page_name=page.get("name"), error=str(ig_resp))
-                    else:
-                        logger.warning("meta_ig_fetch_failed", page_id=page["id"], page_name=page.get("name"), status=ig_resp.status_code, body=ig_resp.text[:300])
+                    logger.warning(
+                        "meta_ig_fetch_failed",
+                        page_id=page["id"],
+                        page_name=page.get("name"),
+                        status=ig_resp.status_code,
+                        body=ig_resp.text[:300],
+                    )
         else:
             logger.warning(
                 "meta_get_pages_failed",
@@ -285,7 +300,8 @@ class MetaAdapter:
             for ad in ads_raw.json().get("data", []):
                 ads_accounts.append(
                     {
-                        "ad_account_id": ad.get("account_id") or ad.get("id", "").replace("act_", ""),
+                        "ad_account_id": ad.get("account_id")
+                        or ad.get("id", "").replace("act_", ""),
                         "ad_account_name": ad.get("name", ""),
                         "currency": ad.get("currency"),
                         "account_status": ad.get("account_status"),
@@ -299,7 +315,7 @@ class MetaAdapter:
             )
 
         # ── Pixels (per Ad Account) ───────────────────────────────────────────
-        pixels: List[Dict[str, Any]] = []
+        pixels: list[dict[str, Any]] = []
         if ads_accounts:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 pixel_responses = await asyncio.gather(
@@ -312,22 +328,33 @@ class MetaAdapter:
                     ],
                     return_exceptions=True,
                 )
-            for ad, px_resp in zip(ads_accounts, pixel_responses):
+            for ad, px_resp in zip(ads_accounts, pixel_responses, strict=False):
                 if isinstance(px_resp, Exception):
-                    logger.warning("meta_pixel_fetch_exception", ad_account_id=ad["ad_account_id"], error=str(px_resp))
+                    logger.warning(
+                        "meta_pixel_fetch_exception",
+                        ad_account_id=ad["ad_account_id"],
+                        error=str(px_resp),
+                    )
                     continue
                 if px_resp.status_code != 200:
-                    logger.warning("meta_pixel_fetch_failed", ad_account_id=ad["ad_account_id"], status=px_resp.status_code, body=px_resp.text[:300])
+                    logger.warning(
+                        "meta_pixel_fetch_failed",
+                        ad_account_id=ad["ad_account_id"],
+                        status=px_resp.status_code,
+                        body=px_resp.text[:300],
+                    )
                     continue
                 for px in px_resp.json().get("data", []):
-                    pixels.append({
-                        "pixel_id": px.get("id"),
-                        "pixel_name": px.get("name", ""),
-                        "linked_ad_account_id": ad["ad_account_id"],
-                    })
+                    pixels.append(
+                        {
+                            "pixel_id": px.get("id"),
+                            "pixel_name": px.get("name", ""),
+                            "linked_ad_account_id": ad["ad_account_id"],
+                        }
+                    )
 
         # ── WhatsApp Business Accounts (via Business Manager) ─────────────────
-        whatsapp_accounts: List[Dict[str, Any]] = []
+        whatsapp_accounts: list[dict[str, Any]] = []
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 biz_resp = await client.get(
@@ -353,13 +380,22 @@ class MetaAdapter:
                             return_exceptions=True,
                         )
 
-                    wabas: List[Dict[str, Any]] = []
-                    for biz, waba_resp in zip(businesses, waba_responses):
+                    wabas: list[dict[str, Any]] = []
+                    for biz, waba_resp in zip(businesses, waba_responses, strict=False):
                         if isinstance(waba_resp, Exception):
-                            logger.warning("meta_waba_fetch_exception", business_id=biz["id"], error=str(waba_resp))
+                            logger.warning(
+                                "meta_waba_fetch_exception",
+                                business_id=biz["id"],
+                                error=str(waba_resp),
+                            )
                             continue
                         if waba_resp.status_code != 200:
-                            logger.warning("meta_waba_fetch_failed", business_id=biz["id"], status=waba_resp.status_code, body=waba_resp.text[:300])
+                            logger.warning(
+                                "meta_waba_fetch_failed",
+                                business_id=biz["id"],
+                                status=waba_resp.status_code,
+                                body=waba_resp.text[:300],
+                            )
                             continue
                         for waba in waba_resp.json().get("data", []):
                             waba["business_id"] = biz["id"]
@@ -382,35 +418,54 @@ class MetaAdapter:
                                 ],
                                 return_exceptions=True,
                             )
-                        for waba, ph_resp in zip(wabas, phone_responses):
-                            phones: List[Dict[str, Any]] = []
-                            if not isinstance(ph_resp, Exception) and ph_resp.status_code == 200:
+                        for waba, ph_resp in zip(wabas, phone_responses, strict=False):
+                            phones: list[dict[str, Any]] = []
+                            if (
+                                not isinstance(ph_resp, Exception)
+                                and ph_resp.status_code == 200
+                            ):
                                 phones = ph_resp.json().get("data", [])
+                            elif isinstance(ph_resp, Exception):
+                                logger.warning(
+                                    "meta_waba_phones_exception",
+                                    waba_id=waba["id"],
+                                    error=str(ph_resp),
+                                )
                             else:
-                                if isinstance(ph_resp, Exception):
-                                    logger.warning("meta_waba_phones_exception", waba_id=waba["id"], error=str(ph_resp))
-                                else:
-                                    logger.warning("meta_waba_phones_failed", waba_id=waba["id"], status=ph_resp.status_code, body=ph_resp.text[:300])
+                                logger.warning(
+                                    "meta_waba_phones_failed",
+                                    waba_id=waba["id"],
+                                    status=ph_resp.status_code,
+                                    body=ph_resp.text[:300],
+                                )
 
-                            whatsapp_accounts.append({
-                                "waba_id": waba["id"],
-                                "waba_name": waba.get("name", ""),
-                                "currency": waba.get("currency"),
-                                "timezone_id": waba.get("timezone_id"),
-                                "business_id": waba.get("business_id"),
-                                "business_name": waba.get("business_name"),
-                                "phone_numbers": [
-                                    {
-                                        "phone_number_id": ph.get("id"),
-                                        "display_phone_number": ph.get("display_phone_number"),
-                                        "verified_name": ph.get("verified_name"),
-                                        "quality_rating": ph.get("quality_rating"),
-                                    }
-                                    for ph in phones
-                                ],
-                            })
+                            whatsapp_accounts.append(
+                                {
+                                    "waba_id": waba["id"],
+                                    "waba_name": waba.get("name", ""),
+                                    "currency": waba.get("currency"),
+                                    "timezone_id": waba.get("timezone_id"),
+                                    "business_id": waba.get("business_id"),
+                                    "business_name": waba.get("business_name"),
+                                    "phone_numbers": [
+                                        {
+                                            "phone_number_id": ph.get("id"),
+                                            "display_phone_number": ph.get(
+                                                "display_phone_number"
+                                            ),
+                                            "verified_name": ph.get("verified_name"),
+                                            "quality_rating": ph.get("quality_rating"),
+                                        }
+                                        for ph in phones
+                                    ],
+                                }
+                            )
             else:
-                logger.warning("meta_get_businesses_failed", status=biz_resp.status_code, body=biz_resp.text[:200])
+                logger.warning(
+                    "meta_get_businesses_failed",
+                    status=biz_resp.status_code,
+                    body=biz_resp.text[:200],
+                )
         except Exception as e:
             logger.warning("meta_whatsapp_fetch_error", error=str(e))
 

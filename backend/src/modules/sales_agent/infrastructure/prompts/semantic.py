@@ -1,9 +1,11 @@
-from langchain_core.messages import HumanMessage, SystemMessage
-from src.shared.infrastructure.llm.factory import LLMFactory
-from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
 import structlog
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from src.modules.sales_agent.infrastructure.prompts.base import prompt_loader
+from src.shared.infrastructure.llm.factory import LLMFactory
 
 logger = structlog.get_logger()
+
 
 async def check_is_complete(text: str, tenant=None) -> bool:
     """
@@ -11,7 +13,7 @@ async def check_is_complete(text: str, tenant=None) -> bool:
     Returns True if complete (reduce buffer), False if incomplete (wait more).
     """
     if not text or len(text.strip()) < 3:
-        return False # Too short, assume incomplete
+        return False  # Too short, assume incomplete
 
     try:
         # Use tenant-specific LLM service if available, otherwise fall back to global
@@ -23,16 +25,20 @@ async def check_is_complete(text: str, tenant=None) -> bool:
 
         sys_prompt = prompt_loader.render("message_completeness")
 
-        response = await llm.ainvoke([
-            SystemMessage(content=sys_prompt),
-            HumanMessage(content=f"Mensaje: {text}")
-        ])
+        response = await llm.ainvoke(
+            [
+                SystemMessage(content=sys_prompt),
+                HumanMessage(content=f"Mensaje: {text}"),
+            ]
+        )
 
         content = response.content.strip().upper()
         # Check strict equality or ensures it's not "INCOMPLETO"
         is_complete = content == "COMPLETO"
-        
-        logger.info("semantic_check_result", text=text, result=content, is_complete=is_complete)
+
+        logger.info(
+            "semantic_check_result", text=text, result=content, is_complete=is_complete
+        )
         return is_complete
 
     except Exception as e:

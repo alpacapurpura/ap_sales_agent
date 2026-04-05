@@ -3,15 +3,16 @@
 Stateless module — no database, no tenant context.
 Extracts text, CSS variables, inline styles, and visual identity data from HTML.
 """
+
 from __future__ import annotations
 
 import asyncio
 import re
+from urllib.parse import urljoin, urlparse
 
 import httpx
 import structlog
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
 
 logger = structlog.get_logger()
 
@@ -19,25 +20,83 @@ logger = structlog.get_logger()
 # URL / link scoring constants
 # ---------------------------------------------------------------------------
 
-SKIP_PATTERNS: frozenset[str] = frozenset({
-    "blog", "post", "wp-admin", "login", "cart", "search", "feed",
-    "tag", "category", "author", "page", "wp-content", "wp-includes",
-    "admin", "checkout", "account", "signup", "register",
-})
-SKIP_EXTENSIONS: frozenset[str] = frozenset({
-    ".pdf", ".zip", ".png", ".jpg", ".jpeg", ".gif", ".svg",
-    ".mp4", ".mp3", ".doc", ".docx", ".xls",
-})
-HIGH_KEYWORDS: frozenset[str] = frozenset({
-    "about", "nosotros", "nosotras", "quienes-somos", "equipo", "team",
-    "servicios", "services", "contacto", "contact", "testimonios",
-    "testimonials", "casos", "casos-de-exito", "reviews",
-})
-MEDIUM_KEYWORDS: frozenset[str] = frozenset({
-    "legal", "terminos", "terms", "privacidad", "privacy", "historia",
-    "story", "mision", "vision", "precios", "pricing", "partners",
-    "socios", "clientes", "metodologia", "portafolio",
-})
+SKIP_PATTERNS: frozenset[str] = frozenset(
+    {
+        "blog",
+        "post",
+        "wp-admin",
+        "login",
+        "cart",
+        "search",
+        "feed",
+        "tag",
+        "category",
+        "author",
+        "page",
+        "wp-content",
+        "wp-includes",
+        "admin",
+        "checkout",
+        "account",
+        "signup",
+        "register",
+    }
+)
+SKIP_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        ".pdf",
+        ".zip",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".mp4",
+        ".mp3",
+        ".doc",
+        ".docx",
+        ".xls",
+    }
+)
+HIGH_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "about",
+        "nosotros",
+        "nosotras",
+        "quienes-somos",
+        "equipo",
+        "team",
+        "servicios",
+        "services",
+        "contacto",
+        "contact",
+        "testimonios",
+        "testimonials",
+        "casos",
+        "casos-de-exito",
+        "reviews",
+    }
+)
+MEDIUM_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "legal",
+        "terminos",
+        "terms",
+        "privacidad",
+        "privacy",
+        "historia",
+        "story",
+        "mision",
+        "vision",
+        "precios",
+        "pricing",
+        "partners",
+        "socios",
+        "clientes",
+        "metodologia",
+        "portafolio",
+    }
+)
 
 # Backward-compat aliases (set, not frozenset — tests check membership the same way)
 _SKIP_PATTERNS = SKIP_PATTERNS
@@ -56,7 +115,7 @@ def score_link(url: str, anchor_text: str) -> int:
     path = parsed.path.lower().rstrip("/")
 
     # Skip anchors, mailto, tel
-    if url.startswith("#") or url.startswith("mailto:") or url.startswith("tel:"):
+    if url.startswith(("#", "mailto:", "tel:")):
         return -1
 
     # Skip file downloads
@@ -93,7 +152,11 @@ def extract_text_from_html(html: str) -> str:
         tag.decompose()
 
     # Preserve header/nav/footer with section markers
-    for tag_name, marker in [("header", "HEADER"), ("nav", "NAV"), ("footer", "FOOTER")]:
+    for tag_name, marker in [
+        ("header", "HEADER"),
+        ("nav", "NAV"),
+        ("footer", "FOOTER"),
+    ]:
         for tag in soup.find_all(tag_name):
             section_text = tag.get_text(separator="\n", strip=True)
             if section_text:
@@ -115,35 +178,37 @@ def extract_css_relevant(css_text: str, max_chars: int = 8000) -> str:
     """
     # Strip @font-face blocks (multi-line) — font names are captured from
     # font-family declarations and WebFont.load() instead
-    css_text = re.sub(r'@font-face\s*\{[^}]*\}', '', css_text, flags=re.DOTALL | re.IGNORECASE)
+    css_text = re.sub(
+        r"@font-face\s*\{[^}]*\}", "", css_text, flags=re.DOTALL | re.IGNORECASE
+    )
 
     # Patterns that indicate framework boilerplate to skip
     skip_pattern = re.compile(
-        r'(\.w-icon|\.w-widget|webflow-icons|'
-        r'webkit-appearance|moz-osx-font|speak:\s*none|'
-        r'text-size-adjust|box-sizing|display:\s*(block|inline|none|flex)|'
-        r'vertical-align|line-height:\s*[01]|outline:\s*0|'
-        r'border:\s*0(?:;|\s)|padding:\s*0(?:;|\s)|margin:\s*0(?:;|\s)|'
-        r'overflow:\s*(hidden|auto|visible)|cursor:\s*|'
-        r'src:\s*url\(|format\(|font-display|font-style)',
-        re.IGNORECASE
+        r"(\.w-icon|\.w-widget|webflow-icons|"
+        r"webkit-appearance|moz-osx-font|speak:\s*none|"
+        r"text-size-adjust|box-sizing|display:\s*(block|inline|none|flex)|"
+        r"vertical-align|line-height:\s*[01]|outline:\s*0|"
+        r"border:\s*0(?:;|\s)|padding:\s*0(?:;|\s)|margin:\s*0(?:;|\s)|"
+        r"overflow:\s*(hidden|auto|visible)|cursor:\s*|"
+        r"src:\s*url\(|format\(|font-display|font-style)",
+        re.IGNORECASE,
     )
 
     # Tier 1: CSS variable definitions with color values
-    var_pattern = re.compile(r'--[\w-]+\s*:', re.IGNORECASE)
+    var_pattern = re.compile(r"--[\w-]+\s*:", re.IGNORECASE)
     # Tier 2: Color/font declarations in custom styles
     color_pattern = re.compile(
-        r'(#[0-9a-fA-F]{3,8}|rgba?\s*\(|hsla?\s*\(|'
-        r'(?:background-)?color\s*:|background-image|gradient|'
-        r'font-family|border-radius)',
-        re.IGNORECASE
+        r"(#[0-9a-fA-F]{3,8}|rgba?\s*\(|hsla?\s*\(|"
+        r"(?:background-)?color\s*:|background-image|gradient|"
+        r"font-family|border-radius)",
+        re.IGNORECASE,
     )
     # Skip generic/unset values that add no information
     noise_pattern = re.compile(
-        r'(:\s*(inherit|unset|initial|normal|none|auto|transparent)\s*;|'
-        r'color:\s*#0000\s|background-color:\s*#0000\s|'
-        r'font-weight:\s*(normal|bold)\s*;)',
-        re.IGNORECASE
+        r"(:\s*(inherit|unset|initial|normal|none|auto|transparent)\s*;|"
+        r"color:\s*#0000\s|background-color:\s*#0000\s|"
+        r"font-weight:\s*(normal|bold)\s*;)",
+        re.IGNORECASE,
     )
 
     high_priority: list[str] = []
@@ -181,7 +246,7 @@ def extract_css_relevant(css_text: str, max_chars: int = 8000) -> str:
     return result
 
 
-def extract_html_with_styles(html: str, external_css: str = "") -> str:
+def extract_html_with_styles(html: str, external_css: str = "") -> str:  # noqa: C901
     """Parse HTML preserving CSS data for visual identity analysis.
 
     Unlike extract_text_from_html which strips <style> tags, this method
@@ -202,7 +267,9 @@ def extract_html_with_styles(html: str, external_css: str = "") -> str:
         script_text = script_tag.string or ""
         if "WebFont.load" in script_text or "webfont" in script_text.lower():
             # Extract font families from WebFont.load({ google: { families: [...] } })
-            families_match = re.findall(r'families\s*:\s*\[(.*?)\]', script_text, re.DOTALL)
+            families_match = re.findall(
+                r"families\s*:\s*\[(.*?)\]", script_text, re.DOTALL
+            )
             for families_str in families_match:
                 for fam in re.findall(r'"([^"]+)"|\'([^\']+)\'', families_str):
                     font_raw = fam[0] or fam[1]
@@ -266,11 +333,26 @@ def extract_html_with_styles(html: str, external_css: str = "") -> str:
         label = f"{tag_name}.{classes}" if classes else tag_name
         inline_parts.append(f"{label}: {style_val}")
 
-    inline_section = "\n".join(inline_parts) if inline_parts else "(no inline styles found)"
+    inline_section = (
+        "\n".join(inline_parts) if inline_parts else "(no inline styles found)"
+    )
 
     # --- [KEY_ELEMENTS] section ---
-    key_tags = ["body", "header", "nav", "footer", "main",
-                 "h1", "h2", "h3", "h4", "h5", "h6", "button", "a"]
+    key_tags = [
+        "body",
+        "header",
+        "nav",
+        "footer",
+        "main",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "button",
+        "a",
+    ]
     element_parts: list[str] = []
     for tag_name in key_tags:
         for j, el in enumerate(soup.find_all(tag_name)):
@@ -280,7 +362,9 @@ def extract_html_with_styles(html: str, external_css: str = "") -> str:
             if classes:
                 element_parts.append(f'<{tag_name} class="{" ".join(classes)}">')
 
-    elements_section = "\n".join(element_parts) if element_parts else "(no class attributes found)"
+    elements_section = (
+        "\n".join(element_parts) if element_parts else "(no class attributes found)"
+    )
 
     # --- [TEXT_CONTENT] section (lightweight body text for context) ---
     body = soup.find("body")
@@ -310,7 +394,7 @@ def truncate_at_page_boundary(content: str, max_chars: int = 50000) -> str:
     marker = "=== FIN PAGINA ==="
     last_marker = content.rfind(marker, 0, max_chars)
     if last_marker > 0:
-        return content[:last_marker + len(marker)]
+        return content[: last_marker + len(marker)]
     return content[:max_chars]
 
 
@@ -338,7 +422,9 @@ class BrandCrawler:
             base_domain = urlparse(url).netloc
             headers = {"User-Agent": self._USER_AGENT}
 
-            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+            async with httpx.AsyncClient(
+                timeout=15.0, follow_redirects=True, headers=headers
+            ) as client:
                 # Fetch main page
                 response = await client.get(url)
                 response.raise_for_status()
@@ -371,11 +457,12 @@ class BrandCrawler:
                 scored_links.sort(key=lambda x: x[0], reverse=True)
                 top_links = [link_url for _, link_url in scored_links[:8]]
 
-                logger.info("crawl_links_scored",
-                            url=url,
-                            total_found=len(scored_links),
-                            selected=len(top_links),
-                            top_urls=top_links[:4],
+                logger.info(
+                    "crawl_links_scored",
+                    url=url,
+                    total_found=len(scored_links),
+                    selected=len(top_links),
+                    top_urls=top_links[:4],
                 )
 
                 # Fetch subpages concurrently
@@ -387,7 +474,9 @@ class BrandCrawler:
                     except Exception:
                         return sub_url, ""
 
-                subpage_results = await asyncio.gather(*[_fetch_subpage(link) for link in top_links])
+                subpage_results = await asyncio.gather(
+                    *[_fetch_subpage(link) for link in top_links]
+                )
 
             # Build labeled content
             parts: list[str] = [
@@ -395,11 +484,18 @@ class BrandCrawler:
             ]
             for sub_url, sub_text in subpage_results:
                 if sub_text.strip():
-                    parts.append(f"=== PAGINA: {sub_url} ===\n{sub_text}\n=== FIN PAGINA ===")
+                    parts.append(
+                        f"=== PAGINA: {sub_url} ===\n{sub_text}\n=== FIN PAGINA ==="
+                    )
 
             result = "\n\n".join(parts)[:100_000]
             pages_crawled = len(parts)
-            logger.info("crawl_completed", url=url, pages_crawled=pages_crawled, total_chars=len(result))
+            logger.info(
+                "crawl_completed",
+                url=url,
+                pages_crawled=pages_crawled,
+                total_chars=len(result),
+            )
             return result
 
         except Exception as e:
@@ -415,7 +511,9 @@ class BrandCrawler:
         """
         try:
             headers = {"User-Agent": self._USER_AGENT}
-            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+            async with httpx.AsyncClient(
+                timeout=15.0, follow_redirects=True, headers=headers
+            ) as client:
                 response = await client.get(url)
                 response.raise_for_status()
                 html = response.text
@@ -447,20 +545,32 @@ class BrandCrawler:
                             # Filter to keep only brand-relevant rules (colors, fonts, variables)
                             return extract_css_relevant(raw_css)
                         except Exception as e:
-                            logger.warning("external_css_fetch_failed", css_url=css_url, error=str(e))
+                            logger.warning(
+                                "external_css_fetch_failed",
+                                css_url=css_url,
+                                error=str(e),
+                            )
                             return ""
 
-                    css_results = await asyncio.gather(*[_fetch_css(u) for u in css_links])
+                    css_results = await asyncio.gather(
+                        *[_fetch_css(u) for u in css_links]
+                    )
                     external_css = "\n".join(r for r in css_results if r.strip())
-                    logger.info("external_css_fetched",
-                                url=url,
-                                files_found=len(css_links),
-                                total_relevant_chars=len(external_css))
+                    logger.info(
+                        "external_css_fetched",
+                        url=url,
+                        files_found=len(css_links),
+                        total_relevant_chars=len(external_css),
+                    )
 
                 enriched = extract_html_with_styles(html, external_css=external_css)
                 result = enriched[:40_000]
-                logger.info("crawl_with_styles_completed", url=url, total_chars=len(result),
-                            had_external_css=bool(external_css))
+                logger.info(
+                    "crawl_with_styles_completed",
+                    url=url,
+                    total_chars=len(result),
+                    had_external_css=bool(external_css),
+                )
                 return result
         except Exception as e:
             logger.error("crawl_with_styles_exception", url=url, error=str(e))

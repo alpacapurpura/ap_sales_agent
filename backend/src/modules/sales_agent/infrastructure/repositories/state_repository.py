@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -23,7 +22,7 @@ class StateRepository:
 
     def get_active_checkpoint(
         self, tenant_id: UUID, lead_id: UUID
-    ) -> Optional[AgentStateCheckpointModel]:
+    ) -> AgentStateCheckpointModel | None:
         """Return the most-recently-updated active checkpoint for a tenant + lead."""
         stmt = (
             select(AgentStateCheckpointModel)

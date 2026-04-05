@@ -1,20 +1,23 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+import uuid
+
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import uuid
+
 from src.shared.domain.base_entity import Base
+
 
 class TenantModel(Base):
     __tablename__ = "tenants"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
-    slug = Column(String, unique=True, nullable=False) # For subdomain/lookup
+    slug = Column(String, unique=True, nullable=False)  # For subdomain/lookup
     # Configuration for Prompts and Rules
     # Configuration for Prompts and Rules
     # e.g. { "company_name": "Visionarias" }
-    config_json = Column(JSONB, default={}) 
+    config_json = Column(JSONB, default={})
     default_currency = Column(String, server_default="USD")
     timezone = Column(String, server_default="UTC")
 
@@ -39,9 +42,11 @@ class TenantModel(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    users = relationship("UserModel", secondary="user_tenants", back_populates="tenants")
+    users = relationship(
+        "UserModel", secondary="user_tenants", back_populates="tenants"
+    )
     leads = relationship("LeadModel", back_populates="tenant")
     # connections = relationship("src.modules.sales_agent.infrastructure.models.channel_model.ChannelConnectionModel", back_populates="tenant")
-    
+
     # Loosely coupled relationships (Strings to avoid import cycles)
     # These will need to be resolved at runtime or by importing the models where needed in application layer

@@ -8,19 +8,22 @@ Provides high-level operations for the API and scheduler layers:
 import asyncio
 import logging
 import uuid
-from datetime import date, datetime, timedelta, timezone
-from typing import Callable, Optional
+from collections.abc import Callable
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.application.config import ETLConfig
+from src.modules.analytics.application.cost_type_mapping import get_cost_type
+from src.modules.analytics.application.services.channel_registry import (
+    CHANNEL_TYPE_TO_PROVIDERS,
+)
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
-from src.modules.analytics.application.cost_type_mapping import get_cost_type
 from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
+from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 from src.modules.analytics.infrastructure.etl.transformers import (
     transform_staging_to_official,
 )
@@ -30,11 +33,13 @@ from src.modules.analytics.infrastructure.models.metric_aggregation_model import
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
-from src.modules.analytics.infrastructure.providers.registry import get_provider, PROVIDER_REGISTRY
+from src.modules.analytics.infrastructure.providers.registry import (
+    PROVIDER_REGISTRY,
+    get_provider,
+)
 from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
 )
-from src.modules.analytics.application.services.channel_registry import CHANNEL_TYPE_TO_PROVIDERS
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
@@ -76,8 +81,8 @@ class ETLService:
         self,
         tenant_id: UUID,
         provider_name: str,
-        start_date: Optional[date] = None,
-        end_date: Optional[date] = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
         stage: str = "attraction",
     ):
         """Run ETL extraction for a single provider.
@@ -99,8 +104,7 @@ class ETLService:
 
         # Enforce max lookback
         earliest = date.today() - timedelta(days=_MAX_LOOKBACK_DAYS)
-        if start_date < earliest:
-            start_date = earliest
+        start_date = max(start_date, earliest)
 
         # Resolve provider from registry
         provider = get_provider(provider_name)
@@ -127,7 +131,10 @@ class ETLService:
 
         logger.info(
             "Starting ETL extraction: tenant=%s provider=%s dates=%s to %s",
-            tenant_id, provider_name, start_date, end_date,
+            tenant_id,
+            provider_name,
+            start_date,
+            end_date,
         )
 
         return await pipeline.run(tenant_id, start_date, end_date, stage=stage)
@@ -168,12 +175,16 @@ class ETLService:
                 # Provider not registered — skip
                 logger.warning(
                     "Skipping unregistered provider %s for tenant %s: %s",
-                    provider_name, tenant_id, exc,
+                    provider_name,
+                    tenant_id,
+                    exc,
                 )
             except Exception as exc:
                 logger.error(
                     "ETL extraction failed for provider %s tenant %s: %s",
-                    provider_name, tenant_id, exc,
+                    provider_name,
+                    tenant_id,
+                    exc,
                     exc_info=True,
                 )
 
@@ -233,7 +244,7 @@ class ETLService:
         # Phase 1 — cooldown check (sequential, uses shared self.db)
         run_repo = ExtractionRunRepository(self.db)
         cooldown = timedelta(minutes=15)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         details: list[dict] = []
         providers_to_run: list[str] = []
@@ -246,11 +257,13 @@ class ETLService:
                 if elapsed < cooldown:
                     remaining = cooldown - elapsed
                     remaining_min = int(remaining.total_seconds() // 60) + 1
-                    details.append({
-                        "provider": provider_name,
-                        "status": "skipped_cooldown",
-                        "remaining_minutes": remaining_min,
-                    })
+                    details.append(
+                        {
+                            "provider": provider_name,
+                            "status": "skipped_cooldown",
+                            "remaining_minutes": remaining_min,
+                        }
+                    )
                     skipped_cooldown += 1
                     continue
             providers_to_run.append(provider_name)
@@ -272,27 +285,33 @@ class ETLService:
         synced = 0
         failed = 0
 
-        for provider_name, result in zip(providers_to_run, raw_results):
+        for provider_name, result in zip(providers_to_run, raw_results, strict=False):
             if isinstance(result, Exception):
                 logger.error(
                     "sync_all provider %s failed for tenant %s: %s",
-                    provider_name, tenant_id, result,
+                    provider_name,
+                    tenant_id,
+                    result,
                     exc_info=result,
                 )
-                details.append({
-                    "provider": provider_name,
-                    "status": "failed",
-                    "error": str(result),
-                })
+                details.append(
+                    {
+                        "provider": provider_name,
+                        "status": "failed",
+                        "error": str(result),
+                    }
+                )
                 failed += 1
             else:
-                details.append({
-                    "provider": provider_name,
-                    "status": "ok",
-                    "loaded": result["loaded"],
-                    "skipped": result["skipped"],
-                    "total": result["total"],
-                })
+                details.append(
+                    {
+                        "provider": provider_name,
+                        "status": "ok",
+                        "loaded": result["loaded"],
+                        "skipped": result["skipped"],
+                        "total": result["total"],
+                    }
+                )
                 total_loaded += result["loaded"]
                 total_skipped += result["skipped"]
                 synced += 1
@@ -346,15 +365,20 @@ class ETLService:
 
             # Gap detection: skip if period already extracted
             existing = period_repo.get_existing_periods(
-                tenant_id, provider_name, period_type,
-                period_start, period_end,
+                tenant_id,
+                provider_name,
+                period_type,
+                period_start,
+                period_end,
             )
             if period_start in existing:
-                results.append({
-                    "provider": provider_name,
-                    "status": "skipped",
-                    "reason": "already_extracted",
-                })
+                results.append(
+                    {
+                        "provider": provider_name,
+                        "status": "skipped",
+                        "reason": "already_extracted",
+                    }
+                )
                 continue
 
             pipeline = PeriodExtractionPipeline(
@@ -385,7 +409,9 @@ class ETLService:
             InstagramDMSyncService,
         )
 
-        sync_service = InstagramDMSyncService(self.db, connection_port=self.connection_port)
+        sync_service = InstagramDMSyncService(
+            self.db, connection_port=self.connection_port
+        )
         return await sync_service.sync(tenant_id)
 
     async def run_initial_load(
@@ -394,7 +420,7 @@ class ETLService:
         provider_name: str,
         days: int = 30,
         stage: str = "attraction",
-        progress_callback: Optional[Callable[[int, int, str], None]] = None,
+        progress_callback: Callable[[int, int, str], None] | None = None,
     ) -> dict:
         """Load historical daily metrics, skipping days already in DB.
 
@@ -411,8 +437,7 @@ class ETLService:
 
         # Enforce max lookback
         earliest = date.today() - timedelta(days=_MAX_LOOKBACK_DAYS)
-        if start_date < earliest:
-            start_date = earliest
+        start_date = max(start_date, earliest)
 
         period_config = self._get_period_config(tenant_id)
 
@@ -421,7 +446,10 @@ class ETLService:
         existing = official_repo.get_existing_dates(
             tenant_id, provider_name, start_date, end_date
         )
-        all_days = {start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)}
+        all_days = {
+            start_date + timedelta(days=i)
+            for i in range((end_date - start_date).days + 1)
+        }
         missing_days = all_days - existing
 
         total = len(all_days)
@@ -548,7 +576,11 @@ class ETLService:
 
         logger.info(
             "Initial load completed: tenant=%s provider=%s stages=%s loaded=%d skipped=%d",
-            tenant_id, provider_name, stages, loaded, len(existing),
+            tenant_id,
+            provider_name,
+            stages,
+            loaded,
+            len(existing),
         )
         return {"total": total, "loaded": loaded, "skipped": len(existing)}
 
@@ -566,11 +598,17 @@ class ETLService:
         Replicates what webhooks produce so that UnmatchedProducts and
         OfferLadder widgets work after an ETL backfill.
         """
-        from sqlalchemy import select as sa_select, func as sa_func
-        from src.modules.crm.application.services.customer_service import CustomerService
-        from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select as sa_select
+
+        from src.modules.crm.application.services.customer_service import (
+            CustomerService,
+        )
+        from src.modules.crm.domain.enums import SaleStage, SaleStatus
+        from src.modules.crm.infrastructure.models.customer_model import (
+            JourneyEventModel,
+        )
         from src.modules.crm.infrastructure.models.sale_model import SaleModel
-        from src.modules.crm.domain.enums import SaleStatus, SaleStage
         from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
             ExternalProductMappingRepository,
         )
@@ -607,13 +645,18 @@ class ETLService:
                 continue
 
             # Deduplication: skip if journey_event already exists for this order
-            existing_stmt = sa_select(JourneyEventModel.id).where(
-                JourneyEventModel.tenant_id == tenant_id,
-                JourneyEventModel.event_name == "checkout_completed",
-                sa_func.jsonb_extract_path_text(
-                    JourneyEventModel.properties, "order_id"
-                ) == order_id,
-            ).limit(1)
+            existing_stmt = (
+                sa_select(JourneyEventModel.id)
+                .where(
+                    JourneyEventModel.tenant_id == tenant_id,
+                    JourneyEventModel.event_name == "checkout_completed",
+                    sa_func.jsonb_extract_path_text(
+                        JourneyEventModel.properties, "order_id"
+                    )
+                    == order_id,
+                )
+                .limit(1)
+            )
             if self.db.execute(existing_stmt).scalar_one_or_none():
                 continue
 
@@ -676,7 +719,9 @@ class ETLService:
             self.db.add(event)
 
             # Bulk resolve product → offer mappings
-            product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
+            product_ids = [
+                li["product_id"] for li in line_items_data if li["product_id"]
+            ]
             resolved_mappings = (
                 mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids)
                 if product_ids
@@ -693,10 +738,12 @@ class ETLService:
 
                 # Dedup by transaction_id
                 existing_sale = self.db.execute(
-                    sa_select(SaleModel.id).where(
+                    sa_select(SaleModel.id)
+                    .where(
                         SaleModel.tenant_id == tenant_id,
                         SaleModel.transaction_id == txn_id,
-                    ).limit(1)
+                    )
+                    .limit(1)
                 ).scalar_one_or_none()
                 if existing_sale:
                     continue
@@ -736,13 +783,18 @@ class ETLService:
 
             # Deduplication
             if token:
-                existing_stmt = sa_select(JourneyEventModel.id).where(
-                    JourneyEventModel.tenant_id == tenant_id,
-                    JourneyEventModel.event_name == "checkout_initiated",
-                    sa_func.jsonb_extract_path_text(
-                        JourneyEventModel.properties, "checkout_token"
-                    ) == token,
-                ).limit(1)
+                existing_stmt = (
+                    sa_select(JourneyEventModel.id)
+                    .where(
+                        JourneyEventModel.tenant_id == tenant_id,
+                        JourneyEventModel.event_name == "checkout_initiated",
+                        sa_func.jsonb_extract_path_text(
+                            JourneyEventModel.properties, "checkout_token"
+                        )
+                        == token,
+                    )
+                    .limit(1)
+                )
                 if self.db.execute(existing_stmt).scalar_one_or_none():
                     continue
 
@@ -795,7 +847,10 @@ class ETLService:
 
         logger.info(
             "shopify_etl_crm_records_created tenant=%s orders=%d checkouts=%d sales=%d",
-            tenant_id, orders_processed, checkouts_processed, sales_created,
+            tenant_id,
+            orders_processed,
+            checkouts_processed,
+            sales_created,
         )
         return {
             "orders_processed": orders_processed,
@@ -810,6 +865,7 @@ class ETLService:
             return None
         try:
             from datetime import datetime as dt
-            return dt.fromisoformat(iso_str.replace("Z", "+00:00"))
+
+            return dt.fromisoformat(iso_str)
         except (ValueError, AttributeError):
             return None

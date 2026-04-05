@@ -28,12 +28,14 @@ class MetricDefinition:
     interpretation: str
     unit: MetricUnit  # count, currency, percentage, ratio, seconds, json
     aggregation: AggregationType
-    weight_metric: str | None = None        # Para WEIGHTED_AVERAGE: denominador
-    formula: str | None = None              # Para DERIVED: expresión legible
-    formula_components: tuple[str, ...] = field(default_factory=tuple)  # Para DERIVED: nombres de métricas componentes
-    is_unique_metric: bool = False          # True = personas únicas (no summable cross-day)
-    real_api_name: str | None = None        # Si metric_name difiere del nombre real en la API
-    source: str | None = None               # Fuente exacta de la API (endpoint/campo)
+    weight_metric: str | None = None  # Para WEIGHTED_AVERAGE: denominador
+    formula: str | None = None  # Para DERIVED: expresión legible
+    formula_components: tuple[str, ...] = field(
+        default_factory=tuple
+    )  # Para DERIVED: nombres de métricas componentes
+    is_unique_metric: bool = False  # True = personas únicas (no summable cross-day)
+    real_api_name: str | None = None  # Si metric_name difiere del nombre real en la API
+    source: str | None = None  # Fuente exacta de la API (endpoint/campo)
     higher_is_better: bool = True
     providers: tuple[str, ...] = field(default_factory=tuple)
 
@@ -1419,6 +1421,5 @@ def get_non_aggregable_for_provider(provider: str) -> list[str]:
     return [
         m.name
         for m in METRIC_CATALOG.values()
-        if m.aggregation == AggregationType.NON_AGGREGABLE
-        and provider in m.providers
+        if m.aggregation == AggregationType.NON_AGGREGABLE and provider in m.providers
     ]

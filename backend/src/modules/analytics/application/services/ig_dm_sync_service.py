@@ -10,7 +10,7 @@ Requires a Page Access Token (exchanged from the stored System User token)
 and the `instagram_manage_messages` permission with Advanced Access.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 import httpx
@@ -20,7 +20,9 @@ from sqlalchemy.orm import Session
 
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.application.services.ig_profile_enricher import InstagramProfileEnricher
+from src.modules.crm.application.services.ig_profile_enricher import (
+    InstagramProfileEnricher,
+)
 from src.modules.crm.domain.enums import IdentityType
 from src.modules.crm.domain.events import CHANNEL_TYPE_TO_CAPTURE_SLUG
 from src.modules.crm.infrastructure.models.customer_model import (
@@ -43,9 +45,7 @@ class InstagramDMSyncService:
         self.db = db
         self.connection_port = connection_port
 
-    async def sync(
-        self, tenant_id: UUID, max_conversations: int = 50
-    ) -> dict:
+    async def sync(self, tenant_id: UUID, max_conversations: int = 50) -> dict:
         """Sync IG DM conversations for a tenant.
 
         Returns: {"synced_messages": N, "new_leads": M, "skipped": K}
@@ -138,9 +138,9 @@ class InstagramDMSyncService:
                 # Parse message timestamp
                 created_time = msg.get("created_time")
                 occurred_at = (
-                    datetime.fromisoformat(created_time.replace("Z", "+00:00"))
+                    datetime.fromisoformat(created_time)
                     if created_time
-                    else datetime.now(timezone.utc)
+                    else datetime.now(UTC)
                 )
 
                 # Create journey_event with message_id for dedup
@@ -176,15 +176,12 @@ class InstagramDMSyncService:
         stmt = select(JourneyEventModel.id).where(
             JourneyEventModel.tenant_id == tenant_id,
             JourneyEventModel.event_name == "message_received",
-            func.jsonb_extract_path_text(
-                JourneyEventModel.properties, "message_id"
-            ) == message_id,
+            func.jsonb_extract_path_text(JourneyEventModel.properties, "message_id")
+            == message_id,
         )
         return self.db.execute(stmt).scalar_one_or_none() is not None
 
-    async def _get_page_access_token(
-        self, system_user_token: str, page_id: str
-    ) -> str:
+    async def _get_page_access_token(self, system_user_token: str, page_id: str) -> str:
         """Exchange System User token for a Page Access Token."""
         url = f"{_GRAPH_API_BASE}/{page_id}"
         params = {"fields": "access_token", "access_token": system_user_token}

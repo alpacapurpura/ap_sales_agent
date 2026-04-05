@@ -4,7 +4,7 @@ Handles get_capture_metrics() logic: CRM lead counts, costs,
 grouping into web_infrastructure and ai_agent.
 """
 
-from typing import Dict, List, Optional
+from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -38,7 +38,7 @@ from src.modules.analytics.infrastructure.repositories.official_metrics_reposito
 )
 
 # Channel types -> capture group mapping (Stage 1)
-_CAPTURE_GROUP_MAP: Dict[str, str] = {
+_CAPTURE_GROUP_MAP: dict[str, str] = {
     "form": "web_infrastructure",
     "email": "web_infrastructure",
     "website": "web_infrastructure",
@@ -46,7 +46,7 @@ _CAPTURE_GROUP_MAP: Dict[str, str] = {
 }
 
 # Maps provider_name -> config key that holds the display name
-_DISPLAY_NAME_MAP: Dict[str, str] = {
+_DISPLAY_NAME_MAP: dict[str, str] = {
     "google_analytics": "property_display_name",
     "youtube": "channel_title",
     "meta": "tracked_ig_username",
@@ -60,8 +60,8 @@ class CaptureStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -69,9 +69,9 @@ class CaptureStageService:
 
     @staticmethod
     def _merge_manychat_into_meta(
-        channels: List[ChannelMetricDTO],
-        detailed_leads: Dict[str, int],
-        conversation_counts: Dict[str, int],
+        channels: list[ChannelMetricDTO],
+        detailed_leads: dict[str, int],
+        conversation_counts: dict[str, int],
     ) -> None:
         """Merge manychat-ig into ig-dm as a unified card (in-place).
 
@@ -99,7 +99,9 @@ class CaptureStageService:
             mc_convs = conversation_counts.get(mc_slug, 0)
 
             meta_dto.sub_sources = [
-                SubSourceDTO(name="Meta Direct", leads=meta_leads, conversations=meta_convs),
+                SubSourceDTO(
+                    name="Meta Direct", leads=meta_leads, conversations=meta_convs
+                ),
                 SubSourceDTO(name="ManyChat", leads=mc_leads, conversations=mc_convs),
             ]
 
@@ -129,22 +131,18 @@ class CaptureStageService:
         """
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "capture", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "capture", "last_30_days")
             if cached is not None:
                 return CaptureDetailDTO(**cached)
 
         # 2. Get dynamic channel list from ChannelRegistry
         registry = ChannelRegistry(self.connection_port)
-        channel_split = await registry.get_available_channels(
-            tenant_id, "capture"
-        )
+        channel_split = await registry.get_available_channels(tenant_id, "capture")
 
         # 3. Query CRM for lead counts by lead_source
-        from datetime import datetime, timedelta, timezone as tz
+        from datetime import datetime, timedelta
 
-        now = datetime.now(tz.utc)
+        now = datetime.now(UTC)
         start_date = now - timedelta(days=30)
         end_date = now
 
@@ -167,34 +165,35 @@ class CaptureStageService:
         )
 
         # Merge costs
-        all_costs: Dict[str, float] = {}
+        all_costs: dict[str, float] = {}
         for slug, amount in channel_costs.items():
             all_costs[slug] = all_costs.get(slug, 0.0) + amount
         for slug, amount in prorated_costs.items():
             all_costs[slug] = all_costs.get(slug, 0.0) + amount
 
         # 5. Get Stage 0 visitor total from aggregations
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select
+
         from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
-        from sqlalchemy import select, func as sa_func
 
-        visitor_stmt = (
-            select(sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0))
-            .where(
-                MetricAggregationModel.tenant_id == tenant_id,
-                MetricAggregationModel.metric_name.in_(("reach", "sessions")),
-                MetricAggregationModel.period_type == "last_30_days",
-            )
+        visitor_stmt = select(
+            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+        ).where(
+            MetricAggregationModel.tenant_id == tenant_id,
+            MetricAggregationModel.metric_name.in_(("reach", "sessions")),
+            MetricAggregationModel.period_type == "last_30_days",
         )
         stage0_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
 
         # 6. Build ChannelMetricDTO lists grouped by section
-        groups: Dict[str, List[ChannelMetricDTO]] = {
+        groups: dict[str, list[ChannelMetricDTO]] = {
             "web_infrastructure": [],
             "ai_agent": [],
         }
-        available_channels: List[ChannelMetricDTO] = []
+        available_channels: list[ChannelMetricDTO] = []
 
         for ch in channel_split.get("connected", []):
             slug = ch["slug"]
@@ -264,9 +263,13 @@ class CaptureStageService:
             conv_count = conversation_counts.get(slug, 0)
 
             # Conversion rate: leads / stage0_visitors * 100
-            conv_rate = round(lead_count / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
+            conv_rate = (
+                round(lead_count / stage0_visitors * 100, 2)
+                if stage0_visitors > 0
+                else 0.0
+            )
 
-            metrics: List[MetricValueDTO] = [
+            metrics: list[MetricValueDTO] = [
                 MetricValueDTO(name="leads", value=float(lead_count)),
                 MetricValueDTO(
                     name="cost",
@@ -301,7 +304,9 @@ class CaptureStageService:
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics.items():
                     if m_name not in existing_names:
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # For email_marketing channels, supplement with MailerLite official_metrics
             if provider_name == "email_marketing":
@@ -321,12 +326,16 @@ class CaptureStageService:
                     metrics.insert(0, MetricValueDTO(name="leads", value=float(ns)))
                 for m_name, m_value in ml_metrics.items():
                     if m_name not in existing_names and m_name != "new_subscribers":
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = conn_config.get(display_name_key) if display_name_key else None
+            source_display = (
+                conn_config.get(display_name_key) if display_name_key else None
+            )
 
             dto = ChannelMetricDTO(
                 slug=slug,
@@ -367,7 +376,11 @@ class CaptureStageService:
         # 7. Compute group totals
         total_leads = sum(lead_counts.values())
         total_costs = sum(all_costs.values())
-        overall_conv_rate = round(total_leads / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
+        overall_conv_rate = (
+            round(total_leads / stage0_visitors * 100, 2)
+            if stage0_visitors > 0
+            else 0.0
+        )
         cal = cost_service.calculate_cal(total_costs, total_leads)
 
         available_dto = (

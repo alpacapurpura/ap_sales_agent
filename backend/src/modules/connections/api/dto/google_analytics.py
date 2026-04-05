@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Optional, List
 
 
 class GA4PropertySummary(BaseModel):
@@ -20,12 +19,12 @@ class SelectedProperty(BaseModel):
 class GoogleAnalyticsStatusResponse(BaseModel):
     is_connected: bool
     is_configured: bool = False
-    selected_property: Optional[SelectedProperty] = None
+    selected_property: SelectedProperty | None = None
 
 
 class GoogleAnalyticsCallbackResponse(BaseModel):
     status: str
-    properties: List[GA4PropertySummary] = []
+    properties: list[GA4PropertySummary] = []
 
 
 class PropertySelectResponse(BaseModel):

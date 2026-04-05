@@ -8,8 +8,8 @@ Hybrid search: dense (OpenAI 3072d) + sparse (BM25) + FlashRank reranking.
 import uuid as uuid_mod
 
 import structlog
-from flashrank import Ranker, RerankRequest
 from fastembed import SparseTextEmbedding
+from flashrank import Ranker, RerankRequest
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
@@ -27,18 +27,22 @@ class CopilotKnowledgeStore:
     def __init__(self):
         self.client = QdrantClient(
             url=settings.QDRANT_URL,
-            api_key=settings.QDRANT_API_KEY if settings.QDRANT_API_KEY else None,
+            api_key=settings.QDRANT_API_KEY or None,
         )
         self.embeddings_model = LLMFactory.get_service().get_embedding_model()
 
         try:
-            self.sparse_model = SparseTextEmbedding(model_name=settings.QDRANT_SPARSE_MODEL)
+            self.sparse_model = SparseTextEmbedding(
+                model_name=settings.QDRANT_SPARSE_MODEL
+            )
         except Exception as e:
             logger.error("copilot_knowledge_sparse_init_error", error=str(e))
             self.sparse_model = None
 
         try:
-            self.ranker = Ranker(model_name="ms-marco-MiniLM-L-12-v2", cache_dir="/app/model_cache")
+            self.ranker = Ranker(
+                model_name="ms-marco-MiniLM-L-12-v2", cache_dir="/app/model_cache"
+            )
         except Exception as e:
             logger.error("copilot_knowledge_ranker_init_error", error=str(e))
             self.ranker = None
@@ -85,9 +89,7 @@ class CopilotKnowledgeStore:
         ]
         if scope != "all":
             filter_conditions.append(
-                models.FieldCondition(
-                    key="scope", match=models.MatchValue(value=scope)
-                )
+                models.FieldCondition(key="scope", match=models.MatchValue(value=scope))
             )
 
         search_filter = models.Filter(must=filter_conditions)
@@ -145,7 +147,9 @@ class CopilotKnowledgeStore:
             sparse_embeddings = [None] * len(texts)
 
         points = []
-        for text, meta, dense, sparse in zip(texts, metadatas, dense_embeddings, sparse_embeddings):
+        for text, meta, dense, sparse in zip(
+            texts, metadatas, dense_embeddings, sparse_embeddings, strict=False
+        ):
             meta["content"] = text
             meta["tenant_id"] = str(tenant_id)
             points.append(
@@ -228,7 +232,9 @@ class CopilotKnowledgeStore:
                     )
                 )
 
-            scroll_filter = models.Filter(must=filter_conditions) if filter_conditions else None
+            scroll_filter = (
+                models.Filter(must=filter_conditions) if filter_conditions else None
+            )
             points, _ = self.client.scroll(
                 collection_name=self.COLLECTION,
                 scroll_filter=scroll_filter,

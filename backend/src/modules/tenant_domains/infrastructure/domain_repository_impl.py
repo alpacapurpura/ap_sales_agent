@@ -1,4 +1,3 @@
-from typing import List, Optional
 from uuid import UUID
 
 import structlog
@@ -6,9 +5,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
-from src.modules.tenant_domains.domain.domain_entity import TenantDomain, DomainStatus, DomainType
+from src.modules.tenant_domains.domain.domain_entity import (
+    DomainStatus,
+    DomainType,
+    TenantDomain,
+)
 from src.modules.tenant_domains.domain.domain_repository import DomainRepository
-from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import TenantDomainModel
+from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
+    TenantDomainModel,
+)
 
 logger = structlog.get_logger()
 
@@ -56,10 +61,15 @@ class DomainRepositoryImpl(DomainRepository):
         self.db.add(model)
         self.db.commit()
         self.db.refresh(model)
-        logger.info("domain_created", domain_id=str(model.id), tenant_id=str(model.tenant_id), hostname=model.hostname)
+        logger.info(
+            "domain_created",
+            domain_id=str(model.id),
+            tenant_id=str(model.tenant_id),
+            hostname=model.hostname,
+        )
         return self._to_domain(model)
 
-    def get_by_id(self, domain_id: UUID, tenant_id: UUID) -> Optional[TenantDomain]:
+    def get_by_id(self, domain_id: UUID, tenant_id: UUID) -> TenantDomain | None:
         stmt = select(TenantDomainModel).where(
             TenantDomainModel.id == domain_id,
             TenantDomainModel.tenant_id == tenant_id,
@@ -69,7 +79,7 @@ class DomainRepositoryImpl(DomainRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    def get_by_hostname(self, hostname: str) -> Optional[TenantDomain]:
+    def get_by_hostname(self, hostname: str) -> TenantDomain | None:
         stmt = select(TenantDomainModel).where(
             TenantDomainModel.hostname == hostname,
             TenantDomainModel.deleted_at.is_(None),
@@ -78,11 +88,15 @@ class DomainRepositoryImpl(DomainRepository):
         model = result.scalar_one_or_none()
         return self._to_domain(model) if model else None
 
-    def list_by_tenant(self, tenant_id: UUID) -> List[TenantDomain]:
-        stmt = select(TenantDomainModel).where(
-            TenantDomainModel.tenant_id == tenant_id,
-            TenantDomainModel.deleted_at.is_(None),
-        ).order_by(TenantDomainModel.created_at)
+    def list_by_tenant(self, tenant_id: UUID) -> list[TenantDomain]:
+        stmt = (
+            select(TenantDomainModel)
+            .where(
+                TenantDomainModel.tenant_id == tenant_id,
+                TenantDomainModel.deleted_at.is_(None),
+            )
+            .order_by(TenantDomainModel.created_at)
+        )
         result = self.db.execute(stmt)
         return [self._to_domain(m) for m in result.scalars().all()]
 
@@ -95,7 +109,9 @@ class DomainRepositoryImpl(DomainRepository):
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
         if model is None:
-            raise ValueError(f"Domain {domain.id} not found for tenant {domain.tenant_id}")
+            raise ValueError(
+                f"Domain {domain.id} not found for tenant {domain.tenant_id}"
+            )
         model.status = domain.status.value
         model.is_primary = domain.is_primary
         model.cloudflare_hostname_id = domain.cloudflare_hostname_id
@@ -122,4 +138,6 @@ class DomainRepositoryImpl(DomainRepository):
             return
         model.deleted_at = func.now()
         self.db.commit()
-        logger.info("domain_soft_deleted", domain_id=str(domain_id), tenant_id=str(tenant_id))
+        logger.info(
+            "domain_soft_deleted", domain_id=str(domain_id), tenant_id=str(tenant_id)
+        )

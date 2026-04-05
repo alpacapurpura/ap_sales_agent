@@ -1,50 +1,66 @@
+from .aggregates import BrandSettings
+from .communication_assets import CommunicationAssets, CreativeConcept, FunnelAsset
 from .entities import Avatar, ExtractRequest
 from .identity import BrandIdentity, BrandVisuals
-from .story import BrandStory, BrandStoryMilestone
-from .strategy import BrandStrategy, BrandCompetitor, BrandMethodologyPillar
-from .team import KeyFigure, BrandContact, BrandTestimonial, BrandAuthorityItem, BrandTeam, BrandTeamWrapper
-from .positioning import (
-    BrandPositioning, CompetitiveEnvironment, ConsumerInsight,
-    BrandBenefits, BrandValues, ReasonToBelieve,
-)
 from .narrative import (
-    BrandNarrative, StoryBrandHero, StoryBrandProblem,
-    StoryBrandGuide, StoryBrandPlanStep, StoryBrandCTA, StoryBrandOutcome,
+    BrandNarrative,
+    StoryBrandCTA,
+    StoryBrandGuide,
+    StoryBrandHero,
+    StoryBrandOutcome,
+    StoryBrandPlanStep,
+    StoryBrandProblem,
 )
-from .communication_assets import CommunicationAssets, CreativeConcept, FunnelAsset
-from .aggregates import BrandSettings
+from .positioning import (
+    BrandBenefits,
+    BrandPositioning,
+    BrandValues,
+    CompetitiveEnvironment,
+    ConsumerInsight,
+    ReasonToBelieve,
+)
+from .story import BrandStory, BrandStoryMilestone
+from .strategy import BrandCompetitor, BrandMethodologyPillar, BrandStrategy
+from .team import (
+    BrandAuthorityItem,
+    BrandContact,
+    BrandTeam,
+    BrandTeamWrapper,
+    BrandTestimonial,
+    KeyFigure,
+)
 
 __all__ = [
     "Avatar",
-    "ExtractRequest",
+    "BrandAuthorityItem",
+    "BrandBenefits",
+    "BrandCompetitor",
+    "BrandContact",
     "BrandIdentity",
-    "BrandVisuals",
+    "BrandMethodologyPillar",
+    "BrandNarrative",
+    "BrandPositioning",
+    "BrandSettings",
     "BrandStory",
     "BrandStoryMilestone",
     "BrandStrategy",
-    "BrandCompetitor",
-    "BrandMethodologyPillar",
-    "KeyFigure",
-    "BrandContact",
-    "BrandTestimonial",
-    "BrandAuthorityItem",
     "BrandTeam",
     "BrandTeamWrapper",
-    "BrandPositioning",
+    "BrandTestimonial",
+    "BrandValues",
+    "BrandVisuals",
+    "CommunicationAssets",
     "CompetitiveEnvironment",
     "ConsumerInsight",
-    "BrandBenefits",
-    "BrandValues",
-    "ReasonToBelieve",
-    "BrandNarrative",
-    "StoryBrandHero",
-    "StoryBrandProblem",
-    "StoryBrandGuide",
-    "StoryBrandPlanStep",
-    "StoryBrandCTA",
-    "StoryBrandOutcome",
-    "CommunicationAssets",
     "CreativeConcept",
+    "ExtractRequest",
     "FunnelAsset",
-    "BrandSettings",
+    "KeyFigure",
+    "ReasonToBelieve",
+    "StoryBrandCTA",
+    "StoryBrandGuide",
+    "StoryBrandHero",
+    "StoryBrandOutcome",
+    "StoryBrandPlanStep",
+    "StoryBrandProblem",
 ]

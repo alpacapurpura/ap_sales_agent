@@ -1,24 +1,25 @@
-from typing import List
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
-import structlog
 from uuid import UUID
 
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
 from src.core.database import get_db
+from src.modules.crm.application.services.lead_service import LeadService
+from src.modules.crm.domain.lead import Lead
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.crm.domain.lead import Lead
-from src.modules.crm.application.services.lead_service import LeadService
 
 router = APIRouter(tags=["leads"])
 logger = structlog.get_logger()
 
-@router.get("/search", response_model=List[Lead])
+
+@router.get("/search", response_model=list[Lead])
 async def search_leads(
     q: str = Query(..., min_length=2),
     limit: int = 10,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_user),
 ):
     """
     Search leads by name or email.
@@ -29,11 +30,10 @@ async def search_leads(
     # return service.search_leads(user.tenant_id, q, limit)
     return []
 
+
 @router.get("/{lead_id}", response_model=Lead)
 async def get_lead(
-    lead_id: str,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    lead_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ):
     """
     Get a specific lead by ID.
@@ -43,8 +43,8 @@ async def get_lead(
         lead = service.get_lead(UUID(lead_id))
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid UUID format")
-        
+
     if not lead or str(lead.tenant_id) != str(user.tenant_id):
         raise HTTPException(status_code=404, detail="Lead not found")
-        
+
     return lead

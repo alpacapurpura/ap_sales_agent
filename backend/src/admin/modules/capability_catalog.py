@@ -1,18 +1,24 @@
 """Streamlit admin: Capability Catalog — all copilot capabilities in one place."""
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 
-def render_capability_catalog():
+def render_capability_catalog():  # noqa: C901
     st.title("🔧 Capacidades del Copilot")
 
     # KPIs — static counts from code
     try:
-        from src.modules.copilot.application.tools.registry import TOOL_GROUPS, ROUTE_TOOL_MAP, get_all_tools
         from src.modules.copilot.application.procedures.brand_setup import BRAND_SETUP
         from src.modules.copilot.application.procedures.first_setup import FIRST_SETUP
-        from src.modules.copilot.application.procedures.offer_creation import OFFER_CREATION
+        from src.modules.copilot.application.procedures.offer_creation import (
+            OFFER_CREATION,
+        )
+        from src.modules.copilot.application.tools.registry import (
+            ROUTE_TOOL_MAP,
+            TOOL_GROUPS,
+            get_all_tools,
+        )
         from src.modules.copilot.domain.module_registry import get_module_registry
 
         all_tools = get_all_tools()
@@ -20,11 +26,19 @@ def render_capability_catalog():
         registry = get_module_registry()
 
         col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("Tools", len(all_tools), help="Herramientas disponibles para el copilot")
+        col1.metric(
+            "Tools", len(all_tools), help="Herramientas disponibles para el copilot"
+        )
         col2.metric("Grupos", len(TOOL_GROUPS), help="Categorias de herramientas")
-        col3.metric("Procedimientos", len(procedures), help="Flujos guiados paso a paso")
+        col3.metric(
+            "Procedimientos", len(procedures), help="Flujos guiados paso a paso"
+        )
         col4.metric("Nudge Rules", 4, help="Reglas de sugerencias proactivas")
-        col5.metric("Modulos", len(registry), help="Modulos que el copilot puede introspeccionar")
+        col5.metric(
+            "Modulos",
+            len(registry),
+            help="Modulos que el copilot puede introspeccionar",
+        )
 
     except Exception as e:
         st.error(f"Error cargando capacidades: {e}")
@@ -32,8 +46,14 @@ def render_capability_catalog():
 
     # Group labels
     GROUP_LABELS = {
-        "navigation": ("🧭 Navegacion", "Herramientas para navegar al usuario a paginas y campos"),
-        "awareness": ("👁️ Awareness", "Introspección del estado de configuracion del tenant"),
+        "navigation": (
+            "🧭 Navegacion",
+            "Herramientas para navegar al usuario a paginas y campos",
+        ),
+        "awareness": (
+            "👁️ Awareness",
+            "Introspección del estado de configuracion del tenant",
+        ),
         "mutation": ("✏️ Mutacion", "Proponer cambios a campos del formulario"),
         "module_data": ("📦 Datos de Modulo", "Leer datos de módulos del tenant"),
         "analytics": ("📊 Analytics", "Métricas de marketing y ventas"),
@@ -48,19 +68,23 @@ def render_capability_catalog():
     st.divider()
 
     # TABS
-    tab_tools, tab_routes, tab_procs, tab_nudges, tab_ui, tab_usage = st.tabs([
-        "🛠️ Tools",
-        "🗺️ Mapeo de Rutas",
-        "📋 Procedimientos",
-        "💡 Nudges",
-        "🎨 Componentes UI",
-        "📊 Uso de Tools",
-    ])
+    tab_tools, tab_routes, tab_procs, tab_nudges, tab_ui, tab_usage = st.tabs(
+        [
+            "🛠️ Tools",
+            "🗺️ Mapeo de Rutas",
+            "📋 Procedimientos",
+            "💡 Nudges",
+            "🎨 Componentes UI",
+            "📊 Uso de Tools",
+        ]
+    )
 
     # ── Tab 1: Tools ──────────────────────────────────────────────────────
     with tab_tools:
         st.header("Herramientas del Copilot")
-        st.caption("Agrupadas por categoria. Cada tool es una funcion que el LLM puede invocar.")
+        st.caption(
+            "Agrupadas por categoria. Cada tool es una funcion que el LLM puede invocar."
+        )
 
         for group_name, tools in TOOL_GROUPS.items():
             label, desc = GROUP_LABELS.get(group_name, (group_name, ""))
@@ -72,16 +96,25 @@ def render_capability_catalog():
     # ── Tab 2: Route Map ──────────────────────────────────────────────────
     with tab_routes:
         st.header("Mapeo de Rutas")
-        st.caption("Muestra que herramientas tiene disponibles el copilot segun la pagina donde este el usuario")
+        st.caption(
+            "Muestra que herramientas tiene disponibles el copilot segun la pagina donde este el usuario"
+        )
 
         # Build matrix
         group_names = list(TOOL_GROUPS.keys())
         # Create short labels for columns
         short_labels = {
-            "navigation": "nav", "awareness": "aware", "mutation": "mut",
-            "module_data": "mod", "analytics": "anal", "crm": "crm",
-            "sales_agent": "sales", "connections": "conn", "landing": "land",
-            "procedure": "proc", "knowledge": "know",
+            "navigation": "nav",
+            "awareness": "aware",
+            "mutation": "mut",
+            "module_data": "mod",
+            "analytics": "anal",
+            "crm": "crm",
+            "sales_agent": "sales",
+            "connections": "conn",
+            "landing": "land",
+            "procedure": "proc",
+            "knowledge": "know",
         }
 
         rows = []
@@ -169,18 +202,42 @@ def render_capability_catalog():
         st.caption("Tipos de respuestas visuales que el copilot puede renderizar")
 
         components = [
-            ("📊 MetricSummaryCard", "metric_summary", "Grid de metricas con tendencias y comparaciones"),
-            ("📋 ComparisonTable", "comparison", "Tabla comparativa con fila recomendada resaltada"),
-            ("✅ ProgressChecklist", "checklist", "Lista de pasos clickeable con navegacion integrada"),
-            ("🔘 MultiOptionSelector", "multi_option", "Selector de opciones con confirmacion del usuario"),
-            ("🧭 NavigationCard", "navigate", "Card con boton para navegar a una ruta especifica"),
-            ("✏️ ProposalCard", "proposal", "Propuesta de cambios con botones aceptar/rechazar por campo"),
+            (
+                "📊 MetricSummaryCard",
+                "metric_summary",
+                "Grid de metricas con tendencias y comparaciones",
+            ),
+            (
+                "📋 ComparisonTable",
+                "comparison",
+                "Tabla comparativa con fila recomendada resaltada",
+            ),
+            (
+                "✅ ProgressChecklist",
+                "checklist",
+                "Lista de pasos clickeable con navegacion integrada",
+            ),
+            (
+                "🔘 MultiOptionSelector",
+                "multi_option",
+                "Selector de opciones con confirmacion del usuario",
+            ),
+            (
+                "🧭 NavigationCard",
+                "navigate",
+                "Card con boton para navegar a una ruta especifica",
+            ),
+            (
+                "✏️ ProposalCard",
+                "proposal",
+                "Propuesta de cambios con botones aceptar/rechazar por campo",
+            ),
         ]
 
         for label, action_type, description in components:
             with st.container(border=True):
                 st.markdown(f"### {label}")
-                st.code(f"ui_action type: \"{action_type}\"", language="json")
+                st.code(f'ui_action type: "{action_type}"', language="json")
                 st.write(description)
 
     # ── Tab 6: Tool Usage (dynamic) ───────────────────────────────────────
@@ -191,7 +248,9 @@ def render_capability_catalog():
         if st.button("Analizar Uso", key="cap_usage_btn"):
             try:
                 from src.core.database import SessionLocal
-                from src.modules.copilot.infrastructure.repositories.conversation_repository import ConversationRepository
+                from src.modules.copilot.infrastructure.repositories.conversation_repository import (
+                    ConversationRepository,
+                )
 
                 db = SessionLocal()
                 try:
@@ -209,7 +268,11 @@ def render_capability_catalog():
                                 tool_calls = msg.get("tool_calls", [])
                                 if isinstance(tool_calls, list):
                                     for tc in tool_calls:
-                                        name = tc.get("name", "unknown") if isinstance(tc, dict) else "unknown"
+                                        name = (
+                                            tc.get("name", "unknown")
+                                            if isinstance(tc, dict)
+                                            else "unknown"
+                                        )
                                         tool_counts[name] = tool_counts.get(name, 0) + 1
                                         conv_has_tools = True
                         if conv_has_tools:
@@ -218,13 +281,19 @@ def render_capability_catalog():
                     if tool_counts:
                         total_invocations = sum(tool_counts.values())
                         rows = []
-                        for name, count in sorted(tool_counts.items(), key=lambda x: -x[1]):
-                            rows.append({
-                                "Tool": name,
-                                "Invocaciones": count,
-                                "% del Total": f"{round(count / total_invocations * 100, 1)}%",
-                                "Avg/Conv": round(count / max(total_convs_with_tools, 1), 1),
-                            })
+                        for name, count in sorted(
+                            tool_counts.items(), key=lambda x: -x[1]
+                        ):
+                            rows.append(
+                                {
+                                    "Tool": name,
+                                    "Invocaciones": count,
+                                    "% del Total": f"{round(count / total_invocations * 100, 1)}%",
+                                    "Avg/Conv": round(
+                                        count / max(total_convs_with_tools, 1), 1
+                                    ),
+                                }
+                            )
 
                         df = pd.DataFrame(rows)
                         st.dataframe(df, use_container_width=True, hide_index=True)
@@ -233,7 +302,9 @@ def render_capability_catalog():
                         chart_df = pd.DataFrame(rows[:15])
                         st.bar_chart(chart_df.set_index("Tool")["Invocaciones"])
                     else:
-                        st.info("No se encontraron invocaciones de tools en las conversaciones.")
+                        st.info(
+                            "No se encontraron invocaciones de tools en las conversaciones."
+                        )
                 finally:
                     db.close()
             except Exception as e:

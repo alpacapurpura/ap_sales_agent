@@ -4,7 +4,8 @@ Repository for lifecycle transition audit records.
 All queries enforce tenant_id filtering for multitenant isolation.
 Uses SQLAlchemy 2.0 syntax (select(Model)).
 """
-from typing import Dict, Any, List, Optional
+
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select
@@ -26,12 +27,12 @@ class LifecycleRepository:
         self,
         profile_id: UUID,
         tenant_id: UUID,
-        from_stage: Optional[LifecycleStage],
+        from_stage: LifecycleStage | None,
         to_stage: LifecycleStage,
         reason: str,
         triggered_by: str,
-        score_at_transition: Optional[float] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        score_at_transition: float | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> LifecycleTransitionModel:
         """Create a new lifecycle transition audit record."""
         transition = LifecycleTransitionModel(
@@ -53,7 +54,7 @@ class LifecycleRepository:
         profile_id: UUID,
         tenant_id: UUID,
         limit: int = 50,
-    ) -> List[LifecycleTransitionModel]:
+    ) -> list[LifecycleTransitionModel]:
         """Get lifecycle transitions for a profile, most recent first.
 
         Always filters by tenant_id for multitenant isolation.

@@ -18,9 +18,9 @@ What it does:
 Run with --dry-run to preview without making changes.
 """
 
-import sys
-import os
 import argparse
+import os
+import sys
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.abspath(os.path.join(current_dir, "../../"))
@@ -28,7 +28,9 @@ sys.path.insert(0, backend_dir)
 
 from src.core.config import settings  # noqa: E402
 from src.core.database import SessionLocal  # noqa: E402
-from src.modules.assets.infrastructure.models.asset_model import AssetModel  # noqa: E402
+from src.modules.assets.infrastructure.models.asset_model import (  # noqa: E402
+    AssetModel,
+)
 from src.modules.assets.infrastructure.storage.r2 import R2StorageStrategy  # noqa: E402
 
 
@@ -39,7 +41,9 @@ def migrate(dry_run: bool = False):
     print(f"  Public URL: {settings.R2_PUBLIC_URL}")
     print()
 
-    if not settings.R2_ACCESS_KEY_ID or settings.R2_ACCESS_KEY_ID.startswith("PENDIENTE"):
+    if not settings.R2_ACCESS_KEY_ID or settings.R2_ACCESS_KEY_ID.startswith(
+        "PENDIENTE"
+    ):
         print("❌ R2_ACCESS_KEY_ID not configured. Set it in .env first.")
         sys.exit(1)
 
@@ -47,7 +51,9 @@ def migrate(dry_run: bool = False):
     db = SessionLocal()
 
     try:
-        assets = db.query(AssetModel).filter(AssetModel.storage_provider == "LOCAL").all()
+        assets = (
+            db.query(AssetModel).filter(AssetModel.storage_provider == "LOCAL").all()
+        )
         print(f"Found {len(assets)} local asset(s) to migrate.\n")
 
         success = 0
@@ -67,7 +73,7 @@ def migrate(dry_run: bool = False):
             rel = local_path
             for prefix in ["/app/", "app/"]:
                 if local_path.startswith(prefix):
-                    rel = local_path[len(prefix):]
+                    rel = local_path[len(prefix) :]
                     break
             # rel is now e.g. "static/uploads/tenant/image/uuid.png"
             # or legacy "static/tenant/offers/.../gallery/uuid.jpeg"
@@ -122,7 +128,11 @@ def migrate(dry_run: bool = False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Migrate local assets to Cloudflare R2")
-    parser.add_argument("--dry-run", action="store_true", help="Preview only, no changes")
+    parser = argparse.ArgumentParser(
+        description="Migrate local assets to Cloudflare R2"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Preview only, no changes"
+    )
     args = parser.parse_args()
     migrate(dry_run=args.dry_run)

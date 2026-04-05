@@ -1,23 +1,27 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Literal
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, Request
+import structlog
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
-from typing import Literal, Optional
 from sqlalchemy.orm import Session
-from src.modules.copilot.application.services.brand_ai_actions_service import CopilotBrandAIActionsService
-from src.shared.infrastructure.files.file_parsing_service import FileParsingService
+
+from src.core.database import redis_client
+from src.modules.brand.api.dto.extraction import ExtractRequest
+from src.modules.copilot.application.services.brand_ai_actions_service import (
+    CopilotBrandAIActionsService,
+)
 from src.modules.iam.api.dependencies import get_current_user, get_db
 from src.modules.iam.domain.user import User
-from src.modules.brand.api.dto.extraction import ExtractRequest
-from src.core.database import redis_client
-import structlog
+from src.shared.infrastructure.files.file_parsing_service import FileParsingService
 
 logger = structlog.get_logger()
 router = APIRouter()
 
 # Removed FullBrandExtractionRequest as it's now handled via Form/File parameters
+
 
 @router.post("/extract")
 async def extract_data(
@@ -29,9 +33,11 @@ async def extract_data(
     Extracts structured data from a URL using the Web Extractor Subgraph.
     Currently supports: 'brand_identity'.
     """
-    
+
     if not current_user.tenant_id:
-        raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
+        raise HTTPException(
+            status_code=400, detail="User is not associated with a tenant."
+        )
 
     service = CopilotBrandAIActionsService(db, current_user.tenant_id)
     try:
@@ -39,26 +45,30 @@ async def extract_data(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal extraction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal extraction error: {e!s}")
 
     if not data:
-        raise HTTPException(status_code=422, detail="Extraction failed. Could not find relevant data on the page.")
-        
+        raise HTTPException(
+            status_code=422,
+            detail="Extraction failed. Could not find relevant data on the page.",
+        )
+
     return data
+
 
 @router.post("/extract-full-brand")
 async def extract_full_brand(
     request: Request,
-    url: Optional[str] = Form(None),
-    text: Optional[str] = Form(None),
+    url: str | None = Form(None),
+    text: str | None = Form(None),
     mode: Literal["initial", "update"] = Form("initial"),
-    update_instructions: Optional[str] = Form(None),
+    update_instructions: str | None = Form(None),
     dry_run: bool = Form(False),
     include_visuals: bool = Form(False),
     include_assets: bool = Form(False),
     files: list[UploadFile] = File(default_factory=list),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Dispatches full brand extraction as an async job.
@@ -69,46 +79,60 @@ async def extract_full_brand(
     for file in files:
         content = await FileParsingService.parse_file(file)
         if content:
-            extracted_file_text += f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
+            extracted_file_text += (
+                f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
+            )
 
     combined_text = (text or "") + "\n" + extracted_file_text
     combined_text = combined_text.strip()
 
     if not url and not combined_text and not update_instructions:
-        raise HTTPException(status_code=400, detail="Either 'url', 'text', 'files', or 'update_instructions' must be provided.")
+        raise HTTPException(
+            status_code=400,
+            detail="Either 'url', 'text', 'files', or 'update_instructions' must be provided.",
+        )
 
     if not current_user.tenant_id:
-        raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
+        raise HTTPException(
+            status_code=400, detail="User is not associated with a tenant."
+        )
 
     if not redis_client:
-        raise HTTPException(status_code=503, detail="Servicio temporalmente no disponible. Intenta en un momento.")
+        raise HTTPException(
+            status_code=503,
+            detail="Servicio temporalmente no disponible. Intenta en un momento.",
+        )
 
     job_id = str(uuid4())
     tenant_id = str(current_user.tenant_id)
 
-    logger.info("extract_full_brand_request",
-                tenant_id=tenant_id,
-                job_id=job_id,
-                has_url=bool(url),
-                url=url,
-                mode=mode,
-                has_text=bool(combined_text),
-                text_length=len(combined_text) if combined_text else 0,
-                file_count=len(files),
-                has_instructions=bool(update_instructions),
-                dry_run=dry_run)
+    logger.info(
+        "extract_full_brand_request",
+        tenant_id=tenant_id,
+        job_id=job_id,
+        has_url=bool(url),
+        url=url,
+        mode=mode,
+        has_text=bool(combined_text),
+        text_length=len(combined_text) if combined_text else 0,
+        file_count=len(files),
+        has_instructions=bool(update_instructions),
+        dry_run=dry_run,
+    )
 
     # Set initial status in Redis BEFORE enqueue (prevents race condition)
     if redis_client:
         redis_client.setex(
             f"brand_extract:{tenant_id}:{job_id}",
             3600,
-            json.dumps({
-                "status": "queued",
-                "progress": 0,
-                "stage": "Iniciando análisis...",
-                "started_at": datetime.now(timezone.utc).isoformat(),
-            })
+            json.dumps(
+                {
+                    "status": "queued",
+                    "progress": 0,
+                    "stage": "Iniciando análisis...",
+                    "started_at": datetime.now(UTC).isoformat(),
+                }
+            ),
         )
 
     # Enqueue ARQ job
@@ -120,7 +144,7 @@ async def extract_full_brand(
         job_id=job_id,
         tenant_id=tenant_id,
         url=url,
-        text=combined_text if combined_text else None,
+        text=combined_text or None,
         mode=mode,
         update_instructions=update_instructions,
         include_visuals=include_visuals,
@@ -159,9 +183,11 @@ async def get_extraction_status(
     if data.get("status") in ("processing", "queued") and data.get("started_at"):
         try:
             started = datetime.fromisoformat(data["started_at"])
-            if (datetime.now(timezone.utc) - started).total_seconds() > 180:
+            if (datetime.now(UTC) - started).total_seconds() > 180:
                 data["status"] = "failed"
-                data["error"] = "El análisis tardó demasiado o no pudo completarse. Intenta de nuevo."
+                data["error"] = (
+                    "El análisis tardó demasiado o no pudo completarse. Intenta de nuevo."
+                )
         except (ValueError, TypeError):
             pass
 
@@ -175,11 +201,16 @@ async def list_extraction_traces(
     db: Session = Depends(get_db),
 ):
     """List recent brand extraction traces for the current tenant."""
-    from sqlalchemy import select, desc
-    from src.modules.brand.infrastructure.models.extraction_trace_model import BrandExtractionTrace
+    from sqlalchemy import desc, select
+
+    from src.modules.brand.infrastructure.models.extraction_trace_model import (
+        BrandExtractionTrace,
+    )
 
     if not current_user.tenant_id:
-        raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
+        raise HTTPException(
+            status_code=400, detail="User is not associated with a tenant."
+        )
 
     stmt = (
         select(BrandExtractionTrace)
@@ -216,23 +247,26 @@ async def get_extraction_trace(
 ):
     """Get full trace detail including all events."""
     from uuid import UUID as UUIDType
+
     from sqlalchemy import select
-    from src.modules.brand.infrastructure.models.extraction_trace_model import BrandExtractionTrace
+
+    from src.modules.brand.infrastructure.models.extraction_trace_model import (
+        BrandExtractionTrace,
+    )
 
     if not current_user.tenant_id:
-        raise HTTPException(status_code=400, detail="User is not associated with a tenant.")
+        raise HTTPException(
+            status_code=400, detail="User is not associated with a tenant."
+        )
 
     try:
         UUIDType(trace_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid trace ID format")
 
-    stmt = (
-        select(BrandExtractionTrace)
-        .where(
-            BrandExtractionTrace.id == trace_id,
-            BrandExtractionTrace.tenant_id == current_user.tenant_id,
-        )
+    stmt = select(BrandExtractionTrace).where(
+        BrandExtractionTrace.id == trace_id,
+        BrandExtractionTrace.tenant_id == current_user.tenant_id,
     )
     row = db.execute(stmt).scalar_one_or_none()
     if not row:

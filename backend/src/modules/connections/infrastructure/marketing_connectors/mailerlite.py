@@ -1,6 +1,6 @@
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import List, Dict, Any, Tuple
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import httpx
 
@@ -24,7 +24,7 @@ class MailerliteConnector(BaseConnector):
         self._base_url = "https://connect.mailerlite.com/api"
 
     @staticmethod
-    async def verify_connection(api_key: str) -> Tuple[bool, Dict[str, Any]]:
+    async def verify_connection(api_key: str) -> tuple[bool, dict[str, Any]]:
         """
         Verifica si la API Key es válida haciendo una llamada a /api/account.
         """
@@ -32,7 +32,7 @@ class MailerliteConnector(BaseConnector):
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
         }
 
         try:
@@ -41,12 +41,15 @@ class MailerliteConnector(BaseConnector):
 
                 if response.status_code == 200:
                     return True, response.json()
-                else:
-                    return False, {"error": f"Status: {response.status_code}, Body: {response.text}"}
+                return False, {
+                    "error": f"Status: {response.status_code}, Body: {response.text}"
+                }
         except Exception as e:
             return False, {"error": str(e)}
 
-    async def get_recent_campaign_activity(self, hours: int = 7) -> List[Dict[str, Any]]:
+    async def get_recent_campaign_activity(
+        self, hours: int = 7
+    ) -> list[dict[str, Any]]:
         """
         Fetch recent campaign subscriber activity (opens/clicks) from Mailerlite API.
 
@@ -58,8 +61,8 @@ class MailerliteConnector(BaseConnector):
         Returns:
             List of activity dicts with keys: email, campaign_id, campaign_name, event_type.
         """
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
-        activities: List[Dict[str, Any]] = []
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
+        activities: list[dict[str, Any]] = []
 
         try:
             async with httpx.AsyncClient(headers=self._headers, timeout=30.0) as client:
@@ -85,9 +88,7 @@ class MailerliteConnector(BaseConnector):
                     if not finished_at:
                         continue
                     try:
-                        finished_dt = datetime.fromisoformat(
-                            finished_at.replace("Z", "+00:00")
-                        )
+                        finished_dt = datetime.fromisoformat(finished_at)
                     except (ValueError, TypeError):
                         continue
                     if finished_dt >= cutoff:
@@ -104,7 +105,10 @@ class MailerliteConnector(BaseConnector):
                     campaign_id = campaign.get("id", "")
                     campaign_name = campaign.get("name", "")
 
-                    for activity_type, event_type in [("opened", "open"), ("clicked", "click")]:
+                    for activity_type, event_type in [
+                        ("opened", "open"),
+                        ("clicked", "click"),
+                    ]:
                         activity_url = (
                             f"{self._base_url}/campaigns/{campaign_id}"
                             f"/reports/subscriber-activity"
@@ -126,12 +130,14 @@ class MailerliteConnector(BaseConnector):
                             email = subscriber.get("email")
                             if not email:
                                 continue
-                            activities.append({
-                                "email": email,
-                                "campaign_id": str(campaign_id),
-                                "campaign_name": campaign_name,
-                                "event_type": event_type,
-                            })
+                            activities.append(
+                                {
+                                    "email": email,
+                                    "campaign_id": str(campaign_id),
+                                    "campaign_name": campaign_name,
+                                    "event_type": event_type,
+                                }
+                            )
 
         except httpx.HTTPError as e:
             logger.warning(
@@ -148,12 +154,12 @@ class MailerliteConnector(BaseConnector):
 
         return activities
 
-    def sync_contacts(self, tenant_id: str) -> List[Dict[str, Any]]:
+    def sync_contacts(self, tenant_id: str) -> list[dict[str, Any]]:
         # TODO: Implementar lógica real de MailerLite para obtener suscriptores
         print(f"Sincronizando contactos de MailerLite para tenant {tenant_id}")
         return []
 
-    def sync_events(self, tenant_id: str) -> List[Dict[str, Any]]:
+    def sync_events(self, tenant_id: str) -> list[dict[str, Any]]:
         # TODO: Implementar lógica real de MailerLite para obtener eventos (aperturas, clics, etc.)
         print(f"Sincronizando eventos de MailerLite para tenant {tenant_id}")
         return []

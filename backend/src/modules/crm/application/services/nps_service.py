@@ -1,11 +1,12 @@
 """NPS service: survey lifecycle, response handling, scoring, and candidate detection."""
+
 import logging
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.enums import LifecycleStage
@@ -27,8 +28,8 @@ class NpsService:
     def create_survey(
         self,
         tenant_id: UUID,
-        customer_id: Optional[UUID] = None,
-        offer_id: Optional[UUID] = None,
+        customer_id: UUID | None = None,
+        offer_id: UUID | None = None,
         delivery_channel: str = "universal_link",
     ) -> NpsSurveyModel:
         """Create NPS survey with unique token (secrets.token_urlsafe(32)).
@@ -36,7 +37,7 @@ class NpsService:
         Set expires_at = now + 30 days. Status = 'pending'.
         """
         token = secrets.token_urlsafe(32)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         survey = NpsSurveyModel(
             tenant_id=tenant_id,
@@ -52,11 +53,13 @@ class NpsService:
 
         logger.info(
             "NPS survey created: token=%s tenant=%s customer=%s",
-            token[:8] + "...", tenant_id, customer_id,
+            token[:8] + "...",
+            tenant_id,
+            customer_id,
         )
         return survey
 
-    def get_survey_by_token(self, token: str) -> Optional[NpsSurveyModel]:
+    def get_survey_by_token(self, token: str) -> NpsSurveyModel | None:
         """Retrieve survey by public token (no tenant filter -- public URL)."""
         stmt = select(NpsSurveyModel).where(NpsSurveyModel.token == token)
         result = self.db.execute(stmt)
@@ -68,9 +71,9 @@ class NpsService:
         tenant_id: UUID,
         customer_id: UUID,
         score: int,
-        feedback_text: Optional[str] = None,
-        testimonial_text: Optional[str] = None,
-        testimonial_audio_url: Optional[str] = None,
+        feedback_text: str | None = None,
+        testimonial_text: str | None = None,
+        testimonial_audio_url: str | None = None,
         consent_public_use: bool = False,
     ) -> NpsResponseModel:
         """Record NPS response. Validate score 0-10. Update survey status to 'responded'.
@@ -93,19 +96,27 @@ class NpsService:
         self.db.add(response)
 
         # Update survey status
-        survey = self.db.execute(
-            select(NpsSurveyModel).where(NpsSurveyModel.id == survey_id)
-        ).scalars().first()
+        survey = (
+            self.db.execute(
+                select(NpsSurveyModel).where(NpsSurveyModel.id == survey_id)
+            )
+            .scalars()
+            .first()
+        )
         if survey:
             survey.status = "responded"
 
         # Update customer computed_traits with nps_score
-        profile = self.db.execute(
-            select(CustomerProfileModel).where(
-                CustomerProfileModel.id == customer_id,
-                CustomerProfileModel.tenant_id == tenant_id,
+        profile = (
+            self.db.execute(
+                select(CustomerProfileModel).where(
+                    CustomerProfileModel.id == customer_id,
+                    CustomerProfileModel.tenant_id == tenant_id,
+                )
             )
-        ).scalars().first()
+            .scalars()
+            .first()
+        )
         if profile:
             computed = dict(profile.computed_traits or {})
             computed["nps_score"] = score
@@ -115,7 +126,9 @@ class NpsService:
 
         logger.info(
             "NPS response recorded: survey=%s customer=%s score=%d",
-            survey_id, customer_id, score,
+            survey_id,
+            customer_id,
+            score,
         )
         return response
 
@@ -127,11 +140,14 @@ class NpsService:
         total_responses, surveys_sent, response_rate_pct}.
         """
         # Count surveys sent
-        surveys_sent = self.db.execute(
-            select(sa_func.count(NpsSurveyModel.id)).where(
-                NpsSurveyModel.tenant_id == tenant_id,
-            )
-        ).scalar() or 0
+        surveys_sent = (
+            self.db.execute(
+                select(sa_func.count(NpsSurveyModel.id)).where(
+                    NpsSurveyModel.tenant_id == tenant_id,
+                )
+            ).scalar()
+            or 0
+        )
 
         # Get all response scores
         stmt = select(NpsResponseModel.score).where(
@@ -197,20 +213,22 @@ class NpsService:
                 "customer_id": str(row.customer_id),
                 "full_name": row.full_name,
                 "nps_score": row.score,
-                "responded_at": row.responded_at.isoformat() if row.responded_at else None,
+                "responded_at": row.responded_at.isoformat()
+                if row.responded_at
+                else None,
             }
             for row in rows
         ]
 
     @staticmethod
-    def calculate_nps_score(scores: list[int]) -> Optional[float]:
+    def calculate_nps_score(scores: list[int]) -> float | None:
         """Average score (0-10 scale). Returns None if empty."""
         if not scores:
             return None
         return round(sum(scores) / len(scores), 1)
 
     @staticmethod
-    def calculate_standard_nps(scores: list[int]) -> Optional[float]:
+    def calculate_standard_nps(scores: list[int]) -> float | None:
         """Standard NPS: ((promoters - detractors) / total) * 100. Range -100 to +100."""
         if not scores:
             return None

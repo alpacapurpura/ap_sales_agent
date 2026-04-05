@@ -4,8 +4,6 @@ Reuses TrafficGroupDTO and AvailableChannelsDTO from attraction_dto
 and MiniFunnelDTO from capture_dto to maintain a consistent API shape.
 """
 
-from typing import Optional
-
 from pydantic import BaseModel
 
 from src.modules.analytics.application.dto.attraction_dto import (
@@ -20,7 +18,7 @@ class OpportunityHeaderKpisDTO(BaseModel):
 
     total_sqls: int
     conversion_rate: float  # percentage 0-100
-    cost_per_sql: Optional[float] = None  # None when no costs configured
+    cost_per_sql: float | None = None  # None when no costs configured
 
 
 class BottleneckDTO(BaseModel):
@@ -49,6 +47,6 @@ class OpportunityDetailDTO(BaseModel):
     payment_links: TrafficGroupDTO
     qualification: TrafficGroupDTO
     bottlenecks: list[BottleneckDTO] = []
-    available: Optional[AvailableChannelsDTO] = None
+    available: AvailableChannelsDTO | None = None
     period: str = "last_30_days"
-    last_updated: Optional[str] = None
+    last_updated: str | None = None

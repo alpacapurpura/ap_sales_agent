@@ -5,7 +5,7 @@ subscription splits, CAC, Shopify enrichment, bottleneck detection.
 """
 
 from collections import defaultdict
-from typing import Dict, List, Optional
+from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -43,16 +43,16 @@ class SalesStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
-        offer_port: Optional[OfferReadPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
+        offer_port: OfferReadPort | None = None,
     ):
         self.db = db
         self.cache = cache
         self.connection_port = connection_port
         self.offer_port = offer_port
 
-    async def get_metrics(
+    async def get_metrics(  # noqa: C901
         self,
         tenant_id: UUID,
         start_date: "object",
@@ -72,16 +72,15 @@ class SalesStageService:
         9. Detect bottlenecks (low_conversion_rate, high_cac_ratio)
         10. Cache result and return SalesDetailDTO
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+
         from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
 
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "sales", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "sales", "last_30_days")
             if cached is not None:
                 return SalesDetailDTO(**cached)
 
@@ -97,14 +96,14 @@ class SalesStageService:
 
         # 4. Group sales by stage -> offer_id -> accumulate
         # Structure: {stage_key: {offer_id_str: {source: str, counts/revenue}}}
-        stage_data: Dict[str, Dict[str, dict]] = {
+        stage_data: dict[str, dict[str, dict]] = {
             "adquisicion": {},
             "expansion": {},
         }
 
         # Track per-stage customer counts and revenue totals
-        _stage_customer_counts: Dict[str, int] = {"adquisicion": 0, "expansion": 0}
-        stage_revenue: Dict[str, float] = {"adquisicion": 0.0, "expansion": 0.0}
+        _stage_customer_counts: dict[str, int] = {"adquisicion": 0, "expansion": 0}
+        stage_revenue: dict[str, float] = {"adquisicion": 0.0, "expansion": 0.0}
 
         for row in raw_sales:
             # row: (stage, offer_id, source, currency, count, total_revenue, unique_customers)
@@ -117,7 +116,9 @@ class SalesStageService:
             unique_custs = int(row[6])
 
             # Map SaleStage to group key
-            stage_str = stage_val.value if hasattr(stage_val, "value") else str(stage_val)
+            stage_str = (
+                stage_val.value if hasattr(stage_val, "value") else str(stage_val)
+            )
             if stage_str == "CONVERSION":
                 stage_key = "adquisicion"
             elif stage_str == "EXPANSION":
@@ -144,7 +145,7 @@ class SalesStageService:
         # 5. Also include unsold offers from the catalog (show with $0)
         for offer_id_str, offer in offer_map.items():
             for stage_key in ("adquisicion", "expansion"):
-                if offer_id_str not in stage_data[stage_key]:
+                if offer_id_str not in stage_data[stage_key]:  # noqa: SIM102
                     # Only add to adquisicion for unsold offers
                     if stage_key == "adquisicion":
                         stage_data[stage_key][offer_id_str] = {
@@ -156,18 +157,18 @@ class SalesStageService:
                         }
 
         # Determine tenant display currency (most common from sales)
-        currency_counts: Dict[str, int] = defaultdict(int)
+        currency_counts: dict[str, int] = defaultdict(int)
         for row in raw_sales:
             currency_counts[row[3] or "USD"] += int(row[4])
-        display_currency = max(currency_counts, key=currency_counts.get) if currency_counts else "USD"
+        display_currency = (
+            max(currency_counts, key=currency_counts.get) if currency_counts else "USD"
+        )
 
         # 6. Build RevenueGroupDTO for each stage
         total_revenue_all = sum(stage_revenue.values())
 
-        def _build_revenue_group(
-            stage_key: str, group_label: str
-        ) -> RevenueGroupDTO:
-            offers_by_tier: Dict[str, List[OfferSaleDTO]] = defaultdict(list)
+        def _build_revenue_group(stage_key: str, group_label: str) -> RevenueGroupDTO:
+            offers_by_tier: dict[str, list[OfferSaleDTO]] = defaultdict(list)
             group_revenue = stage_revenue[stage_key]
             group_customers = 0
 
@@ -183,7 +184,9 @@ class SalesStageService:
                     continue
 
                 # Build OfferSaleDTO
-                offer_name = offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
+                offer_name = (
+                    offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
+                )
                 offer_type = offer.offer_type if offer else "unknown"
                 pricing_type = offer.pricing_type if offer else "one_time"
                 offer_currency = data["currency"]
@@ -233,13 +236,19 @@ class SalesStageService:
             tiers = []
             for tier_key in TIER_DISPLAY_ORDER:
                 if tier_key in offers_by_tier:
-                    tiers.append(TierGroupDTO(
-                        tier_key=tier_key,
-                        tier_label=TIER_LABELS[tier_key],
-                        offers=offers_by_tier[tier_key],
-                    ))
+                    tiers.append(
+                        TierGroupDTO(
+                            tier_key=tier_key,
+                            tier_label=TIER_LABELS[tier_key],
+                            offers=offers_by_tier[tier_key],
+                        )
+                    )
 
-            rev_pct = round(group_revenue / total_revenue_all * 100, 1) if total_revenue_all > 0 else 0.0
+            rev_pct = (
+                round(group_revenue / total_revenue_all * 100, 1)
+                if total_revenue_all > 0
+                else 0.0
+            )
             group_usd = convert_to_usd(group_revenue, display_currency)
 
             return RevenueGroupDTO(
@@ -274,7 +283,11 @@ class SalesStageService:
         # Enrich with Shopify metrics from official_metrics
         official_repo = OfficialMetricsRepository(self.db)
         shopify_agg = official_repo.get_channel_metrics(
-            tenant_id, "shopify", "shopify", start_date.date(), end_date.date(),
+            tenant_id,
+            "shopify",
+            "shopify",
+            start_date.date(),
+            end_date.date(),
         )
 
         # Extract Shopify aggregates
@@ -286,8 +299,11 @@ class SalesStageService:
         shopify_currency = display_currency
         if shopify_revenue > 0:
             sample_rows = official_repo.get_metrics(
-                tenant_id, channel_slug="shopify", metric_name="revenue",
-                start_date=start_date.date(), end_date=end_date.date(),
+                tenant_id,
+                channel_slug="shopify",
+                metric_name="revenue",
+                start_date=start_date.date(),
+                end_date=end_date.date(),
             )
             if sample_rows:
                 shopify_currency = sample_rows[0].currency or "USD"
@@ -343,48 +359,56 @@ class SalesStageService:
         # Low conversion rate (SQL -> Customer)
         if sql_count > 0:
             if conv_rate < LOW_CONVERSION_THRESHOLDS["critical"]:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_conversion_rate",
-                    metric_label="Tasa de Conversion",
-                    current_rate=conv_rate,
-                    severity="critical",
-                    threshold=LOW_CONVERSION_THRESHOLDS["critical"],
-                    tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_conversion_rate",
+                        metric_label="Tasa de Conversion",
+                        current_rate=conv_rate,
+                        severity="critical",
+                        threshold=LOW_CONVERSION_THRESHOLDS["critical"],
+                        tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
+                    )
+                )
             elif conv_rate < LOW_CONVERSION_THRESHOLDS["warning"]:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_conversion_rate",
-                    metric_label="Tasa de Conversion",
-                    current_rate=conv_rate,
-                    severity="warning",
-                    threshold=LOW_CONVERSION_THRESHOLDS["warning"],
-                    tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_conversion_rate",
+                        metric_label="Tasa de Conversion",
+                        current_rate=conv_rate,
+                        severity="warning",
+                        threshold=LOW_CONVERSION_THRESHOLDS["warning"],
+                        tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
+                    )
+                )
 
         # High CAC ratio (CAC / AOV)
         if cac is not None and new_customers > 0 and total_rev > 0:
             aov = total_rev / new_customers
             cac_ratio = cac / aov if aov > 0 else 0.0
             if cac_ratio >= HIGH_CAC_CRITICAL_RATIO:
-                bottlenecks.append(BottleneckDTO(
-                    type="high_cac_ratio",
-                    metric_label="CAC / Ticket Promedio",
-                    current_rate=round(cac_ratio * 100, 1),
-                    severity="critical",
-                    threshold=HIGH_CAC_CRITICAL_RATIO * 100,
-                    tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="high_cac_ratio",
+                        metric_label="CAC / Ticket Promedio",
+                        current_rate=round(cac_ratio * 100, 1),
+                        severity="critical",
+                        threshold=HIGH_CAC_CRITICAL_RATIO * 100,
+                        tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
+                    )
+                )
             elif cac_ratio >= HIGH_CAC_WARNING_RATIO:
-                bottlenecks.append(BottleneckDTO(
-                    type="high_cac_ratio",
-                    metric_label="CAC / Ticket Promedio",
-                    current_rate=round(cac_ratio * 100, 1),
-                    severity="warning",
-                    threshold=HIGH_CAC_WARNING_RATIO * 100,
-                    tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="high_cac_ratio",
+                        metric_label="CAC / Ticket Promedio",
+                        current_rate=round(cac_ratio * 100, 1),
+                        severity="warning",
+                        threshold=HIGH_CAC_WARNING_RATIO * 100,
+                        tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
+                    )
+                )
 
-        now = dt_cls.now(tz.utc)
+        now = dt_cls.now(UTC)
 
         result = SalesDetailDTO(
             header_kpis=header_kpis,

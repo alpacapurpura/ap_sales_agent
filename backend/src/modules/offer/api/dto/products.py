@@ -1,7 +1,10 @@
-from pydantic import BaseModel, ConfigDict, field_validator
-from typing import Optional, Dict, Any, List
 import uuid
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, field_validator
+
 from src.modules.offer.domain.enums import OfferArchetype, OfferStatus, OfferValueLevel
+
 
 class ProductResponse(BaseModel):
     id: uuid.UUID
@@ -10,74 +13,75 @@ class ProductResponse(BaseModel):
 
     # Archetype system
     archetype: str
-    format_hint: Optional[str] = None
-    is_lead_magnet: Optional[bool] = False
-    shows_as_lead_magnet: Optional[bool] = False
+    format_hint: str | None = None
+    is_lead_magnet: bool | None = False
+    shows_as_lead_magnet: bool | None = False
 
     # Polymorphic fields
-    delivery_model: Optional[str] = None
-    offer_value_level: Optional[str] = None
-    value_level: Optional[str] = None
-    headline_promise: Optional[str] = None
-    primary_outcome: Optional[str] = None
-    time_to_value: Optional[str] = None
-    access_duration: Optional[str] = None
-    access_duration_text: Optional[str] = None
-    support_duration_days: Optional[int] = None
-    target_avatar_match: Optional[List[str]] = []
+    delivery_model: str | None = None
+    offer_value_level: str | None = None
+    value_level: str | None = None
+    headline_promise: str | None = None
+    primary_outcome: str | None = None
+    time_to_value: str | None = None
+    access_duration: str | None = None
+    access_duration_text: str | None = None
+    support_duration_days: int | None = None
+    target_avatar_match: list[str] | None = []
 
-    marketing_pain_points: Optional[List[str]] = []
-    marketing_desires: Optional[List[str]] = []
+    marketing_pain_points: list[str] | None = []
+    marketing_desires: list[str] | None = []
 
-    requires_application: Optional[bool] = False
-    min_financial_capacity: Optional[str] = None
-    prerequisites: Optional[List[str]] = []
+    requires_application: bool | None = False
+    min_financial_capacity: str | None = None
+    prerequisites: list[str] | None = []
 
-    pricing_options: Optional[List[Dict[str, Any]]] = []
-    currency: Optional[str] = "USD"
+    pricing_options: list[dict[str, Any]] | None = []
+    currency: str | None = "USD"
 
-    @field_validator('pricing_options', mode='before')
+    @field_validator("pricing_options", mode="before")
     @classmethod
     def normalize_pricing(cls, v):
         if isinstance(v, dict):
             return [v]
         return v
 
-    guarantee_type: Optional[str] = None
-    guarantee_terms: Optional[str] = None
+    guarantee_type: str | None = None
+    guarantee_terms: str | None = None
 
-    downsell_product_id: Optional[uuid.UUID] = None
-    upsell_product_id: Optional[uuid.UUID] = None
-    includes_offers: Optional[List[uuid.UUID]] = []
-    deliverables: Optional[List[Dict[str, Any]]] = []
-    specific_details: Optional[Dict[str, Any]] = {}
+    downsell_product_id: uuid.UUID | None = None
+    upsell_product_id: uuid.UUID | None = None
+    includes_offers: list[uuid.UUID] | None = []
+    deliverables: list[dict[str, Any]] | None = []
+    specific_details: dict[str, Any] | None = {}
 
-    metadata_info: Optional[Dict[str, Any]] = {}
-    avatar_id: Optional[uuid.UUID] = None
+    metadata_info: dict[str, Any] | None = {}
+    avatar_id: uuid.UUID | None = None
 
-    onboarding_action: Optional[str] = None
-    onboarding_url: Optional[str] = None
-    calendar_type_id: Optional[str] = None
-    checkout_page_url: Optional[str] = None
-    vsl_link: Optional[str] = None
+    onboarding_action: str | None = None
+    onboarding_url: str | None = None
+    calendar_type_id: str | None = None
+    checkout_page_url: str | None = None
+    vsl_link: str | None = None
 
-    landing_page_config: Optional[Dict[str, Any]] = None
+    landing_page_config: dict[str, Any] | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ProductCreate(BaseModel):
     name: str
     archetype: OfferArchetype
-    format_hint: Optional[str] = None
+    format_hint: str | None = None
     is_lead_magnet: bool = False
     status: OfferStatus = OfferStatus.DRAFT
 
     # Optional fields the wizard can set
-    value_level: Optional[OfferValueLevel] = None
-    headline_promise: Optional[str] = None
-    avatar_id: Optional[uuid.UUID] = None
+    value_level: OfferValueLevel | None = None
+    headline_promise: str | None = None
+    avatar_id: uuid.UUID | None = None
 
-    @field_validator('archetype', mode='before')
+    @field_validator("archetype", mode="before")
     @classmethod
     def normalize_archetype(cls, v: object) -> object:
         if v is None:
@@ -86,55 +90,56 @@ class ProductCreate(BaseModel):
             return v.lower()
         return v
 
-    @field_validator('status', mode='before')
+    @field_validator("status", mode="before")
     @classmethod
     def normalize_status(cls, v: object) -> object:
         if isinstance(v, str):
             return v.lower()
         return v
 
+
 class ProductUpdate(BaseModel):
-    name: Optional[str] = None
-    internal_sku: Optional[str] = None
-    archetype: Optional[OfferArchetype] = None
-    format_hint: Optional[str] = None
-    is_lead_magnet: Optional[bool] = None
-    offer_value_level: Optional[str] = None
-    delivery_model: Optional[str] = None
-    status: Optional[str] = None
+    name: str | None = None
+    internal_sku: str | None = None
+    archetype: OfferArchetype | None = None
+    format_hint: str | None = None
+    is_lead_magnet: bool | None = None
+    offer_value_level: str | None = None
+    delivery_model: str | None = None
+    status: str | None = None
 
-    headline_promise: Optional[str] = None
-    primary_outcome: Optional[str] = None
-    time_to_value: Optional[str] = None
-    access_duration: Optional[str] = None
-    access_duration_text: Optional[str] = None
-    support_duration_days: Optional[int] = None
-    target_avatar_match: Optional[List[str]] = None
+    headline_promise: str | None = None
+    primary_outcome: str | None = None
+    time_to_value: str | None = None
+    access_duration: str | None = None
+    access_duration_text: str | None = None
+    support_duration_days: int | None = None
+    target_avatar_match: list[str] | None = None
 
-    marketing_pain_points: Optional[List[str]] = None
-    marketing_desires: Optional[List[str]] = None
+    marketing_pain_points: list[str] | None = None
+    marketing_desires: list[str] | None = None
 
-    requires_application: Optional[bool] = None
-    min_financial_capacity: Optional[str] = None
-    prerequisites: Optional[List[str]] = None
+    requires_application: bool | None = None
+    min_financial_capacity: str | None = None
+    prerequisites: list[str] | None = None
 
-    pricing_options: Optional[List[Dict[str, Any]]] = None
-    currency: Optional[str] = None
+    pricing_options: list[dict[str, Any]] | None = None
+    currency: str | None = None
 
-    guarantee_type: Optional[str] = None
-    guarantee_terms: Optional[str] = None
+    guarantee_type: str | None = None
+    guarantee_terms: str | None = None
 
-    downsell_product_id: Optional[uuid.UUID] = None
-    upsell_product_id: Optional[uuid.UUID] = None
-    includes_offers: Optional[List[uuid.UUID]] = None
-    deliverables: Optional[List[Dict[str, Any]]] = None
-    specific_details: Optional[Dict[str, Any]] = None
+    downsell_product_id: uuid.UUID | None = None
+    upsell_product_id: uuid.UUID | None = None
+    includes_offers: list[uuid.UUID] | None = None
+    deliverables: list[dict[str, Any]] | None = None
+    specific_details: dict[str, Any] | None = None
 
-    metadata_info: Optional[Dict[str, Any]] = None
-    avatar_id: Optional[uuid.UUID] = None
+    metadata_info: dict[str, Any] | None = None
+    avatar_id: uuid.UUID | None = None
 
-    onboarding_action: Optional[str] = None
-    onboarding_url: Optional[str] = None
-    calendar_type_id: Optional[str] = None
-    checkout_page_url: Optional[str] = None
-    vsl_link: Optional[str] = None
+    onboarding_action: str | None = None
+    onboarding_url: str | None = None
+    calendar_type_id: str | None = None
+    checkout_page_url: str | None = None
+    vsl_link: str | None = None

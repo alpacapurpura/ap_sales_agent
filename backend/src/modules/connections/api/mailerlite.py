@@ -1,15 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import Dict, Any, Optional
-from pydantic import BaseModel
+from typing import Any
+
 import structlog
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.marketing_connectors.mailerlite import (
+    MailerliteConnector,
+)
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.marketing_connectors.mailerlite import MailerliteConnector
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -21,13 +26,13 @@ class MailerliteConnectRequest(BaseModel):
 
 class MailerliteStatusResponse(BaseModel):
     is_connected: bool
-    account_info: Optional[Dict[str, Any]] = None
+    account_info: dict[str, Any] | None = None
 
 
 class ConnectionResponse(BaseModel):
     status: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 
 
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
@@ -56,7 +61,9 @@ async def connect_mailerlite(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
-    is_valid, result = await MailerliteConnector.verify_connection(api_key=request.api_key)
+    is_valid, result = await MailerliteConnector.verify_connection(
+        api_key=request.api_key
+    )
 
     if not is_valid:
         raise HTTPException(
@@ -104,7 +111,9 @@ async def test_mailerlite_connection(
     connection = repo.get_active(user.tenant_id, ChannelType.MAILERLITE)
 
     if not connection:
-        raise HTTPException(status_code=404, detail="No active MailerLite connection found")
+        raise HTTPException(
+            status_code=404, detail="No active MailerLite connection found"
+        )
 
     api_key = connection.credentials.get("api_key")
     if not api_key:
@@ -114,6 +123,10 @@ async def test_mailerlite_connection(
 
     if is_valid:
         repo.update_config(connection, {"account_info": result})
-        return ConnectionResponse(status="active", message="Connection is valid", details=result)
+        return ConnectionResponse(
+            status="active", message="Connection is valid", details=result
+        )
 
-    return ConnectionResponse(status="error", message="Connection test failed", details=result)
+    return ConnectionResponse(
+        status="error", message="Connection test failed", details=result
+    )

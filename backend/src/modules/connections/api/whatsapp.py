@@ -1,16 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Body, Query, Request
-from sqlalchemy.orm import Session
-from src.core.database import get_db
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.iam.api.dependencies import get_current_tenant_id
-from src.modules.connections.infrastructure.channels.whatsapp import WhatsAppChannel
-from src.core.config import settings
-from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
-import structlog
-import uuid
 import asyncio
 import traceback
+import uuid
+
+import structlog
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+)
+from sqlalchemy.orm import Session
+
+from src.core.config import settings
+from src.core.database import get_db
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.channels.whatsapp import WhatsAppChannel
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
+from src.modules.iam.api.dependencies import get_current_tenant_id
+from src.modules.sales_agent.application.orchestrator.chat import ChatOrchestrator
 
 router = APIRouter(tags=["WhatsApp"])
 logger = structlog.get_logger()
@@ -22,6 +34,7 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 
 # --- Webhooks ---
+
 
 @router.get("/webhooks/whatsapp")
 async def verify_whatsapp_webhook(
@@ -42,6 +55,7 @@ async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks):
 
 
 # --- Endpoints ---
+
 
 @router.get("/whatsapp/status")
 async def get_whatsapp_status(
@@ -66,7 +80,9 @@ async def get_whatsapp_status(
                 provider_instance = status_data.get("data", {}).get("instance", {})
 
                 if not current_metadata and provider_instance:
-                    owner_jid = provider_instance.get("ownerJid") or provider_instance.get("number")
+                    owner_jid = provider_instance.get(
+                        "ownerJid"
+                    ) or provider_instance.get("number")
                     profile_name = (
                         provider_instance.get("profileName")
                         or provider_instance.get("pushName")
@@ -124,8 +140,14 @@ async def create_whatsapp_session(
         resp = await channel.create_instance(token)
 
         if resp.get("status") != 201:
-            logger.error("whatsapp_create_rejected", status=resp.get("status"), body=resp.get("text"))
-            raise HTTPException(status_code=500, detail=f"Failed to create instance: {resp.get('text')}")
+            logger.error(
+                "whatsapp_create_rejected",
+                status=resp.get("status"),
+                body=resp.get("text"),
+            )
+            raise HTTPException(
+                status_code=500, detail=f"Failed to create instance: {resp.get('text')}"
+            )
 
         await asyncio.sleep(2)
 
@@ -133,7 +155,11 @@ async def create_whatsapp_session(
         webhook_resp = await channel.configure_webhook(webhook_url)
 
         if webhook_resp.get("status") not in [200, 201]:
-            logger.warning("whatsapp_webhook_config_failed", tenant_id=tenant_id, status=webhook_resp.get("status"))
+            logger.warning(
+                "whatsapp_webhook_config_failed",
+                tenant_id=tenant_id,
+                status=webhook_resp.get("status"),
+            )
 
         repo.upsert(
             tenant_id=uuid.UUID(tenant_id),
@@ -147,7 +173,11 @@ async def create_whatsapp_session(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("whatsapp_create_session_failed", error=str(e), traceback=traceback.format_exc())
+        logger.error(
+            "whatsapp_create_session_failed",
+            error=str(e),
+            traceback=traceback.format_exc(),
+        )
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -171,10 +201,13 @@ async def get_whatsapp_qr(
                 return {"code": qr_code}
 
             return data
-        else:
-            if resp.get("status") == 404:
-                raise HTTPException(status_code=404, detail="Instance not found. Create session first.")
-            raise HTTPException(status_code=500, detail=f"Evolution Error: {resp.get('text')}")
+        if resp.get("status") == 404:
+            raise HTTPException(
+                status_code=404, detail="Instance not found. Create session first."
+            )
+        raise HTTPException(
+            status_code=500, detail=f"Evolution Error: {resp.get('text')}"
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -190,7 +223,9 @@ async def delete_whatsapp_session(
     tenant_uuid = uuid.UUID(tenant_id)
 
     if provider == "meta":
-        connection = repo.get_by_tenant_and_type(tenant_uuid, ChannelType.WHATSAPP_CLOUD)
+        connection = repo.get_by_tenant_and_type(
+            tenant_uuid, ChannelType.WHATSAPP_CLOUD
+        )
         if connection:
             repo.deactivate(connection)
         return {"status": "deleted"}
@@ -222,8 +257,12 @@ async def handle_whatsapp_webhook(
     adapter = WhatsAppChannel(tenant_id=tenant_id)
 
     if background_tasks:
-        background_tasks.add_task(orch._handle_incoming_webhook, adapter, payload, None, tenant_id)
+        background_tasks.add_task(
+            orch._handle_incoming_webhook, adapter, payload, None, tenant_id
+        )
     else:
-        await orch._handle_incoming_webhook(adapter, payload, background_tasks, tenant_id)
+        await orch._handle_incoming_webhook(
+            adapter, payload, background_tasks, tenant_id
+        )
 
     return {"status": "ok"}

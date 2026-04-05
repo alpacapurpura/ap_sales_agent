@@ -5,7 +5,6 @@ from the connections bounded context without coupling to it directly.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -36,7 +35,7 @@ class ConnectionPort(ABC):
     @abstractmethod
     async def list_active_connections(
         self, tenant_id: UUID
-    ) -> List[ConnectionCredentials]:
+    ) -> list[ConnectionCredentials]:
         """List all active connections for a tenant."""
         ...
 
@@ -48,7 +47,7 @@ class OfferReadDTO(BaseModel):
     tenant_id: UUID
     public_name: str
     offer_type: str  # Archetype string (e.g. "producto", "programa")
-    value_level: Optional[str] = None  # OfferValueLevel.value string
+    value_level: str | None = None  # OfferValueLevel.value string
     pricing_type: str = "one_time"  # "one_time" | "subscription" | "payment_plan"
     currency: str = "USD"
 
@@ -59,13 +58,13 @@ class ProductMappingPort(ABC):
     @abstractmethod
     async def resolve_offer_id(
         self, tenant_id: UUID, source: str, external_product_id: str
-    ) -> Optional[UUID]:
+    ) -> UUID | None:
         """Resolve a single external product ID to an offer ID."""
         ...
 
     @abstractmethod
     async def bulk_resolve(
-        self, tenant_id: UUID, source: str, external_ids: List[str]
+        self, tenant_id: UUID, source: str, external_ids: list[str]
     ) -> dict:
         """Batch resolve: {external_id: offer_id}."""
         ...
@@ -79,15 +78,13 @@ class OfferReadPort(ABC):
     """
 
     @abstractmethod
-    async def get_offers_by_tenant(
-        self, tenant_id: UUID
-    ) -> List[OfferReadDTO]:
+    async def get_offers_by_tenant(self, tenant_id: UUID) -> list[OfferReadDTO]:
         """All active offers for a tenant (excludes archived, soft-deleted)."""
         ...
 
     @abstractmethod
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: Optional[UUID] = None
-    ) -> Optional[OfferReadDTO]:
+        self, offer_id: UUID, tenant_id: UUID | None = None
+    ) -> OfferReadDTO | None:
         """Single offer by ID, scoped to tenant when provided."""
         ...

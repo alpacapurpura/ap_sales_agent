@@ -4,19 +4,24 @@ YouTube Analytics API Router.
 Exposes channel overview, daily views, top videos, demographics,
 and traffic sources for the Growth Studio and Sales Studio.
 """
+
+import datetime
+
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import List, Optional
-import datetime
-import structlog
 
 from src.core.database import get_db
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.channels.youtube_analytics import (
+    YouTubeAnalyticsAdapter,
+)
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.domain.enums import ChannelType
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
-from src.modules.connections.infrastructure.channels.youtube_analytics import YouTubeAnalyticsAdapter
 
 router = APIRouter(tags=["youtube-analytics"])
 
@@ -37,9 +42,11 @@ class VideoDetail(BaseModel):
 
 class TopVideosResponse(BaseModel):
     status: str
-    data: List[VideoDetail]
+    data: list[VideoDetail]
     start_date: str
     end_date: str
+
+
 logger = structlog.get_logger()
 
 
@@ -57,14 +64,17 @@ def _get_adapter(
     if not connection or not connection.credentials:
         connection = repo.get_active(user.tenant_id, ChannelType.YOUTUBE)
     if not connection or not connection.credentials:
-        raise HTTPException(status_code=400, detail="YouTube no conectado. Conecta tu cuenta de Google primero.")
+        raise HTTPException(
+            status_code=400,
+            detail="YouTube no conectado. Conecta tu cuenta de Google primero.",
+        )
 
     return YouTubeAnalyticsAdapter(connection.credentials)
 
 
 def _default_dates(
-    start_date: Optional[str],
-    end_date: Optional[str],
+    start_date: str | None,
+    end_date: str | None,
 ) -> tuple[str, str]:
     """Defaults to last 30 days if no dates provided."""
     today = datetime.date.today()
@@ -106,8 +116,8 @@ async def get_status(
 
 @router.get("/overview")
 async def get_overview(
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="YYYY-MM-DD"),
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):
     """
@@ -125,8 +135,8 @@ async def get_overview(
 
 @router.get("/daily-views")
 async def get_daily_views(
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="YYYY-MM-DD"),
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):
     """Daily time-series of views and watch time."""
@@ -141,8 +151,8 @@ async def get_daily_views(
 
 @router.get("/top-videos")
 async def get_top_videos(
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="YYYY-MM-DD"),
     max_results: int = Query(10, ge=1, le=50),
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):
@@ -158,8 +168,8 @@ async def get_top_videos(
 
 @router.get("/demographics")
 async def get_demographics(
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="YYYY-MM-DD"),
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):
     """Audience demographics (age group + gender)."""
@@ -174,8 +184,8 @@ async def get_demographics(
 
 @router.get("/traffic-sources")
 async def get_traffic_sources(
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="YYYY-MM-DD"),
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):
     """Views by traffic source (search, suggested, external, etc.)."""
@@ -190,8 +200,8 @@ async def get_traffic_sources(
 
 @router.get("/countries")
 async def get_countries(
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="YYYY-MM-DD"),
     max_results: int = Query(10, ge=1, le=50),
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):
@@ -207,8 +217,8 @@ async def get_countries(
 
 @router.get("/top-videos-enriched", response_model=TopVideosResponse)
 async def get_top_videos_enriched(
-    start_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
-    end_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    start_date: str | None = Query(None, description="YYYY-MM-DD"),
+    end_date: str | None = Query(None, description="YYYY-MM-DD"),
     max_results: int = Query(10, ge=1, le=50),
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):

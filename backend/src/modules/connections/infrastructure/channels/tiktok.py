@@ -11,7 +11,7 @@ degradation when tokens are expired or missing.
 
 import logging
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -27,7 +27,7 @@ class TikTokAdapter:
     All methods return empty lists on failure (graceful degradation).
     """
 
-    def __init__(self, access_token: Optional[str] = None):
+    def __init__(self, access_token: str | None = None):
         self.access_token = access_token
 
     async def get_organic_insights(
@@ -35,7 +35,7 @@ class TikTokAdapter:
         access_token: str,
         start_date: date,
         end_date: date,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Fetch organic video insights (video_views, likes, comments, shares).
 
         Returns a list of dicts with metric data, or empty list on failure.
@@ -78,7 +78,7 @@ class TikTokAdapter:
         advertiser_id: str,
         start_date: date,
         end_date: date,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Fetch TikTok Ads campaign-level report.
 
         Returns a list of row dicts with reach, clicks, conversions, spend,

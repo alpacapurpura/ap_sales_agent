@@ -1,6 +1,6 @@
 from src.modules.crm.infrastructure.models.customer_model import (
-    CustomerProfileModel,
     CustomerIdentityModel,
+    CustomerProfileModel,
     JourneyEventModel,
 )
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
@@ -8,8 +8,8 @@ from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
 )
 
 __all__ = [
-    "CustomerProfileModel",
     "CustomerIdentityModel",
+    "CustomerProfileModel",
     "JourneyEventModel",
     "LifecycleTransitionModel",
 ]

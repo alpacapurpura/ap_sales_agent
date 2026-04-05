@@ -1,12 +1,11 @@
 """Shared utilities for admin modules — tenant selector, tooltips, cross-tenant queries."""
 
-import streamlit as st
-from typing import List, Optional
 from uuid import UUID
+
+import streamlit as st
 
 from src.core.database import SessionLocal
 from src.modules.iam.application.services.tenant_service import TenantService
-
 
 # ── Tooltips centralizados ─────────────────────────────────────────────
 TOOLTIPS = {
@@ -27,8 +26,9 @@ TOOLTIPS = {
 
 # ── Tenant helpers ─────────────────────────────────────────────────────
 
+
 @st.cache_data(ttl=300)
-def _get_all_tenants_cached() -> List[dict]:
+def _get_all_tenants_cached() -> list[dict]:
     """Fetch all tenants, cached 5 min. Returns list of dicts."""
     db = SessionLocal()
     try:
@@ -42,12 +42,12 @@ def _get_all_tenants_cached() -> List[dict]:
         db.close()
 
 
-def get_tenant_options() -> List[dict]:
+def get_tenant_options() -> list[dict]:
     """Get tenants list (cached). Each dict has id, name, slug, is_active."""
     return _get_all_tenants_cached()
 
 
-def render_tenant_selector(key: str, allow_all: bool = True) -> Optional[UUID]:
+def render_tenant_selector(key: str, allow_all: bool = True) -> UUID | None:
     """Selectbox with tenant names, returns UUID or None for 'Todos'."""
     tenants = get_tenant_options()
 
@@ -79,11 +79,12 @@ def get_tenant_name(tenant_id) -> str:
 
 # ── Color/Flag helpers ────────────────────────────────────────────────
 
+
 def completion_flag(ratio: float) -> str:
     """🟢 >70%, 🟡 30-70%, 🔴 <30%"""
     if ratio > 0.7:
         return "🟢"
-    elif ratio >= 0.3:
+    if ratio >= 0.3:
         return "🟡"
     return "🔴"
 
@@ -92,7 +93,7 @@ def health_flag(days_inactive: int) -> str:
     """🟢 <7d, 🟡 7-14d, 🔴 >14d"""
     if days_inactive < 7:
         return "🟢"
-    elif days_inactive <= 14:
+    if days_inactive <= 14:
         return "🟡"
     return "🔴"
 
@@ -101,19 +102,22 @@ def pct_flag(pct: float) -> str:
     """🟢 <10%, 🟡 10-20%, 🔴 >20%"""
     if pct > 20:
         return "🔴"
-    elif pct > 10:
+    if pct > 10:
         return "🟡"
     return "🟢"
 
 
 # ── Cross-tenant SQL queries ──────────────────────────────────────────
 
-def get_all_tenants_summary() -> List[dict]:
+
+def get_all_tenants_summary() -> list[dict]:
     """Tenants with user count and last event date. One SQL query."""
     from sqlalchemy import text
+
     db = SessionLocal()
     try:
-        result = db.execute(text("""
+        result = db.execute(
+            text("""
             SELECT
                 t.id,
                 t.name,
@@ -126,7 +130,8 @@ def get_all_tenants_summary() -> List[dict]:
             WHERE t.is_active = true
             GROUP BY t.id, t.name, t.is_active
             ORDER BY last_event DESC NULLS LAST
-        """))
+        """)
+        )
         return [dict(row._mapping) for row in result]
     finally:
         db.close()
@@ -135,9 +140,11 @@ def get_all_tenants_summary() -> List[dict]:
 def get_adoption_funnel() -> dict:
     """Batch SQL: count tenants with brand, offer, connection, copilot usage."""
     from sqlalchemy import text
+
     db = SessionLocal()
     try:
-        result = db.execute(text("""
+        result = db.execute(
+            text("""
             SELECT
                 (SELECT COUNT(*) FROM tenants WHERE is_active = true) AS total_tenants,
                 (SELECT COUNT(DISTINCT tenant_id) FROM avatars) AS has_brand,
@@ -145,7 +152,8 @@ def get_adoption_funnel() -> dict:
                 (SELECT COUNT(DISTINCT tenant_id) FROM channel_connections WHERE is_active = true) AS has_connection,
                 (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events WHERE event_type = 'message_sent' AND deleted_at IS NULL) AS has_copilot,
                 (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events WHERE event_type = 'procedure_completed' AND deleted_at IS NULL) AS has_procedure_completed
-        """))
+        """)
+        )
         row = result.fetchone()
         return dict(row._mapping) if row else {}
     finally:

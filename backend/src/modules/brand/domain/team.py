@@ -1,53 +1,60 @@
-from typing import Optional, List, Dict, Any
-from pydantic import Field, ConfigDict, model_validator
+from typing import Any
+
+from pydantic import ConfigDict, Field, model_validator
+
 from src.shared.domain.base_entity import BaseEntity
+
 
 class KeyFigure(BaseEntity):
     id: str
     name: str
     role: str
-    headshot_url: Optional[str] = None
-    is_primary_voice: Optional[bool] = None
-    bio: Optional[str] = None
-    gender: Optional[str] = None
-    communication_style: Optional[str] = None
-    personal_website: Optional[str] = None
-    personal_linkedin: Optional[str] = None
-    personal_instagram: Optional[str] = None
-    personal_tiktok: Optional[str] = None
-    personal_facebook: Optional[str] = None
-    work_whatsapp: Optional[str] = None
-    gallery: List[str] = Field(default_factory=list)
-    
-    model_config = ConfigDict(extra='allow')
+    headshot_url: str | None = None
+    is_primary_voice: bool | None = None
+    bio: str | None = None
+    gender: str | None = None
+    communication_style: str | None = None
+    personal_website: str | None = None
+    personal_linkedin: str | None = None
+    personal_instagram: str | None = None
+    personal_tiktok: str | None = None
+    personal_facebook: str | None = None
+    work_whatsapp: str | None = None
+    gallery: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="allow")
+
 
 class BrandTeamWrapper(BaseEntity):
-    key_leadership: List[KeyFigure] = Field(default_factory=list, description="Personas clave identificadas")
-    culture_vibe: Optional[str] = Field(None, description="Descripción de la cultura")
-    locations: Optional[str] = Field(None, description="Ubicaciones operativas")
+    key_leadership: list[KeyFigure] = Field(
+        default_factory=list, description="Personas clave identificadas"
+    )
+    culture_vibe: str | None = Field(None, description="Descripción de la cultura")
+    locations: str | None = Field(None, description="Ubicaciones operativas")
+
 
 class BrandContact(BaseEntity):
     # Frontend ContactData fields
-    support_email: Optional[str] = None
-    sales_email: Optional[str] = None
-    phone: Optional[str] = None
-    whatsapp: Optional[str] = None
-    address: Optional[str] = None
-    social_instagram: Optional[str] = None
-    social_linkedin: Optional[str] = None
-    social_youtube: Optional[str] = None
-    social_tiktok: Optional[str] = None
-    social_facebook: Optional[str] = None
-    social_twitter: Optional[str] = None
-    testimonials_url: Optional[str] = None
-    
-    # Legacy fields fallback
-    email: Optional[str] = None
-    social: Optional[Dict[str, Any]] = Field(default_factory=dict)
-    
-    model_config = ConfigDict(extra='allow')
+    support_email: str | None = None
+    sales_email: str | None = None
+    phone: str | None = None
+    whatsapp: str | None = None
+    address: str | None = None
+    social_instagram: str | None = None
+    social_linkedin: str | None = None
+    social_youtube: str | None = None
+    social_tiktok: str | None = None
+    social_facebook: str | None = None
+    social_twitter: str | None = None
+    testimonials_url: str | None = None
 
-    @model_validator(mode='before')
+    # Legacy fields fallback
+    email: str | None = None
+    social: dict[str, Any] | None = Field(default_factory=dict)
+
+    model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="before")
     @classmethod
     def migrate_legacy_fields(cls, data: Any) -> Any:
         """
@@ -55,91 +62,95 @@ class BrandContact(BaseEntity):
         """
         if isinstance(data, dict):
             # 1. Migrate email -> support_email
-            if not data.get('support_email') and data.get('email'):
-                data['support_email'] = data['email']
-            
+            if not data.get("support_email") and data.get("email"):
+                data["support_email"] = data["email"]
+
             # 2. Migrate social dict -> flat fields
-            social_data = data.get('social')
+            social_data = data.get("social")
             if isinstance(social_data, dict):
                 mapping = {
-                    'instagram': 'social_instagram',
-                    'linkedin': 'social_linkedin',
-                    'youtube': 'social_youtube',
-                    'tiktok': 'social_tiktok',
-                    'facebook': 'social_facebook',
-                    'twitter': 'social_twitter'
+                    "instagram": "social_instagram",
+                    "linkedin": "social_linkedin",
+                    "youtube": "social_youtube",
+                    "tiktok": "social_tiktok",
+                    "facebook": "social_facebook",
+                    "twitter": "social_twitter",
                 }
                 for key, target_field in mapping.items():
                     if not data.get(target_field) and social_data.get(key):
                         data[target_field] = social_data[key]
-            
+
         return data
+
 
 class BrandTestimonial(BaseEntity):
     # Frontend TestimonialItem fields
-    id: Optional[str] = None
-    type: Optional[str] = "text" # "text" | "video"
-    content: Optional[str] = None
-    author_name: Optional[str] = None
-    author_role: Optional[str] = None
-    rating: Optional[int] = 5
-    author_avatar: Optional[str] = None
-    
-    # Legacy fields
-    author: Optional[str] = None
-    role: Optional[str] = None
-    quote: Optional[str] = None
-    avatar_url: Optional[str] = None
-    
-    model_config = ConfigDict(extra='allow')
+    id: str | None = None
+    type: str | None = "text"  # "text" | "video"
+    content: str | None = None
+    author_name: str | None = None
+    author_role: str | None = None
+    rating: int | None = 5
+    author_avatar: str | None = None
 
-    @model_validator(mode='before')
+    # Legacy fields
+    author: str | None = None
+    role: str | None = None
+    quote: str | None = None
+    avatar_url: str | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="before")
     @classmethod
     def migrate_legacy_testimonial(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            if not data.get('author_name') and data.get('author'):
-                data['author_name'] = data['author']
-            if not data.get('author_role') and data.get('role'):
-                data['author_role'] = data['role']
-            if not data.get('content') and data.get('quote'):
-                data['content'] = data['quote']
-            if not data.get('author_avatar') and data.get('avatar_url'):
-                data['author_avatar'] = data['avatar_url']
+            if not data.get("author_name") and data.get("author"):
+                data["author_name"] = data["author"]
+            if not data.get("author_role") and data.get("role"):
+                data["author_role"] = data["role"]
+            if not data.get("content") and data.get("quote"):
+                data["content"] = data["quote"]
+            if not data.get("author_avatar") and data.get("avatar_url"):
+                data["author_avatar"] = data["avatar_url"]
         return data
+
 
 class BrandAuthorityItem(BaseEntity):
     # Frontend AuthorityItem fields
-    id: Optional[str] = None
-    entity_name: Optional[str] = None
-    type: Optional[str] = None
-    context: Optional[str] = None
-    proof_url: Optional[str] = None
-    logo_url: Optional[str] = None
-    
-    # Legacy fields
-    title: Optional[str] = None
-    url: Optional[str] = None
-    
-    model_config = ConfigDict(extra='allow')
+    id: str | None = None
+    entity_name: str | None = None
+    type: str | None = None
+    context: str | None = None
+    proof_url: str | None = None
+    logo_url: str | None = None
 
-    @model_validator(mode='before')
+    # Legacy fields
+    title: str | None = None
+    url: str | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="before")
     @classmethod
     def migrate_legacy_authority(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            if not data.get('entity_name') and data.get('title'):
-                data['entity_name'] = data['title']
-            if not data.get('proof_url') and data.get('url'):
-                data['proof_url'] = data['url']
+            if not data.get("entity_name") and data.get("title"):
+                data["entity_name"] = data["title"]
+            if not data.get("proof_url") and data.get("url"):
+                data["proof_url"] = data["url"]
         return data
+
 
 class BrandTeam(BaseEntity):
     """
     Legacy Information about the people behind the brand.
     Kept for backward compatibility or metadata.
     """
-    key_leadership: List[str] = Field(default_factory=list)
-    team_structure: Optional[str] = Field(None)
-    culture_vibe: Optional[str] = Field(None)
-    locations: List[str] = Field(default_factory=list)
-    
-    model_config = ConfigDict(extra='allow')
+
+    key_leadership: list[str] = Field(default_factory=list)
+    team_structure: str | None = Field(None)
+    culture_vibe: str | None = Field(None)
+    locations: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="allow")

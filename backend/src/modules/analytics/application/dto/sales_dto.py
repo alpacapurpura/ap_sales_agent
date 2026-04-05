@@ -10,13 +10,10 @@ Provides the complete data contract for GET /metrics/sales endpoint:
 Reuses MiniFunnelDTO from capture_dto and BottleneckDTO from opportunity_dto.
 """
 
-from typing import Dict, List, Optional
-
 from pydantic import BaseModel
 
 from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
 from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
-
 
 # ---------------------------------------------------------------------------
 # TIER MAPPING: OfferValueLevel -> display tiers (aligned with Value Ladder)
@@ -25,8 +22,8 @@ from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
 # Unknown levels default to "transformacion" (safest mid-range fallback).
 # ---------------------------------------------------------------------------
 
-VALUE_LEVEL_TO_TIER: dict[str, Optional[str]] = {
-    "lead_magnet": None,           # Lead magnets don't generate revenue
+VALUE_LEVEL_TO_TIER: dict[str, str | None] = {
+    "lead_magnet": None,  # Lead magnets don't generate revenue
     "activacion": "activacion",
     "transformacion": "transformacion",
     "maximizacion": "maximizacion",
@@ -50,7 +47,7 @@ TIER_LABELS: dict[str, str] = {
 }
 
 
-def get_tier_for_value_level(value_level: Optional[str]) -> str:
+def get_tier_for_value_level(value_level: str | None) -> str:
     """Map a value_level string to its display tier.
 
     Unknown levels default to transformacion (safe mid-range fallback).
@@ -69,7 +66,7 @@ def get_tier_for_value_level(value_level: Optional[str]) -> str:
 
 DEFAULT_EXCHANGE_RATES: dict[str, float] = {
     "USD": 1.0,
-    "MXN": 0.058,   # ~17.2 MXN per USD
+    "MXN": 0.058,  # ~17.2 MXN per USD
     "EUR": 1.08,
     "COP": 0.00024,
     "ARS": 0.0011,
@@ -77,7 +74,7 @@ DEFAULT_EXCHANGE_RATES: dict[str, float] = {
 }
 
 
-def convert_to_usd(amount: float, currency: str) -> Optional[float]:
+def convert_to_usd(amount: float, currency: str) -> float | None:
     """Convert amount to USD using static rates. Returns None if rate unknown."""
     rate = DEFAULT_EXCHANGE_RATES.get(currency)
     if rate is None:
@@ -89,7 +86,7 @@ def convert_to_usd(amount: float, currency: str) -> Optional[float]:
 # Subscription label constants
 # ---------------------------------------------------------------------------
 
-SUBSCRIPTION_LABELS: dict[str, Optional[dict]] = {
+SUBSCRIPTION_LABELS: dict[str, dict | None] = {
     "subscription": {
         "new_label": "nuevas suscripciones",
         "renewal_label": "renovaciones",
@@ -109,9 +106,7 @@ RECURRING_SERVICE_TYPES = {
 }
 
 
-def get_subscription_labels(
-    pricing_type: str, offer_type: str
-) -> Optional[dict]:
+def get_subscription_labels(pricing_type: str, offer_type: str) -> dict | None:
     """Get new/renewal labels based on pricing type and offer type."""
     if pricing_type == "one_time":
         return None
@@ -146,15 +141,15 @@ class OfferSaleDTO(BaseModel):
     total_revenue: float
     sales_count: int
     currency: str
-    usd_revenue: Optional[float] = None
-    source_breakdown: Dict[str, int] = {}  # {"SHOPIFY": 60, "MANUAL": 15}
+    usd_revenue: float | None = None
+    source_breakdown: dict[str, int] = {}  # {"SHOPIFY": 60, "MANUAL": 15}
     # Subscription split (only for subscription/payment_plan offers)
-    new_subscriptions: Optional[int] = None
-    new_subscription_revenue: Optional[float] = None
-    renewals: Optional[int] = None
-    renewal_revenue: Optional[float] = None
-    subscription_new_label: Optional[str] = None
-    subscription_renewal_label: Optional[str] = None
+    new_subscriptions: int | None = None
+    new_subscription_revenue: float | None = None
+    renewals: int | None = None
+    renewal_revenue: float | None = None
+    subscription_new_label: str | None = None
+    subscription_renewal_label: str | None = None
 
 
 class TierGroupDTO(BaseModel):
@@ -162,7 +157,7 @@ class TierGroupDTO(BaseModel):
 
     tier_key: str  # "low_ticket" | "mid_ticket" | "high_ticket" | "recurrente"
     tier_label: str  # "Low Ticket" | "Mid Ticket" | "High Ticket" | "Recurrente"
-    offers: List[OfferSaleDTO]
+    offers: list[OfferSaleDTO]
 
 
 class RevenueGroupDTO(BaseModel):
@@ -171,21 +166,21 @@ class RevenueGroupDTO(BaseModel):
     group_key: str  # "adquisicion" | "expansion"
     group_label: str  # "Adquisicion" | "Expansion"
     total_revenue: float
-    total_revenue_usd: Optional[float] = None
+    total_revenue_usd: float | None = None
     customer_count: int
     revenue_percentage: float  # of total revenue
     currency: str
-    tiers: List[TierGroupDTO]
+    tiers: list[TierGroupDTO]
 
 
 class SalesHeaderKpisDTO(BaseModel):
     """Panel header KPIs: Revenue Total | Nuevos Clientes | CAC + enriched Shopify metrics."""
 
     total_revenue: float
-    total_revenue_usd: Optional[float] = None
+    total_revenue_usd: float | None = None
     currency: str
     new_customers: int  # CONVERSION count
-    cac: Optional[float] = None
+    cac: float | None = None
     cac_incomplete: bool = False  # True when cost data missing
     # Enriched Shopify metrics (from official_metrics)
     net_sales: float = 0.0
@@ -214,6 +209,6 @@ class SalesDetailDTO(BaseModel):
     mini_funnel: MiniFunnelDTO  # Oportunidades -> Ventas
     adquisicion: RevenueGroupDTO
     expansion: RevenueGroupDTO
-    bottlenecks: List[BottleneckDTO] = []
+    bottlenecks: list[BottleneckDTO] = []
     period: str = "last_30_days"
-    last_updated: Optional[str] = None
+    last_updated: str | None = None

@@ -6,7 +6,8 @@ traffic sources, and revenue data for the authenticated user's channel.
 
 Uses the same OAuth credentials as the unified Google Workspace flow.
 """
-from typing import Dict, Any, List
+
+from typing import Any
 
 import structlog
 from google.oauth2.credentials import Credentials
@@ -29,7 +30,7 @@ class YouTubeAnalyticsAdapter:
     (stored in ChannelConnection.credentials).
     """
 
-    def __init__(self, credentials_data: Dict[str, Any]):
+    def __init__(self, credentials_data: dict[str, Any]):
         self.creds = Credentials.from_authorized_user_info(credentials_data, SCOPES)
 
     def _get_analytics_service(self):
@@ -59,7 +60,7 @@ class YouTubeAnalyticsAdapter:
         filters: str = "",
         sort: str = "",
         max_results: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Low-level wrapper around reports().query().
 
@@ -84,10 +85,12 @@ class YouTubeAnalyticsAdapter:
         return svc.reports().query(**params).execute()
 
     @staticmethod
-    def _rows_to_dicts(response: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _rows_to_dicts(response: dict[str, Any]) -> list[dict[str, Any]]:
         """Converts the columnHeaders + rows response into a list of dicts."""
         headers = [h["name"] for h in response.get("columnHeaders", [])]
-        return [dict(zip(headers, row)) for row in response.get("rows", [])]
+        return [
+            dict(zip(headers, row, strict=False)) for row in response.get("rows", [])
+        ]
 
     # ── Public Methods ─────────────────────────────────────────────────────
 
@@ -95,7 +98,7 @@ class YouTubeAnalyticsAdapter:
         self,
         start_date: str,
         end_date: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Aggregate channel metrics for the given date range.
 
@@ -115,7 +118,7 @@ class YouTubeAnalyticsAdapter:
         self,
         start_date: str,
         end_date: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Daily breakdown of views and watch time.
 
@@ -135,7 +138,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
         max_results: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Top N videos by views in the date range.
 
@@ -155,7 +158,7 @@ class YouTubeAnalyticsAdapter:
         self,
         start_date: str,
         end_date: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Audience demographics: views broken down by ageGroup and gender.
         """
@@ -171,7 +174,7 @@ class YouTubeAnalyticsAdapter:
         self,
         start_date: str,
         end_date: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Where the views are coming from (search, suggested, external, etc.).
         """
@@ -188,7 +191,7 @@ class YouTubeAnalyticsAdapter:
         self,
         start_date: str,
         end_date: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Card and end screen metrics for the channel.
 
@@ -208,7 +211,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
         max_results: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Top videos with enriched metadata from the Data API v3.
 
@@ -224,21 +227,24 @@ class YouTubeAnalyticsAdapter:
             return analytics_videos
 
         data_svc = self._get_data_service()
-        snippet_resp = data_svc.videos().list(
-            id=",".join(video_ids),
-            part="snippet,contentDetails,statistics",
-        ).execute()
+        snippet_resp = (
+            data_svc.videos()
+            .list(
+                id=",".join(video_ids),
+                part="snippet,contentDetails,statistics",
+            )
+            .execute()
+        )
 
-        snippet_map: Dict[str, Dict[str, Any]] = {}
+        snippet_map: dict[str, dict[str, Any]] = {}
         for item in snippet_resp.get("items", []):
             vid = item["id"]
             snippet = item.get("snippet", {})
             content = item.get("contentDetails", {})
             thumbnails = snippet.get("thumbnails", {})
-            thumb_url = (
-                thumbnails.get("medium", {}).get("url")
-                or thumbnails.get("default", {}).get("url", "")
-            )
+            thumb_url = thumbnails.get("medium", {}).get("url") or thumbnails.get(
+                "default", {}
+            ).get("url", "")
             snippet_map[vid] = {
                 "title": snippet.get("title", ""),
                 "thumbnail_url": thumb_url,
@@ -250,17 +256,19 @@ class YouTubeAnalyticsAdapter:
         for v in analytics_videos:
             vid = v.get("video", "")
             meta = snippet_map.get(vid, {})
-            enriched.append({
-                "video_id": vid,
-                "title": meta.get("title", ""),
-                "thumbnail_url": meta.get("thumbnail_url", ""),
-                "duration": meta.get("duration", ""),
-                "published_at": meta.get("published_at", ""),
-                "views": v.get("views", 0),
-                "likes": v.get("likes", 0),
-                "watch_time_minutes": v.get("estimatedMinutesWatched", 0),
-                "avg_view_duration": v.get("averageViewDuration", 0),
-            })
+            enriched.append(
+                {
+                    "video_id": vid,
+                    "title": meta.get("title", ""),
+                    "thumbnail_url": meta.get("thumbnail_url", ""),
+                    "duration": meta.get("duration", ""),
+                    "published_at": meta.get("published_at", ""),
+                    "views": v.get("views", 0),
+                    "likes": v.get("likes", 0),
+                    "watch_time_minutes": v.get("estimatedMinutesWatched", 0),
+                    "avg_view_duration": v.get("averageViewDuration", 0),
+                }
+            )
 
         return enriched
 
@@ -269,7 +277,7 @@ class YouTubeAnalyticsAdapter:
         start_date: str,
         end_date: str,
         max_results: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Views by country.
         """

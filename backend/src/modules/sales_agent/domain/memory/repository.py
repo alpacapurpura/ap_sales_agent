@@ -1,37 +1,34 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, Any, Union
+from typing import Any
+
 
 class SemanticMemoryStore(ABC):
     """
     Interface for Semantic Memory (Long-term Knowledge Base).
     Usually implemented by Vector Stores (Qdrant, Pinecone).
     """
-    
+
     @abstractmethod
     def search_knowledge_base(
-        self, 
-        query_text: str, 
-        tenant_id: str, 
+        self,
+        query_text: str,
+        tenant_id: str,
         limit: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
-        scope_options: Optional[Dict[str, Any]] = None
-    ) -> Union[str, List[Dict]]:
+        filters: dict[str, Any] | None = None,
+        scope_options: dict[str, Any] | None = None,
+    ) -> str | list[dict]:
         """
         Retrieve relevant context from the knowledge base.
         """
-        pass
 
     @abstractmethod
     def add_texts(
-        self, 
-        texts: List[str], 
-        metadatas: List[dict], 
-        collection_name: str
+        self, texts: list[str], metadatas: list[dict], collection_name: str
     ) -> None:
         """
         Add new knowledge to the memory.
         """
-        pass
+
 
 class EpisodicMemoryStore(ABC):
     """
@@ -40,22 +37,26 @@ class EpisodicMemoryStore(ABC):
     """
 
     @abstractmethod
-    def get_chat_history(self, user_id: str, limit: int = 10) -> List[Any]:
+    def get_chat_history(self, user_id: str, limit: int = 10) -> list[Any]:
         """
         Retrieve recent conversation history for context window.
         """
-        pass
 
     @abstractmethod
-    def log_message(self, user_id: str, role: str, content: str, channel: str, tenant_id: Optional[str] = None) -> Any:
+    def log_message(
+        self,
+        user_id: str,
+        role: str,
+        content: str,
+        channel: str,
+        tenant_id: str | None = None,
+    ) -> Any:
         """
         Store a new message in the episode.
         """
-        pass
 
     @abstractmethod
     def get_last_message(self, user_id: str) -> Any:
         """
         Retrieve the most recent message.
         """
-        pass

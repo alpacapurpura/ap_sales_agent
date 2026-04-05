@@ -1,11 +1,12 @@
 import os
 import uuid
-from typing import BinaryIO, Tuple
+from typing import BinaryIO
 
 import boto3
 from botocore.client import Config
 
 from src.core.config import settings
+
 from .base import StorageStrategy
 
 
@@ -28,7 +29,9 @@ class R2StorageStrategy(StorageStrategy):
         response = self.client.get_object(Bucket=self.bucket, Key=storage_path)
         return response["Body"].read()
 
-    def save(self, file_obj: BinaryIO, filename: str, path_prefix: str = "") -> Tuple[str, str]:
+    def save(
+        self, file_obj: BinaryIO, filename: str, path_prefix: str = ""
+    ) -> tuple[str, str]:
         ext = os.path.splitext(filename)[1]
         unique_name = f"{uuid.uuid4()}{ext}"
         key = f"{path_prefix}/{unique_name}" if path_prefix else unique_name

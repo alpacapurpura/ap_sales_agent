@@ -7,7 +7,6 @@ at weekly/monthly/quarterly granularity.
 import json
 import uuid
 from datetime import date
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select, text
@@ -92,16 +91,14 @@ class PeriodMetricsRepository:
     def get_period_metrics(
         self,
         tenant_id: UUID,
-        channel_slug: Optional[str] = None,
-        metric_name: Optional[str] = None,
-        period_type: Optional[str] = None,
-        start_date: Optional[date] = None,
-        end_date: Optional[date] = None,
+        channel_slug: str | None = None,
+        metric_name: str | None = None,
+        period_type: str | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
     ) -> list[PeriodMetricModel]:
         """Query period metrics with optional filters."""
-        stmt = select(PeriodMetricModel).where(
-            PeriodMetricModel.tenant_id == tenant_id
-        )
+        stmt = select(PeriodMetricModel).where(PeriodMetricModel.tenant_id == tenant_id)
         if channel_slug is not None:
             stmt = stmt.where(PeriodMetricModel.channel_slug == channel_slug)
         if metric_name is not None:
@@ -136,4 +133,4 @@ class PeriodMetricsRepository:
             )
             .distinct()
         )
-        return {row for row in self.db.execute(stmt).scalars().all()}
+        return set(self.db.execute(stmt).scalars().all())

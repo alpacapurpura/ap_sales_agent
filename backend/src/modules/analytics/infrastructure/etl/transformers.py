@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import logging
 from datetime import date
-from typing import Callable, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from src.modules.analytics.domain.period_config import TenantPeriodConfig
 
 logger = logging.getLogger(__name__)
@@ -18,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 def transform_staging_to_official(
     staging_rows,
-    cost_type_fn: Callable[[str, str], Optional[str]],
+    cost_type_fn: Callable[[str, str], str | None],
     extraction_run_id=None,
     stage_slug: str = "attraction",
-    period_config: "TenantPeriodConfig | None" = None,
-) -> List[Dict]:
+    period_config: TenantPeriodConfig | None = None,
+) -> list[dict]:
     """Transform staging metrics into official metrics format.
 
     Args:
@@ -37,6 +39,7 @@ def transform_staging_to_official(
     """
     if period_config is None:
         from src.modules.analytics.domain.period_config import TenantPeriodConfig
+
         period_config = TenantPeriodConfig()
 
     official_rows = []

@@ -6,13 +6,15 @@ who triggered it, why, the score at the time, and any extra metadata.
 
 triggered_by uses String (not PG enum) to avoid ALTER TYPE issues on new values.
 """
-from sqlalchemy import Column, String, DateTime, Enum, Float, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.sql import func
+
 import uuid
 
-from src.shared.domain.base_entity import Base
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.sql import func
+
 from src.modules.crm.domain.enums import LifecycleStage
+from src.shared.domain.base_entity import Base
 
 
 class LifecycleTransitionModel(Base):
@@ -36,12 +38,16 @@ class LifecycleTransitionModel(Base):
         nullable=False,
     )
 
-    reason = Column(String, nullable=False)  # Human-readable: "Score crossed MQL threshold (42.5 >= 40)"
+    reason = Column(
+        String, nullable=False
+    )  # Human-readable: "Score crossed MQL threshold (42.5 >= 40)"
     triggered_by = Column(
         String, nullable=False
     )  # Values: scoring_rule, sale_event, churn_event, manual, decay, reactivation
 
     score_at_transition = Column(Float, nullable=True)
 
-    transition_metadata = Column("metadata", JSONB, default=dict)  # Flexible context per trigger type
+    transition_metadata = Column(
+        "metadata", JSONB, default=dict
+    )  # Flexible context per trigger type
     occurred_at = Column(DateTime(timezone=True), server_default=func.now())

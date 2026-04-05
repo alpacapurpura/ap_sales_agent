@@ -5,7 +5,7 @@ retargeting/automation grouping, mini funnel (Leads -> MQLs).
 """
 
 from collections import defaultdict
-from typing import Dict, List, Optional
+from datetime import UTC
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -38,14 +38,14 @@ from src.modules.analytics.infrastructure.repositories.official_metrics_reposito
 )
 
 # Channel types -> nurture group mapping (Stage 2)
-_NURTURE_GROUP_MAP: Dict[str, str] = {
+_NURTURE_GROUP_MAP: dict[str, str] = {
     "retargeting": "retargeting",
     "email": "automation",
     "automation": "automation",
 }
 
 # Maps provider_name -> config key that holds the display name
-_DISPLAY_NAME_MAP: Dict[str, str] = {
+_DISPLAY_NAME_MAP: dict[str, str] = {
     "google_analytics": "property_display_name",
     "youtube": "channel_title",
     "meta": "tracked_ig_username",
@@ -59,8 +59,8 @@ class NurtureStageService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -82,33 +82,27 @@ class NurtureStageService:
         """
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "nurture", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "nurture", "last_30_days")
             if cached is not None:
                 return NurtureDetailDTO(**cached)
 
         # 2. Get dynamic channel list from ChannelRegistry
         registry = ChannelRegistry(self.connection_port)
-        channel_split = await registry.get_available_channels(
-            tenant_id, "nurture"
-        )
+        channel_split = await registry.get_available_channels(tenant_id, "nurture")
 
         # 3. Get aggregated metrics from official tables
         repo = OfficialMetricsRepository(self.db)
-        aggregations = repo.get_channel_summary(
-            tenant_id, "nurture", "last_30_days"
-        )
+        aggregations = repo.get_channel_summary(tenant_id, "nurture", "last_30_days")
 
         # Build lookup: channel_slug -> list of aggregation rows
-        agg_by_slug: Dict[str, list] = defaultdict(list)
+        agg_by_slug: dict[str, list] = defaultdict(list)
         for agg in aggregations:
             agg_by_slug[agg.channel_slug].append(agg)
 
         # 4. Query CRM for MQL counts
-        from datetime import datetime, timedelta, timezone as tz
+        from datetime import datetime, timedelta
 
-        now = datetime.now(tz.utc)
+        now = datetime.now(UTC)
         start_date = now - timedelta(days=30)
 
         nurture_repo = NurtureMetricsRepository(self.db)
@@ -136,11 +130,11 @@ class NurtureStageService:
         followup_events = nurture_repo.count_followup_events(tenant_id, start_date, now)
 
         # 7. Build ChannelMetricDTO lists grouped by section
-        groups: Dict[str, List[ChannelMetricDTO]] = {
+        groups: dict[str, list[ChannelMetricDTO]] = {
             "retargeting": [],
             "automation": [],
         }
-        available_channels: List[ChannelMetricDTO] = []
+        available_channels: list[ChannelMetricDTO] = []
 
         for ch in channel_split.get("connected", []):
             slug = ch["slug"]
@@ -148,20 +142,28 @@ class NurtureStageService:
             group_key = _NURTURE_GROUP_MAP.get(channel_type, "automation")
 
             # Build metrics depending on channel type
-            metrics: List[MetricValueDTO] = []
+            metrics: list[MetricValueDTO] = []
 
             if slug == "email-nurture":
                 # Mailerlite: email engagement metrics from CRM events
                 emails_sent = email_events.get("emails_sent", 0)
                 opens = email_events.get("opens", 0)
                 clicks = email_events.get("clicks", 0)
-                open_rate = round(opens / emails_sent * 100, 2) if emails_sent > 0 else 0.0
-                click_rate = round(clicks / emails_sent * 100, 2) if emails_sent > 0 else 0.0
+                open_rate = (
+                    round(opens / emails_sent * 100, 2) if emails_sent > 0 else 0.0
+                )
+                click_rate = (
+                    round(clicks / emails_sent * 100, 2) if emails_sent > 0 else 0.0
+                )
 
                 metrics = [
                     MetricValueDTO(name="emails_sent", value=float(emails_sent)),
-                    MetricValueDTO(name="open_rate", value=open_rate, unit="percentage"),
-                    MetricValueDTO(name="click_rate", value=click_rate, unit="percentage"),
+                    MetricValueDTO(
+                        name="open_rate", value=open_rate, unit="percentage"
+                    ),
+                    MetricValueDTO(
+                        name="click_rate", value=click_rate, unit="percentage"
+                    ),
                 ]
             elif slug == "ai-sdr":
                 # AI SDR: followup metrics from CRM events
@@ -171,26 +173,36 @@ class NurtureStageService:
 
                 metrics = [
                     MetricValueDTO(name="followups", value=float(sent)),
-                    MetricValueDTO(name="response_rate", value=response_rate, unit="percentage"),
+                    MetricValueDTO(
+                        name="response_rate", value=response_rate, unit="percentage"
+                    ),
                 ]
             else:
                 # Retargeting channels: metrics from ETL aggregation tables
                 agg_rows = agg_by_slug.get(slug, [])
                 for agg in agg_rows:
                     extra_data = getattr(agg, "extra", None) or {}
-                    breakdown = extra_data if isinstance(extra_data, dict) and extra_data else None
-                    metrics.append(MetricValueDTO(
-                        name=agg.metric_name,
-                        value=agg.value,
-                        unit=agg.unit or "count",
-                        currency=getattr(agg, "currency", None),
-                        breakdown=breakdown,
-                    ))
+                    breakdown = (
+                        extra_data
+                        if isinstance(extra_data, dict) and extra_data
+                        else None
+                    )
+                    metrics.append(
+                        MetricValueDTO(
+                            name=agg.metric_name,
+                            value=agg.value,
+                            unit=agg.unit or "count",
+                            currency=getattr(agg, "currency", None),
+                            breakdown=breakdown,
+                        )
+                    )
 
             # For ManyChat channels, supplement with metrics from official_metrics
             provider_name = ch.get("provider_name", "")
             if provider_name == "manychat":
-                mc_metrics_nurture = OfficialMetricsRepository(self.db).get_channel_metrics(
+                mc_metrics_nurture = OfficialMetricsRepository(
+                    self.db
+                ).get_channel_metrics(
                     tenant_id,
                     "manychat",
                     slug,
@@ -200,12 +212,16 @@ class NurtureStageService:
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics_nurture.items():
                     if m_name not in existing_names:
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = conn_config.get(display_name_key) if display_name_key else None
+            source_display = (
+                conn_config.get(display_name_key) if display_name_key else None
+            )
 
             dto = ChannelMetricDTO(
                 slug=slug,
@@ -241,7 +257,9 @@ class NurtureStageService:
             automation_totals["cost_per_mql"] = automation_cost_per_mql
 
         # 9. Build header KPIs and mini funnel
-        conversion_rate = round(total_mqls / total_leads * 100, 2) if total_leads > 0 else 0.0
+        conversion_rate = (
+            round(total_mqls / total_leads * 100, 2) if total_leads > 0 else 0.0
+        )
 
         available_dto = (
             AvailableChannelsDTO(channels=available_channels)

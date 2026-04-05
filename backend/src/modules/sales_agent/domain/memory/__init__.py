@@ -1,3 +1,3 @@
-from .repository import SemanticMemoryStore, EpisodicMemoryStore
+from .repository import EpisodicMemoryStore, SemanticMemoryStore
 
-__all__ = ["SemanticMemoryStore", "EpisodicMemoryStore"]
+__all__ = ["EpisodicMemoryStore", "SemanticMemoryStore"]

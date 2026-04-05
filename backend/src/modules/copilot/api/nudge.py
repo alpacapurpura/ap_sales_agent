@@ -6,9 +6,9 @@ Caches results in Redis for 5 minutes per tenant+route.
 """
 
 import hashlib
-from typing import List, Optional
 from uuid import UUID
 
+import structlog
 from fastapi import APIRouter, Query
 
 from src.core.context import get_tenant_id
@@ -18,8 +18,6 @@ from src.modules.copilot.domain.schema_introspection import (
     check_section_completion,
     get_model_sections,
 )
-
-import structlog
 
 logger = structlog.get_logger()
 
@@ -36,7 +34,9 @@ ROUTE_MODULE_MAP = {
 }
 
 
-def _get_module_completion_ratio(db, tenant_id: UUID, module_id: str, registry) -> Optional[float]:
+def _get_module_completion_ratio(
+    db, tenant_id: UUID, module_id: str, registry
+) -> float | None:
     """Return 0.0-1.0 completion ratio for a module, or None if not readable."""
     descriptor = registry.get(module_id)
     if not descriptor or not descriptor.repo_factory:
@@ -68,7 +68,7 @@ def _get_module_completion_ratio(db, tenant_id: UUID, module_id: str, registry) 
     return 1.0
 
 
-def _generate_nudges(tenant_id: UUID, route: Optional[str]) -> List[dict]:
+def _generate_nudges(tenant_id: UUID, route: str | None) -> list[dict]:
     """Generate nudges based on current module state."""
     registry = get_module_registry()
     db = SessionLocal()
@@ -92,45 +92,55 @@ def _generate_nudges(tenant_id: UUID, route: Optional[str]) -> List[dict]:
                     break
 
         # Rule 1: EmptyModuleNudge — current route's module is empty
-        if route_module and route_module in completions and completions[route_module] == 0.0:
+        if (
+            route_module
+            and route_module in completions
+            and completions[route_module] == 0.0
+        ):
             descriptor = registry.get(route_module)
             if descriptor:
-                nudges.append({
-                    "id": f"empty_{route_module}",
-                    "type": "empty_module",
-                    "module_id": route_module,
-                    "title": f"Tu {descriptor.label} está vacío",
-                    "message": f"Configura tu {descriptor.label.lower()} para desbloquear todo el potencial de Nicolify.",
-                    "suggested_prompt": f"Guíame para configurar mi {descriptor.label.lower()}",
-                    "priority": 1,
-                })
+                nudges.append(
+                    {
+                        "id": f"empty_{route_module}",
+                        "type": "empty_module",
+                        "module_id": route_module,
+                        "title": f"Tu {descriptor.label} está vacío",
+                        "message": f"Configura tu {descriptor.label.lower()} para desbloquear todo el potencial de Nicolify.",
+                        "suggested_prompt": f"Guíame para configurar mi {descriptor.label.lower()}",
+                        "priority": 1,
+                    }
+                )
 
         # Rule 2: CrossModuleGapNudge — brand has data but offer doesn't
         brand_ratio = completions.get("brand", 0.0)
         offer_ratio = completions.get("offer", 0.0)
         if brand_ratio > 0.3 and offer_ratio == 0.0:
-            nudges.append({
-                "id": "cross_brand_offer",
-                "type": "cross_module_gap",
-                "module_id": "offer",
-                "title": "Tu marca está configurada, ¿y tus ofertas?",
-                "message": "Ya tienes tu identidad de marca definida. El siguiente paso es crear tu primera oferta.",
-                "suggested_prompt": "Guíame para crear mi primera oferta",
-                "priority": 2,
-            })
+            nudges.append(
+                {
+                    "id": "cross_brand_offer",
+                    "type": "cross_module_gap",
+                    "module_id": "offer",
+                    "title": "Tu marca está configurada, ¿y tus ofertas?",
+                    "message": "Ya tienes tu identidad de marca definida. El siguiente paso es crear tu primera oferta.",
+                    "suggested_prompt": "Guíame para crear mi primera oferta",
+                    "priority": 2,
+                }
+            )
 
         # Rule 3: CrossModuleGapNudge — brand + offer ready but no connections
         conn_ratio = completions.get("connections", 0.0)
         if brand_ratio > 0.3 and offer_ratio > 0.0 and conn_ratio == 0.0:
-            nudges.append({
-                "id": "cross_offer_connections",
-                "type": "cross_module_gap",
-                "module_id": "connections",
-                "title": "Conecta tu primer canal",
-                "message": "Tu marca y ofertas están listas. Conecta Instagram, WhatsApp u otro canal para empezar a vender.",
-                "suggested_prompt": "Quiero conectar mi primer canal de ventas",
-                "priority": 3,
-            })
+            nudges.append(
+                {
+                    "id": "cross_offer_connections",
+                    "type": "cross_module_gap",
+                    "module_id": "connections",
+                    "title": "Conecta tu primer canal",
+                    "message": "Tu marca y ofertas están listas. Conecta Instagram, WhatsApp u otro canal para empezar a vender.",
+                    "suggested_prompt": "Quiero conectar mi primer canal de ventas",
+                    "priority": 3,
+                }
+            )
 
         # Rule 4: IncompleteModuleNudge — module has <30% completion
         if route_module and route_module in completions:
@@ -139,15 +149,17 @@ def _generate_nudges(tenant_id: UUID, route: Optional[str]) -> List[dict]:
                 descriptor = registry.get(route_module)
                 if descriptor:
                     pct = int(ratio * 100)
-                    nudges.append({
-                        "id": f"incomplete_{route_module}",
-                        "type": "incomplete_module",
-                        "module_id": route_module,
-                        "title": f"Tu {descriptor.label} está al {pct}%",
-                        "message": f"Completa la configuración de {descriptor.label.lower()} para obtener mejores resultados.",
-                        "suggested_prompt": f"Ayúdame a completar mi {descriptor.label.lower()}",
-                        "priority": 4,
-                    })
+                    nudges.append(
+                        {
+                            "id": f"incomplete_{route_module}",
+                            "type": "incomplete_module",
+                            "module_id": route_module,
+                            "title": f"Tu {descriptor.label} está al {pct}%",
+                            "message": f"Completa la configuración de {descriptor.label.lower()} para obtener mejores resultados.",
+                            "suggested_prompt": f"Ayúdame a completar mi {descriptor.label.lower()}",
+                            "priority": 4,
+                        }
+                    )
 
     except Exception as e:
         logger.warning("nudge_generation_error", error=str(e))
@@ -163,13 +175,13 @@ _nudge_cache: dict = {}
 _CACHE_TTL = 300  # 5 minutes
 
 
-def _cache_key(tenant_id: UUID, route: Optional[str]) -> str:
-    route_hash = hashlib.md5((route or "").encode()).hexdigest()[:8]
+def _cache_key(tenant_id: UUID, route: str | None) -> str:
+    route_hash = hashlib.md5((route or "").encode()).hexdigest()[:8]  # noqa: S324
     return f"copilot:nudge:{tenant_id}:{route_hash}"
 
 
 @router.get("/nudge-context")
-def get_nudge_context(route: Optional[str] = Query(None)):
+def get_nudge_context(route: str | None = Query(None)):
     """Return proactive nudges based on module completion state and current route."""
     import time
 

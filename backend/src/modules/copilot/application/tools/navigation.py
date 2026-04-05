@@ -5,8 +5,6 @@ These tools emit ui_action events that the frontend interprets to perform
 router.push(), scrollIntoView(), highlight, etc.
 """
 
-from typing import Optional
-
 from langchain_core.tools import tool
 
 from src.modules.copilot.domain.navigation_map import (
@@ -16,7 +14,7 @@ from src.modules.copilot.domain.navigation_map import (
 
 
 @tool
-def navigate_to_page(page_keyword: str, section_id: Optional[str] = None) -> dict:
+def navigate_to_page(page_keyword: str, section_id: str | None = None) -> dict:
     """Navigate the user to a specific page in the app.
 
     Args:
@@ -81,7 +79,7 @@ def scroll_to_field(field_id: str) -> dict:
 
 
 @tool
-def open_form(form_id: str, prefill_data: Optional[dict] = None) -> dict:
+def open_form(form_id: str, prefill_data: dict | None = None) -> dict:
     """Open a specific form or dialog in the UI.
 
     Args:
@@ -111,7 +109,11 @@ def list_app_pages() -> str:
     """
     lines = []
     for page in get_all_pages():
-        sections_str = ", ".join(s.label for s in page.sections) if page.sections else "(sin secciones)"
+        sections_str = (
+            ", ".join(s.label for s in page.sections)
+            if page.sections
+            else "(sin secciones)"
+        )
         lines.append(f"• {page.label} [{page.module}] — {sections_str}")
     return "\n".join(lines)
 

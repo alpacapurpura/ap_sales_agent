@@ -1,15 +1,19 @@
-from typing import List, Optional
-from src.shared.domain.base_entity import BaseEntity
-from pydantic import Field
 import uuid
+
+from pydantic import Field
+
+from src.shared.domain.base_entity import BaseEntity
+
 
 class TimeRange(BaseEntity):
     start: str
     end: str
 
+
 class DaySchedule(BaseEntity):
     active: bool
-    ranges: List[TimeRange] = []
+    ranges: list[TimeRange] = []
+
 
 class WeeklySchedule(BaseEntity):
     monday: DaySchedule = Field(default_factory=lambda: DaySchedule(active=False))
@@ -20,6 +24,7 @@ class WeeklySchedule(BaseEntity):
     saturday: DaySchedule = Field(default_factory=lambda: DaySchedule(active=False))
     sunday: DaySchedule = Field(default_factory=lambda: DaySchedule(active=False))
 
+
 class AvailabilitySchedule(BaseEntity):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -27,8 +32,9 @@ class AvailabilitySchedule(BaseEntity):
     is_default: bool = False
     schedule: WeeklySchedule
 
+
 class ScheduleUpdate(BaseEntity):
-    name: Optional[str] = None
-    timezone: Optional[str] = None
-    is_default: Optional[bool] = None
-    schedule: Optional[WeeklySchedule] = None
+    name: str | None = None
+    timezone: str | None = None
+    is_default: bool | None = None
+    schedule: WeeklySchedule | None = None

@@ -4,8 +4,6 @@ Generic endpoint that returns daily/weekly data points grouped by channel,
 reusable across all funnel stages.
 """
 
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -34,4 +32,4 @@ class StageTimeSeriesDTO(BaseModel):
     data_points: list[TimeSeriesPointDTO]
     channels_present: list[ChannelInfoDTO]
     period_totals: dict[str, float]
-    previous_period_totals: Optional[dict[str, float]] = None
+    previous_period_totals: dict[str, float] | None = None
