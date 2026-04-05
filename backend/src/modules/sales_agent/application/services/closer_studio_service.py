@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import func, select, case, literal_column
+
+if TYPE_CHECKING:
+    from uuid import UUID
+from sqlalchemy import case, func, literal_column, select
 from sqlalchemy.orm import Session, joinedload
 
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
+from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
@@ -32,10 +34,10 @@ class CloserStudioService:
         self,
         tenant_id: UUID,
         *,
-        temperature: Optional[str] = None,
-        handler_mode: Optional[str] = None,
-        channel: Optional[str] = None,
-        search: Optional[str] = None,
+        temperature: str | None = None,
+        handler_mode: str | None = None,
+        channel: str | None = None,
+        search: str | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> tuple[list[dict], int]:
@@ -144,8 +146,8 @@ class CloserStudioService:
         lead_id: UUID,
         *,
         message_limit: int = 50,
-        before: Optional[datetime] = None,
-    ) -> Optional[dict]:
+        before: datetime | None = None,
+    ) -> dict | None:
         """Full conversation detail with paginated messages."""
 
         lead = (
@@ -231,7 +233,7 @@ class CloserStudioService:
 
     # ── STOP ────────────────────────────────────────────────────────────
 
-    def stop_ai(self, tenant_id: UUID, lead_id: UUID, user_id: UUID) -> Optional[dict]:
+    def stop_ai(self, tenant_id: UUID, lead_id: UUID, user_id: UUID) -> dict | None:
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
             return None
@@ -256,8 +258,8 @@ class CloserStudioService:
     # ── RESUME ──────────────────────────────────────────────────────────
 
     def resume_ai(
-        self, tenant_id: UUID, lead_id: UUID, objective: Optional[str] = None
-    ) -> Optional[dict]:
+        self, tenant_id: UUID, lead_id: UUID, objective: str | None = None
+    ) -> dict | None:
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
             return None
@@ -283,7 +285,7 @@ class CloserStudioService:
 
     def send_message(
         self, tenant_id: UUID, lead_id: UUID, content: str, mode: str = "direct"
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Send a direct message or AI instruction."""
         import uuid as uuid_mod
 
@@ -339,8 +341,8 @@ class CloserStudioService:
     # ── Reactivate Frozen ───────────────────────────────────────────────
 
     def reactivate(
-        self, tenant_id: UUID, lead_id: UUID, objective: Optional[str] = None
-    ) -> Optional[dict]:
+        self, tenant_id: UUID, lead_id: UUID, objective: str | None = None
+    ) -> dict | None:
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
             return None
@@ -365,7 +367,7 @@ class CloserStudioService:
 
     # ── Diagnose ────────────────────────────────────────────────────────
 
-    async def diagnose(self, tenant_id: UUID, lead_id: UUID) -> Optional[dict]:
+    async def diagnose(self, tenant_id: UUID, lead_id: UUID) -> dict | None:
         """Generate AI diagnosis for a conversation."""
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
@@ -497,7 +499,7 @@ class CloserStudioService:
 
     def _get_checkpoint(
         self, tenant_id: UUID, lead_id: UUID
-    ) -> Optional[AgentStateCheckpointModel]:
+    ) -> AgentStateCheckpointModel | None:
         return self.db.execute(
             select(AgentStateCheckpointModel).where(
                 AgentStateCheckpointModel.tenant_id == tenant_id,
@@ -507,7 +509,7 @@ class CloserStudioService:
             ).order_by(AgentStateCheckpointModel.updated_at.desc())
         ).scalar_one_or_none()
 
-    def _get_last_message_preview(self, lead_id: UUID, tenant_id: UUID) -> Optional[str]:
+    def _get_last_message_preview(self, lead_id: UUID, tenant_id: UUID) -> str | None:
         msg = self.db.execute(
             select(MessageModel.content)
             .where(
@@ -533,18 +535,18 @@ class CloserStudioService:
                 return name
         return lead.instagram_id or lead.telegram_id or lead.whatsapp_id or str(lead.id)[:8]
 
-    def _resolve_avatar(self, lead: LeadModel) -> Optional[str]:
+    def _resolve_avatar(self, lead: LeadModel) -> str | None:
         if lead.customer and lead.customer.traits:
             return lead.customer.traits.get("profile_pic_url")
         return None
 
-    def _lifecycle_stage(self, lead: LeadModel) -> Optional[str]:
+    def _lifecycle_stage(self, lead: LeadModel) -> str | None:
         if lead.customer:
             return lead.customer.lifecycle_stage
         return None
 
     def _log_system_event(
-        self, tenant_id: UUID, lead_id: UUID, channel: Optional[str], content: str
+        self, tenant_id: UUID, lead_id: UUID, channel: str | None, content: str
     ) -> None:
         import uuid as uuid_mod
 

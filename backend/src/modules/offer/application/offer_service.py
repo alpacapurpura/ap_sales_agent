@@ -1,22 +1,30 @@
-from sqlalchemy.orm import Session
-from typing import List, Optional, Dict, Any
+from typing import Any
 from uuid import UUID
-from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
-from src.modules.offer.domain.offer import Offer, ARCHETYPE_TO_DETAILS_MAPPING
-from src.modules.offer.domain.enums import (
-    OfferStatus, GuaranteeType, OfferArchetype, OfferValueLevel
-)
+
+from sqlalchemy.orm import Session
+
 from src.modules.crm.domain.enums import FinancialCapacity
+from src.modules.offer.domain.enums import (
+    GuaranteeType,
+    OfferArchetype,
+    OfferStatus,
+    OfferValueLevel,
+)
+from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
+from src.modules.offer.infrastructure.repositories.offer_repository import (
+    OfferRepository,
+)
+
 
 class OfferService:
     def __init__(self, db: Session):
         self.db = db
         self.repository = OfferRepository(db)
 
-    def get_offer(self, offer_id: UUID, tenant_id: UUID) -> Optional[Offer]:
+    def get_offer(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
         return self.repository.get_by_id(offer_id, tenant_id)
 
-    def list_offers(self, tenant_id: UUID) -> List[Offer]:
+    def list_offers(self, tenant_id: UUID) -> list[Offer]:
         return self.repository.get_all_by_tenant(tenant_id)
 
     def create_offer(
@@ -24,12 +32,12 @@ class OfferService:
         name: str,
         tenant_id: UUID,
         archetype: OfferArchetype,
-        format_hint: Optional[str] = None,
+        format_hint: str | None = None,
         is_lead_magnet: bool = False,
         internal_sku: str = "",
         headline_promise: str = "",
-        avatar_id: Optional[UUID] = None,
-        value_level: Optional[OfferValueLevel] = None,
+        avatar_id: UUID | None = None,
+        value_level: OfferValueLevel | None = None,
     ) -> Offer:
         new_offer = Offer(
             tenant_id=tenant_id,
@@ -55,7 +63,7 @@ class OfferService:
     def update_offer(self, offer: Offer, tenant_id: UUID) -> Offer:
         return self.repository.update(offer, tenant_id)
 
-    def patch_offer(self, offer_id: UUID, tenant_id: UUID, update_data: Dict[str, Any]) -> Offer:
+    def patch_offer(self, offer_id: UUID, tenant_id: UUID, update_data: dict[str, Any]) -> Offer:
         offer = self.repository.get_by_id(offer_id, tenant_id)
         if not offer:
             raise ValueError(f"Offer with id {offer_id} not found")
@@ -72,13 +80,13 @@ class OfferService:
                 try:
                     update_data["specific_details"] = detail_class(**update_data["specific_details"])
                 except Exception as e:
-                    raise ValueError(f"Invalid specific_details structure for archetype {archetype}: {str(e)}")
+                    raise ValueError(f"Invalid specific_details structure for archetype {archetype}: {e!s}")
 
         current_data.update(update_data)
 
         try:
             updated_offer = Offer.model_validate(current_data)
         except Exception as e:
-            raise ValueError(f"Invalid update data: {str(e)}")
+            raise ValueError(f"Invalid update data: {e!s}")
 
         return self.repository.update(updated_offer, tenant_id)

@@ -7,7 +7,7 @@ conversations as frozen when the last message is older than 72 hours.
 import logging
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 
 from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
@@ -77,7 +77,7 @@ async def run_frozen_detection(ctx: dict) -> None:
         logger.error("frozen_detection_failed", error=str(e), exc_info=True)
         try:
             db.rollback()
-        except Exception:
+        except Exception:  # noqa: S110
             pass
     finally:
         db.close()

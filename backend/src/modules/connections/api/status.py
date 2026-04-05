@@ -4,18 +4,18 @@ Returns the connection status for ALL providers of a tenant in a single call.
 Used by the Connections Hub to show status badges on each card.
 """
 
-from typing import Optional
 
+import structlog
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-import structlog
-
 from src.core.database import get_db
+from src.modules.connections.infrastructure.repositories import (
+    ChannelConnectionRepository,
+)
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.connections.infrastructure.repositories import ChannelConnectionRepository
 
 router = APIRouter(tags=["connections-status"])
 logger = structlog.get_logger()
@@ -25,8 +25,8 @@ class ConnectionStatusItem(BaseModel):
     """Status of a single connection for a tenant."""
     channel_type: str
     is_connected: bool
-    display_name: Optional[str] = None
-    last_sync: Optional[str] = None
+    display_name: str | None = None
+    last_sync: str | None = None
 
 
 class BatchConnectionStatusResponse(BaseModel):

@@ -1,84 +1,111 @@
-from fastapi import FastAPI, Request, Depends
+import time
+import uuid
+
+import structlog
+from arq.connections import RedisSettings, create_pool
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from src.core.config import settings
-from src.core.database import init_db, SessionLocal, redis_client
-from src.core.logger import configure_logging
-from src.modules.iam.api.dependencies import get_tenant_context
-from arq.connections import create_pool, RedisSettings
-import structlog
-import uuid
-import time
-
-# --- Domain Imports (Sorted by INDEX.md) ---
-
-# 1. IAM
-from src.modules.iam.api.routers import tenant_router as iam_admin, auth_router as iam_users
-from src.modules.iam.api import webhooks as iam_webhooks, settings as iam_settings
-from src.modules.iam.api.tracking import router as iam_tracking, public_router as iam_tracking_public
-
-# 2. Brand
-from src.modules.brand.api import style as brand_style, avatars as brand_avatars
-from src.modules.brand.api import router as brand_settings, extraction as brand_tools
-
-# 3. Offer
-from src.modules.offer.api import products as offer_products, offer_ai, definitions as offer_definitions, product_mappings as offer_product_mappings
-
-# 4. Landing
-from src.modules.landing.api import landing as landing_ai
-from src.modules.landing.api import public_landing as landing_public
-
-# 5. Sales Agent
-from src.modules.sales_agent.api import audit as sales_audit
-from src.modules.sales_agent.api import closer_studio as sales_closer
-from src.modules.sales_agent.api import ws as sales_ws
-
-# 6. Copilot
-from src.modules.copilot.api import actions as copilot_actions
-from src.modules.copilot.api import chat as copilot_chat
-from src.modules.copilot.api import nudge as copilot_nudge
-from src.modules.copilot.api import knowledge as copilot_knowledge
-from src.modules.copilot.api import events as copilot_events
-
-# 7. CRM
-from src.modules.crm.api import leads as crm_leads, cdp as crm_cdp, sales as crm_sales, pipeline as crm_pipeline
-from src.modules.crm.api import referral as crm_referral, nps as crm_nps
-
-# 8. Scheduling
-from src.modules.scheduling.api import event_types as sched_types, public_links as sched_public, agenda as sched_agenda
-
-# 9. Advertising (No API Router exposed yet)
-
-# 10. Social Media (No API Router exposed yet)
-
-# 11. Analytics
-from src.modules.analytics.api import metrics as analytics_metrics
-from src.modules.analytics.api import etl_admin as analytics_etl_admin
-from src.modules.analytics.api import campaigns as analytics_campaigns
-
-# 12. Connections
-from src.modules.connections.api import webhook as conn_webhook, telegram as conn_telegram, whatsapp as conn_whatsapp
-from src.modules.connections.api import calendar as conn_calendar, gmail as conn_gmail, marketing_webhooks as conn_marketing, shopify as conn_shopify, mailerlite as conn_mailerlite, manychat as conn_manychat, google_analytics as conn_google_analytics, meta as conn_meta, youtube as conn_youtube, youtube_analytics as conn_youtube_analytics, google_workspace as conn_google_workspace, shopify_compliance
-from src.modules.connections.api import channel_info as conn_channel_info
-from src.modules.connections.api import status as conn_status
-
-# 13. Assets
-from src.modules.assets.api import router as assets_gallery, offer_gallery as assets_offers
-
-# 14. Commercial Calendar
-from src.modules.commercial_calendar.api import events as calendar_events
 
 # 15. Domains
 from src.modules.domains.api import domain_router as domains_router
 
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401
+from src.core.config import settings
+from src.core.database import SessionLocal, init_db, redis_client
+from src.core.logger import configure_logging
 
 # --- Sentry must init before app creation to capture startup errors ---
 from src.core.sentry import init_sentry
+from src.modules.analytics.api import campaigns as analytics_campaigns
+from src.modules.analytics.api import etl_admin as analytics_etl_admin
+
+# 9. Advertising (No API Router exposed yet)
+# 10. Social Media (No API Router exposed yet)
+# 11. Analytics
+from src.modules.analytics.api import metrics as analytics_metrics
+from src.modules.assets.api import offer_gallery as assets_offers
+
+# 13. Assets
+from src.modules.assets.api import router as assets_gallery
+from src.modules.brand.api import avatars as brand_avatars
+from src.modules.brand.api import extraction as brand_tools
+from src.modules.brand.api import router as brand_settings
+
+# 2. Brand
+from src.modules.brand.api import style as brand_style
+
+# 14. Commercial Calendar
+from src.modules.commercial_calendar.api import events as calendar_events
+from src.modules.connections.api import calendar as conn_calendar
+from src.modules.connections.api import channel_info as conn_channel_info
+from src.modules.connections.api import gmail as conn_gmail
+from src.modules.connections.api import google_analytics as conn_google_analytics
+from src.modules.connections.api import google_workspace as conn_google_workspace
+from src.modules.connections.api import mailerlite as conn_mailerlite
+from src.modules.connections.api import manychat as conn_manychat
+from src.modules.connections.api import marketing_webhooks as conn_marketing
+from src.modules.connections.api import meta as conn_meta
+from src.modules.connections.api import shopify as conn_shopify
+from src.modules.connections.api import shopify_compliance
+from src.modules.connections.api import status as conn_status
+from src.modules.connections.api import telegram as conn_telegram
+
+# 12. Connections
+from src.modules.connections.api import webhook as conn_webhook
+from src.modules.connections.api import whatsapp as conn_whatsapp
+from src.modules.connections.api import youtube as conn_youtube
+from src.modules.connections.api import youtube_analytics as conn_youtube_analytics
+
+# 6. Copilot
+from src.modules.copilot.api import actions as copilot_actions
+from src.modules.copilot.api import chat as copilot_chat
+from src.modules.copilot.api import events as copilot_events
+from src.modules.copilot.api import knowledge as copilot_knowledge
+from src.modules.copilot.api import nudge as copilot_nudge
+from src.modules.crm.api import cdp as crm_cdp
+
+# 7. CRM
+from src.modules.crm.api import leads as crm_leads
+from src.modules.crm.api import nps as crm_nps
+from src.modules.crm.api import pipeline as crm_pipeline
+from src.modules.crm.api import referral as crm_referral
+from src.modules.crm.api import sales as crm_sales
+from src.modules.iam.api import settings as iam_settings
+from src.modules.iam.api import webhooks as iam_webhooks
+from src.modules.iam.api.dependencies import get_tenant_context
+from src.modules.iam.api.routers import auth_router as iam_users
+
+# --- Domain Imports (Sorted by INDEX.md) ---
+# 1. IAM
+from src.modules.iam.api.routers import tenant_router as iam_admin
+from src.modules.iam.api.tracking import public_router as iam_tracking_public
+from src.modules.iam.api.tracking import router as iam_tracking
+
+# 4. Landing
+from src.modules.landing.api import landing as landing_ai
+from src.modules.landing.api import public_landing as landing_public
+from src.modules.offer.api import definitions as offer_definitions
+from src.modules.offer.api import offer_ai
+from src.modules.offer.api import product_mappings as offer_product_mappings
+
+# 3. Offer
+from src.modules.offer.api import products as offer_products
+
+# 5. Sales Agent
+from src.modules.sales_agent.api import audit as sales_audit
+from src.modules.sales_agent.api import closer_studio as sales_closer
+from src.modules.sales_agent.api import ws as sales_ws
+from src.modules.scheduling.api import agenda as sched_agenda
+
+# 8. Scheduling
+from src.modules.scheduling.api import event_types as sched_types
+from src.modules.scheduling.api import public_links as sched_public
+
 init_sentry("api")
 
 # --- App Initialization ---
@@ -119,10 +146,10 @@ async def logging_middleware(request: Request, call_next):
     request_id = str(uuid.uuid4())
     structlog.contextvars.clear_contextvars()
     structlog.contextvars.bind_contextvars(request_id=request_id)
-    
+
     start_time = time.perf_counter()
     logger.info("http_request_started", method=request.method, path=request.url.path, origin=request.headers.get("origin"))
-    
+
     if request.method == "OPTIONS":
         response = await call_next(request)
         logger.info("cors_preflight", origin=request.headers.get("origin"), allow_origin=response.headers.get("access-control-allow-origin"))
@@ -326,4 +353,4 @@ app.include_router(domains_router.router, prefix="/api/v1/domains", tags=["Domai
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)  # noqa: S104

@@ -2,19 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy.orm import Session
 
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
-from src.modules.crm.infrastructure.models.lead_model import LeadModel
 from src.shared.domain.messages import OutgoingMessage
-from src.shared.infrastructure.channels.base import BaseChannel
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
+
+    from src.modules.crm.infrastructure.models.lead_model import LeadModel
+    from src.shared.infrastructure.channels.base import BaseChannel
 
 logger = structlog.get_logger()
 
@@ -33,8 +37,8 @@ class ChannelResolver:
         self.db = db
 
     def resolve(
-        self, tenant_id: UUID, lead: LeadModel, preferred_channel: Optional[str] = None
-    ) -> Optional[Tuple[BaseChannel, str]]:
+        self, tenant_id: UUID, lead: LeadModel, preferred_channel: str | None = None
+    ) -> tuple[BaseChannel, str] | None:
         """
         Return (adapter, channel_user_id) for the lead's channel.
 
@@ -60,7 +64,7 @@ class ChannelResolver:
 
     def _try_channel(
         self, tenant_id: UUID, lead: LeadModel, ch_type: str
-    ) -> Optional[Tuple[BaseChannel, str]]:
+    ) -> tuple[BaseChannel, str] | None:
         enum_type, id_field = _CHANNEL_MAP[ch_type]
         user_id = getattr(lead, id_field, None)
         if not user_id:
@@ -86,19 +90,25 @@ class ChannelResolver:
 
     def _create_adapter(
         self, ch_type: str, conn: ChannelConnectionModel, tenant_id: UUID
-    ) -> Optional[BaseChannel]:
+    ) -> BaseChannel | None:
         try:
             if ch_type == "telegram":
-                from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
+                from src.modules.connections.infrastructure.channels.telegram import (
+                    TelegramChannel,
+                )
                 token = conn.credentials.get("token") if conn.credentials else None
                 return TelegramChannel(token=token)
 
             if ch_type == "whatsapp":
-                from src.modules.connections.infrastructure.channels.whatsapp import WhatsAppChannel
+                from src.modules.connections.infrastructure.channels.whatsapp import (
+                    WhatsAppChannel,
+                )
                 return WhatsAppChannel(tenant_id=str(tenant_id))
 
             if ch_type == "instagram":
-                from src.modules.connections.infrastructure.channels.instagram import InstagramChannel
+                from src.modules.connections.infrastructure.channels.instagram import (
+                    InstagramChannel,
+                )
                 return InstagramChannel(
                     client_config=conn.config or {},
                     credentials_data=conn.credentials or {},
@@ -108,7 +118,7 @@ class ChannelResolver:
         return None
 
     async def send_to_lead(
-        self, tenant_id: UUID, lead: LeadModel, text: str, preferred_channel: Optional[str] = None
+        self, tenant_id: UUID, lead: LeadModel, text: str, preferred_channel: str | None = None
     ) -> bool:
         """Convenience: resolve channel and send message in one call."""
         resolved = self.resolve(tenant_id, lead, preferred_channel)

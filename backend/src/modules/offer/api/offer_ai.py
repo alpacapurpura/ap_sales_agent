@@ -1,12 +1,18 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from src.core.database import get_db
+from src.modules.copilot.application.services.offer_psychology_service import (
+    CopilotOfferPsychologyService,
+)
 from src.modules.iam.api.dependencies import get_tenant_context
-from src.modules.offer.domain.offer_ai_schemas import PsychologyGenerationRequest, PsychologyGenerationResponse
 from src.modules.offer.application.offer_generator import OfferGeneratorService
-from src.modules.copilot.application.services.offer_psychology_service import CopilotOfferPsychologyService
-from uuid import UUID
-from typing import Optional
+from src.modules.offer.domain.offer_ai_schemas import (
+    PsychologyGenerationRequest,
+    PsychologyGenerationResponse,
+)
 
 router = APIRouter()
 
@@ -14,7 +20,7 @@ router = APIRouter()
 async def generate_offer_psychology(
     request: PsychologyGenerationRequest,
     db: Session = Depends(get_db),
-    tenant_id: Optional[UUID] = Depends(get_tenant_context)
+    tenant_id: UUID | None = Depends(get_tenant_context)
 ):
     """
     Generates AI-powered psychology insights (pains & desires) for an offer.
@@ -30,4 +36,4 @@ async def generate_offer_psychology(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI Generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI Generation failed: {e!s}")

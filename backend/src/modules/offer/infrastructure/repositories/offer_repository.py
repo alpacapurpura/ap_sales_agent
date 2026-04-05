@@ -1,15 +1,14 @@
-from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.modules.offer.domain.offer import Offer, ARCHETYPE_TO_DETAILS_MAPPING
+from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
 from src.modules.offer.infrastructure.models.product_model import ProductModel
 from src.modules.offer.infrastructure.repositories.enum_normalizer import (
     normalize_archetype,
-    normalize_delivery_model,
     normalize_deliverables,
+    normalize_delivery_model,
     normalize_financial_capacity,
     normalize_guarantee_type,
     normalize_pricing_options,
@@ -59,7 +58,7 @@ class OfferRepository:
             "vsl_link": model.vsl_link,
             "checkout_page_url": model.checkout_page_url,
             "calendar_type_id": model.calendar_type_id,
-            "landing_page_config": model.landing_page_config if model.landing_page_config else None,
+            "landing_page_config": model.landing_page_config or None,
             "marketing_pain_points": model.marketing_pain_points or [],
             "marketing_desires": model.marketing_desires or [],
             "objections": model.objections or [],
@@ -79,7 +78,7 @@ class OfferRepository:
                 try:
                     offer_data["specific_details"] = detail_class(**normalized)
                 except Exception as e:
-                    raise ValueError(f"Error parsing specific_details for offer {model.id}: {str(e)}")
+                    raise ValueError(f"Error parsing specific_details for offer {model.id}: {e!s}")
 
         return Offer(**offer_data)
 
@@ -132,7 +131,7 @@ class OfferRepository:
             metadata_info=offer.metadata_info
         )
 
-    def get_by_id(self, offer_id: UUID, tenant_id: UUID) -> Optional[Offer]:
+    def get_by_id(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
         stmt = select(ProductModel).where(
             ProductModel.id == offer_id,
             ProductModel.tenant_id == tenant_id,
@@ -142,7 +141,7 @@ class OfferRepository:
             return self._to_domain(model)
         return None
 
-    def get_all_by_tenant(self, tenant_id: UUID) -> List[Offer]:
+    def get_all_by_tenant(self, tenant_id: UUID) -> list[Offer]:
         stmt = select(ProductModel).where(
             ProductModel.tenant_id == tenant_id,
             ProductModel.status != "archived",

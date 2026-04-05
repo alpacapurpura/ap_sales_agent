@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
-from typing import Dict, Set
+from typing import TYPE_CHECKING
 
 import structlog
-from fastapi import WebSocket
+
+if TYPE_CHECKING:
+    from fastapi import WebSocket
 
 logger = structlog.get_logger()
 
@@ -21,7 +23,7 @@ class ConnectionManager:
 
     def __init__(self) -> None:
         # tenant_id -> set of active WebSocket connections
-        self._connections: Dict[str, Set[WebSocket]] = {}
+        self._connections: dict[str, set[WebSocket]] = {}
 
     async def connect(self, tenant_id: str, ws: WebSocket) -> None:
         await ws.accept()

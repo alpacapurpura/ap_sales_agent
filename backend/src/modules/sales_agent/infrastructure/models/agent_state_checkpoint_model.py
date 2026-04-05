@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, Integer, Boolean, DateTime, Index, Text
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Boolean, Column, DateTime, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 from src.shared.domain.base_entity import Base
 

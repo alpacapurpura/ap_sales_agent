@@ -8,7 +8,6 @@ Used by copilot tools to:
 """
 
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass(frozen=True)
@@ -25,7 +24,7 @@ class AppSection:
     section_id: str
     label: str
     description: str
-    fields: List[AppField] = field(default_factory=list)
+    fields: list[AppField] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -35,13 +34,13 @@ class AppPage:
     label: str
     module: str  # brand, offer, growth, sales, connections, settings
     description: str
-    sections: List[AppSection] = field(default_factory=list)
-    keywords: List[str] = field(default_factory=list)
+    sections: list[AppSection] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
 
 
 # ── Navigation Map ───────────────────────────────────────────────────
 
-NAVIGATION_MAP: List[AppPage] = [
+NAVIGATION_MAP: list[AppPage] = [
     # ── Brand Studio ─────────────────────────────────────────────
     # ── Brand Studio — Esencia ────────────────────────────────────
     AppPage(
@@ -289,15 +288,15 @@ NAVIGATION_MAP: List[AppPage] = [
 
 # ── Lookup helpers ───────────────────────────────────────────────────
 
-def get_all_pages() -> List[AppPage]:
+def get_all_pages() -> list[AppPage]:
     return NAVIGATION_MAP
 
 
-def get_page_by_module(module: str) -> List[AppPage]:
+def get_page_by_module(module: str) -> list[AppPage]:
     return [p for p in NAVIGATION_MAP if p.module == module]
 
 
-def find_pages_by_keyword(keyword: str) -> List[AppPage]:
+def find_pages_by_keyword(keyword: str) -> list[AppPage]:
     """Fuzzy search across labels, descriptions, and keywords."""
     kw = keyword.lower()
     results = []

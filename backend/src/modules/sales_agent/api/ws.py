@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 import structlog
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
 

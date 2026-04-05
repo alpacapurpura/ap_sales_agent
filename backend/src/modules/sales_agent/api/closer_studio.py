@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
-from src.modules.iam.domain.user import User
+
+if TYPE_CHECKING:
+    from datetime import datetime
+    from uuid import UUID
+
+    from sqlalchemy.orm import Session
+
+    from src.modules.iam.domain.user import User
 from src.modules.sales_agent.api.dto.closer_studio import (
     CloserKPIs,
     ConversationDetail,
@@ -41,10 +45,10 @@ router = APIRouter()
 
 @router.get("/conversations", response_model=ConversationListResponse)
 def list_conversations(
-    temperature: Optional[str] = Query(None),
-    handler_mode: Optional[str] = Query(None),
-    channel: Optional[str] = Query(None),
-    search: Optional[str] = Query(None),
+    temperature: str | None = Query(None),
+    handler_mode: str | None = Query(None),
+    channel: str | None = Query(None),
+    search: str | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -70,7 +74,7 @@ def list_conversations(
 def get_conversation(
     lead_id: UUID,
     message_limit: int = Query(50, ge=1, le=200),
-    before: Optional[datetime] = Query(None),
+    before: datetime | None = Query(None),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -143,8 +147,10 @@ async def send_message(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     if body.mode == "direct":
-        from src.modules.sales_agent.application.services.channel_resolver import ChannelResolver
         from src.modules.crm.infrastructure.models.lead_model import LeadModel
+        from src.modules.sales_agent.application.services.channel_resolver import (
+            ChannelResolver,
+        )
         lead = db.query(LeadModel).filter(LeadModel.id == lead_id).first()
         if lead:
             resolver = ChannelResolver(db)

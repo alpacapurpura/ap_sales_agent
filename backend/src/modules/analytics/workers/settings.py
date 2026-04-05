@@ -8,19 +8,19 @@ SchedulerSettings runs cron jobs:
 
 from arq import cron
 from arq.connections import RedisSettings
+from src.modules.domains.workers.tasks import poll_domain_verification
 
-from src.core.config import settings
 import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
+from src.core.config import settings
 from src.modules.analytics.workers.tasks import (
     run_campaign_sync,
-    run_initial_load,
     run_inactivity_detection,
+    run_initial_load,
     run_mailerlite_etl_sync,
     run_tenant_extraction,
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
-from src.modules.domains.workers.tasks import poll_domain_verification
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 
 
@@ -46,7 +46,6 @@ class WorkerSettings:
     @staticmethod
     async def on_shutdown(ctx):
         """Cleanup worker resources."""
-        pass
 
 
 class SchedulerSettings:
@@ -109,4 +108,3 @@ class SchedulerSettings:
     @staticmethod
     async def on_shutdown(ctx):
         """Cleanup scheduler resources."""
-        pass

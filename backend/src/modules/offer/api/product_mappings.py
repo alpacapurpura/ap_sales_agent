@@ -6,7 +6,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
-from sqlalchemy import func as sa_func, select
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -129,8 +130,7 @@ async def list_source_products(
         offer_stmt = select(ProductModel.id, ProductModel.name).where(
             ProductModel.id.in_(offer_ids),
         )
-        for oid, oname in db.execute(offer_stmt).all():
-            offer_names[oid] = oname
+        offer_names = dict(db.execute(offer_stmt).all())
 
     # 3. Scan journey_events (checkout_initiated + checkout_completed)
     stmt = select(
@@ -187,7 +187,7 @@ async def list_source_products(
         product_map[ext_id]["mapping_id"] = minfo["mapping_id"]
 
     # Fill is_mapped=False for products without mapping
-    for pid, pdata in product_map.items():
+    for pdata in product_map.values():
         if "is_mapped" not in pdata:
             pdata["is_mapped"] = False
 
@@ -494,7 +494,7 @@ async def get_offer_products_detail(
             SaleModel.status == "COMPLETED",
         ).group_by(SaleModel.source)
     ).all()
-    source_breakdown = {src: cnt for src, cnt in source_rows}
+    source_breakdown = dict(source_rows)
 
     # 4. Repeat customers
     repeat_subq = (

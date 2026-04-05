@@ -10,76 +10,64 @@ get_marketing_sankey_metrics() still reads from journey_events (separate migrati
 
 from collections import defaultdict
 from datetime import datetime
+from typing import Any
 from uuid import UUID
-from typing import Dict, Any, List, Optional
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.infrastructure.repositories.customer_repository import (
-    JourneyEventRepository,
-    CustomerRepository,
+from src.modules.analytics.application.dto.adoption_dto import (
+    AdoptionDetailDTO,
+    AdoptionHeaderKpisDTO,
+    OfferHealthDTO,
 )
-from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
-    LeadRepository,
-)
-from src.modules.crm.domain.enums import LifecycleStage
-from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
-    ChannelConnectionRepository,
-)
-from src.modules.connections.domain.enums import ChannelType
 from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
     AvailableChannelsDTO,
-    TrafficGroupDTO,
     ChannelMetricDTO,
     MetricValueDTO,
+    TrafficGroupDTO,
 )
 from src.modules.analytics.application.dto.capture_dto import (
     CaptureDetailDTO,
     CaptureHeaderKpisDTO,
     MiniFunnelDTO,
 )
+from src.modules.analytics.application.dto.evangelization_dto import (
+    CandidatoDTO,
+    EvangelistDTO,
+    EvangelizationDetailDTO,
+    EvangelizationHeaderKpisDTO,
+    NpsSummaryDTO,
+)
+from src.modules.analytics.application.dto.expansion_dto import (
+    ExpansionDetailDTO,
+    ExpansionGroupDTO,
+    ExpansionHeaderKpisDTO,
+    ExpansionOfferDTO,
+)
 from src.modules.analytics.application.dto.nurture_dto import (
     NurtureDetailDTO,
     NurtureHeaderKpisDTO,
 )
 from src.modules.analytics.application.dto.opportunity_dto import (
+    BottleneckDTO,
     OpportunityDetailDTO,
     OpportunityHeaderKpisDTO,
-    BottleneckDTO,
-)
-from src.modules.analytics.application.dto.adoption_dto import (
-    AdoptionDetailDTO,
-    AdoptionHeaderKpisDTO,
-    OfferHealthDTO,
 )
 from src.modules.analytics.application.dto.sales_dto import (
-    SalesDetailDTO,
-    SalesHeaderKpisDTO,
-    RevenueGroupDTO,
-    TierGroupDTO,
-    OfferSaleDTO,
-    get_tier_for_value_level,
-    get_subscription_labels,
-    convert_to_usd,
+    HIGH_CAC_CRITICAL_RATIO,
+    HIGH_CAC_WARNING_RATIO,
+    LOW_CONVERSION_THRESHOLDS,
     TIER_DISPLAY_ORDER,
     TIER_LABELS,
-    LOW_CONVERSION_THRESHOLDS,
-    HIGH_CAC_WARNING_RATIO,
-    HIGH_CAC_CRITICAL_RATIO,
-)
-from src.modules.analytics.application.dto.expansion_dto import (
-    ExpansionDetailDTO,
-    ExpansionHeaderKpisDTO,
-    ExpansionGroupDTO,
-    ExpansionOfferDTO,
-)
-from src.modules.analytics.application.dto.evangelization_dto import (
-    EvangelizationDetailDTO,
-    EvangelizationHeaderKpisDTO,
-    EvangelistDTO,
-    CandidatoDTO,
-    NpsSummaryDTO,
+    OfferSaleDTO,
+    RevenueGroupDTO,
+    SalesDetailDTO,
+    SalesHeaderKpisDTO,
+    TierGroupDTO,
+    convert_to_usd,
+    get_subscription_labels,
+    get_tier_for_value_level,
 )
 from src.modules.analytics.application.dto.summary_dto import (
     BowtiesSummaryDTO,
@@ -90,30 +78,44 @@ from src.modules.analytics.application.dto.timeseries_dto import (
     StageTimeSeriesDTO,
     TimeSeriesPointDTO,
 )
-from src.modules.analytics.infrastructure.repositories.nurture_repository import (
-    NurtureMetricsRepository,
-)
-from src.modules.analytics.application.services.stage_cost_service import (
-    StageCostService,
-)
-from src.modules.analytics.infrastructure.repositories.capture_repository import (
-    CaptureMetricsRepository,
+from src.modules.analytics.application.services.aggregation_helpers import (
+    compute_channel_totals,
 )
 from src.modules.analytics.application.services.capture_cost_service import (
     CaptureCostService,
 )
-from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
-    OfficialMetricsRepository,
-)
 from src.modules.analytics.application.services.channel_registry import (
     ChannelRegistry,
 )
-from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+from src.modules.analytics.application.services.stage_cost_service import (
+    StageCostService,
+)
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
-from src.modules.analytics.application.services.aggregation_helpers import compute_channel_totals
+from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+from src.modules.analytics.infrastructure.repositories.capture_repository import (
+    CaptureMetricsRepository,
+)
+from src.modules.analytics.infrastructure.repositories.nurture_repository import (
+    NurtureMetricsRepository,
+)
+from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
+    OfficialMetricsRepository,
+)
+from src.modules.connections.domain.enums import ChannelType
+from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
+    ChannelConnectionRepository,
+)
+from src.modules.crm.domain.enums import LifecycleStage
+from src.modules.crm.infrastructure.repositories.customer_repository import (
+    CustomerRepository,
+    JourneyEventRepository,
+)
+from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
+    LeadRepository,
+)
 
 # Maps our channel slugs to the ChannelType enum for connection lookups (sankey legacy)
-_CHANNEL_CONNECTION_MAP: Dict[str, ChannelType] = {
+_CHANNEL_CONNECTION_MAP: dict[str, ChannelType] = {
     "ig-organic": ChannelType.INSTAGRAM_ACCOUNT,
     "yt-organic": ChannelType.YOUTUBE_ANALYTICS,
     "fb-organic": ChannelType.FACEBOOK_PAGE,
@@ -123,7 +125,7 @@ _CHANNEL_CONNECTION_MAP: Dict[str, ChannelType] = {
 }
 
 # Channel types -> group mapping for the 5-group structure
-_GROUP_MAP: Dict[str, str] = {
+_GROUP_MAP: dict[str, str] = {
     "social": "organic_social",
     "search": "ga4_search",
     "direct": "ga4_search",
@@ -133,7 +135,7 @@ _GROUP_MAP: Dict[str, str] = {
 }
 
 # Channel types -> capture group mapping (Stage 1)
-_CAPTURE_GROUP_MAP: Dict[str, str] = {
+_CAPTURE_GROUP_MAP: dict[str, str] = {
     "form": "web_infrastructure",
     "email": "web_infrastructure",
     "website": "web_infrastructure",
@@ -141,21 +143,21 @@ _CAPTURE_GROUP_MAP: Dict[str, str] = {
 }
 
 # Channel types -> nurture group mapping (Stage 2)
-_NURTURE_GROUP_MAP: Dict[str, str] = {
+_NURTURE_GROUP_MAP: dict[str, str] = {
     "retargeting": "retargeting",
     "email": "automation",
     "automation": "automation",
 }
 
 # Channel types -> opportunity group mapping (Stage 3)
-_OPPORTUNITY_GROUP_MAP: Dict[str, str] = {
+_OPPORTUNITY_GROUP_MAP: dict[str, str] = {
     "checkout": "checkout",
     "payment_link": "payment_links",
     "qualification": "qualification",
 }
 
 # Error message mapping from extraction run errors to user-facing messages
-_ERROR_MESSAGES: Dict[str, str] = {
+_ERROR_MESSAGES: dict[str, str] = {
     "token_expired": "Token expirado",
     "token_refresh_failed": "Token expirado",
     "connection_revoked": "Token expirado",
@@ -167,7 +169,7 @@ _ERROR_MESSAGES: Dict[str, str] = {
 }
 
 # Maps provider_name -> config key that holds the display name
-_DISPLAY_NAME_MAP: Dict[str, str] = {
+_DISPLAY_NAME_MAP: dict[str, str] = {
     "google_analytics": "property_display_name",
     "youtube": "channel_title",
     "meta": "tracked_ig_username",
@@ -185,9 +187,9 @@ class MetricsService:
     def __init__(
         self,
         db: Session,
-        cache: Optional[MetricsCache] = None,
-        connection_port: Optional[ConnectionPort] = None,
-        offer_port: Optional[OfferReadPort] = None,
+        cache: MetricsCache | None = None,
+        connection_port: ConnectionPort | None = None,
+        offer_port: OfferReadPort | None = None,
     ):
         self.db = db
         self.cache = cache
@@ -200,7 +202,7 @@ class MetricsService:
         self.lead_repo = LeadRepository(db)
         self.connection_repo = ChannelConnectionRepository(db)
 
-    def get_marketing_sankey_metrics(self, tenant_id: UUID) -> Dict[str, Any]:
+    def get_marketing_sankey_metrics(self, tenant_id: UUID) -> dict[str, Any]:
         """
         Obtiene metricas para el diagrama de Sankey de marketing (7 nodos).
 
@@ -287,7 +289,7 @@ class MetricsService:
         conn = self.connection_repo.get_active(tenant_id, channel_type)
         return conn is not None
 
-    def _classify_error(self, error_text: Optional[str]) -> Optional[str]:
+    def _classify_error(self, error_text: str | None) -> str | None:
         """Map extraction error to a user-facing message."""
         if not error_text:
             return None
@@ -330,7 +332,7 @@ class MetricsService:
         )
 
         # Build lookup: channel_slug -> list of aggregation rows (multi-metric)
-        agg_by_slug: Dict[str, List[Any]] = defaultdict(list)
+        agg_by_slug: dict[str, list[Any]] = defaultdict(list)
         for agg in aggregations:
             agg_by_slug[agg.channel_slug].append(agg)
 
@@ -341,18 +343,18 @@ class MetricsService:
         run_repo = ExtractionRunRepository(self.db)
 
         # Build provider -> latest run lookup (deduplicate per provider)
-        provider_runs: Dict[str, Any] = {}
+        provider_runs: dict[str, Any] = {}
 
         # 5. Build ChannelMetricDTO lists grouped by section
-        groups: Dict[str, List[ChannelMetricDTO]] = {
+        groups: dict[str, list[ChannelMetricDTO]] = {
             "organic_social": [],
             "ga4_search": [],
             "paid": [],
             "outbound": [],
             "website": [],
         }
-        available_channels: List[ChannelMetricDTO] = []
-        latest_updated: Optional[str] = None
+        available_channels: list[ChannelMetricDTO] = []
+        latest_updated: str | None = None
 
         # Connected channels
         for ch in channel_split.get("connected", []):
@@ -362,8 +364,8 @@ class MetricsService:
 
             # Build MetricValueDTO list from aggregation rows
             agg_rows = agg_by_slug.get(slug, [])
-            metrics: List[MetricValueDTO] = []
-            last_updated: Optional[str] = None
+            metrics: list[MetricValueDTO] = []
+            last_updated: str | None = None
 
             for agg in agg_rows:
                 extra_data = getattr(agg, "extra", None) or {}
@@ -411,7 +413,8 @@ class MetricsService:
 
             # For ManyChat channels, read from official_metrics directly
             if provider_name == "manychat":
-                from datetime import timedelta, timezone as _tz
+                from datetime import timedelta
+                from datetime import timezone as _tz
 
                 now_mc = datetime.now(_tz.utc)
                 mc_metrics = OfficialMetricsRepository(self.db).get_channel_metrics(
@@ -540,7 +543,8 @@ class MetricsService:
         )
 
         # 3. Query CRM for lead counts by lead_source
-        from datetime import datetime, timedelta, timezone as tz
+        from datetime import datetime, timedelta
+        from datetime import timezone as tz
 
         now = datetime.now(tz.utc)
         start_date = now - timedelta(days=30)
@@ -565,17 +569,19 @@ class MetricsService:
         )
 
         # Merge costs
-        all_costs: Dict[str, float] = {}
+        all_costs: dict[str, float] = {}
         for slug, amount in channel_costs.items():
             all_costs[slug] = all_costs.get(slug, 0.0) + amount
         for slug, amount in prorated_costs.items():
             all_costs[slug] = all_costs.get(slug, 0.0) + amount
 
         # 5. Get Stage 0 visitor total from aggregations
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select
+
         from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
             MetricAggregationModel,
         )
-        from sqlalchemy import select, func as sa_func
 
         visitor_stmt = (
             select(sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0))
@@ -588,11 +594,11 @@ class MetricsService:
         stage0_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
 
         # 6. Build ChannelMetricDTO lists grouped by section
-        groups: Dict[str, List[ChannelMetricDTO]] = {
+        groups: dict[str, list[ChannelMetricDTO]] = {
             "web_infrastructure": [],
             "ai_agent": [],
         }
-        available_channels: List[ChannelMetricDTO] = []
+        available_channels: list[ChannelMetricDTO] = []
 
         for ch in channel_split.get("connected", []):
             slug = ch["slug"]
@@ -664,7 +670,7 @@ class MetricsService:
             # Conversion rate: leads / stage0_visitors * 100
             conv_rate = round(lead_count / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
 
-            metrics: List[MetricValueDTO] = [
+            metrics: list[MetricValueDTO] = [
                 MetricValueDTO(name="leads", value=float(lead_count)),
                 MetricValueDTO(
                     name="cost",
@@ -813,9 +819,9 @@ class MetricsService:
 
     @staticmethod
     def _merge_manychat_into_meta(
-        channels: List[ChannelMetricDTO],
-        detailed_leads: Dict[str, int],
-        conversation_counts: Dict[str, int],
+        channels: list[ChannelMetricDTO],
+        detailed_leads: dict[str, int],
+        conversation_counts: dict[str, int],
     ) -> None:
         """Merge manychat-ig into ig-dm as a unified card (in-place).
 
@@ -893,12 +899,13 @@ class MetricsService:
         )
 
         # Build lookup: channel_slug -> list of aggregation rows
-        agg_by_slug: Dict[str, List[Any]] = defaultdict(list)
+        agg_by_slug: dict[str, list[Any]] = defaultdict(list)
         for agg in aggregations:
             agg_by_slug[agg.channel_slug].append(agg)
 
         # 4. Query CRM for MQL counts
-        from datetime import datetime, timedelta, timezone as tz
+        from datetime import datetime, timedelta
+        from datetime import timezone as tz
 
         now = datetime.now(tz.utc)
         start_date = now - timedelta(days=30)
@@ -928,11 +935,11 @@ class MetricsService:
         followup_events = nurture_repo.count_followup_events(tenant_id, start_date, now)
 
         # 7. Build ChannelMetricDTO lists grouped by section
-        groups: Dict[str, List[ChannelMetricDTO]] = {
+        groups: dict[str, list[ChannelMetricDTO]] = {
             "retargeting": [],
             "automation": [],
         }
-        available_channels: List[ChannelMetricDTO] = []
+        available_channels: list[ChannelMetricDTO] = []
 
         for ch in channel_split.get("connected", []):
             slug = ch["slug"]
@@ -940,7 +947,7 @@ class MetricsService:
             group_key = _NURTURE_GROUP_MAP.get(channel_type, "automation")
 
             # Build metrics depending on channel type
-            metrics: List[MetricValueDTO] = []
+            metrics: list[MetricValueDTO] = []
 
             if slug == "email-nurture":
                 # Mailerlite: email engagement metrics from CRM events
@@ -1095,7 +1102,8 @@ class MetricsService:
         5. Build header KPIs and mini funnel (MQLs -> SQLs)
         6. Cache result and return OpportunityDetailDTO
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+        from datetime import timezone as tz
 
         from src.modules.analytics.infrastructure.repositories.opportunity_repository import (
             OpportunityMetricsRepository,
@@ -1145,19 +1153,19 @@ class MetricsService:
         cost_per_sql = cost_svc.calculate_cost_per_mql(total_cost, total_sqls)
 
         # 5. Build channel groups
-        groups: Dict[str, List[ChannelMetricDTO]] = {
+        groups: dict[str, list[ChannelMetricDTO]] = {
             "checkout": [],
             "payment_links": [],
             "qualification": [],
         }
-        available_channels: List[ChannelMetricDTO] = []
+        available_channels: list[ChannelMetricDTO] = []
 
         for ch in channel_split.get("connected", []):
             slug = ch["slug"]
             channel_type = ch["channel_type"]
             group_key = _OPPORTUNITY_GROUP_MAP.get(channel_type, "checkout")
 
-            metrics: List[MetricValueDTO] = []
+            metrics: list[MetricValueDTO] = []
 
             if slug == "checkout-init":
                 metrics = [
@@ -1333,7 +1341,7 @@ class MetricsService:
 
         return result
 
-    async def get_sales_metrics(
+    async def get_sales_metrics(  # noqa: C901
         self,
         tenant_id: UUID,
         start_date: "datetime",
@@ -1353,7 +1361,9 @@ class MetricsService:
         9. Detect bottlenecks (low_conversion_rate, high_cac_ratio)
         10. Cache result and return SalesDetailDTO
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+        from datetime import timezone as tz
+
         from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
             SalesMetricsRepository,
         )
@@ -1378,14 +1388,14 @@ class MetricsService:
 
         # 4. Group sales by stage -> offer_id -> accumulate
         # Structure: {stage_key: {offer_id_str: {source: str, counts/revenue}}}
-        stage_data: Dict[str, Dict[str, Dict[str, Any]]] = {
+        stage_data: dict[str, dict[str, dict[str, Any]]] = {
             "adquisicion": {},
             "expansion": {},
         }
 
         # Track per-stage customer counts and revenue totals
-        _stage_customer_counts: Dict[str, int] = {"adquisicion": 0, "expansion": 0}
-        stage_revenue: Dict[str, float] = {"adquisicion": 0.0, "expansion": 0.0}
+        _stage_customer_counts: dict[str, int] = {"adquisicion": 0, "expansion": 0}
+        stage_revenue: dict[str, float] = {"adquisicion": 0.0, "expansion": 0.0}
 
         for row in raw_sales:
             # row: (stage, offer_id, source, currency, count, total_revenue, unique_customers)
@@ -1425,19 +1435,17 @@ class MetricsService:
         # 5. Also include unsold offers from the catalog (show with $0)
         for offer_id_str, offer in offer_map.items():
             for stage_key in ("adquisicion", "expansion"):
-                if offer_id_str not in stage_data[stage_key]:
-                    # Only add to adquisicion for unsold offers
-                    if stage_key == "adquisicion":
-                        stage_data[stage_key][offer_id_str] = {
-                            "count": 0,
-                            "revenue": 0.0,
-                            "currency": offer.currency,
-                            "sources": {},
-                            "unique_customers": 0,
-                        }
+                if offer_id_str not in stage_data[stage_key] and stage_key == "adquisicion":
+                    stage_data[stage_key][offer_id_str] = {
+                        "count": 0,
+                        "revenue": 0.0,
+                        "currency": offer.currency,
+                        "sources": {},
+                        "unique_customers": 0,
+                    }
 
         # Determine tenant display currency (most common from sales)
-        currency_counts: Dict[str, int] = defaultdict(int)
+        currency_counts: dict[str, int] = defaultdict(int)
         for row in raw_sales:
             currency_counts[row[3] or "USD"] += int(row[4])
         display_currency = max(currency_counts, key=currency_counts.get) if currency_counts else "USD"
@@ -1448,7 +1456,7 @@ class MetricsService:
         def _build_revenue_group(
             stage_key: str, group_label: str
         ) -> RevenueGroupDTO:
-            offers_by_tier: Dict[str, List[OfferSaleDTO]] = defaultdict(list)
+            offers_by_tier: dict[str, list[OfferSaleDTO]] = defaultdict(list)
             group_revenue = stage_revenue[stage_key]
             group_customers = 0
 
@@ -1706,7 +1714,9 @@ class MetricsService:
         7. Detect bottlenecks (overall health < 70%, per-offer health < 60%)
         8. Cache result and return AdoptionDetailDTO
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+        from datetime import timezone as tz
+
         from src.modules.analytics.infrastructure.repositories.adoption_repository import (
             AdoptionMetricsRepository,
         )
@@ -1733,13 +1743,13 @@ class MetricsService:
         )
 
         # 3. Get offer names via OfferReadPort
-        offer_name_map: Dict[str, str] = {}
+        offer_name_map: dict[str, str] = {}
         if self.offer_port is not None:
             offers = await self.offer_port.get_offers_by_tenant(tenant_id)
             offer_name_map = {str(o.id): o.public_name for o in offers}
 
         # 4. Build per-offer OfferHealthDTOs
-        offer_list: List[OfferHealthDTO] = []
+        offer_list: list[OfferHealthDTO] = []
         for row in health_rows:
             offer_id_str = str(row[0])
             total = int(row[1])
@@ -1765,10 +1775,9 @@ class MetricsService:
         total_inactive_per_offer = sum(int(row[3]) for row in health_rows)
 
         # If per-offer sums exceed distinct total, customer bought multiple offers
-        if total_active_per_offer + total_inactive_per_offer > total_customers and total_customers > 0:
+        if total_active_per_offer + total_inactive_per_offer > total_customers > 0:
             active_customers = total_customers - total_inactive_per_offer
-            if active_customers < 0:
-                active_customers = 0
+            active_customers = max(active_customers, 0)
             inactive_customers = total_customers - active_customers
         else:
             active_customers = total_active_per_offer
@@ -1896,7 +1905,9 @@ class MetricsService:
         7. Detect bottlenecks (churn rate > 3% warning, > 5% critical)
         8. Cache result and return ExpansionDetailDTO
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+        from datetime import timezone as tz
+
         from src.modules.analytics.infrastructure.repositories.expansion_repository import (
             ExpansionMetricsRepository,
         )
@@ -1944,8 +1955,8 @@ class MetricsService:
         # 4. Build ExpansionGroupDTOs
 
         def _build_offers(
-            raw_items: List[tuple], is_churn: bool = False
-        ) -> List[ExpansionOfferDTO]:
+            raw_items: list[tuple], is_churn: bool = False
+        ) -> list[ExpansionOfferDTO]:
             result_offers = []
             for item in raw_items:
                 offer_id_str = str(item[0])
@@ -2123,7 +2134,9 @@ class MetricsService:
         4. Assemble EvangelizationDetailDTO
         5. Cache result and return
         """
-        from datetime import datetime as dt_cls, timezone as tz
+        from datetime import datetime as dt_cls
+        from datetime import timezone as tz
+
         from src.modules.analytics.infrastructure.repositories.evangelization_repository import (
             EvangelizationRepository,
         )
@@ -2233,10 +2246,10 @@ class MetricsService:
                 return BowtiesSummaryDTO(**cached)
 
         stages: list[StageSummaryKpiDTO] = []
-        latest_updated: Optional[str] = None
+        latest_updated: str | None = None
 
         # Helper to read a stage cache
-        async def _get_stage_cache(stage: str) -> Optional[dict]:
+        async def _get_stage_cache(stage: str) -> dict | None:
             if self.cache is None:
                 return None
             return await self.cache.get(tid, stage, "last_30_days")
@@ -2262,10 +2275,12 @@ class MetricsService:
                 latest_updated = attraction_cache["last_updated"]
         else:
             # Fallback: lightweight query
+            from sqlalchemy import func as sa_func
+            from sqlalchemy import select
+
             from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
                 MetricAggregationModel,
             )
-            from sqlalchemy import select, func as sa_func
 
             visitor_stmt = (
                 select(sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0))
@@ -2352,10 +2367,13 @@ class MetricsService:
                 secondary_unit=secondary_unit,
             ))
         else:
+            from datetime import datetime as dt_cls
+            from datetime import timedelta as td
+            from datetime import timezone as tz
+
             from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
                 SalesMetricsRepository,
             )
-            from datetime import datetime as dt_cls, timedelta as td, timezone as tz
 
             now = dt_cls.now(tz.utc)
             start_30d = now - td(days=30)
@@ -2450,7 +2468,7 @@ class MetricsService:
     # ------------------------------------------------------------------
 
     # Canonical hex colors per channel slug (mirrors frontend channel-colors.ts)
-    _CHANNEL_COLORS: Dict[str, str] = {
+    _CHANNEL_COLORS: dict[str, str] = {
         "ig-organic": "#E1306C",
         "ig-dm": "#C13584",
         "fb-organic": "#1877F2",
@@ -2535,7 +2553,9 @@ class MetricsService:
             )
 
         # 3. Query current period
-        from datetime import date as date_type, timedelta, timezone as tz
+        from datetime import date as date_type
+        from datetime import timedelta
+        from datetime import timezone as tz
 
         now = datetime.now(tz.utc).date()
         start_date = now - timedelta(days=range_days)
@@ -2548,7 +2568,9 @@ class MetricsService:
         elif metric_name == "leads":
             db_metric_names = ["leads", "new_subscribers"]
 
-        from sqlalchemy import select as sa_select, func as sa_f
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
+
         from src.modules.analytics.infrastructure.models.official_metrics_model import (
             OfficialMetricModel,
         )
@@ -2577,7 +2599,7 @@ class MetricsService:
         # 4. Build data points
         from collections import OrderedDict
 
-        date_map: Dict[date_type, Dict[str, float]] = OrderedDict()
+        date_map: dict[date_type, dict[str, float]] = OrderedDict()
         channels_seen: set = set()
 
         for row in rows:
@@ -2591,7 +2613,7 @@ class MetricsService:
 
         # Weekly aggregation if requested
         if granularity == "weekly" and date_map:
-            weekly_map: Dict[date_type, Dict[str, float]] = OrderedDict()
+            weekly_map: dict[date_type, dict[str, float]] = OrderedDict()
             for d, ch_vals in date_map.items():
                 # ISO week start (Monday)
                 week_start = d - timedelta(days=d.weekday())
@@ -2612,7 +2634,7 @@ class MetricsService:
         ]
 
         # 5. Period totals
-        period_totals: Dict[str, float] = {}
+        period_totals: dict[str, float] = {}
         for ch_vals in date_map.values():
             for slug, val in ch_vals.items():
                 period_totals[slug] = period_totals.get(slug, 0) + val
