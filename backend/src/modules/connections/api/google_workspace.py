@@ -23,6 +23,10 @@ from sqlalchemy.orm import Session
 
 from src.core.config import settings
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import (
+    ToggleServiceResponse,
+    WorkspaceStatusResponse,
+)
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
 from src.modules.connections.infrastructure.repositories import (
@@ -210,7 +214,7 @@ async def oauth_callback(
     return {"status": "connected", "email": email, "youtube_channel": youtube_channel}
 
 
-@router.get("/status")
+@router.get("/status", response_model=WorkspaceStatusResponse)
 async def get_status(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -247,7 +251,7 @@ async def get_status(
     }
 
 
-@router.patch("/services/{service}")
+@router.patch("/services/{service}", response_model=ToggleServiceResponse)
 async def toggle_service(
     service: str,
     is_active: bool = Body(..., embed=True),

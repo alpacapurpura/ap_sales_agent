@@ -3,6 +3,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import ConnectionTestResponse
 from src.modules.connections.api.dto.gmail import GmailStatusResponse
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.gmail import GmailAdapter
@@ -91,7 +92,7 @@ async def disconnect(
     return {"status": "disconnected"}
 
 
-@router.post("/test")
+@router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),

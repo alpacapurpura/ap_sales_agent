@@ -3,6 +3,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import (
+    ConnectionTestResponse,
+    TelegramConnectResponse,
+)
 from src.modules.connections.infrastructure.channels.telegram_service import (
     TelegramService,
 )
@@ -67,7 +71,7 @@ async def get_telegram_status(
     return ChannelStatusResponse(**status_data)
 
 
-@router.post("/connect")
+@router.post("/connect", response_model=TelegramConnectResponse)
 async def connect_telegram(
     payload: TelegramConnectRequest,
     background_tasks: BackgroundTasks,
@@ -91,7 +95,7 @@ async def connect_telegram(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/test")
+@router.post("/test", response_model=ConnectionTestResponse)
 async def test_telegram_connection(
     db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ):

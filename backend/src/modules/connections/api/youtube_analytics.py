@@ -13,6 +13,11 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import (
+    ConnectionTestResponse,
+    YouTubeAnalyticsDataResponse,
+    YouTubeAnalyticsStatusResponse,
+)
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.youtube_analytics import (
     YouTubeAnalyticsAdapter,
@@ -88,7 +93,7 @@ def _default_dates(
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
 
-@router.get("/status")
+@router.get("/status", response_model=YouTubeAnalyticsStatusResponse)
 async def get_status(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -114,7 +119,7 @@ async def get_status(
         return {"is_connected": True, "channel_id": None}
 
 
-@router.get("/overview")
+@router.get("/overview", response_model=YouTubeAnalyticsDataResponse)
 async def get_overview(
     start_date: str | None = Query(None, description="YYYY-MM-DD"),
     end_date: str | None = Query(None, description="YYYY-MM-DD"),
@@ -133,7 +138,7 @@ async def get_overview(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/daily-views")
+@router.get("/daily-views", response_model=YouTubeAnalyticsDataResponse)
 async def get_daily_views(
     start_date: str | None = Query(None, description="YYYY-MM-DD"),
     end_date: str | None = Query(None, description="YYYY-MM-DD"),
@@ -149,7 +154,7 @@ async def get_daily_views(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/top-videos")
+@router.get("/top-videos", response_model=YouTubeAnalyticsDataResponse)
 async def get_top_videos(
     start_date: str | None = Query(None, description="YYYY-MM-DD"),
     end_date: str | None = Query(None, description="YYYY-MM-DD"),
@@ -166,7 +171,7 @@ async def get_top_videos(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/demographics")
+@router.get("/demographics", response_model=YouTubeAnalyticsDataResponse)
 async def get_demographics(
     start_date: str | None = Query(None, description="YYYY-MM-DD"),
     end_date: str | None = Query(None, description="YYYY-MM-DD"),
@@ -182,7 +187,7 @@ async def get_demographics(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/traffic-sources")
+@router.get("/traffic-sources", response_model=YouTubeAnalyticsDataResponse)
 async def get_traffic_sources(
     start_date: str | None = Query(None, description="YYYY-MM-DD"),
     end_date: str | None = Query(None, description="YYYY-MM-DD"),
@@ -198,7 +203,7 @@ async def get_traffic_sources(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/countries")
+@router.get("/countries", response_model=YouTubeAnalyticsDataResponse)
 async def get_countries(
     start_date: str | None = Query(None, description="YYYY-MM-DD"),
     end_date: str | None = Query(None, description="YYYY-MM-DD"),
@@ -233,7 +238,7 @@ async def get_top_videos_enriched(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/test")
+@router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     adapter: YouTubeAnalyticsAdapter = Depends(_get_adapter),
 ):

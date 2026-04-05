@@ -6,6 +6,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import (
+    ConnectionTestResponse,
+    YoutubeUpdateConfigResponse,
+)
 from src.modules.connections.api.dto.youtube import YoutubeStatusResponse
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.youtube import YoutubeAdapter
@@ -48,7 +52,7 @@ def _get_youtube_config(db: Session, tenant_id: Any) -> dict[str, str]:
     return {"client_id": client_id, "client_secret": client_secret}
 
 
-@router.put("/config")
+@router.put("/config", response_model=YoutubeUpdateConfigResponse)
 async def update_config(
     client_id: str = Body(..., embed=True),
     client_secret: str = Body(..., embed=True),
@@ -184,7 +188,7 @@ async def disconnect(
     return {"status": "disconnected"}
 
 
-@router.post("/test")
+@router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),

@@ -49,6 +49,10 @@ class ConnectionResponse(BaseModel):
     details: dict[str, Any] | None = None
 
 
+class ShopifyAuthUrlResponse(BaseModel):
+    auth_url: str
+
+
 def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
     return ChannelConnectionRepository(db)
 
@@ -88,7 +92,7 @@ async def get_shopify_status(
     )
 
 
-@router.post("/generate-auth-url")
+@router.post("/generate-auth-url", response_model=ShopifyAuthUrlResponse)
 async def generate_auth_url(
     request: ShopifyAuthUrlRequest,
     user: User = Depends(get_current_user),

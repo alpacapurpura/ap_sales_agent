@@ -50,21 +50,23 @@ class ChannelConnectionRepository:
     def get_by_tenant_and_type(
         self, tenant_id: UUID, channel_type: ChannelType
     ) -> ChannelConnectionModel | None:
-        """Get connection (active or not) for a tenant + channel type."""
+        """Get connection (active or not) for a tenant + channel type, excluding soft-deleted."""
         stmt = select(ChannelConnectionModel).where(
             ChannelConnectionModel.tenant_id == tenant_id,
             ChannelConnectionModel.channel_type == channel_type.value,
+            ChannelConnectionModel.deleted_at.is_(None),
         )
         return self.db.execute(stmt).scalars().first()
 
     def get_all_by_tenant_and_types(
         self, tenant_id: UUID, channel_types: list[ChannelType]
     ) -> list[ChannelConnectionModel]:
-        """Get all connections (active or not) for a tenant filtered by a list of channel types."""
+        """Get all connections (active or not) for a tenant filtered by a list of channel types, excluding soft-deleted."""
         type_values = [ct.value for ct in channel_types]
         stmt = select(ChannelConnectionModel).where(
             ChannelConnectionModel.tenant_id == tenant_id,
             ChannelConnectionModel.channel_type.in_(type_values),
+            ChannelConnectionModel.deleted_at.is_(None),
         )
         return list(self.db.execute(stmt).scalars().all())
 
@@ -90,9 +92,10 @@ class ChannelConnectionRepository:
         return list(self.db.execute(stmt).scalars().all())
 
     def get_all_by_tenant(self, tenant_id: UUID) -> list[ChannelConnectionModel]:
-        """Get all connections for a tenant."""
+        """Get all connections for a tenant, excluding soft-deleted."""
         stmt = select(ChannelConnectionModel).where(
-            ChannelConnectionModel.tenant_id == tenant_id
+            ChannelConnectionModel.tenant_id == tenant_id,
+            ChannelConnectionModel.deleted_at.is_(None),
         )
         return list(self.db.execute(stmt).scalars().all())
 
@@ -233,6 +236,9 @@ class ChannelConnectionRepository:
         return connection
 
     def delete(self, connection: ChannelConnectionModel) -> None:
-        """Hard-delete an asset connection that no longer exists in the external platform."""
-        self.db.delete(connection)
-        self.db.commit()
+        """Soft-delete an asset connection that no longer exists in the external platform."""
+        from sqlalchemy.sql import func
+
+        connection.deleted_at = func.now()
+        connection.is_active = False
+        self.db.flush()
