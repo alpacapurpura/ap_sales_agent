@@ -60,7 +60,7 @@ export function GoogleCalendarView() {
         toast.info("Finalizando conexión con Google...");
 
         // Must match the redirect URI registered in Google Cloud Console
-        const redirectUri = window.location.origin + "/connections/brand-settings";
+        const redirectUri = window.location.origin + "/connections/google/callback";
 
         await connectionsApi.connectGoogle(code, token, redirectUri);
         toast.success("Google Calendar conectado exitosamente");
@@ -86,7 +86,7 @@ export function GoogleCalendarView() {
       if (!token) return;
 
       // Must match the redirect URI registered in Google Cloud Console
-      const redirectUri = window.location.origin + "/connections/brand-settings";
+      const redirectUri = window.location.origin + "/connections/google/callback";
       const { url } = await connectionsApi.getGoogleAuthUrl(token, redirectUri);
       
       openOAuthPopup({ url, name: "GoogleCalendarAuth" });

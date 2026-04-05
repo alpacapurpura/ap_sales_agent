@@ -60,7 +60,7 @@ export function GmailView() {
         toast.info("Finalizando conexión con Gmail...");
 
         // Must match the redirect URI registered in Google Cloud Console
-        const redirectUri = window.location.origin + "/connections/brand-settings";
+        const redirectUri = window.location.origin + "/connections/google/callback";
 
         await connectionsApi.connectGmail(code, token, redirectUri);
         toast.success("Gmail conectado exitosamente");
@@ -86,7 +86,7 @@ export function GmailView() {
       if (!token) return;
 
       // Must match the redirect URI registered in Google Cloud Console
-      const redirectUri = window.location.origin + "/connections/brand-settings";
+      const redirectUri = window.location.origin + "/connections/google/callback";
       const { url } = await connectionsApi.getGmailAuthUrl(token, redirectUri);
       
       openOAuthPopup({ url, name: "GmailAuth" });

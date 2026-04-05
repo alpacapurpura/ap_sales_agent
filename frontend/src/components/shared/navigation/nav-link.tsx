@@ -18,7 +18,7 @@ export const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
     { href, onClick, className, showLoadingIcon, loadingClassName, children, ...rest },
     ref,
   ) {
-    const { isNavigating, pendingHref } = useNavigation();
+    const { isNavigating, pendingHref, navigate } = useNavigation();
     const hrefString = typeof href === "string" ? href : href.pathname ?? "";
     const isThisLoading = isNavigating && pendingHref === hrefString;
 
@@ -28,6 +28,11 @@ export const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
         return;
       }
       onClick?.(e);
+      if (e.defaultPrevented) return;
+      // Skip for modified clicks (new tab, etc.) — let browser handle natively
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      navigate(hrefString);
     };
 
     return (

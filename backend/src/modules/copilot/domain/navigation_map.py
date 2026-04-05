@@ -8,12 +8,12 @@ Used by copilot tools to:
 """
 
 from dataclasses import dataclass, field
+from typing import List
 
 
 @dataclass(frozen=True)
 class AppField:
     """A specific field within a section."""
-
     field_id: str
     label: str
     description: str
@@ -22,28 +22,26 @@ class AppField:
 @dataclass(frozen=True)
 class AppSection:
     """A section within a page (e.g. a tab, accordion, or form group)."""
-
     section_id: str
     label: str
     description: str
-    fields: list[AppField] = field(default_factory=list)
+    fields: List[AppField] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
 class AppPage:
     """A navigable page in the app."""
-
     route_template: str  # e.g. "/{tenantId}/brand-settings"
     label: str
     module: str  # brand, offer, growth, sales, connections, settings
     description: str
-    sections: list[AppSection] = field(default_factory=list)
-    keywords: list[str] = field(default_factory=list)
+    sections: List[AppSection] = field(default_factory=list)
+    keywords: List[str] = field(default_factory=list)
 
 
 # ── Navigation Map ───────────────────────────────────────────────────
 
-NAVIGATION_MAP: list[AppPage] = [
+NAVIGATION_MAP: List[AppPage] = [
     # ── Brand Studio ─────────────────────────────────────────────
     # ── Brand Studio — Esencia ────────────────────────────────────
     AppPage(
@@ -51,43 +49,15 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Esencia",
         module="brand",
         description="ADN de la marca: identidad, historia, personalidad, equipo, credibilidad, contacto",
-        keywords=[
-            "marca",
-            "brand",
-            "identidad",
-            "esencia",
-            "historia",
-            "equipo",
-            "contacto",
-        ],
+        keywords=["marca", "brand", "identidad", "esencia", "historia", "equipo", "contacto"],
         sections=[
-            AppSection(
-                "identity",
-                "Identidad",
-                "Nombre de marca, industria, tagline, descripción, datos legales",
-            ),
-            AppSection(
-                "story",
-                "Historia",
-                "Historia de origen, misión, visión, hitos importantes",
-            ),
-            AppSection(
-                "values-essence",
-                "Personalidad",
-                "Valores, personalidad, arquetipo, esencia de marca, RTBs",
-            ),
+            AppSection("identity", "Identidad", "Nombre de marca, industria, tagline, descripción, datos legales"),
+            AppSection("story", "Historia", "Historia de origen, misión, visión, hitos importantes"),
+            AppSection("values-essence", "Personalidad", "Valores, personalidad, arquetipo, esencia de marca, RTBs"),
             AppSection("team", "Equipo", "Personas clave y liderazgo"),
-            AppSection(
-                "authority",
-                "Autoridad",
-                "Prensa, certificaciones, premios, partnerships",
-            ),
+            AppSection("authority", "Autoridad", "Prensa, certificaciones, premios, partnerships"),
             AppSection("testimonials", "Testimonios", "Prueba social y casos de éxito"),
-            AppSection(
-                "contact",
-                "Contacto",
-                "Información pública de contacto y redes sociales",
-            ),
+            AppSection("contact", "Contacto", "Información pública de contacto y redes sociales"),
         ],
     ),
     # ── Brand Studio — Estrategia ──────────────────────────────────
@@ -96,33 +66,12 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Estrategia",
         module="brand",
         description="Plan de juego: posicionamiento, mercado, StoryBrand, metodología",
-        keywords=[
-            "estrategia",
-            "posicionamiento",
-            "mercado",
-            "storybrand",
-            "metodología",
-            "UVP",
-        ],
+        keywords=["estrategia", "posicionamiento", "mercado", "storybrand", "metodología", "UVP"],
         sections=[
-            AppSection(
-                "positioning",
-                "Posicionamiento (Brand Love Key)",
-                "Entorno competitivo, insight, beneficios, discriminador, UVP",
-            ),
-            AppSection(
-                "market",
-                "Mercado",
-                "Competidores directos/indirectos, consumer insights",
-            ),
-            AppSection(
-                "storybrand",
-                "Narrativa (StoryBrand)",
-                "Héroe, problema, guía, plan, CTAs, resultado, one-liner",
-            ),
-            AppSection(
-                "methodology", "Metodología", "Framework o método propio de la marca"
-            ),
+            AppSection("positioning", "Posicionamiento (Brand Love Key)", "Entorno competitivo, insight, beneficios, discriminador, UVP"),
+            AppSection("market", "Mercado", "Competidores directos/indirectos, consumer insights"),
+            AppSection("storybrand", "Narrativa (StoryBrand)", "Héroe, problema, guía, plan, CTAs, resultado, one-liner"),
+            AppSection("methodology", "Metodología", "Framework o método propio de la marca"),
         ],
     ),
     # ── Brand Studio — Público ─────────────────────────────────────
@@ -142,50 +91,19 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Identidad Creativa",
         module="brand",
         description="Imagen, voz y mensajes: galería, colores, tipografía, logos, tono, conceptos creativos, assets por funnel",
-        keywords=[
-            "assets",
-            "visual",
-            "logo",
-            "colores",
-            "tipografía",
-            "diseño",
-            "galería",
-            "voz",
-            "tono",
-            "comunicación",
-            "idioma",
-            "voice",
-            "creativos",
-            "conceptos",
-            "funnel",
-            "TOFU",
-            "MOFU",
-            "BOFU",
-            "messaging",
-        ],
+        keywords=["assets", "visual", "logo", "colores", "tipografía", "diseño", "galería",
+                  "voz", "tono", "comunicación", "idioma", "voice",
+                  "creativos", "conceptos", "funnel", "TOFU", "MOFU", "BOFU", "messaging"],
         sections=[
             AppSection("gallery", "Galería de Marca", "Media assets de la marca"),
-            AppSection(
-                "visuals",
-                "Sistema de Diseño",
-                "Colores, tipografía, personalidad visual",
-            ),
+            AppSection("visuals", "Sistema de Diseño", "Colores, tipografía, personalidad visual"),
             AppSection("logos", "Logo Kit", "Variantes de logo"),
-            AppSection(
-                "voice", "Voz AI", "Estilo de comunicación y configuración de voz"
-            ),
-            AppSection(
-                "creative-concepts",
-                "Conceptos Creativos",
-                "Plantillas de messaging reutilizables",
-            ),
-            AppSection(
-                "funnel-assets",
-                "Assets por Funnel",
-                "Piezas por etapa (TOFU/MOFU/BOFU/Retención)",
-            ),
+            AppSection("voice", "Voz AI", "Estilo de comunicación y configuración de voz"),
+            AppSection("creative-concepts", "Conceptos Creativos", "Plantillas de messaging reutilizables"),
+            AppSection("funnel-assets", "Assets por Funnel", "Piezas por etapa (TOFU/MOFU/BOFU/Retención)"),
         ],
     ),
+
     # ── Offer Studio ─────────────────────────────────────────────
     AppPage(
         route_template="/{tenantId}/offer-studio",
@@ -194,9 +112,7 @@ NAVIGATION_MAP: list[AppPage] = [
         description="Escalera de ofertas: lista de productos/servicios con sus configuraciones",
         keywords=["oferta", "producto", "servicio", "precio", "offer", "escalera"],
         sections=[
-            AppSection(
-                "offer-list", "Lista de Ofertas", "Todas las ofertas del negocio"
-            ),
+            AppSection("offer-list", "Lista de Ofertas", "Todas las ofertas del negocio"),
         ],
     ),
     AppPage(
@@ -224,6 +140,7 @@ NAVIGATION_MAP: list[AppPage] = [
             ),
         ],
     ),
+
     # ── Growth Studio (Marketing Studio) ─────────────────────────
     AppPage(
         route_template="/{tenantId}/growth-studio/ventas",
@@ -238,28 +155,10 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Atracción & Captura",
         module="growth",
         description="Etapa 1-2: tráfico, visitantes, leads, canales orgánicos, paid, captura",
-        keywords=[
-            "atracción",
-            "captura",
-            "visitantes",
-            "tráfico",
-            "leads",
-            "orgánico",
-            "paid",
-            "SEO",
-            "redes sociales",
-        ],
+        keywords=["atracción", "captura", "visitantes", "tráfico", "leads", "orgánico", "paid", "SEO", "redes sociales"],
         sections=[
-            AppSection(
-                "attraction",
-                "Atracción",
-                "Visitantes por canal: orgánico, paid, search, outbound",
-            ),
-            AppSection(
-                "capture",
-                "Captura",
-                "Conversión de visitantes a leads, landing pages, chatbots",
-            ),
+            AppSection("attraction", "Atracción", "Visitantes por canal: orgánico, paid, search, outbound"),
+            AppSection("capture", "Captura", "Conversión de visitantes a leads, landing pages, chatbots"),
         ],
     ),
     AppPage(
@@ -267,25 +166,10 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Nutrición & Oportunidad",
         module="growth",
         description="Etapa 3-4: nurture, MQLs, SQLs, retargeting, automatización, calificación",
-        keywords=[
-            "nutrición",
-            "oportunidad",
-            "MQL",
-            "SQL",
-            "retargeting",
-            "automatización",
-            "nurture",
-            "calificación",
-        ],
+        keywords=["nutrición", "oportunidad", "MQL", "SQL", "retargeting", "automatización", "nurture", "calificación"],
         sections=[
-            AppSection(
-                "nurture", "Nutrición", "Retargeting, email automation, engagement"
-            ),
-            AppSection(
-                "opportunity",
-                "Oportunidad",
-                "Checkout, payment links, calificación de leads",
-            ),
+            AppSection("nurture", "Nutrición", "Retargeting, email automation, engagement"),
+            AppSection("opportunity", "Oportunidad", "Checkout, payment links, calificación de leads"),
         ],
     ),
     AppPage(
@@ -293,25 +177,10 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Ventas",
         module="growth",
         description="Etapa 5: revenue, clientes nuevos, ofertas vendidas, Shopify, suscripciones",
-        keywords=[
-            "ventas",
-            "revenue",
-            "ingresos",
-            "clientes",
-            "shopify",
-            "suscripciones",
-            "CAC",
-            "ticket",
-        ],
+        keywords=["ventas", "revenue", "ingresos", "clientes", "shopify", "suscripciones", "CAC", "ticket"],
         sections=[
-            AppSection(
-                "sales-metrics",
-                "Métricas de Ventas",
-                "Revenue total, nuevos clientes, CAC",
-            ),
-            AppSection(
-                "offer-ladder", "Escalera de Ofertas", "Revenue por oferta y tipo"
-            ),
+            AppSection("sales-metrics", "Métricas de Ventas", "Revenue total, nuevos clientes, CAC"),
+            AppSection("offer-ladder", "Escalera de Ofertas", "Revenue por oferta y tipo"),
         ],
     ),
     AppPage(
@@ -319,21 +188,9 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Adopción",
         module="growth",
         description="Etapa 6: salud del cliente, activación, retención temprana, refunds",
-        keywords=[
-            "adopción",
-            "salud",
-            "activación",
-            "retención",
-            "refund",
-            "churn temprano",
-            "onboarding",
-        ],
+        keywords=["adopción", "salud", "activación", "retención", "refund", "churn temprano", "onboarding"],
         sections=[
-            AppSection(
-                "health",
-                "Salud de Clientes",
-                "Porcentaje de salud, activos vs inactivos",
-            ),
+            AppSection("health", "Salud de Clientes", "Porcentaje de salud, activos vs inactivos"),
         ],
     ),
     AppPage(
@@ -341,28 +198,13 @@ NAVIGATION_MAP: list[AppPage] = [
         label="Expansión & Evangelización",
         module="growth",
         description="Etapa 7-8: MRR, LTV, churn, referidos, NPS, k-factor, upsell",
-        keywords=[
-            "expansión",
-            "evangelización",
-            "MRR",
-            "LTV",
-            "churn",
-            "referidos",
-            "NPS",
-            "k-factor",
-            "upsell",
-        ],
+        keywords=["expansión", "evangelización", "MRR", "LTV", "churn", "referidos", "NPS", "k-factor", "upsell"],
         sections=[
-            AppSection(
-                "expansion",
-                "Expansión",
-                "Net MRR, LTV, retención, crecimiento, cancelaciones",
-            ),
-            AppSection(
-                "evangelization", "Evangelización", "Referidos, NPS, k-factor, UGC"
-            ),
+            AppSection("expansion", "Expansión", "Net MRR, LTV, retención, crecimiento, cancelaciones"),
+            AppSection("evangelization", "Evangelización", "Referidos, NPS, k-factor, UGC"),
         ],
     ),
+
     # ── Sales Studio ─────────────────────────────────────────────
     AppPage(
         route_template="/{tenantId}/sales",
@@ -371,46 +213,64 @@ NAVIGATION_MAP: list[AppPage] = [
         description="Centro de operaciones de ventas: conversaciones del agente IA, pipeline, métricas",
         keywords=["ventas", "sales", "agente", "conversación", "pipeline", "CRM"],
         sections=[
-            AppSection(
-                "conversations",
-                "Conversaciones",
-                "Historial de chats del agente de ventas",
-            ),
+            AppSection("conversations", "Conversaciones", "Historial de chats del agente de ventas"),
         ],
     ),
+
+    # ── Closer Studio ─────────────────────────────────────────────
+    AppPage(
+        route_template="/{tenantId}/sales/studio/inbox",
+        label="Closer Studio - Inbox",
+        module="sales",
+        description="Supervisión en tiempo real de conversaciones del AI Sales Agent. Ver mensajes, pausar/reanudar AI, enviar mensajes directos.",
+        keywords=["closer", "inbox", "conversación", "stop", "pause", "mensaje directo", "supervisión"],
+        sections=[
+            AppSection("conversations", "Conversaciones", "Lista de conversaciones activas con filtros"),
+            AppSection("thread", "Thread", "Historial de mensajes de una conversación"),
+            AppSection("actions", "Acciones", "STOP/RESUME AI, mensajes, instrucciones"),
+        ],
+    ),
+    AppPage(
+        route_template="/{tenantId}/sales/studio/pipeline",
+        label="Closer Studio - Pipeline",
+        module="sales",
+        description="Vista Kanban del pipeline de ventas. Arrastra leads entre etapas del funnel.",
+        keywords=["pipeline", "kanban", "funnel", "etapa", "drag"],
+        sections=[
+            AppSection("board", "Kanban", "Tablero de pipeline con columnas por etapa"),
+        ],
+    ),
+    AppPage(
+        route_template="/{tenantId}/sales/studio/frozen",
+        label="Closer Studio - Congeladas",
+        module="sales",
+        description="Conversaciones sin actividad >72h. Diagnóstico AI y reactivación rápida.",
+        keywords=["congelada", "frozen", "inactiva", "reactivar", "diagnóstico"],
+        sections=[
+            AppSection("frozen-list", "Lista", "Conversaciones congeladas con diagnóstico"),
+            AppSection("diagnosis", "Diagnóstico AI", "Análisis automático y recomendaciones"),
+        ],
+    ),
+
     # ── Connections ───────────────────────────────────────────────
     AppPage(
         route_template="/connections",
         label="Conexiones",
         module="connections",
         description="Integraciones externas: Meta, Instagram, WhatsApp, Shopify, Google Calendar, Gmail, Mailerlite, YouTube, Google Analytics, Google Ads",
-        keywords=[
-            "conexión",
-            "integración",
-            "meta",
-            "instagram",
-            "whatsapp",
-            "shopify",
-            "google",
-            "calendar",
-            "gmail",
-            "youtube",
-        ],
+        keywords=["conexión", "integración", "meta", "instagram", "whatsapp", "shopify", "google", "calendar", "gmail", "youtube"],
         sections=[
             AppSection("meta", "Meta / Instagram", "Conexión con Facebook e Instagram"),
             AppSection("whatsapp", "WhatsApp", "Conexión con WhatsApp Business"),
             AppSection("shopify", "Shopify", "Conexión con tienda Shopify"),
-            AppSection(
-                "google-calendar", "Google Calendar", "Sincronización de agenda"
-            ),
+            AppSection("google-calendar", "Google Calendar", "Sincronización de agenda"),
             AppSection("gmail", "Gmail", "Conexión de email"),
             AppSection("mailerlite", "MailerLite", "Email marketing"),
             AppSection("youtube", "YouTube", "Canal de YouTube"),
-            AppSection(
-                "google-analytics", "Google Analytics", "Analytics del sitio web"
-            ),
+            AppSection("google-analytics", "Google Analytics", "Analytics del sitio web"),
         ],
     ),
+
     # ── Settings ─────────────────────────────────────────────────
     AppPage(
         route_template="/{tenantId}/settings",
@@ -429,16 +289,15 @@ NAVIGATION_MAP: list[AppPage] = [
 
 # ── Lookup helpers ───────────────────────────────────────────────────
 
-
-def get_all_pages() -> list[AppPage]:
+def get_all_pages() -> List[AppPage]:
     return NAVIGATION_MAP
 
 
-def get_page_by_module(module: str) -> list[AppPage]:
+def get_page_by_module(module: str) -> List[AppPage]:
     return [p for p in NAVIGATION_MAP if p.module == module]
 
 
-def find_pages_by_keyword(keyword: str) -> list[AppPage]:
+def find_pages_by_keyword(keyword: str) -> List[AppPage]:
     """Fuzzy search across labels, descriptions, and keywords."""
     kw = keyword.lower()
     results = []

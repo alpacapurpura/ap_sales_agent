@@ -10,12 +10,15 @@ export async function GET(request: NextRequest) {
   const timestamp = searchParams.get('timestamp');
   const appId = process.env.SHOPIFY_API_KEY;
 
+  // state contains tenantId (UUID) set during auth URL generation
+  const connectionsPath = state ? `/${state}/connections/shopify` : '/';
+
   if (!code || !hmac || !shop) {
-    return NextResponse.redirect(new URL('/growth-studio/connections?status=error&message=Missing required parameters', request.url));
+    return NextResponse.redirect(new URL(`${connectionsPath}?status=error&message=Missing required parameters`, request.url));
   }
 
   if (!appId) {
-    return NextResponse.redirect(new URL('/growth-studio/connections?status=error&message=Missing SHOPIFY_API_KEY configuration', request.url));
+    return NextResponse.redirect(new URL(`${connectionsPath}?status=error&message=Missing SHOPIFY_API_KEY configuration`, request.url));
   }
 
   try {
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(adminUrl);
     }
 
-    const redirectUrl = new URL('/growth-studio/connections', request.url);
+    const redirectUrl = new URL(connectionsPath, request.url);
     if (exchangeSuccess) {
       redirectUrl.searchParams.set('status', 'success');
       redirectUrl.searchParams.set('channel', 'shopify');
@@ -83,6 +86,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   } catch (error: any) {
     console.error('Shopify Auth Fatal Error:', error);
-    return NextResponse.redirect(new URL(`/growth-studio/connections?status=error&message=${encodeURIComponent(error.message)}`, request.url));
+    return NextResponse.redirect(new URL(`${connectionsPath}?status=error&message=${encodeURIComponent(error.message)}`, request.url));
   }
 }

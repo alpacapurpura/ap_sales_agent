@@ -9,38 +9,29 @@ SchedulerSettings runs cron jobs:
 from arq import cron
 from arq.connections import RedisSettings
 
-import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.core.config import settings
-from src.modules.analytics.application.config import ETLConfig
+import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.modules.analytics.workers.tasks import (
     run_campaign_sync,
-    run_inactivity_detection,
     run_initial_load,
+    run_inactivity_detection,
     run_mailerlite_etl_sync,
     run_tenant_extraction,
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
-from src.modules.tenant_domains.workers.tasks import poll_domain_verification
+from src.modules.domains.workers.tasks import poll_domain_verification
+from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 
 
 class WorkerSettings:
     """ARQ worker that processes ETL extraction jobs and CRM batch tasks."""
 
-    functions = [
-        run_tenant_extraction,
-        run_initial_load,
-        run_inactivity_detection,
-        run_mailerlite_etl_sync,
-        run_campaign_sync,
-        run_brand_extraction,
-        cleanup_old_events,
-        poll_domain_verification,
-    ]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification, run_frozen_detection]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
-    max_jobs = ETLConfig.MAX_CONCURRENT_JOBS
-    max_tries = ETLConfig.MAX_RETRIES
-    job_timeout = ETLConfig.EXTRACTION_TIMEOUT_SECONDS
+    max_jobs = 10
+    max_tries = 5
+    job_timeout = 600  # 10 minutes per job
 
     @staticmethod
     async def on_startup(ctx):
@@ -55,6 +46,7 @@ class WorkerSettings:
     @staticmethod
     async def on_shutdown(ctx):
         """Cleanup worker resources."""
+        pass
 
 
 class SchedulerSettings:
@@ -67,20 +59,11 @@ class SchedulerSettings:
     from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
-    functions = [
-        run_tenant_extraction,
-        run_initial_load,
-        run_inactivity_detection,
-        run_mailerlite_etl_sync,
-        run_campaign_sync,
-        run_brand_extraction,
-        cleanup_old_events,
-        poll_domain_verification,
-    ]
+    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification, run_frozen_detection]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
-    max_jobs = ETLConfig.MAX_CONCURRENT_JOBS
-    max_tries = ETLConfig.MAX_RETRIES
-    job_timeout = ETLConfig.EXTRACTION_TIMEOUT_SECONDS
+    max_jobs = 10
+    max_tries = 5
+    job_timeout = 600
 
     cron_jobs = [
         cron(
@@ -106,6 +89,11 @@ class SchedulerSettings:
             poll_domain_verification,
             minute={0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55},  # Every 5 minutes
         ),
+        cron(
+            run_frozen_detection,
+            hour={0, 4, 8, 12, 16, 20},
+            minute=30,  # Every 4 hours at :30
+        ),
     ]
 
     @staticmethod
@@ -121,3 +109,4 @@ class SchedulerSettings:
     @staticmethod
     async def on_shutdown(ctx):
         """Cleanup scheduler resources."""
+        pass

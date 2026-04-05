@@ -40,11 +40,11 @@ export function OfferEditor({ offerId }: { offerId: string }) {
   });
 
   // Sync form with loaded data
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- form.reset is stable; including `form` causes infinite reset loop
   useEffect(() => {
     if (formValues) {
       form.reset(formValues);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- form.reset is stable
   }, [formValues]);
 
   const handleSave = async () => {

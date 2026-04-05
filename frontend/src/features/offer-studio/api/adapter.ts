@@ -23,6 +23,11 @@ export interface BackendPricing {
   deposit_required?: number;
   number_of_installments?: number;
   installment_amount?: number;
+  is_default?: boolean;
+  savings_claim?: string;
+  benefits?: string[];
+  is_highlighted?: boolean;
+  cta_text?: string;
 }
 
 export interface BackendObjection {
@@ -40,6 +45,16 @@ export interface BackendDeliverable {
   value_stack_price?: number;
 }
 
+export interface BackendAsset {
+  id?: string;
+  type?: string;
+  name?: string;
+  url?: string;
+  size?: string;
+  trigger_context?: string;
+  is_knowledge_base?: boolean;
+}
+
 // Tipo para la respuesta cruda del backend
 export interface BackendOffer {
   id: string;
@@ -54,18 +69,18 @@ export interface BackendOffer {
   value_level?: string;
   delivery_model?: string;
   status?: string;
-  
+
   headline_promise?: string;
   primary_outcome?: string;
   time_to_value?: string;
-  
+
   pricing?: BackendPricing[];
   pricing_options?: BackendPricing[];
   currency?: string;
-  
+
   specific_details?: Record<string, unknown>;
   metadata_info?: Record<string, unknown>;
-  
+
   avatar_id?: string;
   marketing_pain_points?: string[];
   marketing_desires?: string[];
@@ -73,9 +88,9 @@ export interface BackendOffer {
 
   deliverables?: BackendDeliverable[];
   target_avatar_match?: string[];
-  prerequisites?: any[];
+  prerequisites?: Array<string | Record<string, unknown>>;
   includes_offers?: string[];
-  assets?: any[];
+  assets?: BackendAsset[];
 
   guarantee_type?: string;
   guarantee_terms?: string;
@@ -83,7 +98,7 @@ export interface BackendOffer {
   access_duration_text?: string;
   support_duration_days?: number;
   instructors?: string[];
-  
+
   landing_page_config?: Record<string, unknown>;
 
   // Campos aplanados que a veces vienen directos
@@ -92,7 +107,7 @@ export interface BackendOffer {
   calendar_type_id?: string;
   checkout_page_url?: string;
   vsl_link?: string;
-  
+
   [key: string]: unknown;
 }
 
@@ -104,9 +119,8 @@ const normalizeEnum = <T extends string>(
 ): T => {
   if (!value) return defaultValue;
 
-  const enumValues = Object.values(enumObj);
-
   // 1. Direct match
+  const enumValues = Object.values(enumObj);
   if (enumValues.includes(value as T)) {
     return value as T;
   }
@@ -142,7 +156,7 @@ const normalizeLegacyValueLevel = (value: string | null | undefined): OfferValue
  * Maneja la normalización de campos, valores por defecto y extracción de metadata.
  */
 export const backendToFrontend = (data: BackendOffer): Offer => {
-  const metadata = (data.metadata_info || {}) as Record<string, any>;
+  const metadata = data.metadata_info || {};
 
   return {
     id: data.id,
@@ -187,7 +201,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
         rebuttal: o.rebuttal || "",
     })),
     deliverables: (data.deliverables || []).map((d: BackendDeliverable) => ({
-        name: d.name || "",
+        name: d.name,
         format: d.format || DeliverableFormat.VIDEO,
         quantity: String(d.quantity || "1"),
         value_stack_price: Number(d.value_stack_price) || 0
@@ -214,7 +228,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     checkout_page_url: metadata.checkout_page_url || data.checkout_page_url,
     vsl_link: metadata.vsl_link || data.vsl_link,
 
-    landing_page_config: data.landing_page_config as any
+    landing_page_config: data.landing_page_config
   };
 };
 

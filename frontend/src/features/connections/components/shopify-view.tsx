@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
 import { connectionsApi, ShopifyStatusResponse } from "@/lib/api/connections";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,8 @@ export function ShopifyView() {
   const { getToken } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
+  const tenantId = params?.tenantId as string | undefined;
   const externalStudioBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/$/, "");
   const nicolifyStudioUrl = `${externalStudioBaseUrl}/growth-studio`;
   const [loading, setLoading] = useState(true);
@@ -60,12 +62,12 @@ export function ShopifyView() {
     const message = searchParams?.get("message");
     if (statusParam === "success" && channel === "shopify") {
         toast.success("Shopify conectado exitosamente");
-        router.replace("/growth-studio/connections");
+        router.replace(tenantId ? `/${tenantId}/connections/shopify` : "/");
         fetchStatus();
     }
     if (statusParam === "error" && message) {
       toast.error(message);
-      router.replace("/growth-studio/connections");
+      router.replace(tenantId ? `/${tenantId}/connections/shopify` : "/");
     }
   }, [searchParams, router]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { connectionsApi } from "@/lib/api/connections";
 import type { MetaStatusResponse } from "@/lib/api/connections";
 import {
@@ -220,9 +220,7 @@ function NotConnectedScreen({
 export function MetaView() {
   const { getToken } = useAuth();
   const params = useParams();
-  const searchParams = useSearchParams();
   const tenantId = params?.tenantId as string | undefined;
-  const tabParam = searchParams?.get("tab");
 
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<MetaStatusResponse | null>(null);
@@ -289,7 +287,7 @@ export function MetaView() {
 
   useEffect(() => {
     loadAll();
-  }, [loadAll, tabParam]);
+  }, [loadAll]);
 
   // ── Connect ──
   const handleConnect = async () => {

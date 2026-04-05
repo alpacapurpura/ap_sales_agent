@@ -137,7 +137,7 @@ function CallbackContent() {
       sessionStorage.removeItem("meta_oauth_tenant_id");
 
       toast.success("Meta conectado - activos sincronizados");
-      router.push(tenantId ? `/${tenantId}/settings?tab=meta` : "/");
+      router.push(tenantId ? `/${tenantId}/connections/meta` : "/");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error desconocido";
       console.error("[Meta OAuth] Callback failed:", message);
@@ -172,7 +172,7 @@ function CallbackContent() {
       "";
     sessionStorage.removeItem("meta_oauth_code");
     sessionStorage.removeItem("meta_oauth_tenant_id");
-    router.push(tenantId ? `/${tenantId}/settings?tab=meta` : "/");
+    router.push(tenantId ? `/${tenantId}/connections/meta` : "/");
   };
 
   // Error state UI

@@ -20,8 +20,6 @@ import { OfferLadderLayout } from "./offer-ladder-layout";
 import { CreateOfferWizard, WizardResult } from "../wizard/CreateOfferWizard";
 import { computeLadderCompleteness } from "@/features/offer-studio/utils/ladder-completeness";
 
-const EMPTY_OFFERS: Offer[] = [];
-
 const LEVEL_RICH_INFO: Record<string, { title: string; description: string; icon: any }> = {
   [OfferValueLevel.LEAD_MAGNET]: {
     title: "Lead Magnets",
@@ -69,7 +67,7 @@ export function OfferStudioDashboard({
   const tenantId = params?.tenantId as string;
   const queryClient = useQueryClient();
 
-  const { data: offers = EMPTY_OFFERS, isLoading: loading, error: queryError, refetch: fetchOffers } = useQuery({
+  const { data: offers = [], isLoading: loading, error: queryError, refetch: fetchOffers } = useQuery({
     queryKey: ['offers'],
     queryFn: async () => {
       const token = await getToken();

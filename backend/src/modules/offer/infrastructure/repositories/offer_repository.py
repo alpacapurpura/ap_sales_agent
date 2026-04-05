@@ -1,14 +1,15 @@
+from typing import List, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
+from src.modules.offer.domain.offer import Offer, ARCHETYPE_TO_DETAILS_MAPPING
 from src.modules.offer.infrastructure.models.product_model import ProductModel
 from src.modules.offer.infrastructure.repositories.enum_normalizer import (
     normalize_archetype,
-    normalize_deliverables,
     normalize_delivery_model,
+    normalize_deliverables,
     normalize_financial_capacity,
     normalize_guarantee_type,
     normalize_pricing_options,
@@ -45,9 +46,7 @@ class OfferRepository:
             "delivery_model": normalize_delivery_model(model.delivery_model),
             "instructors": [],
             "requires_application": model.requires_application or False,
-            "min_financial_capacity": normalize_financial_capacity(
-                model.min_financial_capacity
-            ),
+            "min_financial_capacity": normalize_financial_capacity(model.min_financial_capacity),
             "prerequisites": model.prerequisites or [],
             "anti_avatar_keywords": model.anti_avatar_keywords or [],
             "guarantee_type": normalize_guarantee_type(model.guarantee_type),
@@ -60,7 +59,7 @@ class OfferRepository:
             "vsl_link": model.vsl_link,
             "checkout_page_url": model.checkout_page_url,
             "calendar_type_id": model.calendar_type_id,
-            "landing_page_config": model.landing_page_config or None,
+            "landing_page_config": model.landing_page_config if model.landing_page_config else None,
             "marketing_pain_points": model.marketing_pain_points or [],
             "marketing_desires": model.marketing_desires or [],
             "objections": model.objections or [],
@@ -80,25 +79,15 @@ class OfferRepository:
                 try:
                     offer_data["specific_details"] = detail_class(**normalized)
                 except Exception as e:
-                    raise ValueError(
-                        f"Error parsing specific_details for offer {model.id}: {e!s}"
-                    )
+                    raise ValueError(f"Error parsing specific_details for offer {model.id}: {str(e)}")
 
         return Offer(**offer_data)
 
     def _to_model(self, offer: Offer) -> ProductModel:
-        pricing_data = [p.model_dump(mode="json") for p in offer.pricing_options]
-        deliverables_data = [d.model_dump(mode="json") for d in offer.deliverables]
-        details_data = (
-            offer.specific_details.model_dump(mode="json")
-            if offer.specific_details
-            else {}
-        )
-        landing_config_data = (
-            offer.landing_page_config.model_dump(mode="json")
-            if offer.landing_page_config
-            else {}
-        )
+        pricing_data = [p.model_dump(mode='json') for p in offer.pricing_options]
+        deliverables_data = [d.model_dump(mode='json') for d in offer.deliverables]
+        details_data = offer.specific_details.model_dump(mode='json') if offer.specific_details else {}
+        landing_config_data = offer.landing_page_config.model_dump(mode='json') if offer.landing_page_config else {}
 
         return ProductModel(
             id=offer.id,
@@ -139,11 +128,11 @@ class OfferRepository:
             landing_page_config=landing_config_data,
             marketing_pain_points=offer.marketing_pain_points,
             marketing_desires=offer.marketing_desires,
-            objections=[o.model_dump(mode="json") for o in offer.objections],
-            metadata_info=offer.metadata_info,
+            objections=[o.model_dump(mode='json') for o in offer.objections],
+            metadata_info=offer.metadata_info
         )
 
-    def get_by_id(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
+    def get_by_id(self, offer_id: UUID, tenant_id: UUID) -> Optional[Offer]:
         stmt = select(ProductModel).where(
             ProductModel.id == offer_id,
             ProductModel.tenant_id == tenant_id,
@@ -153,7 +142,7 @@ class OfferRepository:
             return self._to_domain(model)
         return None
 
-    def get_all_by_tenant(self, tenant_id: UUID) -> list[Offer]:
+    def get_all_by_tenant(self, tenant_id: UUID) -> List[Offer]:
         stmt = select(ProductModel).where(
             ProductModel.tenant_id == tenant_id,
             ProductModel.status != "archived",
@@ -178,13 +167,9 @@ class OfferRepository:
             raise ValueError("Offer not found")
 
         new_model_data = self._to_model(offer)
-        ignored_keys = {
-            "_sa_instance_state",
-            "created_at",
-            "updated_at",
-            "id",
-            "tenant_id",
-        }
+
+        ignored_keys = {'_sa_instance_state', 'created_at', 'updated_at', 'id', 'tenant_id'}
+
         for key, value in new_model_data.__dict__.items():
             if key in ignored_keys:
                 continue

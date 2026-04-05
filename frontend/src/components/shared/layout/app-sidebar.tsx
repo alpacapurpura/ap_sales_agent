@@ -16,10 +16,20 @@ import {
   Crosshair,
   UserSearch,
   Palette,
+  LayoutDashboard,
+  Headset,
+  Users,
+  Magnet,
+  Sprout,
+  ShoppingCart,
+  UserCheck,
+  Rocket,
+  SlidersHorizontal,
+  Cable,
   type LucideIcon,
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useSidebar } from "./sidebar-context";
@@ -65,18 +75,34 @@ const getNavItems = (tenantId: string): NavItem[] => [
   },
   {
     title: "Growth Studio",
-    href: `/${tenantId}/growth-studio/ventas`,
+    href: `/${tenantId}/growth-studio`,
     icon: Megaphone,
+    children: [
+      { title: "Atracción", href: `/${tenantId}/growth-studio/atraccion-captura`, icon: Magnet },
+      { title: "Nutrición", href: `/${tenantId}/growth-studio/nutricion-oportunidad`, icon: Sprout },
+      { title: "Ventas", href: `/${tenantId}/growth-studio/ventas`, icon: ShoppingCart },
+      { title: "Adopción", href: `/${tenantId}/growth-studio/adopcion`, icon: UserCheck },
+      { title: "Expansión", href: `/${tenantId}/growth-studio/expansion-evangelizacion`, icon: Rocket },
+    ],
   },
   {
     title: "Closer Studio",
     href: `/${tenantId}/sales`,
     icon: CalendarCheck,
+    children: [
+      { title: "Resumen", href: `/${tenantId}/sales/resumen`, icon: LayoutDashboard },
+      { title: "Studio", href: `/${tenantId}/sales/studio/inbox`, icon: Headset },
+      { title: "Contactos", href: `/${tenantId}/sales/contactos`, icon: Users },
+    ],
   },
   {
     title: "Configuracion",
     href: `/${tenantId}/settings`,
     icon: Settings,
+    children: [
+      { title: "General", href: `/${tenantId}/settings`, icon: SlidersHorizontal },
+      { title: "Conexiones", href: `/${tenantId}/connections`, icon: Cable },
+    ],
   },
 ];
 
@@ -91,23 +117,16 @@ interface NavItemRendererProps {
   isCollapsed: boolean;
   mounted: boolean;
   onMobileClose: () => void;
+  expandedHref: string | null;
+  onToggleExpand: (href: string) => void;
 }
 
-function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobileClose }: NavItemRendererProps) {
-  const isParentActive = pathname.startsWith(item.href);
-  // Initialize expanded from the active state; user can still toggle manually
-  const [isExpanded, setIsExpanded] = useState(isParentActive);
+function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobileClose, expandedHref, onToggleExpand }: NavItemRendererProps) {
+  const isParentActive = pathname.startsWith(item.href) ||
+    (item.children?.some((child) => pathname.startsWith(child.href)) ?? false);
   const hasChildren = item.children && item.children.length > 0;
+  const isExpanded = item.href === expandedHref;
   const showExpanded = !isCollapsed || mobile;
-
-  // Auto-expand when navigating to a child route — the effect legitimately
-  // syncs local toggle state with external navigation changes.
-  useEffect(() => {
-    if (isParentActive && hasChildren) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsExpanded(true);
-    }
-  }, [isParentActive, hasChildren]);
 
   // Simple item (no children)
   if (!hasChildren) {
@@ -194,7 +213,7 @@ function NavItemRenderer({ item, pathname, mobile, isCollapsed, mounted, onMobil
   return (
     <div className="space-y-1">
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => onToggleExpand(item.href)}
         className={cn(
           "flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-all w-full group",
           isParentActive
@@ -275,7 +294,38 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
   const pathSegments = pathname.split('/').filter(Boolean);
   const currentTenantId = pathSegments[0] || profile?.tenant?.id || "";
 
-  const navItems = getNavItems(currentTenantId);
+  const navItems = useMemo(() => getNavItems(currentTenantId), [currentTenantId]);
+
+  // Check if pathname matches parent or any of its children
+  const matchesNavItem = useCallback((item: NavItem, path: string) => {
+    if (path.startsWith(item.href)) return true;
+    return item.children?.some((child) => path.startsWith(child.href)) ?? false;
+  }, []);
+
+  // Accordion: only one parent expanded at a time
+  const activeParent = navItems.find(
+    (item) => item.children?.length && matchesNavItem(item, pathname)
+  );
+  const [expandedHref, setExpandedHref] = useState<string | null>(
+    activeParent?.href ?? null
+  );
+
+  // Sync only when pathname actually changes (not on every render)
+  const prevPathname = useRef(pathname);
+  useEffect(() => {
+    if (prevPathname.current === pathname) return;
+    prevPathname.current = pathname;
+    const newActive = navItems.find(
+      (item) => item.children?.length && matchesNavItem(item, pathname)
+    );
+    if (newActive) {
+      setExpandedHref(newActive.href);
+    }
+  }, [pathname, navItems, matchesNavItem]);
+
+  const handleToggleExpand = useCallback((href: string) => {
+    setExpandedHref((prev) => (prev === href ? null : href));
+  }, []);
 
   // Use a stable src during SSR/hydration to avoid mismatch; switch after mount.
   const fullLogoSrc = mounted && resolvedTheme === "dark"
@@ -336,6 +386,8 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
                 isCollapsed={isCollapsed}
                 mounted={mounted}
                 onMobileClose={() => setIsMobileOpen(false)}
+                expandedHref={expandedHref}
+                onToggleExpand={handleToggleExpand}
               />
             ))}
           </TooltipProvider>

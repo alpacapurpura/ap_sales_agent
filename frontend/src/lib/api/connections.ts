@@ -91,6 +91,17 @@ export interface YoutubeStatusResponse extends ChannelStatusResponse {
   channel_data?: Record<string, any>;
 }
 
+export interface ConnectionStatusItem {
+  channel_type: string;
+  is_connected: boolean;
+  display_name?: string;
+  last_sync?: string;
+}
+
+export interface BatchConnectionStatusResponse {
+  connections: ConnectionStatusItem[];
+}
+
 export interface ChannelInfoResponse {
   provider: string;
   is_connected: boolean;
@@ -783,6 +794,15 @@ export const connectionsApi = {
         const err = await res.json();
         throw new Error(err.detail || "Error configurando YouTube");
     }
+    return res.json();
+  },
+
+  // Batch status (Connections Hub)
+  getAllConnectionsStatus: async (token: string): Promise<BatchConnectionStatusResponse> => {
+    const res = await fetchClient(`${API_URL}/api/v1/connections/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error obteniendo estado de conexiones");
     return res.json();
   },
 

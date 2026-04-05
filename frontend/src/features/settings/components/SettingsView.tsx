@@ -4,56 +4,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AIKeysForm } from "@/features/settings/components/ai-keys-form"
 import { ProfileView } from "@/features/settings/components/profile-view"
 import { WebhookView } from "@/features/settings/components/webhook-view"
+import { SchedulingSettingsView } from "@/features/settings/components/scheduling-settings-view"
+import { PaymentSettingsView } from "@/features/settings/components/payment-settings-view"
 import { GeneralSettingsForm } from "@/features/settings/components/general-settings-form"
 import { TeamView } from "@/features/settings/components/team-view"
-import { TelegramView } from "@/features/connections/components/telegram-view"
-import { GoogleWorkspaceView } from "@/features/connections/components/google-workspace-view"
-import { ShopifyView } from "@/features/connections/components/shopify-view"
-import { MailerLiteView } from "@/features/connections/components/mailerlite-view"
-import { ManyChatView } from "@/features/connections/components/manychat-view"
-import { MetaView } from "@/features/connections/components/meta-view"
-import WhatsAppView from "@/features/connections/components/whatsapp-view"
 import {
+  CalendarClock,
+  CreditCard,
   Key,
   Settings as SettingsIcon,
   User,
   Webhook,
   Users,
-  MessageCircle,
-  Video,
-  Facebook,
-  Send,
-  MessageSquareCode,
-  CreditCard,
-  Mail,
-  ShoppingBag,
-  Bot,
 } from "lucide-react"
 import { useSearchParams, useParams } from "next/navigation"
 import { useNavigation } from "@/components/shared/navigation"
 import { Suspense } from "react"
 import { OAuthCallbackHandler } from "@/features/connections/components/oauth-callback-handler"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
-function PlaceholderContent({ title, icon: Icon }: { title: string, icon: any }) {
-  return (
-    <Card className="w-full min-h-[600px]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon className="h-6 w-6" />
-          {title}
-        </CardTitle>
-        <CardDescription>Esta funcionalidad estará disponible próximamente.</CardDescription>
-      </CardHeader>
-      <CardContent className="h-[400px] flex items-center justify-center text-muted-foreground bg-muted/10 rounded-md border border-dashed m-6">
-        <div className="text-center">
-          <Icon className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p>Próximamente</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function SettingsContent() {
   const searchParams = useSearchParams()
@@ -62,7 +29,6 @@ function SettingsContent() {
   const tenantId = params.tenantId as string
   const tabParam = searchParams?.get("tab")
 
-  // Derive active tab directly from the URL param; no separate state needed
   const activeTab = tabParam || "general"
 
   const handleTabChange = (value: string) => {
@@ -74,7 +40,7 @@ function SettingsContent() {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col lg:flex-row w-full space-y-6 lg:space-y-0 lg:space-x-12">
             <aside className="-mx-4 lg:w-1/5">
                 <TabsList className="flex flex-col h-auto items-start justify-start bg-transparent p-0 space-y-1">
-                    
+
                     {/* Grupo: Principal */}
                     <div className="w-full px-4 mb-2 mt-2">
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -82,134 +48,55 @@ function SettingsContent() {
                       </h3>
                     </div>
 
-                    <TabsTrigger 
-                        value="general" 
+                    <TabsTrigger
+                        value="general"
                         className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
                         <SettingsIcon className="mr-2 h-4 w-4" />
                         General
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="profile" 
+                    <TabsTrigger
+                        value="profile"
                         className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
                         <User className="mr-2 h-4 w-4" />
                         Perfil
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="team" 
+                    <TabsTrigger
+                        value="team"
                         className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
                         <Users className="mr-2 h-4 w-4" />
                         Equipo
                     </TabsTrigger>
-                    <TabsTrigger 
-                        value="ai-keys" 
+                    <TabsTrigger
+                        value="ai-keys"
                         className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
                         <Key className="mr-2 h-4 w-4" />
                         LLM API Key&apos;s
                     </TabsTrigger>
 
-                    {/* Grupo: Canales de Venta */}
+                    {/* Grupo: Ventas */}
                     <div className="w-full px-4 mb-2 mt-6">
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Canales de Venta
+                        Ventas
                       </h3>
                     </div>
 
-                    <TabsTrigger 
-                      value="whatsapp" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                    <TabsTrigger
+                        value="scheduling"
+                        className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      WhatsApp
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="meta" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Facebook className="mr-2 h-4 w-4" />
-                      Meta Business Suite
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="manychat" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Bot className="mr-2 h-4 w-4" />
-                      ManyChat
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="shopify" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <ShoppingBag className="mr-2 h-4 w-4" />
-                      Shopify
+                        <CalendarClock className="mr-2 h-4 w-4" />
+                        Agenda
                     </TabsTrigger>
                     <TabsTrigger
-                      value="google-workspace"
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
+                        value="payments"
+                        className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
-                      <Mail className="mr-2 h-4 w-4" />
-                      Google Workspace
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="tiktok" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Video className="mr-2 h-4 w-4" />
-                      TikTok
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="telegram" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Send className="mr-2 h-4 w-4" />
-                      Telegram
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="webwidget" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <MessageSquareCode className="mr-2 h-4 w-4" />
-                      Web Widget
-                    </TabsTrigger>
-
-                    {/* Grupo: Marketing */}
-                    <div className="w-full px-4 mb-2 mt-6">
-                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Marketing
-                      </h3>
-                    </div>
-
-                    <TabsTrigger 
-                      value="mailerlite" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Mail className="mr-2 h-4 w-4" />
-                      MailerLite
-                    </TabsTrigger>
-
-                    {/* Grupo: Cierre de ventas */}
-                    <div className="w-full px-4 mb-2 mt-6">
-                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Cierre de ventas 
-                      </h3>
-                    </div>
-
-                    <TabsTrigger 
-                      value="crm" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <Users className="mr-2 h-4 w-4" />
-                      CRM
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="payments" 
-                      className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
-                    >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Payments
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Pagos
                     </TabsTrigger>
 
                     {/* Grupo: Desarrolladores */}
@@ -219,8 +106,8 @@ function SettingsContent() {
                       </h3>
                     </div>
 
-                    <TabsTrigger 
-                      value="webhooks" 
+                    <TabsTrigger
+                      value="webhooks"
                       className="w-full justify-start px-4 py-2 text-left font-medium hover:bg-muted/50 data-[state=active]:bg-muted data-[state=active]:shadow-none border-transparent"
                     >
                       <Webhook className="mr-2 h-4 w-4" />
@@ -244,41 +131,12 @@ function SettingsContent() {
                     <AIKeysForm />
                 </TabsContent>
 
-                {/* Canales de Venta */}
-                <TabsContent value="whatsapp" className="mt-0">
-                  <WhatsAppView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="meta" className="mt-0">
-                  <MetaView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="manychat" className="mt-0">
-                  <ManyChatView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="shopify" className="mt-0">
-                  <ShopifyView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="google-workspace" className="mt-0">
-                  <GoogleWorkspaceView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="tiktok" className="mt-0">
-                   <PlaceholderContent key={tenantId} title="TikTok" icon={Video} />
-                </TabsContent>
-<TabsContent value="telegram" className="mt-0">
-                   <TelegramView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="webwidget" className="mt-0">
-                   <PlaceholderContent key={tenantId} title="Web Widget" icon={MessageSquareCode} />
-                </TabsContent>
-
-                {/* Marketing */}
-                <TabsContent value="mailerlite" className="mt-0">
-                   <MailerLiteView key={tenantId} />
-                </TabsContent>
-                <TabsContent value="crm" className="mt-0">
-                   <PlaceholderContent key={tenantId} title="CRM" icon={Users} />
+                {/* Ventas */}
+                <TabsContent value="scheduling" className="mt-0">
+                    <SchedulingSettingsView />
                 </TabsContent>
                 <TabsContent value="payments" className="mt-0">
-                   <PlaceholderContent key={tenantId} title="Payments" icon={CreditCard} />
+                    <PaymentSettingsView />
                 </TabsContent>
 
                 {/* Desarrolladores */}

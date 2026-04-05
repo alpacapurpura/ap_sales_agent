@@ -1,11 +1,13 @@
-import { 
-  SiFacebook, 
-  SiMeta, 
-  SiInstagram, 
-  SiWhatsapp, 
-  SiYoutube, 
-  SiTiktok, 
-  SiGoogle 
+import {
+  SiFacebook,
+  SiMeta,
+  SiInstagram,
+  SiWhatsapp,
+  SiYoutube,
+  SiTiktok,
+  SiGoogle,
+  SiTelegram,
+  SiShopify,
 } from 'react-icons/si';
 
 import { FaLinkedin } from 'react-icons/fa';
@@ -23,6 +25,12 @@ const ManyChatIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const MailerLiteIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+  </svg>
+);
+
 export const BrandIcon = ({ name, className = "w-5 h-5" }: { name: string; className?: string }) => {
   const normalizedValue = name.toLowerCase();
 
@@ -35,6 +43,9 @@ export const BrandIcon = ({ name, className = "w-5 h-5" }: { name: string; class
   if (normalizedValue.includes('linkedin')) return <FaLinkedin className={className} />;
   if (normalizedValue.includes('google') || normalizedValue === 'ga4') return <SiGoogle className={className} />;
   if (normalizedValue.includes('manychat')) return <ManyChatIcon className={className} />;
+  if (normalizedValue.includes('telegram')) return <SiTelegram className={className} />;
+  if (normalizedValue.includes('shopify')) return <SiShopify className={className} />;
+  if (normalizedValue.includes('mailerlite')) return <MailerLiteIcon className={className} />;
 
   // Default fallback if a brand is requested but not found
   return null;
