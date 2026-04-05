@@ -1,6 +1,7 @@
 """Campaign management API routes."""
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -14,6 +15,14 @@ from src.modules.analytics.application.services.campaign_service import (
 )
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
+
+
+class CampaignSyncResponse(BaseModel):
+    """Response for campaign sync trigger."""
+
+    status: str
+    job_id: str | None = None
+
 
 router = APIRouter(prefix="/campaigns", tags=["Analytics - Campaigns"])
 
@@ -47,7 +56,7 @@ async def get_ad_set_ads(
     return service.get_ads(user.tenant_id, ad_set_external_id)
 
 
-@router.post("/sync")
+@router.post("/sync", response_model=CampaignSyncResponse)
 async def trigger_campaign_sync(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),

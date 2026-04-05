@@ -58,6 +58,63 @@ class SyncAllResponse(BaseModel):
     details: list[SyncProviderResult]
 
 
+# ─── Sankey DTOs ──────────────────────────────────────────────────────────────
+
+
+class SankeyNodeDTO(BaseModel):
+    name: str
+
+
+class SankeyLinkDTO(BaseModel):
+    source: int
+    target: int
+    value: int
+
+
+class SankeyRawMetricsDTO(BaseModel):
+    visitors: int
+    leads: int
+    qualified: int
+    opportunities: int
+    customers: int
+    retention: int
+    evangelists: int
+
+
+class MarketingSankeyResponse(BaseModel):
+    nodes: list[SankeyNodeDTO]
+    links: list[SankeyLinkDTO]
+    raw_metrics: SankeyRawMetricsDTO
+
+
+# ─── Channel Refresh DTO ──────────────────────────────────────────────────────
+
+
+class ChannelRefreshResponse(BaseModel):
+    status: str
+    run_id: str
+    provider: str
+    channel_slug: str
+
+
+# ─── Initial Load DTOs ────────────────────────────────────────────────────────
+
+
+class InitialLoadResponse(BaseModel):
+    status: str
+    total_days: int
+    loaded_days: int
+    skipped_days: int
+
+
+class InitialLoadStatusResponse(BaseModel):
+    status: str
+    total: int | None = None
+    loaded: int | None = None
+    skipped: int | None = None
+    current_day: str | None = None
+
+
 # Map channel slugs to their provider names for refresh routing
 _SLUG_TO_PROVIDER: dict[str, str] = {
     "ig-organic": "meta",
@@ -100,7 +157,7 @@ async def get_summary_metrics(
     return await service.get_bowtie_summary(user.tenant_id)
 
 
-@router.get("/sankey")
+@router.get("/sankey", response_model=MarketingSankeyResponse)
 async def get_marketing_sankey(
     db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ):
@@ -457,7 +514,7 @@ async def sync_ig_dm(
     )
 
 
-@router.post("/attraction/refresh/{channel_slug}")
+@router.post("/attraction/refresh/{channel_slug}", response_model=ChannelRefreshResponse)
 async def refresh_channel_metrics(
     channel_slug: str,
     db: Session = Depends(get_db),
@@ -505,12 +562,12 @@ async def refresh_channel_metrics(
 
     try:
         run = await etl.run_extraction(user.tenant_id, provider_name)
-        return {
-            "status": "ok",
-            "run_id": str(run.id),
-            "provider": provider_name,
-            "channel_slug": channel_slug,
-        }
+        return ChannelRefreshResponse(
+            status="ok",
+            run_id=str(run.id),
+            provider=provider_name,
+            channel_slug=channel_slug,
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -552,7 +609,7 @@ def get_metric_catalog(
 _VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailerlite"}
 
 
-@router.post("/{provider}/initial-load")
+@router.post("/{provider}/initial-load", response_model=InitialLoadResponse)
 async def trigger_initial_load(
     provider: str,
     days: int = Query(default=30, ge=1, le=ETLConfig.MAX_LOOKBACK_DAYS),
@@ -593,12 +650,12 @@ async def trigger_initial_load(
 
     try:
         result = await etl.run_initial_load(user.tenant_id, provider, days=days)
-        return {
-            "status": "ok",
-            "total_days": result["total"],
-            "loaded_days": result["loaded"],
-            "skipped_days": result["skipped"],
-        }
+        return InitialLoadResponse(
+            status="ok",
+            total_days=result["total"],
+            loaded_days=result["loaded"],
+            skipped_days=result["skipped"],
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -606,7 +663,7 @@ async def trigger_initial_load(
         )
 
 
-@router.get("/{provider}/initial-load/status")
+@router.get("/{provider}/initial-load/status", response_model=InitialLoadStatusResponse)
 async def get_initial_load_status(
     provider: str,
     user: User = Depends(get_current_user),
@@ -621,13 +678,13 @@ async def get_initial_load_status(
     raw = redis_client.get(progress_key) if redis_client else None
 
     if not raw:
-        return {"status": "idle"}
+        return InitialLoadStatusResponse(status="idle")
 
     try:
         data = json.loads(raw)
-        return data
-    except (json.JSONDecodeError, TypeError):
-        return {"status": "idle"}
+        return InitialLoadStatusResponse(**data)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return InitialLoadStatusResponse(status="idle")
 
 
 # ─── Period Extraction Endpoints ─────────────────────────────────────────────
