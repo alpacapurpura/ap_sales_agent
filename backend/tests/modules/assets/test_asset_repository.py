@@ -96,15 +96,16 @@ class TestAssetRepositoryDelete:
         result = repo.delete(sample_asset.id)
         assert result is True
 
-    def test_delete_hard_removes_row(self, db, sample_asset):
-        """Hard delete: the DB row must not exist after deletion."""
+    def test_delete_soft_sets_deleted_at(self, db, sample_asset):
+        """Soft delete: the DB row must have deleted_at set after deletion."""
         repo = AssetRepository(db)
         repo.delete(sample_asset.id)
 
         row = db.execute(
             select(AssetModel).where(AssetModel.id == sample_asset.id)
         ).scalar_one_or_none()
-        assert row is None
+        assert row is not None
+        assert row.deleted_at is not None
 
     def test_delete_nonexistent_returns_false(self, db, seed_tenant):
         repo = AssetRepository(db)
