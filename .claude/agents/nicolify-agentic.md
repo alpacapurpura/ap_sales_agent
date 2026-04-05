@@ -112,7 +112,7 @@ async def search_products(query: str, tenant_id: str) -> str:
 4. **Follow existing node patterns** — match the naming, typing, and structure of existing nodes
 5. **Async-first** — all node functions are `async`
 6. **State immutability** — return new state dicts, don't mutate in place
-7. **All commands inside Docker** — `docker exec -it visionarias_brain_dev bash -c "..."`
+7. **Lint and tests run natively** — `cd backend && .venv/bin/ruff check src/ --no-cache` and `cd backend && .venv/bin/pytest -x -q --tb=short`. Docker only for runtime (alembic, services).
 8. **Structured logging** — `structlog`, never `print()`
 9. **Test agent flows** — write integration tests for graph execution
 10. **DDD layering still applies** — agent definitions in `application/`, Qdrant operations in `infrastructure/`

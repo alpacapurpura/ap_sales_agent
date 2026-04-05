@@ -247,4 +247,4 @@ The existing `SemanticRouter` (`services/semantic_router.py`) uses cosine simila
 - [ ] Cross-channel identity works (`lookup_customer` tool)
 - [ ] Test with real-sounding conversation (minimum 5 turns)
 - [ ] OutputManager chunks are correct (JSON array format)
-- [ ] Run backend tests: `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short"`
+- [ ] Run backend tests: `cd backend && .venv/bin/pytest -x -q --tb=short`

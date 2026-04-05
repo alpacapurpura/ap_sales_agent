@@ -155,26 +155,35 @@ Summarize implementation results to the user:
 
 ## Phase 4: Testing (YOU — Direct Execution)
 
-Run tests inside Docker:
+Run all tests natively in WSL (NEVER use docker exec for lint/tests):
 
 ```bash
 # Backend lint
-docker exec -it visionarias_brain_dev bash -c "cd /app && ruff check src --fix"
+cd backend && .venv/bin/ruff check src/ --fix --no-cache
+
+# Backend format check
+cd backend && .venv/bin/ruff format --check src/
 
 # Architectural fitness (DDD boundaries, API contracts, conventions)
-docker exec -it visionarias_brain_dev bash -c "cd /app && pytest tests/architecture/ -v"
+cd backend && .venv/bin/pytest tests/architecture/ -v
 
 # Backend tests with coverage
-docker exec -it visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term -x -q --tb=short"
+cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term -x -q --tb=short
+
+# Backend security audit
+cd backend && .venv/bin/pip-audit --strict --desc
 
 # Frontend type check
-docker exec -it visionarias_client_dev bash -c "npx tsc --noEmit"
+cd frontend && npx tsc --noEmit
 
 # Frontend lint
-docker exec -it visionarias_client_dev bash -c "npx next lint"
+cd frontend && npx next lint
 
 # Frontend tests with coverage
-docker exec -it visionarias_client_dev bash -c "npx vitest run --coverage"
+cd frontend && npx vitest run --coverage
+
+# Frontend security audit
+cd frontend && npm audit --audit-level=high
 
 # E2E Smoke (obligatorio si el feature tiene UI nueva)
 make e2e-smoke

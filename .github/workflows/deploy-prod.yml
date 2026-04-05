@@ -62,6 +62,9 @@ jobs:
       - name: Run frontend lint
         run: docker run --rm visionarias/frontend-test:ci npm run lint
 
+      - name: Frontend type check (TypeScript)
+        run: docker run --rm visionarias/frontend-test:ci npx tsc --noEmit
+
       - name: Frontend tests with coverage
         run: |
           docker run --name frontend-test-ci visionarias/frontend-test:ci \

@@ -7,11 +7,11 @@
 
 ## Linting & Formato
 - **Herramienta**: `ruff`.
-- **Comando Obligatorio**: Antes de hacer commit o finalizar una tarea, ejecutar:
+- **Comando Obligatorio**: Antes de hacer commit o finalizar una tarea, ejecutar nativo:
   ```bash
-  ruff check backend/src --fix
+  cd backend && .venv/bin/ruff check src/ --fix --no-cache
   ```
-  Esto corrige importaciones, formato y errores comunes automaticamente.
+  Esto corrige importaciones, formato y errores comunes automaticamente. NUNCA usar docker exec.
 
 ## Async/Await
 - **I/O Bound**: Todo acceso a Base de Datos (SQLAlchemy Async), APIs externas (HTTPX) y archivos debe ser `async`.

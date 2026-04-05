@@ -6,9 +6,9 @@ description: Nicolify-specific debugging commands and common error patterns
 # Debugging (Nicolify-specific)
 
 Complements `superpowers:systematic-debugging` skill with project-specific knowledge.
-When that skill says "reproduce", "gather evidence", or "verify" — use these Docker commands.
+When that skill says "reproduce", "gather evidence", or "verify" — use these commands.
 
-## Docker Diagnostic Commands
+## Diagnostic Commands
 
 | What | Command |
 |---|---|
@@ -17,10 +17,10 @@ When that skill says "reproduce", "gather evidence", or "verify" — use these D
 | Frontend logs | `docker logs visionarias_client_dev --tail 100` |
 | Container health | `docker compose ps` |
 | Migration status | `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic current"` |
-| TypeScript check | `docker exec -t visionarias_client_dev npx tsc --noEmit 2>&1 \| head -50` |
-| Backend lint | `docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cache"` |
-| Backend tests | `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short"` |
-| Frontend tests | `docker exec -t visionarias_client_dev npm run test` |
+| TypeScript check | `cd frontend && npx tsc --noEmit 2>&1 \| head -50` |
+| Backend lint | `cd backend && .venv/bin/ruff check src/ --no-cache` |
+| Backend tests | `cd backend && .venv/bin/pytest -x -q --tb=short` |
+| Frontend tests | `cd frontend && npx vitest run` |
 
 ## Common Nicolify Error Patterns
 
@@ -44,5 +44,5 @@ Every bug fix MUST follow these rules:
 - **Root cause only.** Never patch symptoms. If `systematic-debugging` Phase 1 isn't complete, don't write code.
 - **Leave it better.** If you touch a file to fix a bug, clean up obvious tech debt in that file (dead imports, type: any, inconsistent naming). Small scope — same file only.
 - **No new debt.** No `// TODO`, no `// HACK`, no `type: any`, no disabled lint rules. Fix it properly or flag it.
-- **Verify in Docker.** Run the relevant CI commands (lint + tests) BEFORE claiming the fix works.
+- **Verify natively.** Run the relevant CI commands natively (lint + tests) BEFORE claiming the fix works.
 - **One fix per hypothesis.** Never bundle multiple changes. If the first fix doesn't work, revert and re-analyze.

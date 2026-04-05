@@ -1,64 +1,74 @@
 ---
 globs: "**/*"
-description: All execution must happen inside Docker containers
+description: Native-first dev tools + Docker for runtime services only
 ---
 
-# Docker-First
+# Docker-First (Runtime) + Native-First (Dev Tools)
 
-**CRITICAL: Never run pytest, ruff, alembic, npm, npx, or python directly on the host.**
+**CRITICAL: Lint, tests, and type-checking run NATIVELY in WSL — never inside Docker.**
+**Docker is for runtime services (FastAPI, DB, Redis, Qdrant) and migrations only.**
 
-## Container Setup
+## Why Native?
 
-| Container | Image Target | Has Dev Tools |
-|---|---|---|
-| `visionarias_brain_dev` | `dev` | pytest, ruff, alembic |
-| `visionarias_client_dev` | `dev` | vitest, tsc, next lint |
+Docker volume mounts (`/app`) point to the main repo clone. When agents work in git worktrees
+(`isolation: "worktree"`), `docker exec` runs against stale code from the wrong directory.
+Native tools read the actual filesystem, making them correct in all contexts.
 
-**If pytest/ruff are missing:** The backend was built with `target: final` instead of `target: dev`.
-Fix: `docker-compose.yml` → api_dev → `target: dev`, then `docker compose up -d --build api_dev`.
+## Native Dev Tools
 
-## Command Reference
+### Backend (Python)
+
+| Action | Command |
+|---|---|
+| Backend lint | `cd backend && .venv/bin/ruff check src/ --no-cache` |
+| Backend format check | `cd backend && .venv/bin/ruff format --check src/` |
+| All backend tests | `cd backend && .venv/bin/pytest -x -q --tb=short` |
+| Architecture tests | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
+| Tests with coverage | `cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short` |
+| Single module | `cd backend && .venv/bin/pytest tests/modules/{module}/ -v` |
+| Security audit | `cd backend && .venv/bin/pip-audit --strict --desc` |
+
+### Frontend (Node.js)
+
+| Action | Command |
+|---|---|
+| Frontend types | `cd frontend && npx tsc --noEmit` |
+| Frontend lint | `cd frontend && npx next lint` |
+| Frontend tests | `cd frontend && npx vitest run` |
+| Tests with coverage | `cd frontend && npx vitest run --coverage` |
+| Single feature | `cd frontend && npx vitest run src/features/{domain}/` |
+| Security audit | `cd frontend && npm audit --audit-level=high` |
+
+## Docker (Runtime Only)
 
 | Action | Command |
 |---|---|
 | Start dev | `docker compose up -d` |
 | Backend shell | `docker exec -it visionarias_brain_dev bash` |
 | Frontend shell | `docker exec -it visionarias_client_dev bash` |
-| Backend lint | `docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cache"` |
-| Backend tests | `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short"` |
-| Frontend types | `docker exec -t visionarias_client_dev npx tsc --noEmit` |
-| Frontend lint | `docker exec -t visionarias_client_dev npx next lint` |
-| Frontend tests | `docker exec -t visionarias_client_dev npm run test` |
 | Migrations | `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"` |
+
+## PROHIBITED — Never Do This
+
+```
+docker exec ... ruff|pytest|tsc|vitest|next lint|npm run test ...
+```
 
 ## Makefile Shortcuts
 
-Prefer `make` targets over raw docker commands:
-
 | Target | What it does |
 |---|---|
-| `make dev` | Start core services (api, frontend, postgres, redis, qdrant) |
-| `make dev-extended` | Core + admin dashboard, scheduler, worker |
-| `make pytest args="..."` | Backend tests (e.g., `make pytest args="-k test_name"`) |
-| `make vitest args="..."` | Frontend tests |
-| `make lint` | Run ruff + eslint |
-| `make ruff` | Backend lint only |
+| `make dev` | Start core services |
+| `make pytest args="..."` | Backend tests native |
+| `make vitest args="..."` | Frontend tests native |
+| `make lint` | Run ruff + eslint natively |
+| `make ruff` | Backend lint only (native) |
+| `make tsc` | Frontend type check (native) |
+| `make arch-test` | Architecture fitness tests (native) |
 | `make install-front p=pkg` | Install npm package in Docker |
-| `make fix-permissions` | Fix Docker ↔ host file ownership |
-| `make build-core` | Rebuild api_dev + client_dashboard_dev images |
-
-## Docker Profiles
-
-| Profile | Services | Usage |
-|---|---|---|
-| (default) | api_dev, client_dashboard_dev, postgres, redis, qdrant | `make dev` |
-| `admin` | + admin_dashboard_dev (Streamlit :8502) | `docker compose --profile admin up -d` |
-| `etl` | + scheduler, worker | `docker compose --profile etl up -d` |
-| `tooling` | frontend_tooling, backend_tooling (CI runners) | `docker compose --profile tooling up -d` |
 
 ## Notes
 - Use `--no-cache` with ruff to avoid `.ruff_cache/` permission errors
-- Use `bash -c "cd /app && ..."` for backend commands (ensures correct working directory)
-- Frontend commands work with direct `npx`/`npm` (node_modules is a Docker volume)
 - Vitest config: `frontend/vitest.config.mts` (happy-dom environment)
 - Pytest config: `backend/pyproject.toml` [tool.pytest] (asyncio_mode=auto)
+- Tests using SQLite in-memory (`db` fixture) work natively without PostgreSQL

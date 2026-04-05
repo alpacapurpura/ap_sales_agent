@@ -116,26 +116,29 @@ npm:
 	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npm $(cmd)
 
 vitest:
-	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npm run test -- $(args)
+	cd frontend && npx vitest run $(args)
 
 pytest:
-	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pytest $(args)
+	cd backend && .venv/bin/pytest $(args)
 
 lint:
-	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npm run lint
-	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling ruff check src
+	cd frontend && npx next lint
+	cd backend && .venv/bin/ruff check src/ --no-cache
 
 ruff:
-	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling ruff check src $(args)
+	cd backend && .venv/bin/ruff check src/ --no-cache $(args)
+
+tsc:
+	cd frontend && npx tsc --noEmit
 
 pytest-cov:
-	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -q $(args)
+	cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -q $(args)
 
 arch-test:
-	docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/architecture/ -v"
+	cd backend && .venv/bin/pytest tests/architecture/ -v
 
 vitest-cov:
-	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npx vitest run --coverage $(args)
+	cd frontend && npx vitest run --coverage $(args)
 
 # --- E2E Testing (Playwright) ---
 # Generate a fresh Clerk testing token for all workers via env var
@@ -166,11 +169,11 @@ shopify-config-status:
 
 # --- Dependency Audit ---
 audit:
-	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pip-audit --strict --desc
-	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npm audit --audit-level=high
+	cd backend && .venv/bin/pip-audit --strict --desc
+	cd frontend && npm audit --audit-level=high
 
 audit-backend:
-	$(DOCKER_COMPOSE_TOOLING) run --rm backend_tooling pip-audit --strict --desc
+	cd backend && .venv/bin/pip-audit --strict --desc
 
 audit-frontend:
-	$(DOCKER_COMPOSE_TOOLING) run --rm frontend_tooling npm audit --audit-level=high
+	cd frontend && npm audit --audit-level=high

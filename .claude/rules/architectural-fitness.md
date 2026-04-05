@@ -11,7 +11,7 @@ Ruff and ESLint cannot catch: DDD boundaries, API contracts, coding conventions.
 - Adding to an allowlist requires explicit justification in the commit message
 
 ## When to Run
-- `make arch-test` — standalone
+- `make arch-test` or `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` — standalone (native, never via Docker)
 - Included automatically in `pytest`, `/test-backend`, `/test-all`, `/pase-produccion`
 
 ## What to Do When a Fitness Test Fails

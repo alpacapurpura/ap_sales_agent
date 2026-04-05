@@ -138,22 +138,22 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 ## Coverage
 
-- Run: `docker exec -t visionarias_client_dev npx vitest run --coverage`
+- Run: `cd frontend && npx vitest run --coverage`
 - Thresholds: **statements 20%, branches 15%, functions 15%, lines 20%**
 - CI will fail below these thresholds
 - The skill `/test-frontend` already includes coverage automatically
 
-## Execution (Docker-First)
+## Execution (Native — NEVER use docker exec)
 
 ```bash
 # All tests
-docker exec -t visionarias_client_dev npx vitest run
+cd frontend && npx vitest run
 
 # Single feature
-docker exec -t visionarias_client_dev npx vitest run src/features/copilot/
+cd frontend && npx vitest run src/features/copilot/
 
 # With coverage
-docker exec -t visionarias_client_dev npx vitest run --coverage
+cd frontend && npx vitest run --coverage
 ```
 
 ## E2E Testing con Playwright

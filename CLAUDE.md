@@ -119,6 +119,7 @@ Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) →
 | Architecture tests | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
 | Tests with coverage | `cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short` |
 | Single module | `cd backend && .venv/bin/pytest tests/modules/{module}/ -v` |
+| Security audit | `cd backend && .venv/bin/pip-audit --strict --desc` |
 
 ### Frontend (Node.js)
 
@@ -131,6 +132,7 @@ Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) →
 | All tests | `cd frontend && npx vitest run` |
 | Tests with coverage | `cd frontend && npx vitest run --coverage` |
 | Single feature | `cd frontend && npx vitest run src/features/{domain}/` |
+| Security audit | `cd frontend && npm audit --audit-level=high` |
 
 ### Docker ONLY for:
 - Runtime services: `docker compose up -d`

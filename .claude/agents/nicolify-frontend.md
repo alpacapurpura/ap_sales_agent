@@ -165,16 +165,21 @@ export type { Entity, CreateEntityPayload } from "./model/types";
 </step>
 
 <step name="validate">
+Run ALL validation natively in WSL (NEVER use docker exec for lint/tests).
+Every check must pass before considering the implementation complete.
+
 ```bash
-# Type check
-docker exec -it visionarias_client_dev bash -c "npx tsc --noEmit"
+# 1. Type check (TypeScript) — catches type errors before they reach CI
+cd frontend && npx tsc --noEmit
 
-# Lint
-docker exec -it visionarias_client_dev bash -c "npx next lint"
+# 2. Lint (ESLint via Next.js)
+cd frontend && npx next lint
 
-# Build check
-docker exec -it visionarias_client_dev bash -c "npx next build"
+# 3. Tests with coverage — enforces coverage thresholds (statements 20%, lines 20%)
+cd frontend && npx vitest run --coverage
 ```
+
+**ALL 3 checks must pass.** If coverage drops below thresholds, add tests for your new code.
 </step>
 
 </implementation_flow>

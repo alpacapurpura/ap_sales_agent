@@ -1,8 +1,7 @@
-Run backend lint and tests with coverage inside Docker.
+Run backend lint and tests with coverage natively in WSL.
 
-**IMPORTANT:** All tools (pytest, ruff) are in the container's `/opt/venv/bin/` (on PATH).
-If `ruff` or `pytest` is not found, the container was built with `target: final` instead of `target: dev`.
-Fix: change `docker-compose.yml` api_dev build target to `dev`, then `docker compose up -d --build api_dev`.
+**IMPORTANT:** All tools (pytest, ruff) are in `backend/.venv/bin/`.
+If `ruff` or `pytest` is not found, run: `cd backend && .venv/bin/pip install -r requirements-dev.txt`
 
 ## Steps
 
@@ -10,28 +9,34 @@ Run these sequentially, reporting results after each step:
 
 ### 1. Verify tools exist
 ```bash
-docker exec -t visionarias_brain_dev bash -c "which pytest && which ruff"
+cd backend && .venv/bin/ruff --version && .venv/bin/pytest --version
 ```
-If either is missing, STOP and tell the user to rebuild with `target: dev`.
+If either is missing, STOP and tell the user to install dev dependencies.
 
-### 2. Lint (ruff)
+### 2. Lint (ruff check)
 ```bash
-docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cache"
+cd backend && .venv/bin/ruff check src/ --no-cache
 ```
 Use `--no-cache` to avoid permission issues with `.ruff_cache/`.
 If the user wants auto-fix: add `--fix` flag.
 
-### 3. Architectural fitness tests
+### 3. Format check (ruff format)
 ```bash
-docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/architecture/ -v"
+cd backend && .venv/bin/ruff format --check src/
+```
+Verifies code formatting without modifying files. If this fails, run `ruff format src/` to fix.
+
+### 5. Architectural fitness tests
+```bash
+cd backend && .venv/bin/pytest tests/architecture/ -v
 ```
 These validate DDD boundaries (no cross-module imports), API contracts (response_model present),
 and coding conventions (no hard deletes, SA 2.0 syntax). Failures here mean a structural
 regression — fix before proceeding.
 
-### 4. Unit tests with coverage (pytest)
+### 6. Unit tests with coverage (pytest)
 ```bash
-docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short"
+cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short
 ```
 - `-x`: stop on first failure
 - `-q`: quiet output
@@ -40,16 +45,26 @@ docker exec -t visionarias_brain_dev bash -c "cd /app && pytest --cov=src/module
 
 To run a specific module's tests:
 ```bash
-docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/modules/{module}/ -v"
+cd backend && .venv/bin/pytest tests/modules/{module}/ -v
 ```
 
-### 5. Report
+### 7. Security audit (pip-audit)
+```bash
+cd backend && .venv/bin/pip-audit --strict --desc
+```
+Checks all Python dependencies for known vulnerabilities. `--strict` fails on ANY finding.
+This mirrors CI exactly. If it finds issues, report them — do NOT skip.
+
+### 8. Report
 Summarize:
 
 | Step | Result | Coverage |
 |---|---|---|
-| Lint | pass/fail | — |
+| Lint (ruff check) | pass/fail | — |
+| Format (ruff format) | pass/fail | — |
 | Arch fitness | pass/fail (5 tests) | — |
 | Tests | pass/fail count | XX% (min 60%) |
+| Security (pip-audit) | pass/fail (N vulns) | — |
 
 - If coverage is below 60%, list the modules with lowest coverage
+- If pip-audit finds vulnerabilities, list them with severity

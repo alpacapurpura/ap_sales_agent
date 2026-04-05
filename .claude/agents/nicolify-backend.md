@@ -1,6 +1,6 @@
 ---
 name: nicolify-backend
-description: Implements FastAPI endpoints, SQLAlchemy 2.0 models, Alembic migrations, repositories, and services following DDD Inside-Out pattern. Runs all commands inside Docker.
+description: Implements FastAPI endpoints, SQLAlchemy 2.0 models, Alembic migrations, repositories, and services following DDD Inside-Out pattern. Runs lint/tests natively in WSL.
 tools: Read, Write, Edit, Bash, Grep, Glob
 maxTurns: 50
 skills: [backend-expert]
@@ -102,18 +102,28 @@ app.include_router({entity}_router, prefix="/api/v1/{module}", tags=["{module}"]
 </step>
 
 <step name="validate">
-Run validation inside Docker:
+Run ALL validation natively in WSL (NEVER use docker exec for lint/tests).
+Every check must pass before considering the implementation complete.
 
 ```bash
-# Lint
-docker exec -it visionarias_brain_dev bash -c "cd /app && ruff check src --fix"
+# 1. Lint (ruff check)
+cd backend && .venv/bin/ruff check src/ --no-cache
 
-# Type check (if configured)
-docker exec -it visionarias_brain_dev bash -c "cd /app && ruff check src"
+# 2. Format check (ruff format) — must match CI
+cd backend && .venv/bin/ruff format --check src/
 
-# Tests
-docker exec -it visionarias_brain_dev bash -c "cd /app && pytest src/modules/{module}/tests/ -v"
+# 3. Architectural fitness tests (DDD boundaries, response_model, SA 2.0)
+cd backend && .venv/bin/pytest tests/architecture/ -v
+
+# 4. Module tests with coverage
+cd backend && .venv/bin/pytest tests/modules/{module}/ --cov=src/modules/{module} --cov-report=term-missing -v
+
+# 5. Full test suite (verify no regressions in other modules)
+cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term -x -q --tb=short
 ```
+
+**ALL 5 checks must pass.** If arch tests fail, you introduced a DDD boundary violation — fix it.
+If format check fails, run `ruff format src/` to fix.
 </step>
 
 </implementation_flow>
@@ -214,7 +224,7 @@ logger.info("entity_created", entity_id=str(entity.id), tenant_id=tenant_id)
 - Hard deletes (`DELETE FROM`)
 - `Session.query()` or `Column()` (legacy SQLAlchemy)
 - `print()` statements (use structlog)
-- Commands outside Docker (always `docker exec -it visionarias_brain_dev bash -c "..."`)
+- Running lint/tests via `docker exec` (always run natively: `cd backend && .venv/bin/ruff ...` / `.venv/bin/pytest ...`)
 - `git add .` or `git add -A`
 </forbidden>
 
