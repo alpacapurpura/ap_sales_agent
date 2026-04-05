@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from src.modules.crm.domain.enums import LeadTemperature
+from src.shared.domain.enums import LeadTemperature
 from src.modules.offer.domain.enums import (
     GUARANTEE_METADATA,
     AccessDuration,
