@@ -6,17 +6,16 @@ from uuid import uuid4
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import JSONResponse
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from src.core.database import redis_client
 from src.modules.brand.api.dto.extraction import (
     BrandVisualsResponse,
-    ExtractionStatusResponse,
-    ExtractionTraceSummaryResponse,
-    ExtractionTraceResponse,
     ExtractFullBrandResponse,
+    ExtractionStatusResponse,
+    ExtractionTraceResponse,
+    ExtractionTraceSummaryResponse,
     ExtractRequest,
 )
 from src.modules.brand.infrastructure.models.extraction_trace_model import (
@@ -254,9 +253,7 @@ async def list_extraction_traces(
     ]
 
 
-@router.get(
-    "/extraction-traces/{trace_id}", response_model=ExtractionTraceResponse
-)
+@router.get("/extraction-traces/{trace_id}", response_model=ExtractionTraceResponse)
 async def get_extraction_trace(
     trace_id: str,
     current_user: User = Depends(get_current_user),
