@@ -21,9 +21,7 @@ class OfferReadPortImpl(OfferReadPort):
     def __init__(self, db: Session):
         self.db = db
 
-    async def get_offers_by_tenant(
-        self, tenant_id: UUID
-    ) -> list[OfferReadDTO]:
+    async def get_offers_by_tenant(self, tenant_id: UUID) -> list[OfferReadDTO]:
         """All active offers for a tenant (excludes archived)."""
         stmt = select(ProductModel).where(
             ProductModel.tenant_id == tenant_id,

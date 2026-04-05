@@ -56,21 +56,25 @@ class OfferService:
             pricing_options=[],
             guarantee_type=GuaranteeType.NONE,
             guarantee_terms="",
-            status=OfferStatus.DRAFT
+            status=OfferStatus.DRAFT,
         )
         return self.repository.create(new_offer)
 
     def update_offer(self, offer: Offer, tenant_id: UUID) -> Offer:
         return self.repository.update(offer, tenant_id)
 
-    def patch_offer(self, offer_id: UUID, tenant_id: UUID, update_data: dict[str, Any]) -> Offer:
+    def patch_offer(
+        self, offer_id: UUID, tenant_id: UUID, update_data: dict[str, Any]
+    ) -> Offer:
         offer = self.repository.get_by_id(offer_id, tenant_id)
         if not offer:
             raise ValueError(f"Offer with id {offer_id} not found")
 
         current_data = offer.model_dump()
 
-        if "specific_details" in update_data and isinstance(update_data["specific_details"], dict):
+        if "specific_details" in update_data and isinstance(
+            update_data["specific_details"], dict
+        ):
             detail_class = None
             archetype = offer.archetype
             if isinstance(archetype, str):
@@ -78,9 +82,13 @@ class OfferService:
             detail_class = ARCHETYPE_TO_DETAILS_MAPPING.get(archetype)
             if detail_class:
                 try:
-                    update_data["specific_details"] = detail_class(**update_data["specific_details"])
+                    update_data["specific_details"] = detail_class(
+                        **update_data["specific_details"]
+                    )
                 except Exception as e:
-                    raise ValueError(f"Invalid specific_details structure for archetype {archetype}: {e!s}")
+                    raise ValueError(
+                        f"Invalid specific_details structure for archetype {archetype}: {e!s}"
+                    )
 
         current_data.update(update_data)
 

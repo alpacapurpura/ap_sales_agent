@@ -27,7 +27,17 @@ from src.modules.sales_agent.workers.frozen_detection import run_frozen_detectio
 class WorkerSettings:
     """ARQ worker that processes ETL extraction jobs and CRM batch tasks."""
 
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification, run_frozen_detection]
+    functions = [
+        run_tenant_extraction,
+        run_initial_load,
+        run_inactivity_detection,
+        run_mailerlite_etl_sync,
+        run_campaign_sync,
+        run_brand_extraction,
+        cleanup_old_events,
+        poll_domain_verification,
+        run_frozen_detection,
+    ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5
@@ -58,7 +68,17 @@ class SchedulerSettings:
     from src.modules.analytics.workers.scheduler import run_tick_scheduler
 
     # Repeat from WorkerSettings -- arq reads __dict__, not inherited attrs
-    functions = [run_tenant_extraction, run_initial_load, run_inactivity_detection, run_mailerlite_etl_sync, run_campaign_sync, run_brand_extraction, cleanup_old_events, poll_domain_verification, run_frozen_detection]
+    functions = [
+        run_tenant_extraction,
+        run_initial_load,
+        run_inactivity_detection,
+        run_mailerlite_etl_sync,
+        run_campaign_sync,
+        run_brand_extraction,
+        cleanup_old_events,
+        poll_domain_verification,
+        run_frozen_detection,
+    ]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
     max_jobs = 10
     max_tries = 5

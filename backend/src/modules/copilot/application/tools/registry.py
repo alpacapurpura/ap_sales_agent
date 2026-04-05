@@ -5,7 +5,6 @@ Maps frontend routes to the subset of tools the LLM should have access to.
 This keeps the tool set focused and reduces noise for the LLM.
 """
 
-
 from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOLS
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
@@ -39,15 +38,75 @@ TOOL_GROUPS: dict[str, list] = {
 # More specific routes should be listed before generic ones.
 # "*" is the fallback for any unmatched route.
 ROUTE_TOOL_MAP: dict[str, list[str]] = {
-    "brand-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
-    "offer-studio": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge", "offer_ladder"],
-    "growth-studio": ["navigation", "awareness", "module_data", "analytics", "crm", "procedure", "knowledge"],
-    "sales/studio": ["navigation", "awareness", "module_data", "sales_agent", "crm", "procedure", "knowledge"],
-    "sales": ["navigation", "awareness", "module_data", "sales_agent", "crm", "procedure", "knowledge"],
-    "connections": ["navigation", "awareness", "module_data", "connections", "procedure", "knowledge"],
-    "landing": ["navigation", "awareness", "module_data", "landing", "procedure", "knowledge"],
+    "brand-studio": [
+        "navigation",
+        "awareness",
+        "mutation",
+        "module_data",
+        "procedure",
+        "knowledge",
+    ],
+    "offer-studio": [
+        "navigation",
+        "awareness",
+        "mutation",
+        "module_data",
+        "procedure",
+        "knowledge",
+        "offer_ladder",
+    ],
+    "growth-studio": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "analytics",
+        "crm",
+        "procedure",
+        "knowledge",
+    ],
+    "sales/studio": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "sales_agent",
+        "crm",
+        "procedure",
+        "knowledge",
+    ],
+    "sales": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "sales_agent",
+        "crm",
+        "procedure",
+        "knowledge",
+    ],
+    "connections": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "connections",
+        "procedure",
+        "knowledge",
+    ],
+    "landing": [
+        "navigation",
+        "awareness",
+        "module_data",
+        "landing",
+        "procedure",
+        "knowledge",
+    ],
     "settings": ["navigation", "awareness", "module_data", "procedure", "knowledge"],
-    "*": ["navigation", "awareness", "mutation", "module_data", "procedure", "knowledge"],
+    "*": [
+        "navigation",
+        "awareness",
+        "mutation",
+        "module_data",
+        "procedure",
+        "knowledge",
+    ],
 }
 
 

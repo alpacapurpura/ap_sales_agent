@@ -62,7 +62,9 @@ async def run_frozen_detection(ctx: dict) -> None:
                     "turn_count": cp.turn_count,
                     "last_specialist": cp.last_specialist,
                     "hours_inactive": round(
-                        (datetime.now(timezone.utc) - last_msg_at).total_seconds() / 3600, 1
+                        (datetime.now(timezone.utc) - last_msg_at).total_seconds()
+                        / 3600,
+                        1,
                     ),
                 }
                 frozen_count += 1

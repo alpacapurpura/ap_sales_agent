@@ -151,6 +151,7 @@ async def send_message(
         from src.modules.sales_agent.application.services.channel_resolver import (
             ChannelResolver,
         )
+
         lead = db.query(LeadModel).filter(LeadModel.id == lead_id).first()
         if lead:
             resolver = ChannelResolver(db)
@@ -173,7 +174,9 @@ def nudge(
 ):
     # For now, nudge stores as instruction for AI to generate proactive message
     svc = CloserStudioService(db)
-    nudge_instruction = body.context or "Send a proactive follow-up message to re-engage this lead."
+    nudge_instruction = (
+        body.context or "Send a proactive follow-up message to re-engage this lead."
+    )
     result = svc.send_message(
         tenant_id=user.tenant_id,
         lead_id=lead_id,

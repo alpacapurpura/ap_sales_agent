@@ -313,23 +313,17 @@ class MetricsService:
         """
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "attraction", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "attraction", "last_30_days")
             if cached is not None:
                 return AttractionDetailDTO(**cached)
 
         # 2. Get dynamic channel list from ChannelRegistry
         registry = ChannelRegistry(self.connection_port)
-        channel_split = await registry.get_available_channels(
-            tenant_id, "attraction"
-        )
+        channel_split = await registry.get_available_channels(tenant_id, "attraction")
 
         # 3. Get aggregated metrics from official tables
         repo = OfficialMetricsRepository(self.db)
-        aggregations = repo.get_channel_summary(
-            tenant_id, "attraction", "last_30_days"
-        )
+        aggregations = repo.get_channel_summary(tenant_id, "attraction", "last_30_days")
 
         # Build lookup: channel_slug -> list of aggregation rows (multi-metric)
         agg_by_slug: dict[str, list[Any]] = defaultdict(list)
@@ -340,6 +334,7 @@ class MetricsService:
         from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
             ExtractionRunRepository,
         )
+
         run_repo = ExtractionRunRepository(self.db)
 
         # Build provider -> latest run lookup (deduplicate per provider)
@@ -369,15 +364,19 @@ class MetricsService:
 
             for agg in agg_rows:
                 extra_data = getattr(agg, "extra", None) or {}
-                breakdown = extra_data if isinstance(extra_data, dict) and extra_data else None
+                breakdown = (
+                    extra_data if isinstance(extra_data, dict) and extra_data else None
+                )
 
-                metrics.append(MetricValueDTO(
-                    name=agg.metric_name,
-                    value=agg.value,
-                    unit=agg.unit or "count",
-                    currency=getattr(agg, "currency", None),
-                    breakdown=breakdown,
-                ))
+                metrics.append(
+                    MetricValueDTO(
+                        name=agg.metric_name,
+                        value=agg.value,
+                        unit=agg.unit or "count",
+                        currency=getattr(agg, "currency", None),
+                        breakdown=breakdown,
+                    )
+                )
 
                 # Track latest computed_at for this channel
                 if hasattr(agg, "computed_at") and agg.computed_at:
@@ -427,12 +426,16 @@ class MetricsService:
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics.items():
                     if m_name not in existing_names:
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = conn_config.get(display_name_key) if display_name_key else None
+            source_display = (
+                conn_config.get(display_name_key) if display_name_key else None
+            )
 
             dto = ChannelMetricDTO(
                 slug=slug,
@@ -530,17 +533,13 @@ class MetricsService:
         """
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "capture", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "capture", "last_30_days")
             if cached is not None:
                 return CaptureDetailDTO(**cached)
 
         # 2. Get dynamic channel list from ChannelRegistry
         registry = ChannelRegistry(self.connection_port)
-        channel_split = await registry.get_available_channels(
-            tenant_id, "capture"
-        )
+        channel_split = await registry.get_available_channels(tenant_id, "capture")
 
         # 3. Query CRM for lead counts by lead_source
         from datetime import datetime, timedelta
@@ -583,13 +582,12 @@ class MetricsService:
             MetricAggregationModel,
         )
 
-        visitor_stmt = (
-            select(sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0))
-            .where(
-                MetricAggregationModel.tenant_id == tenant_id,
-                MetricAggregationModel.metric_name.in_(("reach", "sessions")),
-                MetricAggregationModel.period_type == "last_30_days",
-            )
+        visitor_stmt = select(
+            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+        ).where(
+            MetricAggregationModel.tenant_id == tenant_id,
+            MetricAggregationModel.metric_name.in_(("reach", "sessions")),
+            MetricAggregationModel.period_type == "last_30_days",
         )
         stage0_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
 
@@ -668,7 +666,11 @@ class MetricsService:
             conv_count = conversation_counts.get(slug, 0)
 
             # Conversion rate: leads / stage0_visitors * 100
-            conv_rate = round(lead_count / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
+            conv_rate = (
+                round(lead_count / stage0_visitors * 100, 2)
+                if stage0_visitors > 0
+                else 0.0
+            )
 
             metrics: list[MetricValueDTO] = [
                 MetricValueDTO(name="leads", value=float(lead_count)),
@@ -705,7 +707,9 @@ class MetricsService:
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics.items():
                     if m_name not in existing_names:
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # For email_marketing channels, supplement with MailerLite official_metrics
             if provider_name == "email_marketing":
@@ -725,12 +729,16 @@ class MetricsService:
                     metrics.insert(0, MetricValueDTO(name="leads", value=float(ns)))
                 for m_name, m_value in ml_metrics.items():
                     if m_name not in existing_names and m_name != "new_subscribers":
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = conn_config.get(display_name_key) if display_name_key else None
+            source_display = (
+                conn_config.get(display_name_key) if display_name_key else None
+            )
 
             dto = ChannelMetricDTO(
                 slug=slug,
@@ -771,7 +779,11 @@ class MetricsService:
         # 7. Compute group totals
         total_leads = sum(lead_counts.values())
         total_costs = sum(all_costs.values())
-        overall_conv_rate = round(total_leads / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
+        overall_conv_rate = (
+            round(total_leads / stage0_visitors * 100, 2)
+            if stage0_visitors > 0
+            else 0.0
+        )
         cal = cost_service.calculate_cal(total_costs, total_leads)
 
         available_dto = (
@@ -851,7 +863,9 @@ class MetricsService:
             mc_convs = conversation_counts.get(mc_slug, 0)
 
             meta_dto.sub_sources = [
-                SubSourceDTO(name="Meta Direct", leads=meta_leads, conversations=meta_convs),
+                SubSourceDTO(
+                    name="Meta Direct", leads=meta_leads, conversations=meta_convs
+                ),
                 SubSourceDTO(name="ManyChat", leads=mc_leads, conversations=mc_convs),
             ]
 
@@ -880,23 +894,17 @@ class MetricsService:
         """
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "nurture", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "nurture", "last_30_days")
             if cached is not None:
                 return NurtureDetailDTO(**cached)
 
         # 2. Get dynamic channel list from ChannelRegistry
         registry = ChannelRegistry(self.connection_port)
-        channel_split = await registry.get_available_channels(
-            tenant_id, "nurture"
-        )
+        channel_split = await registry.get_available_channels(tenant_id, "nurture")
 
         # 3. Get aggregated metrics from official tables
         repo = OfficialMetricsRepository(self.db)
-        aggregations = repo.get_channel_summary(
-            tenant_id, "nurture", "last_30_days"
-        )
+        aggregations = repo.get_channel_summary(tenant_id, "nurture", "last_30_days")
 
         # Build lookup: channel_slug -> list of aggregation rows
         agg_by_slug: dict[str, list[Any]] = defaultdict(list)
@@ -954,13 +962,21 @@ class MetricsService:
                 emails_sent = email_events.get("emails_sent", 0)
                 opens = email_events.get("opens", 0)
                 clicks = email_events.get("clicks", 0)
-                open_rate = round(opens / emails_sent * 100, 2) if emails_sent > 0 else 0.0
-                click_rate = round(clicks / emails_sent * 100, 2) if emails_sent > 0 else 0.0
+                open_rate = (
+                    round(opens / emails_sent * 100, 2) if emails_sent > 0 else 0.0
+                )
+                click_rate = (
+                    round(clicks / emails_sent * 100, 2) if emails_sent > 0 else 0.0
+                )
 
                 metrics = [
                     MetricValueDTO(name="emails_sent", value=float(emails_sent)),
-                    MetricValueDTO(name="open_rate", value=open_rate, unit="percentage"),
-                    MetricValueDTO(name="click_rate", value=click_rate, unit="percentage"),
+                    MetricValueDTO(
+                        name="open_rate", value=open_rate, unit="percentage"
+                    ),
+                    MetricValueDTO(
+                        name="click_rate", value=click_rate, unit="percentage"
+                    ),
                 ]
             elif slug == "ai-sdr":
                 # AI SDR: followup metrics from CRM events
@@ -970,26 +986,36 @@ class MetricsService:
 
                 metrics = [
                     MetricValueDTO(name="followups", value=float(sent)),
-                    MetricValueDTO(name="response_rate", value=response_rate, unit="percentage"),
+                    MetricValueDTO(
+                        name="response_rate", value=response_rate, unit="percentage"
+                    ),
                 ]
             else:
                 # Retargeting channels: metrics from ETL aggregation tables
                 agg_rows = agg_by_slug.get(slug, [])
                 for agg in agg_rows:
                     extra_data = getattr(agg, "extra", None) or {}
-                    breakdown = extra_data if isinstance(extra_data, dict) and extra_data else None
-                    metrics.append(MetricValueDTO(
-                        name=agg.metric_name,
-                        value=agg.value,
-                        unit=agg.unit or "count",
-                        currency=getattr(agg, "currency", None),
-                        breakdown=breakdown,
-                    ))
+                    breakdown = (
+                        extra_data
+                        if isinstance(extra_data, dict) and extra_data
+                        else None
+                    )
+                    metrics.append(
+                        MetricValueDTO(
+                            name=agg.metric_name,
+                            value=agg.value,
+                            unit=agg.unit or "count",
+                            currency=getattr(agg, "currency", None),
+                            breakdown=breakdown,
+                        )
+                    )
 
             # For ManyChat channels, supplement with metrics from official_metrics
             provider_name = ch.get("provider_name", "")
             if provider_name == "manychat":
-                mc_metrics_nurture = OfficialMetricsRepository(self.db).get_channel_metrics(
+                mc_metrics_nurture = OfficialMetricsRepository(
+                    self.db
+                ).get_channel_metrics(
                     tenant_id,
                     "manychat",
                     slug,
@@ -999,12 +1025,16 @@ class MetricsService:
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics_nurture.items():
                     if m_name not in existing_names:
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = conn_config.get(display_name_key) if display_name_key else None
+            source_display = (
+                conn_config.get(display_name_key) if display_name_key else None
+            )
 
             dto = ChannelMetricDTO(
                 slug=slug,
@@ -1040,7 +1070,9 @@ class MetricsService:
             automation_totals["cost_per_mql"] = automation_cost_per_mql
 
         # 9. Build header KPIs and mini funnel
-        conversion_rate = round(total_mqls / total_leads * 100, 2) if total_leads > 0 else 0.0
+        conversion_rate = (
+            round(total_mqls / total_leads * 100, 2) if total_leads > 0 else 0.0
+        )
 
         available_dto = (
             AvailableChannelsDTO(channels=available_channels)
@@ -1111,17 +1143,13 @@ class MetricsService:
 
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "opportunity", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "opportunity", "last_30_days")
             if cached is not None:
                 return OpportunityDetailDTO(**cached)
 
         # 2. Get dynamic channel list from ChannelRegistry
         registry = ChannelRegistry(self.connection_port)
-        channel_split = await registry.get_available_channels(
-            tenant_id, "opportunity"
-        )
+        channel_split = await registry.get_available_channels(tenant_id, "opportunity")
 
         # 3. Query CRM for SQL pipeline metrics
         repo = OpportunityMetricsRepository(self.db)
@@ -1129,7 +1157,9 @@ class MetricsService:
         mql_count = repo.count_mqls_in_period(tenant_id, start_date, end_date)
         checkout_events = repo.count_checkout_events(tenant_id, start_date, end_date)
         meeting_events = repo.count_meeting_events(tenant_id, start_date, end_date)
-        payment_link_events = repo.count_payment_link_events(tenant_id, start_date, end_date)
+        payment_link_events = repo.count_payment_link_events(
+            tenant_id, start_date, end_date
+        )
 
         # Extract counts
         checkout_count = checkout_events["checkout_initiated"]["count"]
@@ -1146,7 +1176,9 @@ class MetricsService:
         payment_value = payment_link_events["value"]
 
         # 4. Calculate header KPIs
-        conversion_rate = round(total_sqls / mql_count * 100, 2) if mql_count > 0 else 0.0
+        conversion_rate = (
+            round(total_sqls / mql_count * 100, 2) if mql_count > 0 else 0.0
+        )
 
         cost_svc = StageCostService(self.db)
         total_cost = sum(cost_svc.get_channel_costs(tenant_id, "opportunity").values())
@@ -1170,32 +1202,59 @@ class MetricsService:
             if slug == "checkout-init":
                 metrics = [
                     MetricValueDTO(name="count", value=float(checkout_count)),
-                    MetricValueDTO(name="value", value=checkout_value, unit="currency", currency="USD"),
+                    MetricValueDTO(
+                        name="value",
+                        value=checkout_value,
+                        unit="currency",
+                        currency="USD",
+                    ),
                 ]
             elif slug == "abandoned-cart":
-                abandonment_rate = round(abandoned_count / checkout_count * 100, 2) if checkout_count > 0 else 0.0
+                abandonment_rate = (
+                    round(abandoned_count / checkout_count * 100, 2)
+                    if checkout_count > 0
+                    else 0.0
+                )
                 metrics = [
                     MetricValueDTO(name="count", value=float(abandoned_count)),
-                    MetricValueDTO(name="value", value=abandoned_value, unit="currency", currency="USD"),
-                    MetricValueDTO(name="abandonment_rate", value=abandonment_rate, unit="percentage"),
+                    MetricValueDTO(
+                        name="value",
+                        value=abandoned_value,
+                        unit="currency",
+                        currency="USD",
+                    ),
+                    MetricValueDTO(
+                        name="abandonment_rate",
+                        value=abandonment_rate,
+                        unit="percentage",
+                    ),
                 ]
             elif slug == "link-enviado":
                 metrics = [
                     MetricValueDTO(name="count", value=float(payment_count)),
-                    MetricValueDTO(name="value", value=payment_value, unit="currency", currency="USD"),
+                    MetricValueDTO(
+                        name="value",
+                        value=payment_value,
+                        unit="currency",
+                        currency="USD",
+                    ),
                 ]
             elif slug == "checkout-lp":
                 # Landing page checkout -- Proximamente
                 metrics = [
                     MetricValueDTO(name="count", value=0.0),
-                    MetricValueDTO(name="value", value=0.0, unit="currency", currency="USD"),
+                    MetricValueDTO(
+                        name="value", value=0.0, unit="currency", currency="USD"
+                    ),
                 ]
             elif slug == "meeting-booked":
                 metrics = [
                     MetricValueDTO(name="booked", value=float(meeting_booked)),
                     MetricValueDTO(name="completed", value=float(meeting_completed)),
                     MetricValueDTO(name="no_show", value=float(meeting_no_show)),
-                    MetricValueDTO(name="rescheduled", value=float(meeting_rescheduled)),
+                    MetricValueDTO(
+                        name="rescheduled", value=float(meeting_rescheduled)
+                    ),
                 ]
 
             # For ManyChat channels, supplement with metrics from official_metrics
@@ -1211,12 +1270,16 @@ class MetricsService:
                 existing_names = {m.name for m in metrics}
                 for m_name, m_value in mc_metrics_opp.items():
                     if m_name not in existing_names:
-                        metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+                        metrics.append(
+                            MetricValueDTO(name=m_name, value=float(m_value))
+                        )
 
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = conn_config.get(display_name_key) if display_name_key else None
+            source_display = (
+                conn_config.get(display_name_key) if display_name_key else None
+            )
 
             dto = ChannelMetricDTO(
                 slug=slug,
@@ -1251,45 +1314,53 @@ class MetricsService:
         if checkout_count > 0:
             abandon_rate = (abandoned_count / checkout_count) * 100
             if abandon_rate > 50:
-                bottlenecks.append(BottleneckDTO(
-                    type="abandoned_cart",
-                    metric_label="Tasa de Abandono",
-                    current_rate=round(abandon_rate, 1),
-                    severity="critical",
-                    threshold=50.0,
-                    tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="abandoned_cart",
+                        metric_label="Tasa de Abandono",
+                        current_rate=round(abandon_rate, 1),
+                        severity="critical",
+                        threshold=50.0,
+                        tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
+                    )
+                )
             elif abandon_rate > 30:
-                bottlenecks.append(BottleneckDTO(
-                    type="abandoned_cart",
-                    metric_label="Tasa de Abandono",
-                    current_rate=round(abandon_rate, 1),
-                    severity="warning",
-                    threshold=30.0,
-                    tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="abandoned_cart",
+                        metric_label="Tasa de Abandono",
+                        current_rate=round(abandon_rate, 1),
+                        severity="warning",
+                        threshold=30.0,
+                        tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
+                    )
+                )
 
         # Meeting no-show rate
         if meeting_booked > 0:
             no_show_rate = (meeting_no_show / meeting_booked) * 100
             if no_show_rate > 40:
-                bottlenecks.append(BottleneckDTO(
-                    type="meeting_no_show",
-                    metric_label="Tasa de No-Show",
-                    current_rate=round(no_show_rate, 1),
-                    severity="critical",
-                    threshold=40.0,
-                    tip="Considera recordatorios automaticos antes de la reunion",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="meeting_no_show",
+                        metric_label="Tasa de No-Show",
+                        current_rate=round(no_show_rate, 1),
+                        severity="critical",
+                        threshold=40.0,
+                        tip="Considera recordatorios automaticos antes de la reunion",
+                    )
+                )
             elif no_show_rate > 20:
-                bottlenecks.append(BottleneckDTO(
-                    type="meeting_no_show",
-                    metric_label="Tasa de No-Show",
-                    current_rate=round(no_show_rate, 1),
-                    severity="warning",
-                    threshold=20.0,
-                    tip="Considera recordatorios automaticos antes de la reunion",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="meeting_no_show",
+                        metric_label="Tasa de No-Show",
+                        current_rate=round(no_show_rate, 1),
+                        severity="warning",
+                        threshold=20.0,
+                        tip="Considera recordatorios automaticos antes de la reunion",
+                    )
+                )
 
         available_dto = (
             AvailableChannelsDTO(channels=available_channels)
@@ -1370,9 +1441,7 @@ class MetricsService:
 
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "sales", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "sales", "last_30_days")
             if cached is not None:
                 return SalesDetailDTO(**cached)
 
@@ -1408,7 +1477,9 @@ class MetricsService:
             unique_custs = int(row[6])
 
             # Map SaleStage to group key
-            stage_str = stage_val.value if hasattr(stage_val, "value") else str(stage_val)
+            stage_str = (
+                stage_val.value if hasattr(stage_val, "value") else str(stage_val)
+            )
             if stage_str == "CONVERSION":
                 stage_key = "adquisicion"
             elif stage_str == "EXPANSION":
@@ -1435,7 +1506,10 @@ class MetricsService:
         # 5. Also include unsold offers from the catalog (show with $0)
         for offer_id_str, offer in offer_map.items():
             for stage_key in ("adquisicion", "expansion"):
-                if offer_id_str not in stage_data[stage_key] and stage_key == "adquisicion":
+                if (
+                    offer_id_str not in stage_data[stage_key]
+                    and stage_key == "adquisicion"
+                ):
                     stage_data[stage_key][offer_id_str] = {
                         "count": 0,
                         "revenue": 0.0,
@@ -1448,14 +1522,14 @@ class MetricsService:
         currency_counts: dict[str, int] = defaultdict(int)
         for row in raw_sales:
             currency_counts[row[3] or "USD"] += int(row[4])
-        display_currency = max(currency_counts, key=currency_counts.get) if currency_counts else "USD"
+        display_currency = (
+            max(currency_counts, key=currency_counts.get) if currency_counts else "USD"
+        )
 
         # 6. Build RevenueGroupDTO for each stage
         total_revenue_all = sum(stage_revenue.values())
 
-        def _build_revenue_group(
-            stage_key: str, group_label: str
-        ) -> RevenueGroupDTO:
+        def _build_revenue_group(stage_key: str, group_label: str) -> RevenueGroupDTO:
             offers_by_tier: dict[str, list[OfferSaleDTO]] = defaultdict(list)
             group_revenue = stage_revenue[stage_key]
             group_customers = 0
@@ -1472,7 +1546,9 @@ class MetricsService:
                     continue
 
                 # Build OfferSaleDTO
-                offer_name = offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
+                offer_name = (
+                    offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
+                )
                 offer_type = offer.offer_type if offer else "unknown"
                 pricing_type = offer.pricing_type if offer else "one_time"
                 offer_currency = data["currency"]
@@ -1522,13 +1598,19 @@ class MetricsService:
             tiers = []
             for tier_key in TIER_DISPLAY_ORDER:
                 if tier_key in offers_by_tier:
-                    tiers.append(TierGroupDTO(
-                        tier_key=tier_key,
-                        tier_label=TIER_LABELS[tier_key],
-                        offers=offers_by_tier[tier_key],
-                    ))
+                    tiers.append(
+                        TierGroupDTO(
+                            tier_key=tier_key,
+                            tier_label=TIER_LABELS[tier_key],
+                            offers=offers_by_tier[tier_key],
+                        )
+                    )
 
-            rev_pct = round(group_revenue / total_revenue_all * 100, 1) if total_revenue_all > 0 else 0.0
+            rev_pct = (
+                round(group_revenue / total_revenue_all * 100, 1)
+                if total_revenue_all > 0
+                else 0.0
+            )
             group_usd = convert_to_usd(group_revenue, display_currency)
 
             return RevenueGroupDTO(
@@ -1563,7 +1645,11 @@ class MetricsService:
         # Enrich with Shopify metrics from official_metrics
         official_repo = OfficialMetricsRepository(self.db)
         shopify_agg = official_repo.get_channel_metrics(
-            tenant_id, "shopify", "shopify", start_date.date(), end_date.date(),
+            tenant_id,
+            "shopify",
+            "shopify",
+            start_date.date(),
+            end_date.date(),
         )
 
         # Extract Shopify aggregates
@@ -1575,8 +1661,11 @@ class MetricsService:
         shopify_currency = display_currency
         if shopify_revenue > 0:
             sample_rows = official_repo.get_metrics(
-                tenant_id, channel_slug="shopify", metric_name="revenue",
-                start_date=start_date.date(), end_date=end_date.date(),
+                tenant_id,
+                channel_slug="shopify",
+                metric_name="revenue",
+                start_date=start_date.date(),
+                end_date=end_date.date(),
             )
             if sample_rows:
                 shopify_currency = sample_rows[0].currency or "USD"
@@ -1632,46 +1721,54 @@ class MetricsService:
         # Low conversion rate (SQL -> Customer)
         if sql_count > 0:
             if conv_rate < LOW_CONVERSION_THRESHOLDS["critical"]:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_conversion_rate",
-                    metric_label="Tasa de Conversion",
-                    current_rate=conv_rate,
-                    severity="critical",
-                    threshold=LOW_CONVERSION_THRESHOLDS["critical"],
-                    tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_conversion_rate",
+                        metric_label="Tasa de Conversion",
+                        current_rate=conv_rate,
+                        severity="critical",
+                        threshold=LOW_CONVERSION_THRESHOLDS["critical"],
+                        tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
+                    )
+                )
             elif conv_rate < LOW_CONVERSION_THRESHOLDS["warning"]:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_conversion_rate",
-                    metric_label="Tasa de Conversion",
-                    current_rate=conv_rate,
-                    severity="warning",
-                    threshold=LOW_CONVERSION_THRESHOLDS["warning"],
-                    tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_conversion_rate",
+                        metric_label="Tasa de Conversion",
+                        current_rate=conv_rate,
+                        severity="warning",
+                        threshold=LOW_CONVERSION_THRESHOLDS["warning"],
+                        tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
+                    )
+                )
 
         # High CAC ratio (CAC / AOV)
         if cac is not None and new_customers > 0 and total_rev > 0:
             aov = total_rev / new_customers
             cac_ratio = cac / aov if aov > 0 else 0.0
             if cac_ratio >= HIGH_CAC_CRITICAL_RATIO:
-                bottlenecks.append(BottleneckDTO(
-                    type="high_cac_ratio",
-                    metric_label="CAC / Ticket Promedio",
-                    current_rate=round(cac_ratio * 100, 1),
-                    severity="critical",
-                    threshold=HIGH_CAC_CRITICAL_RATIO * 100,
-                    tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="high_cac_ratio",
+                        metric_label="CAC / Ticket Promedio",
+                        current_rate=round(cac_ratio * 100, 1),
+                        severity="critical",
+                        threshold=HIGH_CAC_CRITICAL_RATIO * 100,
+                        tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
+                    )
+                )
             elif cac_ratio >= HIGH_CAC_WARNING_RATIO:
-                bottlenecks.append(BottleneckDTO(
-                    type="high_cac_ratio",
-                    metric_label="CAC / Ticket Promedio",
-                    current_rate=round(cac_ratio * 100, 1),
-                    severity="warning",
-                    threshold=HIGH_CAC_WARNING_RATIO * 100,
-                    tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="high_cac_ratio",
+                        metric_label="CAC / Ticket Promedio",
+                        current_rate=round(cac_ratio * 100, 1),
+                        severity="warning",
+                        threshold=HIGH_CAC_WARNING_RATIO * 100,
+                        tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
+                    )
+                )
 
         now = dt_cls.now(tz.utc)
 
@@ -1723,17 +1820,13 @@ class MetricsService:
 
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "adoption", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "adoption", "last_30_days")
             if cached is not None:
                 return AdoptionDetailDTO(**cached)
 
         # 2. Query repository
         repo = AdoptionMetricsRepository(self.db)
-        health_rows = repo.get_customer_health_by_offer(
-            tenant_id, start_date, end_date
-        )
+        health_rows = repo.get_customer_health_by_offer(tenant_id, start_date, end_date)
         ttv_map = repo.get_avg_ttv_by_offer(tenant_id, start_date, end_date)
         total_customers, total_sales = repo.get_total_customers_and_sales(
             tenant_id, start_date, end_date
@@ -1791,9 +1884,7 @@ class MetricsService:
 
         # Global avg TTV
         all_ttvs = list(ttv_map.values())
-        avg_ttv = (
-            round(sum(all_ttvs) / len(all_ttvs), 1) if all_ttvs else None
-        )
+        avg_ttv = round(sum(all_ttvs) / len(all_ttvs), 1) if all_ttvs else None
 
         refund_amount_usd = convert_to_usd(refund_amount, refund_currency)
 
@@ -1810,9 +1901,7 @@ class MetricsService:
 
         # 6. Mini funnel: Ventas -> Activos
         conv_rate = (
-            round(active_customers / total_sales * 100, 1)
-            if total_sales > 0
-            else 0.0
+            round(active_customers / total_sales * 100, 1) if total_sales > 0 else 0.0
         )
         mini_funnel = MiniFunnelDTO(
             source_label="Ventas",
@@ -1914,9 +2003,7 @@ class MetricsService:
 
         # 1. Check cache
         if self.cache is not None:
-            cached = await self.cache.get(
-                str(tenant_id), "expansion", "last_30_days"
-            )
+            cached = await self.cache.get(str(tenant_id), "expansion", "last_30_days")
             if cached is not None:
                 return ExpansionDetailDTO(**cached)
 
@@ -1966,14 +2053,16 @@ class MetricsService:
                 offer = offer_map.get(offer_id_str)
                 name = offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
                 usd_rev = convert_to_usd(revenue, currency)
-                result_offers.append(ExpansionOfferDTO(
-                    offer_id=offer_id_str,
-                    public_name=name,
-                    count=count,
-                    revenue=revenue,
-                    currency=currency,
-                    usd_revenue=usd_rev,
-                ))
+                result_offers.append(
+                    ExpansionOfferDTO(
+                        offer_id=offer_id_str,
+                        public_name=name,
+                        count=count,
+                        revenue=revenue,
+                        currency=currency,
+                        usd_revenue=usd_rev,
+                    )
+                )
             return result_offers
 
         # Retencion group (renewals)
@@ -1981,7 +2070,12 @@ class MetricsService:
         renewal_total_count = sum(o.count for o in renewal_offers)
         renewal_total_revenue = sum(o.revenue for o in renewal_offers)
         retention_rate = (
-            round((active_customer_count - total_churn_count) / active_customer_count * 100, 1)
+            round(
+                (active_customer_count - total_churn_count)
+                / active_customer_count
+                * 100,
+                1,
+            )
             if active_customer_count > 0
             else 100.0
         )
@@ -2077,23 +2171,27 @@ class MetricsService:
 
         if churn_rate_pct > 5.0:
             tip = "Revisa la calidad y satisfaccion de tu producto o servicio"
-            bottlenecks.append(BottleneckDTO(
-                type="high_churn_rate",
-                metric_label="Tasa de Cancelacion",
-                current_rate=churn_rate_pct,
-                severity="critical",
-                threshold=5.0,
-                tip=tip,
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="high_churn_rate",
+                    metric_label="Tasa de Cancelacion",
+                    current_rate=churn_rate_pct,
+                    severity="critical",
+                    threshold=5.0,
+                    tip=tip,
+                )
+            )
         elif churn_rate_pct > 3.0:
-            bottlenecks.append(BottleneckDTO(
-                type="high_churn_rate",
-                metric_label="Tasa de Cancelacion",
-                current_rate=churn_rate_pct,
-                severity="warning",
-                threshold=3.0,
-                tip="Revisa la calidad y satisfaccion de tu producto o servicio",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="high_churn_rate",
+                    metric_label="Tasa de Cancelacion",
+                    current_rate=churn_rate_pct,
+                    severity="warning",
+                    threshold=3.0,
+                    tip="Revisa la calidad y satisfaccion de tu producto o servicio",
+                )
+            )
 
         now = dt_cls.now(tz.utc)
 
@@ -2158,45 +2256,53 @@ class MetricsService:
 
         k_factor = data.get("k_factor", 0.0)
         if k_factor < 0.5:
-            bottlenecks.append(BottleneckDTO(
-                type="low_k_factor",
-                metric_label="K-Factor bajo",
-                current_rate=k_factor,
-                severity="critical",
-                threshold=0.5,
-                tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="low_k_factor",
+                    metric_label="K-Factor bajo",
+                    current_rate=k_factor,
+                    severity="critical",
+                    threshold=0.5,
+                    tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
+                )
+            )
         elif k_factor < 1.0:
-            bottlenecks.append(BottleneckDTO(
-                type="low_k_factor",
-                metric_label="K-Factor bajo",
-                current_rate=k_factor,
-                severity="warning",
-                threshold=1.0,
-                tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="low_k_factor",
+                    metric_label="K-Factor bajo",
+                    current_rate=k_factor,
+                    severity="warning",
+                    threshold=1.0,
+                    tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
+                )
+            )
 
         nps_response_rate = data.get("nps_response_rate_pct", 0.0)
         surveys_sent = data.get("surveys_sent", 0)
         if surveys_sent > 0:
             if nps_response_rate < 15:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_nps_response",
-                    metric_label="Pocas respuestas NPS",
-                    current_rate=nps_response_rate,
-                    severity="critical",
-                    threshold=15,
-                    tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_nps_response",
+                        metric_label="Pocas respuestas NPS",
+                        current_rate=nps_response_rate,
+                        severity="critical",
+                        threshold=15,
+                        tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
+                    )
+                )
             elif nps_response_rate < 30:
-                bottlenecks.append(BottleneckDTO(
-                    type="low_nps_response",
-                    metric_label="Pocas respuestas NPS",
-                    current_rate=nps_response_rate,
-                    severity="warning",
-                    threshold=30,
-                    tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
-                ))
+                bottlenecks.append(
+                    BottleneckDTO(
+                        type="low_nps_response",
+                        metric_label="Pocas respuestas NPS",
+                        current_rate=nps_response_rate,
+                        severity="warning",
+                        threshold=30,
+                        tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
+                    )
+                )
 
         # 4. Assemble DTO
         now = dt_cls.now(tz.utc)
@@ -2261,16 +2367,24 @@ class MetricsService:
             for group_key in ("organic_social", "ga4_search", "paid", "outbound"):
                 group = attraction_cache.get(group_key, {})
                 totals = group.get("totals", {})
-                total_visitors += totals.get("reach", 0) + totals.get("sessions", 0) + totals.get("contacts", 0)
+                total_visitors += (
+                    totals.get("reach", 0)
+                    + totals.get("sessions", 0)
+                    + totals.get("contacts", 0)
+                )
             connected_count = sum(
                 len(attraction_cache.get(g, {}).get("channels", []))
                 for g in ("organic_social", "ga4_search", "paid", "outbound")
             )
-            stages.append(StageSummaryKpiDTO(
-                stage="attraction", main_kpi=total_visitors,
-                main_label="visitantes", secondary_kpi=connected_count,
-                secondary_label="canales activos",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="attraction",
+                    main_kpi=total_visitors,
+                    main_label="visitantes",
+                    secondary_kpi=connected_count,
+                    secondary_label="canales activos",
+                )
+            )
             if attraction_cache.get("last_updated"):
                 latest_updated = attraction_cache["last_updated"]
         else:
@@ -2282,72 +2396,107 @@ class MetricsService:
                 MetricAggregationModel,
             )
 
-            visitor_stmt = (
-                select(sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0))
-                .where(
-                    MetricAggregationModel.tenant_id == tenant_id,
-                    MetricAggregationModel.metric_name.in_(("reach", "sessions")),
-                    MetricAggregationModel.period_type == "last_30_days",
-                )
+            visitor_stmt = select(
+                sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+            ).where(
+                MetricAggregationModel.tenant_id == tenant_id,
+                MetricAggregationModel.metric_name.in_(("reach", "sessions")),
+                MetricAggregationModel.period_type == "last_30_days",
             )
             total_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
-            stages.append(StageSummaryKpiDTO(
-                stage="attraction", main_kpi=total_visitors,
-                main_label="visitantes", secondary_kpi=0,
-                secondary_label="canales activos",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="attraction",
+                    main_kpi=total_visitors,
+                    main_label="visitantes",
+                    secondary_kpi=0,
+                    secondary_label="canales activos",
+                )
+            )
 
         # --- Capture ---
         capture_cache = await _get_stage_cache("capture")
         if capture_cache:
             hk = capture_cache.get("header_kpis", {})
-            stages.append(StageSummaryKpiDTO(
-                stage="capture", main_kpi=hk.get("total_leads", 0),
-                main_label="leads", secondary_kpi=hk.get("conversion_rate", 0),
-                secondary_label="tasa conversion", secondary_unit="%",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="capture",
+                    main_kpi=hk.get("total_leads", 0),
+                    main_label="leads",
+                    secondary_kpi=hk.get("conversion_rate", 0),
+                    secondary_label="tasa conversion",
+                    secondary_unit="%",
+                )
+            )
         else:
             total_leads = self.lead_repo.count_total(tenant_id)
-            stages.append(StageSummaryKpiDTO(
-                stage="capture", main_kpi=total_leads,
-                main_label="leads", secondary_kpi=0,
-                secondary_label="tasa conversion", secondary_unit="%",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="capture",
+                    main_kpi=total_leads,
+                    main_label="leads",
+                    secondary_kpi=0,
+                    secondary_label="tasa conversion",
+                    secondary_unit="%",
+                )
+            )
 
         # --- Nurture ---
         nurture_cache = await _get_stage_cache("nurture")
         if nurture_cache:
             hk = nurture_cache.get("header_kpis", {})
-            stages.append(StageSummaryKpiDTO(
-                stage="nurture", main_kpi=hk.get("total_mqls", 0),
-                main_label="MQLs", secondary_kpi=hk.get("conversion_rate", 0),
-                secondary_label="engagement rate", secondary_unit="%",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="nurture",
+                    main_kpi=hk.get("total_mqls", 0),
+                    main_label="MQLs",
+                    secondary_kpi=hk.get("conversion_rate", 0),
+                    secondary_label="engagement rate",
+                    secondary_unit="%",
+                )
+            )
         else:
             mql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.MQL)
-            stages.append(StageSummaryKpiDTO(
-                stage="nurture", main_kpi=mql_count,
-                main_label="MQLs", secondary_kpi=0,
-                secondary_label="engagement rate", secondary_unit="%",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="nurture",
+                    main_kpi=mql_count,
+                    main_label="MQLs",
+                    secondary_kpi=0,
+                    secondary_label="engagement rate",
+                    secondary_unit="%",
+                )
+            )
 
         # --- Opportunity ---
         opportunity_cache = await _get_stage_cache("opportunity")
         if opportunity_cache:
             hk = opportunity_cache.get("header_kpis", {})
-            stages.append(StageSummaryKpiDTO(
-                stage="opportunity", main_kpi=hk.get("total_sqls", 0),
-                main_label="SQLs", secondary_kpi=hk.get("conversion_rate", 0),
-                secondary_label="pipeline value", secondary_unit="%",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="opportunity",
+                    main_kpi=hk.get("total_sqls", 0),
+                    main_label="SQLs",
+                    secondary_kpi=hk.get("conversion_rate", 0),
+                    secondary_label="pipeline value",
+                    secondary_unit="%",
+                )
+            )
         else:
             sql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.SQL)
-            opp_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.OPPORTUNITY)
-            stages.append(StageSummaryKpiDTO(
-                stage="opportunity", main_kpi=sql_count + opp_count,
-                main_label="SQLs", secondary_kpi=0,
-                secondary_label="pipeline value", secondary_unit="%",
-            ))
+            opp_count = self.customer_repo.count_by_stage(
+                tenant_id, LifecycleStage.OPPORTUNITY
+            )
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="opportunity",
+                    main_kpi=sql_count + opp_count,
+                    main_label="SQLs",
+                    secondary_kpi=0,
+                    secondary_label="pipeline value",
+                    secondary_unit="%",
+                )
+            )
 
         # --- Sales ---
         sales_cache = await _get_stage_cache("sales")
@@ -2359,13 +2508,19 @@ class MetricsService:
             new_cust = hk.get("new_customers", 0)
             secondary = conv_rate if conv_rate > 0 else new_cust
             secondary_unit = "%" if conv_rate > 0 else None
-            stages.append(StageSummaryKpiDTO(
-                stage="sales", main_kpi=main_val,
-                main_label="revenue", main_unit="$",
-                secondary_kpi=secondary,
-                secondary_label="conversion" if conv_rate > 0 else "clientes nuevos",
-                secondary_unit=secondary_unit,
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="sales",
+                    main_kpi=main_val,
+                    main_label="revenue",
+                    main_unit="$",
+                    secondary_kpi=secondary,
+                    secondary_label="conversion"
+                    if conv_rate > 0
+                    else "clientes nuevos",
+                    secondary_unit=secondary_unit,
+                )
+            )
         else:
             from datetime import datetime as dt_cls
             from datetime import timedelta as td
@@ -2381,12 +2536,16 @@ class MetricsService:
             raw_sales = sales_repo.get_sales_summary(tenant_id, start_30d, now)
             total_revenue = sum(float(r.total_revenue) for r in raw_sales)
             new_customers = sum(int(r.unique_customers) for r in raw_sales)
-            stages.append(StageSummaryKpiDTO(
-                stage="sales", main_kpi=total_revenue,
-                main_label="revenue", main_unit="$",
-                secondary_kpi=new_customers,
-                secondary_label="clientes nuevos",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="sales",
+                    main_kpi=total_revenue,
+                    main_label="revenue",
+                    main_unit="$",
+                    secondary_kpi=new_customers,
+                    secondary_label="clientes nuevos",
+                )
+            )
 
         # --- Adoption ---
         adoption_cache = await _get_stage_cache("adoption")
@@ -2398,36 +2557,56 @@ class MetricsService:
             conv_rate = mf.get("conversion_rate", 0)
             secondary = conv_rate if conv_rate > 0 else active
             secondary_unit = "%" if conv_rate > 0 else None
-            stages.append(StageSummaryKpiDTO(
-                stage="adoption", main_kpi=health,
-                main_label="salud %", main_unit="%",
-                secondary_kpi=secondary,
-                secondary_label="activacion" if conv_rate > 0 else "activos",
-                secondary_unit=secondary_unit,
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="adoption",
+                    main_kpi=health,
+                    main_label="salud %",
+                    main_unit="%",
+                    secondary_kpi=secondary,
+                    secondary_label="activacion" if conv_rate > 0 else "activos",
+                    secondary_unit=secondary_unit,
+                )
+            )
         else:
-            stages.append(StageSummaryKpiDTO(
-                stage="adoption", main_kpi=0,
-                main_label="salud %", main_unit="%",
-                secondary_kpi=0, secondary_label="activos",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="adoption",
+                    main_kpi=0,
+                    main_label="salud %",
+                    main_unit="%",
+                    secondary_kpi=0,
+                    secondary_label="activos",
+                )
+            )
 
         # --- Expansion ---
         expansion_cache = await _get_stage_cache("expansion")
         if expansion_cache:
             hk = expansion_cache.get("header_kpis", {})
-            stages.append(StageSummaryKpiDTO(
-                stage="expansion", main_kpi=hk.get("net_mrr", 0),
-                main_label="net MRR", main_unit="$",
-                secondary_kpi=hk.get("churn_rate_pct", 0),
-                secondary_label="churn rate", secondary_unit="%",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="expansion",
+                    main_kpi=hk.get("net_mrr", 0),
+                    main_label="net MRR",
+                    main_unit="$",
+                    secondary_kpi=hk.get("churn_rate_pct", 0),
+                    secondary_label="churn rate",
+                    secondary_unit="%",
+                )
+            )
         else:
-            stages.append(StageSummaryKpiDTO(
-                stage="expansion", main_kpi=0,
-                main_label="net MRR", main_unit="$",
-                secondary_kpi=0, secondary_label="churn rate", secondary_unit="%",
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="expansion",
+                    main_kpi=0,
+                    main_label="net MRR",
+                    main_unit="$",
+                    secondary_kpi=0,
+                    secondary_label="churn rate",
+                    secondary_unit="%",
+                )
+            )
 
         # --- Evangelization ---
         evangelization_cache = await _get_stage_cache("evangelization")
@@ -2435,19 +2614,29 @@ class MetricsService:
             hk = evangelization_cache.get("header_kpis", {})
             mf = evangelization_cache.get("mini_funnel", {})
             conv_rate = mf.get("conversion_rate", 0)
-            stages.append(StageSummaryKpiDTO(
-                stage="evangelization", main_kpi=hk.get("k_factor", 0),
-                main_label="k-factor",
-                secondary_kpi=conv_rate,
-                secondary_label="conversion", secondary_unit="%" if conv_rate > 0 else None,
-            ))
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="evangelization",
+                    main_kpi=hk.get("k_factor", 0),
+                    main_label="k-factor",
+                    secondary_kpi=conv_rate,
+                    secondary_label="conversion",
+                    secondary_unit="%" if conv_rate > 0 else None,
+                )
+            )
         else:
-            evangelists = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.EVANGELIST)
-            stages.append(StageSummaryKpiDTO(
-                stage="evangelization", main_kpi=0,
-                main_label="k-factor",
-                secondary_kpi=evangelists, secondary_label="evangelistas",
-            ))
+            evangelists = self.customer_repo.count_by_stage(
+                tenant_id, LifecycleStage.EVANGELIST
+            )
+            stages.append(
+                StageSummaryKpiDTO(
+                    stage="evangelization",
+                    main_kpi=0,
+                    main_label="k-factor",
+                    secondary_kpi=evangelists,
+                    secondary_label="evangelistas",
+                )
+            )
 
         result = BowtiesSummaryDTO(
             stages=stages,
@@ -2457,9 +2646,7 @@ class MetricsService:
 
         # Cache the summary with short TTL
         if self.cache is not None:
-            await self.cache.set(
-                tid, "summary", "last_30_days", result.model_dump()
-            )
+            await self.cache.set(tid, "summary", "last_30_days", result.model_dump())
 
         return result
 
@@ -2535,9 +2722,7 @@ class MetricsService:
 
         # 2. Get channel slugs for this stage
         stage_channels = get_stage_channels(stage)
-        slug_to_info = {
-            ch["slug"]: ch for ch in stage_channels
-        }
+        slug_to_info = {ch["slug"]: ch for ch in stage_channels}
         channel_slugs = list(slug_to_info.keys())
 
         if not channel_slugs:
@@ -2655,19 +2840,23 @@ class MetricsService:
             .group_by(M.channel_slug)
         )
         prev_rows = self.db.execute(prev_stmt).all()
-        previous_period_totals = {
-            row.channel_slug: float(row.total) for row in prev_rows
-        } if prev_rows else None
+        previous_period_totals = (
+            {row.channel_slug: float(row.total) for row in prev_rows}
+            if prev_rows
+            else None
+        )
 
         # 7. Build channels_present
         channels_present = []
         for slug in sorted(channels_seen):
             info = slug_to_info.get(slug, {})
-            channels_present.append(ChannelInfoDTO(
-                slug=slug,
-                name=info.get("name", slug),
-                color=self._CHANNEL_COLORS.get(slug, "#6B7280"),
-            ))
+            channels_present.append(
+                ChannelInfoDTO(
+                    slug=slug,
+                    name=info.get("name", slug),
+                    color=self._CHANNEL_COLORS.get(slug, "#6B7280"),
+                )
+            )
 
         result = StageTimeSeriesDTO(
             stage=stage,

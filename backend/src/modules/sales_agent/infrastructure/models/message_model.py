@@ -20,7 +20,9 @@ class MessageModel(Base):
     role = Column("role", String, nullable=False)  # user / assistant / system
     content = Column(Text, nullable=False)
     channel = Column(String, nullable=True)  # whatsapp / telegram
-    sender_source = Column(String(20), nullable=False, server_default="auto")  # auto / human_direct / human_instruction
+    sender_source = Column(
+        String(20), nullable=False, server_default="auto"
+    )  # auto / human_direct / human_instruction
     product_context_id = Column(UUID(as_uuid=True), nullable=True)
 
     metadata_log = Column("metadata_log", JSONB, default=dict)

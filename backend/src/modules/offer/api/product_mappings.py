@@ -46,6 +46,7 @@ class CreateProductMappingIn(BaseModel):
 
 class CreateProductMappingOut(BaseModel):
     """Extended response with backfill stats."""
+
     id: UUID
     tenant_id: UUID
     offer_id: UUID
@@ -137,12 +138,9 @@ async def list_source_products(
         JourneyEventModel.properties,
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
-        JourneyEventModel.event_name.in_(
-            ["checkout_initiated", "checkout_completed"]
-        ),
-        sa_func.jsonb_extract_path_text(
-            JourneyEventModel.properties, "source"
-        ) == source,
+        JourneyEventModel.event_name.in_(["checkout_initiated", "checkout_completed"]),
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
+        == source,
     )
     events = db.execute(stmt).all()
 
@@ -217,12 +215,9 @@ async def list_unmatched_products(
         JourneyEventModel.properties,
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
-        JourneyEventModel.event_name.in_(
-            ["checkout_initiated", "checkout_completed"]
-        ),
-        sa_func.jsonb_extract_path_text(
-            JourneyEventModel.properties, "source"
-        ) == source,
+        JourneyEventModel.event_name.in_(["checkout_initiated", "checkout_completed"]),
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
+        == source,
     )
     events = db.execute(stmt).all()
 
@@ -254,7 +249,9 @@ async def list_unmatched_products(
     return list(product_map.values())
 
 
-@router.post("/product-mappings", response_model=CreateProductMappingOut, status_code=201)
+@router.post(
+    "/product-mappings", response_model=CreateProductMappingOut, status_code=201
+)
 async def create_product_mapping(
     payload: CreateProductMappingIn,
     db: Session = Depends(get_db),
@@ -298,9 +295,8 @@ async def create_product_mapping(
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
         JourneyEventModel.event_name == "checkout_completed",
-        sa_func.jsonb_extract_path_text(
-            JourneyEventModel.properties, "source"
-        ) == payload.source,
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
+        == payload.source,
     )
     checkout_events = db.execute(checkout_stmt).all()
 
@@ -326,14 +322,17 @@ async def create_product_mapping(
             if txn_id in candidate_txn_ids:
                 continue  # duplicate within same batch
             candidate_txn_ids.add(txn_id)
-            candidates.append({
-                "txn_id": txn_id,
-                "profile_id": profile_id,
-                "occurred_at": occurred_at,
-                "currency": currency,
-                "amount": float(item.get("price", 0)) * int(item.get("quantity", 1)),
-                "order_id": order_id,
-            })
+            candidates.append(
+                {
+                    "txn_id": txn_id,
+                    "profile_id": profile_id,
+                    "occurred_at": occurred_at,
+                    "currency": currency,
+                    "amount": float(item.get("price", 0))
+                    * int(item.get("quantity", 1)),
+                    "order_id": order_id,
+                }
+            )
 
     # Phase 2: single batch dedup query
     if candidates:
@@ -341,32 +340,32 @@ async def create_product_mapping(
             SaleModel.tenant_id == user.tenant_id,
             SaleModel.transaction_id.in_(candidate_txn_ids),
         )
-        existing_txn_ids = {
-            row[0] for row in db.execute(existing_txn_stmt).all()
-        }
+        existing_txn_ids = {row[0] for row in db.execute(existing_txn_stmt).all()}
 
         # Phase 3: bulk insert only new records
         new_sales = []
         for c in candidates:
             if c["txn_id"] in existing_txn_ids:
                 continue
-            new_sales.append(SaleModel(
-                id=uuid_mod.uuid4(),
-                tenant_id=user.tenant_id,
-                customer_id=c["profile_id"],
-                offer_id=payload.offer_id,
-                transaction_id=c["txn_id"],
-                amount=c["amount"],
-                currency=c["currency"],
-                status=SaleStatus.COMPLETED,
-                stage=SaleStage.CONVERSION,
-                source=payload.source.upper(),
-                metadata_info={
-                    "retroactive_backfill": True,
-                    f"{payload.source}_order_id": str(c["order_id"]),
-                },
-                occurred_at=c["occurred_at"],
-            ))
+            new_sales.append(
+                SaleModel(
+                    id=uuid_mod.uuid4(),
+                    tenant_id=user.tenant_id,
+                    customer_id=c["profile_id"],
+                    offer_id=payload.offer_id,
+                    transaction_id=c["txn_id"],
+                    amount=c["amount"],
+                    currency=c["currency"],
+                    status=SaleStatus.COMPLETED,
+                    stage=SaleStage.CONVERSION,
+                    source=payload.source.upper(),
+                    metadata_info={
+                        "retroactive_backfill": True,
+                        f"{payload.source}_order_id": str(c["order_id"]),
+                    },
+                    occurred_at=c["occurred_at"],
+                )
+            )
 
         if new_sales:
             db.add_all(new_sales)
@@ -465,7 +464,9 @@ async def get_offer_products_detail(
         select(
             sa_func.count(SaleModel.id).label("sales_count"),
             sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label("total_revenue"),
-            sa_func.count(sa_func.distinct(SaleModel.customer_id)).label("unique_customers"),
+            sa_func.count(sa_func.distinct(SaleModel.customer_id)).label(
+                "unique_customers"
+            ),
             sa_func.min(SaleModel.occurred_at).label("first_sale"),
             sa_func.max(SaleModel.occurred_at).label("last_sale"),
             sa_func.min(SaleModel.currency).label("currency"),
@@ -488,11 +489,13 @@ async def get_offer_products_detail(
         select(
             SaleModel.source,
             sa_func.count(SaleModel.id),
-        ).where(
+        )
+        .where(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
-        ).group_by(SaleModel.source)
+        )
+        .group_by(SaleModel.source)
     ).all()
     source_breakdown = dict(source_rows)
 
@@ -501,11 +504,13 @@ async def get_offer_products_detail(
         select(
             SaleModel.customer_id,
             sa_func.count(SaleModel.id).label("purchase_count"),
-        ).where(
+        )
+        .where(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
-        ).group_by(SaleModel.customer_id)
+        )
+        .group_by(SaleModel.customer_id)
         .having(sa_func.count(SaleModel.id) > 1)
         .subquery()
     )
@@ -513,7 +518,9 @@ async def get_offer_products_detail(
         select(sa_func.count()).select_from(repeat_subq)
     ).scalar_one()
     repeat_rate = (
-        (repeat_customer_count / unique_customers * 100) if unique_customers > 0 else 0.0
+        (repeat_customer_count / unique_customers * 100)
+        if unique_customers > 0
+        else 0.0
     )
 
     # 5. Weekly revenue (last 12 weeks)
@@ -522,16 +529,18 @@ async def get_offer_products_detail(
         select(
             sa_func.date_trunc("week", SaleModel.occurred_at).label("week"),
             sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label("revenue"),
-        ).where(
+        )
+        .where(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
             SaleModel.occurred_at >= twelve_weeks_ago,
-        ).group_by("week").order_by("week")
+        )
+        .group_by("week")
+        .order_by("week")
     ).all()
     weekly_revenue = [
-        {"week": w.strftime("%G-W%V"), "revenue": float(rev)}
-        for w, rev in weekly_rows
+        {"week": w.strftime("%G-W%V"), "revenue": float(rev)} for w, rev in weekly_rows
     ]
 
     # 6. Product-level metrics from journey_events

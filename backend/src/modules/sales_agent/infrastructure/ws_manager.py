@@ -30,7 +30,9 @@ class ConnectionManager:
         if tenant_id not in self._connections:
             self._connections[tenant_id] = set()
         self._connections[tenant_id].add(ws)
-        logger.info("ws_connected", tenant_id=tenant_id, total=len(self._connections[tenant_id]))
+        logger.info(
+            "ws_connected", tenant_id=tenant_id, total=len(self._connections[tenant_id])
+        )
 
     def disconnect(self, tenant_id: str, ws: WebSocket) -> None:
         if tenant_id in self._connections:

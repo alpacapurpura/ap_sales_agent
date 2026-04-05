@@ -57,6 +57,7 @@ from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 
 logger = structlog.get_logger()
 
+
 class ChatOrchestrator:
     _instance = None
 
@@ -74,7 +75,13 @@ class ChatOrchestrator:
         self.buffer_service = SmartBufferService()
         self._initialized = True
 
-    async def handle_telegram_webhook(self, payload: dict, background_tasks: BackgroundTasks, tenant_id: str = None, db: Session = None):
+    async def handle_telegram_webhook(
+        self,
+        payload: dict,
+        background_tasks: BackgroundTasks,
+        tenant_id: str = None,
+        db: Session = None,
+    ):
         """
         Handles Telegram Webhook with Multi-Tenant support.
         """
@@ -82,27 +89,46 @@ class ChatOrchestrator:
         if tenant_id and db:
             try:
                 # Resolve tenant connection
-                conn = db.query(ChannelConnectionModel).filter(
-                    ChannelConnectionModel.tenant_id == UUID(tenant_id),
-                    ChannelConnectionModel.channel_type == ChannelType.TELEGRAM.value,
-                    ChannelConnectionModel.is_active.is_(True)
-                ).first()
+                conn = (
+                    db.query(ChannelConnectionModel)
+                    .filter(
+                        ChannelConnectionModel.tenant_id == UUID(tenant_id),
+                        ChannelConnectionModel.channel_type
+                        == ChannelType.TELEGRAM.value,
+                        ChannelConnectionModel.is_active.is_(True),
+                    )
+                    .first()
+                )
 
                 if conn and conn.credentials:
                     token = conn.credentials.get("token")
             except Exception as e:
-                logger.error("error_resolving_telegram_connection", error=str(e), tenant_id=tenant_id)
+                logger.error(
+                    "error_resolving_telegram_connection",
+                    error=str(e),
+                    tenant_id=tenant_id,
+                )
 
         # Instantiate adapter (with specific token or fallback to global env)
         adapter = TelegramChannel(token=token)
-        await self._handle_incoming_webhook(adapter, payload, background_tasks, tenant_id)
+        await self._handle_incoming_webhook(
+            adapter, payload, background_tasks, tenant_id
+        )
 
-    async def handle_whatsapp_webhook(self, payload: dict, background_tasks: BackgroundTasks):
+    async def handle_whatsapp_webhook(
+        self, payload: dict, background_tasks: BackgroundTasks
+    ):
         # WhatsApp logic is now handled via direct router-to-service calls or unified webhook handler.
         # This method is kept for backward compatibility but should be deprecated.
         pass
 
-    async def _handle_incoming_webhook(self, channel_adapter, payload: dict, background_tasks: BackgroundTasks, tenant_id: str = None):
+    async def _handle_incoming_webhook(
+        self,
+        channel_adapter,
+        payload: dict,
+        background_tasks: BackgroundTasks,
+        tenant_id: str = None,
+    ):
         incoming = channel_adapter.normalize_payload(payload)
         if not incoming:
             return
@@ -118,10 +144,7 @@ class ChatOrchestrator:
 
         # Add to buffer
         self.buffer_service.add_message(
-            buffer_key,
-            incoming.text,
-            incoming.channel_type,
-            incoming.metadata
+            buffer_key, incoming.text, incoming.channel_type, incoming.metadata
         )
 
         # Launch Smart Debounce Task
@@ -137,7 +160,7 @@ class ChatOrchestrator:
 
             # 2. Check if new message arrived (Reset Logic)
             last_ts = self.buffer_service.get_last_timestamp(buffer_key)
-            if time.time() - last_ts < 0.4: # Tolerance
+            if time.time() - last_ts < 0.4:  # Tolerance
                 # New message arrived recently, abort this task (let the new one handle it)
                 return
 
@@ -155,7 +178,11 @@ class ChatOrchestrator:
                 db_tmp = None
                 try:
                     db_tmp = SessionLocal()
-                    tenant_obj = db_tmp.query(TenantModel).filter(TenantModel.id == UUID(tenant_id)).first()
+                    tenant_obj = (
+                        db_tmp.query(TenantModel)
+                        .filter(TenantModel.id == UUID(tenant_id))
+                        .first()
+                    )
                 except Exception as e:
                     logger.warning(f"Could not fetch tenant for semantic check: {e}")
                 finally:
@@ -189,7 +216,7 @@ class ChatOrchestrator:
 
             # Try Acquire Lock
             if not self.buffer_service.acquire_lock(buffer_key):
-                return # Already being processed
+                return  # Already being processed
 
             try:
                 # 7. Process
@@ -200,14 +227,16 @@ class ChatOrchestrator:
                 final_text = " ".join(msgs)
                 # Re-fetch metadata just in case
                 meta = self.buffer_service.get_metadata(buffer_key)
-                channel_type = self.buffer_service.get_channel_type(buffer_key) or "unknown"
+                channel_type = (
+                    self.buffer_service.get_channel_type(buffer_key) or "unknown"
+                )
 
                 # Reconstruct IncomingMessage with REAL user_id
                 incoming = IncomingMessage(
                     user_id=real_user_id,
                     text=final_text,
                     channel_type=channel_type,
-                    metadata=meta
+                    metadata=meta,
                 )
 
                 await self.process_chat_flow(channel_adapter, incoming, tenant_id)
@@ -220,7 +249,9 @@ class ChatOrchestrator:
         except Exception as e:
             logger.error(f"Error in smart debounce task: {e}", exc_info=True)
 
-    async def process_chat_flow(self, channel_adapter, incoming: IncomingMessage, tenant_id: str = None):  # noqa: C901
+    async def process_chat_flow(
+        self, channel_adapter, incoming: IncomingMessage, tenant_id: str = None
+    ):  # noqa: C901
         """
         Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced).
         """
@@ -251,7 +282,11 @@ class ChatOrchestrator:
             if tenant_id:
                 try:
                     tenant_uuid = UUID(tenant_id)
-                    tenant_obj = db.query(TenantModel).filter(TenantModel.id == tenant_uuid).first()
+                    tenant_obj = (
+                        db.query(TenantModel)
+                        .filter(TenantModel.id == tenant_uuid)
+                        .first()
+                    )
                     if tenant_obj:
                         tenant_config = tenant_obj.config_json or {}
                 except Exception as e:
@@ -271,7 +306,7 @@ class ChatOrchestrator:
             profile_data = {
                 "first_name": incoming.metadata.get("first_name"),
                 "last_name": incoming.metadata.get("last_name"),
-                "traits": incoming.metadata
+                "traits": incoming.metadata,
             }
 
             # Get or Create Customer (with lead_source for capture tracking)
@@ -286,7 +321,13 @@ class ChatOrchestrator:
             )
 
             # Enrich Instagram profiles with name/username/pic from User Profile API
-            if channel_type == "instagram" and tenant_uuid and (was_created or not (customer.traits or {}).get("instagram_username")):
+            if (
+                channel_type == "instagram"
+                and tenant_uuid
+                and (
+                    was_created or not (customer.traits or {}).get("instagram_username")
+                )
+            ):
                 try:
                     from src.modules.connections.application.services.connection_port_impl import (
                         ConnectionPortImpl,
@@ -313,6 +354,7 @@ class ChatOrchestrator:
                     from src.modules.crm.infrastructure.repositories.customer_repository import (
                         JourneyEventRepository,
                     )
+
                     journey_repo = JourneyEventRepository(db)
                     event_props = {
                         "channel_slug": capture_slug,
@@ -362,9 +404,12 @@ class ChatOrchestrator:
                     from src.modules.crm.infrastructure.models.customer_model import (
                         CustomerProfileModel,
                     )
-                    profile_model = db.query(CustomerProfileModel).filter(
-                        CustomerProfileModel.id == customer.id
-                    ).first()
+
+                    profile_model = (
+                        db.query(CustomerProfileModel)
+                        .filter(CustomerProfileModel.id == customer.id)
+                        .first()
+                    )
                     if profile_model:
                         profile_model.traits = current_traits
                         if "first_name" in incoming.metadata:
@@ -377,7 +422,7 @@ class ChatOrchestrator:
                 user = lead_repo.create_lead(
                     customer_id=customer.id,
                     channel=channel_type,
-                    channel_user_id=user_id_str
+                    channel_user_id=user_id_str,
                 )
 
             # Log User Message FIRST (before checkpoint) so audit trail
@@ -387,14 +432,18 @@ class ChatOrchestrator:
                 role="user",
                 content=incoming.text,
                 channel=channel_type,
-                tenant_id=tenant_uuid
+                tenant_id=tenant_uuid,
             )
 
             # Load existing state checkpoint (if any)
             state_repo = StateRepository(db)
             checkpoint = None
             try:
-                checkpoint = state_repo.get_active_checkpoint(tenant_uuid, user.id) if tenant_uuid else None
+                checkpoint = (
+                    state_repo.get_active_checkpoint(tenant_uuid, user.id)
+                    if tenant_uuid
+                    else None
+                )
             except Exception as e:
                 logger.warning("checkpoint_load_failed", error=str(e))
                 try:
@@ -420,13 +469,17 @@ class ChatOrchestrator:
                     from src.modules.sales_agent.infrastructure.ws_manager import (
                         ws_manager,
                     )
-                    await ws_manager.emit(str(tenant_uuid), {
-                        "type": "new_message",
-                        "lead_id": str(user.id),
-                        "role": "user",
-                        "content": incoming.text[:200],
-                        "handler_mode": "human",
-                    })
+
+                    await ws_manager.emit(
+                        str(tenant_uuid),
+                        {
+                            "type": "new_message",
+                            "lead_id": str(user.id),
+                            "role": "user",
+                            "content": incoming.text[:200],
+                            "handler_mode": "human",
+                        },
+                    )
                 except Exception:  # noqa: S110 — WS is best-effort
                     pass
                 return
@@ -477,15 +530,22 @@ class ChatOrchestrator:
                 }
 
             # Convert ORM history to dicts
-            raw_history = audit_repo.get_chat_history(user.id, limit=MESSAGE_HISTORY_LIMIT)
+            raw_history = audit_repo.get_chat_history(
+                user.id, limit=MESSAGE_HISTORY_LIMIT
+            )
             history = [
                 {"role": msg.role, "content": msg.content}
-                for msg in raw_history if msg.content
+                for msg in raw_history
+                if msg.content
             ]
 
             # Prepare Profile + Style Data (ensure dict, not Pydantic model)
             if user and user.profile_data:
-                base_profile = user.profile_data.model_dump() if hasattr(user.profile_data, 'model_dump') else dict(user.profile_data)
+                base_profile = (
+                    user.profile_data.model_dump()
+                    if hasattr(user.profile_data, "model_dump")
+                    else dict(user.profile_data)
+                )
             else:
                 base_profile = {}
 
@@ -536,10 +596,15 @@ class ChatOrchestrator:
                 from src.modules.sales_agent.infrastructure.external.safety_service import (
                     SafetyLayerService,
                 )
+
                 safety = SafetyLayerService()
-                sanitized_text, was_modified = await safety.sanitize_content(incoming.text)
+                sanitized_text, was_modified = await safety.sanitize_content(
+                    incoming.text
+                )
                 if was_modified:
-                    logger.warning("user_input_sanitized", original_preview=incoming.text[:50])
+                    logger.warning(
+                        "user_input_sanitized", original_preview=incoming.text[:50]
+                    )
             except Exception as e:
                 logger.warning("safety_sanitization_failed", error=str(e))
                 sanitized_text = incoming.text
@@ -549,27 +614,36 @@ class ChatOrchestrator:
 
             # ── Closer Studio: inject resume_objective as operator instruction ──
             if checkpoint and checkpoint.resume_objective:
-                initial_state["messages"].insert(0, {
-                    "role": "system",
-                    "content": f"[INSTRUCCION DEL OPERADOR] {checkpoint.resume_objective}",
-                })
+                initial_state["messages"].insert(
+                    0,
+                    {
+                        "role": "system",
+                        "content": f"[INSTRUCCION DEL OPERADOR] {checkpoint.resume_objective}",
+                    },
+                )
                 # One-shot: clear after injection
                 checkpoint.resume_objective = None
                 db.flush()
 
             # 3.5 Semantic Intent Detection + Signal Accumulation
             try:
-                detected_intent, intent_score, updated_signals = SemanticRouter.detect_and_accumulate(
-                    incoming.text,
-                    existing_signals=initial_state.get("buying_signals", []),
-                    tenant_id=tenant_uuid,
+                detected_intent, intent_score, updated_signals = (
+                    SemanticRouter.detect_and_accumulate(
+                        incoming.text,
+                        existing_signals=initial_state.get("buying_signals", []),
+                        tenant_id=tenant_uuid,
+                    )
                 )
                 if detected_intent:
                     initial_state["detected_intent"] = detected_intent
                     initial_state["buying_signals"] = updated_signals
-                    logger.debug(f"Semantic intent: {detected_intent} (score={intent_score:.2f})")
+                    logger.debug(
+                        f"Semantic intent: {detected_intent} (score={intent_score:.2f})"
+                    )
             except Exception as e:
-                logger.warning(f"Semantic router failed, continuing without intent: {e}")
+                logger.warning(
+                    f"Semantic router failed, continuing without intent: {e}"
+                )
 
             # Invoke Agent (with typing polling every 3s)
             async def _keep_typing():
@@ -615,17 +689,24 @@ class ChatOrchestrator:
 
             # 4. Extract Response
             last_msg = result["messages"][-1]
-            bot_text = last_msg.get("content", "") if isinstance(last_msg, dict) else str(last_msg)
+            bot_text = (
+                last_msg.get("content", "")
+                if isinstance(last_msg, dict)
+                else str(last_msg)
+            )
 
             # Sanitize bot output
             try:
                 from src.modules.sales_agent.infrastructure.external.safety_service import (
                     SafetyLayerService,
                 )
+
                 safety = SafetyLayerService()
                 bot_text, was_modified = await safety.sanitize_content(bot_text)
                 if was_modified:
-                    logger.warning("bot_output_sanitized", original_preview=bot_text[:50])
+                    logger.warning(
+                        "bot_output_sanitized", original_preview=bot_text[:50]
+                    )
             except Exception as e:
                 logger.warning("safety_output_sanitization_failed", error=str(e))
 
@@ -635,11 +716,13 @@ class ChatOrchestrator:
                 role="assistant",
                 content=bot_text,
                 channel=channel_type,
-                tenant_id=tenant_uuid
+                tenant_id=tenant_uuid,
             )
 
             # 5. Send using OutputManager (Chunks + Human Typing)
-            await OutputManager.process_response(incoming.user_id, bot_text, channel_adapter, channel_type=channel_type)
+            await OutputManager.process_response(
+                incoming.user_id, bot_text, channel_adapter, channel_type=channel_type
+            )
 
             # 6. Closer Studio: emit WS event for real-time updates
             if tenant_uuid:
@@ -647,29 +730,33 @@ class ChatOrchestrator:
                     from src.modules.sales_agent.infrastructure.ws_manager import (
                         ws_manager,
                     )
-                    await ws_manager.emit(str(tenant_uuid), {
-                        "type": "new_message",
-                        "lead_id": str(user.id),
-                        "role": "assistant",
-                        "content": bot_text[:200],
-                        "handler_mode": "ai",
-                        "lead_score": result.get("lead_score", 0),
-                        "funnel_stage": result.get("current_state", "rapport"),
-                    })
+
+                    await ws_manager.emit(
+                        str(tenant_uuid),
+                        {
+                            "type": "new_message",
+                            "lead_id": str(user.id),
+                            "role": "assistant",
+                            "content": bot_text[:200],
+                            "handler_mode": "ai",
+                            "lead_score": result.get("lead_score", 0),
+                            "funnel_stage": result.get("current_state", "rapport"),
+                        },
+                    )
                 except Exception:  # noqa: S110 — WS is best-effort
                     pass
 
         except Exception as e:
             logger.error(f"Error processing message: {e}", exc_info=True)
             try:
-                if 'incoming' in locals() and incoming and incoming.user_id:
-                     error_msg = OutgoingMessage(
-                         user_id=incoming.user_id,
-                         text="⚠️ Lo siento, ocurrió un error técnico interno."
-                     )
-                     await channel_adapter.send_message(error_msg)
+                if "incoming" in locals() and incoming and incoming.user_id:
+                    error_msg = OutgoingMessage(
+                        user_id=incoming.user_id,
+                        text="⚠️ Lo siento, ocurrió un error técnico interno.",
+                    )
+                    await channel_adapter.send_message(error_msg)
             except Exception as e_fallback:
-                 logger.error(f"Could not send fallback error message: {e_fallback}")
+                logger.error(f"Could not send fallback error message: {e_fallback}")
 
         finally:
             lead_repo.close()

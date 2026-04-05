@@ -4,7 +4,6 @@ Returns the connection status for ALL providers of a tenant in a single call.
 Used by the Connections Hub to show status badges on each card.
 """
 
-
 import structlog
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -23,6 +22,7 @@ logger = structlog.get_logger()
 
 class ConnectionStatusItem(BaseModel):
     """Status of a single connection for a tenant."""
+
     channel_type: str
     is_connected: bool
     display_name: str | None = None
@@ -31,6 +31,7 @@ class ConnectionStatusItem(BaseModel):
 
 class BatchConnectionStatusResponse(BaseModel):
     """Response model — explicit allowlist of fields (PII sanitisation rule)."""
+
     connections: list[ConnectionStatusItem]
 
 
@@ -85,7 +86,9 @@ async def get_all_connections_status(
             ConnectionStatusItem(
                 channel_type=conn.channel_type,
                 is_connected=conn.is_active,
-                display_name=_mask_pii(str(display_name), conn.channel_type) if display_name else None,
+                display_name=_mask_pii(str(display_name), conn.channel_type)
+                if display_name
+                else None,
                 last_sync=str(last_sync) if last_sync else None,
             )
         )

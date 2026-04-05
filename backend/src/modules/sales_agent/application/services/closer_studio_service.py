@@ -102,14 +102,21 @@ class CloserStudioService:
         total = self.db.execute(count_stmt).scalar() or 0
 
         # Order: frozen last, then by last message desc
-        stmt = stmt.order_by(
-            # Escalated / human-handled first
-            case(
-                (AgentStateCheckpointModel.handler_mode == "human", literal_column("0")),
-                else_=literal_column("1"),
-            ),
-            last_msg_sq.c.last_msg_at.desc().nullslast(),
-        ).offset(offset).limit(limit)
+        stmt = (
+            stmt.order_by(
+                # Escalated / human-handled first
+                case(
+                    (
+                        AgentStateCheckpointModel.handler_mode == "human",
+                        literal_column("0"),
+                    ),
+                    else_=literal_column("1"),
+                ),
+                last_msg_sq.c.last_msg_at.desc().nullslast(),
+            )
+            .offset(offset)
+            .limit(limit)
+        )
 
         rows = self.db.execute(stmt).all()
 
@@ -119,22 +126,28 @@ class CloserStudioService:
             preview = self._get_last_message_preview(lead.id, tenant_id)
             display_name = self._resolve_display_name(lead)
 
-            conversations.append({
-                "lead_id": lead.id,
-                "customer_profile_id": lead.customer_id,
-                "display_name": display_name,
-                "channel": checkpoint.channel_type if checkpoint else None,
-                "temperature": lead.temperature,
-                "lead_score": checkpoint.lead_score if checkpoint else (lead.intent_score or 0),
-                "handler_mode": checkpoint.handler_mode if checkpoint else "ai",
-                "funnel_stage": checkpoint.current_stage if checkpoint else "rapport",
-                "pipeline_stage": self._lifecycle_stage(lead),
-                "last_message_preview": preview,
-                "last_message_at": last_msg_at,
-                "unread_count": checkpoint.unread_count if checkpoint else 0,
-                "avatar_url": self._resolve_avatar(lead),
-                "is_frozen": bool(checkpoint and checkpoint.frozen_at),
-            })
+            conversations.append(
+                {
+                    "lead_id": lead.id,
+                    "customer_profile_id": lead.customer_id,
+                    "display_name": display_name,
+                    "channel": checkpoint.channel_type if checkpoint else None,
+                    "temperature": lead.temperature,
+                    "lead_score": checkpoint.lead_score
+                    if checkpoint
+                    else (lead.intent_score or 0),
+                    "handler_mode": checkpoint.handler_mode if checkpoint else "ai",
+                    "funnel_stage": checkpoint.current_stage
+                    if checkpoint
+                    else "rapport",
+                    "pipeline_stage": self._lifecycle_stage(lead),
+                    "last_message_preview": preview,
+                    "last_message_at": last_msg_at,
+                    "unread_count": checkpoint.unread_count if checkpoint else 0,
+                    "avatar_url": self._resolve_avatar(lead),
+                    "is_frozen": bool(checkpoint and checkpoint.frozen_at),
+                }
+            )
 
         return conversations, total
 
@@ -163,35 +176,39 @@ class CloserStudioService:
             return None
 
         checkpoint = self.db.execute(
-            select(AgentStateCheckpointModel).where(
+            select(AgentStateCheckpointModel)
+            .where(
                 AgentStateCheckpointModel.lead_id == lead_id,
                 AgentStateCheckpointModel.tenant_id == tenant_id,
                 AgentStateCheckpointModel.is_active.is_(True),
                 AgentStateCheckpointModel.deleted_at.is_(None),
-            ).order_by(AgentStateCheckpointModel.updated_at.desc())
+            )
+            .order_by(AgentStateCheckpointModel.updated_at.desc())
         ).scalar_one_or_none()
 
         # Messages (paginated)
-        msg_stmt = (
-            select(MessageModel)
-            .where(
-                MessageModel.user_id == lead_id,
-                MessageModel.tenant_id == tenant_id,
-            )
+        msg_stmt = select(MessageModel).where(
+            MessageModel.user_id == lead_id,
+            MessageModel.tenant_id == tenant_id,
         )
         if before:
             msg_stmt = msg_stmt.where(MessageModel.created_at < before)
 
-        msg_stmt = msg_stmt.order_by(MessageModel.created_at.desc()).limit(message_limit)
+        msg_stmt = msg_stmt.order_by(MessageModel.created_at.desc()).limit(
+            message_limit
+        )
         messages_raw = self.db.execute(msg_stmt).scalars().all()
 
         # Total count
-        total_msgs = self.db.execute(
-            select(func.count()).where(
-                MessageModel.user_id == lead_id,
-                MessageModel.tenant_id == tenant_id,
-            )
-        ).scalar() or 0
+        total_msgs = (
+            self.db.execute(
+                select(func.count()).where(
+                    MessageModel.user_id == lead_id,
+                    MessageModel.tenant_id == tenant_id,
+                )
+            ).scalar()
+            or 0
+        )
 
         messages = [
             {
@@ -222,7 +239,9 @@ class CloserStudioService:
             "pipeline_stage": self._lifecycle_stage(lead),
             "paused_at": checkpoint.paused_at if checkpoint else None,
             "unread_count": 0,
-            "qualification_answers": checkpoint.qualification_answers if checkpoint else None,
+            "qualification_answers": checkpoint.qualification_answers
+            if checkpoint
+            else None,
             "buying_signals": checkpoint.buying_signals if checkpoint else [],
             "lead_data": checkpoint.lead_data if checkpoint else None,
             "customer_profile_id": lead.customer_id,
@@ -245,7 +264,9 @@ class CloserStudioService:
 
         # Log system event
         self._log_system_event(
-            tenant_id, lead_id, checkpoint.channel_type,
+            tenant_id,
+            lead_id,
+            checkpoint.channel_type,
             "[SYSTEM] Owner took control of the conversation",
         )
 
@@ -271,7 +292,9 @@ class CloserStudioService:
         self.db.flush()
 
         self._log_system_event(
-            tenant_id, lead_id, checkpoint.channel_type,
+            tenant_id,
+            lead_id,
+            checkpoint.channel_type,
             f"[SYSTEM] AI resumed{f' with objective: {objective}' if objective else ''}",
         )
 
@@ -355,7 +378,9 @@ class CloserStudioService:
         self.db.flush()
 
         self._log_system_event(
-            tenant_id, lead_id, checkpoint.channel_type,
+            tenant_id,
+            lead_id,
+            checkpoint.channel_type,
             "[SYSTEM] Conversation reactivated by owner",
         )
 
@@ -374,15 +399,19 @@ class CloserStudioService:
             return None
 
         # Gather context
-        messages = self.db.execute(
-            select(MessageModel)
-            .where(
-                MessageModel.user_id == lead_id,
-                MessageModel.tenant_id == tenant_id,
+        messages = (
+            self.db.execute(
+                select(MessageModel)
+                .where(
+                    MessageModel.user_id == lead_id,
+                    MessageModel.tenant_id == tenant_id,
+                )
+                .order_by(MessageModel.created_at.desc())
+                .limit(20)
             )
-            .order_by(MessageModel.created_at.desc())
-            .limit(20)
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         msg_summary = "\n".join(
             f"[{m.role}] {m.content[:200]}" for m in reversed(messages)
@@ -396,8 +425,8 @@ class CloserStudioService:
             "buying_signals_count": len(checkpoint.buying_signals or []),
             "objection_count": len(checkpoint.objection_history or []),
             "summary": f"Conversation with {checkpoint.turn_count} turns. "
-                       f"Score: {checkpoint.lead_score}. Stage: {checkpoint.current_stage}. "
-                       f"Last specialist: {checkpoint.last_specialist or 'none'}.",
+            f"Score: {checkpoint.lead_score}. Stage: {checkpoint.current_stage}. "
+            f"Last specialist: {checkpoint.last_specialist or 'none'}.",
             "recommendation": self._generate_recommendation(checkpoint),
             "conversation_preview": msg_summary[:500],
         }
@@ -433,39 +462,44 @@ class CloserStudioService:
         result = []
         for lead, checkpoint in rows:
             preview = self._get_last_message_preview(lead.id, tenant_id)
-            result.append({
-                "lead_id": lead.id,
-                "display_name": self._resolve_display_name(lead),
-                "channel": checkpoint.channel_type,
-                "temperature": lead.temperature,
-                "lead_score": checkpoint.lead_score,
-                "funnel_stage": checkpoint.current_stage,
-                "frozen_at": checkpoint.frozen_at,
-                "frozen_reason": checkpoint.frozen_reason,
-                "frozen_diagnosis": checkpoint.frozen_diagnosis,
-                "last_message_at": None,
-                "last_message_preview": preview,
-                "avatar_url": self._resolve_avatar(lead),
-            })
+            result.append(
+                {
+                    "lead_id": lead.id,
+                    "display_name": self._resolve_display_name(lead),
+                    "channel": checkpoint.channel_type,
+                    "temperature": lead.temperature,
+                    "lead_score": checkpoint.lead_score,
+                    "funnel_stage": checkpoint.current_stage,
+                    "frozen_at": checkpoint.frozen_at,
+                    "frozen_reason": checkpoint.frozen_reason,
+                    "frozen_diagnosis": checkpoint.frozen_diagnosis,
+                    "last_message_at": None,
+                    "last_message_preview": preview,
+                    "avatar_url": self._resolve_avatar(lead),
+                }
+            )
         return result
 
     # ── KPIs ────────────────────────────────────────────────────────────
 
     def get_kpis(self, tenant_id: UUID) -> dict:
-        base = (
-            select(
-                func.count().label("total"),
-                func.sum(case((AgentStateCheckpointModel.handler_mode == "ai", 1), else_=0)).label("ai"),
-                func.sum(case((AgentStateCheckpointModel.handler_mode == "human", 1), else_=0)).label("human"),
-                func.sum(case((AgentStateCheckpointModel.frozen_at.isnot(None), 1), else_=0)).label("frozen"),
-                func.avg(AgentStateCheckpointModel.lead_score).label("avg_score"),
-                func.sum(AgentStateCheckpointModel.unread_count).label("unread"),
-            )
-            .where(
-                AgentStateCheckpointModel.tenant_id == tenant_id,
-                AgentStateCheckpointModel.is_active.is_(True),
-                AgentStateCheckpointModel.deleted_at.is_(None),
-            )
+        base = select(
+            func.count().label("total"),
+            func.sum(
+                case((AgentStateCheckpointModel.handler_mode == "ai", 1), else_=0)
+            ).label("ai"),
+            func.sum(
+                case((AgentStateCheckpointModel.handler_mode == "human", 1), else_=0)
+            ).label("human"),
+            func.sum(
+                case((AgentStateCheckpointModel.frozen_at.isnot(None), 1), else_=0)
+            ).label("frozen"),
+            func.avg(AgentStateCheckpointModel.lead_score).label("avg_score"),
+            func.sum(AgentStateCheckpointModel.unread_count).label("unread"),
+        ).where(
+            AgentStateCheckpointModel.tenant_id == tenant_id,
+            AgentStateCheckpointModel.is_active.is_(True),
+            AgentStateCheckpointModel.deleted_at.is_(None),
         )
         row = self.db.execute(base).one()
 
@@ -501,12 +535,14 @@ class CloserStudioService:
         self, tenant_id: UUID, lead_id: UUID
     ) -> AgentStateCheckpointModel | None:
         return self.db.execute(
-            select(AgentStateCheckpointModel).where(
+            select(AgentStateCheckpointModel)
+            .where(
                 AgentStateCheckpointModel.tenant_id == tenant_id,
                 AgentStateCheckpointModel.lead_id == lead_id,
                 AgentStateCheckpointModel.is_active.is_(True),
                 AgentStateCheckpointModel.deleted_at.is_(None),
-            ).order_by(AgentStateCheckpointModel.updated_at.desc())
+            )
+            .order_by(AgentStateCheckpointModel.updated_at.desc())
         ).scalar_one_or_none()
 
     def _get_last_message_preview(self, lead_id: UUID, tenant_id: UUID) -> str | None:
@@ -533,7 +569,12 @@ class CloserStudioService:
             name = f"{first} {last}".strip()
             if name:
                 return name
-        return lead.instagram_id or lead.telegram_id or lead.whatsapp_id or str(lead.id)[:8]
+        return (
+            lead.instagram_id
+            or lead.telegram_id
+            or lead.whatsapp_id
+            or str(lead.id)[:8]
+        )
 
     def _resolve_avatar(self, lead: LeadModel) -> str | None:
         if lead.customer and lead.customer.traits:
@@ -573,4 +614,6 @@ class CloserStudioService:
             return "Warm lead with moderate interest. Consider a personalized nudge or product demo offer."
         if stage == "rapport" and (checkpoint.turn_count or 0) > 5:
             return "Stuck in rapport stage despite multiple turns. Try a direct question about their needs."
-        return "Low engagement. Consider a value-first reactivation message or disqualify."
+        return (
+            "Low engagement. Consider a value-first reactivation message or disqualify."
+        )

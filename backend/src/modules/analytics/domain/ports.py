@@ -78,9 +78,7 @@ class OfferReadPort(ABC):
     """
 
     @abstractmethod
-    async def get_offers_by_tenant(
-        self, tenant_id: UUID
-    ) -> list[OfferReadDTO]:
+    async def get_offers_by_tenant(self, tenant_id: UUID) -> list[OfferReadDTO]:
         """All active offers for a tenant (excludes archived, soft-deleted)."""
         ...
 

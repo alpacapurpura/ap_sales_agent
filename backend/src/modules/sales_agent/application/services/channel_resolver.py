@@ -59,7 +59,9 @@ class ChannelResolver:
             if result:
                 return result
 
-        logger.warning("no_channel_resolved", lead_id=str(lead.id), tenant_id=str(tenant_id))
+        logger.warning(
+            "no_channel_resolved", lead_id=str(lead.id), tenant_id=str(tenant_id)
+        )
         return None
 
     def _try_channel(
@@ -96,6 +98,7 @@ class ChannelResolver:
                 from src.modules.connections.infrastructure.channels.telegram import (
                     TelegramChannel,
                 )
+
                 token = conn.credentials.get("token") if conn.credentials else None
                 return TelegramChannel(token=token)
 
@@ -103,22 +106,30 @@ class ChannelResolver:
                 from src.modules.connections.infrastructure.channels.whatsapp import (
                     WhatsAppChannel,
                 )
+
                 return WhatsAppChannel(tenant_id=str(tenant_id))
 
             if ch_type == "instagram":
                 from src.modules.connections.infrastructure.channels.instagram import (
                     InstagramChannel,
                 )
+
                 return InstagramChannel(
                     client_config=conn.config or {},
                     credentials_data=conn.credentials or {},
                 )
         except Exception as e:
-            logger.error("channel_adapter_creation_failed", ch_type=ch_type, error=str(e))
+            logger.error(
+                "channel_adapter_creation_failed", ch_type=ch_type, error=str(e)
+            )
         return None
 
     async def send_to_lead(
-        self, tenant_id: UUID, lead: LeadModel, text: str, preferred_channel: str | None = None
+        self,
+        tenant_id: UUID,
+        lead: LeadModel,
+        text: str,
+        preferred_channel: str | None = None,
     ) -> bool:
         """Convenience: resolve channel and send message in one call."""
         resolved = self.resolve(tenant_id, lead, preferred_channel)

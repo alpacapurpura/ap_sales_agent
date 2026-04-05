@@ -16,11 +16,12 @@ from src.modules.offer.domain.offer_ai_schemas import (
 
 router = APIRouter()
 
+
 @router.post("/psychology", response_model=PsychologyGenerationResponse)
 async def generate_offer_psychology(
     request: PsychologyGenerationRequest,
     db: Session = Depends(get_db),
-    tenant_id: UUID | None = Depends(get_tenant_context)
+    tenant_id: UUID | None = Depends(get_tenant_context),
 ):
     """
     Generates AI-powered psychology insights (pains & desires) for an offer.

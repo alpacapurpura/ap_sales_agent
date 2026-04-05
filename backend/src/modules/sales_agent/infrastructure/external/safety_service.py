@@ -10,12 +10,14 @@ from src.shared.infrastructure.llm.factory import LLMFactory
 
 logger = structlog.get_logger()
 
+
 class SafetyLayerService:
     """
     Orchestrates the detection and replacement of sensitive data using:
     1. Deterministic Regex/Keyword Matching (Fast, Rule-based)
     2. Contextual LLM Verification (Slow, Intelligent)
     """
+
     def __init__(self):
         self.llm_service = LLMFactory.get_service()
 
@@ -52,14 +54,22 @@ class SafetyLayerService:
 
                         # If context_instruction exists, use LLM to verify
                         if rule.context_instruction:
-                            should_replace = await self._verify_context(match_text, final_content, rule.context_instruction)
+                            should_replace = await self._verify_context(
+                                match_text, final_content, rule.context_instruction
+                            )
                             if not should_replace:
                                 continue
 
                         # Replace
-                        final_content = final_content.replace(match_text, rule.replacement)
+                        final_content = final_content.replace(
+                            match_text, rule.replacement
+                        )
                         modified_flag = True
-                        logger.info("safety_layer_trigger", rule_id=str(rule.id), category=rule.category)
+                        logger.info(
+                            "safety_layer_trigger",
+                            rule_id=str(rule.id),
+                            category=rule.category,
+                        )
 
                 except re.error as e:
                     logger.error(f"Invalid regex pattern for rule {rule.id}: {e}")
@@ -70,7 +80,9 @@ class SafetyLayerService:
             # Simple Luhn-like or broad pattern
             cc_pattern = r"\b(?:\d{4}[-\s]?){3}\d{4}\b"
             if re.search(cc_pattern, final_content):
-                final_content = re.sub(cc_pattern, "[REDACTED_PAYMENT_INFO]", final_content)
+                final_content = re.sub(
+                    cc_pattern, "[REDACTED_PAYMENT_INFO]", final_content
+                )
                 modified_flag = True
                 logger.warning("safety_layer_trigger_system", type="credit_card")
 
@@ -79,7 +91,9 @@ class SafetyLayerService:
         finally:
             db.close()
 
-    async def _verify_context(self, match_text: str, full_context: str, instruction: str) -> bool:
+    async def _verify_context(
+        self, match_text: str, full_context: str, instruction: str
+    ) -> bool:
         """
         Uses LLM (Fast Model) to verify if the match actually violates the rule in this specific context.
         Returns True if it SHOULD be replaced.
@@ -95,7 +109,7 @@ class SafetyLayerService:
             response = self.llm_service.generate_response(
                 messages=[{"role": "user", "content": prompt}],
                 model_type=ModelRole.FAST,
-                temperature=0
+                temperature=0,
             )
 
             return "YES" in response.strip().upper()

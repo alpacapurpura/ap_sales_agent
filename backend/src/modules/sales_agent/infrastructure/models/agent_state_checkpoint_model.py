@@ -57,7 +57,9 @@ class AgentStateCheckpointModel(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     deleted_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     __table_args__ = (
         Index("ix_checkpoint_tenant_lead_active", "tenant_id", "lead_id", "is_active"),
