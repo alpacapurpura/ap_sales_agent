@@ -1,15 +1,27 @@
 import json
 from datetime import UTC, datetime
 from typing import Literal
+from uuid import UUID as UUIDType
 from uuid import uuid4
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from src.core.database import redis_client
-from src.modules.brand.api.dto.extraction import ExtractRequest
+from src.modules.brand.api.dto.extraction import (
+    BrandVisualsResponse,
+    ExtractionStatusResponse,
+    ExtractionTraceSummaryResponse,
+    ExtractionTraceResponse,
+    ExtractFullBrandResponse,
+    ExtractRequest,
+)
+from src.modules.brand.infrastructure.models.extraction_trace_model import (
+    BrandExtractionTrace,
+)
 from src.modules.copilot.application.services.brand_ai_actions_service import (
     CopilotBrandAIActionsService,
 )
@@ -23,7 +35,7 @@ router = APIRouter()
 # Removed FullBrandExtractionRequest as it's now handled via Form/File parameters
 
 
-@router.post("/extract")
+@router.post("/extract", response_model=BrandVisualsResponse)
 async def extract_data(
     request: ExtractRequest,
     current_user: User = Depends(get_current_user),
@@ -56,7 +68,11 @@ async def extract_data(
     return data
 
 
-@router.post("/extract-full-brand")
+@router.post(
+    "/extract-full-brand",
+    response_model=ExtractFullBrandResponse,
+    status_code=202,
+)
 async def extract_full_brand(
     request: Request,
     url: str | None = Form(None),
@@ -154,16 +170,17 @@ async def extract_full_brand(
 
     logger.info("extract_full_brand_dispatched", tenant_id=tenant_id, job_id=job_id)
 
-    return JSONResponse(status_code=202, content={"job_id": job_id, "status": "queued"})
+    return ExtractFullBrandResponse(job_id=job_id, status="queued")
 
 
-@router.get("/extract-full-brand/status/{job_id}")
+@router.get(
+    "/extract-full-brand/status/{job_id}", response_model=ExtractionStatusResponse
+)
 async def get_extraction_status(
     job_id: str,
     current_user: User = Depends(get_current_user),
 ):
     """Poll extraction job progress. Returns status, progress %, and current stage."""
-    from uuid import UUID as UUIDType
 
     # Validate job_id format
     try:
@@ -191,21 +208,19 @@ async def get_extraction_status(
         except (ValueError, TypeError):
             pass
 
-    return data
+    return ExtractionStatusResponse(**data)
 
 
-@router.get("/extraction-traces")
+@router.get(
+    "/extraction-traces",
+    response_model=list[ExtractionTraceSummaryResponse],
+)
 async def list_extraction_traces(
     limit: int = 20,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """List recent brand extraction traces for the current tenant."""
-    from sqlalchemy import desc, select
-
-    from src.modules.brand.infrastructure.models.extraction_trace_model import (
-        BrandExtractionTrace,
-    )
 
     if not current_user.tenant_id:
         raise HTTPException(
@@ -221,38 +236,33 @@ async def list_extraction_traces(
     rows = db.execute(stmt).scalars().all()
 
     return [
-        {
-            "id": str(r.id),
-            "job_id": r.job_id,
-            "mode": r.mode,
-            "profile_name": r.profile_name,
-            "url": r.url,
-            "status": r.status,
-            "sections_total": r.sections_total,
-            "sections_succeeded": r.sections_succeeded,
-            "total_duration_s": r.total_duration_s,
-            "content_length": r.content_length,
-            "error_message": r.error_message,
-            "created_at": r.created_at.isoformat() if r.created_at else None,
-        }
+        ExtractionTraceSummaryResponse(
+            id=str(r.id),
+            job_id=r.job_id,
+            mode=r.mode,
+            profile_name=r.profile_name,
+            url=r.url,
+            status=r.status,
+            sections_total=r.sections_total,
+            sections_succeeded=r.sections_succeeded,
+            total_duration_s=r.total_duration_s,
+            content_length=r.content_length,
+            error_message=r.error_message,
+            created_at=r.created_at.isoformat() if r.created_at else None,
+        )
         for r in rows
     ]
 
 
-@router.get("/extraction-traces/{trace_id}")
+@router.get(
+    "/extraction-traces/{trace_id}", response_model=ExtractionTraceResponse
+)
 async def get_extraction_trace(
     trace_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get full trace detail including all events."""
-    from uuid import UUID as UUIDType
-
-    from sqlalchemy import select
-
-    from src.modules.brand.infrastructure.models.extraction_trace_model import (
-        BrandExtractionTrace,
-    )
 
     if not current_user.tenant_id:
         raise HTTPException(
@@ -272,20 +282,20 @@ async def get_extraction_trace(
     if not row:
         raise HTTPException(status_code=404, detail="Trace not found")
 
-    return {
-        "id": str(row.id),
-        "job_id": row.job_id,
-        "mode": row.mode,
-        "profile_name": row.profile_name,
-        "url": row.url,
-        "include_visuals": row.include_visuals,
-        "include_assets": row.include_assets,
-        "status": row.status,
-        "sections_total": row.sections_total,
-        "sections_succeeded": row.sections_succeeded,
-        "total_duration_s": row.total_duration_s,
-        "content_length": row.content_length,
-        "error_message": row.error_message,
-        "events": row.events or [],
-        "created_at": row.created_at.isoformat() if row.created_at else None,
-    }
+    return ExtractionTraceResponse(
+        id=str(row.id),
+        job_id=row.job_id,
+        mode=row.mode,
+        profile_name=row.profile_name,
+        url=row.url,
+        include_visuals=row.include_visuals,
+        include_assets=row.include_assets,
+        status=row.status,
+        sections_total=row.sections_total,
+        sections_succeeded=row.sections_succeeded,
+        total_duration_s=row.total_duration_s,
+        content_length=row.content_length,
+        error_message=row.error_message,
+        events=row.events or [],
+        created_at=row.created_at.isoformat() if row.created_at else None,
+    )
