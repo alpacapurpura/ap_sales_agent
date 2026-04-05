@@ -47,11 +47,6 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "analytics -> crm | analytics/workers/tasks.py",
     "analytics -> offer | analytics/api/metrics.py",
     "analytics -> offer | analytics/application/services/etl_service.py",
-    # --- brand ---
-    "brand -> copilot | brand/api/extraction.py",
-    "brand -> copilot | brand/api/style.py",
-    "brand -> copilot | brand/application/extraction_service.py",
-    "brand -> copilot | brand/workers/tasks.py",
     # --- connections ---
     "connections -> analytics | connections/api/channel_info.py",
     "connections -> analytics | connections/api/marketing_webhooks.py",

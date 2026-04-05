@@ -12,8 +12,10 @@ from src.modules.iam.api.dependencies import get_current_user, get_db
 def _build_client(tenant_id):
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/brand/tools")
-    app.dependency_overrides[get_db] = lambda: MagicMock()
-    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(id=uuid4(), tenant_id=tenant_id)
+    app.dependency_overrides[get_db] = MagicMock
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=uuid4(), tenant_id=tenant_id
+    )
     # Provide a mock ARQ pool so the endpoint can enqueue jobs without a real Redis connection
     mock_pool = MagicMock()
     mock_pool.enqueue_job = AsyncMock(return_value=None)
@@ -21,13 +23,15 @@ def _build_client(tenant_id):
     return TestClient(app)
 
 
-def test_brand_extract_endpoint_delegates_to_copilot_service():
+def test_brand_extract_endpoint_delegates_to_extraction_service():
     tenant_id = uuid4()
     client = _build_client(tenant_id)
 
-    with patch("src.modules.brand.api.extraction.CopilotBrandAIActionsService") as service_cls:
+    with patch(
+        "src.modules.brand.api.extraction.BrandExtractionService"
+    ) as service_cls:
         service_instance = MagicMock()
-        service_instance.extract_brand_identity = AsyncMock(
+        service_instance.extract_visuals_only = AsyncMock(
             return_value={"brand_name": "Visionarias", "industry": "Marketing"}
         )
         service_cls.return_value = service_instance
@@ -39,31 +43,17 @@ def test_brand_extract_endpoint_delegates_to_copilot_service():
 
     assert response.status_code == 200
     assert response.json()["brand_name"] == "Visionarias"
-    service_instance.extract_brand_identity.assert_awaited_once_with(
+    service_instance.extract_visuals_only.assert_awaited_once_with(
         "https://visionarias.ai",
-        "brand_identity",
     )
 
 
-def test_brand_extract_full_endpoint_delegates_to_copilot_service():
+def test_brand_extract_full_endpoint_dispatches_arq_job():
     tenant_id = uuid4()
     client = _build_client(tenant_id)
 
-    with patch("src.modules.brand.api.extraction.redis_client") as mock_redis, \
-         patch("src.modules.brand.api.extraction.CopilotBrandAIActionsService") as service_cls:
+    with patch("src.modules.brand.api.extraction.redis_client") as mock_redis:
         mock_redis.setex = MagicMock(return_value=True)
-        service_instance = MagicMock()
-        service_instance.extract_full_brand = AsyncMock(
-            return_value={
-                "identity": {"brand_name": "Visionarias"},
-                "story": {},
-                "strategy": {},
-                "visuals": {},
-                "key_messages": [],
-                "team": [],
-            }
-        )
-        service_cls.return_value = service_instance
 
         response = client.post(
             "/api/v1/brand/tools/extract-full-brand",

@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
-from src.modules.copilot.application.agents.style_analyzer.graph import onboarding_app
+from src.modules.brand.application.agents.style_analyzer.graph import onboarding_app
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.iam.infrastructure.models import UserModel

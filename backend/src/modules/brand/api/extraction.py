@@ -18,11 +18,9 @@ from src.modules.brand.api.dto.extraction import (
     ExtractionTraceSummaryResponse,
     ExtractRequest,
 )
+from src.modules.brand.application.extraction_service import BrandExtractionService
 from src.modules.brand.infrastructure.models.extraction_trace_model import (
     BrandExtractionTrace,
-)
-from src.modules.copilot.application.services.brand_ai_actions_service import (
-    CopilotBrandAIActionsService,
 )
 from src.modules.iam.api.dependencies import get_current_user, get_db
 from src.modules.iam.domain.user import User
@@ -50,9 +48,9 @@ async def extract_data(
             status_code=400, detail="User is not associated with a tenant."
         )
 
-    service = CopilotBrandAIActionsService(db, current_user.tenant_id)
+    service = BrandExtractionService(db, current_user.tenant_id)
     try:
-        data = await service.extract_brand_identity(request.url, request.type)
+        data = await service.extract_visuals_only(request.url)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
