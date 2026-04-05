@@ -4,7 +4,6 @@ Ratchet pattern — known violations are allowlisted. The test ensures
 NO NEW cross-module imports are introduced. To fix a violation, remove
 it from the allowlist and refactor the import.
 """
-from pathlib import Path
 
 from tests.architecture.conftest import (
     CROSS_IMPORT_ALLOWED_SOURCES,
@@ -20,7 +19,6 @@ from tests.architecture.conftest import (
 # ──────────────────────────────────────────────────────────────
 KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # --- analytics ---
-    "analytics -> brand | analytics/workers/settings.py",
     "analytics -> connections | analytics/api/metrics.py",
     "analytics -> connections | analytics/application/services/etl_service.py",
     "analytics -> connections | analytics/application/services/metrics_service.py",
@@ -31,7 +29,6 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "analytics -> connections | analytics/infrastructure/providers/youtube_provider.py",
     "analytics -> connections | analytics/workers/manychat_sync.py",
     "analytics -> connections | analytics/workers/tasks.py",
-    "analytics -> copilot | analytics/workers/settings.py",
     "analytics -> crm | analytics/application/services/etl_service.py",
     "analytics -> crm | analytics/application/services/ig_dm_sync_service.py",
     "analytics -> crm | analytics/application/services/metrics_service.py",
@@ -50,8 +47,6 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "analytics -> crm | analytics/workers/tasks.py",
     "analytics -> offer | analytics/api/metrics.py",
     "analytics -> offer | analytics/application/services/etl_service.py",
-    "analytics -> sales_agent | analytics/workers/settings.py",
-    "analytics -> tenant_domains | analytics/workers/settings.py",
     # --- brand ---
     "brand -> copilot | brand/api/extraction.py",
     "brand -> copilot | brand/api/style.py",

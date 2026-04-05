@@ -376,7 +376,7 @@ services:
     build: ./backend
     container_name: visionarias_scheduler
     restart: unless-stopped
-    command: arq src.modules.analytics.workers.settings.SchedulerSettings
+    command: arq src.workers.settings.SchedulerSettings
     volumes:
       - ./backend:/app
     env_file:
@@ -407,7 +407,7 @@ services:
     build: ./backend
     container_name: visionarias_worker
     restart: unless-stopped
-    command: arq src.modules.analytics.workers.settings.WorkerSettings
+    command: arq src.workers.settings.WorkerSettings
     volumes:
       - ./backend:/app
     env_file:
