@@ -249,9 +249,9 @@ class ChatOrchestrator:
         except Exception as e:
             logger.error(f"Error in smart debounce task: {e}", exc_info=True)
 
-    async def process_chat_flow(
+    async def process_chat_flow(  # noqa: C901
         self, channel_adapter, incoming: IncomingMessage, tenant_id: str = None
-    ):  # noqa: C901
+    ):
         """
         Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced).
         """
