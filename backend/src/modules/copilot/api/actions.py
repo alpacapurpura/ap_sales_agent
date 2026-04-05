@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from src.core.database import get_db
 from src.modules.brand.api.dto.extraction import ExtractRequest
 from src.modules.brand.domain.aggregates import BrandSettings
+from src.modules.copilot.api.dto import BrandExtractResponse
 from src.modules.copilot.application.services.brand_ai_actions_service import (
     CopilotBrandAIActionsService,
 )
@@ -24,7 +25,7 @@ from src.shared.infrastructure.files.file_parsing_service import FileParsingServ
 router = APIRouter()
 
 
-@router.post("/brand/extract")
+@router.post("/brand/extract", response_model=BrandExtractResponse)
 async def extract_brand_data(
     request: ExtractRequest,
     current_user: User = Depends(get_current_user),
