@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.iam.domain.user import User
@@ -11,19 +12,31 @@ class UserRepository:
         self.db = db
 
     def get_by_id(self, user_id: UUID) -> User | None:
-        model = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        model = (
+            self.db.execute(select(UserModel).where(UserModel.id == user_id))
+            .scalars()
+            .first()
+        )
         if model:
             return User.model_validate(model)
         return None
 
     def get_by_email(self, email: str) -> User | None:
-        model = self.db.query(UserModel).filter(UserModel.email == email).first()
+        model = (
+            self.db.execute(select(UserModel).where(UserModel.email == email))
+            .scalars()
+            .first()
+        )
         if model:
             return User.model_validate(model)
         return None
 
     def get_by_clerk_id(self, clerk_id: str) -> User | None:
-        model = self.db.query(UserModel).filter(UserModel.clerk_id == clerk_id).first()
+        model = (
+            self.db.execute(select(UserModel).where(UserModel.clerk_id == clerk_id))
+            .scalars()
+            .first()
+        )
         if model:
             return User.model_validate(model)
         return None
@@ -44,7 +57,11 @@ class UserRepository:
         return User.model_validate(db_user)
 
     def update(self, user: User) -> User:
-        db_user = self.db.query(UserModel).filter(UserModel.id == user.id).first()
+        db_user = (
+            self.db.execute(select(UserModel).where(UserModel.id == user.id))
+            .scalars()
+            .first()
+        )
         if db_user:
             db_user.full_name = user.full_name
             db_user.email = user.email

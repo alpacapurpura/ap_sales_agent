@@ -2,6 +2,7 @@ import uuid
 
 import structlog
 from fastapi import APIRouter, Body, Depends, Header, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.context import set_tenant_id
@@ -23,7 +24,11 @@ def get_tenant_by_secret(
     """
     Validates the Webhook Secret and sets the Tenant Context.
     """
-    tenant = db.query(Tenant).filter(Tenant.webhook_secret == x_webhook_secret).first()
+    tenant = (
+        db.execute(select(Tenant).where(Tenant.webhook_secret == x_webhook_secret))
+        .scalars()
+        .first()
+    )
     if not tenant:
         # Security: Generic error or specific? Specific is fine for API.
         raise HTTPException(status_code=401, detail="Invalid Webhook Secret")

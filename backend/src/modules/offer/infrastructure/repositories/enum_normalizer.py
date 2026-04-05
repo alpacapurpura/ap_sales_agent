@@ -3,7 +3,6 @@
 All functions are pure (no side effects, no DB access) and can be tested in isolation.
 """
 
-from src.modules.crm.domain.enums import FinancialCapacity
 from src.modules.offer.domain.enums import (
     DeliverableFormat,
     GuaranteeType,
@@ -13,6 +12,7 @@ from src.modules.offer.domain.enums import (
     OfferValueLevel,
     PaymentPlanType,
 )
+from src.shared.domain.enums import FinancialCapacity
 
 
 def normalize_value_level(raw: str | None) -> OfferValueLevel | None:

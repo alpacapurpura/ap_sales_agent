@@ -1,5 +1,7 @@
+from datetime import datetime
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.assets.domain.entity import GalleryImage
@@ -50,39 +52,40 @@ class GalleryRepository:
         return self._to_domain(model)
 
     def get_by_id(self, image_id: UUID) -> GalleryImage | None:
-        model = (
-            self.db.query(GalleryImageModel)
-            .filter(GalleryImageModel.id == image_id)
-            .first()
+        stmt = select(GalleryImageModel).where(
+            GalleryImageModel.id == image_id,
+            GalleryImageModel.deleted_at.is_(None),
         )
+        model = self.db.execute(stmt).scalars().first()
         if model:
             return self._to_domain(model)
         return None
 
     def list_by_offer(self, offer_id: UUID) -> list[GalleryImage]:
-        models = (
-            self.db.query(GalleryImageModel)
-            .filter(GalleryImageModel.offer_id == offer_id)
-            .all()
+        stmt = select(GalleryImageModel).where(
+            GalleryImageModel.offer_id == offer_id,
+            GalleryImageModel.deleted_at.is_(None),
         )
+        models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]
 
     def list_by_tenant(self, tenant_id: UUID) -> list[GalleryImage]:
-        models = (
-            self.db.query(GalleryImageModel)
-            .filter(GalleryImageModel.tenant_id == tenant_id)
-            .all()
+        stmt = select(GalleryImageModel).where(
+            GalleryImageModel.tenant_id == tenant_id,
+            GalleryImageModel.deleted_at.is_(None),
         )
+        models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]
 
     def delete(self, image_id: UUID) -> bool:
-        model = (
-            self.db.query(GalleryImageModel)
-            .filter(GalleryImageModel.id == image_id)
-            .first()
+        stmt = select(GalleryImageModel).where(
+            GalleryImageModel.id == image_id,
+            GalleryImageModel.deleted_at.is_(None),
         )
+        model = self.db.execute(stmt).scalars().first()
         if model:
-            self.db.delete(model)
+            model.deleted_at = datetime.utcnow()
+            self.db.flush()
             self.db.commit()
             return True
         return False

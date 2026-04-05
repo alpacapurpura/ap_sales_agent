@@ -101,11 +101,9 @@ from src.modules.analytics.infrastructure.repositories.nurture_repository import
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )
-from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
     JourneyEventRepository,
@@ -113,6 +111,7 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
     LeadRepository,
 )
+from src.shared.domain.enums import ChannelType, LifecycleStage
 
 # Maps our channel slugs to the ChannelType enum for connection lookups (sankey legacy)
 _CHANNEL_CONNECTION_MAP: dict[str, ChannelType] = {

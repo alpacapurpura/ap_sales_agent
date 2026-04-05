@@ -12,7 +12,6 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
@@ -20,6 +19,7 @@ from src.modules.crm.infrastructure.models.customer_model import (
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
+from src.shared.domain.enums import LifecycleStage
 
 logger = logging.getLogger(__name__)
 

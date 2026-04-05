@@ -7,6 +7,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.copilot.api.dto import (
+    EventInsightsResponse,
+    EventSummaryResponse,
+    RecordEventResponse,
+)
 from src.modules.copilot.infrastructure.repositories.event_repository import (
     CopilotEventRepository,
 )
@@ -23,7 +28,7 @@ class RecordEventRequest(BaseModel):
     route: str | None = None
 
 
-@router.post("/record", status_code=201)
+@router.post("/record", status_code=201, response_model=RecordEventResponse)
 def record_event(
     request: RecordEventRequest,
     current_user: User = Depends(get_current_user),
@@ -47,7 +52,7 @@ def record_event(
     return {"recorded": True}
 
 
-@router.get("/summary")
+@router.get("/summary", response_model=EventSummaryResponse)
 def event_summary(
     days: int = 30,
     current_user: User = Depends(get_current_user),
@@ -62,7 +67,7 @@ def event_summary(
     return {"events": summary, "period_days": days, "tenant_id": str(tenant_id)}
 
 
-@router.get("/insights")
+@router.get("/insights", response_model=EventInsightsResponse)
 def event_insights(
     days: int = 30,
     current_user: User = Depends(get_current_user),

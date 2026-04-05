@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -12,7 +13,10 @@ class AvatarRepository:
         self.db = db
 
     def get_by_tenant(self, tenant_id: UUID, scope: str | None = None) -> list[Avatar]:
-        stmt = select(AvatarModel).where(AvatarModel.tenant_id == tenant_id)
+        stmt = select(AvatarModel).where(
+            AvatarModel.tenant_id == tenant_id,
+            AvatarModel.deleted_at.is_(None),
+        )
         if scope:
             stmt = stmt.where(AvatarModel.scope == scope)
         result = self.db.execute(stmt)
@@ -20,7 +24,10 @@ class AvatarRepository:
         return [Avatar.model_validate(m) for m in models]
 
     def get_by_id(self, avatar_id: UUID) -> Avatar | None:
-        stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        stmt = select(AvatarModel).where(
+            AvatarModel.id == avatar_id,
+            AvatarModel.deleted_at.is_(None),
+        )
         result = self.db.execute(stmt)
         model = result.scalars().first()
         if model:
@@ -45,7 +52,10 @@ class AvatarRepository:
         return Avatar.model_validate(db_avatar)
 
     def update(self, avatar_id: UUID, data: dict) -> Avatar | None:
-        stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        stmt = select(AvatarModel).where(
+            AvatarModel.id == avatar_id,
+            AvatarModel.deleted_at.is_(None),
+        )
         result = self.db.execute(stmt)
         model = result.scalars().first()
         if not model:
@@ -61,13 +71,17 @@ class AvatarRepository:
         return Avatar.model_validate(model)
 
     def delete(self, avatar_id: UUID) -> bool:
-        stmt = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        stmt = select(AvatarModel).where(
+            AvatarModel.id == avatar_id,
+            AvatarModel.deleted_at.is_(None),
+        )
         result = self.db.execute(stmt)
         model = result.scalars().first()
         if not model:
             return False
 
-        self.db.delete(model)
+        model.deleted_at = datetime.utcnow()
+        self.db.flush()
         self.db.commit()
         return True
 
@@ -78,13 +92,17 @@ class AvatarRepository:
             .where(
                 AvatarModel.tenant_id == tenant_id,
                 AvatarModel.is_default.is_(True),
+                AvatarModel.deleted_at.is_(None),
             )
             .values(is_default=False)
         )
         self.db.execute(stmt_unset)
 
         # Set the new default
-        stmt_get = select(AvatarModel).where(AvatarModel.id == avatar_id)
+        stmt_get = select(AvatarModel).where(
+            AvatarModel.id == avatar_id,
+            AvatarModel.deleted_at.is_(None),
+        )
         result = self.db.execute(stmt_get)
         model = result.scalars().first()
         if not model:

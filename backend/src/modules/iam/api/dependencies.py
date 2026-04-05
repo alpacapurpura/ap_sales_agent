@@ -6,6 +6,7 @@ import httpx
 import structlog
 from fastapi import Depends, Header, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.context import set_tenant_id
@@ -46,7 +47,11 @@ def get_optional_current_user(
             # Simplistic fallback for optional auth
             return None
 
-        user = db.query(UserModel).filter(UserModel.email == email).first()
+        user = (
+            db.execute(select(UserModel).where(UserModel.email == email))
+            .scalars()
+            .first()
+        )
         if user:
             return User.model_validate(user)
         return None
@@ -73,12 +78,14 @@ async def get_optional_tenant_context(
             target_uuid = UUID(x_tenant_id)
             # Check access
             link = (
-                db.query(UserTenantModel)
-                .filter(
-                    UserTenantModel.user_id == user.id,
-                    UserTenantModel.tenant_id == target_uuid,
-                    UserTenantModel.is_active.is_(True),
+                db.execute(
+                    select(UserTenantModel).where(
+                        UserTenantModel.user_id == user.id,
+                        UserTenantModel.tenant_id == target_uuid,
+                        UserTenantModel.is_active.is_(True),
+                    )
                 )
+                .scalars()
                 .first()
             )
             if link:
@@ -86,16 +93,20 @@ async def get_optional_tenant_context(
         except ValueError:
             # Try to resolve by slug
             tenant = (
-                db.query(TenantModel).filter(TenantModel.slug == x_tenant_id).first()
+                db.execute(select(TenantModel).where(TenantModel.slug == x_tenant_id))
+                .scalars()
+                .first()
             )
             if tenant:
                 link = (
-                    db.query(UserTenantModel)
-                    .filter(
-                        UserTenantModel.user_id == user.id,
-                        UserTenantModel.tenant_id == tenant.id,
-                        UserTenantModel.is_active.is_(True),
+                    db.execute(
+                        select(UserTenantModel).where(
+                            UserTenantModel.user_id == user.id,
+                            UserTenantModel.tenant_id == tenant.id,
+                            UserTenantModel.is_active.is_(True),
+                        )
                     )
+                    .scalars()
                     .first()
                 )
                 if link:
@@ -104,10 +115,13 @@ async def get_optional_tenant_context(
     # Fallback to default
     if not tenant_id:
         link = (
-            db.query(UserTenantModel)
-            .filter(
-                UserTenantModel.user_id == user.id, UserTenantModel.is_active.is_(True)
+            db.execute(
+                select(UserTenantModel).where(
+                    UserTenantModel.user_id == user.id,
+                    UserTenantModel.is_active.is_(True),
+                )
             )
+            .scalars()
             .first()
         )
         if link:
@@ -187,7 +201,9 @@ def get_user_from_token(
         )
 
     # Resolve User
-    user_orm = db.query(UserModel).filter(UserModel.email == email).first()
+    user_orm = (
+        db.execute(select(UserModel).where(UserModel.email == email)).scalars().first()
+    )
 
     if not user_orm:
         logger.warning("access_denied_user_not_in_db", email=email)
@@ -279,7 +295,9 @@ def get_current_user(
         except ValueError:
             # Try to resolve by slug
             tenant = (
-                db.query(TenantModel).filter(TenantModel.slug == x_tenant_id).first()
+                db.execute(select(TenantModel).where(TenantModel.slug == x_tenant_id))
+                .scalars()
+                .first()
             )
             if not tenant:
                 raise HTTPException(
@@ -290,12 +308,14 @@ def get_current_user(
 
         # Verify user has access to this tenant
         user_tenant = (
-            db.query(UserTenantModel)
-            .filter(
-                UserTenantModel.user_id == user.id,
-                UserTenantModel.tenant_id == target_tenant_id,
-                UserTenantModel.is_active.is_(True),
+            db.execute(
+                select(UserTenantModel).where(
+                    UserTenantModel.user_id == user.id,
+                    UserTenantModel.tenant_id == target_tenant_id,
+                    UserTenantModel.is_active.is_(True),
+                )
             )
+            .scalars()
             .first()
         )
 
@@ -319,10 +339,13 @@ def get_current_user(
         # No tenant specified. Find the first available tenant for the user.
         # This is the "default" tenant context.
         first_tenant_link = (
-            db.query(UserTenantModel)
-            .filter(
-                UserTenantModel.user_id == user.id, UserTenantModel.is_active.is_(True)
+            db.execute(
+                select(UserTenantModel).where(
+                    UserTenantModel.user_id == user.id,
+                    UserTenantModel.is_active.is_(True),
+                )
             )
+            .scalars()
             .first()
         )
 

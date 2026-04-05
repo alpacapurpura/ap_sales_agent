@@ -1,4 +1,5 @@
 import datetime
+from typing import Any
 
 from pydantic import BaseModel, EmailStr
 
@@ -33,3 +34,12 @@ class BookingLinkResolveResponse(BaseModel):
     lead_phone: str | None = None
     lead_id: str
     expires_at: datetime.datetime
+
+
+class SlotsResponse(BaseModel):
+    slots: list[datetime.datetime]
+
+
+class BookingConfirmationResponse(BaseModel):
+    status: str
+    event: dict[str, Any]

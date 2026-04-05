@@ -488,8 +488,7 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
     # Publish one SaleCompletedEvent per line_item
     import uuid as uuid_mod
 
-    from src.modules.crm.domain.events import SaleCompletedEvent
-    from src.shared.domain.events import EventBus
+    from src.shared.domain.events import EventBus, SaleCompletedEvent
 
     for item in line_items_data:
         product_id = item["product_id"]

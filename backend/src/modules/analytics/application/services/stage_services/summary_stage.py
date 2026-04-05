@@ -15,13 +15,13 @@ from src.modules.analytics.application.dto.summary_dto import (
 )
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
-from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
 )
 from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
     LeadRepository,
 )
+from src.shared.domain.enums import LifecycleStage
 
 
 class SummaryStageService:

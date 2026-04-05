@@ -7,3 +7,9 @@ class RegenerateBlockRequest(BaseModel):
     current_content: str
     block_type: str
     context: dict[str, Any] | None = None
+
+
+class RegenerateBlockResponse(BaseModel):
+    """Regenerated block content returned by the AI."""
+
+    content: str

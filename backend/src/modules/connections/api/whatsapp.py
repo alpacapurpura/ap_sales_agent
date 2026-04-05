@@ -16,6 +16,11 @@ from sqlalchemy.orm import Session
 
 from src.core.config import settings
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import (
+    WhatsAppQRResponse,
+    WhatsAppSessionResponse,
+    WhatsAppStatusResponse,
+)
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.whatsapp import WhatsAppChannel
 from src.modules.connections.infrastructure.repositories import (
@@ -57,7 +62,7 @@ async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks):
 # --- Endpoints ---
 
 
-@router.get("/whatsapp/status")
+@router.get("/whatsapp/status", response_model=WhatsAppStatusResponse)
 async def get_whatsapp_status(
     tenant_id: str = Depends(get_current_tenant_id),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -117,7 +122,7 @@ async def get_whatsapp_status(
     return {"evolution": evolution_status, "meta": meta_status}
 
 
-@router.post("/whatsapp/session")
+@router.post("/whatsapp/session", response_model=WhatsAppSessionResponse)
 async def create_whatsapp_session(
     provider: str = Body("evolution", embed=True),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -181,7 +186,7 @@ async def create_whatsapp_session(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/whatsapp/qr")
+@router.get("/whatsapp/qr", response_model=WhatsAppQRResponse)
 async def get_whatsapp_qr(
     tenant_id: str = Depends(get_current_tenant_id),
 ):

@@ -9,6 +9,12 @@ from src.core.database import get_db
 from src.modules.connections.api.dependencies.webhook_security import (
     verify_meta_signature,
 )
+from src.modules.connections.api.dto.common import (
+    ConnectionTestResponse,
+    SetPrimaryAssetResponse,
+    StatusSavedResponse,
+    ToggleAssetResponse,
+)
 from src.modules.connections.api.dto.meta import (
     FacebookPageAsset,
     InstagramAccountAsset,
@@ -455,7 +461,7 @@ async def webhook_event(
 # ---------------------------------------------------------------------------
 
 
-@router.put("/configure")
+@router.put("/configure", response_model=StatusSavedResponse)
 async def configure(
     data: MetaConfigRequest,
     user: User = Depends(get_current_user),
@@ -652,7 +658,7 @@ class SetPrimaryAssetRequest(PydanticBaseModel):
     asset_id: str
 
 
-@router.put("/primary-asset")
+@router.put("/primary-asset", response_model=SetPrimaryAssetResponse)
 async def set_primary_asset(
     body: SetPrimaryAssetRequest,
     user: User = Depends(get_current_user),
@@ -695,7 +701,7 @@ async def set_primary_asset(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/status")
+@router.get("/status", response_model=MetaStatusResponse)
 async def get_status(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -771,7 +777,7 @@ async def disconnect(
     return {"status": "disconnected"}
 
 
-@router.post("/test")
+@router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -941,7 +947,7 @@ async def sync_assets(
     return response
 
 
-@router.patch("/assets/{channel_type}/{asset_id}")
+@router.patch("/assets/{channel_type}/{asset_id}", response_model=ToggleAssetResponse)
 async def toggle_asset(
     channel_type: str,
     asset_id: str,

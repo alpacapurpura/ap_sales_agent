@@ -70,12 +70,12 @@ from src.modules.brand.domain import (
 from src.modules.brand.infrastructure.repositories.brand_repository import (
     BrandRepository,
 )
-from src.modules.copilot.infrastructure.prompts.base import prompt_loader
 from src.shared.application.ai_action_service import (
     AIActionPolicy,
     AIActionService,
     AIModelPolicy,
 )
+from src.shared.infrastructure.prompts.base import prompt_loader
 
 # Backward-compat alias
 _summarize_settings = summarize_settings

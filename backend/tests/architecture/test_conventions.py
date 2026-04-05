@@ -5,53 +5,15 @@ Validates project-wide conventions that Ruff cannot catch:
 - SA 2.0 syntax only (no session.query)
 """
 import re
-from pathlib import Path
 
 from tests.architecture.conftest import MODULES_DIR
 
 # ──────────────────────────────────────────────────────────────
 # KNOWN VIOLATIONS — ratchet: only remove lines, never add.
 # ──────────────────────────────────────────────────────────────
-KNOWN_HARD_DELETE_FILES: set[str] = {
-    "assets/infrastructure/repositories/asset_repository.py",
-    "assets/infrastructure/repositories/gallery_repository.py",
-    "brand/infrastructure/repositories/avatar_repository.py",
-    "connections/infrastructure/repositories/channel_connection_repository.py",
-}
+KNOWN_HARD_DELETE_FILES: set[str] = set()
 
-KNOWN_SA1X_VIOLATIONS: set[str] = {
-    "assets/application/assets_service.py",
-    "assets/infrastructure/repositories/asset_repository.py",
-    "assets/infrastructure/repositories/gallery_repository.py",
-    "brand/api/style.py",
-    "connections/api/calendar.py",
-    "connections/api/webhook.py",
-    "crm/api/pipeline.py",
-    "crm/api/sales.py",
-    "crm/application/services/ig_profile_enricher.py",
-    "crm/infrastructure/repositories/lead_metrics_repository.py",
-    "crm/infrastructure/repositories/lead_repository.py",
-    "crm/infrastructure/repositories/sale_repository.py",
-    "iam/api/dependencies.py",
-    "iam/api/settings.py",
-    "iam/infrastructure/repositories/tenant_repository.py",
-    "iam/infrastructure/repositories/user_repository.py",
-    "iam/infrastructure/repositories/user_tenant_repository.py",
-    "iam/infrastructure/user.py",
-    "sales_agent/api/audit.py",
-    "sales_agent/api/closer_studio.py",
-    "sales_agent/application/orchestrator/chat.py",
-    "sales_agent/application/services/channel_resolver.py",
-    "sales_agent/infrastructure/db/repositories/business_repository.py",
-    "sales_agent/infrastructure/memory/audit_repository.py",
-    "sales_agent/infrastructure/prompts/base.py",
-    "sales_agent/infrastructure/repositories/message_repository.py",
-    "scheduling/api/agenda.py",
-    "scheduling/api/public_links.py",
-    "scheduling/application/services/availability_service.py",
-    "scheduling/application/services/event_type_service.py",
-    "scheduling/infrastructure/repositories/appointment_repository.py",
-}
+KNOWN_SA1X_VIOLATIONS: set[str] = set()
 
 
 def test_no_hard_deletes():

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import desc
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.lead import Lead, UserProfile
@@ -63,7 +63,11 @@ class LeadRepository:
         )
 
     def get_by_id(self, lead_id: UUID) -> Lead | None:
-        model = self.db.query(LeadModel).filter(LeadModel.id == lead_id).first()
+        model = (
+            self.db.execute(select(LeadModel).where(LeadModel.id == lead_id))
+            .scalars()
+            .first()
+        )
         if model:
             return self._to_domain(model)
         return None
@@ -74,20 +78,20 @@ class LeadRepository:
         """
         Generic fetch by channel ID (telegram_id, whatsapp_id, etc.)
         """
-        query = self.db.query(LeadModel).filter(LeadModel.tenant_id == tenant_id)
+        stmt = select(LeadModel).where(LeadModel.tenant_id == tenant_id)
 
         if channel == "telegram":
-            query = query.filter(LeadModel.telegram_id == channel_id)
+            stmt = stmt.where(LeadModel.telegram_id == channel_id)
         elif channel == "whatsapp":
-            query = query.filter(LeadModel.whatsapp_id == channel_id)
+            stmt = stmt.where(LeadModel.whatsapp_id == channel_id)
         elif channel == "instagram":
-            query = query.filter(LeadModel.instagram_id == channel_id)
+            stmt = stmt.where(LeadModel.instagram_id == channel_id)
         elif channel == "api":
-            query = query.filter(LeadModel.api_id == channel_id)
+            stmt = stmt.where(LeadModel.api_id == channel_id)
         else:
             return None
 
-        model = query.first()
+        model = self.db.execute(stmt).scalars().first()
         if model:
             return self._to_domain(model)
         return None
@@ -96,14 +100,17 @@ class LeadRepository:
         self, tenant_id: UUID, min_score: int = 50, limit: int = 20
     ) -> list[Lead]:
         models = (
-            self.db.query(LeadModel)
-            .filter(
-                LeadModel.tenant_id == tenant_id,
-                LeadModel.intent_score >= min_score,
-                LeadModel.is_blacklisted.is_(False),
+            self.db.execute(
+                select(LeadModel)
+                .where(
+                    LeadModel.tenant_id == tenant_id,
+                    LeadModel.intent_score >= min_score,
+                    LeadModel.is_blacklisted.is_(False),
+                )
+                .order_by(desc(LeadModel.intent_score))
+                .limit(limit)
             )
-            .order_by(desc(LeadModel.intent_score))
-            .limit(limit)
+            .scalars()
             .all()
         )
         return [self._to_domain(m) for m in models]
@@ -116,7 +123,11 @@ class LeadRepository:
         return self._to_domain(model)
 
     def update(self, lead: Lead) -> Lead:
-        model = self.db.query(LeadModel).filter(LeadModel.id == lead.id).first()
+        model = (
+            self.db.execute(select(LeadModel).where(LeadModel.id == lead.id))
+            .scalars()
+            .first()
+        )
         if not model:
             raise ValueError("Lead not found")
 

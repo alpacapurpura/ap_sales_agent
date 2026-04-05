@@ -6,21 +6,16 @@ from uuid import UUID
 
 import structlog
 from fastapi import BackgroundTasks
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.context import set_tenant_id
 from src.core.database import SessionLocal
-from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
 from src.modules.connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
 from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.domain.enums import IdentityType
-from src.modules.crm.domain.events import (
-    CHANNEL_TYPE_TO_CAPTURE_SLUG,
-    LeadCapturedEvent,
-)
 from src.modules.crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
 )
@@ -52,7 +47,12 @@ from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_com
 from src.modules.sales_agent.infrastructure.repositories.state_repository import (
     StateRepository,
 )
-from src.shared.domain.events import EventBus
+from src.shared.domain.enums import ChannelType, IdentityType
+from src.shared.domain.events import (
+    CHANNEL_TYPE_TO_CAPTURE_SLUG,
+    EventBus,
+    LeadCapturedEvent,
+)
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 
 logger = structlog.get_logger()
@@ -90,13 +90,15 @@ class ChatOrchestrator:
             try:
                 # Resolve tenant connection
                 conn = (
-                    db.query(ChannelConnectionModel)
-                    .filter(
-                        ChannelConnectionModel.tenant_id == UUID(tenant_id),
-                        ChannelConnectionModel.channel_type
-                        == ChannelType.TELEGRAM.value,
-                        ChannelConnectionModel.is_active.is_(True),
+                    db.execute(
+                        select(ChannelConnectionModel).where(
+                            ChannelConnectionModel.tenant_id == UUID(tenant_id),
+                            ChannelConnectionModel.channel_type
+                            == ChannelType.TELEGRAM.value,
+                            ChannelConnectionModel.is_active.is_(True),
+                        )
                     )
+                    .scalars()
                     .first()
                 )
 
@@ -179,8 +181,10 @@ class ChatOrchestrator:
                 try:
                     db_tmp = SessionLocal()
                     tenant_obj = (
-                        db_tmp.query(TenantModel)
-                        .filter(TenantModel.id == UUID(tenant_id))
+                        db_tmp.execute(
+                            select(TenantModel).where(TenantModel.id == UUID(tenant_id))
+                        )
+                        .scalars()
                         .first()
                     )
                 except Exception as e:
@@ -283,8 +287,10 @@ class ChatOrchestrator:
                 try:
                     tenant_uuid = UUID(tenant_id)
                     tenant_obj = (
-                        db.query(TenantModel)
-                        .filter(TenantModel.id == tenant_uuid)
+                        db.execute(
+                            select(TenantModel).where(TenantModel.id == tenant_uuid)
+                        )
+                        .scalars()
                         .first()
                     )
                     if tenant_obj:
@@ -406,8 +412,12 @@ class ChatOrchestrator:
                     )
 
                     profile_model = (
-                        db.query(CustomerProfileModel)
-                        .filter(CustomerProfileModel.id == customer.id)
+                        db.execute(
+                            select(CustomerProfileModel).where(
+                                CustomerProfileModel.id == customer.id
+                            )
+                        )
+                        .scalars()
                         .first()
                     )
                     if profile_model:

@@ -4,6 +4,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
+from sqlalchemy import text as sa_text
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -13,7 +15,6 @@ from src.modules.crm.infrastructure.models.customer_model import CustomerProfile
 from src.modules.crm.infrastructure.repositories.sale_repository import SaleRepository
 from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
-from src.modules.offer.infrastructure.models.product_model import ProductModel
 
 router = APIRouter(tags=["Sales"])
 
@@ -126,18 +127,29 @@ async def get_ticker(
     customer_map = {}
     if customer_ids:
         customers = (
-            db.query(CustomerProfileModel)
-            .filter(CustomerProfileModel.id.in_(customer_ids))
+            db.execute(
+                select(CustomerProfileModel).where(
+                    CustomerProfileModel.id.in_(customer_ids)
+                )
+            )
+            .scalars()
             .all()
         )
         for c in customers:
             customer_map[c.id] = c.full_name or "Unknown Customer"
 
-    offer_map = {}
+    offer_map: dict[UUID, str] = {}
     if offer_ids:
-        offers = db.query(ProductModel).filter(ProductModel.id.in_(offer_ids)).all()
-        for o in offers:
-            offer_map[o.id] = o.name or "Unknown Offer"
+        rows = (
+            db.execute(
+                sa_text("SELECT id, name FROM products WHERE id = ANY(:ids)"),
+                {"ids": list(offer_ids)},
+            )
+            .mappings()
+            .all()
+        )
+        for r in rows:
+            offer_map[r["id"]] = r["name"] or "Unknown Offer"
 
     return [
         TickerItem(

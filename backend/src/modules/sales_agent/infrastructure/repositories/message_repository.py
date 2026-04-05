@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.sales_agent.domain.enums import MessageSender
@@ -45,10 +46,13 @@ class MessageRepository:
 
     def get_history(self, lead_id: UUID, limit: int = 50) -> list[Message]:
         models = (
-            self.db.query(MessageModel)
-            .filter(MessageModel.lead_id == lead_id)
-            .order_by(MessageModel.created_at.asc())
-            .limit(limit)
+            self.db.execute(
+                select(MessageModel)
+                .where(MessageModel.lead_id == lead_id)
+                .order_by(MessageModel.created_at.asc())
+                .limit(limit)
+            )
+            .scalars()
             .all()
         )
         return [self._to_domain(m) for m in models]

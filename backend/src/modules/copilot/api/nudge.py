@@ -13,6 +13,7 @@ from fastapi import APIRouter, Query
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
+from src.modules.copilot.api.dto import NudgeContextResponse
 from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.domain.schema_introspection import (
     check_section_completion,
@@ -180,7 +181,7 @@ def _cache_key(tenant_id: UUID, route: str | None) -> str:
     return f"copilot:nudge:{tenant_id}:{route_hash}"
 
 
-@router.get("/nudge-context")
+@router.get("/nudge-context", response_model=NudgeContextResponse)
 def get_nudge_context(route: str | None = Query(None)):
     """Return proactive nudges based on module completion state and current route."""
     import time

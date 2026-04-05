@@ -1,5 +1,7 @@
+from datetime import datetime
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.assets.domain.entity import Asset
@@ -58,7 +60,11 @@ class AssetRepository:
         return self._to_domain(model)
 
     def get_by_id(self, asset_id: UUID) -> Asset | None:
-        model = self.db.query(AssetModel).filter(AssetModel.id == asset_id).first()
+        stmt = select(AssetModel).where(
+            AssetModel.id == asset_id,
+            AssetModel.deleted_at.is_(None),
+        )
+        model = self.db.execute(stmt).scalars().first()
         if model:
             return self._to_domain(model)
         return None
@@ -66,20 +72,32 @@ class AssetRepository:
     def list_by_tenant(
         self, tenant_id: UUID, asset_type: str | None = None
     ) -> list[Asset]:
-        query = self.db.query(AssetModel).filter(AssetModel.tenant_id == tenant_id)
+        stmt = select(AssetModel).where(
+            AssetModel.tenant_id == tenant_id,
+            AssetModel.deleted_at.is_(None),
+        )
         if asset_type:
-            query = query.filter(AssetModel.type == asset_type)
-        models = query.all()
+            stmt = stmt.where(AssetModel.type == asset_type)
+        models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]
 
     def list_by_offer(self, offer_id: UUID) -> list[Asset]:
-        models = self.db.query(AssetModel).filter(AssetModel.offer_id == offer_id).all()
+        stmt = select(AssetModel).where(
+            AssetModel.offer_id == offer_id,
+            AssetModel.deleted_at.is_(None),
+        )
+        models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]
 
     def delete(self, asset_id: UUID) -> bool:
-        model = self.db.query(AssetModel).filter(AssetModel.id == asset_id).first()
+        stmt = select(AssetModel).where(
+            AssetModel.id == asset_id,
+            AssetModel.deleted_at.is_(None),
+        )
+        model = self.db.execute(stmt).scalars().first()
         if model:
-            self.db.delete(model)
+            model.deleted_at = datetime.utcnow()
+            self.db.flush()
             self.db.commit()
             return True
         return False

@@ -114,7 +114,7 @@ services:
     image: ghcr.io/alpacapurpura/visionarias-backend:latest
     container_name: visionarias_worker
     restart: always
-    command: arq src.modules.analytics.workers.settings.WorkerSettings
+    command: arq src.workers.settings.WorkerSettings
     env_file:
       - .env.prod
     depends_on:
@@ -146,7 +146,7 @@ services:
     image: ghcr.io/alpacapurpura/visionarias-backend:latest
     container_name: visionarias_scheduler
     restart: always
-    command: arq src.modules.analytics.workers.settings.SchedulerSettings
+    command: arq src.workers.settings.SchedulerSettings
     env_file:
       - .env.prod
     depends_on:

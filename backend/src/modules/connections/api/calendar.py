@@ -7,6 +7,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import (
+    AppointmentItem,
+    BookingLinkResponse,
+    BookMeetingResponse,
+    ConnectionTestResponse,
+    PersonalizedLinkResponse,
+    SlotsResponse,
+)
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.google_calendar import (
     GoogleCalendarAdapter,
@@ -119,7 +127,7 @@ async def get_status(
     )
 
 
-@router.post("/link")
+@router.post("/link", response_model=BookingLinkResponse)
 async def create_booking_link(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -134,15 +142,20 @@ async def create_booking_link(
     return {"token": link.token, "url": f"{base_url}/visit/{link.token}"}
 
 
-@router.post("/personalized-link")
+@router.post("/personalized-link", response_model=PersonalizedLinkResponse)
 async def create_personalized_link(
     payload: CreateBookingLinkRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     lead = (
-        db.query(Lead)
-        .filter(Lead.id == payload.lead_id, Lead.tenant_id == user.tenant_id)
+        db.execute(
+            select(Lead).where(
+                Lead.id == payload.lead_id,
+                Lead.tenant_id == user.tenant_id,
+            )
+        )
+        .scalars()
         .first()
     )
     if not lead:
@@ -188,7 +201,7 @@ async def disconnect(
     return {"status": "disconnected"}
 
 
-@router.post("/test")
+@router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),
@@ -213,7 +226,7 @@ async def test_connection(
         return {"status": "error", "message": str(e)}
 
 
-@router.get("/slots")
+@router.get("/slots", response_model=SlotsResponse)
 async def get_slots(
     start_date: datetime.date,
     end_date: datetime.date,
@@ -226,7 +239,7 @@ async def get_slots(
     return {"slots": slots}
 
 
-@router.post("/book")
+@router.post("/book", response_model=BookMeetingResponse)
 async def book_meeting(
     payload: BookMeetingRequest,
     db: Session = Depends(get_db),
@@ -245,7 +258,7 @@ async def book_meeting(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/appointments")
+@router.get("/appointments", response_model=list[AppointmentItem])
 async def list_appointments(
     start_date: datetime.date,
     end_date: datetime.date,

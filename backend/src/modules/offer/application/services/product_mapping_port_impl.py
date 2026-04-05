@@ -5,10 +5,10 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.modules.analytics.domain.ports import ProductMappingPort
 from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
     ExternalProductMappingRepository,
 )
+from src.shared.domain.ports import ProductMappingPort
 
 
 class ProductMappingPortImpl(ProductMappingPort):

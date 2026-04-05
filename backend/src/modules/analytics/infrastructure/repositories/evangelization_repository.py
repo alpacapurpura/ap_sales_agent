@@ -20,7 +20,6 @@ from uuid import UUID
 from sqlalchemy import and_, case, func, select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage, SaleStatus
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
 from src.modules.crm.infrastructure.models.nps_models import (
     NpsResponseModel,
@@ -28,6 +27,7 @@ from src.modules.crm.infrastructure.models.nps_models import (
 )
 from src.modules.crm.infrastructure.models.referral_code_model import ReferralCodeModel
 from src.modules.crm.infrastructure.models.sale_model import SaleModel
+from src.shared.domain.enums import LifecycleStage, SaleStatus
 
 
 class EvangelizationRepository:

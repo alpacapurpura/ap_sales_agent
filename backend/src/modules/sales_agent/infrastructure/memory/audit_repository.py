@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
@@ -21,10 +21,13 @@ class AuditRepository(EpisodicMemoryStore):
     def get_chat_history(self, user_id: str, limit: int = 10) -> list[Any]:
         # Return last N messages in ascending order (oldest to newest) for context
         msgs = (
-            self.db.query(Message)
-            .filter(Message.user_id == user_id)
-            .order_by(Message.created_at.desc())
-            .limit(limit)
+            self.db.execute(
+                select(Message)
+                .where(Message.user_id == user_id)
+                .order_by(Message.created_at.desc())
+                .limit(limit)
+            )
+            .scalars()
             .all()
         )
         return list(reversed(msgs))
@@ -45,9 +48,12 @@ class AuditRepository(EpisodicMemoryStore):
 
     def get_last_message(self, user_id: str) -> Any:
         return (
-            self.db.query(Message)
-            .filter(Message.user_id == user_id)
-            .order_by(Message.created_at.desc())
+            self.db.execute(
+                select(Message)
+                .where(Message.user_id == user_id)
+                .order_by(Message.created_at.desc())
+            )
+            .scalars()
             .first()
         )
 
@@ -105,39 +111,28 @@ class AuditRepository(EpisodicMemoryStore):
     def get_recent_users(self, tenant_id, limit=20):
         # Join AgentTrace with LeadModel to get recent active leads
         # Query Traces, group by user_id, max(created_at)
-
-        subquery = (
-            self.db.query(
-                AgentTrace.user_id,
-                func.max(AgentTrace.created_at).label("last_activity"),
-            ).filter(AgentTrace.tenant_id == tenant_id)
-            if tenant_id
-            else self.db.query(
-                AgentTrace.user_id,
-                func.max(AgentTrace.created_at).label("last_activity"),
-            )
+        base_stmt = select(
+            AgentTrace.user_id,
+            func.max(AgentTrace.created_at).label("last_activity"),
         )
-
         if tenant_id:
-            subquery = subquery.filter(AgentTrace.tenant_id == tenant_id)
+            base_stmt = base_stmt.where(AgentTrace.tenant_id == tenant_id)
 
-        subquery = subquery.group_by(AgentTrace.user_id).subquery()
+        subquery = base_stmt.group_by(AgentTrace.user_id).subquery()
 
-        query = (
-            self.db.query(LeadModel, subquery.c.last_activity)
+        stmt = (
+            select(LeadModel, subquery.c.last_activity)
             .join(subquery, LeadModel.id == subquery.c.user_id)
             .order_by(subquery.c.last_activity.desc())
             .limit(limit)
         )
 
-        return query.all()
+        return self.db.execute(stmt).all()
 
     def clear_user_history(self, lead_id, tenant_id):
-        """Full conversation reset via raw SQL to avoid FK/ORM cache issues."""
         from sqlalchemy import text
 
         lead_uuid = str(lead_id)
-        # Raw SQL: delete children before parents, no ORM session interference
         self.db.execute(
             text(
                 "DELETE FROM llm_logs WHERE trace_id IN "
@@ -177,22 +172,26 @@ class AuditRepository(EpisodicMemoryStore):
         return True
 
     def get_full_timeline(self, lead_id, tenant_id, limit=50):
-        # Fetch Messages
         messages = (
-            self.db.query(Message)
-            .filter(Message.user_id == lead_id)
-            .order_by(Message.created_at.desc())
-            .limit(limit)
+            self.db.execute(
+                select(Message)
+                .where(Message.user_id == lead_id)
+                .order_by(Message.created_at.desc())
+                .limit(limit)
+            )
+            .scalars()
             .all()
         )
 
-        # Fetch Traces (eager load llm_logs to avoid N+1)
         traces = (
-            self.db.query(AgentTrace)
-            .options(joinedload(AgentTrace.llm_logs))
-            .filter(AgentTrace.user_id == lead_id)
-            .order_by(AgentTrace.created_at.desc())
-            .limit(limit)
+            self.db.execute(
+                select(AgentTrace)
+                .options(joinedload(AgentTrace.llm_logs))
+                .where(AgentTrace.user_id == lead_id)
+                .order_by(AgentTrace.created_at.desc())
+                .limit(limit)
+            )
+            .scalars()
             .all()
         )
 
@@ -209,7 +208,6 @@ class AuditRepository(EpisodicMemoryStore):
             )
 
         for t in traces:
-            # Build LLM summary for timeline preview (avoid N+1 with lazy join)
             llm_summary = None
             if t.llm_logs:
                 total_tokens = sum(
@@ -236,16 +234,23 @@ class AuditRepository(EpisodicMemoryStore):
                 }
             )
 
-        # Sort combined
         timeline.sort(key=lambda x: x["created_at"], reverse=True)
         return timeline[:limit]
 
     def get_trace_details(self, trace_id, tenant_id):
-        trace = self.db.query(AgentTrace).filter(AgentTrace.id == trace_id).first()
+        trace = (
+            self.db.execute(select(AgentTrace).where(AgentTrace.id == trace_id))
+            .scalars()
+            .first()
+        )
         if not trace:
             return None
 
-        logs = self.db.query(LLMLog).filter(LLMLog.trace_id == trace_id).all()
+        logs = (
+            self.db.execute(select(LLMLog).where(LLMLog.trace_id == trace_id))
+            .scalars()
+            .all()
+        )
 
         return {
             "trace": {

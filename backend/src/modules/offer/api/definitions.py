@@ -2,11 +2,6 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from src.modules.crm.domain.enums import (
-    AvatarPersona,
-    FinancialCapacity,
-    LeadTemperature,
-)
 from src.modules.offer.domain.enums import (
     GUARANTEE_METADATA,
     AccessDuration,
@@ -32,6 +27,7 @@ from src.modules.offer.domain.enums import (
     ServiceFrequency,
     get_enum_options,
 )
+from src.shared.domain.enums import AvatarPersona, FinancialCapacity, LeadTemperature
 
 router = APIRouter(tags=["System Definitions"])
 

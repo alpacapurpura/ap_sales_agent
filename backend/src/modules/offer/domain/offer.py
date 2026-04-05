@@ -3,8 +3,6 @@ from uuid import UUID
 
 from pydantic import Field, computed_field, model_validator
 
-from src.modules.crm.domain.enums import AvatarPersona, FinancialCapacity
-from src.modules.landing.domain.content import LandingPageConfig
 from src.modules.offer.domain.details import (
     EventDetails,
     ProductDetails,
@@ -26,6 +24,7 @@ from src.modules.offer.domain.enums import (
     PrerequisiteType,
 )
 from src.shared.domain.base_entity import BaseEntity
+from src.shared.domain.enums import AvatarPersona, FinancialCapacity
 
 # --- ARCHETYPE → DETAILS MAPPING ---
 ARCHETYPE_TO_DETAILS_MAPPING: dict[OfferArchetype, type[BaseEntity]] = {
@@ -137,7 +136,7 @@ class Offer(BaseEntity):
         | None
     ) = None
 
-    landing_page_config: LandingPageConfig | None = None
+    landing_page_config: dict[str, Any] | None = None
 
     @computed_field
     @property
@@ -232,7 +231,7 @@ class OfferClosingUpdate(BaseEntity):
 
 
 class OfferResourcesUpdate(BaseEntity):
-    landing_page_config: LandingPageConfig | None = None
+    landing_page_config: dict[str, Any] | None = None
 
 
 class OfferInstructorsUpdate(BaseEntity):

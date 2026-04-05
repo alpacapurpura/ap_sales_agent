@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from src.modules.copilot.api.dto import IngestDocumentResponse, SearchKnowledgeResponse
 from src.modules.copilot.application.services.knowledge_ingestion import (
     KnowledgeIngestionService,
 )
@@ -29,7 +30,7 @@ class SearchResult(BaseModel):
     metadata: dict
 
 
-@router.post("/ingest")
+@router.post("/ingest", response_model=IngestDocumentResponse)
 async def ingest_document(
     file: UploadFile = File(...),
     scope: str = Form("business"),
@@ -55,7 +56,7 @@ async def ingest_document(
     return result
 
 
-@router.get("/search")
+@router.get("/search", response_model=SearchKnowledgeResponse)
 async def search_knowledge(
     query: str,
     scope: str = "all",

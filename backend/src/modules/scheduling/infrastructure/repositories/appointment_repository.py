@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.scheduling.domain.appointment import Appointment
@@ -40,14 +41,14 @@ class AppointmentRepository:
     def get_appointments_by_date_range(
         self, start: datetime, end: datetime, tenant_id: UUID
     ) -> list[Appointment]:
-        models = (
-            self.db.query(AppointmentModel)
-            .filter(
+        stmt = (
+            select(AppointmentModel)
+            .where(
                 AppointmentModel.tenant_id == tenant_id,
                 AppointmentModel.start_time >= start,
                 AppointmentModel.start_time <= end,
             )
             .order_by(AppointmentModel.start_time.asc())
-            .all()
         )
+        models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]

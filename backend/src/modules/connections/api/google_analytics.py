@@ -6,6 +6,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
+from src.modules.connections.api.dto.common import (
+    ConnectionTestResponse,
+    StatusSavedResponse,
+)
 from src.modules.connections.api.dto.google_analytics import (
     GA4PropertySummary,
     GoogleAnalyticsCallbackResponse,
@@ -50,7 +54,7 @@ def _build_adapter(
     return GoogleAnalyticsAdapter(client_config=client_config, credentials_data=creds)
 
 
-@router.put("/config")
+@router.put("/config", response_model=StatusSavedResponse)
 async def save_config(
     config: GoogleAnalyticsConfig,
     user: User = Depends(get_current_user),
@@ -286,7 +290,7 @@ async def disconnect(
     return {"status": "disconnected"}
 
 
-@router.post("/test")
+@router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     user: User = Depends(get_current_user),
     repo: ChannelConnectionRepository = Depends(_get_repo),

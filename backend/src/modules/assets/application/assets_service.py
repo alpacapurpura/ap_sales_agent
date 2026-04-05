@@ -128,17 +128,22 @@ class AssetsService:
             logger.error("background_task_failed", error=str(e))
 
     def _update_asset_in_db(self, db: Session, asset: Asset):
+        from sqlalchemy import update
+
         from src.modules.assets.infrastructure.models.asset_model import AssetModel
 
-        db.query(AssetModel).filter(AssetModel.id == asset.id).update(
-            {
-                "ai_metadata": asset.ai_metadata,
-                "ai_description": asset.ai_description,
-                "ai_colors": asset.ai_colors,
-                "status": asset.status,
-                "error_message": asset.error_message,
-            }
+        stmt = (
+            update(AssetModel)
+            .where(AssetModel.id == asset.id)
+            .values(
+                ai_metadata=asset.ai_metadata,
+                ai_description=asset.ai_description,
+                ai_colors=asset.ai_colors,
+                status=asset.status,
+                error_message=asset.error_message,
+            )
         )
+        db.execute(stmt)
         db.commit()
 
     def list_assets(

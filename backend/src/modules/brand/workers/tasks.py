@@ -108,19 +108,19 @@ async def run_brand_extraction(
         logger.warning("Could not create trace collector: %s", exc)
 
     try:
-        from src.modules.copilot.application.services.brand_ai_actions_service import (
-            CopilotBrandAIActionsService,
+        from src.modules.brand.application.extraction_service import (
+            BrandExtractionService,
         )
 
         on_progress(5, "Iniciando análisis...")
 
-        service = CopilotBrandAIActionsService(db, UUID(tenant_id))
+        service = BrandExtractionService(db, UUID(tenant_id))
 
         # Update trace with actual profile name from service
         if trace:
-            trace._profile_name = service.brand_extraction_service.profile.name
+            trace._profile_name = service.profile.name
 
-        await service.extract_full_brand(
+        await service.extract_all(
             url=url,
             text=text,
             mode=mode,

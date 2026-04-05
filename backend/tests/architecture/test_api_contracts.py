@@ -13,79 +13,7 @@ from tests.architecture.conftest import MODULES_DIR
 # KNOWN VIOLATIONS — ratchet: only remove lines, never add.
 # Format: "module/api/filename.py::function_name"
 # ──────────────────────────────────────────────────────────────
-KNOWN_MISSING_RESPONSE_MODEL: set[str] = {
-    # --- analytics ---
-    "analytics/api/campaigns.py::trigger_campaign_sync",
-    "analytics/api/metrics.py::get_initial_load_status",
-    "analytics/api/metrics.py::get_marketing_sankey",
-    "analytics/api/metrics.py::refresh_channel_metrics",
-    "analytics/api/metrics.py::trigger_initial_load",
-    # --- brand ---
-    "brand/api/extraction.py::extract_data",
-    "brand/api/extraction.py::extract_full_brand",
-    "brand/api/extraction.py::get_extraction_status",
-    "brand/api/extraction.py::get_extraction_trace",
-    "brand/api/extraction.py::list_extraction_traces",
-    "brand/api/style.py::analyze_style",
-    # --- connections (non-webhook/auth) ---
-    "connections/api/calendar.py::book_meeting",
-    "connections/api/calendar.py::create_booking_link",
-    "connections/api/calendar.py::create_personalized_link",
-    "connections/api/calendar.py::get_slots",
-    "connections/api/calendar.py::list_appointments",
-    "connections/api/calendar.py::test_connection",
-    "connections/api/gmail.py::test_connection",
-    "connections/api/google_analytics.py::save_config",
-    "connections/api/google_analytics.py::test_connection",
-    "connections/api/google_workspace.py::get_status",
-    "connections/api/google_workspace.py::toggle_service",
-    "connections/api/meta.py::configure",
-    "connections/api/meta.py::get_status",
-    "connections/api/meta.py::set_primary_asset",
-    "connections/api/meta.py::test_connection",
-    "connections/api/meta.py::toggle_asset",
-    "connections/api/shopify.py::generate_auth_url",
-    "connections/api/telegram.py::connect_telegram",
-    "connections/api/telegram.py::test_telegram_connection",
-    "connections/api/whatsapp.py::create_whatsapp_session",
-    "connections/api/whatsapp.py::get_whatsapp_qr",
-    "connections/api/whatsapp.py::get_whatsapp_status",
-    "connections/api/youtube.py::test_connection",
-    "connections/api/youtube.py::update_config",
-    "connections/api/youtube_analytics.py::get_countries",
-    "connections/api/youtube_analytics.py::get_daily_views",
-    "connections/api/youtube_analytics.py::get_demographics",
-    "connections/api/youtube_analytics.py::get_overview",
-    "connections/api/youtube_analytics.py::get_status",
-    "connections/api/youtube_analytics.py::get_top_videos",
-    "connections/api/youtube_analytics.py::get_traffic_sources",
-    "connections/api/youtube_analytics.py::test_connection",
-    # --- copilot ---
-    "copilot/api/actions.py::extract_brand_data",
-    "copilot/api/chat.py::copilot_chat",
-    "copilot/api/events.py::event_insights",
-    "copilot/api/events.py::event_summary",
-    "copilot/api/events.py::record_event",
-    "copilot/api/knowledge.py::ingest_document",
-    "copilot/api/knowledge.py::search_knowledge",
-    "copilot/api/nudge.py::get_nudge_context",
-    # --- crm ---
-    "crm/api/nps.py::get_survey",
-    "crm/api/nps.py::submit_nps_response",
-    # --- landing ---
-    "landing/api/landing.py::regenerate_block",
-    # --- sales_agent ---
-    "sales_agent/api/audit.py::get_lead_details",
-    "sales_agent/api/audit.py::get_lead_timeline",
-    "sales_agent/api/audit.py::get_trace_details",
-    "sales_agent/api/audit.py::list_audit_leads",
-    # --- scheduling ---
-    "scheduling/api/agenda.py::update_appointment_status",
-    "scheduling/api/public_links.py::book_event_type",
-    "scheduling/api/public_links.py::get_event_type_slots",
-    "scheduling/api/public_links.py::get_public_slots",
-    "scheduling/api/public_links.py::public_book_meeting",
-}
+KNOWN_MISSING_RESPONSE_MODEL: set[str] = set()
 
 # Endpoints that legitimately don't need response_model:
 # webhooks, OAuth callbacks, auth URLs, disconnect handlers
@@ -133,6 +61,7 @@ EXEMPT_PATTERNS: set[str] = {
     "assets/api/offer_gallery.py::delete_offer_image",
     "assets/api/router.py::delete_asset",
     "connections/api/calendar.py::delete_schedule",
+    "copilot/api/chat.py::copilot_chat",  # SSE StreamingResponse
     "copilot/api/knowledge.py::delete_document",
     "sales_agent/api/audit.py::clear_lead_history",
     "scheduling/api/event_types.py::delete_event_type",

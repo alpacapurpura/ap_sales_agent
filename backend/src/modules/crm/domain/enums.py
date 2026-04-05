@@ -1,36 +1,15 @@
 from enum import Enum
 
-
-class IdentityType(str, Enum):
-    EMAIL = "email"
-    PHONE = "phone"
-    COOKIE_ID = "cookie_id"
-    USER_ID = "user_id"  # Internal User ID
-    EXTERNAL_ID = "external_id"  # CRM, Shopify, etc.
-    WHATSAPP = "whatsapp"
-    TELEGRAM = "telegram"
-    INSTAGRAM = "instagram"
-    TIKTOK = "tiktok"
-
-
-class LifecycleStage(str, Enum):
-    SUBSCRIBER = "subscriber"
-    LEAD = "lead"
-    MQL = "mql"
-    SQL = "sql"
-    OPPORTUNITY = "opportunity"
-    CUSTOMER = "customer"
-    EVANGELIST = "evangelist"
-    CHURNED = "churned"
-
-
-class FinancialCapacity(str, Enum):
-    BROKE_STUDENT = "BROKE_STUDENT"
-    LOW_INCOME = "LOW_INCOME"
-    MIDDLE_CLASS = "MIDDLE_CLASS"
-    UPPER_MIDDLE = "UPPER_MIDDLE"
-    HIGH_NET_WORTH = "HIGH_NET_WORTH"
-    ULTRA_HIGH_NET_WORTH = "ULTRA_HIGH_NET_WORTH"
+# Re-export shared enums for internal CRM backwards-compatibility
+from src.shared.domain.enums import (  # noqa: F401
+    AvatarPersona,
+    FinancialCapacity,
+    IdentityType,
+    LeadTemperature,
+    LifecycleStage,
+    SaleStage,
+    SaleStatus,
+)
 
 
 class SophisticationLevel(str, Enum):
@@ -47,20 +26,6 @@ class AuthorityLevel(str, Enum):
     INFLUENCER = "INFLUENCER"
     GATEKEEPER = "GATEKEEPER"
     COMMITTEE = "COMMITTEE"
-
-
-class LeadTemperature(str, Enum):
-    COLD = "COLD"
-    WARM = "WARM"
-    HOT = "HOT"
-
-
-class AvatarPersona(str, Enum):
-    NEWBIE = "NEWBIE"
-    SKEPTIC = "SKEPTIC"
-    VIP = "VIP"
-    ACHIEVER = "ACHIEVER"
-    RESEARCHER = "RESEARCHER"
 
 
 class FunnelStage(str, Enum):
@@ -95,18 +60,6 @@ class BusinessStage(str, Enum):
     ACTIVE = "Negocio Activo"
     IDEA = "Idea Clara"
     NONE = "Sin Idea"
-
-
-class SaleStatus(str, Enum):
-    COMPLETED = "COMPLETED"
-    REFUNDED = "REFUNDED"
-    PENDING = "PENDING"
-    FAILED = "FAILED"
-
-
-class SaleStage(str, Enum):
-    CONVERSION = "CONVERSION"
-    EXPANSION = "EXPANSION"
 
 
 class PaymentMethod(str, Enum):

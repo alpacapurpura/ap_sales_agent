@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -145,7 +146,11 @@ async def send_message(
             ChannelResolver,
         )
 
-        lead = db.query(LeadModel).filter(LeadModel.id == lead_id).first()
+        lead = (
+                db.execute(select(LeadModel).where(LeadModel.id == lead_id))
+                .scalars()
+                .first()
+            )
         if lead:
             resolver = ChannelResolver(db)
             sent = await resolver.send_to_lead(user.tenant_id, lead, body.content)

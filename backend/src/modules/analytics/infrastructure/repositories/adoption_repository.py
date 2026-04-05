@@ -15,12 +15,12 @@ from uuid import UUID
 from sqlalchemy import distinct, func, select
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage, SaleStage, SaleStatus
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
 )
 from src.modules.crm.infrastructure.models.sale_model import SaleModel
+from src.shared.domain.enums import LifecycleStage, SaleStage, SaleStatus
 
 # Lifecycle stages that represent post-purchase customers
 _CUSTOMER_STAGES = [
