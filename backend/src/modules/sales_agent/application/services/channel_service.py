@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from src.modules.connections.domain.channel import ChannelConnection
-from src.modules.connections.domain.enums import ChannelType
 from src.modules.sales_agent.infrastructure.repositories.channel_repository import (
     ChannelRepository,
 )
+from src.shared.domain.enums import ChannelType
 
 
 class ChannelService:

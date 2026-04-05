@@ -258,9 +258,9 @@ async def create_product_mapping(
     user: User = Depends(get_current_user),
 ):
     """Create a new external product → offer mapping with retroactive backfill."""
-    from src.modules.crm.domain.enums import SaleStage, SaleStatus
     from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
     from src.modules.crm.infrastructure.models.sale_model import SaleModel
+    from src.shared.domain.enums import SaleStage, SaleStatus
 
     repo = ExternalProductMappingRepository(db)
 

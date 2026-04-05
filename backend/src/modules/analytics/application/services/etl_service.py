@@ -604,7 +604,6 @@ class ETLService:
         from src.modules.crm.application.services.customer_service import (
             CustomerService,
         )
-        from src.modules.crm.domain.enums import SaleStage, SaleStatus
         from src.modules.crm.infrastructure.models.customer_model import (
             JourneyEventModel,
         )
@@ -612,6 +611,7 @@ class ETLService:
         from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
             ExternalProductMappingRepository,
         )
+        from src.shared.domain.enums import SaleStage, SaleStatus
 
         orders = provider.get_last_extracted_orders()
         checkouts = provider.get_last_extracted_checkouts()

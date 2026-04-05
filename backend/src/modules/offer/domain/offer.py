@@ -3,7 +3,6 @@ from uuid import UUID
 
 from pydantic import Field, computed_field, model_validator
 
-from src.modules.crm.domain.enums import AvatarPersona, FinancialCapacity
 from src.modules.landing.domain.content import LandingPageConfig
 from src.modules.offer.domain.details import (
     EventDetails,
@@ -26,6 +25,7 @@ from src.modules.offer.domain.enums import (
     PrerequisiteType,
 )
 from src.shared.domain.base_entity import BaseEntity
+from src.shared.domain.enums import AvatarPersona, FinancialCapacity
 
 # --- ARCHETYPE → DETAILS MAPPING ---
 ARCHETYPE_TO_DETAILS_MAPPING: dict[OfferArchetype, type[BaseEntity]] = {

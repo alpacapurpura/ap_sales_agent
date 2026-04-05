@@ -3,7 +3,6 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import FinancialCapacity
 from src.modules.offer.domain.enums import (
     GuaranteeType,
     OfferArchetype,
@@ -14,6 +13,7 @@ from src.modules.offer.domain.offer import ARCHETYPE_TO_DETAILS_MAPPING, Offer
 from src.modules.offer.infrastructure.repositories.offer_repository import (
     OfferRepository,
 )
+from src.shared.domain.enums import FinancialCapacity
 
 
 class OfferService:

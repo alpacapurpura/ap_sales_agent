@@ -11,13 +11,11 @@ from sqlalchemy.orm import Session
 
 from src.core.context import set_tenant_id
 from src.core.database import SessionLocal
-from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
 from src.modules.connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
 from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.domain.enums import IdentityType
 from src.modules.crm.domain.events import (
     CHANNEL_TYPE_TO_CAPTURE_SLUG,
     LeadCapturedEvent,
@@ -53,6 +51,7 @@ from src.modules.sales_agent.infrastructure.prompts.semantic import check_is_com
 from src.modules.sales_agent.infrastructure.repositories.state_repository import (
     StateRepository,
 )
+from src.shared.domain.enums import ChannelType, IdentityType
 from src.shared.domain.events import EventBus
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 

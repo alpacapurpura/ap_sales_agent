@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 import structlog
 from sqlalchemy import select
 
-from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
 )
+from src.shared.domain.enums import ChannelType
 from src.shared.domain.messages import OutgoingMessage
 
 if TYPE_CHECKING:
