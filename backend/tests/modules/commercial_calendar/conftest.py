@@ -1,22 +1,11 @@
+"""Fixtures for commercial_calendar module tests."""
+
 import uuid
 from datetime import date
 
 import pytest
 
 from src.modules.commercial_calendar.domain.calendar_event import CalendarEvent
-
-TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
-TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
-
-
-@pytest.fixture
-def tenant_id():
-    return TENANT_A
-
-
-@pytest.fixture
-def other_tenant_id():
-    return TENANT_B
 
 
 @pytest.fixture

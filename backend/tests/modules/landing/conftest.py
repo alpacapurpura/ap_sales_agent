@@ -1,47 +1,6 @@
+"""Fixtures for landing module tests."""
+
 import pytest
-import uuid
-from tests.factories import TenantFactory
-
-TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
-TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
-
-
-@pytest.fixture
-def tenant_id():
-    return TENANT_A
-
-
-@pytest.fixture
-def other_tenant_id():
-    return TENANT_B
-
-
-@pytest.fixture
-def seed_tenant(db, tenant_id):
-    """Insert a TenantModel row so landing FK constraints are satisfied."""
-    tenant = TenantFactory.build(
-        id=tenant_id,
-        name="Test Tenant",
-        slug="test-tenant",
-        config_json={},
-    )
-    db.add(tenant)
-    db.commit()
-    return tenant
-
-
-@pytest.fixture
-def seed_other_tenant(db, other_tenant_id):
-    """Insert a second TenantModel for tenant isolation tests."""
-    tenant = TenantFactory.build(
-        id=other_tenant_id,
-        name="Other Tenant",
-        slug="other-tenant",
-        config_json={},
-    )
-    db.add(tenant)
-    db.commit()
-    return tenant
 
 
 @pytest.fixture

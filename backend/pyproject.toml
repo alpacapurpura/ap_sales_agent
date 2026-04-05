@@ -2,6 +2,9 @@
 pythonpath = ["."]
 testpaths = ["tests", "src/tests"]
 asyncio_mode = "auto"
+markers = [
+    "integration: live integration tests requiring external credentials",
+]
 
 [tool.coverage.run]
 source = ["src/modules", "src/shared"]

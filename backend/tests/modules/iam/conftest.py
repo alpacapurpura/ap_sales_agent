@@ -1,26 +1,10 @@
-import pytest
+"""Fixtures for IAM module tests."""
+
 import uuid
 
+import pytest
+
 from tests.factories import TenantFactory
-
-TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
-TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
-USER_A = uuid.UUID("cccc0000-0000-0000-0000-000000000001")
-
-
-@pytest.fixture
-def tenant_id() -> uuid.UUID:
-    return TENANT_A
-
-
-@pytest.fixture
-def other_tenant_id() -> uuid.UUID:
-    return TENANT_B
-
-
-@pytest.fixture
-def user_id() -> uuid.UUID:
-    return USER_A
 
 
 @pytest.fixture
@@ -36,7 +20,7 @@ def sample_tenant(tenant_id: uuid.UUID):
 
 @pytest.fixture
 def seed_tenant(db, tenant_id: uuid.UUID):
-    """Persist a TenantModel for TENANT_A to the in-memory SQLite DB."""
+    """Override shared seed_tenant -- IAM tests need richer config_json."""
     tenant = TenantFactory.build(
         id=tenant_id,
         name="Test Tenant",
@@ -81,7 +65,9 @@ def seed_user(db, user_id: uuid.UUID):
 
 
 @pytest.fixture
-def seed_user_tenant_link(db, seed_user, seed_tenant, user_id: uuid.UUID, tenant_id: uuid.UUID):
+def seed_user_tenant_link(
+    db, seed_user, seed_tenant, user_id: uuid.UUID, tenant_id: uuid.UUID
+):
     """Link USER_A to TENANT_A via UserTenantModel."""
     from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
 

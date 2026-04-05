@@ -1,9 +1,12 @@
 """Tests for AvatarRepository -- CRUD + tenant isolation."""
-import pytest
+
 import uuid
-from src.modules.brand.infrastructure.repositories.avatar_repository import AvatarRepository
+
 from src.modules.brand.domain import Avatar
-from tests.modules.brand.conftest import TENANT_A, TENANT_B, USER_A
+from src.modules.brand.infrastructure.repositories.avatar_repository import (
+    AvatarRepository,
+)
+from tests.modules.conftest import TENANT_A, TENANT_B
 
 
 class TestAvatarRepository:
@@ -33,10 +36,22 @@ class TestAvatarRepository:
 
     def test_scope_filter(self, db, tenant_id, user_id):
         repo = AvatarRepository(db)
-        global_av = Avatar(id=uuid.uuid4(), tenant_id=tenant_id, user_id=user_id,
-                           name="Global", scope="GLOBAL", is_default=False)
-        offer_av = Avatar(id=uuid.uuid4(), tenant_id=tenant_id, user_id=user_id,
-                          name="Offer", scope="OFFER", is_default=False)
+        global_av = Avatar(
+            id=uuid.uuid4(),
+            tenant_id=tenant_id,
+            user_id=user_id,
+            name="Global",
+            scope="GLOBAL",
+            is_default=False,
+        )
+        offer_av = Avatar(
+            id=uuid.uuid4(),
+            tenant_id=tenant_id,
+            user_id=user_id,
+            name="Offer",
+            scope="OFFER",
+            is_default=False,
+        )
         repo.create(global_av)
         repo.create(offer_av)
 
@@ -69,10 +84,22 @@ class TestAvatarRepository:
 
     def test_set_global_default(self, db, tenant_id, user_id):
         repo = AvatarRepository(db)
-        a1 = Avatar(id=uuid.uuid4(), tenant_id=tenant_id, user_id=user_id,
-                     name="A1", scope="GLOBAL", is_default=True)
-        a2 = Avatar(id=uuid.uuid4(), tenant_id=tenant_id, user_id=user_id,
-                     name="A2", scope="GLOBAL", is_default=False)
+        a1 = Avatar(
+            id=uuid.uuid4(),
+            tenant_id=tenant_id,
+            user_id=user_id,
+            name="A1",
+            scope="GLOBAL",
+            is_default=True,
+        )
+        a2 = Avatar(
+            id=uuid.uuid4(),
+            tenant_id=tenant_id,
+            user_id=user_id,
+            name="A2",
+            scope="GLOBAL",
+            is_default=False,
+        )
         repo.create(a1)
         repo.create(a2)
 

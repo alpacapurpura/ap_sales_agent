@@ -1,33 +1,14 @@
+"""Fixtures for brand module tests."""
+
 import pytest
-import uuid
 
 from tests.factories import (
-    TenantFactory,
-    BrandIdentityFactory,
-    BrandVisualsFactory,
-    BrandStoryFactory,
-    BrandSettingsFactory,
     AvatarFactory,
+    BrandIdentityFactory,
+    BrandSettingsFactory,
+    BrandStoryFactory,
+    BrandVisualsFactory,
 )
-
-TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
-TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
-USER_A = uuid.UUID("cccc0000-0000-0000-0000-000000000001")
-
-
-@pytest.fixture
-def tenant_id():
-    return TENANT_A
-
-
-@pytest.fixture
-def other_tenant_id():
-    return TENANT_B
-
-
-@pytest.fixture
-def user_id():
-    return USER_A
 
 
 @pytest.fixture
@@ -81,17 +62,3 @@ def sample_settings(sample_identity, sample_visuals, sample_story):
         visuals=sample_visuals,
         story=sample_story,
     )
-
-
-@pytest.fixture
-def seed_tenant(db, tenant_id):
-    """Insert a TenantModel row so BrandRepository can find it."""
-    tenant = TenantFactory.build(
-        id=tenant_id,
-        name="Test Tenant",
-        slug="test-tenant",
-        config_json={},
-    )
-    db.add(tenant)
-    db.commit()
-    return tenant
