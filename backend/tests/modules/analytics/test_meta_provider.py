@@ -62,20 +62,67 @@ class TestMetaProviderBasics:
 
 class TestInstagramOrganic:
     @pytest.mark.asyncio
-    async def test_happy_path(self):
-        mock_insights_response = _ok_response({
+    async def test_happy_path_excludes_ad_from_breakdown(self):
+        """Breakdownable metrics exclude AD values; non-breakdownable kept as-is."""
+        # Breakdownable response: includes AD that must be excluded
+        mock_breakdown_response = _ok_response({
             "data": [
                 {
                     "name": "reach",
-                    "total_value": {"value": 500},
+                    "total_value": {
+                        "value": 500,
+                        "breakdowns": [{
+                            "dimension_keys": ["media_product_type"],
+                            "results": [
+                                {"dimension_values": ["AD"], "value": 200},
+                                {"dimension_values": ["FEED"], "value": 150},
+                                {"dimension_values": ["REELS"], "value": 100},
+                                {"dimension_values": ["STORY"], "value": 50},
+                            ],
+                        }],
+                    },
                 },
                 {
                     "name": "total_interactions",
-                    "total_value": {"value": 900},
+                    "total_value": {
+                        "value": 900,
+                        "breakdowns": [{
+                            "dimension_keys": ["media_product_type"],
+                            "results": [
+                                {"dimension_values": ["AD"], "value": 100},
+                                {"dimension_values": ["FEED"], "value": 500},
+                                {"dimension_values": ["REELS"], "value": 300},
+                            ],
+                        }],
+                    },
                 },
                 {
                     "name": "likes",
-                    "total_value": {"value": 330},
+                    "total_value": {
+                        "value": 330,
+                        "breakdowns": [{
+                            "dimension_keys": ["media_product_type"],
+                            "results": [
+                                {"dimension_values": ["AD"], "value": 30},
+                                {"dimension_values": ["FEED"], "value": 200},
+                                {"dimension_values": ["REELS"], "value": 100},
+                            ],
+                        }],
+                    },
+                },
+            ]
+        })
+
+        # Non-breakdownable response: no breakdown available
+        mock_no_breakdown_response = _ok_response({
+            "data": [
+                {
+                    "name": "accounts_engaged",
+                    "total_value": {"value": 250},
+                },
+                {
+                    "name": "replies",
+                    "total_value": {"value": 45},
                 },
             ]
         })
@@ -104,8 +151,9 @@ class TestInstagramOrganic:
             if "/insights" in url:
                 if params.get("period") == "lifetime":
                     return mock_demographics_response
-                return mock_insights_response
-            # User node: /{ig_account_id}?fields=...
+                if "breakdown" in params:
+                    return mock_breakdown_response
+                return mock_no_breakdown_response
             if url.endswith("/12345") and "fields" in params:
                 return mock_user_node_response
             return _ok_response({"data": []})
@@ -124,21 +172,27 @@ class TestInstagramOrganic:
         metrics = result.metrics
 
         ig_metrics = [m for m in metrics if m.channel_slug == "ig-organic"]
-        # reach + total_interactions + ig_likes + ig_followers_count + ig_media_count + 2 demographics
         assert len(ig_metrics) >= 5
 
-        # reach is NON_AGGREGABLE — uses last value (500), not SUM (3500)
+        # reach is NON_AGGREGABLE — uses last value, AD excluded (500 - 200 = 300)
         reach = next(m for m in ig_metrics if m.metric_name == "reach")
-        assert reach.value == 500.0
+        assert reach.value == 300.0
         assert reach.provider == "meta"
 
-        # total_interactions is ADDITIVE — SUM
+        # total_interactions is ADDITIVE, AD excluded (900 - 100 = 800)
         interactions = next(m for m in ig_metrics if m.metric_name == "total_interactions")
-        assert interactions.value == 900.0  # 300+400+200
+        assert interactions.value == 800.0
 
-        # ig_likes is ADDITIVE — SUM
+        # ig_likes is ADDITIVE, AD excluded (330 - 30 = 300)
         likes = next(m for m in ig_metrics if m.metric_name == "ig_likes")
-        assert likes.value == 330.0  # 100+150+80
+        assert likes.value == 300.0
+
+        # Non-breakdownable metrics kept as-is (no AD exclusion possible)
+        engaged = next(m for m in ig_metrics if m.metric_name == "ig_accounts_engaged")
+        assert engaged.value == 250.0
+
+        replies = next(m for m in ig_metrics if m.metric_name == "ig_replies")
+        assert replies.value == 45.0
 
         # Snapshot metrics from User Node
         followers = next(m for m in ig_metrics if m.metric_name == "ig_followers_count")
@@ -182,11 +236,11 @@ class TestInstagramOrganic:
 
 class TestFacebookOrganic:
     @pytest.mark.asyncio
-    async def test_happy_path(self):
+    async def test_happy_path_uses_organic_metric(self):
         mock_reach_response = _ok_response({
             "data": [
                 {
-                    "name": "page_impressions_unique",
+                    "name": "page_impressions_organic_unique",
                     "values": [{"value": 5000}],
                 }
             ]
@@ -204,7 +258,7 @@ class TestFacebookOrganic:
         async def mock_get(url, **kwargs):
             params = kwargs.get("params", {})
             metric = params.get("metric", "")
-            if "page_impressions_unique" in metric:
+            if "page_impressions_organic_unique" in metric:
                 return mock_reach_response
             if "page_post_engagements" in metric:
                 return mock_engagement_response
@@ -576,20 +630,29 @@ class TestExtractMetricsDaily:
 
     @pytest.mark.asyncio
     async def test_ig_organic_daily_emits_per_day_metrics(self):
-        """IG organic daily should emit one metric per day using total_value per-day calls."""
+        """IG organic daily should emit one metric per day, AD excluded from breakdownable."""
         from datetime import datetime as dt
 
-        # Map since-timestamp → per-day response (total_value format)
-        day_data = {
+        # Map since-timestamp → per-day breakdownable response (with AD)
+        day_breakdown_data = {
             int(dt.combine(date(2026, 3, 1), dt.min.time()).timestamp()): {
-                "reach": 1000, "total_interactions": 300,
+                "reach": (1000, 200),   # (total, ad_value)
+                "total_interactions": (300, 50),
             },
             int(dt.combine(date(2026, 3, 2), dt.min.time()).timestamp()): {
-                "reach": 2000, "total_interactions": 400,
+                "reach": (2000, 500),
+                "total_interactions": (400, 100),
             },
             int(dt.combine(date(2026, 3, 3), dt.min.time()).timestamp()): {
-                "reach": 500, "total_interactions": 200,
+                "reach": (500, 0),  # no ads this day
+                "total_interactions": (200, 0),
             },
+        }
+
+        # Non-breakdownable metrics (same for all days for simplicity)
+        no_breakdown_data = {
+            "accounts_engaged": 120,
+            "replies": 10,
         }
 
         mock_user_node_response = _ok_response({
@@ -604,13 +667,37 @@ class TestExtractMetricsDaily:
                 if params.get("period") == "lifetime":
                     return _ok_response({"data": []})
                 since = params.get("since")
-                values = day_data.get(since, {})
-                return _ok_response({
-                    "data": [
-                        {"name": name, "total_value": {"value": val}}
-                        for name, val in values.items()
-                    ]
-                })
+                if "breakdown" in params:
+                    # Breakdownable call — return with AD breakdown
+                    values = day_breakdown_data.get(since, {})
+                    return _ok_response({
+                        "data": [
+                            {
+                                "name": name,
+                                "total_value": {
+                                    "value": total,
+                                    "breakdowns": [{
+                                        "dimension_keys": ["media_product_type"],
+                                        "results": [
+                                            {"dimension_values": ["AD"], "value": ad},
+                                            {"dimension_values": ["FEED"], "value": total - ad},
+                                        ] if ad > 0 else [
+                                            {"dimension_values": ["FEED"], "value": total},
+                                        ],
+                                    }],
+                                },
+                            }
+                            for name, (total, ad) in values.items()
+                        ]
+                    })
+                else:
+                    # Non-breakdownable call
+                    return _ok_response({
+                        "data": [
+                            {"name": name, "total_value": {"value": val}}
+                            for name, val in no_breakdown_data.items()
+                        ]
+                    })
             if url.endswith("/12345") and "fields" in params:
                 return mock_user_node_response
             return _ok_response({"data": []})
@@ -629,15 +716,15 @@ class TestExtractMetricsDaily:
             )
         metrics = result.metrics
 
-        # Reach: 3 days
+        # Reach: 3 days, AD excluded
         reach_metrics = [m for m in metrics if m.metric_name == "reach" and m.channel_slug == "ig-organic"]
         assert len(reach_metrics) == 3
         assert reach_metrics[0].date == date(2026, 3, 1)
-        assert reach_metrics[0].value == 1000.0
+        assert reach_metrics[0].value == 800.0  # 1000 - 200
         assert reach_metrics[1].date == date(2026, 3, 2)
-        assert reach_metrics[1].value == 2000.0
+        assert reach_metrics[1].value == 1500.0  # 2000 - 500
         assert reach_metrics[2].date == date(2026, 3, 3)
-        assert reach_metrics[2].value == 500.0
+        assert reach_metrics[2].value == 500.0  # 500 - 0
 
         # total_interactions: 3 days
         interactions = [m for m in metrics if m.metric_name == "total_interactions" and m.channel_slug == "ig-organic"]
@@ -732,7 +819,7 @@ class TestExtractMetricsDaily:
         mock_reach_response = _ok_response({
             "data": [
                 {
-                    "name": "page_impressions_unique",
+                    "name": "page_impressions_organic_unique",
                     "values": [
                         {"value": 3000, "end_time": "2026-03-01T08:00:00+0000"},
                         {"value": 4000, "end_time": "2026-03-02T08:00:00+0000"},
@@ -758,7 +845,7 @@ class TestExtractMetricsDaily:
             nonlocal call_count
             params = kwargs.get("params", {})
             metric = params.get("metric", "")
-            if "page_impressions_unique" in metric:
+            if "page_impressions_organic_unique" in metric:
                 return mock_reach_response
             if "page_post_engagements" in metric:
                 return mock_engagement_response
@@ -997,6 +1084,154 @@ class TestMetaAdsBreakdowns:
         # so breakdowns will also get FULL_ADS_DATA (which has reach etc.)
         # The test just ensures no crash
         assert len(result.metrics) > 0
+
+
+class TestExtractOrganicFromBreakdown:
+    """Unit tests for _extract_organic_from_breakdown helper."""
+
+    def test_subtracts_ad_value(self):
+        from src.modules.analytics.infrastructure.providers.meta_provider import (
+            _extract_organic_from_breakdown,
+        )
+
+        item = {
+            "name": "reach",
+            "total_value": {
+                "value": 500,
+                "breakdowns": [{
+                    "dimension_keys": ["media_product_type"],
+                    "results": [
+                        {"dimension_values": ["AD"], "value": 200},
+                        {"dimension_values": ["FEED"], "value": 150},
+                        {"dimension_values": ["REELS"], "value": 100},
+                        {"dimension_values": ["STORY"], "value": 50},
+                    ],
+                }],
+            },
+        }
+        assert _extract_organic_from_breakdown(item) == 300.0
+
+    def test_no_ads_running_returns_total(self):
+        """When no ads are active, AD doesn't appear in breakdown — return total."""
+        from src.modules.analytics.infrastructure.providers.meta_provider import (
+            _extract_organic_from_breakdown,
+        )
+
+        item = {
+            "name": "reach",
+            "total_value": {
+                "value": 400,
+                "breakdowns": [{
+                    "dimension_keys": ["media_product_type"],
+                    "results": [
+                        {"dimension_values": ["FEED"], "value": 250},
+                        {"dimension_values": ["REELS"], "value": 150},
+                    ],
+                }],
+            },
+        }
+        assert _extract_organic_from_breakdown(item) == 400.0
+
+    def test_empty_breakdowns_returns_total(self):
+        """When breakdowns list is empty, return total_value as-is."""
+        from src.modules.analytics.infrastructure.providers.meta_provider import (
+            _extract_organic_from_breakdown,
+        )
+
+        item = {
+            "name": "likes",
+            "total_value": {"value": 100, "breakdowns": []},
+        }
+        assert _extract_organic_from_breakdown(item) == 100.0
+
+    def test_missing_breakdowns_key_returns_total(self):
+        """When breakdowns key is missing entirely, return total_value."""
+        from src.modules.analytics.infrastructure.providers.meta_provider import (
+            _extract_organic_from_breakdown,
+        )
+
+        item = {
+            "name": "saves",
+            "total_value": {"value": 75},
+        }
+        assert _extract_organic_from_breakdown(item) == 75.0
+
+    def test_all_ad_traffic_returns_zero(self):
+        """Edge case: all traffic is from ads."""
+        from src.modules.analytics.infrastructure.providers.meta_provider import (
+            _extract_organic_from_breakdown,
+        )
+
+        item = {
+            "name": "reach",
+            "total_value": {
+                "value": 500,
+                "breakdowns": [{
+                    "dimension_keys": ["media_product_type"],
+                    "results": [
+                        {"dimension_values": ["AD"], "value": 500},
+                    ],
+                }],
+            },
+        }
+        assert _extract_organic_from_breakdown(item) == 0.0
+
+    def test_handles_unknown_media_types(self):
+        """Unknown types like CAROUSEL_CONTAINER are preserved (not AD)."""
+        from src.modules.analytics.infrastructure.providers.meta_provider import (
+            _extract_organic_from_breakdown,
+        )
+
+        item = {
+            "name": "likes",
+            "total_value": {
+                "value": 600,
+                "breakdowns": [{
+                    "dimension_keys": ["media_product_type"],
+                    "results": [
+                        {"dimension_values": ["AD"], "value": 100},
+                        {"dimension_values": ["FEED"], "value": 200},
+                        {"dimension_values": ["CAROUSEL_CONTAINER"], "value": 150},
+                        {"dimension_values": ["POST"], "value": 150},
+                    ],
+                }],
+            },
+        }
+        # 600 - 100 (AD) = 500
+        assert _extract_organic_from_breakdown(item) == 500.0
+
+
+class TestFBOrganicMetricName:
+    """Verify FB organic uses the organic-only metric variant."""
+
+    @pytest.mark.asyncio
+    async def test_uses_organic_unique_metric(self):
+        """Ensure _extract_facebook_organic requests page_impressions_organic_unique."""
+        captured_params = []
+
+        async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
+            captured_params.append(params)
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+
+        fb_reach_calls = [
+            p for p in captured_params
+            if "page_impressions" in p.get("metric", "")
+        ]
+        assert len(fb_reach_calls) >= 1
+        assert fb_reach_calls[0]["metric"] == "page_impressions_organic_unique"
 
 
 class TestMetaProviderErrorHandling:
