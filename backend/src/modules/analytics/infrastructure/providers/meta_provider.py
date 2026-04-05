@@ -89,6 +89,32 @@ def _raise_for_meta_error(response: httpx.Response, context: str) -> None:
         response.raise_for_status()
 
 
+def _extract_organic_from_breakdown(item: dict) -> float:
+    """Extract organic-only value from an IG Insights item with media_product_type breakdown.
+
+    Approach: subtract the AD breakdown value from total (defensive — handles
+    new media_product_types without code changes).
+
+    If no breakdown data is present (no ads running), returns total_value as-is.
+    """
+    total_value = item.get("total_value", {})
+    total = float(total_value.get("value", 0))
+
+    breakdowns = total_value.get("breakdowns", [])
+    if not breakdowns:
+        return total
+
+    results = breakdowns[0].get("results", []) if breakdowns else []
+    ad_value = 0.0
+    for result in results:
+        dim_values = result.get("dimension_values", [])
+        if dim_values and dim_values[0] == "AD":
+            ad_value = float(result.get("value", 0))
+            break
+
+    return max(total - ad_value, 0.0)
+
+
 class MetaProvider(BaseMetricsProvider):
     """Extracts metrics from Meta Graph API for Instagram organic,
     Facebook organic, and Meta Ads."""
@@ -390,8 +416,21 @@ class MetaProvider(BaseMetricsProvider):
     # NON_AGGREGABLE metrics — use last day value instead of sum
     _IG_NON_AGGREGABLE = {"reach", "accounts_engaged"}
 
-    # All IG Insights day-period metrics in a single batch
-    _IG_INSIGHTS_METRICS = ",".join(_IG_API_TO_METRIC.keys())
+    # Metrics that support breakdown=media_product_type (to exclude AD values).
+    # Must be queried separately — Meta errors if mixed with non-breakdownable.
+    _IG_BREAKDOWNABLE = {
+        "reach", "views", "total_interactions",
+        "likes", "comments", "shares", "saves",
+    }
+
+    # Metrics that do NOT support breakdown (queried without it, kept as-is)
+    _IG_NO_BREAKDOWN = {
+        "accounts_engaged", "follows_and_unfollows",
+        "profile_links_taps", "replies", "reposts",
+    }
+
+    _IG_BREAKDOWNABLE_CSV = ",".join(sorted(_IG_BREAKDOWNABLE))
+    _IG_NO_BREAKDOWN_CSV = ",".join(sorted(_IG_NO_BREAKDOWN))
 
     async def _extract_instagram_organic(
         self,
@@ -414,31 +453,63 @@ class MetaProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
 
         # ── Call 1: Account Insights (total_value format, ≤30-day chunks) ──
-        # Meta API with metric_type=total_value returns {total_value: {value: N}}
-        # instead of {values: [{value, end_time}, ...]}. Sum chunks for ADDITIVE,
-        # keep last chunk for NON_AGGREGABLE.
+        # Two separate API calls per chunk:
+        #   A) Breakdownable metrics with breakdown=media_product_type → exclude AD
+        #   B) Non-breakdownable metrics without breakdown → kept as-is
+        # Meta errors if you mix breakdownable and non-breakdownable in one call.
         totals: dict[str, float] = defaultdict(float)
         last_values: dict[str, float] = {}
 
         for chunk_start, chunk_end in _ig_day_chunks(start_date, end_date):
-            insights_resp = await client.get(
+            since_ts = int(
+                datetime.combine(chunk_start, datetime.min.time()).timestamp()
+            )
+            until_ts = int(
+                datetime.combine(chunk_end, datetime.min.time()).timestamp()
+            )
+
+            # ── Call 1A: Breakdownable metrics (exclude paid/AD) ──
+            bd_resp = await client.get(
                 f"{GRAPH_API_BASE}/{ig_account_id}/insights",
                 headers=headers,
                 params={
-                    "metric": self._IG_INSIGHTS_METRICS,
+                    "metric": self._IG_BREAKDOWNABLE_CSV,
                     "metric_type": "total_value",
                     "period": "day",
-                    "since": int(
-                        datetime.combine(chunk_start, datetime.min.time()).timestamp()
-                    ),
-                    "until": int(
-                        datetime.combine(chunk_end, datetime.min.time()).timestamp()
-                    ),
+                    "breakdown": "media_product_type",
+                    "since": since_ts,
+                    "until": until_ts,
                 },
             )
-            _raise_for_meta_error(insights_resp, "ig_organic_insights")
+            _raise_for_meta_error(bd_resp, "ig_organic_insights_breakdown")
 
-            for item in insights_resp.json().get("data", []):
+            for item in bd_resp.json().get("data", []):
+                api_name = item.get("name", "")
+                metric_name = self._IG_API_TO_METRIC.get(api_name)
+                if not metric_name:
+                    continue
+
+                val = _extract_organic_from_breakdown(item)
+                if api_name in self._IG_NON_AGGREGABLE:
+                    last_values[metric_name] = val
+                else:
+                    totals[metric_name] += val
+
+            # ── Call 1B: Non-breakdownable metrics (no organic/paid split) ──
+            nb_resp = await client.get(
+                f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                headers=headers,
+                params={
+                    "metric": self._IG_NO_BREAKDOWN_CSV,
+                    "metric_type": "total_value",
+                    "period": "day",
+                    "since": since_ts,
+                    "until": until_ts,
+                },
+            )
+            _raise_for_meta_error(nb_resp, "ig_organic_insights_no_breakdown")
+
+            for item in nb_resp.json().get("data", []):
                 api_name = item.get("name", "")
                 metric_name = self._IG_API_TO_METRIC.get(api_name)
                 if not metric_name:
@@ -556,12 +627,14 @@ class MetaProvider(BaseMetricsProvider):
 
         headers = _auth_headers(page_token)
 
-        # Page reach (unique impressions)
+        # Page reach (organic only — excludes paid/boosted impressions).
+        # page_impressions_organic_unique works through v26.0 (~late 2026).
+        # Future: migrate to page_media_view + breakdown is_from_ads.
         reach_resp = await client.get(
             f"{GRAPH_API_BASE}/{page_id}/insights",
             headers=headers,
             params={
-                "metric": "page_impressions_unique",
+                "metric": "page_impressions_organic_unique",
                 "period": "day",
                 "since": int(
                     datetime.combine(start_date, datetime.min.time()).timestamp()
@@ -577,7 +650,7 @@ class MetaProvider(BaseMetricsProvider):
             v.get("value", 0) for item in reach_data for v in item.get("values", [])
         )
 
-        # Page post engagements
+        # Page post engagements (total — no organic-only variant exists in Meta API)
         engagement_resp = await client.get(
             f"{GRAPH_API_BASE}/{page_id}/insights",
             headers=headers,
@@ -1027,29 +1100,65 @@ class MetaProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
 
         # ── Call 1: Account Insights per day (total_value format) ──
-        # metric_type=total_value returns {total_value: {value: N}} not values[].
-        # To get daily granularity, make one call per day (since=day, until=day+1).
+        # Two calls per day: breakdownable (exclude AD) + non-breakdownable.
         current = start_date
         while current < end_date:
             next_day = current + timedelta(days=1)
-            insights_resp = await client.get(
+            since_ts = int(
+                datetime.combine(current, datetime.min.time()).timestamp()
+            )
+            until_ts = int(
+                datetime.combine(next_day, datetime.min.time()).timestamp()
+            )
+
+            # Call A: Breakdownable metrics (exclude AD)
+            bd_resp = await client.get(
                 f"{GRAPH_API_BASE}/{ig_account_id}/insights",
                 headers=headers,
                 params={
-                    "metric": self._IG_INSIGHTS_METRICS,
+                    "metric": self._IG_BREAKDOWNABLE_CSV,
                     "metric_type": "total_value",
                     "period": "day",
-                    "since": int(
-                        datetime.combine(current, datetime.min.time()).timestamp()
-                    ),
-                    "until": int(
-                        datetime.combine(next_day, datetime.min.time()).timestamp()
-                    ),
+                    "breakdown": "media_product_type",
+                    "since": since_ts,
+                    "until": until_ts,
                 },
             )
-            _raise_for_meta_error(insights_resp, "ig_organic_insights_daily")
+            _raise_for_meta_error(bd_resp, "ig_organic_insights_daily_breakdown")
 
-            for item in insights_resp.json().get("data", []):
+            for item in bd_resp.json().get("data", []):
+                api_name = item.get("name", "")
+                metric_name = self._IG_API_TO_METRIC.get(api_name)
+                if not metric_name:
+                    continue
+
+                val = _extract_organic_from_breakdown(item)
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="ig-organic",
+                        metric_name=metric_name,
+                        value=val,
+                        unit="count",
+                        date=current,
+                    )
+                )
+
+            # Call B: Non-breakdownable metrics (kept as-is)
+            nb_resp = await client.get(
+                f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                headers=headers,
+                params={
+                    "metric": self._IG_NO_BREAKDOWN_CSV,
+                    "metric_type": "total_value",
+                    "period": "day",
+                    "since": since_ts,
+                    "until": until_ts,
+                },
+            )
+            _raise_for_meta_error(nb_resp, "ig_organic_insights_daily_no_breakdown")
+
+            for item in nb_resp.json().get("data", []):
                 api_name = item.get("name", "")
                 metric_name = self._IG_API_TO_METRIC.get(api_name)
                 if not metric_name:
@@ -1153,7 +1262,7 @@ class MetaProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
 
         for metric_name, channel_metric in [
-            ("page_impressions_unique", "reach"),
+            ("page_impressions_organic_unique", "reach"),
             ("page_post_engagements", "engagement"),
         ]:
             resp = await client.get(
