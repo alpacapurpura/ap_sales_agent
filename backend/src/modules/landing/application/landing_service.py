@@ -1,6 +1,7 @@
 # TODO(async-migration): This service uses Session (sync). Needs migration to AsyncSession.
 from uuid import UUID
 
+from sqlalchemy import text as sa_text
 from sqlalchemy.orm import Session
 
 from src.modules.landing.domain.content import LandingPageConfig, SqueezeContent
@@ -8,9 +9,6 @@ from src.modules.landing.domain.enums import LandingPageArchetype
 from src.modules.landing.domain.landing_page import LandingPage
 from src.modules.landing.infrastructure.repositories.landing_repository import (
     LandingRepository,
-)
-from src.modules.offer.infrastructure.repositories.offer_repository import (
-    OfferRepository,
 )
 
 
@@ -89,20 +87,34 @@ class LandingService:
         if existing:
             return existing
 
-        offer_repo = OfferRepository(self.db)
-        offer = offer_repo.get_by_id(offer_id, tenant_id)
-        if not offer:
+        row = (
+            self.db.execute(
+                sa_text(
+                    "SELECT public_name, headline_promise, primary_outcome, marketing_pain_points"
+                    " FROM products WHERE id = :oid AND tenant_id = :tid AND deleted_at IS NULL"
+                ),
+                {"oid": str(offer_id), "tid": str(tenant_id)},
+            )
+            .mappings()
+            .first()
+        )
+        if not row:
             raise ValueError("Offer not found")
 
+        public_name = row["public_name"] or "Untitled"
+        headline = row["headline_promise"] or f"Discover {public_name}"
+        outcome = row["primary_outcome"] or "Transform your life today"
+        pains = row["marketing_pain_points"] or []
+
         # Create a simple slug based on offer name
-        slug = f"{offer.public_name.lower().replace(' ', '-')}-{str(offer.id)[:8]}"
+        slug = f"{public_name.lower().replace(' ', '-')}-{str(offer_id)[:8]}"
 
         # Create default content based on offer
         content = SqueezeContent(
-            headline=offer.headline_promise or f"Discover {offer.public_name}",
-            subheadline=offer.primary_outcome or "Transform your life today",
-            bullets=offer.marketing_pain_points[:3]
-            if offer.marketing_pain_points
+            headline=headline,
+            subheadline=outcome,
+            bullets=pains[:3]
+            if pains
             else ["Solve your problem", "Save time", "Get results"],
             cta_text="Get Access Now",
             privacy_text="100% Secure",
@@ -112,8 +124,8 @@ class LandingService:
             archetype=LandingPageArchetype.THE_SQUEEZE,
             slug=slug,
             content=content,
-            seo_title=offer.public_name,
-            seo_description=offer.headline_promise,
+            seo_title=public_name,
+            seo_description=headline,
         )
 
         return self.create_landing(tenant_id, slug, offer_id, config)

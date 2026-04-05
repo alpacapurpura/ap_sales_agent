@@ -59,10 +59,6 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "connections -> sales_agent | connections/api/webhook.py",
     "connections -> sales_agent | connections/api/whatsapp.py",
     "connections -> scheduling | connections/api/calendar.py",
-    # --- crm ---
-    "crm -> offer | crm/api/sales.py",
-    # --- landing ---
-    "landing -> offer | landing/application/landing_service.py",
     # --- offer ---
     "offer -> copilot | offer/api/offer_ai.py",
     "offer -> crm | offer/api/product_mappings.py",
