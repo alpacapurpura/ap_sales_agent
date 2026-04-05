@@ -56,6 +56,8 @@ export function useCloserWebSocket(tenantId: string | null) {
     [qc, selectedLeadId, incrementUnread],
   );
 
+  const connectRef = useRef<(() => void) | undefined>(undefined);
+
   const connect = useCallback(() => {
     if (!tenantId) return;
 
@@ -90,7 +92,7 @@ export function useCloserWebSocket(tenantId: string | null) {
       if (retriesRef.current < MAX_RETRIES) {
         const delay = BASE_DELAY * Math.pow(2, retriesRef.current);
         retriesRef.current++;
-        timerRef.current = setTimeout(connect, delay);
+        timerRef.current = setTimeout(() => connectRef.current?.(), delay);
       }
     };
 
@@ -100,6 +102,7 @@ export function useCloserWebSocket(tenantId: string | null) {
   }, [tenantId, handleEvent, setWsConnected]);
 
   useEffect(() => {
+    connectRef.current = connect;
     connect();
 
     // Keep-alive ping every 30s

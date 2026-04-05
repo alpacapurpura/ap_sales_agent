@@ -9,7 +9,8 @@ import {
   OnboardingMechanism,
   AccessDuration,
   DeliverableFormat,
-  PricingStructure
+  PricingStructure,
+  AssetType
 } from "../types";
 import { OfferFormValues } from "../types/schema";
 
@@ -201,7 +202,7 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
         rebuttal: o.rebuttal || "",
     })),
     deliverables: (data.deliverables || []).map((d: BackendDeliverable) => ({
-        name: d.name,
+        name: d.name ?? "",
         format: d.format || DeliverableFormat.VIDEO,
         quantity: String(d.quantity || "1"),
         value_stack_price: Number(d.value_stack_price) || 0
@@ -209,26 +210,34 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     target_avatar_match: data.target_avatar_match || [],
     prerequisites: data.prerequisites || [],
     includes_offers: data.includes_offers || [],
-    assets: data.assets || [],
+    assets: (data.assets || []).map((a: BackendAsset) => ({
+        id: a.id,
+        type: (a.type as AssetType) || AssetType.URL,
+        name: a.name ?? "",
+        url: a.url ?? "",
+        size: a.size,
+        trigger_context: a.trigger_context,
+        is_knowledge_base: a.is_knowledge_base,
+    })),
 
     guarantee_type: (data.guarantee_type as GuaranteeType) || GuaranteeType.NONE,
     guarantee_terms: data.guarantee_terms,
     
     // Prioridad: metadata -> campo directo
-    access_duration: (metadata.access_duration || data.access_duration) as AccessDuration,
-    access_duration_text: metadata.access_duration_text || data.access_duration_text,
-    support_duration_days: metadata.support_duration_days || data.support_duration_days,
+    access_duration: ((metadata.access_duration as string | undefined) || data.access_duration) as AccessDuration,
+    access_duration_text: (metadata.access_duration_text as string | undefined) || data.access_duration_text,
+    support_duration_days: (metadata.support_duration_days as number | undefined) || data.support_duration_days,
     
     instructors: data.instructors || [],
     
     // Prioridad: metadata -> campo directo
-    onboarding_action: (metadata.onboarding_action || data.onboarding_action) as OnboardingMechanism,
-    onboarding_url: metadata.onboarding_url || data.onboarding_url,
-    calendar_type_id: metadata.calendar_type_id || data.calendar_type_id,
-    checkout_page_url: metadata.checkout_page_url || data.checkout_page_url,
-    vsl_link: metadata.vsl_link || data.vsl_link,
+    onboarding_action: ((metadata.onboarding_action as string | undefined) || data.onboarding_action) as OnboardingMechanism,
+    onboarding_url: (metadata.onboarding_url as string | undefined) || data.onboarding_url,
+    calendar_type_id: (metadata.calendar_type_id as string | undefined) || data.calendar_type_id,
+    checkout_page_url: (metadata.checkout_page_url as string | undefined) || data.checkout_page_url,
+    vsl_link: (metadata.vsl_link as string | undefined) || data.vsl_link,
 
-    landing_page_config: data.landing_page_config
+    landing_page_config: data.landing_page_config as Offer["landing_page_config"]
   };
 };
 

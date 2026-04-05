@@ -207,9 +207,19 @@ describe("frontendToBackend", () => {
   });
 
   it("maps pricing_options to pricing", () => {
-    const values = { pricing_options: [{ total_amount: 100 }] };
+    const pricingOption = {
+      label: "Standard",
+      total_amount: 100,
+      deposit_required: 0,
+      number_of_installments: 1,
+      installment_amount: 0,
+      is_default: false,
+      benefits: [] as string[],
+      is_highlighted: false,
+    };
+    const values = { pricing_options: [pricingOption] };
     const result = frontendToBackend(values);
-    expect(result.pricing).toEqual([{ total_amount: 100 }]);
+    expect(result.pricing).toEqual([pricingOption]);
   });
 
   it("strips metadata_info from payload", () => {

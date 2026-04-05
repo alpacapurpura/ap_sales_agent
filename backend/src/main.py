@@ -10,9 +10,6 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
-# 15. Domains
-from src.modules.domains.api import domain_router as domains_router
-
 # --- Bootstrap all models so SQLAlchemy mapper resolves cross-module relationships ---
 import src.shared.infrastructure.model_registry  # noqa: F401
 from src.core.config import settings
@@ -105,6 +102,9 @@ from src.modules.scheduling.api import agenda as sched_agenda
 # 8. Scheduling
 from src.modules.scheduling.api import event_types as sched_types
 from src.modules.scheduling.api import public_links as sched_public
+
+# 15. Tenant Domains
+from src.modules.tenant_domains.api import domain_router as domains_router
 
 init_sentry("api")
 

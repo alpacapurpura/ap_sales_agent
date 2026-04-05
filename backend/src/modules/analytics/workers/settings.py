@@ -8,7 +8,6 @@ SchedulerSettings runs cron jobs:
 
 from arq import cron
 from arq.connections import RedisSettings
-from src.modules.domains.workers.tasks import poll_domain_verification
 
 import src.shared.infrastructure.model_registry  # noqa: F401  — must be top-level for ARQ workers
 from src.core.config import settings
@@ -22,6 +21,7 @@ from src.modules.analytics.workers.tasks import (
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
+from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 
 
 class WorkerSettings:

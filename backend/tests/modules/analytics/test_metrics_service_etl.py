@@ -19,9 +19,10 @@ from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
 )
 
-# After the stage service extraction, the imports that need patching
-# live in the attraction_stage module, not in metrics_service.
-_ATTRACTION_MODULE = "src.modules.analytics.application.services.stage_services.attraction_stage"
+# MetricsService.get_attraction_metrics() resolves ChannelRegistry and
+# OfficialMetricsRepository from its own module (metrics_service), not
+# from the extracted attraction_stage service.
+_ATTRACTION_MODULE = "src.modules.analytics.application.services.metrics_service"
 
 
 @pytest.fixture

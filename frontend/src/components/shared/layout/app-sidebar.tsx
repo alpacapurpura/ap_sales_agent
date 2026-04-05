@@ -303,25 +303,24 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
   }, []);
 
   // Accordion: only one parent expanded at a time
-  const activeParent = navItems.find(
-    (item) => item.children?.length && matchesNavItem(item, pathname)
-  );
-  const [expandedHref, setExpandedHref] = useState<string | null>(
-    activeParent?.href ?? null
-  );
-
-  // Sync only when pathname actually changes (not on every render)
-  const prevPathname = useRef(pathname);
-  useEffect(() => {
-    if (prevPathname.current === pathname) return;
-    prevPathname.current = pathname;
-    const newActive = navItems.find(
+  // Derive the active parent from pathname so we don't need a setState-in-effect.
+  const activeParentHref = useMemo(() => {
+    const active = navItems.find(
       (item) => item.children?.length && matchesNavItem(item, pathname)
     );
-    if (newActive) {
-      setExpandedHref(newActive.href);
+    return active?.href ?? null;
+  }, [navItems, pathname, matchesNavItem]);
+
+  const [expandedHref, setExpandedHref] = useState<string | null>(activeParentHref);
+
+  // Sync expandedHref when activeParentHref changes (pathname navigation)
+  const prevActiveParentHref = useRef(activeParentHref);
+  if (prevActiveParentHref.current !== activeParentHref) {
+    prevActiveParentHref.current = activeParentHref;
+    if (activeParentHref) {
+      setExpandedHref(activeParentHref);
     }
-  }, [pathname, navItems, matchesNavItem]);
+  }
 
   const handleToggleExpand = useCallback((href: string) => {
     setExpandedHref((prev) => (prev === href ? null : href));

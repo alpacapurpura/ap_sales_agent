@@ -78,7 +78,6 @@
   "devDependencies": {
     "@clerk/testing": "^2.0.8",
     "@playwright/test": "^1.59.1",
-    "@vitest/coverage-v8": "^4.0.17",
     "@storybook/addon-a11y": "^10.3.4",
     "@storybook/addon-themes": "^10.3.4",
     "@storybook/nextjs-vite": "^10.3.4",

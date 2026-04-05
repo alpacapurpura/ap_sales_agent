@@ -104,7 +104,7 @@ export function FrozenCard({ conversation: c }: FrozenCardProps) {
           {c.last_message_preview && (
             <div>
               <div className="text-xs font-medium text-muted-foreground mb-1">Ultimo mensaje</div>
-              <p className="text-xs text-muted-foreground italic">"{c.last_message_preview}"</p>
+              <p className="text-xs text-muted-foreground italic">&ldquo;{c.last_message_preview}&rdquo;</p>
             </div>
           )}
 

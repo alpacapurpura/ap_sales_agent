@@ -32,7 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigation } from "@/components/shared/navigation";
 import { toast } from "sonner";
-import { InstructorsWidget } from "../components/widgets/instructors-widget";
+import { InstructorsPreview } from "../sections/instructors/instructors-preview";
 
 export type OfferPhase = 'context' | 'solution' | 'deal';
 
@@ -275,8 +275,8 @@ function ContextPhaseContent({
 
             {/* INSTRUCTORS WIDGET (Read Only Preview) */}
             {isKnowledgeOffer && values.instructors && values.instructors.length > 0 && (
-                <InstructorsWidget 
-                    selectedInstructorIds={values.instructors}
+                <InstructorsPreview
+                    data={{ instructors: values.instructors }}
                 />
             )}
 
