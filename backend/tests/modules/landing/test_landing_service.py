@@ -1,7 +1,8 @@
 """Tests for LandingService — create, publish, get_public, generate_for_offer."""
+
 import uuid
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from src.modules.landing.application.landing_service import LandingService
 from src.modules.landing.domain.content import LandingPageConfig, SqueezeContent
@@ -37,7 +38,9 @@ class TestCreateLanding:
         """create_landing with an explicit config preserves it."""
         service = LandingService(db)
         config = _make_config(slug="explicit-page")
-        landing = service.create_landing(tenant_id=tenant_id, slug="explicit-page", config=config)
+        landing = service.create_landing(
+            tenant_id=tenant_id, slug="explicit-page", config=config
+        )
 
         assert landing.slug == "explicit-page"
         assert landing.config.archetype == LandingPageArchetype.THE_SQUEEZE
@@ -46,11 +49,15 @@ class TestCreateLanding:
         """create_landing stores the offer_id when provided."""
         service = LandingService(db)
         offer_id = uuid.uuid4()
-        landing = service.create_landing(tenant_id=tenant_id, slug="offer-page", offer_id=offer_id)
+        landing = service.create_landing(
+            tenant_id=tenant_id, slug="offer-page", offer_id=offer_id
+        )
 
         assert landing.offer_id == offer_id
 
-    def test_create_landing_is_not_published_by_default(self, db, seed_tenant, tenant_id):
+    def test_create_landing_is_not_published_by_default(
+        self, db, seed_tenant, tenant_id
+    ):
         service = LandingService(db)
         landing = service.create_landing(tenant_id=tenant_id, slug="unpublished")
         assert landing.is_published is False
@@ -81,7 +88,9 @@ class TestPublishLanding:
 
 
 class TestGetPublicLanding:
-    def test_get_public_landing_returns_published_page(self, db, seed_tenant, tenant_id):
+    def test_get_public_landing_returns_published_page(
+        self, db, seed_tenant, tenant_id
+    ):
         """get_public_landing returns a page only if it is published."""
         service = LandingService(db)
         landing = service.create_landing(tenant_id=tenant_id, slug="public-page")
@@ -92,7 +101,9 @@ class TestGetPublicLanding:
         assert result.slug == "public-page"
         assert result.is_published is True
 
-    def test_get_public_landing_unpublished_returns_none(self, db, seed_tenant, tenant_id):
+    def test_get_public_landing_unpublished_returns_none(
+        self, db, seed_tenant, tenant_id
+    ):
         """Unpublished pages MUST return None — security requirement."""
         service = LandingService(db)
         service.create_landing(tenant_id=tenant_id, slug="hidden-page")
@@ -100,15 +111,21 @@ class TestGetPublicLanding:
         result = service.get_public_landing(slug="hidden-page", tenant_id=tenant_id)
         assert result is None
 
-    def test_get_public_landing_nonexistent_slug_returns_none(self, db, seed_tenant, tenant_id):
+    def test_get_public_landing_nonexistent_slug_returns_none(
+        self, db, seed_tenant, tenant_id
+    ):
         service = LandingService(db)
         result = service.get_public_landing(slug="ghost", tenant_id=tenant_id)
         assert result is None
 
-    def test_get_public_landing_tenant_isolation(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_get_public_landing_tenant_isolation(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         """Tenant A cannot access tenant B's published page by providing tenant A's ID."""
         service = LandingService(db)
-        landing = service.create_landing(tenant_id=other_tenant_id, slug="b-public-page")
+        landing = service.create_landing(
+            tenant_id=other_tenant_id, slug="b-public-page"
+        )
         service.publish_landing(landing.id)
 
         # Tenant A tries to access tenant B's page
@@ -117,24 +134,52 @@ class TestGetPublicLanding:
 
 
 class TestGenerateLandingForOffer:
-    def test_generate_for_offer_creates_landing_when_none_exists(self, db, seed_tenant, tenant_id):
+    @staticmethod
+    def _seed_offer(db, offer_id, tenant_id, **overrides):
+        """Insert an offer row directly via SQL (service uses raw SQL, not ORM)."""
+        import json
+
+        from sqlalchemy import text
+
+        defaults = {
+            "name": "My Course",
+            "archetype": "producto",
+            "status": "active",
+            "headline_promise": "Transform your life in 30 days",
+            "primary_outcome": "6-figure income",
+            "marketing_pain_points": json.dumps(["No time", "No system", "No results"]),
+        }
+        defaults.update(overrides)
+        db.execute(
+            text(
+                "INSERT INTO products (id, tenant_id, name, archetype, status,"
+                " headline_promise, primary_outcome, marketing_pain_points)"
+                " VALUES (:id, :tid, :name, :archetype, :status, :headline, :outcome, :pains)"
+            ),
+            {
+                "id": str(offer_id),
+                "tid": str(tenant_id),
+                "name": defaults["name"],
+                "archetype": defaults["archetype"],
+                "status": defaults["status"],
+                "headline": defaults["headline_promise"],
+                "outcome": defaults["primary_outcome"],
+                "pains": defaults["marketing_pain_points"],
+            },
+        )
+        db.commit()
+
+    def test_generate_for_offer_creates_landing_when_none_exists(
+        self, db, seed_tenant, tenant_id
+    ):
         """generate_landing_for_offer creates a new landing linked to the offer."""
         service = LandingService(db)
         offer_id = uuid.uuid4()
+        self._seed_offer(db, offer_id, tenant_id)
 
-        # Mock the OfferRepository.get_by_id call
-        mock_offer = MagicMock()
-        mock_offer.id = offer_id
-        mock_offer.public_name = "My Course"
-        mock_offer.headline_promise = "Transform your life in 30 days"
-        mock_offer.primary_outcome = "6-figure income"
-        mock_offer.marketing_pain_points = ["No time", "No system", "No results"]
-
-        with patch(
-            "src.modules.landing.application.landing_service.OfferRepository"
-        ) as MockOfferRepo:
-            MockOfferRepo.return_value.get_by_id.return_value = mock_offer
-            landing = service.generate_landing_for_offer(tenant_id=tenant_id, offer_id=offer_id)
+        landing = service.generate_landing_for_offer(
+            tenant_id=tenant_id, offer_id=offer_id
+        )
 
         assert landing is not None
         assert landing.offer_id == offer_id
@@ -142,55 +187,55 @@ class TestGenerateLandingForOffer:
         assert landing.config.archetype == LandingPageArchetype.THE_SQUEEZE
         assert "my-course" in landing.slug
 
-    def test_generate_for_offer_returns_existing_when_already_exists(self, db, seed_tenant, tenant_id):
+    def test_generate_for_offer_returns_existing_when_already_exists(
+        self, db, seed_tenant, tenant_id
+    ):
         """If a landing already exists for this offer, return it without creating a new one."""
         service = LandingService(db)
         offer_id = uuid.uuid4()
-        # Create an existing landing for this offer
         existing = service.create_landing(
             tenant_id=tenant_id,
             slug="existing-offer-page",
             offer_id=offer_id,
         )
 
-        with patch(
-            "src.modules.landing.application.landing_service.OfferRepository"
-        ) as MockOfferRepo:
-            result = service.generate_landing_for_offer(tenant_id=tenant_id, offer_id=offer_id)
-            # OfferRepository should NOT be called since existing was found
-            MockOfferRepo.return_value.get_by_id.assert_not_called()
-
+        result = service.generate_landing_for_offer(
+            tenant_id=tenant_id, offer_id=offer_id
+        )
         assert result.id == existing.id
 
-    def test_generate_for_offer_uses_pain_points_as_bullets(self, db, seed_tenant, tenant_id):
+    def test_generate_for_offer_uses_pain_points_as_bullets(
+        self, db, seed_tenant, tenant_id
+    ):
         """generate_landing_for_offer uses the offer's marketing pain points as bullets."""
+        import json
+
         service = LandingService(db)
         offer_id = uuid.uuid4()
+        self._seed_offer(
+            db,
+            offer_id,
+            tenant_id,
+            name="Offer X",
+            headline_promise="headline",
+            primary_outcome="outcome",
+            marketing_pain_points=json.dumps(["Pain 1", "Pain 2", "Pain 3"]),
+        )
 
-        mock_offer = MagicMock()
-        mock_offer.id = offer_id
-        mock_offer.public_name = "Offer X"
-        mock_offer.headline_promise = "headline"
-        mock_offer.primary_outcome = "outcome"
-        mock_offer.marketing_pain_points = ["Pain 1", "Pain 2", "Pain 3"]
-
-        with patch(
-            "src.modules.landing.application.landing_service.OfferRepository"
-        ) as MockOfferRepo:
-            MockOfferRepo.return_value.get_by_id.return_value = mock_offer
-            landing = service.generate_landing_for_offer(tenant_id=tenant_id, offer_id=offer_id)
+        landing = service.generate_landing_for_offer(
+            tenant_id=tenant_id, offer_id=offer_id
+        )
 
         content = landing.config.content
         assert isinstance(content, SqueezeContent)
         assert "Pain 1" in content.bullets
 
-    def test_generate_for_offer_nonexistent_offer_raises(self, db, seed_tenant, tenant_id):
+    def test_generate_for_offer_nonexistent_offer_raises(
+        self, db, seed_tenant, tenant_id
+    ):
         """generate_landing_for_offer raises ValueError when offer does not exist."""
         service = LandingService(db)
-
-        with patch(
-            "src.modules.landing.application.landing_service.OfferRepository"
-        ) as MockOfferRepo:
-            MockOfferRepo.return_value.get_by_id.return_value = None
-            with pytest.raises(ValueError, match="Offer not found"):
-                service.generate_landing_for_offer(tenant_id=tenant_id, offer_id=uuid.uuid4())
+        with pytest.raises(ValueError, match="Offer not found"):
+            service.generate_landing_for_offer(
+                tenant_id=tenant_id, offer_id=uuid.uuid4()
+            )

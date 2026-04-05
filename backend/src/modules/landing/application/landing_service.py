@@ -90,8 +90,8 @@ class LandingService:
         row = (
             self.db.execute(
                 sa_text(
-                    "SELECT public_name, headline_promise, primary_outcome, marketing_pain_points"
-                    " FROM products WHERE id = :oid AND tenant_id = :tid AND deleted_at IS NULL"
+                    "SELECT name, headline_promise, primary_outcome, marketing_pain_points"
+                    " FROM products WHERE id = :oid AND tenant_id = :tid"
                 ),
                 {"oid": str(offer_id), "tid": str(tenant_id)},
             )
@@ -101,10 +101,15 @@ class LandingService:
         if not row:
             raise ValueError("Offer not found")
 
-        public_name = row["public_name"] or "Untitled"
+        import json as _json
+
+        public_name = row["name"] or "Untitled"
         headline = row["headline_promise"] or f"Discover {public_name}"
         outcome = row["primary_outcome"] or "Transform your life today"
-        pains = row["marketing_pain_points"] or []
+        raw_pains = row["marketing_pain_points"] or []
+        pains = (
+            _json.loads(raw_pains) if isinstance(raw_pains, str) else (raw_pains or [])
+        )
 
         # Create a simple slug based on offer name
         slug = f"{public_name.lower().replace(' ', '-')}-{str(offer_id)[:8]}"

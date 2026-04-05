@@ -12,6 +12,7 @@ Usage:
     # Domain model (Pydantic) — use directly:
     settings = BrandSettingsFactory()
 """
+
 import uuid
 
 import factory
@@ -32,6 +33,7 @@ fake = Faker()
 # IAM — builds TenantModel instances without triggering SA mapper config
 # ---------------------------------------------------------------------------
 
+
 class TenantFactory(factory.Factory):
     class Meta:
         model = dict
@@ -49,15 +51,32 @@ class TenantFactory(factory.Factory):
         """Build a TenantModel instance. Import related models first to
         satisfy SQLAlchemy's lazy relationship resolution."""
         # These imports register models so SA can resolve relationship strings
-        from src.modules.crm.infrastructure.models.lead_model import LeadModel  # noqa: F401
-        from src.modules.crm.infrastructure.models.lifecycle_transition_model import LifecycleTransitionModel  # noqa: F401
-        from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel  # noqa: F401
-        from src.modules.sales_agent.infrastructure.models.message_model import MessageModel  # noqa: F401
-        from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel  # noqa: F401
-        from src.modules.crm.infrastructure.models.sale_model import SaleModel  # noqa: F401
-        from src.modules.offer.infrastructure.models.product_model import ProductModel  # noqa: F401
-        from src.modules.brand.infrastructure.models.avatar_model import AvatarModel as AvatarORM  # noqa: F401
+        from src.modules.brand.infrastructure.models.avatar_model import (
+            AvatarModel as AvatarORM,  # noqa: F401
+        )
+        from src.modules.connections.infrastructure.models.channel_connection_model import (
+            ChannelConnectionModel,  # noqa: F401
+        )
+        from src.modules.crm.infrastructure.models.lead_model import (
+            LeadModel,  # noqa: F401
+        )
+        from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
+            LifecycleTransitionModel,  # noqa: F401
+        )
+        from src.modules.crm.infrastructure.models.sale_model import (
+            SaleModel,  # noqa: F401
+        )
         from src.modules.iam.infrastructure.models.tenant_model import TenantModel
+        from src.modules.offer.infrastructure.models.product_model import (
+            ProductModel,  # noqa: F401
+        )
+        from src.modules.sales_agent.infrastructure.models.message_model import (
+            MessageModel,  # noqa: F401
+        )
+        from src.modules.scheduling.infrastructure.models.appointment_model import (
+            AppointmentModel,  # noqa: F401
+        )
+
         return TenantModel(**kwargs)
 
     @classmethod
@@ -68,6 +87,7 @@ class TenantFactory(factory.Factory):
 # ---------------------------------------------------------------------------
 # Brand — Domain models (Pydantic, not ORM)
 # ---------------------------------------------------------------------------
+
 
 class BrandIdentityFactory(factory.Factory):
     class Meta:

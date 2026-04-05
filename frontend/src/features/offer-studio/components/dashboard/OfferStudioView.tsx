@@ -22,7 +22,17 @@ export function OfferStudioView() {
   const [ladderData, setLadderData] = useState<LadderData | null>(null);
 
   const handleLadderComputed = useCallback((data: LadderData) => {
-    setLadderData(data);
+    setLadderData(prev => {
+      if (
+        prev &&
+        prev.percentage === data.percentage &&
+        prev.score === data.score &&
+        prev.filledGroups.size === data.filledGroups.size
+      ) {
+        return prev;
+      }
+      return data;
+    });
   }, []);
 
   return (

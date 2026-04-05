@@ -34,12 +34,15 @@ async def test_generate_psychology_success():
     service.avatar_repo = MagicMock()
     service.avatar_repo.get_by_id.return_value = avatar
 
-    with patch(
-        "src.modules.copilot.application.services.offer_psychology_service.prompt_loader.render",
-        return_value="PROMPT_RENDERED",
-    ) as render_mock, patch(
-        "src.modules.copilot.application.services.offer_psychology_service.AIActionService.run_structured_action"
-    ) as run_structured_action_mock:
+    with (
+        patch(
+            "src.modules.copilot.application.services.offer_psychology_service.prompt_loader.render",
+            return_value="PROMPT_RENDERED",
+        ) as render_mock,
+        patch(
+            "src.modules.copilot.application.services.offer_psychology_service.AIActionService.run_structured_action"
+        ) as run_structured_action_mock,
+    ):
         run_structured_action_mock.return_value = PsychologyGenerationResponse(
             pains=["p1", "p2", "p3", "p4", "p5"],
             desires=["d1", "d2", "d3", "d4", "d5"],
@@ -50,7 +53,9 @@ async def test_generate_psychology_success():
     assert response.pains[0] == "p1"
     assert response.desires[0] == "d1"
     render_mock.assert_called_once()
-    assert render_mock.call_args.kwargs["template_name"] == "offer_psychology_generator.j2"
+    assert (
+        render_mock.call_args.kwargs["template_name"] == "offer_psychology_generator.j2"
+    )
 
 
 @pytest.mark.asyncio
@@ -95,7 +100,7 @@ async def test_generate_psychology_tenant_isolation():
 
 def test_offer_psychology_prompt_resolves_from_copilot_templates():
     with patch(
-        "src.modules.copilot.infrastructure.prompts.base.settings.PROMPT_SOURCE",
+        "src.shared.infrastructure.prompts.base.settings.PROMPT_SOURCE",
         "file",
     ):
         rendered = prompt_loader.render(

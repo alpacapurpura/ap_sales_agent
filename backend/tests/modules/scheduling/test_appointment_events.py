@@ -8,22 +8,24 @@ and EventBus subscription registration.
 import uuid
 from unittest.mock import MagicMock, patch
 
-from src.shared.domain.events import DomainEvent, EventBus
+import src.modules.crm.infrastructure.models.customer_model
+import src.modules.crm.infrastructure.models.lead_model
 
 # Pre-import models to register them with SQLAlchemy mapper
 # (prevents lazy relationship resolution errors in tests)
-import src.modules.iam.infrastructure.models.tenant_model  # noqa: F401
-import src.modules.crm.infrastructure.models.customer_model  # noqa: F401
-import src.modules.crm.infrastructure.models.lead_model  # noqa: F401
+import src.modules.iam.infrastructure.models.tenant_model
+from src.shared.domain.events import DomainEvent, EventBus
+
 try:
-    import src.modules.sales_agent.infrastructure.models.message_model  # noqa: F401
-    import src.modules.sales_agent.infrastructure.models.channel_model  # noqa: F401
+    import src.modules.connections.infrastructure.models.channel_connection_model
+    import src.modules.sales_agent.infrastructure.models.message_model
 except ImportError:
     pass
-import src.modules.scheduling.infrastructure.models.appointment_model  # noqa: F401
-import src.modules.crm.infrastructure.models.lifecycle_transition_model  # noqa: F401
+import src.modules.crm.infrastructure.models.lifecycle_transition_model
+import src.modules.scheduling.infrastructure.models.appointment_model
+
 try:
-    import src.modules.crm.infrastructure.models.sale_model  # noqa: F401
+    import src.modules.crm.infrastructure.models.sale_model
     import src.modules.offer.infrastructure.models.product_model  # noqa: F401
 except ImportError:
     pass
@@ -32,6 +34,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_appointment_event(
     tenant_id: uuid.UUID,
@@ -66,6 +69,7 @@ def _mock_profile(profile_id: uuid.UUID | None = None):
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 def test_appointment_event_factory():
     """AppointmentEvent.create maps status to correct event_name."""
@@ -111,12 +115,15 @@ def test_appointment_booked_creates_journey_event():
         MagicMock(scalar_one_or_none=MagicMock(return_value=profile)),
     ]
 
-    with patch(
-        "src.core.database.SessionLocal",
-        return_value=mock_db,
-    ), patch(
-        "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
-        return_value=None,
+    with (
+        patch(
+            "src.core.database.SessionLocal",
+            return_value=mock_db,
+        ),
+        patch(
+            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            return_value=None,
+        ),
     ):
         from src.modules.crm.application.event_handlers import handle_appointment_booked
 
@@ -153,14 +160,19 @@ def test_appointment_no_show_creates_journey_event():
         MagicMock(scalar_one_or_none=MagicMock(return_value=profile)),
     ]
 
-    with patch(
-        "src.core.database.SessionLocal",
-        return_value=mock_db,
-    ), patch(
-        "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
-        return_value=None,
+    with (
+        patch(
+            "src.core.database.SessionLocal",
+            return_value=mock_db,
+        ),
+        patch(
+            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            return_value=None,
+        ),
     ):
-        from src.modules.crm.application.event_handlers import handle_appointment_no_show
+        from src.modules.crm.application.event_handlers import (
+            handle_appointment_no_show,
+        )
 
         handle_appointment_no_show(event)
 

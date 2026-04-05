@@ -12,7 +12,7 @@ from src.modules.iam.api.dependencies import get_current_user, get_db
 def _build_client(tenant_id):
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/brand/tools")
-    app.dependency_overrides[get_db] = MagicMock
+    app.dependency_overrides[get_db] = lambda: MagicMock()  # noqa: PLW0108 — lambda required: MagicMock class breaks FastAPI dep injection
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
         id=uuid4(), tenant_id=tenant_id
     )

@@ -1,8 +1,12 @@
-import pytest
-from sqlalchemy import text
-from src.modules.sales_agent.infrastructure.models.channel_model import ChannelConnectionModel
 import json
 import uuid
+
+from sqlalchemy import text
+
+from src.modules.connections.infrastructure.models.channel_connection_model import (
+    ChannelConnectionModel,
+)
+
 
 def test_channel_credentials_encryption(db):
     """
@@ -15,7 +19,7 @@ def test_channel_credentials_encryption(db):
         tenant_id=tenant_id,
         channel_type="whatsapp",
         credentials=credentials,
-        config={"some": "config"}
+        config={"some": "config"},
     )
     db.add(channel)
     db.commit()
@@ -28,20 +32,18 @@ def test_channel_credentials_encryption(db):
     # 3. Verify it is encrypted in the database using raw SQL
     # Note: In SQLite (tests), JSONB is stored as TEXT.
     result = db.execute(
-        text(f"SELECT credentials FROM channel_connections WHERE id = '{channel.id}'")
+        text("SELECT credentials FROM channel_connections WHERE id = :cid"),
+        {"cid": str(channel.id)},
     ).scalar()
-    
+
     print(f"Raw DB value: {result}")
-    
-    # SQLite stores JSON as text string.
-    if isinstance(result, str):
-        stored_json = json.loads(result)
-    else:
-        stored_json = result
-        
+
+    stored_json = json.loads(result) if isinstance(result, str) else result
+
     assert "_encrypted" in stored_json
     # Ensure it's not just the plain JSON
-    assert stored_json["_encrypted"] != json.dumps(credentials) 
+    assert stored_json["_encrypted"] != json.dumps(credentials)
+
 
 def test_channel_credentials_legacy_support(db):
     """
@@ -52,36 +54,41 @@ def test_channel_credentials_legacy_support(db):
     tenant_id = uuid.uuid4()
     legacy_creds = {"legacy": "true", "key": "old_secret"}
     legacy_creds_json = json.dumps(legacy_creds)
-    
+
     # We use raw SQL to bypass the ORM encryption
-    db.execute(text(f"""
-        INSERT INTO channel_connections (id, tenant_id, channel_type, credentials, config, is_active)
-        VALUES ('{channel_id}', '{tenant_id}', 'telegram', '{legacy_creds_json}', '{{}}', 1)
-    """))
+    db.execute(
+        text(
+            "INSERT INTO channel_connections (id, tenant_id, channel_type, credentials, config, is_active)"
+            " VALUES (:cid, :tid, 'telegram', :creds, '{}', 1)"
+        ),
+        {"cid": str(channel_id), "tid": str(tenant_id), "creds": legacy_creds_json},
+    )
     db.commit()
-    
+
     # 2. Retrieve using ORM
-    channel = db.query(ChannelConnectionModel).filter(ChannelConnectionModel.id == channel_id).first()
-    
+    channel = (
+        db.query(ChannelConnectionModel)
+        .filter(ChannelConnectionModel.id == channel_id)
+        .first()
+    )
+
     assert channel is not None
     # Should be read as is (no _encrypted key) because it lacks the marker
     assert channel.credentials == legacy_creds
-    
+
     # 3. Save it again (should encrypt now because we are going through ORM)
     channel.credentials = {"new": "value"}
     db.commit()
     db.refresh(channel)
-    
+
     assert channel.credentials == {"new": "value"}
-    
+
     # Verify encryption
     result = db.execute(
-        text(f"SELECT credentials FROM channel_connections WHERE id = '{channel_id}'")
+        text("SELECT credentials FROM channel_connections WHERE id = :cid"),
+        {"cid": str(channel_id)},
     ).scalar()
-    
-    if isinstance(result, str):
-        stored_json = json.loads(result)
-    else:
-        stored_json = result
-        
+
+    stored_json = json.loads(result) if isinstance(result, str) else result
+
     assert "_encrypted" in stored_json
