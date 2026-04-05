@@ -17,6 +17,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     try {
       const saved = localStorage.getItem("sidebar-collapsed");
       if (saved === "true") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync localStorage state after SSR hydration
         setIsCollapsed(true);
       }
     } catch {
