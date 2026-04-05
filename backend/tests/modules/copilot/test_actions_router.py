@@ -58,7 +58,7 @@ def test_copilot_brand_extract_delegates_to_service():
     with patch("src.modules.copilot.api.actions.CopilotBrandAIActionsService") as service_cls:
         service_instance = MagicMock()
         service_instance.extract_brand_identity = AsyncMock(
-            return_value={"brand_name": "Visionarias", "industry": "Marketing"}
+            return_value={"primary_color": "#FF5733", "secondary_color": "#333333"}
         )
         service_cls.return_value = service_instance
 
@@ -71,7 +71,7 @@ def test_copilot_brand_extract_delegates_to_service():
         )
 
     assert response.status_code == 200
-    assert response.json()["brand_name"] == "Visionarias"
+    assert response.json()["primary_color"] == "#FF5733"
     service_instance.extract_brand_identity.assert_awaited_once_with(
         "https://visionarias.ai",
         "brand_identity",
