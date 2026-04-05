@@ -23,20 +23,20 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 
 ## Commands
 
-**All commands run inside Docker. Never run pytest, ruff, alembic, npm, or python on the host.**
+**Lint, tests, and type-checking run NATIVELY in WSL — never inside Docker.**
+**Docker is only for runtime services (FastAPI, DB, Redis, Qdrant) and migrations (Alembic).**
 
-| Action | Skill / Make | Raw Docker |
+| Action | Skill / Make | Native command |
 |---|---|---|
 | Start dev | `/dev-up` or `make dev` | `docker compose up -d` |
 | Start extended (admin, worker) | `make dev-extended` | `docker compose --profile extended up -d` |
-| Backend lint | `/test-backend` or `make ruff` | `docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check src --no-cache"` |
-| Backend lint (native) | — | `cd backend && .venv/bin/ruff check src/ --no-cache` |
-| Backend tests | `/test-backend` or `make pytest` | `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest -x -q --tb=short"` |
-| Arch tests (native) | — | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
-| Single backend test | `make pytest args="-k test_name"` | `docker exec -t visionarias_brain_dev bash -c "cd /app && pytest tests/modules/brand/ -x -q"` |
-| Frontend types | `/test-frontend` | `docker exec -t visionarias_client_dev npx tsc --noEmit` |
-| Frontend lint | `/test-frontend` | `docker exec -t visionarias_client_dev npx next lint` |
-| Frontend tests | `/test-frontend` or `make vitest` | `docker exec -t visionarias_client_dev npm run test` |
+| Backend lint | `/test-backend` or `make ruff` | `cd backend && .venv/bin/ruff check src/ --no-cache` |
+| Backend tests | `/test-backend` or `make pytest` | `cd backend && .venv/bin/pytest -x -q --tb=short` |
+| Arch tests | `make arch-test` | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
+| Single backend test | `make pytest args="-k test_name"` | `cd backend && .venv/bin/pytest tests/modules/brand/ -x -q` |
+| Frontend types | `/test-frontend` or `make tsc` | `cd frontend && npx tsc --noEmit` |
+| Frontend lint | `/test-frontend` | `cd frontend && npx next lint` |
+| Frontend tests | `/test-frontend` or `make vitest` | `cd frontend && npx vitest run` |
 | Full CI | `/test-all` | Backend lint+tests, then frontend types+lint+tests |
 | Run migration | `/migrate <msg>` | `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"` |
 | Explore module | `/explore-module <name>` | — |
@@ -99,28 +99,60 @@ Key: `fetchClient` (in `lib/`) auto-injects `X-Tenant-ID` from Clerk session —
 
 Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) → push images to GHCR (`ghcr.io/alpacapurpura/visionarias-{backend,frontend}:latest`).
 
-## Native Dev Tools (WSL)
+## Native Dev Tools (WSL) — MANDATORY
 
 > **Why:** Docker volume mounts (`/app`) always point to the main repo clone. When running
 > parallel agents with git worktrees, the container sees stale code from the wrong worktree.
 > Native tools read the actual filesystem path, making them reliable for multiagent workflows.
 
-**virtualenv:** `backend/.venv` (already set up; excluded from git via `.gitignore`)
+**CRITICAL RULE: NEVER use `docker exec` for lint, tests, or type-checking. Always run natively.**
+
+### Backend (Python)
+
+**virtualenv:** `backend/.venv` (Python 3.12, ruff, pytest, pytest-cov, factory-boy, faker)
 
 | Task | Native command (run from repo root) |
 |---|---|
 | Lint | `cd backend && .venv/bin/ruff check src/ --no-cache` |
+| Format check | `cd backend && .venv/bin/ruff format --check src/` |
+| All tests | `cd backend && .venv/bin/pytest -x -q --tb=short` |
 | Architecture tests | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
+| Tests with coverage | `cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short` |
+| Single module | `cd backend && .venv/bin/pytest tests/modules/{module}/ -v` |
 
-**When to use native vs Docker:**
+### Frontend (Node.js)
 
-- **Native (lint + arch tests):** fast, no DB/Redis required, safe in worktrees. Use when Docker is unreliable or when running inside a git worktree.
-- **Docker (integration tests, migrations, full CI):** required for anything that touches PostgreSQL, Redis, Qdrant, or external services. Always use Docker for the full test suite before merging.
+**node_modules:** `frontend/node_modules` (vitest, tsc, next, eslint)
+
+| Task | Native command (run from repo root) |
+|---|---|
+| Type check | `cd frontend && npx tsc --noEmit` |
+| Lint | `cd frontend && npx next lint` |
+| All tests | `cd frontend && npx vitest run` |
+| Tests with coverage | `cd frontend && npx vitest run --coverage` |
+| Single feature | `cd frontend && npx vitest run src/features/{domain}/` |
+
+### Docker ONLY for:
+- Runtime services: `docker compose up -d`
+- Migrations: `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"`
+- Logs: `docker logs visionarias_brain_dev --tail 100`
+- E2E tests: `make e2e-smoke` (needs running services)
+- Migration verification on fresh DB
+
+### PROHIBITED (never do this):
+```
+docker exec -t visionarias_brain_dev bash -c "ruff ..."
+docker exec -t visionarias_brain_dev bash -c "pytest ..."
+docker exec -t visionarias_client_dev npx tsc ...
+docker exec -t visionarias_client_dev npx vitest ...
+docker exec -t visionarias_client_dev npx next lint ...
+docker run --rm ... ruff|pytest|tsc|vitest ...
+```
 
 ## Critical Rules
 
 1. **Anti-Hallucination:** Read `docs/domains/INDEX.md` before coding. Never guess classes/fields.
-2. **Docker-First:** All commands run inside Docker. See `.claude/rules/docker-first.md`.
+2. **Native-First Testing:** Lint, tests, type-checks run natively in WSL — never inside Docker. See `.claude/rules/docker-first.md`.
 3. **Tenant Isolation:** ALL queries filter by `X-Tenant-ID`. See `.claude/rules/tenant-isolation.md`.
 4. **Backend DDD:** Inside-Out layers, no cross-module imports (except copilot). See `.claude/rules/backend-ddd.md`.
 5. **Frontend FSD:** Server Components by default, no deep feature imports (except copilot). See `.claude/rules/frontend-fsd.md`.
