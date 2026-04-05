@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ChevronRight, BarChart3, Crosshair } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { BarChart3, Crosshair } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
@@ -15,21 +15,32 @@ function formatNum(n: number): string {
   return n.toLocaleString('es-ES');
 }
 
-function formatMoney(n: number): string {
-  return `$${n.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-  if (hex.startsWith('hsl')) return hex;
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
 function getMetricValue(metrics: MetricValue[], name: string): number {
   return metrics.find((m) => m.name === name)?.value ?? 0;
 }
+
+// ─── Color Map ───────────────────────────────────────────────────────────────
+
+const COLOR_MAP = {
+  blue: {
+    iconBg: 'bg-blue-100 dark:bg-blue-500/20',
+    iconText: 'text-blue-600 dark:text-blue-400',
+    hoverBorder: 'hover:border-blue-300 dark:hover:border-blue-700',
+    hoverText: 'group-hover:text-blue-600 dark:group-hover:text-blue-400',
+    borderAccent: 'border-l-blue-400 hover:border-l-blue-500',
+    headerIcon: 'text-blue-600',
+    headerBg: 'bg-blue-500/5',
+  },
+  violet: {
+    iconBg: 'bg-violet-100 dark:bg-violet-500/20',
+    iconText: 'text-violet-600 dark:text-violet-400',
+    hoverBorder: 'hover:border-violet-300 dark:hover:border-violet-700',
+    hoverText: 'group-hover:text-violet-600 dark:group-hover:text-violet-400',
+    borderAccent: 'border-l-violet-400 hover:border-l-violet-500',
+    headerIcon: 'text-violet-600',
+    headerBg: 'bg-violet-500/5',
+  },
+} as const;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -39,101 +50,63 @@ interface ChannelGroupProps {
   title: string;
   variant: ChannelGroupVariant;
   channels: ChannelMetric[];
-  /** Max primary value across ALL groups (for proportional bars) */
-  maxPrimary: number;
-  /** Summary text for the header right side */
+  headerIcon: LucideIcon;
+  baseColor: keyof typeof COLOR_MAP;
   summary?: string;
-  /** Additional summary element (e.g., spend total) */
   summaryExtra?: string;
-  /** Total leads for share computation (capture groups) */
-  totalLeads?: number;
+  accentBorder?: boolean;
   onChannelClick?: (channel: ChannelMetric) => void;
   onConfigure?: (slug: string, name: string) => void;
 }
 
-// ─── Secondary metric extraction per variant ─────────────────────────────────
+// ─── Primary metric extraction per variant ──────────────────────────────────
 
-function getSecondaryMetrics(
+function getPrimaryMetric(
   channel: ChannelMetric,
   variant: ChannelGroupVariant,
-): { secondary1: string; secondary2: string } {
+): { value: number; label: string } {
   const metrics = channel.metrics;
-
   switch (variant) {
     case 'paid': {
-      const spend = getMetricValue(metrics, 'spend');
-      const costType = channel.costType ?? 'CPM';
-      let efficiency = '';
-      if (costType === 'CPC') {
-        const clicks = getMetricValue(metrics, 'clicks');
-        efficiency = clicks > 0 ? `CPC ${formatMoney(spend / clicks)}` : '';
-      } else if (costType === 'CPV') {
-        const views = getMetricValue(metrics, 'reach');
-        efficiency = views > 0 ? `CPV ${formatMoney(spend / views)}` : '';
-      } else {
-        const reach = getMetricValue(metrics, 'reach') || getMetricValue(metrics, 'impressions');
-        efficiency = reach > 0 ? `CPM ${formatMoney((spend / reach) * 1000)}` : '';
-      }
-      return { secondary1: formatMoney(spend), secondary2: efficiency };
+      const val = getMetricValue(metrics, 'impressions');
+      return { value: val, label: 'impresiones' };
     }
     case 'organic': {
-      const engagement = getMetricValue(metrics, 'engagement');
       const reach = getMetricValue(metrics, 'reach');
       const sessions = getMetricValue(metrics, 'sessions');
-      // GA4-type channels show sessions + bounce rate
-      if (sessions > 0 && reach === 0) {
-        const bounce = getMetricValue(metrics, 'bounceRate') || getMetricValue(metrics, 'bounce_rate');
-        return {
-          secondary1: `${formatNum(sessions)} sessions`,
-          secondary2: bounce > 0 ? `bounce ${bounce.toFixed(0)}%` : '',
-        };
-      }
-      // Social channels show engagement + rate
-      const rate = reach > 0 ? (engagement / reach) * 100 : 0;
-      return {
-        secondary1: engagement > 0 ? `eng ${formatNum(engagement)}` : '',
-        secondary2: rate > 0 ? `rate ${rate.toFixed(1)}%` : '',
-      };
+      if (reach > 0) return { value: reach, label: 'alcance' };
+      return { value: sessions, label: 'sesiones' };
     }
     case 'outbound': {
-      const contacts = getMetricValue(metrics, 'contacts') || getMetricValue(metrics, 'comment_triggers') || getMetricValue(metrics, 'flows_triggered');
-      const responses = getMetricValue(metrics, 'responses') || getMetricValue(metrics, 'dm_opens');
-      const rate = contacts > 0 ? (responses / contacts) * 100 : 0;
-      return {
-        secondary1: responses > 0 ? `${formatNum(responses)} resp` : '',
-        secondary2: rate > 0 ? `${rate.toFixed(0)}%` : '',
-      };
+      const contacts = getMetricValue(metrics, 'contacts') || getMetricValue(metrics, 'comment_triggers');
+      return { value: contacts, label: 'contactos' };
     }
     case 'capture_web':
     case 'capture_messaging': {
-      return { secondary1: '', secondary2: '' };
+      const leads = getMetricValue(metrics, 'leads');
+      return { value: leads, label: 'leads' };
     }
-  }
-}
-
-function getPrimaryValue(channel: ChannelMetric, variant: ChannelGroupVariant): number {
-  const metrics = channel.metrics;
-  switch (variant) {
-    case 'paid':
-      return getMetricValue(metrics, 'reach') || getMetricValue(metrics, 'impressions') || getMetricValue(metrics, 'sessions');
-    case 'organic':
-      return getMetricValue(metrics, 'reach') || getMetricValue(metrics, 'sessions');
-    case 'outbound':
-      return getMetricValue(metrics, 'contacts') || getMetricValue(metrics, 'comment_triggers') || getMetricValue(metrics, 'flows_triggered');
-    case 'capture_web':
-    case 'capture_messaging':
-      return getMetricValue(metrics, 'leads');
   }
 }
 
 // ─── Channel icon wrapper (avoids creating components during render) ─────────
 
 /* eslint-disable react-hooks/static-components -- dynamic icon from registry */
-function ChannelIconBadge({ slug, className, style }: { slug: string; className?: string; style?: React.CSSProperties }) {
+function ChannelIconBadge({ slug, className }: { slug: string; className?: string }) {
   const Icon = getChannelIcon(slug);
-  return <Icon className={className} style={style} />;
+  const iconColor = getChannelColor(slug);
+  return <Icon className={className} style={{ color: iconColor }} />;
 }
 /* eslint-enable react-hooks/static-components */
+
+// ─── Website expanded metrics ────────────────────────────────────────────────
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const min = Math.floor(seconds / 60);
+  const sec = Math.round(seconds % 60);
+  return `${min}m ${sec}s`;
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -141,35 +114,42 @@ export function ChannelGroup({
   title,
   variant,
   channels,
-  maxPrimary,
+  headerIcon: HeaderIcon,
+  baseColor,
   summary,
   summaryExtra,
-  totalLeads,
+  accentBorder,
   onChannelClick,
   onConfigure,
 }: ChannelGroupProps) {
-  const isCapture = variant === 'capture_web' || variant === 'capture_messaging';
+  const colors = COLOR_MAP[baseColor];
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
+    <div className={cn(
+      'bg-card rounded-lg border border-border shadow-sm overflow-hidden',
+      accentBorder && `border-l-4 ${colors.borderAccent}`,
+    )}>
       {/* Header */}
-      <div className="bg-muted/50 px-4 py-2.5 flex justify-between items-center border-b border-border">
-        <span className="text-sm font-medium text-foreground/90">{title}</span>
+      <div className={cn(colors.headerBg, 'px-4 py-3 border-b border-border flex justify-between items-center')}>
+        <span className="font-medium text-sm text-foreground/90 flex items-center">
+          <HeaderIcon className={cn('w-4 h-4 mr-2', colors.headerIcon)} />
+          {title}
+        </span>
         <div className="flex gap-4 text-xs">
           {summary && <span className="text-muted-foreground">{summary}</span>}
           {summaryExtra && <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{summaryExtra}</span>}
         </div>
       </div>
 
-      {/* Channel rows */}
-      <div className="divide-y divide-border/50">
+      {/* Channel cards */}
+      <div className="p-4 grid grid-cols-1 gap-2">
         {channels.map((channel) => {
-          // Website expanded row
           if (channel.channelType === 'website') {
             return (
               <WebsiteExpandedRow
                 key={channel.slug}
                 channel={channel}
+                baseColor={baseColor}
                 onClick={onChannelClick ? () => onChannelClick(channel) : undefined}
               />
             );
@@ -185,23 +165,12 @@ export function ChannelGroup({
             );
           }
 
-          const primary = getPrimaryValue(channel, variant);
-          const hasData = channel.metrics.length > 0 && channel.metrics.some((m) => m.value > 0);
-          const { secondary1, secondary2 } = getSecondaryMetrics(channel, variant);
-          const barPct = maxPrimary > 0 ? (primary / maxPrimary) * 100 : 0;
-          const shareOfLeads = isCapture && totalLeads && totalLeads > 0
-            ? ((primary / totalLeads) * 100).toFixed(1)
-            : null;
-
           return (
-            <ChannelRowInner
+            <ChannelRowCard
               key={channel.slug}
               channel={channel}
-              primary={primary}
-              barPct={barPct}
-              secondary1={secondary1}
-              secondary2={isCapture && shareOfLeads ? `${shareOfLeads}% share` : secondary2}
-              hasData={hasData}
+              variant={variant}
+              baseColor={baseColor}
               onClick={onChannelClick ? () => onChannelClick(channel) : undefined}
             />
           );
@@ -211,137 +180,73 @@ export function ChannelGroup({
   );
 }
 
-// ─── Row sub-components ──────────────────────────────────────────────────────
+// ─── Card-style channel row ─────────────────────────────────────────────────
 
-function ChannelRowInner({
+function ChannelRowCard({
   channel,
-  primary,
-  barPct,
-  secondary1,
-  secondary2,
-  hasData,
+  variant,
+  baseColor,
   onClick,
 }: {
   channel: ChannelMetric;
-  primary: number;
-  barPct: number;
-  secondary1: string;
-  secondary2: string;
-  hasData: boolean;
+  variant: ChannelGroupVariant;
+  baseColor: keyof typeof COLOR_MAP;
   onClick?: () => void;
 }) {
-  const iconColor = getChannelColor(channel.slug);
+  const colors = COLOR_MAP[baseColor];
+  const hasData = channel.metrics.length > 0 && channel.metrics.some((m) => m.value > 0);
+  const { value, label } = getPrimaryMetric(channel, variant);
 
   return (
     <div
       className={cn(
-        'flex items-center justify-between px-4 py-2.5 hover:bg-muted/30 transition-colors group',
-        onClick && 'cursor-pointer',
+        'border border-border rounded-md p-3 flex justify-between items-center bg-card transition-colors group cursor-pointer',
+        colors.hoverBorder,
       )}
       onClick={onClick}
     >
       {/* Left: icon + name + status */}
-      <div className="flex items-center gap-3 min-w-0 shrink-0">
-        <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-transform duration-100 group-hover:scale-105"
-          style={{ backgroundColor: hexToRgba(iconColor, 0.12) }}
-        >
-          <ChannelIconBadge slug={channel.slug} className="w-4 h-4" style={{ color: iconColor }} />
+      <div className="flex items-center gap-3">
+        <div className={cn('w-8 h-8 rounded flex items-center justify-center shrink-0', colors.iconBg)}>
+          <ChannelIconBadge slug={channel.slug} className="w-4 h-4" />
         </div>
-        <div className="min-w-0">
-          <p className="text-sm font-medium truncate">{channel.name}</p>
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                'w-1.5 h-1.5 rounded-full shrink-0',
-                hasData ? 'bg-emerald-400' : 'bg-amber-400',
-              )}
-            />
-            <span className="text-[10px] text-muted-foreground truncate">
-              {channel.subSources && channel.subSources.length > 1
-                ? channel.subSources.map((s) => s.name).join(' + ')
-                : channel.sourceDisplayName
-                  ? `${channel.sourceLabel} · ${channel.sourceDisplayName}`
-                  : channel.sourceLabel}
-            </span>
-            {channel.stale && (
-              <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 dark:text-yellow-400 text-[10px] py-0 h-4">
-                Desactualizado
-              </Badge>
-            )}
-            {channel.errorMessage && (
-              <Badge variant="outline" className="border-red-500/50 text-red-600 dark:text-red-400 text-[10px] py-0 h-4">
-                Error
-              </Badge>
-            )}
-          </div>
+        <div>
+          <p className="text-sm font-medium text-foreground">{channel.name}</p>
+          <p className={cn(
+            'text-[10px] font-semibold',
+            hasData ? 'text-emerald-600 dark:text-emerald-500' : 'text-amber-600 dark:text-amber-500',
+          )}>
+            {hasData ? 'Activo' : 'Sin datos'}
+          </p>
         </div>
       </div>
 
-      {/* Right: bar + metrics + chevron */}
-      <div className="flex items-center gap-4 shrink-0">
-        {/* Proportional bar + value */}
-        <div className="hidden sm:flex w-28 items-center gap-2">
-          <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.max(barPct, 1)}%`,
-                backgroundColor: iconColor,
-                opacity: hasData ? 0.7 : 0.2,
-              }}
-            />
-          </div>
-          <span className={cn(
-            'text-sm font-semibold tabular-nums w-12 text-right',
-            !hasData && 'text-muted-foreground',
-          )}>
-            {hasData ? formatNum(primary) : '0'}
-          </span>
-        </div>
-        {/* Mobile: just the number */}
-        <span className="sm:hidden text-sm font-semibold tabular-nums">
-          {hasData ? formatNum(primary) : '0'}
-        </span>
-
-        {/* Secondary metrics */}
-        {secondary1 && (
-          <span className="hidden md:block text-xs text-muted-foreground min-w-[60px] text-right">
-            {secondary1}
-          </span>
-        )}
-        {secondary2 && (
-          <span className="hidden md:block text-xs text-muted-foreground min-w-[80px] text-right">
-            {secondary2}
-          </span>
-        )}
-
-        {/* Chevron */}
-        {onClick && (
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
-        )}
+      {/* Right: primary metric */}
+      <div className="text-right">
+        <p className={cn(
+          'text-sm font-bold underline decoration-dashed underline-offset-4 transition-colors',
+          hasData ? `text-foreground ${colors.hoverText}` : 'text-muted-foreground',
+        )}>
+          {hasData ? formatNum(value) : '0'}
+        </p>
+        <p className="text-[10px] text-muted-foreground">{label}</p>
       </div>
     </div>
   );
 }
 
-// ─── Website expanded row ─────────────────────────────────────────────────────
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  const min = Math.floor(seconds / 60);
-  const sec = Math.round(seconds % 60);
-  return `${min}m ${sec}s`;
-}
+// ─── Website expanded row ────────────────────────────────────────────────────
 
 function WebsiteExpandedRow({
   channel,
+  baseColor,
   onClick,
 }: {
   channel: ChannelMetric;
+  baseColor: keyof typeof COLOR_MAP;
   onClick?: () => void;
 }) {
-  const iconColor = getChannelColor(channel.slug);
+  const colors = COLOR_MAP[baseColor];
   const hasData = channel.connected && channel.metrics.some((m) => m.value > 0);
 
   const users = getMetricValue(channel.metrics, 'users');
@@ -353,30 +258,21 @@ function WebsiteExpandedRow({
   return (
     <div
       className={cn(
-        'px-4 py-3 hover:bg-muted/30 transition-colors group',
+        'border border-border rounded-md p-3 bg-card transition-colors group',
+        colors.hoverBorder,
         onClick && 'cursor-pointer',
       )}
       onClick={onClick}
     >
-      {/* Top: icon + name + chevron */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-transform duration-100 group-hover:scale-105"
-            style={{ backgroundColor: hexToRgba(iconColor, 0.12) }}
-          >
-            <ChannelIconBadge slug={channel.slug} className="w-4 h-4" style={{ color: iconColor }} />
-          </div>
-          <div>
-            <p className="text-sm font-medium">{channel.name}</p>
-            <span className="text-[10px] text-muted-foreground">
-              {channel.sourceLabel}
-            </span>
-          </div>
+      {/* Top: icon + name */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className={cn('w-8 h-8 rounded flex items-center justify-center shrink-0', colors.iconBg)}>
+          <ChannelIconBadge slug={channel.slug} className="w-4 h-4" />
         </div>
-        {onClick && (
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
-        )}
+        <div>
+          <p className="text-sm font-medium">{channel.name}</p>
+          <span className="text-[10px] text-muted-foreground">{channel.sourceLabel}</span>
+        </div>
       </div>
 
       {/* Metrics grid or empty state */}
@@ -422,6 +318,8 @@ function WebsiteExpandedRow({
   );
 }
 
+// ─── Unconnected row ─────────────────────────────────────────────────────────
+
 function UnconnectedRow({
   channel,
   onConfigure,
@@ -429,28 +327,13 @@ function UnconnectedRow({
   channel: ChannelMetric;
   onConfigure?: (slug: string, name: string) => void;
 }) {
-  const iconColor = getChannelColor(channel.slug);
-
   return (
     <div
-      className="flex items-center justify-between px-4 py-2.5 opacity-50 hover:opacity-70 transition-opacity cursor-pointer"
+      className="bg-card text-card-foreground border border-border text-center p-3 rounded-md hover:bg-muted cursor-pointer transition-colors shadow-sm flex flex-col items-center justify-center gap-2"
       onClick={() => onConfigure?.(channel.slug, channel.name)}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
-          style={{ backgroundColor: hexToRgba(iconColor, 0.08) }}
-        >
-          <ChannelIconBadge slug={channel.slug} className="w-4 h-4" style={{ color: iconColor }} />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{channel.name}</p>
-          <span className="text-[10px] text-muted-foreground">No conectado</span>
-        </div>
-      </div>
-      <button className="text-xs text-primary border border-primary/30 rounded-md px-3 py-1 hover:bg-primary/10 transition-colors">
-        Conectar
-      </button>
+      <ChannelIconBadge slug={channel.slug} className="w-5 h-5 opacity-50" />
+      <span className="text-xs font-medium text-foreground">{channel.name}</span>
     </div>
   );
 }

@@ -8,19 +8,14 @@ import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailError from '../ui/DetailError';
 import type { MetricClickData, StageTimeSeries as TSType, ChannelMetric } from '../../../types/metrics';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, RefreshCw, Plug, Zap } from 'lucide-react';
+import { Settings, RefreshCw, Plug, Zap, Megaphone, UserPlus, Coins, TrendingUp, Globe, Bot } from 'lucide-react';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { AttractionScorecards } from '../attraction/AttractionScorecards';
 import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
 import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
 import { ConversionBridge } from '../attraction/ConversionBridge';
-import { ChannelGroup, type ChannelGroupVariant } from '../attraction/ChannelGroup';
+import { ChannelGroup } from '../attraction/ChannelGroup';
 import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
-
-// ─── Filter type ─────────────────────────────────────────────────────────────
-
-type AttractionFilter = 'todos' | 'pagado' | 'organico';
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
@@ -79,7 +74,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   const { startSync, isSyncing } = useGrowthSync();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [rangeDays, setRangeDays] = useState(30);
-  const [attrFilter, setAttrFilter] = useState<AttractionFilter>('todos');
   const [sidebarChannel, setSidebarChannel] = useState<ChannelMetric | null>(null);
   const granularity = rangeDays >= 90 ? 'weekly' : 'daily';
   const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries('attraction', 'reach', rangeDays, granularity);
@@ -112,7 +106,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
     ...(attrData?.organicSocial.channels || []),
     ...(attrData?.ga4Search.channels || []),
   ], [attrData?.organicSocial.channels, attrData?.ga4Search.channels]);
-  const outboundChannels = useMemo(() => attrData?.outbound.channels || [], [attrData?.outbound.channels]);
+
 
   const webCaptureChannels = useMemo(() => capData?.webInfrastructure.channels || [], [capData?.webInfrastructure.channels]);
   const messagingCaptureChannels = useMemo(() => capData?.aiAgent.channels || [], [capData?.aiAgent.channels]);
@@ -126,31 +120,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
     ...(capData?.available?.channels || []),
   ], [attrData?.available?.channels, capData?.available?.channels]);
 
-  // ─── Max primary values for proportional bars ───────────────────────────
-
-  const maxAttractionPrimary = useMemo(() => {
-    const allAttrChannels = [...paidChannels, ...organicChannels, ...outboundChannels];
-    let max = 0;
-    for (const ch of allAttrChannels) {
-      const reach = getMetric(ch.metrics, 'reach') || getMetric(ch.metrics, 'sessions') || getMetric(ch.metrics, 'impressions') || getMetric(ch.metrics, 'contacts') || getMetric(ch.metrics, 'comment_triggers');
-      if (reach > max) max = reach;
-    }
-    return max;
-  }, [paidChannels, organicChannels, outboundChannels]);
-
-  const maxCapturePrimary = useMemo(() => {
-    let max = 0;
-    for (const ch of allCaptureChannels) {
-      const leads = getMetric(ch.metrics, 'leads');
-      if (leads > max) max = leads;
-    }
-    return max;
-  }, [allCaptureChannels]);
-
   // ─── Summary strings ───────────────────────────────────────────────────
 
   const paidSummary = useMemo(() => {
-    // impressions is ADDITIVE — safe to sum across paid channels
     const impressions = paidChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'impressions'), 0);
     return `${impressions.toLocaleString('es-ES')} impresiones`;
   }, [paidChannels]);
@@ -161,7 +133,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   }, [paidChannels]);
 
   const organicSummary = useMemo(() => {
-    // sessions is ADDITIVE — safe to sum across organic channels
     const sessions = organicChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'sessions'), 0);
     return `${sessions.toLocaleString('es-ES')} sesiones`;
   }, [organicChannels]);
@@ -210,7 +181,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   return (
     <div className="space-y-6 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
 
-      {/* ═══ Header ═══ */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -239,7 +210,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
       <ActionPanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
 
-      {/* ═══ Empty State ═══ */}
+      {/* Empty State */}
       {isEmpty ? (
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <div className="text-center py-12 px-4 rounded-xl border-2 border-dashed border-border bg-muted/50">
@@ -252,12 +223,12 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         </div>
       ) : (
         <>
-          {/* ═══ Date Range ═══ */}
+          {/* Date Range */}
           <div className="flex items-center justify-end">
             <DateRangePicker rangeDays={rangeDays} onRangeChange={setRangeDays} />
           </div>
 
-          {/* ═══ Section 1: Hero KPI Strip ═══ */}
+          {/* Section 1: Hero KPI Strip */}
           <AttractionScorecards
             timeSeries={timeSeries}
             totalImpressions={totalImpressions}
@@ -267,7 +238,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
             totalSpend={totalSpend}
           />
 
-          {/* ═══ Section 2: Charts Side-by-Side ═══ */}
+          {/* Section 2: Charts Side-by-Side */}
           <div className="hidden md:grid md:grid-cols-2 gap-4">
             <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
             <CaptureBreakdownChart channels={allCaptureChannels} isLoading={capLoading} />
@@ -279,36 +250,34 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
             capLoading={capLoading}
           />
 
-          {/* ═══ Section 3: Conversion Bridge ═══ */}
+          {/* Section 3: Conversion Bridge */}
           <ConversionBridge
             impressions={totalImpressions}
             visitors={totalVisitors}
             leads={totalLeads}
           />
 
-          {/* ═══ Section 4: Attraction Sources ═══ */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Fuentes de Atraccion</h2>
-              <Tabs
-                value={attrFilter}
-                onValueChange={(v) => setAttrFilter(v as AttractionFilter)}
-              >
-                <TabsList className="h-8">
-                  <TabsTrigger value="pagado" className="px-3 text-xs">Pagado</TabsTrigger>
-                  <TabsTrigger value="organico" className="px-3 text-xs">Organico</TabsTrigger>
-                  <TabsTrigger value="todos" className="px-3 text-xs">Todos</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+          {/* Section 4: Two-Column Layout — Attraction + Capture */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-            <div className="space-y-3">
-              {(attrFilter === 'todos' || attrFilter === 'pagado') && paidChannels.length > 0 && (
+            {/* COLUMNA ATRACCION */}
+            <div className="space-y-6">
+              <div className="border-b border-border pb-2">
+                <h3 className="font-semibold text-lg flex items-center text-foreground/90">
+                  <Megaphone className="w-5 h-5 mr-2 text-blue-500" /> Atraccion
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Canales que generan visibilidad y traen trafico a tu ecosistema.
+                </p>
+              </div>
+
+              {paidChannels.length > 0 && (
                 <ChannelGroup
                   title="Inversion Pagada"
                   variant="paid"
                   channels={paidChannels}
-                  maxPrimary={maxAttractionPrimary}
+                  headerIcon={Coins}
+                  baseColor="blue"
                   summary={paidSummary}
                   summaryExtra={paidSpendSummary}
                   onChannelClick={handleChannelClick}
@@ -316,46 +285,40 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
                 />
               )}
 
-              {(attrFilter === 'todos' || attrFilter === 'organico') && organicChannels.length > 0 && (
+              {organicChannels.length > 0 && (
                 <ChannelGroup
                   title="Trafico Organico"
                   variant="organic"
                   channels={organicChannels}
-                  maxPrimary={maxAttractionPrimary}
+                  headerIcon={TrendingUp}
+                  baseColor="blue"
                   summary={organicSummary}
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
                 />
               )}
 
-              {(attrFilter === 'todos') && outboundChannels.length > 0 && (
-                <ChannelGroup
-                  title="Outbound & Automatizacion"
-                  variant="outbound"
-                  channels={outboundChannels}
-                  maxPrimary={maxAttractionPrimary}
-                  onChannelClick={handleChannelClick}
-                  onConfigure={onConfigure}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* ═══ Section 5: Capture Sources ═══ */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Fuentes de Captura</h2>
-              <span className="text-sm text-muted-foreground">{totalLeads} leads total</span>
+              {/* Outbound oculto hasta tener datos reales */}
             </div>
 
-            <div className="space-y-3">
+            {/* COLUMNA CAPTURA */}
+            <div className="space-y-6">
+              <div className="border-b border-border pb-2">
+                <h3 className="font-semibold text-lg flex items-center text-foreground/90">
+                  <UserPlus className="w-5 h-5 mr-2 text-violet-500" /> Captura
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Donde los visitantes se convierten en leads con datos de contacto.
+                </p>
+              </div>
+
               <ChannelGroup
                 title="Web & Formularios"
                 variant="capture_web"
                 channels={webCaptureChannels}
-                maxPrimary={maxCapturePrimary}
+                headerIcon={Globe}
+                baseColor="violet"
                 summary={webCaptureSummary}
-                totalLeads={totalLeads}
                 onChannelClick={handleChannelClick}
                 onConfigure={onConfigure}
               />
@@ -365,9 +328,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
                   title="AI Agent & Mensajeria"
                   variant="capture_messaging"
                   channels={messagingCaptureChannels}
-                  maxPrimary={maxCapturePrimary}
+                  headerIcon={Bot}
+                  baseColor="violet"
                   summary={msgCaptureSummary}
-                  totalLeads={totalLeads}
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
                 />
@@ -375,7 +338,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
             </div>
           </div>
 
-          {/* ═══ Section 6: Connect More CTA ═══ */}
+          {/* Section 5: Connect More CTA */}
           {availableChannels.length > 0 && (
             <div className="bg-muted/30 border border-dashed border-border rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
@@ -399,7 +362,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         </>
       )}
 
-      {/* ═══ Channel Detail Sidebar ═══ */}
+      {/* Channel Detail Sidebar */}
       <ChannelDetailSidebar
         isOpen={sidebarChannel !== null}
         onClose={() => setSidebarChannel(null)}
