@@ -3,6 +3,7 @@ import string
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.core.config import settings as app_settings
@@ -52,7 +53,9 @@ async def get_general_settings(
         )
 
     tenant = (
-        db.query(TenantModel).filter(TenantModel.id == current_user.tenant_id).first()
+        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
+        .scalars()
+        .first()
     )
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -78,7 +81,9 @@ async def update_general_settings(
         )
 
     tenant = (
-        db.query(TenantModel).filter(TenantModel.id == current_user.tenant_id).first()
+        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
+        .scalars()
+        .first()
     )
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -111,7 +116,9 @@ async def get_ai_settings(
         )
 
     tenant = (
-        db.query(TenantModel).filter(TenantModel.id == current_user.tenant_id).first()
+        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
+        .scalars()
+        .first()
     )
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -141,8 +148,10 @@ async def get_user_profile(
     tenant_profile = None
     if getattr(current_user, "tenant_id", None):
         tenant = (
-            db.query(TenantModel)
-            .filter(TenantModel.id == current_user.tenant_id)
+            db.execute(
+                select(TenantModel).where(TenantModel.id == current_user.tenant_id)
+            )
+            .scalars()
             .first()
         )
         if tenant:
@@ -183,7 +192,9 @@ async def get_webhook_settings(
         )
 
     tenant = (
-        db.query(TenantModel).filter(TenantModel.id == current_user.tenant_id).first()
+        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
+        .scalars()
+        .first()
     )
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -215,7 +226,9 @@ async def regenerate_webhook_secret(
         )
 
     tenant = (
-        db.query(TenantModel).filter(TenantModel.id == current_user.tenant_id).first()
+        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
+        .scalars()
+        .first()
     )
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -255,7 +268,9 @@ async def update_ai_settings(
         )
 
     tenant = (
-        db.query(TenantModel).filter(TenantModel.id == current_user.tenant_id).first()
+        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
+        .scalars()
+        .first()
     )
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -292,13 +307,16 @@ async def get_team_members(
 
     # FIX: Query User via UserTenant M:N table
     users = (
-        db.query(UserModel)
-        .join(UserTenantModel)
-        .filter(
-            UserTenantModel.tenant_id == current_user.tenant_id,
-            UserTenantModel.is_active.is_(True),
+        db.execute(
+            select(UserModel)
+            .join(UserTenantModel)
+            .where(
+                UserTenantModel.tenant_id == current_user.tenant_id,
+                UserTenantModel.is_active.is_(True),
+            )
+            .order_by(UserModel.created_at)
         )
-        .order_by(UserModel.created_at)
+        .scalars()
         .all()
     )
 
@@ -310,12 +328,14 @@ async def get_team_members(
     for u in users:
         # Fetch the specific role for this tenant
         link = (
-            db.query(UserTenantModel)
-            .filter(
-                UserTenantModel.user_id == u.id,
-                UserTenantModel.tenant_id == current_user.tenant_id,
-                UserTenantModel.is_active.is_(True),
+            db.execute(
+                select(UserTenantModel).where(
+                    UserTenantModel.user_id == u.id,
+                    UserTenantModel.tenant_id == current_user.tenant_id,
+                    UserTenantModel.is_active.is_(True),
+                )
             )
+            .scalars()
             .first()
         )
 
@@ -351,27 +371,34 @@ async def create_team_member(
 
     # Check limit
     # Max 3 users total (Admin + 2).
-    count = (
-        db.query(UserTenantModel)
-        .filter(
+    count = db.execute(
+        select(func.count(UserTenantModel.user_id)).where(
             UserTenantModel.tenant_id == current_user.tenant_id,
             UserTenantModel.is_active.is_(True),
         )
-        .count()
-    )
+    ).scalar()
     if count >= 3:
         raise HTTPException(
             status_code=403, detail="Límite de usuarios alcanzado (Máximo 3 por plan)."
         )
 
     # Check email usage locally
-    existing_user = db.query(UserModel).filter(UserModel.email == user_in.email).first()
+    existing_user = (
+        db.execute(select(UserModel).where(UserModel.email == user_in.email))
+        .scalars()
+        .first()
+    )
     if existing_user:
         # Check if already in tenant
         if (
-            db.query(UserTenantModel)
-            .filter_by(user_id=existing_user.id, tenant_id=current_user.tenant_id)
-            .filter(UserTenantModel.is_active.is_(True))
+            db.execute(
+                select(UserTenantModel).where(
+                    UserTenantModel.user_id == existing_user.id,
+                    UserTenantModel.tenant_id == current_user.tenant_id,
+                    UserTenantModel.is_active.is_(True),
+                )
+            )
+            .scalars()
             .first()
         ):
             raise HTTPException(

@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.iam.domain.tenant import Tenant
@@ -16,13 +17,12 @@ class UserTenantRepository:
         Returns a list of (Tenant, role) tuples for a given user.
         Only returns active tenants.
         """
-        results = (
-            self.db.query(TenantModel, UserTenantModel.role)
+        results = self.db.execute(
+            select(TenantModel, UserTenantModel.role)
             .join(UserTenantModel, TenantModel.id == UserTenantModel.tenant_id)
-            .filter(UserTenantModel.user_id == user_id)
-            .filter(UserTenantModel.is_active.is_(True))
-            .filter(TenantModel.is_active.is_(True))
-            .all()
-        )
+            .where(UserTenantModel.user_id == user_id)
+            .where(UserTenantModel.is_active.is_(True))
+            .where(TenantModel.is_active.is_(True))
+        ).all()
 
         return [(Tenant.model_validate(tenant), role) for tenant, role in results]

@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.iam.domain.tenant import Tenant
@@ -11,20 +12,30 @@ class TenantRepository:
         self.db = db
 
     def get_by_id(self, tenant_id: UUID) -> Tenant | None:
-        model = self.db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
+        model = (
+            self.db.execute(select(TenantModel).where(TenantModel.id == tenant_id))
+            .scalars()
+            .first()
+        )
         if model:
             return Tenant.model_validate(model)
         return None
 
     def get_by_slug(self, slug: str) -> Tenant | None:
-        model = self.db.query(TenantModel).filter(TenantModel.slug == slug).first()
+        model = (
+            self.db.execute(select(TenantModel).where(TenantModel.slug == slug))
+            .scalars()
+            .first()
+        )
         if model:
             return Tenant.model_validate(model)
         return None
 
     def get_all(self) -> list[Tenant]:
         models = (
-            self.db.query(TenantModel).order_by(TenantModel.created_at.desc()).all()
+            self.db.execute(select(TenantModel).order_by(TenantModel.created_at.desc()))
+            .scalars()
+            .all()
         )
         return [Tenant.model_validate(m) for m in models]
 
@@ -47,7 +58,9 @@ class TenantRepository:
 
     def update(self, tenant: Tenant) -> Tenant:
         db_tenant = (
-            self.db.query(TenantModel).filter(TenantModel.id == tenant.id).first()
+            self.db.execute(select(TenantModel).where(TenantModel.id == tenant.id))
+            .scalars()
+            .first()
         )
         if db_tenant:
             db_tenant.name = tenant.name
