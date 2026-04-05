@@ -9,6 +9,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
 from src.core.database import get_db
@@ -76,13 +77,16 @@ async def get_pipeline(
     """Get high-intent leads for the pipeline view."""
     # Fallback to simple query until repo method is robust
     leads_orm = (
-        db.query(LeadModel)
-        .options(joinedload(LeadModel.customer))
-        .filter(
-            LeadModel.tenant_id == user.tenant_id,
-            LeadModel.is_blacklisted.is_(False),
+        db.execute(
+            select(LeadModel)
+            .options(joinedload(LeadModel.customer))
+            .where(
+                LeadModel.tenant_id == user.tenant_id,
+                LeadModel.is_blacklisted.is_(False),
+            )
+            .limit(limit)
         )
-        .limit(limit)
+        .scalars()
         .all()
     )
 
@@ -136,8 +140,6 @@ async def override_stage(
     svc = LifecycleService(db)
 
     # Get current stage for response
-    from sqlalchemy import select
-
     from src.modules.crm.infrastructure.models.customer_model import (
         CustomerProfileModel,
     )

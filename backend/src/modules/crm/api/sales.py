@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
@@ -126,8 +127,12 @@ async def get_ticker(
     customer_map = {}
     if customer_ids:
         customers = (
-            db.query(CustomerProfileModel)
-            .filter(CustomerProfileModel.id.in_(customer_ids))
+            db.execute(
+                select(CustomerProfileModel).where(
+                    CustomerProfileModel.id.in_(customer_ids)
+                )
+            )
+            .scalars()
             .all()
         )
         for c in customers:
@@ -135,7 +140,11 @@ async def get_ticker(
 
     offer_map = {}
     if offer_ids:
-        offers = db.query(ProductModel).filter(ProductModel.id.in_(offer_ids)).all()
+        offers = (
+            db.execute(select(ProductModel).where(ProductModel.id.in_(offer_ids)))
+            .scalars()
+            .all()
+        )
         for o in offers:
             offer_map[o.id] = o.name or "Unknown Offer"
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.enums import SaleStatus
@@ -32,7 +33,11 @@ class SaleRepository:
         )
 
     def save(self, sale: Sale) -> Sale:
-        model = self.db.query(SaleModel).filter(SaleModel.id == sale.id).first()
+        model = (
+            self.db.execute(select(SaleModel).where(SaleModel.id == sale.id))
+            .scalars()
+            .first()
+        )
         if not model:
             model = SaleModel(id=sale.id)
             self.db.add(model)
@@ -55,37 +60,49 @@ class SaleRepository:
         return self._to_domain(model)
 
     def find_by_id(self, sale_id: UUID) -> Sale | None:
-        model = self.db.query(SaleModel).filter(SaleModel.id == sale_id).first()
+        model = (
+            self.db.execute(select(SaleModel).where(SaleModel.id == sale_id))
+            .scalars()
+            .first()
+        )
         return self._to_domain(model) if model else None
 
     def find_by_customer_id(self, customer_id: UUID) -> list[Sale]:
         models = (
-            self.db.query(SaleModel).filter(SaleModel.customer_id == customer_id).all()
+            self.db.execute(
+                select(SaleModel).where(SaleModel.customer_id == customer_id)
+            )
+            .scalars()
+            .all()
         )
         return [self._to_domain(m) for m in models]
 
     def count_sales_by_customer(self, customer_id: UUID) -> int:
         return (
-            self.db.query(SaleModel)
-            .filter(
-                SaleModel.customer_id == customer_id,
-                SaleModel.status == SaleStatus.COMPLETED,
-            )
-            .count()
+            self.db.execute(
+                select(func.count(SaleModel.id)).where(
+                    SaleModel.customer_id == customer_id,
+                    SaleModel.status == SaleStatus.COMPLETED,
+                )
+            ).scalar()
+            or 0
         )
 
     def get_sales_by_date_range(
         self, tenant_id: UUID, start: datetime, end: datetime
     ) -> list[Sale]:
         models = (
-            self.db.query(SaleModel)
-            .filter(
-                SaleModel.tenant_id == tenant_id,
-                SaleModel.status == SaleStatus.COMPLETED,
-                SaleModel.occurred_at >= start,
-                SaleModel.occurred_at <= end,
+            self.db.execute(
+                select(SaleModel)
+                .where(
+                    SaleModel.tenant_id == tenant_id,
+                    SaleModel.status == SaleStatus.COMPLETED,
+                    SaleModel.occurred_at >= start,
+                    SaleModel.occurred_at <= end,
+                )
+                .order_by(SaleModel.occurred_at.desc())
             )
-            .order_by(SaleModel.occurred_at.desc())
+            .scalars()
             .all()
         )
         return [self._to_domain(m) for m in models]

@@ -9,7 +9,7 @@ from src.modules.iam.api.dependencies import get_current_user
 from src.modules.iam.domain.user import User
 from src.modules.landing.application.landing_service import LandingService
 from src.modules.landing.domain.landing_page import LandingPage
-from src.modules.landing.schemas import RegenerateBlockRequest
+from src.modules.landing.schemas import RegenerateBlockRequest, RegenerateBlockResponse
 
 router = APIRouter()
 
@@ -169,7 +169,7 @@ def update_offer_landing(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{offer_id}/landing/ai/regenerate-block")
+@router.post("/{offer_id}/landing/ai/regenerate-block", response_model=RegenerateBlockResponse)
 def regenerate_block(
     offer_id: UUID,
     payload: RegenerateBlockRequest,
@@ -186,6 +186,6 @@ def regenerate_block(
             block_type=payload.block_type,
             context=payload.context,
         )
-        return {"content": new_content}
+        return RegenerateBlockResponse(content=new_content)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

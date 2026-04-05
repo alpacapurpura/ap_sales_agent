@@ -1,9 +1,10 @@
 import uuid
 
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.orm import joinedload
 
 from src.core.base_repository import BaseRepository
+from src.core.context import get_tenant_id
 from src.modules.crm.domain.lead import Lead
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerProfileModel as CustomerProfile,
@@ -17,11 +18,12 @@ class LeadRepository(BaseRepository):
         Cuenta el total de leads activos.
         """
         return (
-            self.db.query(func.count(LeadModel.id))
-            .filter(
-                LeadModel.tenant_id == tenant_id, LeadModel.is_blacklisted.is_(False)
-            )
-            .scalar()
+            self.db.execute(
+                select(func.count(LeadModel.id)).where(
+                    LeadModel.tenant_id == tenant_id,
+                    LeadModel.is_blacklisted.is_(False),
+                )
+            ).scalar()
             or 0
         )
 
@@ -30,13 +32,13 @@ class LeadRepository(BaseRepository):
         Cuenta leads calificados (score alto o no fríos).
         """
         return (
-            self.db.query(func.count(LeadModel.id))
-            .filter(
-                LeadModel.tenant_id == tenant_id,
-                LeadModel.is_blacklisted.is_(False),
-                (LeadModel.fit_score >= 50) | (LeadModel.temperature != "COLD"),
-            )
-            .scalar()
+            self.db.execute(
+                select(func.count(LeadModel.id)).where(
+                    LeadModel.tenant_id == tenant_id,
+                    LeadModel.is_blacklisted.is_(False),
+                    or_(LeadModel.fit_score >= 50, LeadModel.temperature != "COLD"),
+                )
+            ).scalar()
             or 0
         )
 
@@ -50,12 +52,16 @@ class LeadRepository(BaseRepository):
             except ValueError:
                 return None
 
-        lead_orm = (
-            self.db.query(LeadModel)
+        stmt = (
+            select(LeadModel)
             .options(joinedload(LeadModel.customer))
-            .filter(LeadModel.id == lead_id)
+            .where(LeadModel.id == lead_id)
         )
-        lead_orm = self._apply_tenant_filter(lead_orm, LeadModel).first()
+        tenant_id = get_tenant_id()
+        if tenant_id:
+            stmt = stmt.where(LeadModel.tenant_id == tenant_id)
+
+        lead_orm = self.db.execute(stmt).scalars().first()
 
         if lead_orm:
             return Lead.model_validate(lead_orm)
@@ -65,23 +71,27 @@ class LeadRepository(BaseRepository):
         """
         Find a lead by their channel-specific ID (Telegram, WhatsApp, etc).
         """
-        query = self.db.query(LeadModel).options(joinedload(LeadModel.customer))
-
         if channel == "telegram":
-            query = query.filter(LeadModel.telegram_id == user_id)
+            channel_filter = LeadModel.telegram_id == user_id
         elif channel == "whatsapp":
-            query = query.filter(LeadModel.whatsapp_id == user_id)
+            channel_filter = LeadModel.whatsapp_id == user_id
         elif channel == "instagram":
-            query = query.filter(LeadModel.instagram_id == user_id)
+            channel_filter = LeadModel.instagram_id == user_id
         elif channel == "tiktok":
-            query = query.filter(LeadModel.tiktok_id == user_id)
+            channel_filter = LeadModel.tiktok_id == user_id
         else:
             return None
 
-        # Apply tenant filter if needed
-        query = self._apply_tenant_filter(query, LeadModel)
+        stmt = (
+            select(LeadModel)
+            .options(joinedload(LeadModel.customer))
+            .where(channel_filter)
+        )
+        tenant_id = get_tenant_id()
+        if tenant_id:
+            stmt = stmt.where(LeadModel.tenant_id == tenant_id)
 
-        lead_orm = query.first()
+        lead_orm = self.db.execute(stmt).scalars().first()
         if lead_orm:
             return Lead.model_validate(lead_orm)
         return None
@@ -90,19 +100,19 @@ class LeadRepository(BaseRepository):
         """
         Obtiene el lead activo (más reciente) para un cliente.
         """
-        query = (
-            self.db.query(LeadModel)
-            .filter(
+        stmt = (
+            select(LeadModel)
+            .where(
                 LeadModel.customer_id == customer_id,
                 LeadModel.is_blacklisted.is_(False),
             )
             .order_by(desc(LeadModel.created_at))
         )
+        tenant_id = get_tenant_id()
+        if tenant_id:
+            stmt = stmt.where(LeadModel.tenant_id == tenant_id)
 
-        # Aplicar filtro de tenant
-        query = self._apply_tenant_filter(query, LeadModel)
-
-        lead_orm = query.first()
+        lead_orm = self.db.execute(stmt).scalars().first()
 
         if lead_orm:
             return Lead.model_validate(lead_orm)
@@ -129,8 +139,10 @@ class LeadRepository(BaseRepository):
                 # If customer changed, update the link
                 if customer_id and str(existing.customer_id) != str(customer_id):
                     lead_orm = (
-                        self.db.query(LeadModel)
-                        .filter(LeadModel.id == existing.id)
+                        self.db.execute(
+                            select(LeadModel).where(LeadModel.id == existing.id)
+                        )
+                        .scalars()
                         .first()
                     )
                     if lead_orm:
@@ -193,7 +205,7 @@ class LeadRepository(BaseRepository):
 
         return Lead.model_validate(lead_orm)
 
-    def update_profile(self, lead_id, psychographics_update: dict) -> Lead | None:
+    def update_profile(self, lead_id: str | uuid.UUID, psychographics_update: dict) -> Lead | None:
         # Fetch ORM object to update
         if isinstance(lead_id, str):
             try:
@@ -202,9 +214,12 @@ class LeadRepository(BaseRepository):
                 return None
 
         lead_orm = (
-            self.db.query(LeadModel)
-            .options(joinedload(LeadModel.customer))
-            .filter(LeadModel.id == lead_id)
+            self.db.execute(
+                select(LeadModel)
+                .options(joinedload(LeadModel.customer))
+                .where(LeadModel.id == lead_id)
+            )
+            .scalars()
             .first()
         )
 

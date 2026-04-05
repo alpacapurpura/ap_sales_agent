@@ -54,6 +54,25 @@ class EvangelistCandidateResponse(BaseModel):
     responded_at: str | None
 
 
+class SurveyPublicResponse(BaseModel):
+    """Public survey details returned to the respondent."""
+
+    id: str
+    token: str
+    status: str
+    delivery_channel: str
+    offer_id: str | None
+
+
+class NpsSubmitResponse(BaseModel):
+    """Confirmation returned after a successful NPS submission."""
+
+    id: str
+    score: int
+    status: str
+    message: str
+
+
 # --- Endpoints ---
 
 
@@ -89,7 +108,7 @@ async def create_survey(
     )
 
 
-@router.get("/survey/{token}")
+@router.get("/survey/{token}", response_model=SurveyPublicResponse)
 async def get_survey(
     token: str,
     db: Session = Depends(get_db),
@@ -112,16 +131,16 @@ async def get_survey(
     if survey.status == "responded":
         raise HTTPException(status_code=409, detail="Survey already responded")
 
-    return {
-        "id": str(survey.id),
-        "token": survey.token,
-        "status": survey.status,
-        "delivery_channel": survey.delivery_channel,
-        "offer_id": str(survey.offer_id) if survey.offer_id else None,
-    }
+    return SurveyPublicResponse(
+        id=str(survey.id),
+        token=survey.token,
+        status=survey.status,
+        delivery_channel=survey.delivery_channel,
+        offer_id=str(survey.offer_id) if survey.offer_id else None,
+    )
 
 
-@router.post("/survey/{token}/respond")
+@router.post("/survey/{token}/respond", response_model=NpsSubmitResponse)
 async def submit_nps_response(
     token: str,
     body: SubmitNpsRequest,
@@ -169,12 +188,12 @@ async def submit_nps_response(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return {
-        "id": str(response.id),
-        "score": response.score,
-        "status": "responded",
-        "message": "Thank you for your feedback!",
-    }
+    return NpsSubmitResponse(
+        id=str(response.id),
+        score=response.score,
+        status="responded",
+        message="Thank you for your feedback!",
+    )
 
 
 @router.get("/summary", response_model=NpsSummaryResponse)

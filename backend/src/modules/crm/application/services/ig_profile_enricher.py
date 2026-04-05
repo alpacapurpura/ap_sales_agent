@@ -13,6 +13,7 @@ from uuid import UUID
 
 import httpx
 import structlog
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
@@ -48,11 +49,13 @@ class InstagramProfileEnricher:
 
         # Update the customer profile model directly
         profile_model = (
-            self.db.query(CustomerProfileModel)
-            .filter(
-                CustomerProfileModel.id == customer_profile_id,
-                CustomerProfileModel.tenant_id == tenant_id,
+            self.db.execute(
+                select(CustomerProfileModel).where(
+                    CustomerProfileModel.id == customer_profile_id,
+                    CustomerProfileModel.tenant_id == tenant_id,
+                )
             )
+            .scalars()
             .first()
         )
 
