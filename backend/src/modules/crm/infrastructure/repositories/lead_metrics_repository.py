@@ -205,7 +205,9 @@ class LeadRepository(BaseRepository):
 
         return Lead.model_validate(lead_orm)
 
-    def update_profile(self, lead_id: str | uuid.UUID, psychographics_update: dict) -> Lead | None:
+    def update_profile(
+        self, lead_id: str | uuid.UUID, psychographics_update: dict
+    ) -> Lead | None:
         # Fetch ORM object to update
         if isinstance(lead_id, str):
             try:

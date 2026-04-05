@@ -419,14 +419,22 @@ class MetaProvider(BaseMetricsProvider):
     # Metrics that support breakdown=media_product_type (to exclude AD values).
     # Must be queried separately — Meta errors if mixed with non-breakdownable.
     _IG_BREAKDOWNABLE = {
-        "reach", "views", "total_interactions",
-        "likes", "comments", "shares", "saves",
+        "reach",
+        "views",
+        "total_interactions",
+        "likes",
+        "comments",
+        "shares",
+        "saves",
     }
 
     # Metrics that do NOT support breakdown (queried without it, kept as-is)
     _IG_NO_BREAKDOWN = {
-        "accounts_engaged", "follows_and_unfollows",
-        "profile_links_taps", "replies", "reposts",
+        "accounts_engaged",
+        "follows_and_unfollows",
+        "profile_links_taps",
+        "replies",
+        "reposts",
     }
 
     _IG_BREAKDOWNABLE_CSV = ",".join(sorted(_IG_BREAKDOWNABLE))
@@ -464,9 +472,7 @@ class MetaProvider(BaseMetricsProvider):
             since_ts = int(
                 datetime.combine(chunk_start, datetime.min.time()).timestamp()
             )
-            until_ts = int(
-                datetime.combine(chunk_end, datetime.min.time()).timestamp()
-            )
+            until_ts = int(datetime.combine(chunk_end, datetime.min.time()).timestamp())
 
             # ── Call 1A: Breakdownable metrics (exclude paid/AD) ──
             bd_resp = await client.get(
@@ -1104,12 +1110,8 @@ class MetaProvider(BaseMetricsProvider):
         current = start_date
         while current < end_date:
             next_day = current + timedelta(days=1)
-            since_ts = int(
-                datetime.combine(current, datetime.min.time()).timestamp()
-            )
-            until_ts = int(
-                datetime.combine(next_day, datetime.min.time()).timestamp()
-            )
+            since_ts = int(datetime.combine(current, datetime.min.time()).timestamp())
+            until_ts = int(datetime.combine(next_day, datetime.min.time()).timestamp())
 
             # Call A: Breakdownable metrics (exclude AD)
             bd_resp = await client.get(

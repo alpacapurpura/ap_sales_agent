@@ -48,15 +48,12 @@ def list_audit_leads(
             .group_by(MessageModel.user_id)
             .subquery()
         )
-        rows = (
-            db.execute(
-                select(LeadModel, subq.c.last_activity)
-                .join(subq, LeadModel.id == subq.c.lead_id)
-                .order_by(subq.c.last_activity.desc())
-                .limit(30)
-            )
-            .all()
-        )
+        rows = db.execute(
+            select(LeadModel, subq.c.last_activity)
+            .join(subq, LeadModel.id == subq.c.lead_id)
+            .order_by(subq.c.last_activity.desc())
+            .limit(30)
+        ).all()
 
     result = []
     for lead, last_activity in rows:
@@ -67,9 +64,7 @@ def list_audit_leads(
                     full_name=_lead_name(lead),
                     telegram_id=lead.telegram_id,
                     whatsapp_id=lead.whatsapp_id,
-                    created_at=lead.created_at.isoformat()
-                    if lead.created_at
-                    else None,
+                    created_at=lead.created_at.isoformat() if lead.created_at else None,
                 ),
                 last_activity=last_activity.isoformat() if last_activity else None,
             )

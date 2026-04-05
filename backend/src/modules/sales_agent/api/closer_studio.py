@@ -147,10 +147,10 @@ async def send_message(
         )
 
         lead = (
-                db.execute(select(LeadModel).where(LeadModel.id == lead_id))
-                .scalars()
-                .first()
-            )
+            db.execute(select(LeadModel).where(LeadModel.id == lead_id))
+            .scalars()
+            .first()
+        )
         if lead:
             resolver = ChannelResolver(db)
             sent = await resolver.send_to_lead(user.tenant_id, lead, body.content)

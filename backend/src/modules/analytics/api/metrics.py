@@ -514,7 +514,9 @@ async def sync_ig_dm(
     )
 
 
-@router.post("/attraction/refresh/{channel_slug}", response_model=ChannelRefreshResponse)
+@router.post(
+    "/attraction/refresh/{channel_slug}", response_model=ChannelRefreshResponse
+)
 async def refresh_channel_metrics(
     channel_slug: str,
     db: Session = Depends(get_db),

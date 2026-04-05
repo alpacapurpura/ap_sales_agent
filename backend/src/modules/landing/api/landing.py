@@ -169,7 +169,9 @@ def update_offer_landing(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/{offer_id}/landing/ai/regenerate-block", response_model=RegenerateBlockResponse)
+@router.post(
+    "/{offer_id}/landing/ai/regenerate-block", response_model=RegenerateBlockResponse
+)
 def regenerate_block(
     offer_id: UUID,
     payload: RegenerateBlockRequest,
