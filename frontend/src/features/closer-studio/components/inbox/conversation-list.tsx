@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Search, Bot, User, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,8 @@ const FILTER_CHIPS: Array<{
 export function ConversationList() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
+  const params = useParams();
+  const tenantId = (params?.tenantId as string) ?? "";
   const { data, isLoading } = useConversations();
   const selectedLeadId = useCloserStore((s) => s.selectedLeadId);
   const setSelectedLeadId = useCloserStore((s) => s.setSelectedLeadId);
@@ -38,12 +40,13 @@ export function ConversationList() {
   const handleSelect = useCallback(
     (leadId: string) => {
       setSelectedLeadId(leadId);
-      // Update URL without full navigation
-      const url = new URL(window.location.href);
-      url.searchParams.set("lead", leadId);
+      // Persist last conversation per tenant
+      try {
+        localStorage.setItem(`closer-studio:lastLead:${tenantId}`, leadId);
+      } catch { /* quota exceeded — non-critical */ }
       router.replace(`${pathname}?lead=${leadId}`, { scroll: false });
     },
-    [setSelectedLeadId, router, pathname],
+    [setSelectedLeadId, router, pathname, tenantId],
   );
 
   const handleSearch = useCallback(

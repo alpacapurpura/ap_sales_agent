@@ -1,21 +1,14 @@
 """Closer Studio API — conversation supervision and control for the business owner."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from datetime import datetime
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.iam.api.dependencies import get_current_user
-
-if TYPE_CHECKING:
-    from datetime import datetime
-    from uuid import UUID
-
-    from sqlalchemy.orm import Session
-
-    from src.modules.iam.domain.user import User
+from src.modules.iam.domain.user import User
 from src.modules.sales_agent.api.dto.closer_studio import (
     CloserKPIs,
     ConversationDetail,

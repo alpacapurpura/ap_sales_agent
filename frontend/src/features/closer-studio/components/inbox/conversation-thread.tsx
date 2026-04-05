@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { Bot, Hand, Play, Square, Zap } from "lucide-react";
+import { Bot, Hand, Play, Square, User, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCloserStore } from "../../store/closer-store";
 import { useConversationDetail } from "../../hooks/use-conversation-detail";
 import { useConversationActions } from "../../hooks/use-conversation-actions";
 import { MessageBubble } from "./message-bubble";
@@ -16,6 +17,8 @@ interface ConversationThreadProps {
 export function ConversationThread({ leadId }: ConversationThreadProps) {
   const { data: detail, isLoading } = useConversationDetail(leadId);
   const actions = useConversationActions(leadId);
+  const sidebarOpen = useCloserStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useCloserStore((s) => s.setSidebarOpen);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new messages
@@ -107,6 +110,16 @@ export function ConversationThread({ leadId }: ConversationThreadProps) {
           >
             <Zap className="h-3.5 w-3.5" />
           </Button>
+          {!sidebarOpen && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSidebarOpen(true)}
+              title="Ver perfil del contacto"
+            >
+              <User className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
