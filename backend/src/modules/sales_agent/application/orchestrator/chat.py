@@ -16,10 +16,6 @@ from src.modules.connections.infrastructure.models.channel_connection_model impo
     ChannelConnectionModel,
 )
 from src.modules.crm.application.services.identity_service import IdentityService
-from src.modules.crm.domain.events import (
-    CHANNEL_TYPE_TO_CAPTURE_SLUG,
-    LeadCapturedEvent,
-)
 from src.modules.crm.infrastructure.repositories.customer_repository import (
     CustomerRepository,
 )
@@ -52,7 +48,11 @@ from src.modules.sales_agent.infrastructure.repositories.state_repository import
     StateRepository,
 )
 from src.shared.domain.enums import ChannelType, IdentityType
-from src.shared.domain.events import EventBus
+from src.shared.domain.events import (
+    CHANNEL_TYPE_TO_CAPTURE_SLUG,
+    EventBus,
+    LeadCapturedEvent,
+)
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
 
 logger = structlog.get_logger()

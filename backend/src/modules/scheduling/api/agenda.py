@@ -160,8 +160,7 @@ def _publish_appointment_event(
 
     Uses late binding import to avoid circular dependencies.
     """
-    from src.modules.crm.domain.events import AppointmentEvent
-    from src.shared.domain.events import EventBus
+    from src.shared.domain.events import AppointmentEvent, EventBus
 
     if not lead_id:
         return
