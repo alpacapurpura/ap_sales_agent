@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.offer.infrastructure.models.product_model import (
@@ -12,7 +13,11 @@ class BusinessRepository:
     def get_current_launch_product(self):
         # Find active product
         # Returns (Product, stage_name)
-        product = self.db.query(Product).filter(Product.status == "active").first()
+        product = (
+            self.db.execute(select(Product).where(Product.status == "active"))
+            .scalars()
+            .first()
+        )
         if product:
             return product, "evergreen"
         return None, None

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
+from sqlalchemy import select
 
 from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.models.channel_connection_model import (
@@ -74,12 +75,14 @@ class ChannelResolver:
 
         # Get connection credentials
         conn = (
-            self.db.query(ChannelConnectionModel)
-            .filter(
-                ChannelConnectionModel.tenant_id == tenant_id,
-                ChannelConnectionModel.channel_type == enum_type.value,
-                ChannelConnectionModel.is_active.is_(True),
+            self.db.execute(
+                select(ChannelConnectionModel).where(
+                    ChannelConnectionModel.tenant_id == tenant_id,
+                    ChannelConnectionModel.channel_type == enum_type.value,
+                    ChannelConnectionModel.is_active.is_(True),
+                )
             )
+            .scalars()
             .first()
         )
         if not conn:

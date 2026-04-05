@@ -6,6 +6,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import BackgroundTasks
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.core.context import set_tenant_id
@@ -90,13 +91,15 @@ class ChatOrchestrator:
             try:
                 # Resolve tenant connection
                 conn = (
-                    db.query(ChannelConnectionModel)
-                    .filter(
-                        ChannelConnectionModel.tenant_id == UUID(tenant_id),
-                        ChannelConnectionModel.channel_type
-                        == ChannelType.TELEGRAM.value,
-                        ChannelConnectionModel.is_active.is_(True),
+                    db.execute(
+                        select(ChannelConnectionModel).where(
+                            ChannelConnectionModel.tenant_id == UUID(tenant_id),
+                            ChannelConnectionModel.channel_type
+                            == ChannelType.TELEGRAM.value,
+                            ChannelConnectionModel.is_active.is_(True),
+                        )
                     )
+                    .scalars()
                     .first()
                 )
 
@@ -179,8 +182,10 @@ class ChatOrchestrator:
                 try:
                     db_tmp = SessionLocal()
                     tenant_obj = (
-                        db_tmp.query(TenantModel)
-                        .filter(TenantModel.id == UUID(tenant_id))
+                        db_tmp.execute(
+                            select(TenantModel).where(TenantModel.id == UUID(tenant_id))
+                        )
+                        .scalars()
                         .first()
                     )
                 except Exception as e:
@@ -283,8 +288,10 @@ class ChatOrchestrator:
                 try:
                     tenant_uuid = UUID(tenant_id)
                     tenant_obj = (
-                        db.query(TenantModel)
-                        .filter(TenantModel.id == tenant_uuid)
+                        db.execute(
+                            select(TenantModel).where(TenantModel.id == tenant_uuid)
+                        )
+                        .scalars()
                         .first()
                     )
                     if tenant_obj:
@@ -406,8 +413,12 @@ class ChatOrchestrator:
                     )
 
                     profile_model = (
-                        db.query(CustomerProfileModel)
-                        .filter(CustomerProfileModel.id == customer.id)
+                        db.execute(
+                            select(CustomerProfileModel).where(
+                                CustomerProfileModel.id == customer.id
+                            )
+                        )
+                        .scalars()
                         .first()
                     )
                     if profile_model:
