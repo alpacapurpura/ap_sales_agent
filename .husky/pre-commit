@@ -14,15 +14,18 @@ if [ -n "$STAGED_PY" ]; then
     exit 0
   fi
 
+  # Strip the leading backend/ prefix so paths match Docker's /app layout
+  DOCKER_PY=$(echo "$STAGED_PY" | sed 's|^backend/||g' | tr '\n' ' ')
+
   # Lint check (errors only, not auto-fix)
-  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check $STAGED_PY --no-cache --no-fix" || {
+  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check $DOCKER_PY --no-cache --no-fix" || {
     echo "Ruff lint failed. Fix errors before committing."
     exit 1
   }
 
   # Format check (report only)
-  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff format --check $STAGED_PY --no-cache" || {
-    echo "Ruff format check failed. Run: docker exec -t visionarias_brain_dev bash -c 'cd /app && ruff format \$STAGED_PY'"
+  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff format --check $DOCKER_PY --no-cache" || {
+    echo "Ruff format check failed. Run: docker exec -t visionarias_brain_dev bash -c 'cd /app && ruff format src/modules/scheduling/'"
     exit 1
   }
 fi

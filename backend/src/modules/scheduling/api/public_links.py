@@ -10,10 +10,12 @@ from src.core.database import get_db
 from src.modules.iam.domain.tenant import Tenant
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.scheduling.api.dto.public_links import (
+    BookingConfirmationResponse,
     BookingLinkResolveResponse,
     BookingRequest,
     EventTypeResolveResponse,
     LinkResolveResponse,
+    SlotsResponse,
 )
 from src.modules.scheduling.application.services.availability_service import (
     AvailabilityService,
@@ -33,11 +35,10 @@ router = APIRouter()
 
 @router.get("/booking-links/{token}", response_model=BookingLinkResolveResponse)
 def resolve_booking_link(token: str, db: Session = Depends(get_db)):
-    link = (
-        db.query(BookingLink)
-        .filter(BookingLink.token == token, BookingLink.status == "ACTIVE")
-        .first()
+    stmt = select(BookingLink).where(
+        BookingLink.token == token, BookingLink.status == "ACTIVE"
     )
+    link = db.execute(stmt).scalars().first()
 
     if not link:
         raise HTTPException(status_code=404, detail="Link invalid or expired")
@@ -83,7 +84,7 @@ def resolve_link(token: str, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/{token}/slots")
+@router.get("/{token}/slots", response_model=SlotsResponse)
 def get_public_slots(
     token: str,
     start_date: datetime.date,
@@ -103,7 +104,7 @@ def get_public_slots(
 
     try:
         slots = av_service.get_available_slots(start_date, end_date)
-        return {"slots": slots}
+        return SlotsResponse(slots=slots)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -158,7 +159,8 @@ def resolve_event_type_by_tenant_id(
 def resolve_event_type(
     tenant_slug: str, event_slug: str, db: Session = Depends(get_db)
 ):
-    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    stmt = select(Tenant).where(Tenant.slug == tenant_slug)
+    tenant = db.execute(stmt).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -176,7 +178,9 @@ def resolve_event_type(
     )
 
 
-@router.get("/event-types/{tenant_slug}/{event_slug}/slots")
+@router.get(
+    "/event-types/{tenant_slug}/{event_slug}/slots", response_model=SlotsResponse
+)
 def get_event_type_slots(
     tenant_slug: str,
     event_slug: str,
@@ -184,7 +188,8 @@ def get_event_type_slots(
     end_date: datetime.date,
     db: Session = Depends(get_db),
 ):
-    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    stmt = select(Tenant).where(Tenant.slug == tenant_slug)
+    tenant = db.execute(stmt).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -196,19 +201,23 @@ def get_event_type_slots(
     av_service = AvailabilityService(db, tenant.id)
     try:
         slots = av_service.get_event_type_slots(event_type, start_date, end_date)
-        return {"slots": slots}
+        return SlotsResponse(slots=slots)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/event-types/{tenant_slug}/{event_slug}/book")
+@router.post(
+    "/event-types/{tenant_slug}/{event_slug}/book",
+    response_model=BookingConfirmationResponse,
+)
 def book_event_type(
     tenant_slug: str,
     event_slug: str,
     payload: BookingRequest,
     db: Session = Depends(get_db),
 ):
-    tenant = db.query(Tenant).filter(Tenant.slug == tenant_slug).first()
+    tenant_stmt = select(Tenant).where(Tenant.slug == tenant_slug)
+    tenant = db.execute(tenant_stmt).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -223,14 +232,11 @@ def book_event_type(
 
     # Validate Booking Token if present
     if payload.booking_token:
-        link = (
-            db.query(BookingLink)
-            .filter(
-                BookingLink.token == payload.booking_token,
-                BookingLink.status == "ACTIVE",
-            )
-            .first()
+        link_stmt = select(BookingLink).where(
+            BookingLink.token == payload.booking_token,
+            BookingLink.status == "ACTIVE",
         )
+        link = db.execute(link_stmt).scalars().first()
 
         if not link:
             raise HTTPException(status_code=400, detail="Invalid booking token")
@@ -270,12 +276,12 @@ def book_event_type(
             lead_data=lead_data,
             summary=f"{event_type.title}",
         )
-        return {"status": "success", "event": event}
+        return BookingConfirmationResponse(status="success", event=event)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/{token}/book")
+@router.post("/{token}/book", response_model=BookingConfirmationResponse)
 def public_book_meeting(
     token: str, payload: BookingRequest, db: Session = Depends(get_db)
 ):
@@ -303,6 +309,6 @@ def public_book_meeting(
             lead_data=lead_data,
             summary=f"Cita con {payload.name}",
         )
-        return {"status": "success", "event": event}
+        return BookingConfirmationResponse(status="success", event=event)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

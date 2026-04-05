@@ -1,14 +1,15 @@
-import logging
 import uuid
 from uuid import UUID
 
+import structlog
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 from src.modules.scheduling.domain.event_type_schema import EventType, EventTypeUpdate
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 class EventTypeService:
@@ -17,9 +18,8 @@ class EventTypeService:
         self.tenant_id = tenant_id
 
     def _get_tenant(self) -> TenantModel:
-        return (
-            self.db.query(TenantModel).filter(TenantModel.id == self.tenant_id).first()
-        )
+        stmt = select(TenantModel).where(TenantModel.id == self.tenant_id)
+        return self.db.execute(stmt).scalars().first()
 
     def _migrate_event_type(self, data: dict) -> dict:
         """

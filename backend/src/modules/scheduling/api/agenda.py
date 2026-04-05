@@ -3,7 +3,7 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
@@ -54,12 +54,12 @@ async def get_agenda(
     lead_map = {}
     if lead_ids:
         # Use joinedload to fetch Customer Profile efficiently
-        leads = (
-            db.query(LeadModel)
+        leads_stmt = (
+            select(LeadModel)
             .options(joinedload(LeadModel.customer))
-            .filter(LeadModel.id.in_(lead_ids))
-            .all()
+            .where(LeadModel.id.in_(lead_ids))
         )
+        leads = db.execute(leads_stmt).scalars().all()
 
         for lead in leads:
             # Try to get name from Customer (SSOT), then fallback to Lead profile_data
@@ -92,7 +92,16 @@ class AppointmentStatusUpdate(BaseModel):
     status: str = Field(..., description="New status: COMPLETED, NO_SHOW, CANCELLED")
 
 
-@router.patch("/{appointment_id}/status")
+class AppointmentStatusResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    status: str
+    appointment_id: str
+    old_status: str
+    new_status: str
+
+
+@router.patch("/{appointment_id}/status", response_model=AppointmentStatusResponse)
 async def update_appointment_status(
     appointment_id: UUID,
     payload: AppointmentStatusUpdate,

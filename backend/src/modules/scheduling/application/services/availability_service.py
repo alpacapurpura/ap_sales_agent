@@ -1,10 +1,10 @@
 import datetime
-import logging
 import uuid
 from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+import structlog
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
@@ -28,7 +28,7 @@ from src.modules.scheduling.infrastructure.models.appointment_model import (
     AppointmentModel as Appointment,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 class AvailabilityService:
@@ -73,9 +73,8 @@ class AvailabilityService:
     # --- Schedule Management ---
 
     def _get_tenant(self) -> TenantModel:
-        return (
-            self.db.query(TenantModel).filter(TenantModel.id == self.tenant_id).first()
-        )
+        stmt = select(TenantModel).where(TenantModel.id == self.tenant_id)
+        return self.db.execute(stmt).scalars().first()
 
     def _migrate_schedule_structure(self, data: dict) -> dict:
         """
@@ -406,14 +405,11 @@ class AvailabilityService:
 
             # Find or Create Lead if not provided
             if not lead_id and lead_data.get("email"):
-                existing_lead = (
-                    self.db.query(Lead)
-                    .filter(
-                        Lead.tenant_id == self.tenant_id,
-                        Lead.email == lead_data.get("email"),
-                    )
-                    .first()
+                lead_stmt = select(Lead).where(
+                    Lead.tenant_id == self.tenant_id,
+                    Lead.email == lead_data.get("email"),
                 )
+                existing_lead = self.db.execute(lead_stmt).scalars().first()
 
                 if existing_lead:
                     lead_id = existing_lead.id
