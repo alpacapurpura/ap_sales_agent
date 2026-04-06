@@ -24,6 +24,8 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
+      retries: 1,
+      timeout: 60_000,
     },
     {
       name: 'smoke',

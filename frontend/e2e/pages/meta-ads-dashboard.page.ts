@@ -20,10 +20,11 @@ export class MetaAdsDashboardPage {
 
   async gotoGrowthStudio() {
     await this.page.goto(`/${this.tenantId}/growth-studio/atraccion-captura`);
-    await this.page.waitForLoadState('load');
+    // Wait for a concrete element instead of arbitrary timeout
+    await this.page.getByText('Atracción').first().waitFor({ state: 'visible', timeout: 10_000 });
   }
 
-  // ── Channel Click ──────────────────────────────────────────
+  // ── Channel Click ────────���─────────────────────────────────
 
   /** Clicks the Meta Ads channel row in the Attraction detail panel. */
   async clickMetaAdsChannel() {
@@ -31,7 +32,7 @@ export class MetaAdsDashboardPage {
     await channelRow.click();
   }
 
-  // ── Sidebar (MetaAdsOverviewPanel) ─────────────────────────
+  // ── Sidebar (MetaAdsOverviewPanel) ───────────��─────────────
 
   /** Waits for the sidebar panel to be visible. */
   async expectSidebarVisible() {
@@ -66,7 +67,7 @@ export class MetaAdsDashboardPage {
   /** Checks that the mini funnel section is visible. */
   async expectMiniFunnel() {
     const dialog = this.page.getByRole('dialog');
-    await expect(dialog.getByText('Funnel de Conversion')).toBeVisible();
+    await expect(dialog.getByText('Funnel de Conversión')).toBeVisible();
     await expect(dialog.getByText('Impresiones')).toBeVisible();
     await expect(dialog.getByText('Clics')).toBeVisible();
   }
@@ -108,7 +109,7 @@ export class MetaAdsDashboardPage {
     await this.page.getByRole('button', { name: /cerrar/i }).first().click();
   }
 
-  // ── Full-page Dashboard (MetaAdsDashboard) ─────────────────
+  // ── Full-page Dashboard (MetaAdsDashboard) ────────���────────
 
   /** Expects the full dashboard overlay to be visible. */
   async expectFullDashboardVisible() {
@@ -133,7 +134,7 @@ export class MetaAdsDashboardPage {
 
   /** Checks that Overview tab shows charts. */
   async expectOverviewTabContent() {
-    await expect(this.page.getByText('Inversion vs Conversiones')).toBeVisible();
+    await expect(this.page.getByText('Inversión vs Conversiones')).toBeVisible();
   }
 
   /** Checks that Costs tab shows cost KPI cards. */
@@ -146,7 +147,7 @@ export class MetaAdsDashboardPage {
   /** Checks placeholder tabs show "Próximamente". */
   async expectPlaceholderTab(tabName: 'Campañas' | 'Audiencia' | 'Video') {
     await this.clickTab(tabName);
-    await expect(this.page.getByText('Proximamente')).toBeVisible();
+    await expect(this.page.getByText('Próximamente')).toBeVisible();
   }
 
   /** Closes the full dashboard via the "Volver" button. */

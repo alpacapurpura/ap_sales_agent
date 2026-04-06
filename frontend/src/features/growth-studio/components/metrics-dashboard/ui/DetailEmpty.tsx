@@ -10,13 +10,13 @@ interface DetailEmptyProps {
 }
 
 const STAGE_CTA_MAP: Record<string, string> = {
-  ATRACCION: 'configuracion de canales de trafico',
-  CAPTURA: 'configuracion de landing pages y formularios',
-  NUTRICION: 'automatizaciones y campanas de retargeting',
-  OPORTUNIDAD: 'configuracion de checkout y calificacion de leads',
-  VENTAS: 'Offer Ladder y metodos de pago',
-  ADOPCION: 'seguimiento de activacion de clientes',
-  EXPANSION: 'ofertas de renovacion y upsell',
+  ATRACCION: 'configuración de canales de tráfico',
+  CAPTURA: 'configuración de landing pages y formularios',
+  NUTRICION: 'automatizaciones y campañas de retargeting',
+  OPORTUNIDAD: 'configuración de checkout y calificación de leads',
+  VENTAS: 'Offer Ladder y métodos de pago',
+  ADOPCION: 'seguimiento de activación de clientes',
+  EXPANSION: 'ofertas de renovación y upsell',
   EVANGELIZACION: 'programa de referidos y encuestas NPS',
 };
 
@@ -27,7 +27,7 @@ const STAGE_CTA_MAP: Record<string, string> = {
  * stage name. Uses muted/secondary tones per the UI-SPEC color system.
  */
 export default function DetailEmpty({ stage }: DetailEmptyProps) {
-  const ctaContext = STAGE_CTA_MAP[stage.id] ?? 'configuracion del embudo';
+  const ctaContext = STAGE_CTA_MAP[stage.id] ?? 'configuración del embudo';
 
   return (
     <Card className="border-dashed border-muted-foreground/25">
@@ -40,10 +40,10 @@ export default function DetailEmpty({ stage }: DetailEmptyProps) {
         {/* Heading */}
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-foreground">
-            Sin datos para este periodo
+            Sin datos para este período
           </h3>
           <p className="text-xs text-muted-foreground max-w-xs">
-            Los datos apareceran aqui cuando el periodo tenga metricas disponibles.
+            Los datos aparecerán aquí cuando el período tenga métricas disponibles.
             Verifica la {ctaContext}.
           </p>
         </div>

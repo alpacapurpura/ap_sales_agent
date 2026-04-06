@@ -50,10 +50,10 @@ export function OverviewTab({ data, isLoading }: OverviewTabProps) {
 
       {compositeData.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Inversion vs Conversiones</h3>
+          <h3 className="text-sm font-medium">Inversión vs Conversiones</h3>
           <ChartContainer
             config={{
-              spend: { label: 'Inversion', color: 'hsl(var(--chart-1))' },
+              spend: { label: 'Inversión', color: 'hsl(var(--chart-1))' },
               conversions: { label: 'Conversiones', color: 'hsl(var(--chart-2))' },
             }}
             className="h-[250px] w-full"

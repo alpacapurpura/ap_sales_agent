@@ -52,7 +52,7 @@ export function buildSummary(groupType: GroupType, totals: Record<string, number
         ? `$${(totals.cost / totals.leads).toFixed(2)}`
         : '---';
       const conv = totals.conversion_rate?.toFixed(1) ?? '0';
-      return `Leads: ${leads} | Costo por Lead: ${cpl} | Conversion: ${conv}%`;
+      return `Leads: ${leads} | Costo por Lead: ${cpl} | Conversión: ${conv}%`;
     }
     case 'retargeting': {
       const costPerMql = totals.cost_per_mql;

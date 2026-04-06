@@ -14,7 +14,7 @@ export function MetaAdsMiniFunnel({ steps }: MetaAdsMiniFunnelProps) {
   return (
     <div className="space-y-2">
       <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        Funnel de Conversion
+        Funnel de Conversión
       </h4>
       <div className="space-y-1.5">
         {steps.map((step, i) => (

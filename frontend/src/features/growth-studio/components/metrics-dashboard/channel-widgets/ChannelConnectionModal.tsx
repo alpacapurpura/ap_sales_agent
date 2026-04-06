@@ -22,7 +22,7 @@ function ConnectionViewRenderer({ channelSlug }: { channelSlug: string }) {
   if (!View) {
     return (
       <p className="text-sm text-muted-foreground py-8 text-center">
-        No hay vista de configuracion disponible para este canal.
+        No hay vista de configuración disponible para este canal.
       </p>
     );
   }
@@ -88,7 +88,7 @@ export function ChannelConnectionModal({ channelSlug, channelName, onClose }: Ch
             </div>
 
             <DialogPrimitive.Description className="sr-only">
-              Panel de configuracion para conectar {channelName}
+              Panel de configuración para conectar {channelName}
             </DialogPrimitive.Description>
 
             {channelSlug ? (
@@ -103,7 +103,7 @@ export function ChannelConnectionModal({ channelSlug, channelName, onClose }: Ch
               </Suspense>
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">
-                No hay vista de configuracion disponible para este canal.
+                No hay vista de configuración disponible para este canal.
               </p>
             )}
           </DialogPrimitive.Content>
@@ -113,9 +113,9 @@ export function ChannelConnectionModal({ channelSlug, channelName, onClose }: Ch
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Salir de la configuracion?</AlertDialogTitle>
+            <AlertDialogTitle>¿Salir de la configuración?</AlertDialogTitle>
             <AlertDialogDescription>
-              Si sales ahora, podrias perder el progreso de configuracion de este canal.
+              Si sales ahora, podrías perder el progreso de configuración de este canal.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

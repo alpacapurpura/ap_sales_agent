@@ -25,7 +25,7 @@ function createStages(): StageSummary[] {
     {
       id: 'ATRACCION_CAPTURA' as StageId,
       order: 0,
-      label: 'Atraccion + Captura',
+      label: 'Atracción + Captura',
       description: 'Attraction and capture',
       mainKpi: { label: 'Visitantes', value: 45000 },
       secondaryKpi: { label: 'Canales', value: 8 },
@@ -34,7 +34,7 @@ function createStages(): StageSummary[] {
     {
       id: 'NUTRICION_OPORTUNIDAD' as StageId,
       order: 1,
-      label: 'Nutricion + Oportunidad',
+      label: 'Nutrición + Oportunidad',
       description: 'Nurture and opportunity',
       mainKpi: { label: 'MQLs', value: 3200 },
       secondaryKpi: { label: 'Conversion', value: 37.6, unit: '%' },
@@ -52,7 +52,7 @@ function createStages(): StageSummary[] {
     {
       id: 'ADOPCION' as StageId,
       order: 3,
-      label: 'Adopcion',
+      label: 'Adopción',
       description: 'Adoption health',
       mainKpi: { label: 'Salud', value: 88.9, unit: '%' },
       secondaryKpi: { label: 'Activos', value: 400 },
@@ -61,7 +61,7 @@ function createStages(): StageSummary[] {
     {
       id: 'EXPANSION_EVANGELIZACION' as StageId,
       order: 4,
-      label: 'Expansion + Evangelizacion',
+      label: 'Expansión + Evangelización',
       description: 'Expansion and evangelization',
       mainKpi: { label: 'Net MRR', value: 42000, unit: '$' },
       secondaryKpi: { label: 'Churn', value: 2.3, unit: '%' },
@@ -79,11 +79,11 @@ describe('StageSummaryRow', () => {
       <StageSummaryRow stages={stages} activeStage={null} />
     );
 
-    expect(screen.getByText(/Atraccion \+ Captura/i)).toBeInTheDocument();
-    expect(screen.getByText(/Nutricion \+ Oportunidad/i)).toBeInTheDocument();
+    expect(screen.getByText(/Atracción \+ Captura/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nutrición \+ Oportunidad/i)).toBeInTheDocument();
     expect(screen.getByText(/Ventas/i)).toBeInTheDocument();
-    expect(screen.getByText(/Adopcion/i)).toBeInTheDocument();
-    expect(screen.getByText(/Expansion \+ Evangelizacion/i)).toBeInTheDocument();
+    expect(screen.getByText(/Adopción/i)).toBeInTheDocument();
+    expect(screen.getByText(/Expansión \+ Evangelización/i)).toBeInTheDocument();
   });
 
   it('passes isActive=true to the correct stage card based on activeStage', () => {

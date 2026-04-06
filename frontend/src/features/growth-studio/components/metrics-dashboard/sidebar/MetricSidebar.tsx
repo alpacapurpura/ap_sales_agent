@@ -155,7 +155,7 @@ export default function MetricSidebar({ isOpen, onClose, metric, children }: Met
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
                       Pronto
                     </Badge>
-                    Editar configuracion del canal
+                    Editar configuración del canal
                   </Button>
 
                   <Button

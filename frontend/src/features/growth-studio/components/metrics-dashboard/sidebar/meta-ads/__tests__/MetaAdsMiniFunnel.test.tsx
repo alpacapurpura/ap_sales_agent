@@ -47,7 +47,7 @@ describe('MetaAdsMiniFunnel', () => {
 
   it('renders the section heading', () => {
     render(<MetaAdsMiniFunnel steps={STEPS} />);
-    expect(screen.getByText('Funnel de Conversion')).toBeInTheDocument();
+    expect(screen.getByText('Funnel de Conversión')).toBeInTheDocument();
   });
 
   it('renders progress bars for each step', () => {

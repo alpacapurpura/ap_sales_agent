@@ -198,7 +198,7 @@ describe('ChannelRow', () => {
     expect(screen.getByText('Desactualizado')).toBeInTheDocument();
   });
 
-  it('shows "Proximamente" badge for ai-sdr channel with no metrics', () => {
+  it('shows "Próximamente" badge for ai-sdr channel with no metrics', () => {
     const aiSdrChannel: ChannelMetric = {
       slug: 'ai-sdr',
       name: 'AI SDR',
@@ -209,10 +209,10 @@ describe('ChannelRow', () => {
     };
     render(<ChannelRow channel={aiSdrChannel} />);
 
-    expect(screen.getByText('Proximamente')).toBeInTheDocument();
+    expect(screen.getByText('Próximamente')).toBeInTheDocument();
   });
 
-  it('shows "Proximamente" badge for checkout-lp channel', () => {
+  it('shows "Próximamente" badge for checkout-lp channel', () => {
     const checkoutChannel: ChannelMetric = {
       slug: 'checkout-lp',
       name: 'Checkout Landing',
@@ -223,7 +223,7 @@ describe('ChannelRow', () => {
     };
     render(<ChannelRow channel={checkoutChannel} />);
 
-    expect(screen.getByText('Proximamente')).toBeInTheDocument();
+    expect(screen.getByText('Próximamente')).toBeInTheDocument();
   });
 
   it('renders channel icon via getChannelIcon', () => {

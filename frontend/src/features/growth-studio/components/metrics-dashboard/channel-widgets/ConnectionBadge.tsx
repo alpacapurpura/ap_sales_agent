@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 interface ConnectionBadgeProps {
   connected: boolean;
   onConfigure?: () => void;
-  /** When true, shows a disabled "Proximamente.." badge instead of "Configurar" */
+  /** When true, shows a disabled "Próximamente.." badge instead of "Configurar" */
   comingSoon?: boolean;
 }
 
@@ -25,7 +25,7 @@ export function ConnectionBadge({ connected, onConfigure, comingSoon }: Connecti
   if (comingSoon) {
     return (
       <Badge variant="outline" className="border-muted-foreground/20 text-muted-foreground/50 cursor-default">
-        Proximamente..
+        Próximamente..
       </Badge>
     );
   }

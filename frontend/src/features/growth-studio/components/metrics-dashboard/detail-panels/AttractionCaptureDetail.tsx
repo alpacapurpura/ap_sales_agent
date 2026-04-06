@@ -193,12 +193,12 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            Atraccion &amp; Captura
+            Atracción &amp; Captura
             <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs font-medium tracking-wide">
               ETAPA 1 y 2
             </span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Tu embudo de adquisicion de leads</p>
+          <p className="text-muted-foreground text-sm mt-1">Tu embudo de adquisición de leads</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -223,9 +223,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         <div className="bg-card rounded-xl p-6 shadow-sm border border-border">
           <div className="text-center py-12 px-4 rounded-xl border-2 border-dashed border-border bg-muted/50">
             <Plug className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">Tu ecosistema digital esta vacio</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-1">Tu ecosistema digital está vacío</h3>
             <p className="text-muted-foreground max-w-sm mx-auto mb-4">
-              Conecta tus primeros canales de atraccion para empezar a medir todo en un solo lugar.
+              Conecta tus primeros canales de atracción para empezar a medir todo en un solo lugar.
             </p>
           </div>
         </div>
@@ -272,16 +272,16 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
             <div className="space-y-6">
               <div className="border-b border-border pb-2">
                 <h3 className="font-semibold text-lg flex items-center text-foreground/90">
-                  <Megaphone className="w-5 h-5 mr-2 text-blue-500" /> Atraccion
+                  <Megaphone className="w-5 h-5 mr-2 text-blue-500" /> Atracción
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Canales que generan visibilidad y traen trafico a tu ecosistema.
+                  Canales que generan visibilidad y traen tráfico a tu ecosistema.
                 </p>
               </div>
 
               {paidChannels.length > 0 && (
                 <ChannelGroup
-                  title="Inversion Pagada"
+                  title="Inversión Pagada"
                   variant="paid"
                   channels={paidChannels}
                   headerIcon={Coins}

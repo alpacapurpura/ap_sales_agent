@@ -24,11 +24,11 @@ interface SidebarContentProps {
 // ─── Stage label mapping ───────────────────────────────────────────────────────
 
 const STAGE_NAMES: Record<StageId, string> = {
-  ATRACCION_CAPTURA: 'Atraccion & Captura',
-  ATRACCION: 'Atraccion',
+  ATRACCION_CAPTURA: 'Atracción & Captura',
+  ATRACCION: 'Atracción',
   CAPTURA: 'Captura',
-  NUTRICION_OPORTUNIDAD: 'Nutricion & Oportunidad',
-  NUTRICION: 'Nutricion',
+  NUTRICION_OPORTUNIDAD: 'Nutrición & Oportunidad',
+  NUTRICION: 'Nutrición',
   OPORTUNIDAD: 'Oportunidad',
   VENTAS: 'Ventas',
   ADOPCION: 'Adopción',
@@ -69,7 +69,7 @@ function ActionButtons({ stageId, channelSlug }: ActionButtonsProps) {
       >
         <PlusCircle className="h-3.5 w-3.5 flex-shrink-0" />
         <ProximamenteBadge />
-        Crear campana para {stageName}
+        Crear campaña para {stageName}
       </Button>
 
       <Button
@@ -80,7 +80,7 @@ function ActionButtons({ stageId, channelSlug }: ActionButtonsProps) {
       >
         <Settings className="h-3.5 w-3.5 flex-shrink-0" />
         <ProximamenteBadge />
-        Editar configuracion{channelSlug ? ` de ${channelSlug}` : ''}
+        Editar configuración{channelSlug ? ` de ${channelSlug}` : ''}
       </Button>
 
       <Button
@@ -130,7 +130,7 @@ function ChannelInfoCard({ channelSlug }: ChannelInfoCardProps) {
             disabled
           >
             <ProximamenteBadge />
-            Ver detalles de campanas
+            Ver detalles de campañas
           </Button>
         </div>
       </CardContent>
@@ -147,10 +147,10 @@ function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
     <div className="space-y-4">
       <div className="rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3">
         <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">
-          Atraccion — Trafico y alcance de canales organicos y pagados
+          Atracción — Tráfico y alcance de canales orgánicos y pagados
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide el volumen de personas que llegan a tu ecosistema a traves de {metric.channelName || metric.channelSlug}.
+          Esta métrica mide el volumen de personas que llegan a tu ecosistema a través de {metric.channelName || metric.channelSlug}.
         </p>
       </div>
 
@@ -178,9 +178,9 @@ function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
 
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Detalles de campana</p>
+          <p className="text-xs text-muted-foreground font-medium mb-2">Detalles de campaña</p>
           <p className="text-xs text-muted-foreground italic">
-            Detalles de campanas por canal — proxima version
+            Detalles de campañas por canal — próxima versión
           </p>
         </CardContent>
       </Card>
@@ -247,10 +247,10 @@ function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
     <div className="space-y-4">
       <div className="rounded-md bg-pink-50 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-800 p-3">
         <p className="text-xs text-pink-700 dark:text-pink-300 font-medium">
-          Nutricion — MQLs calificados por retargeting y automatizaciones
+          Nutrición — MQLs calificados por retargeting y automatizaciones
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide leads que alcanzaron calificacion de marketing (MQL) via {metric.channelName || metric.channelSlug}.
+          Esta métrica mide leads que alcanzaron calificación de marketing (MQL) via {metric.channelName || metric.channelSlug}.
         </p>
       </div>
       
@@ -278,9 +278,9 @@ function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
 
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Campanas de retargeting</p>
+          <p className="text-xs text-muted-foreground font-medium mb-2">Campañas de retargeting</p>
           <p className="text-xs text-muted-foreground italic">
-            Detalle de campanas — proxima version
+            Detalle de campañas — próxima versión
           </p>
         </CardContent>
       </Card>
@@ -503,7 +503,7 @@ function PipelineMetricDetail({ metric }: { metric: MetricClickData }) {
 
       <Card className="border-muted">
         <CardContent className="py-3 px-4">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Conversion</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Conversión</p>
           <div className="flex items-center gap-3 mt-1">
             <div className="flex-1">
               <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -765,17 +765,17 @@ function AdoptionMetricDetail({ metric }: { metric: MetricClickData }) {
     <div className="space-y-4">
       <div className="rounded-md bg-cyan-50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-800 p-3">
         <p className="text-xs text-cyan-700 dark:text-cyan-300 font-medium">
-          Adopcion — Salud y activacion de clientes existentes
+          Adopción — Salud y activación de clientes existentes
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Esta metrica mide el porcentaje de clientes que estan usando activamente tu producto/servicio.
+          Esta métrica mide el porcentaje de clientes que están usando activamente tu producto/servicio.
         </p>
       </div>
       <Card className="border-dashed">
         <CardContent className="py-3 px-4">
-          <p className="text-xs text-muted-foreground font-medium mb-2">Detalle de activacion por oferta</p>
+          <p className="text-xs text-muted-foreground font-medium mb-2">Detalle de activación por oferta</p>
           <p className="text-xs text-muted-foreground italic">
-            Historial de activacion — proxima version
+            Historial de activación — próxima versión
           </p>
         </CardContent>
       </Card>
@@ -785,8 +785,8 @@ function AdoptionMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function ExpansionMetricDetail({ metric }: { metric: MetricClickData }) {
-  let title = 'Expansion — Ingreso recurrente, upsell y cancelaciones';
-  let desc = 'Esta metrica refleja el movimiento neto de MRR en el periodo actual.';
+  let title = 'Expansión — Ingreso recurrente, upsell y cancelaciones';
+  let desc = 'Esta métrica refleja el movimiento neto de MRR en el período actual.';
   let analysisTitle = 'Análisis de oportunidad';
   let analysisDesc = 'La inteligencia del sistema ha detectado que existe una gran oportunidad de optimización realizando acciones de retención o upsell.';
   
@@ -830,8 +830,8 @@ function ExpansionMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function EvangelizationMetricDetail({ metric }: { metric: MetricClickData }) {
-  let title = 'Evangelizacion — K-Factor, referidos y NPS';
-  let desc = 'Esta metrica mide el impacto viral de tus clientes mas satisfechos.';
+  let title = 'Evangelización — K-Factor, referidos y NPS';
+  let desc = 'Esta métrica mide el impacto viral de tus clientes más satisfechos.';
   let analysisTitle = 'Análisis de oportunidad';
   let analysisDesc = 'Identifica a tus promotores para generar referidos y contenido UGC.';
   

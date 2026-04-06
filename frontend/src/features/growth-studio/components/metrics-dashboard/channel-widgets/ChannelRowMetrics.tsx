@@ -17,7 +17,7 @@ const BREAKDOWN_LABELS: Record<string, string> = {
   shares: 'compartidos',
   saves: 'guardados',
   reactions: 'reacciones',
-  campaigns: 'Campanas',
+  campaigns: 'Campañas',
   seo: 'SEO',
   ai_search: 'AI Search',
   google_ads: 'Google Ads',

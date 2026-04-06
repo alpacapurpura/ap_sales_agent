@@ -163,6 +163,7 @@ docker run --rm ... ruff|pytest|tsc|vitest ...
 8. **Git:** Conventional Commits, never force push main. See `.claude/rules/git-safety.md`.
 9. **Debugging:** Docker diagnostics + common error patterns. See `.claude/rules/debugging.md`.
 10. **Copilot:** Schema introspection, module registry, route-based tools. See `.claude/rules/copilot-resilience.md`.
+11. **Spanish text:** Todo texto visible al usuario en español DEBE llevar tildes y eñes correctas (`días` no `dias`, `Campaña` no `Campana`, `Inversión` no `Inversion`). Verificar antes de commitear. See `.claude/rules/spanish-text.md`.
 
 ## Product Vision
 

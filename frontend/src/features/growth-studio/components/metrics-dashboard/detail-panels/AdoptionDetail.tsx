@@ -18,8 +18,8 @@ import type { MetricClickData, StageSummary } from '../../../types/metrics';
 const ADOPCION_STAGE: StageSummary = {
   id: 'ADOPCION',
   order: 5,
-  label: 'Adopcion',
-  description: 'Salud y activacion de clientes existentes',
+  label: 'Adopción',
+  description: 'Salud y activación de clientes existentes',
   mainKpi: { label: 'salud %', value: 0, unit: '%' },
   secondaryKpi: { label: 'activos', value: 0 },
   hasDetail: true,

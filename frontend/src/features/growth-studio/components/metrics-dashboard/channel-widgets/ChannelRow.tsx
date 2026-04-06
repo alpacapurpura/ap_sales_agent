@@ -101,7 +101,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
             <p className="text-xs text-muted-foreground truncate">{channel.sourceLabel}</p>
           </div>
         </div>
-        <Badge variant="secondary" className="text-[11px]">Proximamente</Badge>
+        <Badge variant="secondary" className="text-[11px]">Próximamente</Badge>
       </div>
     );
   }

@@ -8,7 +8,7 @@ describe('StageCard', () => {
   const baseSummary: StageSummary = {
     id: 'ATRACCION' as StageId,
     order: 0,
-    label: 'Atraccion',
+    label: 'Atracción',
     description: 'Total visitors attracted to your content',
     mainKpi: { label: 'Visitantes', value: 1250 },
     secondaryKpi: { label: 'Conversion', value: 18.9, unit: '%' },
@@ -20,7 +20,7 @@ describe('StageCard', () => {
       <StageCard stage={baseSummary} isActive={false} onClick={() => {}} />
     );
 
-    expect(screen.getByText(/atraccion/i)).toBeInTheDocument();
+    expect(screen.getByText(/atracción/i)).toBeInTheDocument();
   });
 
   it('displays formatted mainKpi value (1250 -> 1.3k)', () => {
@@ -86,7 +86,7 @@ describe('StageCard', () => {
     );
 
     // The card is the root div with onClick
-    const card = screen.getByText(/atraccion/i).closest('div[class*="cursor-pointer"]');
+    const card = screen.getByText(/atracción/i).closest('div[class*="cursor-pointer"]');
     expect(card).toBeTruthy();
     await user.click(card!);
 
@@ -103,7 +103,7 @@ describe('StageCard', () => {
     expect(screen.queryByText('Visitantes')).not.toBeInTheDocument();
 
     // Stage label is still visible during loading
-    expect(screen.getByText(/atraccion/i)).toBeInTheDocument();
+    expect(screen.getByText(/atracción/i)).toBeInTheDocument();
   });
 
   it('shows "simulado" badge when isMock is true', () => {

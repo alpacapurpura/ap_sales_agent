@@ -33,7 +33,7 @@ export function ConversionBridge({
   return (
     <div className="bg-card border border-border rounded-lg p-4">
       <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium mb-3">
-        Puente de Conversion
+        Puente de Conversión
       </p>
 
       {/* Desktop layout */}
