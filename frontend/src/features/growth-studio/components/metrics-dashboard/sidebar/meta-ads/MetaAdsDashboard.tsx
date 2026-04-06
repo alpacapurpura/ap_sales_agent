@@ -2,18 +2,19 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, BarChart3 } from 'lucide-react';
+import { ArrowLeft, BarChart3, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
+import { useCampaignPerformance } from '../../../../api/campaigns-api';
 import type { MetaAdsPeriod, MetaAdsDashboardTab } from '../../../../types/metrics';
 import { MetaAdsPeriodSelector } from './MetaAdsPeriodSelector';
-import { OverviewTab } from './tabs/OverviewTab';
+import { ResumenTab } from './tabs/ResumenTab';
 import { CampaignsTab } from './tabs/CampaignsTab';
-import { AudienceTab } from './tabs/AudienceTab';
-import { VideoTab } from './tabs/VideoTab';
-import { CostsTab } from './tabs/CostsTab';
+import { CreativosTab } from './tabs/CreativosTab';
+import { AudienciaTab } from './tabs/AudienciaTab';
+import { CostosTab } from './tabs/CostosTab';
 
 interface MetaAdsDashboardProps {
   onClose: () => void;
@@ -21,8 +22,9 @@ interface MetaAdsDashboardProps {
 
 export function MetaAdsDashboard({ onClose }: MetaAdsDashboardProps) {
   const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
-  const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>('overview');
-  const { data, isLoading } = useChannelDashboard('meta-ads', period);
+  const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>('resumen');
+  const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
+  const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
 
   const content = (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
@@ -38,7 +40,9 @@ export function MetaAdsDashboard({ onClose }: MetaAdsDashboardProps) {
             <h1 className="text-lg font-semibold">Meta Ads &middot; Dashboard</h1>
           </div>
         </div>
-        <MetaAdsPeriodSelector value={period} onChange={setPeriod} />
+        <div className="flex items-center gap-3">
+          <MetaAdsPeriodSelector value={period} onChange={setPeriod} />
+        </div>
       </div>
 
       {/* Tabs */}
@@ -49,29 +53,37 @@ export function MetaAdsDashboard({ onClose }: MetaAdsDashboardProps) {
       >
         <div className="border-b px-6">
           <TabsList className="h-10">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="campaigns">Campañas</TabsTrigger>
-            <TabsTrigger value="audience">Audiencia</TabsTrigger>
-            <TabsTrigger value="video">Video</TabsTrigger>
-            <TabsTrigger value="costs">Costos</TabsTrigger>
+            <TabsTrigger value="resumen">Resumen</TabsTrigger>
+            <TabsTrigger value="campanas">Campañas</TabsTrigger>
+            <TabsTrigger value="creativos">Creativos</TabsTrigger>
+            <TabsTrigger value="audiencia">Audiencia</TabsTrigger>
+            <TabsTrigger value="costos">Costos</TabsTrigger>
           </TabsList>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <TabsContent value="overview" className="m-0 p-6">
-            <OverviewTab data={data} isLoading={isLoading} />
+          <TabsContent value="resumen" className="m-0 p-6">
+            <ResumenTab data={dashboardData} isLoading={isDashboardLoading} />
           </TabsContent>
-          <TabsContent value="campaigns" className="m-0 p-6">
-            <CampaignsTab />
+          <TabsContent value="campanas" className="m-0 p-6">
+            <CampaignsTab
+              data={campaignData}
+              isLoading={isCampaignLoading}
+              currency={campaignData?.currency ?? dashboardData?.kpis.find(k => k.currency)?.currency}
+            />
           </TabsContent>
-          <TabsContent value="audience" className="m-0 p-6">
-            <AudienceTab />
+          <TabsContent value="creativos" className="m-0 p-6">
+            <CreativosTab data={dashboardData} isLoading={isDashboardLoading} />
           </TabsContent>
-          <TabsContent value="video" className="m-0 p-6">
-            <VideoTab />
+          <TabsContent value="audiencia" className="m-0 p-6">
+            <AudienciaTab data={dashboardData} isLoading={isDashboardLoading} />
           </TabsContent>
-          <TabsContent value="costs" className="m-0 p-6">
-            <CostsTab data={data} isLoading={isLoading} />
+          <TabsContent value="costos" className="m-0 p-6">
+            <CostosTab
+              data={dashboardData}
+              campaignData={campaignData}
+              isLoading={isDashboardLoading}
+            />
           </TabsContent>
         </div>
       </Tabs>
