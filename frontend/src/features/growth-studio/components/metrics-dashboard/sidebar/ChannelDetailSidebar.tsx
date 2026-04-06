@@ -31,6 +31,7 @@ import { connectionsApi, type ChannelInfoResponse } from '@/lib/api/connections'
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 import { MetaAdsOverviewPanel } from './meta-ads/MetaAdsOverviewPanel';
 import { IgOrganicOverviewPanel } from './ig-organic/IgOrganicOverviewPanel';
+import { YouTubeOverviewPanel } from './youtube-organic/YouTubeOverviewPanel';
 import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
 import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
 import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
@@ -156,6 +157,19 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           channel={channel}
           onClose={onClose}
           onExpand={() => handleOpenExpandedDashboard('ig-organic')}
+        />
+      </DetailPanel>
+    );
+  }
+
+  // YouTube Organic: Wider sidebar with dedicated overview panel
+  if (channel.slug === 'yt-organic') {
+    return (
+      <DetailPanel open={isOpen} onClose={onClose} size="lg">
+        <YouTubeOverviewPanel
+          channel={channel}
+          onClose={onClose}
+          onExpand={() => handleOpenExpandedDashboard('yt-organic')}
         />
       </DetailPanel>
     );

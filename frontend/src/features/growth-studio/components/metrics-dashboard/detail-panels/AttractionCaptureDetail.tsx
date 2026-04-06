@@ -18,6 +18,7 @@ import { ChannelGroup } from '../attraction/ChannelGroup';
 import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
 import { MetaAdsDashboard } from '../sidebar/meta-ads/MetaAdsDashboard';
 import { IgOrganicDashboard } from '../sidebar/ig-organic/IgOrganicDashboard';
+import { YouTubeDashboard } from '../sidebar/youtube-organic/YouTubeDashboard';
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
@@ -36,6 +37,9 @@ function ExpandedDashboardWrapper() {
   const { expandedDashboardChannel, handleCloseExpandedDashboard } = useGrowthStudioContext();
   if (expandedDashboardChannel === 'ig-organic') {
     return <IgOrganicDashboard onClose={handleCloseExpandedDashboard} />;
+  }
+  if (expandedDashboardChannel === 'yt-organic') {
+    return <YouTubeDashboard onClose={handleCloseExpandedDashboard} />;
   }
   return null;
 }

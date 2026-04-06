@@ -52,6 +52,7 @@ export const CHANNEL_DISPLAY_REGISTRY: Record<string, ChannelDisplayConfig> = {
   'yt-organic': {
     summaryMetrics: [
       { name: 'views', label: 'Vistas' },
+      { name: 'watch_time_minutes', label: 'Min. Vistos' },
       { name: 'engagement', label: 'Engagement' },
       { name: 'subscribers_gained', label: 'Suscriptores' },
     ],

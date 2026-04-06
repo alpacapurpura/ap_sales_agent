@@ -1,0 +1,18 @@
+'use client';
+
+import { YouTubeDemographicsChart } from '../../youtube/YouTubeDemographicsChart';
+import { ChartInfoTooltip } from '../../ig-organic/ChartInfoTooltip';
+
+export function YtAudienceTab() {
+  return (
+    <div className="space-y-8">
+      <div className="space-y-3">
+        <ChartInfoTooltip
+          title="Demograf&iacute;a de Audiencia"
+          description="Distribuci&oacute;n de tu audiencia por edad, g&eacute;nero y pa&iacute;s. Usa estos datos para ajustar tu contenido al p&uacute;blico que m&aacute;s te consume."
+        />
+        <YouTubeDemographicsChart enabled />
+      </div>
+    </div>
+  );
+}
