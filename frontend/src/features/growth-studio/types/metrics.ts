@@ -604,3 +604,5 @@ export type ChannelDashboardPeriod = MetaAdsPeriod;
 export type IgOrganicDashboardTab = 'overview' | 'contenido' | 'audiencia' | 'alcance';
 
 export type YouTubeDashboardTab = 'overview' | 'videos' | 'audiencia' | 'engagement' | 'retencion';
+
+export type MailDashboardTab = 'overview' | 'engagement' | 'entregabilidad' | 'lista' | 'automatizacion';

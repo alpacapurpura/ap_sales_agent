@@ -59,6 +59,15 @@ export const CHANNEL_DISPLAY_REGISTRY: Record<string, ChannelDisplayConfig> = {
     ],
     primaryMetric: { name: 'views', label: 'vistas' },
   },
+  'email-nurture': {
+    summaryMetrics: [
+      { name: 'emails_sent', label: 'Enviados' },
+      { name: 'open_rate', label: 'Apertura', format: 'percentage' },
+      { name: 'click_rate', label: 'Clics', format: 'percentage' },
+      { name: 'active_subscribers', label: 'Suscriptores' },
+    ],
+    primaryMetric: { name: 'open_rate', label: 'tasa de apertura' },
+  },
   'website-capture': {
     summaryMetrics: [
       { name: 'visitors' },

@@ -35,6 +35,7 @@ import { YouTubeOverviewPanel } from './youtube-organic/YouTubeOverviewPanel';
 import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
 import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
 import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
+import { MailOverviewPanel } from './mail/MailOverviewPanel';
 
 /** Section groupings for channels with many metrics. */
 const CHANNEL_METRIC_SECTIONS: Record<string, Array<{ title: string; metrics: string[] }>> = {
@@ -170,6 +171,19 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           channel={channel}
           onClose={onClose}
           onExpand={() => handleOpenExpandedDashboard('yt-organic')}
+        />
+      </DetailPanel>
+    );
+  }
+
+  // Email Marketing: Wider sidebar with dedicated overview panel
+  if (channel.slug === 'email-nurture' || channel.slug.startsWith('email-')) {
+    return (
+      <DetailPanel open={isOpen} onClose={onClose} size="lg">
+        <MailOverviewPanel
+          channel={channel}
+          onClose={onClose}
+          onExpand={() => handleOpenExpandedDashboard('email-nurture')}
         />
       </DetailPanel>
     );

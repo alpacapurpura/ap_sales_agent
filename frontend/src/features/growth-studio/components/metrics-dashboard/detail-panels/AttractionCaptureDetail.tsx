@@ -19,6 +19,7 @@ import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
 import { MetaAdsDashboard } from '../sidebar/meta-ads/MetaAdsDashboard';
 import { IgOrganicDashboard } from '../sidebar/ig-organic/IgOrganicDashboard';
 import { YouTubeDashboard } from '../sidebar/youtube-organic/YouTubeDashboard';
+import { MailDashboard } from '../sidebar/mail/MailDashboard';
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
@@ -40,6 +41,9 @@ function ExpandedDashboardWrapper() {
   }
   if (expandedDashboardChannel === 'yt-organic') {
     return <YouTubeDashboard onClose={handleCloseExpandedDashboard} />;
+  }
+  if (expandedDashboardChannel === 'email-nurture') {
+    return <MailDashboard onClose={handleCloseExpandedDashboard} />;
   }
   return null;
 }
