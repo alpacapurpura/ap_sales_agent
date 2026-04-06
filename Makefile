@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -151,6 +151,9 @@ e2e:
 
 e2e-smoke:
 	$(DOCKER_COMPOSE_E2E) run --rm --no-deps e2e_runner npx playwright test --grep @smoke $(args)
+
+perf-baseline:
+	$(DOCKER_COMPOSE_E2E) run --rm --no-deps e2e_runner npx playwright test --grep @perf $(args)
 
 e2e-ui:
 	$(DOCKER_COMPOSE_E2E) run --rm -p 9323:9323 e2e_runner npx playwright test --ui --ui-host 0.0.0.0 --ui-port 9323

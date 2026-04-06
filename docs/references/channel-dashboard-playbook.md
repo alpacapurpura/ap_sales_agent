@@ -269,6 +269,29 @@ frontend/src/features/growth-studio/components/metrics-dashboard/sidebar/Channel
 frontend/src/features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext.tsx:84,129-137  ← state pattern
 frontend/src/features/growth-studio/components/metrics-dashboard/detail-panels/AttractionCaptureDetail.tsx:27-29,377  ← wrapper pattern
 
+## Progressive Loading Pattern (2026-04-06)
+
+Detail panels use 3-tier progressive loading to avoid blocking the initial render:
+
+| Tier | Hook | Endpoint | Trigger | Payload |
+|------|------|----------|---------|---------|
+| 1 | `useStageOverview(stage)` | `GET /{stage}/overview` | On mount | ~500B (header KPIs + channel list with 1 headline KPI) |
+| 2 | `useGroupDetail(stage, groupKey)` | `GET /{stage}/groups/{groupKey}` | IntersectionObserver | ~2-5KB per group (full metrics for that group only) |
+| 3 | `useStageTimeSeries(...)` | `GET /timeseries` | IntersectionObserver | ~3-8KB (chart data, deferred until charts section is visible) |
+
+### Key components
+
+- **`LazyChannelGroup`** — Wraps `useIntersectionObserver()` + `useGroupDetail()`. Renders overview data immediately, enriches with full detail on viewport entry.
+- **`useIntersectionObserver`** — Once-mode: `isVisible` stays true after first viewport entry. rootMargin: `200px` for pre-fetching.
+- **`useStageTimeSeries`** — Supports `{ enabled: boolean }` option for deferred loading.
+
+### When adding a new detail panel
+
+1. Use `useStageOverview(stage)` for KPIs and channel list
+2. Use `<LazyChannelGroup stage={...} groupKey={...} overviewChannels={...} />` for each channel group
+3. Wrap charts in a div with `useIntersectionObserver` and pass `{ enabled: chartsVisible }` to time series hooks
+4. Never import `useAttractionDetail()` or similar full-detail hooks in the main component
+
 # E2E (copiar y adaptar)
 frontend/e2e/fixtures/meta-ads-mock-data.ts  ← mock data template
 frontend/e2e/fixtures/meta-ads-setup.ts  ← mock setup template
