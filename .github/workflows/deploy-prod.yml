@@ -186,6 +186,16 @@ jobs:
       - name: Run migrations
         run: docker exec visionarias_brain_dev bash -c "cd /app && alembic upgrade head"
 
+      - name: Seed E2E tenant
+        env:
+          E2E_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
+        run: |
+          docker exec visionarias_postgres psql -U postgres -d visionarias_test -c "
+            INSERT INTO tenants (id, name, slug, is_active, default_currency, timezone)
+            VALUES ('$E2E_TENANT_ID', 'E2E Test Tenant', 'e2e-test', true, 'USD', 'UTC')
+            ON CONFLICT (id) DO NOTHING;
+          "
+
       - name: Run E2E smoke tests
         run: |
           docker compose --profile e2e run --rm e2e_runner \
