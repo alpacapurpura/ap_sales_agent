@@ -30,6 +30,7 @@ import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { connectionsApi, type ChannelInfoResponse } from '@/lib/api/connections';
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 import { MetaAdsOverviewPanel } from './meta-ads/MetaAdsOverviewPanel';
+import { IgOrganicOverviewPanel } from './ig-organic/IgOrganicOverviewPanel';
 import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
 import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
 import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
@@ -98,7 +99,7 @@ interface ChannelDetailSidebarProps {
 }
 
 export default function ChannelDetailSidebar({ isOpen, onClose, channel }: ChannelDetailSidebarProps) {
-  const { handleOpenMetaAdsDashboard } = useGrowthStudioContext();
+  const { handleOpenMetaAdsDashboard, handleOpenExpandedDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -142,6 +143,19 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           channel={channel}
           onClose={onClose}
           onExpand={handleOpenMetaAdsDashboard}
+        />
+      </DetailPanel>
+    );
+  }
+
+  // IG Organic: Wider sidebar with dedicated overview panel
+  if (channel.slug === 'ig-organic') {
+    return (
+      <DetailPanel open={isOpen} onClose={onClose} size="lg">
+        <IgOrganicOverviewPanel
+          channel={channel}
+          onClose={onClose}
+          onExpand={() => handleOpenExpandedDashboard('ig-organic')}
         />
       </DetailPanel>
     );

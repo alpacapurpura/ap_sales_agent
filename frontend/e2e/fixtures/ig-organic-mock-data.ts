@@ -1,0 +1,253 @@
+/**
+ * Mock data for the IG Organic channel dashboard E2E tests.
+ *
+ * Provides realistic data structures that match the backend's
+ * ChannelDashboardDTO schema for Instagram Organic metrics.
+ */
+
+export const IG_ORGANIC_DASHBOARD_MOCK = {
+  channel_slug: 'ig-organic',
+  channel_name: 'Instagram Orgánico',
+  industry_category: 'education',
+  period: '30d',
+  kpis: [
+    {
+      metric_name: 'total_interactions',
+      display_name: 'Interacciones Totales',
+      current_value: 2450,
+      previous_value: 2100,
+      delta_percent: 16.7,
+      delta_absolute: 350,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+    {
+      metric_name: 'ig_views',
+      display_name: 'Vistas',
+      current_value: 485000,
+      previous_value: 410000,
+      delta_percent: 18.3,
+      delta_absolute: 75000,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+    {
+      metric_name: 'ig_follows_and_unfollows',
+      display_name: 'Seguidores Netos',
+      current_value: 127,
+      previous_value: 95,
+      delta_percent: 33.7,
+      delta_absolute: 32,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+    {
+      metric_name: 'ig_engagement_rate',
+      display_name: 'Engagement Rate',
+      current_value: 0.51,
+      previous_value: 0.44,
+      delta_percent: 15.9,
+      delta_absolute: 0.07,
+      unit: 'percentage',
+      currency: null,
+      higher_is_better: true,
+      benchmark: {
+        low: 0.3,
+        median: 0.5,
+        high: 0.8,
+        unit: 'percentage',
+        interpretation: 'Tasa de interacción sobre el total de seguidores',
+      },
+    },
+    {
+      metric_name: 'ig_likes',
+      display_name: 'Likes',
+      current_value: 1800,
+      previous_value: 1500,
+      delta_percent: 20.0,
+      delta_absolute: 300,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+    {
+      metric_name: 'ig_comments',
+      display_name: 'Comentarios',
+      current_value: 320,
+      previous_value: 280,
+      delta_percent: 14.3,
+      delta_absolute: 40,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+    {
+      metric_name: 'ig_shares',
+      display_name: 'Compartidos',
+      current_value: 210,
+      previous_value: 180,
+      delta_percent: 16.7,
+      delta_absolute: 30,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+    {
+      metric_name: 'ig_saves',
+      display_name: 'Guardados',
+      current_value: 120,
+      previous_value: 95,
+      delta_percent: 26.3,
+      delta_absolute: 25,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+    {
+      metric_name: 'ig_profile_links_taps',
+      display_name: 'Taps en Perfil',
+      current_value: 340,
+      previous_value: 290,
+      delta_percent: 17.2,
+      delta_absolute: 50,
+      unit: 'count',
+      currency: null,
+      higher_is_better: true,
+      benchmark: null,
+    },
+  ],
+  time_series: [
+    {
+      metric_name: 'total_interactions',
+      display_name: 'Interacciones Totales',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 60 + Math.round(Math.random() * 40),
+      })),
+    },
+    {
+      metric_name: 'ig_views',
+      display_name: 'Vistas',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 12000 + Math.round(Math.random() * 8000),
+      })),
+    },
+    {
+      metric_name: 'ig_follows_and_unfollows',
+      display_name: 'Seguidores Netos',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: Math.round(-5 + Math.random() * 15),
+      })),
+    },
+    {
+      metric_name: 'ig_engagement_rate',
+      display_name: 'Engagement Rate',
+      unit: 'percentage',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 0.3 + Math.random() * 0.4,
+      })),
+    },
+    {
+      metric_name: 'ig_likes',
+      display_name: 'Likes',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 40 + Math.round(Math.random() * 30),
+      })),
+    },
+    {
+      metric_name: 'ig_comments',
+      display_name: 'Comentarios',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 5 + Math.round(Math.random() * 15),
+      })),
+    },
+    {
+      metric_name: 'ig_shares',
+      display_name: 'Compartidos',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 3 + Math.round(Math.random() * 10),
+      })),
+    },
+    {
+      metric_name: 'ig_saves',
+      display_name: 'Guardados',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 2 + Math.round(Math.random() * 8),
+      })),
+    },
+    {
+      metric_name: 'ig_profile_links_taps',
+      display_name: 'Taps en Perfil',
+      unit: 'count',
+      data_points: Array.from({ length: 30 }, (_, i) => ({
+        date: `2026-03-${String(i + 1).padStart(2, '0')}`,
+        value: 5 + Math.round(Math.random() * 15),
+      })),
+    },
+  ],
+  funnel: {
+    steps: [
+      { label: 'Vistas', metric_name: 'ig_views', value: 485000, conversion_rate_from_previous: null },
+      { label: 'Interacciones', metric_name: 'total_interactions', value: 2450, conversion_rate_from_previous: 0.51 },
+      { label: 'Compartidos', metric_name: 'ig_shares', value: 210, conversion_rate_from_previous: 8.57 },
+      { label: 'Taps en Perfil', metric_name: 'ig_profile_links_taps', value: 340, conversion_rate_from_previous: 161.9 },
+    ],
+  },
+  frequency_alert: null,
+};
+
+/** Attraction detail mock with the IG Organic channel in organic_social. */
+export const ATTRACTION_WITH_IG_MOCK = {
+  organic_social: {
+    totals: { reach: 485000, engagement: 2450 },
+    channels: [
+      {
+        slug: 'ig-organic',
+        name: 'Instagram Orgánico',
+        channel_type: 'organic_social',
+        metrics: [
+          { name: 'total_interactions', value: 2450, unit: 'count' },
+          { name: 'ig_views', value: 485000, unit: 'count' },
+          { name: 'ig_follows_and_unfollows', value: 127, unit: 'count' },
+          { name: 'ig_engagement_rate', value: 0.51, unit: 'percentage' },
+        ],
+        source_label: 'Instagram',
+        connected: true,
+        cost_type: null,
+        last_updated: '2026-04-06T05:00:00Z',
+        stale: false,
+        provider_name: 'instagram',
+      },
+    ],
+  },
+  ga4_search: { totals: {}, channels: [] },
+  paid: { totals: {}, channels: [] },
+  outbound: { totals: {}, channels: [] },
+  website: { totals: { sessions: 8000 }, channels: [] },
+  period: 'last_30_days',
+  last_updated: '2026-04-06T05:00:00Z',
+};

@@ -17,6 +17,7 @@ import { ConversionBridge } from '../attraction/ConversionBridge';
 import { ChannelGroup } from '../attraction/ChannelGroup';
 import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
 import { MetaAdsDashboard } from '../sidebar/meta-ads/MetaAdsDashboard';
+import { IgOrganicDashboard } from '../sidebar/ig-organic/IgOrganicDashboard';
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
@@ -29,6 +30,14 @@ function MetaAdsDashboardWrapper() {
   const { metaAdsDashboardOpen, handleCloseMetaAdsDashboard } = useGrowthStudioContext();
   if (!metaAdsDashboardOpen) return null;
   return <MetaAdsDashboard onClose={handleCloseMetaAdsDashboard} />;
+}
+
+function ExpandedDashboardWrapper() {
+  const { expandedDashboardChannel, handleCloseExpandedDashboard } = useGrowthStudioContext();
+  if (expandedDashboardChannel === 'ig-organic') {
+    return <IgOrganicDashboard onClose={handleCloseExpandedDashboard} />;
+  }
+  return null;
 }
 
 // ─── Mobile Charts Expand ────────────────────────────────────────────────────
@@ -377,8 +386,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         channel={sidebarChannel}
       />
 
-      {/* Meta Ads Full Dashboard */}
+      {/* Full-page dashboards */}
       <MetaAdsDashboardWrapper />
+      <ExpandedDashboardWrapper />
     </div>
   );
 });

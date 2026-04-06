@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
@@ -40,12 +41,122 @@ import structlog
 logger = structlog.get_logger()
 
 
-# Channel slug -> human-readable name
+# ---------------------------------------------------------------------------
+# Per-channel dashboard configuration
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ChannelDashboardConfig:
+    """Declarative configuration for a channel's dashboard layout."""
+
+    channel_name: str
+    hero_metrics: list[str] = field(default_factory=list)
+    timeseries_metrics: list[str] = field(default_factory=list)
+    funnel_steps: list[tuple[str, str]] = field(default_factory=list)
+    has_frequency_alert: bool = False
+
+
+_CHANNEL_CONFIGS: dict[str, ChannelDashboardConfig] = {
+    "meta-ads": ChannelDashboardConfig(
+        channel_name="Meta Ads",
+        hero_metrics=[
+            "spend",
+            "ROAS",
+            "CPL",
+            "CTR",
+            "CPC",
+            "CPM",
+            "CPA",
+            "conversions",
+        ],
+        timeseries_metrics=[
+            "spend",
+            "impressions",
+            "clicks",
+            "reach",
+            "conversions",
+            "ROAS",
+            "CPC",
+            "CPM",
+            "CPL",
+        ],
+        funnel_steps=[
+            ("Impresiones", "impressions"),
+            ("Clics", "clicks"),
+            ("Vistas de Landing", "meta_landing_page_views"),
+            ("Leads", "meta_leads"),
+            ("Conversiones", "conversions"),
+        ],
+        has_frequency_alert=True,
+    ),
+    "ig-organic": ChannelDashboardConfig(
+        channel_name="Instagram Orgánico",
+        hero_metrics=[
+            "total_interactions",
+            "ig_views",
+            "ig_follows_and_unfollows",
+            "ig_engagement_rate",
+        ],
+        timeseries_metrics=[
+            "total_interactions",
+            "ig_views",
+            "ig_likes",
+            "ig_comments",
+            "ig_shares",
+            "ig_saves",
+            "ig_follows_and_unfollows",
+            "ig_profile_links_taps",
+        ],
+        funnel_steps=[
+            ("Vistas", "ig_views"),
+            ("Interacciones", "total_interactions"),
+            ("Compartidos", "ig_shares"),
+            ("Taps en Perfil", "ig_profile_links_taps"),
+        ],
+        has_frequency_alert=False,
+    ),
+    "yt-organic": ChannelDashboardConfig(
+        channel_name="YouTube Orgánico",
+        hero_metrics=[
+            "views",
+            "watch_time_minutes",
+            "subscribers_gained",
+            "avg_view_percentage",
+        ],
+        timeseries_metrics=[
+            "views",
+            "watch_time_minutes",
+            "subscribers_gained",
+            "subscribers_lost",
+            "avg_view_duration",
+            "avg_view_percentage",
+            "engagement",
+            "comments",
+            "shares",
+            "card_clicks",
+            "end_screen_clicks",
+        ],
+        funnel_steps=[
+            ("Vistas", "views"),
+            ("Engagement", "engagement"),
+            ("Suscriptores", "subscribers_gained"),
+            ("Clics Tarjetas", "card_clicks"),
+        ],
+        has_frequency_alert=False,
+    ),
+}
+
+_DEFAULT_CONFIG = ChannelDashboardConfig(channel_name="Canal")
+
+# Channel slug -> human-readable name (kept for backward compat)
 _CHANNEL_NAMES: dict[str, str] = {
     "meta-ads": "Meta Ads",
     "google-ads": "Google Ads",
     "yt-ads": "YouTube Ads",
     "tiktok-ads": "TikTok Ads",
+    "ig-organic": "Instagram Orgánico",
+    "yt-organic": "YouTube Orgánico",
 }
 
 # Period string -> days
@@ -56,30 +167,43 @@ _PERIOD_DAYS: dict[str, int] = {
     "last_30_days": 30,
 }
 
-# KPI metrics to include in the dashboard hero row
-_HERO_METRICS = ["spend", "ROAS", "CPL", "CTR", "CPC", "CPM", "CPA", "conversions"]
 
-# Metrics for time series charts
-_TIMESERIES_METRICS = [
-    "spend",
-    "impressions",
-    "clicks",
-    "reach",
-    "conversions",
-    "ROAS",
-    "CPC",
-    "CPM",
-    "CPL",
-]
+# ---------------------------------------------------------------------------
+# Derived metric computation
+# ---------------------------------------------------------------------------
 
-# Funnel steps in order
-_FUNNEL_STEPS = [
-    ("Impresiones", "impressions"),
-    ("Clics", "clicks"),
-    ("Vistas de Landing", "meta_landing_page_views"),
-    ("Leads", "meta_leads"),
-    ("Conversiones", "conversions"),
-]
+
+def _compute_derived_metrics(metrics: dict[str, float]) -> dict[str, float]:
+    """Add in-memory derived metrics that are not stored in DB.
+
+    Currently computes:
+    - ig_engagement_rate: total_interactions / ig_views * 100  (IG Organic)
+    - card_click_rate: card_clicks / card_impressions * 100    (YouTube)
+    - end_screen_click_rate: end_screen_clicks / end_screen_impressions * 100  (YouTube)
+    """
+    # IG Organic: engagement rate
+    ig_views = metrics.get("ig_views", 0)
+    interactions = metrics.get("total_interactions", 0)
+    if ig_views > 0:
+        metrics["ig_engagement_rate"] = round((interactions / ig_views) * 100, 2)
+    else:
+        metrics["ig_engagement_rate"] = 0.0
+
+    # YouTube: Card CTR
+    card_clicks = metrics.get("card_clicks", 0)
+    card_impressions = metrics.get("card_impressions", 0)
+    if card_impressions > 0:
+        metrics["card_click_rate"] = round((card_clicks / card_impressions) * 100, 2)
+
+    # YouTube: End Screen CTR
+    end_clicks = metrics.get("end_screen_clicks", 0)
+    end_impressions = metrics.get("end_screen_impressions", 0)
+    if end_impressions > 0:
+        metrics["end_screen_click_rate"] = round(
+            (end_clicks / end_impressions) * 100, 2
+        )
+
+    return metrics
 
 
 class ChannelDashboardService:
@@ -100,6 +224,7 @@ class ChannelDashboardService:
         period: str = "30d",
     ) -> ChannelDashboardDTO:
         """Assemble the full channel dashboard."""
+        config = _CHANNEL_CONFIGS.get(channel_slug, _DEFAULT_CONFIG)
         days = _PERIOD_DAYS.get(period, 30)
         today = date.today()
         start = today - timedelta(days=days)
@@ -119,6 +244,9 @@ class ChannelDashboardService:
             period=period,
             industry=industry.value,
         )
+
+        # Use channel-specific timeseries metrics when available
+        timeseries_metrics = config.timeseries_metrics or []
 
         # Fetch data in parallel via thread pool (sync repo)
         current_metrics, previous_metrics, daily_data = await asyncio.gather(
@@ -140,25 +268,33 @@ class ChannelDashboardService:
                 self.repo.get_channel_daily_metrics,
                 tenant_id,
                 channel_slug,
-                _TIMESERIES_METRICS,
+                timeseries_metrics,
                 start,
                 today,
             ),
         )
 
+        # Compute derived metrics (e.g. ig_engagement_rate)
+        _compute_derived_metrics(current_metrics)
+        _compute_derived_metrics(previous_metrics)
+
         # Build KPIs
-        kpis = self._build_kpis(current_metrics, previous_metrics, industry)
+        kpis = self._build_kpis(current_metrics, previous_metrics, industry, config)
 
         # Build time series
         time_series = self._build_time_series(daily_data)
 
         # Build funnel
-        funnel = self._build_funnel(current_metrics)
+        funnel = self._build_funnel(current_metrics, config)
 
         # Frequency alert
-        frequency_alert = self._check_frequency(current_metrics)
+        frequency_alert = (
+            self._check_frequency(current_metrics)
+            if config.has_frequency_alert
+            else None
+        )
 
-        channel_name = _CHANNEL_NAMES.get(channel_slug, channel_slug)
+        channel_name = _CHANNEL_NAMES.get(channel_slug, config.channel_name)
 
         return ChannelDashboardDTO(
             channel_slug=channel_slug,
@@ -176,10 +312,13 @@ class ChannelDashboardService:
         current: dict[str, float],
         previous: dict[str, float],
         industry: IndustryCategory,
+        config: ChannelDashboardConfig | None = None,
     ) -> list[MetricKpiDTO]:
         """Build KPI cards with deltas and benchmarks."""
+        fallback_config = _CHANNEL_CONFIGS.get("meta-ads", _DEFAULT_CONFIG)
+        hero_metrics = config.hero_metrics if config else fallback_config.hero_metrics
         kpis: list[MetricKpiDTO] = []
-        for metric_name in _HERO_METRICS:
+        for metric_name in hero_metrics:
             current_val = current.get(metric_name)
             if current_val is None:
                 continue
@@ -261,12 +400,15 @@ class ChannelDashboardService:
     def _build_funnel(
         self,
         metrics: dict[str, float],
+        config: ChannelDashboardConfig | None = None,
     ) -> AdFunnelDTO:
         """Build the ad conversion funnel with step-to-step rates."""
+        fallback_config = _CHANNEL_CONFIGS.get("meta-ads", _DEFAULT_CONFIG)
+        funnel_steps = config.funnel_steps if config else fallback_config.funnel_steps
         steps: list[FunnelStepDTO] = []
         prev_value: float | None = None
 
-        for label, metric_name in _FUNNEL_STEPS:
+        for label, metric_name in funnel_steps:
             value = metrics.get(metric_name, 0.0)
             conv_rate = None
             if prev_value is not None and prev_value > 0:

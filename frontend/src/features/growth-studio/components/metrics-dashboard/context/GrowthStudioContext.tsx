@@ -38,7 +38,9 @@ interface GrowthStudioContextValue {
   sidebarOpen: boolean;
   selectedChannel: ChannelMetric | null;
   channelSidebarOpen: boolean;
+  /** @deprecated Use expandedDashboardChannel === 'meta-ads' instead */
   metaAdsDashboardOpen: boolean;
+  expandedDashboardChannel: string | null;
   configureChannel: { slug: string; name: string } | null;
   handleMetricClick: (metric: MetricClickData) => void;
   handleSidebarClose: () => void;
@@ -46,6 +48,8 @@ interface GrowthStudioContextValue {
   handleChannelSidebarClose: () => void;
   handleOpenMetaAdsDashboard: () => void;
   handleCloseMetaAdsDashboard: () => void;
+  handleOpenExpandedDashboard: (channelSlug: string) => void;
+  handleCloseExpandedDashboard: () => void;
   handleConfigure: (slug: string, name: string) => void;
   handleCloseConfigure: () => void;
 }
@@ -81,7 +85,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<ChannelMetric | null>(null);
   const [channelSidebarOpen, setChannelSidebarOpen] = useState(false);
-  const [metaAdsDashboardOpen, setMetaAdsDashboardOpen] = useState(false);
+  const [expandedDashboardChannel, setExpandedDashboardChannel] = useState<string | null>(null);
+  const metaAdsDashboardOpen = expandedDashboardChannel === 'meta-ads';
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
 
   // Reset sidebars when stage changes — legitimately syncs multiple pieces
@@ -96,7 +101,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
 
     setSelectedChannel(null);
 
-    setMetaAdsDashboardOpen(false);
+    setExpandedDashboardChannel(null);
 
     setConfigureChannel(null);
   }, [activeStage]);
@@ -129,11 +134,21 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const handleOpenMetaAdsDashboard = useCallback(() => {
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
-    setMetaAdsDashboardOpen(true);
+    setExpandedDashboardChannel('meta-ads');
   }, []);
 
   const handleCloseMetaAdsDashboard = useCallback(() => {
-    setMetaAdsDashboardOpen(false);
+    setExpandedDashboardChannel(null);
+  }, []);
+
+  const handleOpenExpandedDashboard = useCallback((channelSlug: string) => {
+    setChannelSidebarOpen(false);
+    setSelectedChannel(null);
+    setExpandedDashboardChannel(channelSlug);
+  }, []);
+
+  const handleCloseExpandedDashboard = useCallback(() => {
+    setExpandedDashboardChannel(null);
   }, []);
 
   const handleConfigure = useCallback((slug: string, name: string) => {
@@ -153,6 +168,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     selectedChannel,
     channelSidebarOpen,
     metaAdsDashboardOpen,
+    expandedDashboardChannel,
     configureChannel,
     handleMetricClick,
     handleSidebarClose,
@@ -160,6 +176,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleChannelSidebarClose,
     handleOpenMetaAdsDashboard,
     handleCloseMetaAdsDashboard,
+    handleOpenExpandedDashboard,
+    handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
   }), [
@@ -170,6 +188,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     selectedChannel,
     channelSidebarOpen,
     metaAdsDashboardOpen,
+    expandedDashboardChannel,
     configureChannel,
     handleMetricClick,
     handleSidebarClose,
@@ -177,6 +196,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleChannelSidebarClose,
     handleOpenMetaAdsDashboard,
     handleCloseMetaAdsDashboard,
+    handleOpenExpandedDashboard,
+    handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
   ]);
