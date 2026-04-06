@@ -43,6 +43,7 @@ from src.modules.connections.api import channel_info as conn_channel_info
 from src.modules.connections.api import gmail as conn_gmail
 from src.modules.connections.api import google_analytics as conn_google_analytics
 from src.modules.connections.api import google_workspace as conn_google_workspace
+from src.modules.connections.api import health as conn_health
 from src.modules.connections.api import mailerlite as conn_mailerlite
 from src.modules.connections.api import manychat as conn_manychat
 from src.modules.connections.api import marketing_webhooks as conn_marketing
@@ -640,6 +641,12 @@ app.include_router(
     conn_status.router,
     prefix="/api/v1/connections",
     tags=["Connections - Status"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    conn_health.router,
+    prefix="/api/v1/connections",
+    tags=["Connections - Health"],
     dependencies=[Depends(get_tenant_context)],
 )
 
