@@ -10,6 +10,7 @@ from src.modules.analytics.application.dto.campaign_dto import (
     AdSetDTO,
     CampaignOverviewDTO,
     CampaignPerformanceDTO,
+    CreativesOverviewDTO,
 )
 from src.modules.analytics.application.services.campaign_service import (
     CampaignService,
@@ -52,6 +53,27 @@ async def get_campaigns_performance(
         )
     service = CampaignService(db)
     return service.get_performance(user.tenant_id, period)
+
+
+@router.get("/creatives", response_model=CreativesOverviewDTO)
+async def get_creatives_overview(
+    period: str = Query(default="30d"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get ad gallery with creative details and video retention metrics.
+
+    Returns all ads with campaign names, creative thumbnails, and
+    aggregated video retention funnel metrics for the given period.
+    """
+    valid_periods = {"7d", "30d", "90d"}
+    if period not in valid_periods:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Must be one of {valid_periods}",
+        )
+    service = CampaignService(db)
+    return service.get_creatives_overview(user.tenant_id, period)
 
 
 @router.get("/{campaign_external_id}/adsets", response_model=list[AdSetDTO])

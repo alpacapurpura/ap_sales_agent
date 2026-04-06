@@ -19,6 +19,7 @@ from src.modules.analytics.application.dto.campaign_dto import (
 if TYPE_CHECKING:
     from src.modules.analytics.application.dto.campaign_dto import (
         CampaignPerformanceDTO,
+        CreativesOverviewDTO,
     )
 
 logger = logging.getLogger(__name__)
@@ -387,6 +388,121 @@ class CampaignService:
             )
             for r in rows
         ]
+
+    # ------------------------------------------------------------------
+    # Creatives / Ad Gallery
+    # ------------------------------------------------------------------
+
+    _CREATIVES_ADS_SQL = text("""
+        SELECT a.external_id,
+               a.name,
+               c.name AS campaign_name,
+               a.campaign_external_id,
+               a.status,
+               a.effective_status,
+               a.creative_thumbnail_url,
+               a.creative_title,
+               a.creative_cta,
+               a.preview_shareable_link
+        FROM ads a
+        LEFT JOIN ad_campaigns c
+            ON c.tenant_id = a.tenant_id
+           AND c.external_id = a.campaign_external_id
+           AND c.deleted_at IS NULL
+        WHERE a.tenant_id = :tenant_id
+          AND a.deleted_at IS NULL
+        ORDER BY
+            CASE a.effective_status
+                WHEN 'ACTIVE' THEN 1
+                WHEN 'WITH_ISSUES' THEN 2
+                WHEN 'IN_PROCESS' THEN 3
+                WHEN 'PAUSED' THEN 4
+                ELSE 5
+            END,
+            a.name
+    """)
+
+    _VIDEO_RETENTION_SQL = text("""
+        SELECT metric_name,
+               SUM(value) AS total_value
+        FROM official_metrics
+        WHERE tenant_id = :tenant_id
+          AND channel_slug = 'meta-ads'
+          AND metric_name IN (
+              'video_play_actions',
+              'video_p25_watched_actions',
+              'video_p50_watched_actions',
+              'video_p75_watched_actions',
+              'video_p100_watched_actions'
+          )
+          AND metric_date BETWEEN :start_date AND :end_date
+        GROUP BY metric_name
+    """)
+
+    def get_creatives_overview(
+        self, tenant_id: UUID, period: str = "30d"
+    ) -> "CreativesOverviewDTO":
+        """Get ad gallery with creative details and video retention metrics."""
+        from src.modules.analytics.application.dto.campaign_dto import (
+            AdPerformanceDTO,
+            CreativesOverviewDTO,
+            VideoRetentionDTO,
+        )
+
+        days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
+
+        # 1. Ads with campaign names
+        ad_rows = self._db.execute(
+            self._CREATIVES_ADS_SQL,
+            {"tenant_id": str(tenant_id)},
+        ).fetchall()
+
+        ads = [
+            AdPerformanceDTO(
+                external_id=r._mapping["external_id"],
+                name=r._mapping["name"],
+                campaign_name=r._mapping.get("campaign_name"),
+                campaign_external_id=r._mapping.get("campaign_external_id"),
+                status=r._mapping.get("status"),
+                effective_status=r._mapping.get("effective_status"),
+                creative_thumbnail_url=r._mapping.get("creative_thumbnail_url"),
+                creative_title=r._mapping.get("creative_title"),
+                creative_cta=r._mapping.get("creative_cta"),
+                preview_shareable_link=r._mapping.get("preview_shareable_link"),
+            )
+            for r in ad_rows
+        ]
+
+        # 2. Video retention metrics
+        vr_rows = self._db.execute(
+            self._VIDEO_RETENTION_SQL,
+            {
+                "tenant_id": str(tenant_id),
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+            },
+        ).fetchall()
+
+        vr_map: dict[str, float] = {}
+        for row in vr_rows:
+            r = row._mapping
+            vr_map[r["metric_name"]] = float(r["total_value"])
+
+        video_retention = VideoRetentionDTO(
+            plays=vr_map.get("video_play_actions", 0),
+            p25=vr_map.get("video_p25_watched_actions", 0),
+            p50=vr_map.get("video_p50_watched_actions", 0),
+            p75=vr_map.get("video_p75_watched_actions", 0),
+            p100=vr_map.get("video_p100_watched_actions", 0),
+        )
+
+        return CreativesOverviewDTO(
+            ads=ads,
+            video_retention=video_retention,
+            total_ads=len(ads),
+        )
 
     async def trigger_sync(self, tenant_id: UUID) -> dict:
         """Enqueue a campaign sync job via ARQ."""

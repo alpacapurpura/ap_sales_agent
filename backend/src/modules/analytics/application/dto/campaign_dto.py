@@ -117,6 +117,44 @@ class CampaignPerformanceDTO(BaseModel):
     last_synced: datetime | None = None
 
 
+# ---------------------------------------------------------------------------
+# Creatives / Ad Gallery DTOs
+# ---------------------------------------------------------------------------
+
+
+class AdPerformanceDTO(BaseModel):
+    """Single ad entry for the ad gallery with creative details."""
+
+    external_id: str
+    name: str
+    campaign_name: str | None = None
+    campaign_external_id: str | None = None
+    status: str | None = None
+    effective_status: str | None = None
+    creative_thumbnail_url: str | None = None
+    creative_title: str | None = None
+    creative_cta: str | None = None
+    preview_shareable_link: str | None = None
+
+
+class VideoRetentionDTO(BaseModel):
+    """Video retention funnel metrics (aggregate across all ads)."""
+
+    plays: float = 0
+    p25: float = 0
+    p50: float = 0
+    p75: float = 0
+    p100: float = 0
+
+
+class CreativesOverviewDTO(BaseModel):
+    """Ad gallery + video retention overview response."""
+
+    ads: list[AdPerformanceDTO] = []
+    video_retention: VideoRetentionDTO = VideoRetentionDTO()
+    total_ads: int = 0
+
+
 # Rebuild models that reference TYPE_CHECKING-only imports (datetime)
 # so Pydantic can resolve forward references at runtime.
 def _rebuild_models() -> None:
