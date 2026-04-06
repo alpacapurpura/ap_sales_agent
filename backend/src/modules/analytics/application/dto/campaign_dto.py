@@ -69,3 +69,56 @@ class CampaignOverviewDTO(BaseModel):
     total_campaigns: int
     active_campaigns: int
     last_synced: datetime | None = None
+
+
+# ---------------------------------------------------------------------------
+# Ad-Level Performance DTOs
+# ---------------------------------------------------------------------------
+
+
+class AdMetricsDTO(BaseModel):
+    """Single ad with performance metrics for the Creativos tab."""
+
+    ad_id: str
+    ad_name: str
+    campaign_name: str | None = None
+    campaign_external_id: str | None = None
+    format_type: str = "unknown"  # "video" | "carousel" | "image" | "unknown"
+    thumbnail_url: str | None = None
+    spend: float = 0.0
+    impressions: float = 0.0
+    clicks: float = 0.0
+    conversions: float = 0.0
+    roas: float | None = None
+    cpa: float | None = None
+    ctr: float | None = None
+    cpc: float | None = None
+    performance_tag: str = "average"  # "top_performer" | "average" | "underperformer"
+
+
+class AdPerformanceListDTO(BaseModel):
+    """Response for ad-level performance endpoint."""
+
+    ads: list[AdMetricsDTO] = []
+    period: str
+    total_ads: int = 0
+
+
+class FormatComparisonItemDTO(BaseModel):
+    """Aggregated metrics for a single ad format type."""
+
+    format_type: str
+    emoji: str  # e.g. movie camera, framed picture, camera
+    ad_count: int = 0
+    avg_ctr: float = 0.0
+    avg_cpa: float | None = None
+    avg_roas: float | None = None
+    total_spend: float = 0.0
+    performance_score: float = 0.0  # 0-100 normalized
+
+
+class FormatComparisonDTO(BaseModel):
+    """Response for format comparison endpoint."""
+
+    formats: list[FormatComparisonItemDTO] = []
+    period: str
