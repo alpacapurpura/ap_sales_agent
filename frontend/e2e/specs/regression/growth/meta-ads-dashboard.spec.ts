@@ -99,31 +99,31 @@ test.describe('Meta Ads Dashboard - Full Page', () => {
     await metaAds.expectAllTabs();
   });
 
-  test('Overview tab shows composite chart', async ({ growthStudioPage }) => {
+  test('Resumen tab shows composite chart', async ({ growthStudioPage }) => {
     await setupAndNavigate(growthStudioPage, metaAds);
     await metaAds.clickMetaAdsChannel();
     await metaAds.expectSidebarVisible();
     await metaAds.clickOpenFullDashboard();
     await metaAds.expectFullDashboardVisible();
-    await metaAds.expectOverviewTabContent();
+    await metaAds.expectResumenTabContent();
   });
 
-  test('Costs tab shows cost KPIs with benchmarks', async ({ growthStudioPage }) => {
+  test('Costos tab shows cost KPIs with benchmarks', async ({ growthStudioPage }) => {
     await setupAndNavigate(growthStudioPage, metaAds);
     await metaAds.clickMetaAdsChannel();
     await metaAds.expectSidebarVisible();
     await metaAds.clickOpenFullDashboard();
     await metaAds.expectFullDashboardVisible();
-    await metaAds.expectCostsTabContent();
+    await metaAds.expectCostosTabContent();
   });
 
-  test('placeholder tabs show Próximamente', async ({ growthStudioPage }) => {
+  test('Campañas tab shows campaign table', async ({ growthStudioPage }) => {
     await setupAndNavigate(growthStudioPage, metaAds);
     await metaAds.clickMetaAdsChannel();
     await metaAds.expectSidebarVisible();
     await metaAds.clickOpenFullDashboard();
     await metaAds.expectFullDashboardVisible();
-    await metaAds.expectPlaceholderTab('Campañas');
+    await metaAds.expectCampanasTabContent();
   });
 
   test('Volver button closes full dashboard', async ({ growthStudioPage }) => {
