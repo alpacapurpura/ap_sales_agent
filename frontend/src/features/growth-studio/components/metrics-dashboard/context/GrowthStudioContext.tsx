@@ -1,9 +1,11 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { StageId, MetricClickData, ChannelMetric, MetaAdsDashboardTab } from '../../../types/metrics';
 import type { PeriodType } from '../../../api/stage-detail-api';
+
+const CHANNEL_PARAM = 'channel';
 
 // ── Slug ↔ StageId mappings ────────────────────────────────────────
 
@@ -70,13 +72,22 @@ export function useGrowthStudioContext() {
 
 export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Derive activeStage from URL
+  // Derive activeStage from URL — scan all segments so nested routes
+  // like /tenant/growth-studio/atraccion-captura/meta-ads still resolve
+  // to 'ATRACCION_CAPTURA' (the stage segment, not the channel segment).
   const activeStage = useMemo<CompositeStageId | null>(() => {
     if (!pathname) return null;
     const segments = pathname.split('/');
-    const slug = segments[segments.length - 1];
-    return SLUG_TO_STAGE[slug] ?? null;
+    // Walk segments in reverse so that the deepest stage match wins
+    // (though in practice there is only one stage segment per URL).
+    for (let i = segments.length - 1; i >= 0; i--) {
+      const match = SLUG_TO_STAGE[segments[i]];
+      if (match) return match;
+    }
+    return null;
   }, [pathname]);
 
   // Period selection state (persists across stage navigation)
@@ -129,12 +140,21 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setSidebarMetric(null);
     setSelectedChannel(channel);
     setChannelSidebarOpen(true);
-  }, []);
+    // Sync channel selection to URL search params
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(CHANNEL_PARAM, channel.slug);
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [searchParams, router, pathname]);
 
   const handleChannelSidebarClose = useCallback(() => {
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
-  }, []);
+    // Remove channel param from URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete(CHANNEL_PARAM);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }, [searchParams, router, pathname]);
 
   const handleOpenMetaAdsDashboard = useCallback(() => {
     setChannelSidebarOpen(false);
@@ -156,10 +176,17 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleOpenExpandedDashboard = useCallback((channelSlug: string) => {
+    // Close sidebars
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
-    setExpandedDashboardChannel(channelSlug);
-  }, []);
+    // Navigate to the nested channel route instead of overlay state
+    const stageSlug = activeStage ? STAGE_TO_SLUG[activeStage] : 'atraccion-captura';
+    // Extract tenantId from pathname: /{tenantId}/growth-studio/...
+    const segments = pathname.split('/');
+    const gsIndex = segments.findIndex(s => s === 'growth-studio');
+    const tenantId = gsIndex > 0 ? segments[gsIndex - 1] : '';
+    router.push(`/${tenantId}/growth-studio/${stageSlug}/${channelSlug}`);
+  }, [activeStage, pathname, router]);
 
   const handleCloseExpandedDashboard = useCallback(() => {
     setExpandedDashboardChannel(null);

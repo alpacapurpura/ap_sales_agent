@@ -1,12 +1,20 @@
-import { ChannelDashboardView } from '@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDashboardView';
+import { redirect } from 'next/navigation';
+import { getStageForChannel } from '@/features/growth-studio/config/channel-stage-map';
 
 interface ChannelDashboardPageProps {
   params: Promise<{ tenantId: string; channelSlug: string }>;
   searchParams: Promise<{ tab?: string }>;
 }
 
+/**
+ * Legacy route — redirects to the new nested stage route.
+ * /[tenantId]/growth-studio/channel/[channelSlug]
+ *   -> /[tenantId]/growth-studio/[stageSlug]/[channelSlug]
+ */
 export default async function ChannelDashboardPage({ params, searchParams }: ChannelDashboardPageProps) {
-  const { channelSlug } = await params;
+  const { tenantId, channelSlug } = await params;
   const { tab } = await searchParams;
-  return <ChannelDashboardView channelSlug={channelSlug} initialTab={tab ?? 'overview'} />;
+  const stageSlug = getStageForChannel(channelSlug);
+  const tabQuery = tab ? `?tab=${encodeURIComponent(tab)}` : '';
+  redirect(`/${tenantId}/growth-studio/${stageSlug}/${channelSlug}${tabQuery}`);
 }
