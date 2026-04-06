@@ -3,15 +3,15 @@
 Mocks TikTokAdapter methods.
 """
 
-import pytest
 from datetime import date
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.providers.tiktok_provider import (
     TikTokProvider,
 )
-
 
 TENANT_ID = uuid4()
 CREDS = {
@@ -42,6 +42,7 @@ class TestTikTokOrganic:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(return_value=mock_organic)
             adapter_instance.get_ads_report = AsyncMock(return_value=[])
+            adapter_instance.get_advertiser_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = TikTokProvider()
@@ -80,6 +81,7 @@ class TestTikTokAds:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(return_value=[])
             adapter_instance.get_ads_report = AsyncMock(return_value=mock_ads)
+            adapter_instance.get_advertiser_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = TikTokProvider()
@@ -114,8 +116,13 @@ class TestTikTokProviderErrorHandling:
             "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter"
         ) as MockAdapter:
             adapter_instance = MagicMock()
-            adapter_instance.get_organic_insights = AsyncMock(side_effect=Exception("API down"))
-            adapter_instance.get_ads_report = AsyncMock(side_effect=Exception("API down"))
+            adapter_instance.get_organic_insights = AsyncMock(
+                side_effect=Exception("API down")
+            )
+            adapter_instance.get_ads_report = AsyncMock(
+                side_effect=Exception("API down")
+            )
+            adapter_instance.get_advertiser_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = TikTokProvider()

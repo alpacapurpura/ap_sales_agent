@@ -9,6 +9,7 @@ import type { MetricClickData } from '../../../types/metrics';
 import { Button } from '@/components/ui/button';
 import { Settings, Calendar, Flame, Coins, Target, AlertTriangle, Lightbulb, MailOpen, Workflow, Repeat, Crosshair, CalendarCheck, ShoppingCart, Plug } from 'lucide-react';
 import { BrandIcon } from '@/components/ui/brand-icons';
+import { formatMoney } from '@/lib/format-money';
 
 interface NurtureOpportunityDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
@@ -104,7 +105,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
 
   // Formatters
   const formatNum = (num: number) => num.toLocaleString('es-ES');
-  const formatMoney = (num: number) => `$${num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const fmtMoney = (num: number) => formatMoney(num, 'USD', { fractionDigits: 0 });
 
   // Helper to get specific metric
   const getMetric = (metrics: any[], name: string) => metrics.find((m) => m.name === name)?.value ?? 0;
@@ -265,7 +266,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
                 <span className="text-3xl font-black text-foreground">{formatNum(totalNurtureLeads)}</span>
                 <span className="text-xs text-muted-foreground mt-1 mb-3">Leads Activos</span>
                 <span className="text-xs text-amber-600 dark:text-amber-400 font-medium" title="Inversión en Retargeting y Automatizaciones">
-                  <Coins className="w-3 h-3 mr-1 inline" /> {formatMoney(totalNurtureSpend)} Gasto
+                  <Coins className="w-3 h-3 mr-1 inline" /> {fmtMoney(totalNurtureSpend)} Gasto
                 </span>
               </div>
               <div className="bg-background p-5 rounded-lg border border-amber-500/20 shadow-sm flex flex-col items-center justify-center relative ring-1 ring-amber-500/10">
@@ -276,7 +277,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
                   <span>Interactuaron con emails/ads</span>
                   {nurtureData.headerKpis.costPerMql != null && (
                     <span className="mt-1 font-medium text-amber-600/70 dark:text-amber-500/70">
-                      Costo p/MQL: {formatMoney(nurtureData.headerKpis.costPerMql)}
+                      Costo p/MQL: {fmtMoney(nurtureData.headerKpis.costPerMql)}
                     </span>
                   )}
                 </span>
@@ -292,7 +293,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
                 <span className="text-4xl font-black text-white">{formatNum(totalSqls)}</span>
                 <span className="text-xs text-orange-200 mt-1 mb-3">Oportunidades (SQLs)</span>
                 <span className="text-xs text-emerald-300 font-medium">
-                  <Target className="w-3 h-3 mr-1 inline" /> Costo p/Oportunidad: {formatMoney(costPerSql)}
+                  <Target className="w-3 h-3 mr-1 inline" /> Costo p/Oportunidad: {fmtMoney(costPerSql)}
                 </span>
               </div>
             </div>
@@ -364,7 +365,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
               <span className="font-medium text-sm text-foreground/90 flex items-center"><Repeat className="w-4 h-4 text-blue-600 mr-2" /> Retargeting Omnicanal</span>
               <div className="flex gap-4 text-xs font-medium">
                 <span className="text-muted-foreground">{formatNum(nurtureData.retargeting.totals.leads || 0)} MQLs</span>
-                <span className="text-red-500">{formatMoney(nurtureData.retargeting.totals.spend || 0)}</span>
+                <span className="text-red-500">{fmtMoney(nurtureData.retargeting.totals.spend || 0)}</span>
               </div>
             </div>
             <div className="p-4 grid grid-cols-1 gap-2">

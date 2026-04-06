@@ -145,6 +145,7 @@ class ShopifyProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         shop_domain = self._clean_domain(shop_domain)
+        shop_currency = credentials.get("shop_currency", "USD")
 
         metrics: list = []
         failures = []
@@ -156,6 +157,7 @@ class ShopifyProvider(BaseMetricsProvider):
                 access_token,
                 start_date,
                 end_date,
+                shop_currency,
                 extractor_name="shopify_opportunity",
             )
             metrics.extend(m)
@@ -192,6 +194,7 @@ class ShopifyProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         shop_domain = self._clean_domain(shop_domain)
+        shop_currency = credentials.get("shop_currency", "USD")
 
         metrics: list = []
         failures = []
@@ -203,6 +206,7 @@ class ShopifyProvider(BaseMetricsProvider):
                 access_token,
                 start_date,
                 end_date,
+                shop_currency,
                 extractor_name="shopify_opportunity",
             )
             metrics.extend(m)
@@ -288,6 +292,7 @@ class ShopifyProvider(BaseMetricsProvider):
         access_token: str,
         start_date: date,
         end_date: date,
+        shop_currency: str = "USD",
     ) -> list[ExtractedMetric]:
         """Extract checkout/abandoned cart metrics for opportunity stage."""
         # Get orders to calculate completed checkouts
@@ -366,9 +371,21 @@ class ShopifyProvider(BaseMetricsProvider):
 
             metric_tuples = [
                 ("checkout-init", "count", float(checkout_count), "count", None),
-                ("checkout-init", "value", data["checkout_value"], "currency", "USD"),
+                (
+                    "checkout-init",
+                    "value",
+                    data["checkout_value"],
+                    "currency",
+                    shop_currency,
+                ),
                 ("abandoned-cart", "count", float(abandoned_count), "count", None),
-                ("abandoned-cart", "value", data["abandoned_value"], "currency", "USD"),
+                (
+                    "abandoned-cart",
+                    "value",
+                    data["abandoned_value"],
+                    "currency",
+                    shop_currency,
+                ),
                 (
                     "abandoned-cart",
                     "abandonment_rate",

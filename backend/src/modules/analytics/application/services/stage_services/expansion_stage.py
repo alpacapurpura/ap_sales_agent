@@ -17,9 +17,9 @@ from src.modules.analytics.application.dto.expansion_dto import (
     ExpansionOfferDTO,
 )
 from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
-from src.modules.analytics.application.dto.sales_dto import convert_to_usd
 from src.modules.analytics.domain.ports import ConnectionPort, OfferReadPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
+from src.shared.domain.currency import convert_to_usd
 
 
 class ExpansionStageService:

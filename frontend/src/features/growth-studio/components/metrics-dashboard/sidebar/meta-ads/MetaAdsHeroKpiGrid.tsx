@@ -5,6 +5,7 @@ import { Area, AreaChart } from 'recharts';
 
 import { ChartContainer } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
+import { formatMoney } from '@/lib/format-money';
 import { BenchmarkBadge } from '../../channel-widgets/BenchmarkBadge';
 import type { MetricKpiData, MetricTimeSeries } from '../../../../types/metrics';
 
@@ -17,7 +18,7 @@ const HERO_METRICS = ['spend', 'ROAS', 'CPL', 'CTR'];
 
 function formatValue(value: number, unit: string): string {
   if (unit === 'currency')
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return formatMoney(value, 'USD');
   if (unit === 'percentage') return `${value.toFixed(2)}%`;
   if (unit === 'ratio') return `${value.toFixed(2)}x`;
   return value.toLocaleString('en-US');

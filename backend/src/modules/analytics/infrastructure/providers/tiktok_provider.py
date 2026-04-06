@@ -49,9 +49,18 @@ class TikTokProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
         failures = []
 
+        # Resolve advertiser currency for spend metrics
+        advertiser_id = credentials.get("advertiser_id")
+        ads_currency: str | None = None
+        if advertiser_id:
+            ads_currency = await adapter.get_advertiser_currency(
+                access_token, advertiser_id
+            )
+        if not ads_currency:
+            ads_currency = credentials.get("currency", "USD")
+
         if stage == "nurturing":
             # Retargeting: only ads filtered to custom audiences
-            advertiser_id = credentials.get("advertiser_id")
             if advertiser_id:
                 m, fail = await self._safe_extract(
                     self._extract_retargeting,
@@ -60,6 +69,7 @@ class TikTokProvider(BaseMetricsProvider):
                     advertiser_id,
                     start_date,
                     end_date,
+                    ads_currency,
                     extractor_name="tiktok_retargeting",
                 )
                 metrics.extend(m)
@@ -81,7 +91,6 @@ class TikTokProvider(BaseMetricsProvider):
                 failures.append(fail)
 
             # Ads metrics
-            advertiser_id = credentials.get("advertiser_id")
             if advertiser_id:
                 m, fail = await self._safe_extract(
                     self._extract_ads,
@@ -90,6 +99,7 @@ class TikTokProvider(BaseMetricsProvider):
                     advertiser_id,
                     start_date,
                     end_date,
+                    ads_currency,
                     extractor_name="tiktok_ads",
                 )
                 metrics.extend(m)
@@ -105,6 +115,7 @@ class TikTokProvider(BaseMetricsProvider):
         advertiser_id: str,
         start_date: date,
         end_date: date,
+        ads_currency: str = "USD",
     ) -> list[ExtractedMetric]:
         """Extract TikTok Ads retargeting metrics (Custom Audience campaigns).
 
@@ -164,6 +175,7 @@ class TikTokProvider(BaseMetricsProvider):
                 metric_name="spend",
                 value=total_spend,
                 unit="currency",
+                currency=ads_currency,
                 date=end_date,
             ),
         ]
@@ -225,6 +237,7 @@ class TikTokProvider(BaseMetricsProvider):
         advertiser_id: str,
         start_date: date,
         end_date: date,
+        ads_currency: str = "USD",
     ) -> list[ExtractedMetric]:
         """Extract TikTok Ads metrics."""
         data = await adapter.get_ads_report(
@@ -277,6 +290,7 @@ class TikTokProvider(BaseMetricsProvider):
                 metric_name="spend",
                 value=total_spend,
                 unit="currency",
+                currency=ads_currency,
                 date=end_date,
             ),
         ]

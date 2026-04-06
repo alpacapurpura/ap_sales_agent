@@ -224,3 +224,57 @@ class GoogleAdsAdapter:
             logger.exception("google_ads_search_exception")
 
         return rows
+
+    async def get_account_currency(
+        self,
+        customer_id: str,
+        developer_token: str,
+        credentials: dict,
+    ) -> str | None:
+        """Query the Google Ads account currency code (ISO 4217).
+
+        Returns the currency_code (e.g. 'USD', 'MXN') or None on failure.
+        """
+        if not developer_token:
+            return None
+        try:
+            return await asyncio.to_thread(
+                self._get_currency_sync,
+                customer_id,
+                developer_token,
+                credentials,
+            )
+        except Exception:
+            logger.exception("google_ads_get_currency_exception")
+            return None
+
+    def _get_currency_sync(
+        self,
+        customer_id: str,
+        developer_token: str,
+        credentials: dict,
+    ) -> str | None:
+        """Synchronous query for customer.currency_code."""
+        try:
+            from google.ads.googleads.client import GoogleAdsClient
+        except ImportError:
+            return None
+
+        config = {
+            "developer_token": developer_token,
+            "client_id": credentials.get("client_id", ""),
+            "client_secret": credentials.get("client_secret", ""),
+            "refresh_token": credentials.get("refresh_token", ""),
+            "use_proto_plus": True,
+        }
+        client = GoogleAdsClient.load_from_dict(config)
+        ga_service = client.get_service("GoogleAdsService")
+
+        try:
+            query = "SELECT customer.currency_code FROM customer LIMIT 1"
+            response = ga_service.search(customer_id=customer_id, query=query)
+            for row in response:
+                return row.customer.currency_code
+        except Exception:
+            logger.exception("google_ads_currency_query_exception")
+        return None

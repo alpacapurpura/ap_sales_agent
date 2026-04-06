@@ -14,6 +14,14 @@ from pydantic import BaseModel
 
 from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
 from src.modules.analytics.application.dto.opportunity_dto import BottleneckDTO
+from src.shared.domain.currency import (
+    EXCHANGE_RATES_TO_USD as DEFAULT_EXCHANGE_RATES,
+)
+from src.shared.domain.currency import (
+    convert_to_usd,
+)
+
+__all__ = ["DEFAULT_EXCHANGE_RATES", "convert_to_usd"]
 
 # ---------------------------------------------------------------------------
 # TIER MAPPING: OfferValueLevel -> display tiers (aligned with Value Ladder)
@@ -61,25 +69,9 @@ def get_tier_for_value_level(value_level: str | None) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Exchange rate constants (static config -- future: API integration)
+# Exchange rate constants — re-exported from shared currency module
+# (imports at top of file: DEFAULT_EXCHANGE_RATES, convert_to_usd)
 # ---------------------------------------------------------------------------
-
-DEFAULT_EXCHANGE_RATES: dict[str, float] = {
-    "USD": 1.0,
-    "MXN": 0.058,  # ~17.2 MXN per USD
-    "EUR": 1.08,
-    "COP": 0.00024,
-    "ARS": 0.0011,
-    "BRL": 0.19,
-}
-
-
-def convert_to_usd(amount: float, currency: str) -> float | None:
-    """Convert amount to USD using static rates. Returns None if rate unknown."""
-    rate = DEFAULT_EXCHANGE_RATES.get(currency)
-    if rate is None:
-        return None
-    return round(amount * rate, 2)
 
 
 # ---------------------------------------------------------------------------

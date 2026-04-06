@@ -30,6 +30,37 @@ class TikTokAdapter:
     def __init__(self, access_token: str | None = None):
         self.access_token = access_token
 
+    async def get_advertiser_currency(
+        self,
+        access_token: str,
+        advertiser_id: str,
+    ) -> str | None:
+        """Fetch the advertiser's currency code from TikTok Ads API.
+
+        Returns ISO 4217 currency code (e.g. 'USD', 'MXN') or None on failure.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(
+                    f"{TIKTOK_API_BASE}/advertiser/info/",
+                    headers={"Access-Token": access_token},
+                    params={
+                        "advertiser_ids": f"[{advertiser_id}]",
+                        "fields": '["currency"]',
+                    },
+                )
+                if response.status_code != 200:
+                    return None
+                data = response.json()
+                if data.get("code") != 0:
+                    return None
+                advertisers = data.get("data", {}).get("list", [])
+                if advertisers:
+                    return advertisers[0].get("currency")
+        except Exception:
+            logger.exception("tiktok_get_advertiser_currency_exception")
+        return None
+
     async def get_organic_insights(
         self,
         access_token: str,

@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 
 import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
 import { ReachFrequencySection } from '../ReachFrequencySection';
+import { formatMoney } from '@/lib/format-money';
 import type { ChannelDashboardData, MetricKpiData } from '../../../../../types/metrics';
 
 interface CostsTabProps {
@@ -14,7 +15,7 @@ interface CostsTabProps {
 const COST_METRICS = ['CPC', 'CPM', 'CPL', 'CPA'];
 
 function formatCost(value: number): string {
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return formatMoney(value, 'USD');
 }
 
 export function CostsTab({ data, isLoading }: CostsTabProps) {

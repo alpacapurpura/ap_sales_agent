@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Zap, Rocket, Briefcase, Layers, Package } from 'lucide-react';
 import type { RevenueGroupData, OfferSaleData, MetricClickData } from '../../../types/metrics';
+import { formatMoney } from '@/lib/format-money';
 
 interface OfferLadderProps {
   adquisicion: RevenueGroupData;
@@ -12,22 +13,8 @@ interface OfferLadderProps {
   onMetricClick?: (metric: MetricClickData) => void;
 }
 
-function formatMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 function formatCompactMoney(amount: number, currency: string) {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency,
-    notation: 'compact',
-    maximumFractionDigits: 1,
-  }).format(amount);
+  return formatMoney(amount, currency, { compact: true });
 }
 
 function getOfferLabel(offerType: string, pricingType: string) {
@@ -347,7 +334,7 @@ export function OfferLadder({ adquisicion, expansion, onMetricClick }: OfferLadd
                     {Object.entries(offer.sourceBreakdown || {}).map(([src, count]) => `${src}: ${count}`).join(', ') || 'Sin datos'}
                   </p>
                 </div>
-                <span className="font-bold text-emerald-400">{formatMoney(offer.totalRevenue, currency)}</span>
+                <span className="font-bold text-emerald-400">{formatMoney(offer.totalRevenue, currency, { fractionDigits: 0 })}</span>
               </div>
             ))
           ) : (

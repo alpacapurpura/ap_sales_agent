@@ -23,7 +23,6 @@ from src.modules.analytics.application.dto.sales_dto import (
     SalesDetailDTO,
     SalesHeaderKpisDTO,
     TierGroupDTO,
-    convert_to_usd,
     get_subscription_labels,
     get_tier_for_value_level,
 )
@@ -35,6 +34,7 @@ from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCach
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
+from src.shared.domain.currency import convert_to_usd
 
 
 class SalesStageService:

@@ -1,3 +1,7 @@
+import { formatMoney } from '@/lib/format-money';
+
+export { formatDualCurrency } from '@/lib/format-money';
+
 export function formatLastUpdated(isoDate: string): string {
   const d = new Date(isoDate);
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -18,8 +22,7 @@ export function formatDuration(seconds: number): string {
 }
 
 export function formatCurrency(n: number, currency?: string): string {
-  const symbol = currency === 'USD' || !currency ? '$' : currency;
-  return `${symbol}${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return formatMoney(n, currency || 'USD');
 }
 
 export type MetricFormat = 'number' | 'currency' | 'percentage' | 'duration';
@@ -39,26 +42,4 @@ export function formatMetricValue(
     default:
       return formatNum(value);
   }
-}
-
-export function formatDualCurrency(amount: number, currency: string, usdAmount: number | null): string {
-  const fmt = new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-  const main = fmt.format(amount);
-
-  if (currency === 'USD') return main;
-  if (usdAmount != null) {
-    const usdFmt = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    return `${main} (~${usdFmt.format(usdAmount)} USD)`;
-  }
-  return main;
 }

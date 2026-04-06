@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { formatMoney } from '@/lib/format-money';
 import type { StageSummary } from '../../../types/metrics';
 
 interface StageCardProps {
@@ -24,13 +25,13 @@ interface StageCardProps {
 
 function formatKpiValue(value: number | string, unit?: string): string {
   if (typeof value === 'string') return value;
+  // 3-letter uppercase = ISO currency code (e.g. 'USD', 'MXN', 'PEN')
+  if (unit && /^[A-Z]{3}$/.test(unit)) {
+    return formatMoney(value, unit, { fractionDigits: 0 });
+  }
+  // Legacy fallback for unit: '$'
   if (unit === '$') {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+    return formatMoney(value, 'USD', { fractionDigits: 0 });
   }
   if (unit === '%') return `${value.toFixed(1)}%`;
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;

@@ -65,7 +65,6 @@ from src.modules.analytics.application.dto.sales_dto import (
     SalesDetailDTO,
     SalesHeaderKpisDTO,
     TierGroupDTO,
-    convert_to_usd,
     get_subscription_labels,
     get_tier_for_value_level,
 )
@@ -114,6 +113,7 @@ from src.modules.crm.infrastructure.repositories.customer_repository import (
 from src.modules.crm.infrastructure.repositories.lead_metrics_repository import (
     LeadRepository,
 )
+from src.shared.domain.currency import convert_to_usd
 from src.shared.domain.enums import ChannelType, LifecycleStage
 
 # Maps our channel slugs to the ChannelType enum for connection lookups (sankey legacy)

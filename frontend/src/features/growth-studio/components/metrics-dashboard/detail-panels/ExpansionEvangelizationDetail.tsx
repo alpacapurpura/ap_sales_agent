@@ -5,25 +5,26 @@ import { useExpansionDetail, useEvangelizationDetail } from '../../../hooks/useS
 import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailError from '../ui/DetailError';
 import type { MetricClickData } from '../../../types/metrics';
-import { 
-  BarChart2, 
-  DollarSign, 
-  Users, 
-  AlertTriangle, 
-  Lightbulb, 
-  TrendingUp, 
-  ShieldCheck, 
-  Repeat, 
-  UserMinus, 
-  ArrowUpRight, 
-  BookOpen, 
-  Megaphone, 
-  Smile, 
-  Star, 
-  Camera, 
-  Link, 
-  UserPlus 
+import {
+  BarChart2,
+  DollarSign,
+  Users,
+  AlertTriangle,
+  Lightbulb,
+  TrendingUp,
+  ShieldCheck,
+  Repeat,
+  UserMinus,
+  ArrowUpRight,
+  BookOpen,
+  Megaphone,
+  Smile,
+  Star,
+  Camera,
+  Link,
+  UserPlus
 } from 'lucide-react';
+import { formatMoney } from '@/lib/format-money';
 
 interface ExpansionEvangelizationDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
@@ -87,8 +88,8 @@ export const ExpansionEvangelizationDetail = React.memo(function ExpansionEvange
 
   // Formatters
   const formatNum = (num: number) => num.toLocaleString('es-ES');
-  const formatMoney = (num: number, currency: string) => 
-    `${currency} ${num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const fmtMoney = (num: number, currency: string) =>
+    formatMoney(num, currency, { fractionDigits: 0 });
 
   return (
     <div className="space-y-8 animate-fade-in block">
@@ -108,14 +109,14 @@ export const ExpansionEvangelizationDetail = React.memo(function ExpansionEvange
             {/* Bloque 1: Base de Clientes */}
             <div className="bg-background p-5 rounded-lg border border-border shadow-sm flex flex-col items-center justify-center relative">
               <span className="text-[10px] text-muted-foreground font-bold uppercase mb-1">Valor Promedio Por Cliente</span>
-              <span className="text-3xl font-black text-foreground">{formatMoney(avgLtv, expData.headerKpis.currency)}</span>
+              <span className="text-3xl font-black text-foreground">{fmtMoney(avgLtv, expData.headerKpis.currency)}</span>
               <span className="text-xs text-muted-foreground mt-1">Activos: {formatNum(actives)}</span>
             </div>
 
             {/* Bloque 2: Expansión */}
             <div className="bg-background p-5 rounded-lg border border-emerald-500/20 shadow-sm flex flex-col items-center justify-center relative ring-1 ring-emerald-500/10">
               <span className="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase mb-1">Ingreso Recurrente Neto</span>
-              <span className="text-4xl font-black text-emerald-600 dark:text-emerald-500">{formatMoney(netMrr, expData.headerKpis.currency)}</span>
+              <span className="text-4xl font-black text-emerald-600 dark:text-emerald-500">{fmtMoney(netMrr, expData.headerKpis.currency)}</span>
               <span className="text-xs text-emerald-600/80 dark:text-emerald-500/80 mt-1 font-medium">Expansión: {formatNum(expansionCount)}</span>
               <span className="mt-3 text-[10px] text-muted-foreground text-center">
                 Tasa de Expansión: {expansionRate.toFixed(1)}%

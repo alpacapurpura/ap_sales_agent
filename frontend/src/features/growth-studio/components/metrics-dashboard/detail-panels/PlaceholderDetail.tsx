@@ -1,6 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { formatMoney } from '@/lib/format-money';
 import type { StageSummary } from '../../../types/metrics';
 
 interface PlaceholderDetailProps {
@@ -9,7 +10,14 @@ interface PlaceholderDetailProps {
 
 function formatKpiValue(value: number | string, unit?: string): string {
   if (typeof value === 'string') return value;
-  if (unit === '$') return `$${value.toLocaleString()}`;
+  // 3-letter uppercase = currency code
+  if (unit && /^[A-Z]{3}$/.test(unit)) {
+    return formatMoney(value, unit, { fractionDigits: 0 });
+  }
+  if (unit === '$') {
+    // Legacy fallback -- treat as USD
+    return formatMoney(value, 'USD', { fractionDigits: 0 });
+  }
   if (unit === '%') return `${value}%`;
   if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;
   return value.toLocaleString();

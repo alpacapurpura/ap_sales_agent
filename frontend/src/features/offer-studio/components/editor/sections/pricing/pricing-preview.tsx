@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { OfferFormValues } from '../../../../types/schema';
 import { useFormContext } from 'react-hook-form';
 import { CreditCard } from 'lucide-react';
+import { formatMoney } from '@/lib/format-money';
 
 interface PricingPreviewProps {
   data?: Partial<OfferFormValues>;
@@ -41,8 +42,7 @@ export const PricingPreview = ({ data: propsData }: PricingPreviewProps) => {
             <div className="flex items-baseline justify-between mb-2">
               <h4 className="font-semibold text-base tracking-tight">{option.label}</h4>
               <div className="text-right">
-                 <span className="text-2xl font-bold tracking-tighter">{option.total_amount}</span>
-                 <span className="text-[10px] text-muted-foreground font-medium ml-1 uppercase">{currencyCode}</span>
+                 <span className="text-2xl font-bold tracking-tighter">{formatMoney(option.total_amount, currencyCode, { fractionDigits: 0 })}</span>
               </div>
             </div>
 

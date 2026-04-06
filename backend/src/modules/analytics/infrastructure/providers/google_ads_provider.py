@@ -104,6 +104,13 @@ class GoogleAdsProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
         failures = []
 
+        # Resolve account currency (fallback to credentials, then USD)
+        account_currency = await adapter.get_account_currency(
+            customer_id, developer_token, credentials
+        )
+        if not account_currency:
+            account_currency = credentials.get("currency", "USD")
+
         try:
             base_metrics, fail = await self._safe_extract(
                 self._extract_base_metrics,
@@ -114,6 +121,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 start_date,
                 end_date,
                 stage,
+                account_currency,
                 extractor_name="campaign_metrics",
             )
             metrics.extend(base_metrics)
@@ -156,6 +164,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str,
+        account_currency: str = "USD",
     ) -> list[ExtractedMetric]:
         """Run the main GAQL campaign query and aggregate by channel or retargeting."""
         rows = await adapter.run_gaql_query(
@@ -169,8 +178,8 @@ class GoogleAdsProvider(BaseMetricsProvider):
         if not rows:
             return []
         if stage == "nurturing":
-            return self._aggregate_retargeting(rows, end_date)
-        return self._aggregate_by_channel(rows, end_date)
+            return self._aggregate_retargeting(rows, end_date, account_currency)
+        return self._aggregate_by_channel(rows, end_date, account_currency)
 
     async def _extract_search_terms(
         self,
@@ -213,7 +222,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         ]
 
     def _aggregate_retargeting(
-        self, rows: list[dict], metric_date: date
+        self, rows: list[dict], metric_date: date, account_currency: str = "USD"
     ) -> list[ExtractedMetric]:
         """Aggregate remarketing campaign rows into google-retargeting slug.
 
@@ -240,9 +249,9 @@ class GoogleAdsProvider(BaseMetricsProvider):
         metric_tuples = [
             ("impressions", total_impressions, "count", None),
             ("clicks", total_clicks, "count", None),
-            ("spend", total_spend, "currency", "USD"),
+            ("spend", total_spend, "currency", account_currency),
             ("ctr", ctr, "percentage", None),
-            ("cpc", cpc, "currency", "USD"),
+            ("cpc", cpc, "currency", account_currency),
         ]
 
         return [
@@ -259,7 +268,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         ]
 
     def _aggregate_by_channel(
-        self, rows: list[dict], metric_date: date
+        self, rows: list[dict], metric_date: date, account_currency: str = "USD"
     ) -> list[ExtractedMetric]:
         """Aggregate campaign rows into google-ads and yt-ads slugs."""
         channel_data: dict[str, dict[str, float]] = {
@@ -308,10 +317,15 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 ("impressions", data["impressions"], "count", None),
                 ("clicks", data["clicks"], "count", None),
                 ("conversions", data["conversions"], "count", None),
-                ("spend", data["spend"], "currency", "USD"),
+                ("spend", data["spend"], "currency", account_currency),
                 ("ctr", ctr, "percentage", None),
-                ("cpc", cpc, "currency", "USD"),
-                ("conversion_value", data["conversion_value"], "currency", "USD"),
+                ("cpc", cpc, "currency", account_currency),
+                (
+                    "conversion_value",
+                    data["conversion_value"],
+                    "currency",
+                    account_currency,
+                ),
             ]
 
             for metric_name, value, unit, currency in metric_tuples:
@@ -348,6 +362,14 @@ class GoogleAdsProvider(BaseMetricsProvider):
             return ExtractionResult()
 
         adapter = GoogleAdsAdapter()
+
+        # Resolve account currency
+        account_currency = await adapter.get_account_currency(
+            customer_id, developer_token, credentials
+        )
+        if not account_currency:
+            account_currency = credentials.get("currency", "USD")
+
         try:
             metrics, fail = await self._safe_extract(
                 self._extract_daily_metrics,
@@ -358,6 +380,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 start_date,
                 end_date,
                 stage,
+                account_currency,
                 extractor_name="campaign_metrics_daily",
             )
         except (RefreshError, TransportError) as exc:
@@ -382,6 +405,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
         stage: str,
+        account_currency: str = "USD",
     ) -> list[ExtractedMetric]:
         """Run the daily GAQL campaign query and aggregate per-day."""
         rows = await adapter.run_gaql_query(
@@ -409,8 +433,12 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 continue
 
             if stage == "nurturing":
-                metrics.extend(self._aggregate_retargeting(day_rows, metric_date))
+                metrics.extend(
+                    self._aggregate_retargeting(day_rows, metric_date, account_currency)
+                )
             else:
-                metrics.extend(self._aggregate_by_channel(day_rows, metric_date))
+                metrics.extend(
+                    self._aggregate_by_channel(day_rows, metric_date, account_currency)
+                )
 
         return metrics

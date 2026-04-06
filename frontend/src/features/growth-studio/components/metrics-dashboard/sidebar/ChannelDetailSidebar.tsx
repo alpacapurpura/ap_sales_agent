@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { formatMoney } from '@/lib/format-money';
 import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
@@ -70,8 +71,7 @@ function formatNumber(n: number): string {
 }
 
 function formatCurrency(n: number, currency?: string): string {
-  const symbol = currency === 'USD' || !currency ? '$' : currency;
-  return `${symbol}${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return formatMoney(n, currency || 'USD');
 }
 
 function hexToRgba(hex: string, alpha: number): string {

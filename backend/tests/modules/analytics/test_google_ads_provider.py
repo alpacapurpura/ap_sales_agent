@@ -3,15 +3,15 @@
 Mocks GoogleAdsAdapter.run_gaql_query() responses.
 """
 
-import pytest
 from datetime import date
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.providers.google_ads_provider import (
     GoogleAdsProvider,
 )
-
 
 TENANT_ID = uuid4()
 CREDS = {
@@ -67,6 +67,7 @@ class TestCampaignSeparation:
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            adapter_instance.get_account_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
@@ -116,6 +117,7 @@ class TestCampaignSeparation:
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            adapter_instance.get_account_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
@@ -150,6 +152,7 @@ class TestCampaignSeparation:
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            adapter_instance.get_account_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
@@ -198,11 +201,15 @@ class TestRetargetingExtraction:
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            adapter_instance.get_account_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15),
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
                 stage="nurturing",
             )
 
@@ -254,6 +261,7 @@ class TestDailyExtraction:
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            adapter_instance.get_account_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
@@ -296,11 +304,15 @@ class TestDailyExtraction:
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
+            adapter_instance.get_account_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1),
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 1),
                 stage="nurturing",
             )
 
@@ -328,6 +340,7 @@ class TestGoogleAdsErrorHandling:
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=[])
+            adapter_instance.get_account_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = GoogleAdsProvider()
