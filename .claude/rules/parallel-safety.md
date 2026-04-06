@@ -1,6 +1,6 @@
 # Protocolo de Seguridad Paralela (OBLIGATORIO)
 
-Chris trabaja con 2-3 instancias de Claude Code en paralelo sobre el mismo directorio.
+Chris trabaja con 1 instancia de Claude Code en una sola máquina (WSL).
 Este protocolo es BLOQUEANTE — debe ejecutarse antes de cualquier otra acción.
 
 ## Al INICIAR cualquier conversación
@@ -23,7 +23,31 @@ ANTES de leer código, hacer planes, o ejecutar cualquier herramienta, ejecutar:
 - Cada tarea significativa (>2 archivos o >10 líneas) va en su propia rama
 - Naming: `feature/`, `fix/`, `refactor/`, `chore/` + `<scope>-<descripcion>`
 - Solo hotfixes triviales (typos, 1 línea) van directo en `main`
-- Cada instancia de Claude Code trabaja en SU propia rama
+
+## Sub-agentes paralelos (CRÍTICO)
+
+Cuando se lanzan múltiples agentes (subagent_type) que van a ESCRIBIR código:
+
+### OBLIGATORIO: usar `isolation: "worktree"`
+- Cada agente que escribe código DEBE usar `isolation: "worktree"` para obtener su propia copia aislada del repo
+- NUNCA lanzar múltiples agentes que escriben en el MISMO directorio — causa corrupción de archivos y conflictos de git checkout
+- Agentes de solo lectura (Explore, Plan) NO necesitan worktree
+
+### Flujo correcto:
+1. Lanzar agentes con `isolation: "worktree"` → cada uno trabaja en `/tmp/.../worktree-xxx/`
+2. Cada agente commitea en su worktree
+3. Al terminar, mergear cada worktree al branch principal
+4. Los worktrees sin cambios se limpian automáticamente
+
+### PROHIBIDO:
+- Lanzar 2+ agentes que escriben código sin `isolation: "worktree"`
+- Que un sub-agente haga `git checkout` en el directorio principal
+- Que un sub-agente cree un branch en el directorio principal mientras otro escribe
+
+### Excepciones (agentes sin worktree):
+- Agentes que SOLO leen (Explore, research) → OK sin worktree
+- Un SOLO agente escribiendo a la vez → OK sin worktree
+- Agentes que editan archivos completamente distintos Y no tocan git → riesgoso pero tolerable
 
 ## Al CERRAR cualquier conversación
 
@@ -52,3 +76,4 @@ Si hay trabajo WIP que no compila: crear stash con mensaje descriptivo (`git sta
 - Hacer `git checkout` a otra rama con cambios uncommitted (se pierden)
 - Cerrar conversación sin commitear o reportar estado limpio
 - Trabajar en `main` directamente para cambios significativos
+- Lanzar múltiples agentes escritores sin worktree isolation
