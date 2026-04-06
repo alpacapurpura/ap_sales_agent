@@ -7,8 +7,10 @@ import { ArrowLeft, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
+import { useConnectionHealth } from '../../../../hooks/useConnectionHealth';
 import { useCampaignPerformance } from '../../../../api/campaigns-api';
 import type { MetaAdsPeriod, MetaAdsDashboardTab } from '../../../../types/metrics';
+import { ConnectionHealthBanner } from '../../../connection-health-banner';
 import { MetaAdsPeriodSelector } from './MetaAdsPeriodSelector';
 import { ResumenTab } from './tabs/ResumenTab';
 import { CampaignsTab } from './tabs/CampaignsTab';
@@ -26,6 +28,7 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
   const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>(initialTab ?? 'resumen');
   const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
+  const { data: health } = useConnectionHealth('meta-ads');
 
   const content = (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
@@ -45,6 +48,18 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
           <MetaAdsPeriodSelector value={period} onChange={setPeriod} />
         </div>
       </div>
+
+      {/* Connection Health Banner */}
+      {health && health.status !== 'healthy' && (
+        <div className="px-6 pt-4">
+          <ConnectionHealthBanner
+            status={health.status}
+            channelSlug={health.channelSlug}
+            message={health.message}
+            expiresAt={health.expiresAt}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs
