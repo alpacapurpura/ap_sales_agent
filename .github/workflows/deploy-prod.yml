@@ -124,6 +124,16 @@ jobs:
           POSTGRES_DB: visionarias_test
           TRAEFIK_NETWORK: gateway
         run: |
+          # Create .env for docker compose env_file directives
+          env | grep -E '^(NEXT_PUBLIC_|CLERK_|INTERNAL_|E2E_|POSTGRES_|TRAEFIK_|SHOPIFY_)' > .env
+          # Add defaults for vars referenced in docker-compose.yml but not needed for E2E
+          echo "API_DOMAIN=localhost" >> .env
+          echo "DASHBOARD_DOMAIN=http://localhost:3000" >> .env
+          echo "CLOUDFLARE_TUNNEL_TOKEN=disabled" >> .env
+          echo "SHOPIFY_API_KEY=disabled" >> .env
+          echo "SHOPIFY_API_SECRET=disabled" >> .env
+          echo "SHOPIFY_APP_URL=http://localhost:8000" >> .env
+
           docker network create gateway || true
           docker compose --profile e2e up -d --build --wait
           docker exec visionarias_brain_dev bash -c "cd /app && alembic upgrade head"
@@ -335,10 +345,10 @@ jobs:
           echo "Waiting 30s for API to be ready (startup buffer)..."
           sleep 30
           echo "--- Verbose Traefik probe ---"
-          curl -sv --max-time 10 "https://${API_DOMAIN}/health" 2>&1 | head -60 || true
+          curl -sv --max-time 10 "https://${API_DOMAIN}/health/ready" 2>&1 | head -60 || true
           echo "--- End probe ---"
           for i in {1..12}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${API_DOMAIN}/health")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${API_DOMAIN}/health/ready")
             if [ "$STATUS" = "200" ]; then
               echo "API health check passed (HTTP $STATUS)"
               exit 0

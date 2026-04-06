@@ -236,12 +236,38 @@ async def shutdown_arq_pool():
 
 @app.get("/health")
 def health_check():
+    """Liveness probe — lightweight, used by Docker healthcheck.
+
+    Returns 200 if the API process is alive and can reach Postgres.
+    For full dependency checks use GET /health/ready.
+    """
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT 1"))
+        return JSONResponse(
+            content={"status": "ok", "version": settings.SENTRY_RELEASE},
+        )
+    except Exception:
+        return JSONResponse(
+            content={"status": "error", "postgres": "unreachable"},
+            status_code=503,
+        )
+    finally:
+        db.close()
+
+
+@app.get("/health/ready")
+def readiness_check():
+    """Readiness probe — deep check of all dependencies.
+
+    Used by external monitoring / post-deploy healthcheck job.
+    """
     import httpx
 
     checks: dict = {"api": "ok", "version": settings.SENTRY_RELEASE}
     healthy = True
 
-    # PostgreSQL readiness
+    # PostgreSQL
     db = SessionLocal()
     try:
         db.execute(text("SELECT 1"))
@@ -252,7 +278,7 @@ def health_check():
     finally:
         db.close()
 
-    # Redis readiness
+    # Redis
     try:
         redis_client.ping()
         checks["redis"] = "ok"
@@ -260,7 +286,7 @@ def health_check():
         checks["redis"] = "error"
         healthy = False
 
-    # Qdrant readiness
+    # Qdrant
     try:
         resp = httpx.get(f"{settings.QDRANT_URL}/readyz", timeout=3.0)
         checks["qdrant"] = "ok" if resp.status_code == 200 else "error"
@@ -271,11 +297,11 @@ def health_check():
         healthy = False
 
     # Scheduler heartbeat (TTL 5 min — set by run_tick_scheduler every minute)
+    # Informational only — does not block healthy status because the scheduler
+    # can take up to 5 min to fire its first cron tick after a fresh deploy.
     try:
         last_tick = redis_client.get("scheduler:last_tick")
         checks["scheduler"] = "ok" if last_tick else "stale"
-        if not last_tick:
-            healthy = False
     except Exception:
         checks["scheduler"] = "error"
 

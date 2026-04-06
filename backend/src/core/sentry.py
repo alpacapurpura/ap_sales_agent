@@ -47,7 +47,7 @@ def _redact_event(
     return event
 
 
-_EXCLUDED_PATHS = frozenset({"/health", "/metrics"})
+_EXCLUDED_PATHS = frozenset({"/health", "/health/ready", "/metrics"})
 _LOW_SAMPLE_PATH_PREFIXES = (
     "/api/v1/connections/webhook",
     "/api/v1/iam/webhooks",
