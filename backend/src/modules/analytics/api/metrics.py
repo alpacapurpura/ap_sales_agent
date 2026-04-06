@@ -19,6 +19,7 @@ from src.modules.analytics.application.dto.evangelization_dto import (
     EvangelizationDetailDTO,
 )
 from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailDTO
+from src.modules.analytics.application.dto.group_detail_dto import GroupDetailDTO
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
 from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
 from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
@@ -26,6 +27,9 @@ from src.modules.analytics.application.dto.stage_overview_dto import StageOvervi
 from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
 from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
 from src.modules.analytics.application.services.metrics_service import MetricsService
+from src.modules.analytics.application.services.stage_services.group_detail import (
+    GroupDetailService,
+)
 from src.modules.analytics.application.services.stage_services.overview_stage import (
     StageOverviewService,
 )
@@ -262,6 +266,28 @@ async def get_stage_overview(
     cache = MetricsCache(redis_client)
     service = StageOverviewService(cache=cache)
     return await service.get_stage_overview(str(user.tenant_id), stage.value, period)
+
+
+@router.get("/{stage}/groups/{group_key}", response_model=GroupDetailDTO)
+async def get_group_detail(
+    stage: FunnelStage = Path(...),
+    group_key: str = Path(...),
+    period: str = Query(default="last_30_days"),
+    user: User = Depends(get_current_user),
+):
+    """Detail for a single channel group within a stage (Tier 2).
+
+    Returns full metrics for one group's channels only, much lighter
+    than the full stage detail endpoint. Cache-first with 5-min TTL.
+    """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
+
+    cache = MetricsCache(redis_client)
+    service = GroupDetailService(cache=cache)
+    return await service.get_group_detail(
+        str(user.tenant_id), stage.value, group_key, period
+    )
 
 
 @router.get("/attraction", response_model=AttractionDetailDTO)

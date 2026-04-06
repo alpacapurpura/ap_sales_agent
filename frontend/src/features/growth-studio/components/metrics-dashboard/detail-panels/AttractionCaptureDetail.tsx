@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useAttractionDetail, useCaptureDetail, useStageTimeSeries } from '../../../hooks/useStageDetail';
+import { useStageTimeSeries } from '../../../hooks/useStageDetail';
+import { useStageOverview } from '../../../hooks/useStageOverview';
+import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
 import { useGrowthSync } from '../../../context/growth-sync-context';
 import { ActionPanel } from '../action-widgets/ActionPanel';
 import DetailSkeleton from '../ui/DetailSkeleton';
@@ -9,13 +11,12 @@ import DetailError from '../ui/DetailError';
 import type { MetricClickData, StageTimeSeries as TSType, ChannelMetric } from '../../../types/metrics';
 import { Button } from '@/components/ui/button';
 import { Settings, RefreshCw, Plug, Zap, Megaphone, UserPlus, Coins, TrendingUp, Globe, Bot } from 'lucide-react';
-import { formatMoney } from '@/lib/format-money';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { AttractionScorecards } from '../attraction/AttractionScorecards';
 import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
 import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
 import { ConversionBridge } from '../attraction/ConversionBridge';
-import { ChannelGroup } from '../attraction/ChannelGroup';
+import { LazyChannelGroup } from '../channel-widgets/LazyChannelGroup';
 import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
 import dynamic from 'next/dynamic';
 
@@ -26,10 +27,6 @@ const MailDashboard = dynamic(() => import('../sidebar/mail/MailDashboard').then
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
-
-function getMetric(metrics: { name: string; value: number }[], name: string): number {
-  return metrics.find((m) => m.name === name)?.value ?? 0;
-}
 
 function MetaAdsDashboardWrapper() {
   const { metaAdsDashboardOpen, metaAdsDashboardInitialTab, handleCloseMetaAdsDashboard } = useGrowthStudioContext();
@@ -56,13 +53,13 @@ function ExpandedDashboardWrapper() {
 function MobileChartsExpand({
   timeSeries,
   tsLoading,
-  captureChannels,
   capLoading,
+  captureChannels,
 }: {
   timeSeries: TSType | undefined;
   tsLoading: boolean;
-  captureChannels: ChannelMetric[];
   capLoading: boolean;
+  captureChannels: ChannelMetric[];
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -74,7 +71,7 @@ function MobileChartsExpand({
         className="w-full"
         onClick={() => setExpanded(!expanded)}
       >
-        {expanded ? 'Ocultar graficos' : 'Ver graficos'}
+        {expanded ? 'Ocultar gráficos' : 'Ver gráficos'}
       </Button>
       {expanded && (
         <div className="mt-4 space-y-4">
@@ -97,103 +94,71 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   onMetricClick,
   onConfigure,
 }: AttractionCaptureDetailProps) {
-  const { data: attrData, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useAttractionDetail();
-  const { data: capData, isLoading: capLoading, error: capError, refetch: refetchCap } = useCaptureDetail();
+  // ─── TIER 1: Lightweight overviews (render immediately) ─────────────
+  const { data: attrOverview, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useStageOverview('attraction');
+  const { data: capOverview, isLoading: capLoading, error: capError, refetch: refetchCap } = useStageOverview('capture');
   const { startSync, isSyncing } = useGrowthSync();
+
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [rangeDays, setRangeDays] = useState(30);
   const [sidebarChannel, setSidebarChannel] = useState<ChannelMetric | null>(null);
   const granularity = rangeDays >= 90 ? 'weekly' : 'daily';
-  const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries('attraction', 'reach', rangeDays, granularity);
 
-  // ─── Computed totals ─────────────────────────────────────────────────────
-  // NOTE: reach/users are NON_AGGREGABLE (unique people) — never sum cross-group.
-  // Use impressions (ADDITIVE) as the top-of-funnel awareness metric.
-  // Use GA4 website users/sessions as the single authoritative visitor count.
+  // ─── TIER 3: Charts deferred until visible ──────────────────────────
+  const { ref: chartsRef, isVisible: chartsVisible } = useIntersectionObserver({ rootMargin: '200px' });
+  const { data: timeSeries, isLoading: tsLoading } = useStageTimeSeries(
+    'attraction', 'reach', rangeDays, granularity, { enabled: chartsVisible },
+  );
 
-  const { totalImpressions, totalVisitors, totalSpend } = useMemo(() => {
-    if (!attrData) return { totalImpressions: 0, totalVisitors: 0, totalSpend: 0 };
-    const attrGroups = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound];
-    const websiteUsers = attrData.website?.totals.users;
-    const websiteSessions = attrData.website?.totals.sessions;
-    return {
-      totalImpressions: attrGroups.reduce((sum, g) => sum + (g.totals.impressions ?? 0), 0),
-      totalVisitors: websiteUsers ?? websiteSessions ?? 0,
-      totalSpend: attrGroups.reduce((sum, g) => sum + (g.totals.spend ?? 0), 0),
-    };
-  }, [attrData]);
-
-  const totalLeads = capData?.headerKpis.totalLeads || 0;
+  // ─── Computed totals from overview headerKpis ───────────────────────
+  const totalImpressions = attrOverview?.headerKpis?.total_impressions ?? 0;
+  const totalVisitors = attrOverview?.headerKpis?.total_sessions ?? 0;
+  const totalSpend = 0; // Spend only available in Tier 2 — scorecards show 0 until groups load
+  const totalLeads = capOverview?.headerKpis?.total_leads ?? 0;
   const leadConvRate = useMemo(() => totalVisitors > 0 ? (totalLeads / totalVisitors) * 100 : 0, [totalVisitors, totalLeads]);
 
+  // ─── Channel groupings from overview channelList ────────────────────
+  const paidChannels = useMemo(
+    () => attrOverview?.channelList.filter(c => c.groupKey === 'paid') ?? [],
+    [attrOverview?.channelList],
+  );
+  const organicChannels = useMemo(
+    () => attrOverview?.channelList.filter(c =>
+      c.groupKey === 'organic_social' || c.groupKey === 'ga4_search',
+    ) ?? [],
+    [attrOverview?.channelList],
+  );
+  const webCaptureChannels = useMemo(
+    () => capOverview?.channelList.filter(c => c.groupKey === 'web_infrastructure') ?? [],
+    [capOverview?.channelList],
+  );
+  const messagingCaptureChannels = useMemo(
+    () => capOverview?.channelList.filter(c => c.groupKey === 'ai_agent') ?? [],
+    [capOverview?.channelList],
+  );
 
-  // ─── Channel groupings ──────────────────────────────────────────────────
-
-  const paidChannels = useMemo(() => attrData?.paid.channels || [], [attrData?.paid.channels]);
-  const organicChannels = useMemo(() => [
-    ...(attrData?.organicSocial.channels || []),
-    ...(attrData?.ga4Search.channels || []),
-  ], [attrData?.organicSocial.channels, attrData?.ga4Search.channels]);
-
-
-  const webCaptureChannels = useMemo(() => capData?.webInfrastructure.channels || [], [capData?.webInfrastructure.channels]);
-  const messagingCaptureChannels = useMemo(() => capData?.aiAgent.channels || [], [capData?.aiAgent.channels]);
-  const allCaptureChannels = useMemo(
-    () => [...webCaptureChannels, ...messagingCaptureChannels],
+  // Build ChannelMetric[] for CaptureBreakdownChart from overview data
+  const allCaptureChannels: ChannelMetric[] = useMemo(
+    () => [...webCaptureChannels, ...messagingCaptureChannels].map(ch => ({
+      slug: ch.slug,
+      name: ch.name,
+      channelType: ch.channelType,
+      metrics: ch.headlineKpi ? [{ name: ch.headlineKpi.name, value: ch.headlineKpi.value, unit: ch.headlineKpi.unit }] : [],
+      sourceLabel: ch.name,
+      connected: ch.connected,
+      lastUpdated: ch.lastUpdated,
+      stale: ch.stale,
+      providerName: ch.providerName,
+    })),
     [webCaptureChannels, messagingCaptureChannels],
   );
 
-  const availableChannels = useMemo(() => [
-    ...(attrData?.available?.channels || []),
-    ...(capData?.available?.channels || []),
-  ], [attrData?.available?.channels, capData?.available?.channels]);
-
-  // ─── Summary strings ───────────────────────────────────────────────────
-
-  const paidSummary = useMemo(() => {
-    const impressions = paidChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'impressions'), 0);
-    return `${impressions.toLocaleString('es-ES')} impresiones`;
-  }, [paidChannels]);
-
-  const paidCurrency = useMemo(() => {
-    for (const ch of paidChannels) {
-      for (const m of ch.metrics) {
-        if (m.currency) return m.currency;
-      }
-    }
-    return 'USD';
-  }, [paidChannels]);
-
-  const paidSpendSummary = useMemo(() => {
-    const spend = paidChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'spend'), 0);
-    return spend > 0 ? `${formatMoney(spend, paidCurrency, { fractionDigits: 0 })} invertidos` : undefined;
-  }, [paidChannels, paidCurrency]);
-
-  const organicSummary = useMemo(() => {
-    const sessions = organicChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'sessions'), 0);
-    return `${sessions.toLocaleString('es-ES')} sesiones`;
-  }, [organicChannels]);
-
-  const webCaptureSummary = useMemo(() => {
-    const leads = webCaptureChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'leads'), 0);
-    const pct = totalLeads > 0 ? ((leads / totalLeads) * 100).toFixed(1) : '0';
-    return `${leads} leads (${pct}%)`;
-  }, [webCaptureChannels, totalLeads]);
-
-  const msgCaptureSummary = useMemo(() => {
-    const leads = messagingCaptureChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'leads'), 0);
-    const pct = totalLeads > 0 ? ((leads / totalLeads) * 100).toFixed(1) : '0';
-    return `${leads} leads (${pct}%)`;
-  }, [messagingCaptureChannels, totalLeads]);
-
-  // ─── Handlers ──────────────────────────────────────────────────────────
-
+  // ─── Handlers ──────────────────────────────────────────────────────
   const handleChannelClick = useCallback((channel: ChannelMetric) => {
     setSidebarChannel(channel);
   }, []);
 
-  // ─── Loading / Error / Empty ────────────────────────────────────────────
-
+  // ─── Loading / Error / Empty ──────────────────────────────────────
   if (attrLoading || capLoading) {
     return <DetailSkeleton isLoading><></></DetailSkeleton>;
   }
@@ -203,17 +168,14 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
       <DetailError
         error={attrError instanceof Error ? attrError : (capError instanceof Error ? capError : new Error('Error desconocido'))}
         onRetry={() => { void refetchAttr(); void refetchCap(); }}
-        lastData={attrData || capData}
+        lastData={attrOverview || capOverview}
       />
     );
   }
 
-  if (!attrData || !capData) return null;
-
-  const hasAnyAttractionData = [attrData.organicSocial, attrData.ga4Search, attrData.paid, attrData.outbound, attrData.website]
-    .some(g => g?.channels.some(ch => ch.connected && ch.metrics.some(m => m.value > 0)));
+  const hasAttrData = (attrOverview?.channelList.length ?? 0) > 0;
   const hasCaptureData = totalLeads > 0;
-  const isEmpty = !hasAnyAttractionData && !hasCaptureData;
+  const isEmpty = !hasAttrData && !hasCaptureData;
 
   return (
     <div className="space-y-6 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
@@ -273,13 +235,19 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
             totalLeads={totalLeads}
             leadConvRate={leadConvRate}
             totalSpend={totalSpend}
-            currency={paidCurrency}
+            currency="USD"
           />
 
-          {/* Section 2: Charts Side-by-Side */}
-          <div className="hidden md:grid md:grid-cols-2 gap-4">
-            <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
-            <CaptureBreakdownChart channels={allCaptureChannels} isLoading={capLoading} />
+          {/* Section 2: Charts Side-by-Side (deferred until visible) */}
+          <div ref={chartsRef as React.Ref<HTMLDivElement>} className="hidden md:grid md:grid-cols-2 gap-4">
+            {chartsVisible ? (
+              <>
+                <AttractionTrendChart timeSeries={timeSeries} isLoading={tsLoading} />
+                <CaptureBreakdownChart channels={allCaptureChannels} isLoading={capLoading} />
+              </>
+            ) : (
+              <div className="h-48 animate-pulse bg-muted rounded-lg col-span-2" />
+            )}
           </div>
           <MobileChartsExpand
             timeSeries={timeSeries}
@@ -298,7 +266,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           {/* Section 4: Two-Column Layout — Attraction + Capture */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-            {/* COLUMNA ATRACCION */}
+            {/* COLUMNA ATRACCIÓN */}
             <div className="space-y-6">
               <div className="border-b border-border pb-2">
                 <h3 className="font-semibold text-lg flex items-center text-foreground/90">
@@ -310,33 +278,32 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
               </div>
 
               {paidChannels.length > 0 && (
-                <ChannelGroup
+                <LazyChannelGroup
+                  stage="attraction"
+                  groupKey="paid"
                   title="Inversión Pagada"
-                  variant="paid"
-                  channels={paidChannels}
+                  overviewChannels={paidChannels}
                   headerIcon={Coins}
                   baseColor="blue"
-                  summary={paidSummary}
-                  summaryExtra={paidSpendSummary}
+                  stageId="ATRACCION"
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
                 />
               )}
 
               {organicChannels.length > 0 && (
-                <ChannelGroup
-                  title="Trafico Organico"
-                  variant="organic"
-                  channels={organicChannels}
+                <LazyChannelGroup
+                  stage="attraction"
+                  groupKey="organic_social"
+                  title="Tráfico Orgánico"
+                  overviewChannels={organicChannels}
                   headerIcon={TrendingUp}
                   baseColor="blue"
-                  summary={organicSummary}
+                  stageId="ATRACCION"
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
                 />
               )}
-
-              {/* Outbound oculto hasta tener datos reales */}
             </div>
 
             {/* COLUMNA CAPTURA */}
@@ -350,25 +317,27 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
                 </p>
               </div>
 
-              <ChannelGroup
+              <LazyChannelGroup
+                stage="capture"
+                groupKey="web_infrastructure"
                 title="Web & Formularios"
-                variant="capture_web"
-                channels={webCaptureChannels}
+                overviewChannels={webCaptureChannels}
                 headerIcon={Globe}
                 baseColor="violet"
-                summary={webCaptureSummary}
+                stageId="CAPTURA"
                 onChannelClick={handleChannelClick}
                 onConfigure={onConfigure}
               />
 
               {messagingCaptureChannels.length > 0 && (
-                <ChannelGroup
-                  title="AI Agent & Mensajeria"
-                  variant="capture_messaging"
-                  channels={messagingCaptureChannels}
+                <LazyChannelGroup
+                  stage="capture"
+                  groupKey="ai_agent"
+                  title="AI Agent & Mensajería"
+                  overviewChannels={messagingCaptureChannels}
                   headerIcon={Bot}
                   baseColor="violet"
-                  summary={msgCaptureSummary}
+                  stageId="CAPTURA"
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
                 />
@@ -377,23 +346,26 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           </div>
 
           {/* Section 5: Connect More CTA */}
-          {availableChannels.length > 0 && (
+          {(attrOverview?.channelList.some(c => !c.connected) || capOverview?.channelList.some(c => !c.connected)) && (
             <div className="bg-muted/30 border border-dashed border-border rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-foreground">Conectar mas canales</p>
-                <p className="text-xs text-muted-foreground">Expande tu ecosistema para capturar mas leads</p>
+                <p className="text-sm font-medium text-foreground">Conectar más canales</p>
+                <p className="text-xs text-muted-foreground">Expande tu ecosistema para capturar más leads</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {availableChannels.slice(0, 4).map((ch) => (
-                  <button
-                    key={ch.slug}
-                    onClick={() => onConfigure?.(ch.slug, ch.name)}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border rounded-md px-3 py-1.5 hover:bg-muted transition-colors"
-                  >
-                    <Zap className="w-3 h-3" />
-                    {ch.name}
-                  </button>
-                ))}
+                {[...attrOverview?.channelList ?? [], ...capOverview?.channelList ?? []]
+                  .filter(ch => !ch.connected)
+                  .slice(0, 4)
+                  .map((ch) => (
+                    <button
+                      key={ch.slug}
+                      onClick={() => onConfigure?.(ch.slug, ch.name)}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border rounded-md px-3 py-1.5 hover:bg-muted transition-colors"
+                    >
+                      <Zap className="w-3 h-3" />
+                      {ch.name}
+                    </button>
+                  ))}
               </div>
             </div>
           )}

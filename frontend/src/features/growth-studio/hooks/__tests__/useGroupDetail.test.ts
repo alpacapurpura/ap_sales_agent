@@ -20,48 +20,24 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-const mockGetAttractionDetail = vi.fn().mockResolvedValue({
-  organicSocial: {
-    totals: { reach: 8000, engagement: 500 },
-    channels: [
-      {
-        slug: 'ig-organic',
-        name: 'Instagram',
-        channelType: 'organic_social',
-        metrics: [{ name: 'reach', value: 5000 }, { name: 'engagement', value: 300 }],
-        sourceLabel: 'Instagram',
-        connected: true,
-      },
-    ],
-  },
-  ga4Search: { totals: { sessions: 1000 }, channels: [] },
-  paid: {
-    totals: { spend: 1500, impressions: 50000 },
-    channels: [
-      {
-        slug: 'meta-ads',
-        name: 'Meta Ads',
-        channelType: 'paid',
-        metrics: [{ name: 'spend', value: 1500 }],
-        sourceLabel: 'Meta',
-        connected: true,
-      },
-    ],
-  },
-  outbound: { totals: {}, channels: [] },
-  period: 'last_30_days',
+const mockGetGroupDetail = vi.fn().mockResolvedValue({
+  channels: [
+    {
+      slug: 'meta-ads',
+      name: 'Meta Ads',
+      channelType: 'paid',
+      metrics: [{ name: 'spend', value: 1500 }],
+      sourceLabel: 'Meta',
+      connected: true,
+    },
+  ],
+  totals: { spend: 1500, impressions: 50000 },
 });
 
-vi.mock('../../api/metrics-api', () => ({
-  metricsApi: {
-    getAttractionDetail: (...args: unknown[]) => mockGetAttractionDetail(...args),
-    getCaptureDetail: vi.fn().mockResolvedValue({}),
-    getNurtureDetail: vi.fn().mockResolvedValue({}),
-    getOpportunityDetail: vi.fn().mockResolvedValue({}),
-    getSalesDetail: vi.fn().mockResolvedValue({}),
-    getAdoptionDetail: vi.fn().mockResolvedValue({}),
-    getExpansionDetail: vi.fn().mockResolvedValue({}),
-    getEvangelizationDetail: vi.fn().mockResolvedValue({}),
+vi.mock('../../api/stage-overview-api', () => ({
+  stageOverviewApi: {
+    getStageOverview: vi.fn().mockResolvedValue({}),
+    getGroupDetail: (...args: unknown[]) => mockGetGroupDetail(...args),
   },
 }));
 
@@ -100,12 +76,30 @@ describe('useGroupDetail', () => {
       wrapper: createWrapper(),
     });
 
-    // Wait a tick for any potential calls
     await new Promise(resolve => setTimeout(resolve, 50));
-    expect(mockGetAttractionDetail).not.toHaveBeenCalled();
+    expect(mockGetGroupDetail).not.toHaveBeenCalled();
   });
 
-  it('fetches when enabled=true and extracts the requested group', async () => {
+  it('calls dedicated group endpoint when enabled=true', async () => {
+    const { result } = renderHook(
+      () => useGroupDetail('attraction', 'paid', { enabled: true }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toBeDefined();
+    });
+
+    // Verify it called the dedicated endpoint (not the full stage detail)
+    expect(mockGetGroupDetail).toHaveBeenCalledWith(
+      'mock-token',
+      'attraction',
+      'paid',
+      'last_30_days',
+    );
+  });
+
+  it('maps response channels and totals correctly', async () => {
     const { result } = renderHook(
       () => useGroupDetail('attraction', 'paid', { enabled: true }),
       { wrapper: createWrapper() },
@@ -118,33 +112,7 @@ describe('useGroupDetail', () => {
     expect(result.current.data?.channels).toHaveLength(1);
     expect(result.current.data?.channels[0].slug).toBe('meta-ads');
     expect(result.current.data?.totals.spend).toBe(1500);
-  });
-
-  it('extracts organic_social group correctly', async () => {
-    const { result } = renderHook(
-      () => useGroupDetail('attraction', 'organic_social', { enabled: true }),
-      { wrapper: createWrapper() },
-    );
-
-    await waitFor(() => {
-      expect(result.current.data).toBeDefined();
-    });
-
-    expect(result.current.data?.channels).toHaveLength(1);
-    expect(result.current.data?.channels[0].slug).toBe('ig-organic');
-  });
-
-  it('returns undefined for unknown group key', async () => {
-    const { result } = renderHook(
-      () => useGroupDetail('attraction', 'nonexistent', { enabled: true }),
-      { wrapper: createWrapper() },
-    );
-
-    await waitFor(() => {
-      expect(result.current.isFetched).toBe(true);
-    });
-
-    expect(result.current.data).toBeUndefined();
+    expect(result.current.data?.totals.impressions).toBe(50000);
   });
 
   it('includes correct queryKey with stage, groupKey, and period', () => {
@@ -153,8 +121,6 @@ describe('useGroupDetail', () => {
       { wrapper: createWrapper() },
     );
 
-    // The queryKey should include all discriminators for proper caching
-    // We can't directly access queryKey, but we verify the hook was created
     expect(result.current.isLoading).toBe(true);
   });
 });

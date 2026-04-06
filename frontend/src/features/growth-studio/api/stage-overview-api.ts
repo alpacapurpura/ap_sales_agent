@@ -1,6 +1,6 @@
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
-import type { StageOverview, ChannelOverview, GroupOverview, OverviewMiniFunnel, OverviewBottleneck } from '../types/metrics';
+import type { StageOverview, ChannelOverview, GroupOverview, OverviewMiniFunnel, OverviewBottleneck, ChannelMetric } from '../types/metrics';
 
 const API_URL = config.api.baseUrl;
 
@@ -64,6 +64,45 @@ function mapStageOverview(raw: Record<string, unknown>): StageOverview {
   };
 }
 
+// ── Group Detail Mapper ─────────────────────────────────────────────────────
+
+interface GroupDetailResponse {
+  channels: ChannelMetric[];
+  totals: Record<string, number>;
+}
+
+function mapGroupDetailChannel(raw: Record<string, unknown>): ChannelMetric {
+  const metrics = ((raw.metrics as Record<string, unknown>[]) ?? []).map((m) => ({
+    name: m.name as string,
+    value: m.value as number,
+    unit: m.unit as string | undefined,
+    currency: m.currency as string | undefined,
+    breakdown: m.breakdown as Record<string, number> | undefined,
+  }));
+  return {
+    slug: raw.slug as string,
+    name: raw.name as string,
+    channelType: raw.channel_type as string,
+    metrics,
+    sourceLabel: raw.source_label as string,
+    connected: raw.connected as boolean,
+    costType: raw.cost_type as string | undefined,
+    lastUpdated: raw.last_updated as string | undefined,
+    stale: (raw.stale as boolean) ?? false,
+    errorMessage: raw.error_message as string | undefined,
+    providerName: raw.provider_name as string | undefined,
+  };
+}
+
+function mapGroupDetailResponse(raw: Record<string, unknown>): GroupDetailResponse {
+  return {
+    channels: ((raw.channels as Record<string, unknown>[]) ?? []).map(mapGroupDetailChannel),
+    totals: (raw.totals as Record<string, number>) ?? {},
+  };
+}
+
+// ── Exports ─────────────────────────────────────────────────────────────────
+
 export const stageOverviewApi = {
   getStageOverview: async (token: string, stage: string, period?: string): Promise<StageOverview> => {
     const params = period && period !== 'last_30_days' ? `?period=${period}` : '';
@@ -73,5 +112,15 @@ export const stageOverviewApi = {
     if (!res.ok) throw new Error(`Stage overview API returned ${res.status}`);
     const data = await res.json();
     return mapStageOverview(data);
+  },
+
+  getGroupDetail: async (token: string, stage: string, groupKey: string, period?: string): Promise<GroupDetailResponse> => {
+    const params = period && period !== 'last_30_days' ? `?period=${period}` : '';
+    const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/${stage}/groups/${groupKey}${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`Group detail API returned ${res.status}`);
+    const data = await res.json();
+    return mapGroupDetailResponse(data);
   },
 };

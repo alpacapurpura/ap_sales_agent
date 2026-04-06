@@ -1,17 +1,29 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
 import { useGroupDetail } from '../../../hooks/useGroupDetail';
 import { ChannelRow } from './ChannelRow';
 import type { ChannelOverview, ChannelMetric, MetricClickData, StageId } from '../../../types/metrics';
-import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+
+const COLOR_MAP = {
+  blue: {
+    headerIcon: 'text-blue-600',
+    headerBg: 'bg-blue-500/5',
+  },
+  violet: {
+    headerIcon: 'text-violet-600',
+    headerBg: 'bg-violet-500/5',
+  },
+} as const;
 
 interface LazyChannelGroupProps {
   /** Stage name for API call (e.g., 'attraction') */
@@ -28,6 +40,12 @@ interface LazyChannelGroupProps {
   stageId?: StageId;
   /** IntersectionObserver rootMargin for pre-fetching */
   rootMargin?: string;
+  /** Icon for the group header */
+  headerIcon?: LucideIcon;
+  /** Color scheme for the group */
+  baseColor?: keyof typeof COLOR_MAP;
+  /** Summary text in group header */
+  summary?: string;
   /** Callback when user clicks a metric value */
   onMetricClick?: (metric: MetricClickData) => void;
   /** Callback when a connected channel row is clicked */
@@ -50,6 +68,9 @@ export function LazyChannelGroup({
   defaultOpen = true,
   stageId,
   rootMargin = '200px',
+  headerIcon: HeaderIcon,
+  baseColor,
+  summary,
   onMetricClick,
   onChannelClick,
   onConfigure,
@@ -79,20 +100,31 @@ export function LazyChannelGroup({
 
   if (channels.length === 0) return null;
 
+  const colors = baseColor ? COLOR_MAP[baseColor] : null;
+
   return (
-    <div ref={ref as React.Ref<HTMLDivElement>}>
+    <div ref={ref as React.Ref<HTMLDivElement>} className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
       <Accordion type="single" collapsible defaultValue={defaultOpen ? groupKey : undefined}>
         <AccordionItem value={groupKey} className="border-none">
-          <AccordionTrigger className="hover:no-underline py-2 px-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">{title}</span>
-              <span className="text-xs text-muted-foreground">
-                ({channels.length} {channels.length === 1 ? 'canal' : 'canales'})
+          <AccordionTrigger className={cn(
+            'hover:no-underline py-3 px-4 border-b border-border',
+            colors?.headerBg,
+          )}>
+            <div className="flex items-center justify-between w-full pr-2">
+              <span className="font-medium text-sm text-foreground/90 flex items-center">
+                {HeaderIcon && <HeaderIcon className={cn('w-4 h-4 mr-2', colors?.headerIcon)} />}
+                {title}
               </span>
+              <div className="flex gap-4 text-xs">
+                {summary && <span className="text-muted-foreground">{summary}</span>}
+                <span className="text-muted-foreground">
+                  ({channels.length} {channels.length === 1 ? 'canal' : 'canales'})
+                </span>
+              </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="pb-0">
-            <div className="space-y-0.5">
+            <div className="p-4 space-y-0.5">
               {channels.map((channel) => (
                 <ChannelRow
                   key={channel.slug}

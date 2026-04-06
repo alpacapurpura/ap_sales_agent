@@ -47,6 +47,7 @@ export function useStageTimeSeries(
   metric: string,
   rangeDays: number,
   granularity: string,
+  options?: { enabled?: boolean },
 ) {
   const { getToken } = useAuth();
   const tenantId = typeof window !== 'undefined'
@@ -60,5 +61,6 @@ export function useStageTimeSeries(
       return metricsApi.getTimeSeries(token, stage, metric, rangeDays, granularity);
     },
     staleTime: 1000 * 60 * 5,
+    enabled: options?.enabled ?? true,
   });
 }
