@@ -42,8 +42,12 @@ export function YouTubeTrafficSourcesChart({ enabled }: YouTubeTrafficSourcesCha
     );
   }
 
-  if (error || !data || data.length === 0) {
-    return <p className="text-xs text-muted-foreground py-4 text-center">Sin datos de trafico</p>;
+  if (error) {
+    return <p className="text-xs text-destructive py-4 text-center">Error al cargar tráfico: {error.message}</p>;
+  }
+
+  if (!data || data.length === 0) {
+    return <p className="text-xs text-muted-foreground py-4 text-center">Sin datos de tráfico</p>;
   }
 
   const chartData = data

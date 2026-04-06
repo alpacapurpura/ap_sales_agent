@@ -36,7 +36,13 @@ export function YouTubeTopVideosList({ enabled }: YouTubeTopVideosListProps) {
     );
   }
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    return (
+      <p className="text-xs text-destructive py-4 text-center">Error al cargar videos: {error.message}</p>
+    );
+  }
+
+  if (!data || data.length === 0) {
     return (
       <p className="text-xs text-muted-foreground py-4 text-center">Sin datos de videos</p>
     );

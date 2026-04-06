@@ -15,7 +15,7 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
     if (v !== undefined) qs.set(k, String(v));
   }
   const query = qs.toString();
-  return `${API_URL}/api/v1/youtube-analytics/${path}${query ? `?${query}` : ''}`;
+  return `${API_URL}/api/v1/connections/youtube-analytics/${path}${query ? `?${query}` : ''}`;
 }
 
 export async function getYoutubeTopVideosEnriched(
