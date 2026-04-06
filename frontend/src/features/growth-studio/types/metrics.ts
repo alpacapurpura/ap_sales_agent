@@ -660,3 +660,60 @@ export interface CampaignPerformanceData {
   currency: string | null;
   lastSynced: string | null;
 }
+
+// === Stage Overview Types (Progressive Loading) ===
+
+/** Single metric value in a channel overview (e.g., reach: 10k) */
+export interface OverviewMetricValue {
+  name: string;
+  value: number;
+  unit?: string;
+}
+
+/** Lightweight channel info for stage overview (1 headline KPI per channel) */
+export interface ChannelOverview {
+  slug: string;
+  name: string;
+  channelType: string;
+  groupKey: string;
+  connected: boolean;
+  headlineKpi: OverviewMetricValue | null;
+  lastUpdated?: string;
+  stale: boolean;
+  providerName?: string;
+}
+
+/** Group metadata in stage overview */
+export interface GroupOverview {
+  groupKey: string;
+  groupLabel: string;
+  channelCount: number;
+}
+
+/** Mini funnel for overview */
+export interface OverviewMiniFunnel {
+  sourceLabel: string;
+  sourceValue: number;
+  targetLabel: string;
+  targetValue: number;
+  conversionRate: number;
+}
+
+/** Bottleneck badge for overview (simplified, no full tips) */
+export interface OverviewBottleneck {
+  type: string;
+  metricLabel: string;
+  severity: string;
+}
+
+/** Lightweight stage overview — first render tier before full detail loads */
+export interface StageOverview {
+  stage: string;
+  headerKpis: Record<string, number | null>;
+  miniFunnel: OverviewMiniFunnel | null;
+  groups: GroupOverview[];
+  channelList: ChannelOverview[];
+  bottlenecks: OverviewBottleneck[];
+  period: string;
+  lastUpdated?: string;
+}
