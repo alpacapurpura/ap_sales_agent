@@ -8,10 +8,14 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
+from sqlalchemy import text
+
 from src.modules.analytics.application.dto.channel_dashboard_dto import (
     AdFunnelDTO,
     BenchmarkRangeDTO,
     ChannelDashboardDTO,
+    DemographicsDTO,
+    DemographicSegmentDTO,
     FrequencyAlertDTO,
     FunnelStepDTO,
     MetricKpiDTO,
@@ -502,3 +506,113 @@ class ChannelDashboardService:
             )
 
         return None
+
+    # ------------------------------------------------------------------
+    # Demographics breakdown
+    # ------------------------------------------------------------------
+
+    _DEMOGRAPHICS_SQL = text("""
+        SELECT metric_name, extra
+        FROM official_metrics
+        WHERE tenant_id = :tenant_id
+          AND channel_slug = :channel_slug
+          AND metric_name IN (
+              'meta_reach_by_age',
+              'meta_reach_by_gender',
+              'meta_reach_by_placement'
+          )
+          AND metric_date >= CURRENT_DATE - :days_back * INTERVAL '1 day'
+          AND deleted_at IS NULL
+        ORDER BY metric_date DESC
+    """)
+
+    _METRIC_TO_CATEGORY: dict[str, str] = {
+        "meta_reach_by_age": "age",
+        "meta_reach_by_gender": "gender",
+        "meta_reach_by_placement": "placement",
+    }
+
+    def get_demographics(
+        self,
+        tenant_id: UUID,
+        channel_slug: str,
+        period: str = "30d",
+    ) -> DemographicsDTO:
+        """Parse audience breakdown from official_metrics extra JSON."""
+        days = _PERIOD_DAYS.get(period, 30)
+
+        rows = self.repo.db.execute(
+            self._DEMOGRAPHICS_SQL,
+            {
+                "tenant_id": str(tenant_id),
+                "channel_slug": channel_slug,
+                "days_back": days,
+            },
+        ).fetchall()
+
+        # Collect the most recent breakdown per category
+        seen_categories: set[str] = set()
+        age_segments: list[DemographicSegmentDTO] = []
+        gender_segments: list[DemographicSegmentDTO] = []
+        placement_segments: list[DemographicSegmentDTO] = []
+
+        category_map = {
+            "age": age_segments,
+            "gender": gender_segments,
+            "placement": placement_segments,
+        }
+
+        for row in rows:
+            r = row._mapping
+            metric_name = r["metric_name"]
+            category = self._METRIC_TO_CATEGORY.get(metric_name)
+            if category is None or category in seen_categories:
+                continue  # skip duplicates (we ORDER BY metric_date DESC)
+
+            extra_raw = r["extra"]
+            if isinstance(extra_raw, str):
+                import json
+
+                try:
+                    extra = json.loads(extra_raw)
+                except (json.JSONDecodeError, TypeError):
+                    extra = {}
+            elif isinstance(extra_raw, dict):
+                extra = extra_raw
+            else:
+                extra = {}
+
+            breakdowns = extra.get("breakdowns", [])
+            if not breakdowns:
+                continue
+
+            segments = self._parse_breakdown_segments(breakdowns)
+            if segments:
+                category_map[category].extend(segments)
+                seen_categories.add(category)
+
+        return DemographicsDTO(
+            age=age_segments,
+            gender=gender_segments,
+            placement=placement_segments,
+        )
+
+    @staticmethod
+    def _parse_breakdown_segments(
+        breakdowns: list[dict],
+    ) -> list[DemographicSegmentDTO]:
+        """Convert raw breakdown entries to DemographicSegmentDTO with percentages."""
+        total = sum(entry.get("value", 0) for entry in breakdowns)
+        segments: list[DemographicSegmentDTO] = []
+        for entry in breakdowns:
+            label = entry.get("dimension_values", ["unknown"])[0]
+            value = float(entry.get("value", 0))
+            pct = round((value / total) * 100, 1) if total > 0 else 0.0
+            segments.append(
+                DemographicSegmentDTO(
+                    label=label,
+                    value=value,
+                    percentage=pct,
+                )
+            )
+        return segments

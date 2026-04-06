@@ -11,6 +11,7 @@ from src.modules.analytics.application.dto.attraction_dto import AttractionDetai
 from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
 from src.modules.analytics.application.dto.channel_dashboard_dto import (
     ChannelDashboardDTO,
+    DemographicsDTO,
 )
 from src.modules.analytics.application.dto.evangelization_dto import (
     EvangelizationDetailDTO,
@@ -645,6 +646,36 @@ async def get_channel_dashboard(
     brand_port = BrandReadPortImpl(db)
     service = ChannelDashboardService(db, brand_port=brand_port)
     return await service.get_dashboard(user.tenant_id, channel_slug, period)
+
+
+@router.get(
+    "/channel/{channel_slug}/demographics",
+    response_model=DemographicsDTO,
+)
+async def get_channel_demographics(
+    channel_slug: str,
+    period: str = Query(default="30d"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get audience demographics breakdown for a channel.
+
+    Parses breakdown data from official_metrics extra JSON column for
+    age, gender, and placement segmentation. Returns percentage distribution.
+    """
+    valid_periods = {"7d", "30d", "90d"}
+    if period not in valid_periods:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Use 7d, 30d, or 90d.",
+        )
+
+    from src.modules.analytics.application.services.channel_dashboard_service import (
+        ChannelDashboardService,
+    )
+
+    service = ChannelDashboardService(db)
+    return service.get_demographics(user.tenant_id, channel_slug, period)
 
 
 _VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailerlite"}

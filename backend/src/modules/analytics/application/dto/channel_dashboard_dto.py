@@ -91,3 +91,24 @@ class ChannelDashboardDTO(BaseModel):
     time_series: list[MetricTimeSeriesDTO]
     funnel: AdFunnelDTO
     frequency_alert: FrequencyAlertDTO | None = None
+
+
+# ---------------------------------------------------------------------------
+# Demographics breakdown DTOs
+# ---------------------------------------------------------------------------
+
+
+class DemographicSegmentDTO(BaseModel):
+    """Single segment in a demographic breakdown (age, gender, placement)."""
+
+    label: str
+    value: float
+    percentage: float
+
+
+class DemographicsDTO(BaseModel):
+    """Audience demographics breakdown for a channel."""
+
+    age: list[DemographicSegmentDTO] = []
+    gender: list[DemographicSegmentDTO] = []
+    placement: list[DemographicSegmentDTO] = []
