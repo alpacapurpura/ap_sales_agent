@@ -115,10 +115,7 @@ frontend/playwright-report/
 frontend/playwright/.clerk/
 frontend/blob-report/
 
-# --- Documentation artifacts (not needed for app to function) ---
-docs/superpowers/
+# --- Documentation artifacts (temp only) ---
 docs/temp/
-docs/mockupsHTML/
-docs/plans/
 .worktrees/
 REVIEW.md

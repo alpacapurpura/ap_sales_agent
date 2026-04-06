@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meta Ads — Tab Campañas — Mockup Nicolify</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    body { background: #09090b; color: #fafafa; }
+
+    /* Custom tooltip */
+    [data-tooltip] { position: relative; cursor: help; }
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #27272a;
+      color: #e4e4e7;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: normal;
+      width: max-content;
+      max-width: 260px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 50;
+      border: 1px solid #3f3f46;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    [data-tooltip]:hover::after { opacity: 1; }
+
+    /* Status dot pulse for active */
+    .status-active::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      margin-right: 6px;
+      box-shadow: 0 0 0 0 rgba(34,197,94,0.4);
+      animation: pulse-green 2s infinite;
+    }
+    .status-learning::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #eab308;
+      margin-right: 6px;
+      animation: pulse-yellow 2s infinite;
+    }
+    .status-error::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      margin-right: 6px;
+      animation: pulse-red 1.5s infinite;
+    }
+    .status-paused::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #71717a;
+      margin-right: 6px;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+    }
+    @keyframes pulse-yellow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(234,179,8,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(234,179,8,0); }
+    }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+    }
+
+    /* Budget progress bar */
+    .budget-bar { height: 4px; border-radius: 2px; background: #27272a; overflow: hidden; }
+    .budget-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+    /* Sparkline placeholder */
+    .sparkline {
+      display: inline-block;
+      width: 64px; height: 24px;
+      background: linear-gradient(135deg, transparent 30%, rgba(59,130,246,0.15) 100%);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    .sparkline::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 4px; right: 4px;
+      height: 16px;
+      border-bottom: 2px solid rgba(59,130,246,0.6);
+      border-radius: 0 0 8px 0;
+    }
+    .sparkline-up::after {
+      border-image: linear-gradient(to right, rgba(34,197,94,0.3), rgba(34,197,94,0.8)) 1;
+      border-bottom: 2px solid;
+      transform: rotate(-8deg);
+      transform-origin: left bottom;
+    }
+    .sparkline-down::after {
+      border-image: linear-gradient(to right, rgba(239,68,68,0.3), rgba(239,68,68,0.8)) 1;
+      border-bottom: 2px solid;
+      transform: rotate(8deg);
+      transform-origin: left top;
+    }
+
+    /* Hover row effect */
+    .campaign-row { transition: background 0.15s; }
+    .campaign-row:hover { background: rgba(39,39,42,0.5); }
+
+    /* Action button hover */
+    .action-btn { transition: all 0.15s; }
+    .action-btn:hover { transform: translateY(-1px); }
+
+    /* Expand animation */
+    .expand-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .expand-content.open { max-height: 600px; }
+
+    /* Recommendation card glow */
+    .rec-critical { border-left: 3px solid #ef4444; }
+    .rec-high { border-left: 3px solid #f59e0b; }
+    .rec-medium { border-left: 3px solid #3b82f6; }
+  </style>
+</head>
+<body class="min-h-screen p-0">
+
+  <!-- ============================================================= -->
+  <!-- CONTAINER: Simula el tab content dentro del MetaAdsDashboard   -->
+  <!-- ============================================================= -->
+  <div class="max-w-[1200px] mx-auto p-6 space-y-6">
+
+    <!-- ======================== -->
+    <!-- SECTION 0: Tab Header    -->
+    <!-- ======================== -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-semibold">Campañas</h2>
+        <p class="text-xs text-zinc-500 mt-0.5">
+          Rendimiento individual por campaña &middot; Actualizado hace 2h
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="action-btn flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Sincronizar
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- SECTION 1: RESUMEN GLOBAL (4 KPI cards) -->
+    <!-- ======================================= -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- Campañas Activas -->
+      <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 space-y-1">
+        <p class="text-[11px] text-zinc-500 uppercase tracking-wider"
+           data-tooltip="Campañas que están entregando anuncios ahora mismo vs el total de campañas en tu cuenta">
+          Activas / Total
+        </p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-bold tabular-nums">3</span>
+          <span class="text-sm text-zinc-500">/ 5</span>
+        </div>
+        <div class="flex gap-1.5 mt-1">
+          <span class="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">3 activas</span>
+          <span class="inline-flex items-center rounded-full bg-zinc-500/10 px-2 py-0.5 text-[10px] font-medium text-zinc-400">1 pausada</span>
+          <span class="inline-flex items-center rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400">1 error</span>
+        </div>
+      </div>
+
+      <!-- Inversión Total -->
+      <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 space-y-1">
+        <p class="text-[11px] text-zinc-500 uppercase tracking-wider"
+           data-tooltip="Total gastado en todas las campañas durante el periodo seleccionado. Incluye todos los tipos de campaña.">
+          Inversión Total
+        </p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-bold tabular-nums">$2,847</span>
+          <span class="sparkline sparkline-up"></span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          <span class="text-emerald-500">+12.3%</span>
+          <span class="text-zinc-600">vs periodo anterior</span>
+        </div>
+      </div>
+
+      <!-- Resultados Totales -->
+      <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 space-y-1">
+        <p class="text-[11px] text-zinc-500 uppercase tracking-wider"
+           data-tooltip="Total de conversiones (ventas, leads, o el objetivo que configuraste) de todas las campañas combinadas.">
+          Resultados Totales
+        </p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-bold tabular-nums">127</span>
+          <span class="sparkline sparkline-up"></span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          <span class="text-emerald-500">+8.5%</span>
+          <span class="text-zinc-600">vs periodo anterior</span>
+        </div>
+      </div>
+
+      <!-- ROAS Promedio -->
+      <div class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 space-y-1">
+        <p class="text-[11px] text-zinc-500 uppercase tracking-wider"
+           data-tooltip="ROAS = Return On Ad Spend. Por cada $1 que inviertes, cuánto recuperas en ventas. Ej: 3.2x significa que por cada $1 ganas $3.20. Arriba de 2x es bueno para la mayoría de negocios.">
+          ROAS Promedio
+        </p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl font-bold tabular-nums">3.2x</span>
+          <span class="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">Por encima del promedio</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          <span class="text-emerald-500">+0.4x</span>
+          <span class="text-zinc-600">vs periodo anterior</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================== -->
+    <!-- SECTION 2: ALERTAS Y RECOMENDACIONES     -->
+    <!-- ======================================== -->
+    <div class="space-y-2">
+      <!-- Alerta Crítica -->
+      <div class="rec-critical rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="rounded-full bg-red-500/10 p-1.5 mt-0.5">
+            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-red-300">Black Friday Leads tiene un costo por resultado muy alto</p>
+            <p class="text-xs text-zinc-500 mt-0.5">
+              Estás pagando <strong class="text-red-400">$189</strong> por cada venta &mdash; 3x por encima de tu promedio ($63).
+              Considera pausar esta campaña o cambiar la audiencia.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button class="action-btn rounded-md bg-red-500/10 border border-red-500/30 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-500/20">
+            Pausar
+          </button>
+          <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:bg-zinc-700">
+            Ver
+          </button>
+        </div>
+      </div>
+
+      <!-- Recomendación Positiva -->
+      <div class="rec-medium rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="rounded-full bg-blue-500/10 p-1.5 mt-0.5">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-blue-300">Curso Principal va excelente &mdash; podrías escalarla</p>
+            <p class="text-xs text-zinc-500 mt-0.5">
+              ROAS de <strong class="text-emerald-400">4.1x</strong> con CPA estable. Meta recomienda aumentar budget para capturar más audiencia sin perder eficiencia.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button class="action-btn rounded-md bg-blue-500/10 border border-blue-500/30 px-3 py-1.5 text-xs font-medium text-blue-400 hover:bg-blue-500/20">
+            +20% Budget
+          </button>
+          <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:bg-zinc-700">
+            Ignorar
+          </button>
+        </div>
+      </div>
+
+      <!-- Alerta Audience Fatigue -->
+      <div class="rec-high rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="rounded-full bg-amber-500/10 p-1.5 mt-0.5">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-amber-300">Retargeting Carrito tiene frecuencia alta (5.2)</p>
+            <p class="text-xs text-zinc-500 mt-0.5">
+              Las mismas personas están viendo tu anuncio demasiado (ideal: &lt; 3 veces).
+              Esto reduce la efectividad y puede molestar a tu audiencia.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button class="action-btn rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-500/20">
+            Renovar Audiencia
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================== -->
+    <!-- SECTION 3: LISTA DE CAMPAÑAS           -->
+    <!-- ====================================== -->
+    <div class="rounded-xl border border-zinc-800 bg-zinc-900/30 overflow-hidden">
+
+      <!-- Table Header -->
+      <div class="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 px-4 py-2.5 border-b border-zinc-800 text-[11px] text-zinc-500 uppercase tracking-wider">
+        <span>Campaña</span>
+        <span class="text-right" data-tooltip="Total invertido en esta campaña durante el periodo. Incluye todos los ad sets y anuncios.">Inversión</span>
+        <span class="text-right" data-tooltip="Cantidad de conversiones (ventas, leads, registros) que esta campaña generó.">Resultados</span>
+        <span class="text-right" data-tooltip="CPA = Cost Per Action. Cuánto pagaste en promedio por cada resultado. Menor es mejor.">CPA</span>
+        <span class="text-right" data-tooltip="ROAS = Return On Ad Spend. Cuánto ganas por cada $1 invertido. Ej: 4.1x = ganas $4.10 por $1. Más alto es mejor.">ROAS</span>
+        <span class="text-right" data-tooltip="CTR = Click-Through Rate. % de personas que ven tu anuncio y hacen clic. Indica qué tan atractivo es tu anuncio. Más alto es mejor.">CTR</span>
+        <span class="text-right" data-tooltip="CPC = Cost Per Click. Cuánto pagas por cada clic en tu anuncio. Menor es mejor. Depende de la competencia en tu nicho.">CPC</span>
+        <span class="text-right" data-tooltip="Frequency = cuántas veces en promedio cada persona vio tu anuncio. Arriba de 3 puede causar fatiga (la gente lo ignora).">Freq.</span>
+        <span class="text-right">Acciones</span>
+      </div>
+
+      <!-- ===== Campaign Row 1: ACTIVE + GREAT ===== -->
+      <div class="campaign-row border-b border-zinc-800/60">
+        <div class="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 px-4 py-3 items-center">
+          <!-- Campaign Info -->
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="flex flex-col min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="status-active text-sm font-medium truncate">Curso Principal</span>
+              </div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="inline-flex items-center rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400"
+                      data-tooltip="Objetivo de la campaña en Meta: optimizar para ventas">
+                  Ventas
+                </span>
+                <span class="text-[10px] text-zinc-600">3 ad sets &middot; 8 anuncios</span>
+                <!-- Budget bar -->
+                <div class="flex items-center gap-1.5">
+                  <div class="budget-bar w-16">
+                    <div class="budget-fill bg-emerald-500/60" style="width: 47%"></div>
+                  </div>
+                  <span class="text-[10px] text-zinc-500"
+                        data-tooltip="Has gastado $234 de tu presupuesto diario de $500. Vas a un ritmo normal.">$234 / $500 diario</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spend -->
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums">$1,234</p>
+            <p class="text-[10px] text-emerald-500">+15%</p>
+          </div>
+
+          <!-- Results -->
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums">89</p>
+            <p class="text-[10px] text-zinc-500">ventas</p>
+          </div>
+
+          <!-- CPA -->
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums text-emerald-400">$13.87</p>
+            <span class="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-400"
+                  data-tooltip="Tu costo por resultado es menor al promedio de tu industria ($18.50). Excelente.">
+              Excelente
+            </span>
+          </div>
+
+          <!-- ROAS -->
+          <div class="text-right">
+            <p class="text-sm font-bold tabular-nums text-emerald-400">4.1x</p>
+            <p class="text-[10px] text-emerald-500">+0.3x</p>
+          </div>
+
+          <!-- CTR -->
+          <div class="text-right">
+            <p class="text-sm tabular-nums">2.8%</p>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" data-tooltip="CTR arriba de 2% es bueno. Tu anuncio es atractivo."></span>
+          </div>
+
+          <!-- CPC -->
+          <div class="text-right">
+            <p class="text-sm tabular-nums">$0.42</p>
+            <p class="text-[10px] text-emerald-500">-8%</p>
+          </div>
+
+          <!-- Frequency -->
+          <div class="text-right">
+            <p class="text-sm tabular-nums">1.8</p>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" data-tooltip="Frecuencia menor a 3 es saludable. Tu audiencia no está saturada."></span>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-end gap-1">
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/30"
+                    data-tooltip="Aumentar budget +20%">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-amber-400 hover:border-amber-500/30"
+                    data-tooltip="Pausar campaña">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-blue-400 hover:border-blue-500/30"
+                    data-tooltip="Ver detalles: ad sets, anuncios y métricas detalladas">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== EXPANDED: Ad Sets detail (only for Campaign 1 as demo) ===== -->
+        <div class="expand-content open border-t border-zinc-800/40 bg-zinc-950/50">
+          <div class="px-4 py-3 space-y-3">
+            <!-- Section title -->
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-medium text-zinc-400">Ad Sets (3)</h4>
+              <button class="text-[10px] text-blue-400 hover:text-blue-300">Ver todos los anuncios</button>
+            </div>
+
+            <!-- Ad Set Row 1 -->
+            <div class="rounded-lg border border-zinc-800/50 bg-zinc-900/40 p-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="status-active text-xs font-medium">Lookalike 1% - Compradores</span>
+                  </div>
+                  <div class="flex items-center gap-3 mt-1.5 text-[10px] text-zinc-500">
+                    <span data-tooltip="Rango de edad de la audiencia">25-45 años</span>
+                    <span>&middot;</span>
+                    <span data-tooltip="Ubicaciones geográficas de la audiencia">LATAM</span>
+                    <span>&middot;</span>
+                    <span>4 anuncios</span>
+                    <span>&middot;</span>
+                    <span class="text-emerald-400" data-tooltip="Porcentaje de personas que ven el anuncio y hacen clic">CTR 3.1%</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center gap-4">
+                    <div>
+                      <p class="text-xs text-zinc-500">Inversión</p>
+                      <p class="text-sm font-semibold tabular-nums">$567</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-zinc-500">Resultados</p>
+                      <p class="text-sm font-semibold tabular-nums">45</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-zinc-500">CPA</p>
+                      <p class="text-sm font-semibold tabular-nums text-emerald-400">$12.60</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Top Ads within this Ad Set -->
+              <div class="mt-3 pt-3 border-t border-zinc-800/30">
+                <p class="text-[10px] text-zinc-600 mb-2">Top anuncios por rendimiento</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <!-- Ad 1 -->
+                  <div class="flex items-center gap-2 rounded-md bg-zinc-900/60 p-2">
+                    <div class="w-10 h-10 rounded bg-gradient-to-br from-blue-600/30 to-purple-600/30 flex items-center justify-center text-[10px] text-zinc-400 shrink-0">IMG</div>
+                    <div class="min-w-0">
+                      <p class="text-xs font-medium truncate">Video Testimonio Laura</p>
+                      <div class="flex items-center gap-2 text-[10px]">
+                        <span class="text-emerald-400">ROAS 5.2x</span>
+                        <span class="text-zinc-500">32 ventas</span>
+                        <span class="text-zinc-500">CPA $10.20</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Ad 2 -->
+                  <div class="flex items-center gap-2 rounded-md bg-zinc-900/60 p-2">
+                    <div class="w-10 h-10 rounded bg-gradient-to-br from-amber-600/30 to-red-600/30 flex items-center justify-center text-[10px] text-zinc-400 shrink-0">IMG</div>
+                    <div class="min-w-0">
+                      <p class="text-xs font-medium truncate">Carrusel Beneficios</p>
+                      <div class="flex items-center gap-2 text-[10px]">
+                        <span class="text-emerald-400">ROAS 3.8x</span>
+                        <span class="text-zinc-500">13 ventas</span>
+                        <span class="text-zinc-500">CPA $15.30</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ad Set Row 2 -->
+            <div class="rounded-lg border border-zinc-800/50 bg-zinc-900/40 p-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="status-active text-xs font-medium">Intereses - Marketing Digital</span>
+                  </div>
+                  <div class="flex items-center gap-3 mt-1.5 text-[10px] text-zinc-500">
+                    <span>25-55 años</span>
+                    <span>&middot;</span>
+                    <span>México, Colombia</span>
+                    <span>&middot;</span>
+                    <span>3 anuncios</span>
+                    <span>&middot;</span>
+                    <span class="text-emerald-400">CTR 2.4%</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center gap-4">
+                    <div>
+                      <p class="text-xs text-zinc-500">Inversión</p>
+                      <p class="text-sm font-semibold tabular-nums">$412</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-zinc-500">Resultados</p>
+                      <p class="text-sm font-semibold tabular-nums">28</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-zinc-500">CPA</p>
+                      <p class="text-sm font-semibold tabular-nums text-emerald-400">$14.71</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ad Set Row 3 (Learning) -->
+            <div class="rounded-lg border border-amber-500/20 bg-zinc-900/40 p-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="status-learning text-xs font-medium">Broad - Automático</span>
+                    <span class="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400"
+                          data-tooltip="Meta está probando diferentes audiencias para encontrar la mejor. Necesita ~50 conversiones en 7 días. No hagas cambios hasta que termine.">
+                      Aprendiendo
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-3 mt-1.5 text-[10px] text-zinc-500">
+                    <span>18-65 años</span>
+                    <span>&middot;</span>
+                    <span>Automático</span>
+                    <span>&middot;</span>
+                    <span>1 anuncio</span>
+                    <span>&middot;</span>
+                    <span>CTR 1.9%</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center gap-4">
+                    <div>
+                      <p class="text-xs text-zinc-500">Inversión</p>
+                      <p class="text-sm font-semibold tabular-nums">$255</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-zinc-500">Resultados</p>
+                      <p class="text-sm font-semibold tabular-nums">16</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-zinc-500">CPA</p>
+                      <p class="text-sm font-semibold tabular-nums text-amber-400">$15.94</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 flex items-center gap-2 rounded-md bg-amber-500/5 p-2">
+                <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="text-[10px] text-amber-300/80">Lleva 16 de ~50 conversiones necesarias. Dale 3-5 días más antes de hacer cambios.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Campaign Row 2: ACTIVE but ERROR (high CPA) ===== -->
+      <div class="campaign-row border-b border-zinc-800/60 bg-red-500/[0.02]">
+        <div class="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 px-4 py-3 items-center">
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="status-error text-sm font-medium truncate">Black Friday Leads</span>
+              <span class="inline-flex items-center rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400"
+                    data-tooltip="Esta campaña tiene un problema de rendimiento: el costo por resultado es muy alto comparado con tu promedio.">
+                Necesita atención
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="inline-flex items-center rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400">Ventas</span>
+              <span class="text-[10px] text-zinc-600">2 ad sets &middot; 5 anuncios</span>
+              <div class="flex items-center gap-1.5">
+                <div class="budget-bar w-16">
+                  <div class="budget-fill bg-red-500/60" style="width: 82%"></div>
+                </div>
+                <span class="text-[10px] text-red-400">$410 / $500 diario</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums">$567</p>
+            <p class="text-[10px] text-red-400">+45%</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums">3</p>
+            <p class="text-[10px] text-zinc-500">ventas</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums text-red-400">$189.00</p>
+            <span class="inline-flex items-center rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] text-red-400"
+                  data-tooltip="Tu costo por resultado es 3x más alto que tu promedio ($63). Estás perdiendo dinero en esta campaña.">
+              3x promedio
+            </span>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-bold tabular-nums text-red-400">0.8x</p>
+            <p class="text-[10px] text-red-400">-1.2x</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums">0.9%</p>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500" data-tooltip="CTR menor a 1% indica que el anuncio no llama la atención. Necesitas cambiar el creative o la audiencia."></span>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums">$1.85</p>
+            <p class="text-[10px] text-red-400">+62%</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-amber-400">3.4</p>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" data-tooltip="Frecuencia un poco alta. La gente empieza a ignorar tus anuncios."></span>
+          </div>
+          <div class="flex items-center justify-end gap-1">
+            <button class="action-btn rounded-md bg-red-500/10 border border-red-500/30 p-1.5 text-red-400 hover:bg-red-500/20"
+                    data-tooltip="Pausar campaña (recomendado)">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-amber-400"
+                    data-tooltip="Reducir budget -30%">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-blue-400"
+                    data-tooltip="Ver detalles">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Campaign Row 3: ACTIVE + LEARNING ===== -->
+      <div class="campaign-row border-b border-zinc-800/60">
+        <div class="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 px-4 py-3 items-center">
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="status-learning text-sm font-medium truncate">Retargeting Carrito</span>
+              <span class="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400"
+                    data-tooltip="Meta está optimizando esta campaña. Evita hacer cambios grandes durante esta fase.">
+                Aprendiendo
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="inline-flex items-center rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400"
+                    data-tooltip="Campaña de retargeting: muestra anuncios a personas que ya visitaron tu sitio pero no compraron">
+                Retargeting
+              </span>
+              <span class="text-[10px] text-zinc-600">1 ad set &middot; 3 anuncios</span>
+              <div class="flex items-center gap-1.5">
+                <div class="budget-bar w-16">
+                  <div class="budget-fill bg-amber-500/60" style="width: 35%"></div>
+                </div>
+                <span class="text-[10px] text-zinc-500">$175 / $500 diario</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums">$812</p>
+            <p class="text-[10px] text-zinc-500">+3%</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums">23</p>
+            <p class="text-[10px] text-zinc-500">ventas</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold tabular-nums text-amber-400">$35.30</p>
+            <span class="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-400"
+                  data-tooltip="Costo por resultado un poco alto pero dentro de lo aceptable para retargeting. Espera a que termine de aprender.">
+              Aceptable
+            </span>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-bold tabular-nums text-amber-400">2.3x</p>
+            <p class="text-[10px] text-zinc-500">-0.1x</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums">1.5%</p>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500" data-tooltip="CTR aceptable para retargeting pero podría mejorar."></span>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums">$0.98</p>
+            <p class="text-[10px] text-zinc-500">+2%</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-red-400">5.2</p>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500" data-tooltip="Frecuencia muy alta. Las personas ven tu anuncio 5 veces en promedio. Deberías renovar creativos o audiencia."></span>
+          </div>
+          <div class="flex items-center justify-end gap-1">
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-emerald-400"
+                    data-tooltip="Aumentar budget +20%">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-amber-400"
+                    data-tooltip="Pausar campaña">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-400 hover:text-blue-400"
+                    data-tooltip="Ver detalles">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Campaign Row 4: PAUSED ===== -->
+      <div class="campaign-row border-b border-zinc-800/60 opacity-60">
+        <div class="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 px-4 py-3 items-center">
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="status-paused text-sm font-medium truncate text-zinc-400">Webinar Marzo</span>
+              <span class="inline-flex items-center rounded-full bg-zinc-500/10 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
+                Pausada
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="inline-flex items-center rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500">Leads</span>
+              <span class="text-[10px] text-zinc-600">1 ad set &middot; 2 anuncios</span>
+              <span class="text-[10px] text-zinc-600">Pausada el 28 mar</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">$234</p>
+            <p class="text-[10px] text-zinc-600">total</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">12</p>
+            <p class="text-[10px] text-zinc-600">leads</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">$19.50</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">2.1x</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">1.8%</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">$0.72</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">2.1</p>
+          </div>
+          <div class="flex items-center justify-end gap-1">
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-500 hover:text-emerald-400"
+                    data-tooltip="Reactivar campaña">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-500 hover:text-blue-400"
+                    data-tooltip="Duplicar campaña con nuevos parámetros">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-500 hover:text-blue-400"
+                    data-tooltip="Ver detalles">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Campaign Row 5: COMPLETED ===== -->
+      <div class="campaign-row opacity-50">
+        <div class="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 px-4 py-3 items-center">
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium truncate text-zinc-500">
+                <span class="inline-block mr-1.5">
+                  <svg class="w-3.5 h-3.5 inline text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </span>
+                Lanzamiento Enero
+              </span>
+              <span class="inline-flex items-center rounded-full bg-zinc-500/10 px-2 py-0.5 text-[10px] font-medium text-zinc-600">
+                Completada
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="inline-flex items-center rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500">Ventas</span>
+              <span class="text-[10px] text-zinc-600">Terminó el 31 ene &middot; Budget agotado</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">$1,500</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">67</p>
+            <p class="text-[10px] text-zinc-600">ventas</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">$22.39</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">3.5x</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">2.2%</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">$0.55</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm tabular-nums text-zinc-500">2.8</p>
+          </div>
+          <div class="flex items-center justify-end gap-1">
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-500 hover:text-blue-400"
+                    data-tooltip="Duplicar campaña con nuevos parámetros">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+            <button class="action-btn rounded-md bg-zinc-800 border border-zinc-700 p-1.5 text-zinc-500 hover:text-blue-400"
+                    data-tooltip="Ver detalles históricos">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================= -->
+    <!-- SECTION 4: LEYENDA DE INDICADORES       -->
+    <!-- ======================================= -->
+    <div class="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
+      <p class="text-xs font-medium text-zinc-400 mb-3">Guía de indicadores</p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-[11px]">
+        <div class="space-y-2">
+          <p class="font-medium text-zinc-300">Estado</p>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-zinc-400">Activa — entregando</span></div>
+            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-zinc-400">Aprendiendo — no tocar</span></div>
+            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-zinc-400">Problema — revisar</span></div>
+            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-zinc-500"></span><span class="text-zinc-400">Pausada / Completada</span></div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <p class="font-medium text-zinc-300">Rendimiento</p>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2"><span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-400">Excelente</span><span class="text-zinc-500">Mejor que promedio</span></div>
+            <div class="flex items-center gap-2"><span class="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-400">Aceptable</span><span class="text-zinc-500">Dentro de rango</span></div>
+            <div class="flex items-center gap-2"><span class="rounded-full bg-red-500/10 px-2 py-0.5 text-red-400">3x promedio</span><span class="text-zinc-500">Alerta</span></div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <p class="font-medium text-zinc-300">Columnas</p>
+          <div class="space-y-1 text-zinc-400">
+            <p><strong class="text-zinc-300">CPA</strong> — Costo por resultado</p>
+            <p><strong class="text-zinc-300">ROAS</strong> — Retorno por $1 invertido</p>
+            <p><strong class="text-zinc-300">CTR</strong> — % que hizo clic</p>
+            <p><strong class="text-zinc-300">CPC</strong> — Costo por clic</p>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <p class="font-medium text-zinc-300">Frequency</p>
+          <div class="space-y-1 text-zinc-400">
+            <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> &lt; 3 — Saludable</div>
+            <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 3-4 — Atención</div>
+            <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> &gt; 4 — Saturación</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- NOTA DE DISEÑO (solo para mockup)       -->
+    <!-- ======================================= -->
+    <div class="mt-8 rounded-xl border-2 border-dashed border-zinc-700 bg-zinc-900/50 p-6 space-y-4">
+      <h3 class="text-base font-bold text-zinc-300">Notas de Diseño (solo mockup)</h3>
+
+      <div class="space-y-3 text-sm text-zinc-400">
+        <div>
+          <p class="font-medium text-zinc-300">Estructura de la vista:</p>
+          <ol class="list-decimal list-inside mt-1 space-y-1">
+            <li><strong>Resumen global</strong> — 4 KPIs agregados de todas las campañas</li>
+            <li><strong>Alertas/Recomendaciones</strong> — Acciones urgentes arriba (basadas en ad_recommendations de Meta + reglas propias)</li>
+            <li><strong>Lista de campañas</strong> — Tabla con 8 columnas de métricas + acciones</li>
+            <li><strong>Detalle expandible</strong> — Click en chevron muestra ad sets y top anuncios</li>
+            <li><strong>Guía de indicadores</strong> — Referencia rápida para usuarios nuevos</li>
+          </ol>
+        </div>
+
+        <div>
+          <p class="font-medium text-zinc-300">Indicadores por campaña (8 columnas):</p>
+          <ul class="list-disc list-inside mt-1 space-y-1">
+            <li><strong>Inversión</strong> — Gasto total en el período + delta %</li>
+            <li><strong>Resultados</strong> — Conversiones + tipo (ventas/leads)</li>
+            <li><strong>CPA</strong> — Costo por acción + badge de rendimiento vs benchmark</li>
+            <li><strong>ROAS</strong> — Retorno por dólar + delta</li>
+            <li><strong>CTR</strong> — Click-through rate + dot semáforo</li>
+            <li><strong>CPC</strong> — Costo por clic + delta %</li>
+            <li><strong>Freq.</strong> — Frecuencia + dot semáforo</li>
+            <li><strong>Acciones</strong> — Escalar / Pausar / Expandir</li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="font-medium text-zinc-300">Tooltips en todo:</p>
+          <p class="mt-1">Cada nombre técnico (ROAS, CPA, CTR, CPC, Freq.) tiene tooltip con explicación en lenguaje simple. Hover sobre cualquier header o badge para ver la interpretación.</p>
+        </div>
+
+        <div>
+          <p class="font-medium text-zinc-300">NO duplica con otros tabs:</p>
+          <ul class="list-disc list-inside mt-1 space-y-1">
+            <li><strong>Overview</strong> ya muestra: KPIs agregados, gráfico inversión vs conversiones, funnel, frequency alerts</li>
+            <li><strong>Costs</strong> ya muestra: CPC, CPM, CPL, CPA con benchmarks</li>
+            <li><strong>Este tab</strong> es único: desglose POR CAMPAÑA individual con acciones operativas</li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="font-medium text-zinc-300">Orden de campañas:</p>
+          <p class="mt-1">Problemas primero (rojo), luego aprendiendo (amarillo), luego activas OK (verde), luego pausadas/completadas (gris). El usuario ve lo urgente primero.</p>
+        </div>
+
+        <div>
+          <p class="font-medium text-zinc-300">Datos backend ya disponibles:</p>
+          <ul class="list-disc list-inside mt-1 space-y-1">
+            <li>Metadata de campañas: <code>GET /campaigns</code> (name, status, budget, objective)</li>
+            <li>Métricas por campaign_id en <code>official_metrics</code> (spend, ROAS, CPC, etc.)</li>
+            <li>Recomendaciones de Meta en <code>ad_recommendations</code></li>
+            <li>Falta: endpoint que cruce metadata + métricas agregadas</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
