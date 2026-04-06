@@ -185,3 +185,129 @@ export function useCreativesOverview(
     staleTime: 5 * 60 * 1000,
   });
 }
+
+// ── Utility: snake_case → camelCase ─────────────────────────────────
+
+function snakeToCamel(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+function camelizeKeys<T>(obj: unknown): T {
+  if (Array.isArray(obj)) {
+    return obj.map(item => camelizeKeys<unknown>(item)) as T;
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      result[snakeToCamel(key)] = camelizeKeys(value);
+    }
+    return result as T;
+  }
+  return obj as T;
+}
+
+// ── Ad-Level Performance ────────────────────────────────────────────
+
+export interface AdMetrics {
+  adId: string;
+  adName: string;
+  campaignName: string | null;
+  campaignExternalId: string | null;
+  formatType: string;
+  thumbnailUrl: string | null;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  roas: number | null;
+  cpa: number | null;
+  ctr: number | null;
+  cpc: number | null;
+  performanceTag: string;
+}
+
+export interface AdPerformanceData {
+  ads: AdMetrics[];
+  period: string;
+  totalAds: number;
+}
+
+export interface FormatComparisonItem {
+  formatType: string;
+  emoji: string;
+  adCount: number;
+  avgCtr: number;
+  avgCpa: number | null;
+  avgRoas: number | null;
+  totalSpend: number;
+  performanceScore: number;
+}
+
+export interface FormatComparisonData {
+  formats: FormatComparisonItem[];
+  period: string;
+}
+
+export async function fetchAdPerformance(
+  token: string,
+  period: MetaAdsPeriod = '30d',
+  limit = 10,
+): Promise<AdPerformanceData> {
+  const url = `${API_URL}/api/v1/analytics/campaigns/ads/performance?period=${period}&limit=${limit}`;
+  const res = await fetchClient(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Ad performance API returned ${res.status}`);
+  const json: unknown = await res.json();
+  return camelizeKeys<AdPerformanceData>(json);
+}
+
+export async function fetchFormatComparison(
+  token: string,
+  period: MetaAdsPeriod = '30d',
+): Promise<FormatComparisonData> {
+  const url = `${API_URL}/api/v1/analytics/campaigns/ads/format-comparison?period=${period}`;
+  const res = await fetchClient(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Format comparison API returned ${res.status}`);
+  const json: unknown = await res.json();
+  return camelizeKeys<FormatComparisonData>(json);
+}
+
+export function useAdPerformance(
+  period: MetaAdsPeriod = '30d',
+  limit = 10,
+  enabled = true,
+) {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: ['ad-performance', period, limit],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error('No auth token');
+      return fetchAdPerformance(token, period, limit);
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useFormatComparison(
+  period: MetaAdsPeriod = '30d',
+  enabled = true,
+) {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: ['format-comparison', period],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error('No auth token');
+      return fetchFormatComparison(token, period);
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+}
