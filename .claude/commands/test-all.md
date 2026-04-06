@@ -48,7 +48,7 @@ cd frontend && npx tsc --noEmit
 
 ### 7. Frontend lint (ESLint)
 ```bash
-cd frontend && npx next lint
+cd frontend && npx eslint src/
 ```
 
 ### 8. Frontend tests with coverage (vitest)

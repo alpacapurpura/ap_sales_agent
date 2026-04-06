@@ -2,7 +2,7 @@
 
 /**
  * PreToolUse hook: Prevents running runtime commands directly on the host.
- * Lint/test tools (ruff, pytest, npx tsc, npx vitest, npx next lint) run NATIVELY.
+ * Lint/test tools (ruff, pytest, npx tsc, npx vitest, npx eslint) run NATIVELY.
  * Only runtime commands (alembic, python app, npm start) require Docker.
  */
 

@@ -122,7 +122,7 @@ pytest:
 	cd backend && .venv/bin/pytest $(args)
 
 lint:
-	cd frontend && npx next lint
+	cd frontend && npx eslint src/
 	cd backend && .venv/bin/ruff check src/ --no-cache
 
 ruff:

@@ -177,7 +177,7 @@ cd backend && .venv/bin/pip-audit --strict --desc
 cd frontend && npx tsc --noEmit
 
 # Frontend lint
-cd frontend && npx next lint
+cd frontend && npx eslint src/
 
 # Frontend tests with coverage
 cd frontend && npx vitest run --coverage

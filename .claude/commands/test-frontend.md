@@ -12,9 +12,9 @@ Run these sequentially, reporting results after each step:
 cd frontend && npx tsc --noEmit
 ```
 
-### 2. Lint (ESLint via Next.js)
+### 2. Lint (ESLint)
 ```bash
-cd frontend && npx next lint
+cd frontend && npx eslint src/
 ```
 
 ### 3. Unit tests with coverage (Vitest)

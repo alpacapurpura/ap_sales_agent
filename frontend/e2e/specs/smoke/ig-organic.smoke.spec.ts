@@ -20,7 +20,7 @@ test.describe('Instagram Organic Dashboard @smoke', () => {
     await setupIgOrganicMocks(growthStudioPage);
 
     await igPage.gotoSidebarViaUrl('ig-organic');
-    // The page loads; verify the channel data shows
+    await igPage.expectSidebarVisible();
     await igPage.expectHeroKpis(4);
   });
 

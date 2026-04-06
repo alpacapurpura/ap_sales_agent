@@ -33,7 +33,7 @@ Native tools read the actual filesystem, making them correct in all contexts.
 | Action | Command |
 |---|---|
 | Frontend types | `cd frontend && npx tsc --noEmit` |
-| Frontend lint | `cd frontend && npx next lint` |
+| Frontend lint | `cd frontend && npx eslint src/` |
 | Frontend tests | `cd frontend && npx vitest run` |
 | Tests with coverage | `cd frontend && npx vitest run --coverage` |
 | Single feature | `cd frontend && npx vitest run src/features/{domain}/` |
@@ -51,7 +51,7 @@ Native tools read the actual filesystem, making them correct in all contexts.
 ## PROHIBITED — Never Do This
 
 ```
-docker exec ... ruff|pytest|tsc|vitest|next lint|npm run test ...
+docker exec ... ruff|pytest|tsc|vitest|eslint|npm run test ...
 ```
 
 ## Makefile Shortcuts

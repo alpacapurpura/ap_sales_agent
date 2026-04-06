@@ -172,8 +172,8 @@ Every check must pass before considering the implementation complete.
 # 1. Type check (TypeScript) — catches type errors before they reach CI
 cd frontend && npx tsc --noEmit
 
-# 2. Lint (ESLint via Next.js)
-cd frontend && npx next lint
+# 2. Lint (ESLint)
+cd frontend && npx eslint src/
 
 # 3. Tests with coverage — enforces coverage thresholds (statements 20%, lines 20%)
 cd frontend && npx vitest run --coverage
@@ -306,5 +306,5 @@ Implementation is complete when:
 - [ ] Auth and tenant isolation wired
 - [ ] Loading, error, and empty states implemented
 - [ ] `npx tsc --noEmit` passes
-- [ ] `npx next lint` passes
+- [ ] `npx eslint src/` passes
 </output>

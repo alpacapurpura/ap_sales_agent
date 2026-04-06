@@ -49,7 +49,7 @@ export const IG_ORGANIC_DASHBOARD_MOCK = {
     },
     {
       metric_name: 'ig_engagement_rate',
-      display_name: 'Engagement Rate',
+      display_name: 'Tasa de Engagement',
       current_value: 0.51,
       previous_value: 0.44,
       delta_percent: 15.9,
@@ -156,7 +156,7 @@ export const IG_ORGANIC_DASHBOARD_MOCK = {
     },
     {
       metric_name: 'ig_engagement_rate',
-      display_name: 'Engagement Rate',
+      display_name: 'Tasa de Engagement',
       unit: 'percentage',
       data_points: Array.from({ length: 30 }, (_, i) => ({
         date: `2026-03-${String(i + 1).padStart(2, '0')}`,

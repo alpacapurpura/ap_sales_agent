@@ -71,7 +71,7 @@ export class IgOrganicDashboardPage {
   // ── Full-page Dashboard ────────────────────────────────────
 
   async expectFullDashboardVisible() {
-    await expect(this.page.getByText(/Instagram Orgánico.*Dashboard/)).toBeVisible({ timeout: 10_000 });
+    await expect(this.page.getByRole('heading', { name: 'Instagram Orgánico · Dashboard' })).toBeVisible({ timeout: 10_000 });
   }
 
   async expectAllTabs() {

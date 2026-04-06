@@ -35,7 +35,7 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 | Arch tests | `make arch-test` | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
 | Single backend test | `make pytest args="-k test_name"` | `cd backend && .venv/bin/pytest tests/modules/brand/ -x -q` |
 | Frontend types | `/test-frontend` or `make tsc` | `cd frontend && npx tsc --noEmit` |
-| Frontend lint | `/test-frontend` | `cd frontend && npx next lint` |
+| Frontend lint | `/test-frontend` | `cd frontend && npx eslint src/` |
 | Frontend tests | `/test-frontend` or `make vitest` | `cd frontend && npx vitest run` |
 | Full CI | `/test-all` | Backend lint+tests, then frontend types+lint+tests |
 | Run migration | `/migrate <msg>` | `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"` |
@@ -128,7 +128,7 @@ Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) →
 | Task | Native command (run from repo root) |
 |---|---|
 | Type check | `cd frontend && npx tsc --noEmit` |
-| Lint | `cd frontend && npx next lint` |
+| Lint | `cd frontend && npx eslint src/` |
 | All tests | `cd frontend && npx vitest run` |
 | Tests with coverage | `cd frontend && npx vitest run --coverage` |
 | Single feature | `cd frontend && npx vitest run src/features/{domain}/` |
@@ -147,7 +147,7 @@ docker exec -t visionarias_brain_dev bash -c "ruff ..."
 docker exec -t visionarias_brain_dev bash -c "pytest ..."
 docker exec -t visionarias_client_dev npx tsc ...
 docker exec -t visionarias_client_dev npx vitest ...
-docker exec -t visionarias_client_dev npx next lint ...
+docker exec -t visionarias_client_dev npx eslint ...
 docker run --rm ... ruff|pytest|tsc|vitest ...
 ```
 
@@ -164,6 +164,7 @@ docker run --rm ... ruff|pytest|tsc|vitest ...
 9. **Debugging:** Docker diagnostics + common error patterns. See `.claude/rules/debugging.md`.
 10. **Copilot:** Schema introspection, module registry, route-based tools. See `.claude/rules/copilot-resilience.md`.
 11. **Spanish text:** Todo texto visible al usuario en español DEBE llevar tildes y eñes correctas (`días` no `dias`, `Campaña` no `Campana`, `Inversión` no `Inversion`). Verificar antes de commitear. See `.claude/rules/spanish-text.md`.
+12. **Mejora continua:** Cualquier problema de proceso, test frágil, patrón incorrecto, o aprendizaje detectado durante ejecución → agregarlo como `[] descripción corta` en `docs/mejoras-proceso/to-do.md` (crear si no existe). Sin verbosidad, solo el hallazgo concreto.
 
 ## Product Vision
 

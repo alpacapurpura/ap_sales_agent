@@ -61,7 +61,7 @@ export class YtOrganicDashboardPage {
   // -- Full-page Dashboard -------------------------------------------------
 
   async expectFullDashboardVisible() {
-    await expect(this.page.getByText(/YouTube Org\u00e1nico.*Dashboard/)).toBeVisible({ timeout: 10_000 });
+    await expect(this.page.getByRole('heading', { name: 'YouTube Orgánico · Dashboard' })).toBeVisible({ timeout: 10_000 });
   }
 
   async expectAllTabs() {

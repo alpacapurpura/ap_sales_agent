@@ -13,10 +13,14 @@ import pytest
 
 
 def _postgres_available() -> bool:
+    """Check if PostgreSQL is reachable using the app's connection settings."""
     try:
-        with socket.create_connection(("localhost", 5432), timeout=1):
+        from src.core.config import settings
+
+        host = settings.POSTGRES_HOST
+        with socket.create_connection((host, 5432), timeout=1):
             return True
-    except OSError:
+    except (OSError, Exception):
         return False
 
 

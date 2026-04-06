@@ -24,6 +24,13 @@ export interface IgOrganicMockOverrides {
 export async function setupIgOrganicMocks(page: Page, overrides?: IgOrganicMockOverrides) {
   const skip = overrides?.skipPatterns ?? [];
 
+  // Remove the base catch-all attraction handler (registered by growthStudioTest fixture)
+  // before registering channel-specific data. Playwright stacks route handlers
+  // and doesn't replace them, so without unroute the base empty-data handler persists.
+  if (!skip.includes('attraction')) {
+    await page.unroute('**/api/v1/analytics/metrics/attraction**');
+  }
+
   // Attraction detail (with IG Organic channel data)
   if (overrides?.attraction) {
     await page.route('**/api/v1/analytics/metrics/attraction**', overrides.attraction);

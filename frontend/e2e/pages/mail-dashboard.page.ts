@@ -62,7 +62,7 @@ export class MailDashboardPage {
   }
 
   async expectEngagementTabContent() {
-    await expect(this.page.getByText('CTOR')).toBeVisible({ timeout: 5_000 });
+    await expect(this.page.getByText('CTOR', { exact: true })).toBeVisible({ timeout: 5_000 });
     await expect(this.page.getByText('Click Rate')).toBeVisible({ timeout: 5_000 });
     await expect(this.page.getByText('Reenvíos')).toBeVisible({ timeout: 5_000 });
     await expect(this.page.getByText('Desglose de Engagement Diario')).toBeVisible({ timeout: 5_000 });
@@ -86,7 +86,7 @@ export class MailDashboardPage {
 
   async expectAutomatizacionTabContent() {
     await expect(this.page.getByText('Automatizaciones Completadas')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Tasa de Completado')).toBeVisible({ timeout: 5_000 });
+    await expect(this.page.getByText('Tasa de Completado', { exact: true })).toBeVisible({ timeout: 5_000 });
     await expect(this.page.getByText('Funnel de Automatización')).toBeVisible({ timeout: 5_000 });
     await expect(this.page.getByText('Tendencia Tasa de Completado')).toBeVisible({ timeout: 5_000 });
   }
