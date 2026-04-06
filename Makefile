@@ -158,6 +158,11 @@ e2e-ui:
 e2e-report:
 	$(DOCKER_COMPOSE_E2E) run --rm -p 9324:9324 e2e_runner npx playwright show-report --host 0.0.0.0 --port 9324
 
+# Native E2E (no Docker e2e_runner — runs Playwright directly in WSL)
+# Requires: cd frontend && npx playwright install chromium --with-deps
+e2e-native-smoke:
+	cd frontend && E2E_BASE_URL=http://localhost:3000 CLERK_TESTING_TOKEN=$(CLERK_TT) npx playwright test --grep @smoke --project=smoke $(args)
+
 shopify-config-dev:
 	cd shopify_app && npx shopify app config use shopify.app.dev.toml
 

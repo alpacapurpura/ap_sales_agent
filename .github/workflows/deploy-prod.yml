@@ -99,57 +99,89 @@ jobs:
           flags: backend,frontend
           fail_ci_if_error: false
 
-  # TODO: E2E Smoke Tests disabled — runner disk space issue (builds exhaust
-  # the 14 GB GitHub Actions limit). Re-enable after adding a disk cleanup step
-  # or switching to a larger runner. Run locally with: make e2e-smoke
-  #
-  # e2e-smoke:
-  #   name: 🎭 E2E Smoke Tests
-  #   runs-on: ubuntu-latest
-  #   environment: ap_sales_agent
-  #   needs: quality-gates
-  #   continue-on-error: true
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: docker/setup-buildx-action@v3
-  #     - name: Start services and run E2E
-  #       env:
-  #         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-  #         NEXT_PUBLIC_API_URL: http://api_dev:8000
-  #         NEXT_PUBLIC_APP_URL: http://localhost:3000
-  #         INTERNAL_API_URL: http://api_dev:8000
-  #         CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-  #         E2E_CLERK_USER_EMAIL: ${{ secrets.E2E_CLERK_USER_EMAIL }}
-  #         E2E_CLERK_USER_USERNAME: ${{ secrets.E2E_CLERK_USER_EMAIL }}
-  #         E2E_CLERK_USER_PASSWORD: ${{ secrets.E2E_CLERK_USER_PASSWORD }}
-  #         E2E_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
-  #         POSTGRES_USER: postgres
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: visionarias_test
-  #         TRAEFIK_NETWORK: gateway
-  #       run: |
-  #         # Create .env for docker compose env_file directives
-  #         env | grep -E '^(NEXT_PUBLIC_|CLERK_|INTERNAL_|E2E_|POSTGRES_|TRAEFIK_|SHOPIFY_)' > .env
-  #         # Add defaults for vars referenced in docker-compose.yml but not needed for E2E
-  #         echo "API_DOMAIN=localhost" >> .env
-  #         echo "DASHBOARD_DOMAIN=http://localhost:3000" >> .env
-  #         echo "CLOUDFLARE_TUNNEL_TOKEN=disabled" >> .env
-  #         echo "SHOPIFY_API_KEY=disabled" >> .env
-  #         echo "SHOPIFY_API_SECRET=disabled" >> .env
-  #         echo "SHOPIFY_APP_URL=http://localhost:8000" >> .env
-  #
-  #         docker network create gateway || true
-  #         docker compose --profile e2e up -d --build --wait
-  #         docker exec visionarias_brain_dev bash -c "cd /app && alembic upgrade head"
-  #         docker compose --profile e2e run --rm e2e_runner npx playwright test --grep @smoke
-  #     - uses: actions/upload-artifact@v4
-  #       if: always()
-  #       with:
-  #         name: playwright-report
-  #         path: |
-  #           frontend/playwright-report/
-  #           frontend/test-results/
-  #         retention-days: 7
+  e2e-smoke:
+    name: 🎭 E2E Smoke Tests
+    runs-on: ubuntu-latest
+    environment: ap_sales_agent
+    needs: quality-gates
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space (~25 GB)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Create .env for docker compose
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_API_URL: http://api_dev:8000
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          INTERNAL_API_URL: http://api_dev:8000
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          E2E_CLERK_USER_EMAIL: ${{ secrets.E2E_CLERK_USER_EMAIL }}
+          E2E_CLERK_USER_USERNAME: ${{ secrets.E2E_CLERK_USER_EMAIL }}
+          E2E_CLERK_USER_PASSWORD: ${{ secrets.E2E_CLERK_USER_PASSWORD }}
+          E2E_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: visionarias_test
+          TRAEFIK_NETWORK: gateway
+        run: |
+          env | grep -E '^(NEXT_PUBLIC_|CLERK_|INTERNAL_|E2E_|POSTGRES_|TRAEFIK_|SHOPIFY_)' > .env
+          echo "API_DOMAIN=localhost" >> .env
+          echo "DASHBOARD_DOMAIN=http://localhost:3000" >> .env
+          echo "CLOUDFLARE_TUNNEL_TOKEN=disabled" >> .env
+          echo "SHOPIFY_API_KEY=disabled" >> .env
+          echo "SHOPIFY_API_SECRET=disabled" >> .env
+          echo "SHOPIFY_APP_URL=http://localhost:8000" >> .env
+
+      - name: Generate Clerk testing token
+        env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        run: |
+          TOKEN=$(curl -s -X POST "https://api.clerk.com/v1/testing_tokens" \
+            -H "Authorization: Bearer $CLERK_SECRET_KEY" \
+            | python3 -c "import sys,json;print(json.load(sys.stdin).get('token',''))")
+          echo "CLERK_TESTING_TOKEN=$TOKEN" >> .env
+
+      - name: Start services
+        run: |
+          docker network create gateway || true
+          docker compose --profile e2e up -d --build --wait
+          echo "--- Disk usage after build ---"
+          df -h / | tail -1
+
+      - name: Run migrations
+        run: docker exec visionarias_brain_dev bash -c "cd /app && alembic upgrade head"
+
+      - name: Run E2E smoke tests
+        run: |
+          docker compose --profile e2e run --rm e2e_runner \
+            npx playwright test --grep @smoke
+
+      - name: Cleanup
+        if: always()
+        run: docker compose --profile e2e down -v 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7
 
   security-scan:
     name: 🔐 Vulnerability Scan

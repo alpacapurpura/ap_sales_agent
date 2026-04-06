@@ -242,6 +242,7 @@ services:
       - E2E_CLERK_USER_USERNAME=${E2E_CLERK_USER_USERNAME}
       - E2E_CLERK_USER_PASSWORD=${E2E_CLERK_USER_PASSWORD}
       - E2E_TENANT_ID=${E2E_TENANT_ID}
+    shm_size: '2gb'
     volumes:
       - ./frontend/e2e:/app/e2e
       - ./frontend/playwright.config.ts:/app/playwright.config.ts

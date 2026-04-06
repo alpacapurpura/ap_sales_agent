@@ -18,6 +18,9 @@ export default defineConfig({
     video: 'on-first-retry',
     actionTimeout: 15_000,
     navigationTimeout: 45_000,
+    launchOptions: {
+      args: ['--disable-dev-shm-usage'],
+    },
   },
 
   projects: [
