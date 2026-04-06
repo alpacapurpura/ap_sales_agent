@@ -7,6 +7,7 @@ Revision ID: 034_closer_studio_columns
 Revises: 033_add_period_aware_columns
 Create Date: 2026-04-03
 """
+
 from alembic import op
 
 revision = "034_closer_studio_columns"
@@ -68,23 +69,50 @@ def upgrade() -> None:
         ON agent_state_checkpoints (tenant_id, frozen_at, is_active)
     """)
 
-    # ── messages: sender_source ──
+    # ── messages: sender_source (table may not exist on fresh DB) ──
     op.execute("""
-        ALTER TABLE messages
-        ADD COLUMN IF NOT EXISTS sender_source VARCHAR(20) NOT NULL DEFAULT 'auto'
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_name = 'messages'
+            ) THEN
+                ALTER TABLE messages
+                ADD COLUMN IF NOT EXISTS sender_source VARCHAR(20) NOT NULL
+                    DEFAULT 'auto';
+            END IF;
+        END $$;
     """)
 
 
 def downgrade() -> None:
-    op.execute("ALTER TABLE messages DROP COLUMN IF EXISTS sender_source")
+    op.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_name = 'messages'
+            ) THEN
+                ALTER TABLE messages DROP COLUMN IF EXISTS sender_source;
+            END IF;
+        END $$;
+    """)
     op.execute("DROP INDEX IF EXISTS ix_checkpoint_frozen")
     op.execute("DROP INDEX IF EXISTS ix_checkpoint_handler_mode")
     op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS unread_count")
-    op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS last_human_message_at")
-    op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS frozen_diagnosis")
+    op.execute(
+        "ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS last_human_message_at"
+    )
+    op.execute(
+        "ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS frozen_diagnosis"
+    )
     op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS frozen_at")
-    op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS frozen_reason")
-    op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS resume_objective")
+    op.execute(
+        "ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS frozen_reason"
+    )
+    op.execute(
+        "ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS resume_objective"
+    )
     op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS paused_by")
     op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS paused_at")
     op.execute("ALTER TABLE agent_state_checkpoints DROP COLUMN IF EXISTS handler_mode")

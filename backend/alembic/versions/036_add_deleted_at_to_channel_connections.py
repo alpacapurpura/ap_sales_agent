@@ -19,14 +19,19 @@ depends_on = None
 
 
 def upgrade():
-    # channel_connections — actively breaking Growth Studio dashboard
+    # channel_connections — may not exist on fresh DB (created outside migrations)
     op.execute("""
-        ALTER TABLE channel_connections
-        ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
-    """)
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS ix_channel_connections_deleted_at
-        ON channel_connections (deleted_at);
+        DO $$ BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_name = 'channel_connections'
+            ) THEN
+                ALTER TABLE channel_connections
+                ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+                CREATE INDEX IF NOT EXISTS ix_channel_connections_deleted_at
+                ON channel_connections (deleted_at);
+            END IF;
+        END; $$;
     """)
 
     # assets — repository filters by deleted_at
@@ -66,8 +71,17 @@ def upgrade():
 
 
 def downgrade():
-    op.execute("DROP INDEX IF EXISTS ix_channel_connections_deleted_at;")
-    op.execute("ALTER TABLE channel_connections DROP COLUMN IF EXISTS deleted_at;")
+    op.execute("""
+        DO $$ BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_name = 'channel_connections'
+            ) THEN
+                DROP INDEX IF EXISTS ix_channel_connections_deleted_at;
+                ALTER TABLE channel_connections DROP COLUMN IF EXISTS deleted_at;
+            END IF;
+        END; $$;
+    """)
 
     op.execute("DROP INDEX IF EXISTS ix_assets_deleted_at;")
     op.execute("ALTER TABLE assets DROP COLUMN IF EXISTS deleted_at;")
