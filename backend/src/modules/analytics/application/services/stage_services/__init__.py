@@ -25,6 +25,9 @@ from src.modules.analytics.application.services.stage_services.nurture_stage imp
 from src.modules.analytics.application.services.stage_services.opportunity_stage import (
     OpportunityStageService,
 )
+from src.modules.analytics.application.services.stage_services.overview_stage import (
+    StageOverviewService,
+)
 from src.modules.analytics.application.services.stage_services.sales_stage import (
     SalesStageService,
 )
@@ -44,6 +47,7 @@ __all__ = [
     "NurtureStageService",
     "OpportunityStageService",
     "SalesStageService",
+    "StageOverviewService",
     "SummaryStageService",
     "TimeseriesStageService",
 ]

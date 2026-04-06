@@ -1,6 +1,8 @@
 from datetime import UTC, date, datetime, timedelta
+from enum import Enum
+from typing import TypeVar
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -20,9 +22,13 @@ from src.modules.analytics.application.dto.expansion_dto import ExpansionDetailD
 from src.modules.analytics.application.dto.nurture_dto import NurtureDetailDTO
 from src.modules.analytics.application.dto.opportunity_dto import OpportunityDetailDTO
 from src.modules.analytics.application.dto.sales_dto import SalesDetailDTO
+from src.modules.analytics.application.dto.stage_overview_dto import StageOverviewDTO
 from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
 from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
 from src.modules.analytics.application.services.metrics_service import MetricsService
+from src.modules.analytics.application.services.stage_services.overview_stage import (
+    StageOverviewService,
+)
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import (
     ConnectionPortImpl,
@@ -175,27 +181,122 @@ async def get_marketing_sankey(
 _VALID_PERIODS = {"last_30_days", "weekly", "monthly", "quarterly"}
 
 
+# ─── Group Filter Helper ─────────────────────────────────────────────────────
+
+# Group field names per stage DTO (fields that hold TrafficGroupDTO or similar)
+_STAGE_GROUP_FIELDS: dict[str, list[str]] = {
+    "attraction": ["organic_social", "ga4_search", "paid", "outbound", "website"],
+    "capture": ["web_infrastructure", "ai_agent"],
+    "nurturing": ["retargeting", "automation"],
+    "opportunity": ["checkout", "payment_links", "qualification"],
+    "sales": ["adquisicion", "expansion"],
+    "expansion": ["retencion", "crecimiento", "cancelaciones"],
+}
+
+T = TypeVar("T", bound=BaseModel)
+
+
+def _filter_groups(dto: T, requested_groups: list[str]) -> T:
+    """Filter a stage detail DTO to include only requested groups.
+
+    Excluded group fields are set to None (if Optional) or to an empty
+    group dict (if required). Non-group fields (header_kpis, mini_funnel,
+    period, etc.) are preserved.
+    Returns a new DTO instance (immutable copy).
+    """
+    data = dto.model_dump()
+
+    # Determine which fields are groups by checking all known stage group fields
+    all_group_fields: set[str] = set()
+    for fields in _STAGE_GROUP_FIELDS.values():
+        all_group_fields.update(fields)
+
+    # Check which fields are optional in the DTO schema
+    optional_fields: set[str] = set()
+    for name, field_info in dto.__class__.model_fields.items():
+        if not field_info.is_required():
+            optional_fields.add(name)
+
+    empty_group = {"totals": {}, "channels": []}
+
+    for field_name in all_group_fields:
+        if field_name in data and field_name not in requested_groups:
+            data[field_name] = None if field_name in optional_fields else empty_group
+
+    return dto.__class__(**data)
+
+
+# ─── Stage Overview Endpoint ─────────────────────────────────────────────────
+
+
+class FunnelStage(str, Enum):
+    """Valid funnel stages for the overview endpoint."""
+
+    attraction = "attraction"
+    capture = "capture"
+    nurture = "nurture"
+    opportunity = "opportunity"
+    sales = "sales"
+    adoption = "adoption"
+    expansion = "expansion"
+    evangelization = "evangelization"
+
+
+@router.get("/{stage}/overview", response_model=StageOverviewDTO)
+async def get_stage_overview(
+    stage: FunnelStage = Path(...),
+    period: str = Query(default="last_30_days"),
+    user: User = Depends(get_current_user),
+):
+    """Lightweight overview for a funnel stage.
+
+    Returns ~50-100 fields (header KPIs, channel list with 1 headline KPI,
+    group summaries, optional mini-funnel and bottlenecks) instead of the
+    ~500+ fields from the full detail endpoint.
+
+    Cache-first: reads from per-stage Redis caches with 5-min overview TTL.
+    """
+    if period not in _VALID_PERIODS:
+        raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
+
+    cache = MetricsCache(redis_client)
+    service = StageOverviewService(cache=cache)
+    return await service.get_stage_overview(str(user.tenant_id), stage.value, period)
+
+
 @router.get("/attraction", response_model=AttractionDetailDTO)
 async def get_attraction_metrics(
     period: str = Query(default="last_30_days"),
+    groups: str | None = Query(
+        default=None,
+        description="Comma-separated group keys to filter (e.g., organic_social,paid)",
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Get Attraction stage metrics with dynamic channel list from ETL tables.
 
     Supports period-aware queries: last_30_days, weekly, monthly, quarterly.
+    Optional ?groups= filter returns only requested channel groups.
     """
     if period not in _VALID_PERIODS:
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
-    return await service.get_attraction_metrics(user.tenant_id, period=period)
+    result = await service.get_attraction_metrics(user.tenant_id, period=period)
+    if groups:
+        return _filter_groups(result, groups.split(","))
+    return result
 
 
 @router.get("/capture", response_model=CaptureDetailDTO)
 async def get_capture_metrics(
     period: str = Query(default="last_30_days"),
+    groups: str | None = Query(
+        default=None,
+        description="Comma-separated group keys to filter (e.g., web_infrastructure,ai_agent)",
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -205,12 +306,19 @@ async def get_capture_metrics(
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
-    return await service.get_capture_metrics(user.tenant_id, period=period)
+    result = await service.get_capture_metrics(user.tenant_id, period=period)
+    if groups:
+        return _filter_groups(result, groups.split(","))
+    return result
 
 
 @router.get("/nurturing", response_model=NurtureDetailDTO)
 async def get_nurturing_metrics(
     period: str = Query(default="last_30_days"),
+    groups: str | None = Query(
+        default=None,
+        description="Comma-separated group keys to filter (e.g., retargeting,automation)",
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -220,11 +328,18 @@ async def get_nurturing_metrics(
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
-    return await service.get_nurturing_metrics(user.tenant_id, period=period)
+    result = await service.get_nurturing_metrics(user.tenant_id, period=period)
+    if groups:
+        return _filter_groups(result, groups.split(","))
+    return result
 
 
 @router.get("/opportunity", response_model=OpportunityDetailDTO)
 async def get_opportunity_metrics(
+    groups: str | None = Query(
+        default=None,
+        description="Comma-separated group keys to filter (e.g., checkout,payment_links)",
+    ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -239,7 +354,10 @@ async def get_opportunity_metrics(
     service = MetricsService(db, cache=cache, connection_port=connection_port)
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
-    return await service.get_opportunity_metrics(user.tenant_id, start_date, now)
+    result = await service.get_opportunity_metrics(user.tenant_id, start_date, now)
+    if groups:
+        return _filter_groups(result, groups.split(","))
+    return result
 
 
 @router.get("/sales", response_model=SalesDetailDTO)
