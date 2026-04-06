@@ -7,10 +7,15 @@ from sqlalchemy.orm import Session
 from src.core.database import get_db
 from src.modules.analytics.application.dto.campaign_dto import (
     AdDTO,
+    AdPerformanceListDTO,
     AdSetDTO,
     CampaignOverviewDTO,
     CampaignPerformanceDTO,
     CreativesOverviewDTO,
+    FormatComparisonDTO,
+)
+from src.modules.analytics.application.services.ad_performance_service import (
+    AdPerformanceService,
 )
 from src.modules.analytics.application.services.campaign_service import (
     CampaignService,
@@ -27,6 +32,8 @@ class CampaignSyncResponse(BaseModel):
 
 
 router = APIRouter(prefix="/campaigns", tags=["Analytics - Campaigns"])
+
+_VALID_PERIODS = {"7d", "30d", "90d"}
 
 
 @router.get("", response_model=CampaignOverviewDTO)
@@ -45,11 +52,10 @@ async def get_campaigns_performance(
     user: User = Depends(get_current_user),
 ):
     """Get all campaigns with aggregated performance metrics."""
-    valid_periods = {"7d", "30d", "90d"}
-    if period not in valid_periods:
+    if period not in _VALID_PERIODS:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid period: {period}. Must be one of {valid_periods}",
+            detail=f"Invalid period: {period}. Must be one of {_VALID_PERIODS}",
         )
     service = CampaignService(db)
     return service.get_performance(user.tenant_id, period)
@@ -66,14 +72,46 @@ async def get_creatives_overview(
     Returns all ads with campaign names, creative thumbnails, and
     aggregated video retention funnel metrics for the given period.
     """
-    valid_periods = {"7d", "30d", "90d"}
-    if period not in valid_periods:
+    if period not in _VALID_PERIODS:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid period: {period}. Must be one of {valid_periods}",
+            detail=f"Invalid period: {period}. Must be one of {_VALID_PERIODS}",
         )
     service = CampaignService(db)
     return service.get_creatives_overview(user.tenant_id, period)
+
+
+@router.get("/ads/performance", response_model=AdPerformanceListDTO)
+async def get_ads_performance(
+    period: str = Query(default="30d"),
+    limit: int = Query(default=10, ge=1, le=50),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get top ads with per-ad performance metrics (ROAS, CPA, CTR, CPC)."""
+    if period not in _VALID_PERIODS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Must be one of {_VALID_PERIODS}",
+        )
+    service = AdPerformanceService(db)
+    return service.get_top_ads(user.tenant_id, "meta-ads", period, limit)
+
+
+@router.get("/ads/format-comparison", response_model=FormatComparisonDTO)
+async def get_ads_format_comparison(
+    period: str = Query(default="30d"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get aggregated metrics by ad format (video, carousel, image)."""
+    if period not in _VALID_PERIODS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Must be one of {_VALID_PERIODS}",
+        )
+    service = AdPerformanceService(db)
+    return service.get_format_comparison(user.tenant_id, "meta-ads", period)
 
 
 @router.get("/{campaign_external_id}/adsets", response_model=list[AdSetDTO])
