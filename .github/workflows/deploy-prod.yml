@@ -145,6 +145,19 @@ jobs:
           echo "SHOPIFY_API_KEY=disabled" >> .env
           echo "SHOPIFY_API_SECRET=disabled" >> .env
           echo "SHOPIFY_APP_URL=http://localhost:8000" >> .env
+          # Backend Settings required fields (dummy values for E2E)
+          echo "LOG_LEVEL=WARNING" >> .env
+          echo "DOMAIN_NAME=localhost" >> .env
+          echo "API_SECRET_KEY=e2e-test-secret-key-not-real" >> .env
+          echo "WHATSAPP_API_TOKEN=disabled" >> .env
+          echo "WHATSAPP_PHONE_NUMBER_ID=disabled" >> .env
+          echo "WHATSAPP_VERIFY_TOKEN=disabled" >> .env
+          echo "OPENAI_API_KEY=sk-disabled-for-e2e" >> .env
+          echo "REDIS_URL=redis://redis:6379/0" >> .env
+          echo "QDRANT_URL=http://qdrant:6333" >> .env
+          echo "POSTGRES_HOST=postgres" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "API_URL=http://api_dev:8000" >> .env
 
       - name: Generate Clerk testing token
         env:
