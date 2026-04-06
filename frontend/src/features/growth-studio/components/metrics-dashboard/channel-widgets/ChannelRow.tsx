@@ -66,7 +66,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
   // ── Early return: unconnected channels ──────────────────────────────
   if (!channel.connected) {
     return (
-      <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors duration-100 opacity-60 hover:opacity-80">
+      <div id={`channel-${channel.slug}`} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors duration-100 opacity-60 hover:opacity-80">
         <div className="flex items-center gap-3 min-w-0">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
@@ -88,7 +88,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
     (channel.slug === 'link-enviado' && channel.metrics.length === 0);
   if (isProximamente) {
     return (
-      <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors duration-100">
+      <div id={`channel-${channel.slug}`} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors duration-100">
         <div className="flex items-center gap-3 min-w-0">
           <div
             className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
@@ -147,6 +147,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
   // ── Main connected row ──────────────────────────────────────────────
   const rowContent = (
     <div
+      id={`channel-${channel.slug}`}
       className={cn(
         "flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-primary/5 transition-all duration-100 ease-out group",
         onChannelClick && "cursor-pointer"
