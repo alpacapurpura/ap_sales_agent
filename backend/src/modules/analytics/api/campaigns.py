@@ -1,6 +1,6 @@
 """Campaign management API routes."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,7 @@ from src.modules.analytics.application.dto.campaign_dto import (
     AdDTO,
     AdSetDTO,
     CampaignOverviewDTO,
+    CampaignPerformanceDTO,
 )
 from src.modules.analytics.application.services.campaign_service import (
     CampaignService,
@@ -34,6 +35,23 @@ async def get_campaigns_overview(
 ):
     service = CampaignService(db)
     return service.get_overview(user.tenant_id)
+
+
+@router.get("/performance", response_model=CampaignPerformanceDTO)
+async def get_campaigns_performance(
+    period: str = Query(default="30d"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get all campaigns with aggregated performance metrics."""
+    valid_periods = {"7d", "30d", "90d"}
+    if period not in valid_periods:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Must be one of {valid_periods}",
+        )
+    service = CampaignService(db)
+    return service.get_performance(user.tenant_id, period)
 
 
 @router.get("/{campaign_external_id}/adsets", response_model=list[AdSetDTO])
