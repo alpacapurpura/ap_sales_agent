@@ -90,6 +90,56 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             unit="currency",
             interpretation_es="Costo por cada mil impresiones",
         ),
+        # ── Instagram Organic ──
+        IndustryBenchmarkEntry(
+            metric_name="ig_engagement_rate",
+            low=0.30,
+            median=0.50,
+            high=1.20,
+            unit="percentage",
+            interpretation_es=(
+                "Tasa de engagement orgánico IG. >0.5% promedio global, >1.2% top 25%"
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="ig_saves_rate",
+            low=0.5,
+            median=1.2,
+            high=2.5,
+            unit="percentage",
+            interpretation_es=(
+                "Tasa de guardados sobre vistas. Alto = contenido educativo valioso"
+            ),
+        ),
+        # ── YouTube Organic ──
+        IndustryBenchmarkEntry(
+            metric_name="avg_view_percentage",
+            low=30.0,
+            median=50.0,
+            high=70.0,
+            unit="percentage",
+            interpretation_es=(
+                "Porcentaje promedio de retención de video. Mide calidad del contenido."
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="card_click_rate",
+            low=1.0,
+            median=3.0,
+            high=7.0,
+            unit="percentage",
+            interpretation_es=(
+                "Efectividad de las tarjetas informativas dentro del video."
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="end_screen_click_rate",
+            low=0.5,
+            median=2.0,
+            high=5.0,
+            unit="percentage",
+            interpretation_es="Efectividad de los elementos de pantalla final.",
+        ),
     ],
     IndustryCategory.EDUCATION: [
         IndustryBenchmarkEntry(

@@ -597,3 +597,10 @@ export interface ChannelDashboardData {
 }
 
 export type MetaAdsDashboardTab = 'overview' | 'campaigns' | 'audience' | 'video' | 'costs';
+
+/** Generic alias -- usable by any channel dashboard */
+export type ChannelDashboardPeriod = MetaAdsPeriod;
+
+export type IgOrganicDashboardTab = 'overview' | 'contenido' | 'audiencia' | 'alcance';
+
+export type YouTubeDashboardTab = 'overview' | 'videos' | 'audiencia' | 'engagement' | 'retencion';
