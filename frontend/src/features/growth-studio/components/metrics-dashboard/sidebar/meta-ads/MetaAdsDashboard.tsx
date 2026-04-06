@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, BarChart3, RefreshCw } from 'lucide-react';
+import { ArrowLeft, BarChart3 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -74,10 +74,10 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
             />
           </TabsContent>
           <TabsContent value="creativos" className="m-0 p-6">
-            <CreativosTab data={dashboardData} isLoading={isDashboardLoading} />
+            <CreativosTab data={dashboardData} isLoading={isDashboardLoading} period={period} />
           </TabsContent>
           <TabsContent value="audiencia" className="m-0 p-6">
-            <AudienciaTab data={dashboardData} isLoading={isDashboardLoading} />
+            <AudienciaTab data={dashboardData} isLoading={isDashboardLoading} period={period} />
           </TabsContent>
           <TabsContent value="costos" className="m-0 p-6">
             <CostosTab
