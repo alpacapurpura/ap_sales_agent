@@ -19,23 +19,29 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # 1. Add tenant_id column if missing
+    # Guard: skip entirely if the appointments table doesn't exist yet
+    # (fresh DB where the table is created by a later migration)
     op.execute("""
-        ALTER TABLE appointments
-        ADD COLUMN IF NOT EXISTS tenant_id UUID;
-    """)
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables
+                WHERE table_name = 'appointments'
+            ) THEN
+                -- 1. Add tenant_id column if missing
+                ALTER TABLE appointments
+                ADD COLUMN IF NOT EXISTS tenant_id UUID;
 
-    # 2. Create index for tenant_id lookups
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS ix_appointments_tenant_id
-        ON appointments (tenant_id);
-    """)
+                -- 2. Create index for tenant_id lookups
+                CREATE INDEX IF NOT EXISTS ix_appointments_tenant_id
+                ON appointments (tenant_id);
 
-    # 3. Backfill existing rows with the known production tenant ID
-    op.execute("""
-        UPDATE appointments
-        SET tenant_id = '9831cfbe-3912-429e-a944-40f3e7bf1372'
-        WHERE tenant_id IS NULL;
+                -- 3. Backfill existing rows with the known production tenant ID
+                UPDATE appointments
+                SET tenant_id = '9831cfbe-3912-429e-a944-40f3e7bf1372'
+                WHERE tenant_id IS NULL;
+            END IF;
+        END $$;
     """)
 
 
