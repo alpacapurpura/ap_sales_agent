@@ -69,3 +69,49 @@ class CampaignOverviewDTO(BaseModel):
     total_campaigns: int
     active_campaigns: int
     last_synced: datetime | None = None
+
+
+class CampaignMetricsDTO(BaseModel):
+    """Aggregated metrics for a single campaign."""
+
+    spend: float = 0.0
+    conversions: float = 0.0
+    cpa: float | None = None
+    roas: float | None = None
+    ctr: float | None = None
+    cpc: float | None = None
+    cpm: float | None = None
+    frequency: float | None = None
+    impressions: float = 0.0
+    clicks: float = 0.0
+    reach: float = 0.0
+
+
+class CampaignWithMetricsDTO(BaseModel):
+    """Campaign metadata + aggregated performance metrics."""
+
+    external_id: str
+    name: str
+    objective: str | None = None
+    status: str | None = None
+    effective_status: str | None = None
+    daily_budget: int | None = None
+    lifetime_budget: int | None = None
+    budget_remaining: int | None = None
+    start_time: datetime | None = None
+    stop_time: datetime | None = None
+    ad_sets_count: int = 0
+    ads_count: int = 0
+    metrics: CampaignMetricsDTO = CampaignMetricsDTO()
+    health: str = "good"  # "good" | "warning" | "critical"
+
+
+class CampaignPerformanceDTO(BaseModel):
+    """Full campaign performance dashboard response."""
+
+    campaigns: list[CampaignWithMetricsDTO]
+    recommendations: list[RecommendationDTO]
+    total_campaigns: int
+    active_campaigns: int
+    currency: str | None = None
+    last_synced: datetime | None = None
