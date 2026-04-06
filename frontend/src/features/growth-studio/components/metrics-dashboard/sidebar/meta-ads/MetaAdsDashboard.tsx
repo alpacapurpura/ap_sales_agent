@@ -18,11 +18,12 @@ import { CostosTab } from './tabs/CostosTab';
 
 interface MetaAdsDashboardProps {
   onClose: () => void;
+  initialTab?: MetaAdsDashboardTab;
 }
 
-export function MetaAdsDashboard({ onClose }: MetaAdsDashboardProps) {
+export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps) {
   const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
-  const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>('resumen');
+  const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>(initialTab ?? 'resumen');
   const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
 

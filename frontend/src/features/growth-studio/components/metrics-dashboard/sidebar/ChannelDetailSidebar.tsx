@@ -101,7 +101,7 @@ interface ChannelDetailSidebarProps {
 }
 
 export default function ChannelDetailSidebar({ isOpen, onClose, channel }: ChannelDetailSidebarProps) {
-  const { handleOpenMetaAdsDashboard, handleOpenExpandedDashboard } = useGrowthStudioContext();
+  const { handleOpenMetaAdsDashboard, handleOpenMetaAdsDashboardToTab, handleOpenExpandedDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -145,6 +145,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           channel={channel}
           onClose={onClose}
           onExpand={handleOpenMetaAdsDashboard}
+          onExpandToTab={handleOpenMetaAdsDashboardToTab}
         />
       </DetailPanel>
     );

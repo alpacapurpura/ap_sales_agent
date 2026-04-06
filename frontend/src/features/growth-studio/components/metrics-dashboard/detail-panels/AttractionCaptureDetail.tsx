@@ -30,9 +30,9 @@ function getMetric(metrics: { name: string; value: number }[], name: string): nu
 }
 
 function MetaAdsDashboardWrapper() {
-  const { metaAdsDashboardOpen, handleCloseMetaAdsDashboard } = useGrowthStudioContext();
+  const { metaAdsDashboardOpen, metaAdsDashboardInitialTab, handleCloseMetaAdsDashboard } = useGrowthStudioContext();
   if (!metaAdsDashboardOpen) return null;
-  return <MetaAdsDashboard onClose={handleCloseMetaAdsDashboard} />;
+  return <MetaAdsDashboard onClose={handleCloseMetaAdsDashboard} initialTab={metaAdsDashboardInitialTab} />;
 }
 
 function ExpandedDashboardWrapper() {

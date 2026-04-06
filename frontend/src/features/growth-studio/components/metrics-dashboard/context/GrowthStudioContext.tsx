@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import type { StageId, MetricClickData, ChannelMetric } from '../../../types/metrics';
+import type { StageId, MetricClickData, ChannelMetric, MetaAdsDashboardTab } from '../../../types/metrics';
 import type { PeriodType } from '../../../api/stage-detail-api';
 
 // ── Slug ↔ StageId mappings ────────────────────────────────────────
@@ -40,6 +40,7 @@ interface GrowthStudioContextValue {
   channelSidebarOpen: boolean;
   /** @deprecated Use expandedDashboardChannel === 'meta-ads' instead */
   metaAdsDashboardOpen: boolean;
+  metaAdsDashboardInitialTab: MetaAdsDashboardTab | undefined;
   expandedDashboardChannel: string | null;
   configureChannel: { slug: string; name: string } | null;
   handleMetricClick: (metric: MetricClickData) => void;
@@ -47,6 +48,7 @@ interface GrowthStudioContextValue {
   handleChannelClick: (channel: ChannelMetric) => void;
   handleChannelSidebarClose: () => void;
   handleOpenMetaAdsDashboard: () => void;
+  handleOpenMetaAdsDashboardToTab: (tab: MetaAdsDashboardTab) => void;
   handleCloseMetaAdsDashboard: () => void;
   handleOpenExpandedDashboard: (channelSlug: string) => void;
   handleCloseExpandedDashboard: () => void;
@@ -87,6 +89,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const [channelSidebarOpen, setChannelSidebarOpen] = useState(false);
   const [expandedDashboardChannel, setExpandedDashboardChannel] = useState<string | null>(null);
   const metaAdsDashboardOpen = expandedDashboardChannel === 'meta-ads';
+  const [metaAdsDashboardInitialTab, setMetaAdsDashboardInitialTab] = useState<MetaAdsDashboardTab | undefined>(undefined);
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
 
   // Reset sidebars when stage changes — legitimately syncs multiple pieces
@@ -102,6 +105,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setSelectedChannel(null);
 
     setExpandedDashboardChannel(null);
+
+    setMetaAdsDashboardInitialTab(undefined);
 
     setConfigureChannel(null);
   }, [activeStage]);
@@ -134,11 +139,20 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const handleOpenMetaAdsDashboard = useCallback(() => {
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
+    setMetaAdsDashboardInitialTab(undefined);
+    setExpandedDashboardChannel('meta-ads');
+  }, []);
+
+  const handleOpenMetaAdsDashboardToTab = useCallback((tab: MetaAdsDashboardTab) => {
+    setChannelSidebarOpen(false);
+    setSelectedChannel(null);
+    setMetaAdsDashboardInitialTab(tab);
     setExpandedDashboardChannel('meta-ads');
   }, []);
 
   const handleCloseMetaAdsDashboard = useCallback(() => {
     setExpandedDashboardChannel(null);
+    setMetaAdsDashboardInitialTab(undefined);
   }, []);
 
   const handleOpenExpandedDashboard = useCallback((channelSlug: string) => {
@@ -168,6 +182,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     selectedChannel,
     channelSidebarOpen,
     metaAdsDashboardOpen,
+    metaAdsDashboardInitialTab,
     expandedDashboardChannel,
     configureChannel,
     handleMetricClick,
@@ -175,6 +190,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleChannelClick,
     handleChannelSidebarClose,
     handleOpenMetaAdsDashboard,
+    handleOpenMetaAdsDashboardToTab,
     handleCloseMetaAdsDashboard,
     handleOpenExpandedDashboard,
     handleCloseExpandedDashboard,
@@ -188,6 +204,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     selectedChannel,
     channelSidebarOpen,
     metaAdsDashboardOpen,
+    metaAdsDashboardInitialTab,
     expandedDashboardChannel,
     configureChannel,
     handleMetricClick,
@@ -195,6 +212,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleChannelClick,
     handleChannelSidebarClose,
     handleOpenMetaAdsDashboard,
+    handleOpenMetaAdsDashboardToTab,
     handleCloseMetaAdsDashboard,
     handleOpenExpandedDashboard,
     handleCloseExpandedDashboard,
