@@ -1,6 +1,8 @@
 """Campaign management service — queries campaign hierarchy data."""
 
 import logging
+from datetime import date, timedelta
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import text
@@ -13,6 +15,11 @@ from src.modules.analytics.application.dto.campaign_dto import (
     CampaignOverviewDTO,
     RecommendationDTO,
 )
+
+if TYPE_CHECKING:
+    from src.modules.analytics.application.dto.campaign_dto import (
+        CampaignPerformanceDTO,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +122,210 @@ class CampaignService:
             recommendations=recommendations,
             total_campaigns=len(campaigns),
             active_campaigns=active_count,
+            last_synced=last_synced,
+        )
+
+    def get_performance(
+        self, tenant_id: UUID, period: str = "30d"
+    ) -> "CampaignPerformanceDTO":
+        """Get campaigns with aggregated metrics for the given period."""
+        from src.modules.analytics.application.dto.campaign_dto import (
+            CampaignMetricsDTO,
+            CampaignPerformanceDTO,
+            CampaignWithMetricsDTO,
+        )
+
+        # Parse period
+        days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
+
+        # 1. Campaigns with counts
+        camp_rows = self._db.execute(
+            text("""
+                SELECT c.*,
+                    (SELECT COUNT(*) FROM ad_sets s
+                     WHERE s.tenant_id = c.tenant_id
+                       AND s.campaign_external_id = c.external_id
+                       AND s.deleted_at IS NULL) AS ad_sets_count,
+                    (SELECT COUNT(*) FROM ads a
+                     WHERE a.tenant_id = c.tenant_id
+                       AND a.campaign_external_id = c.external_id
+                       AND a.deleted_at IS NULL) AS ads_count
+                FROM ad_campaigns c
+                WHERE c.tenant_id = :tenant_id
+                  AND c.deleted_at IS NULL
+                ORDER BY
+                    CASE c.effective_status
+                        WHEN 'ACTIVE' THEN 1
+                        WHEN 'WITH_ISSUES' THEN 2
+                        WHEN 'IN_PROCESS' THEN 3
+                        WHEN 'PAUSED' THEN 4
+                        ELSE 5
+                    END,
+                    c.name
+            """),
+            {"tenant_id": str(tenant_id)},
+        ).fetchall()
+
+        # 2. Metrics aggregated by campaign_id for the period
+        metric_rows = self._db.execute(
+            text("""
+                SELECT campaign_id, metric_name,
+                       SUM(value) AS total_value
+                FROM official_metrics
+                WHERE tenant_id = :tenant_id
+                  AND channel_slug = 'meta-ads'
+                  AND campaign_id IS NOT NULL
+                  AND metric_date BETWEEN :start_date AND :end_date
+                GROUP BY campaign_id, metric_name
+            """),
+            {
+                "tenant_id": str(tenant_id),
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+            },
+        ).fetchall()
+
+        # Build metrics lookup: {campaign_id: {metric_name: value}}
+        metrics_by_campaign: dict[str, dict[str, float]] = {}
+        for row in metric_rows:
+            r = row._mapping
+            cid = r["campaign_id"]
+            if cid not in metrics_by_campaign:
+                metrics_by_campaign[cid] = {}
+            metrics_by_campaign[cid][r["metric_name"]] = float(r["total_value"])
+
+        # 3. Build campaign list with metrics
+        campaigns: list[CampaignWithMetricsDTO] = []
+        all_cpas: list[float] = []
+
+        for row in camp_rows:
+            r = row._mapping
+            ext_id = r["external_id"]
+            m = metrics_by_campaign.get(ext_id, {})
+
+            spend = m.get("spend", 0.0)
+            conversions = m.get("conversions", 0.0)
+            clicks = m.get("clicks", 0.0)
+            impressions = m.get("impressions", 0.0)
+
+            cpa = spend / conversions if conversions > 0 else None
+            roas_val = m.get("ROAS")
+            ctr = (clicks / impressions * 100) if impressions > 0 else None
+            cpc = spend / clicks if clicks > 0 else None
+            cpm = (spend / impressions * 1000) if impressions > 0 else None
+
+            metrics_dto = CampaignMetricsDTO(
+                spend=spend,
+                conversions=conversions,
+                cpa=round(cpa, 2) if cpa is not None else None,
+                roas=round(float(roas_val), 2) if roas_val else None,
+                ctr=round(ctr, 2) if ctr is not None else None,
+                cpc=round(cpc, 2) if cpc is not None else None,
+                cpm=round(cpm, 2) if cpm is not None else None,
+                frequency=m.get("frequency"),
+                impressions=impressions,
+                clicks=clicks,
+                reach=m.get("reach", 0.0),
+            )
+
+            if cpa is not None:
+                all_cpas.append(cpa)
+
+            campaigns.append(
+                CampaignWithMetricsDTO(
+                    external_id=ext_id,
+                    name=r["name"],
+                    objective=r.get("objective"),
+                    status=r.get("status"),
+                    effective_status=r.get("effective_status"),
+                    daily_budget=r.get("daily_budget"),
+                    lifetime_budget=r.get("lifetime_budget"),
+                    budget_remaining=r.get("budget_remaining"),
+                    start_time=r.get("start_time"),
+                    stop_time=r.get("stop_time"),
+                    ad_sets_count=r.get("ad_sets_count", 0),
+                    ads_count=r.get("ads_count", 0),
+                    metrics=metrics_dto,
+                    health="good",  # placeholder, computed below
+                )
+            )
+
+        # 4. Compute health based on CPA vs average
+        avg_cpa = sum(all_cpas) / len(all_cpas) if all_cpas else None
+        for camp in campaigns:
+            if camp.metrics.cpa is not None and avg_cpa and avg_cpa > 0:
+                ratio = camp.metrics.cpa / avg_cpa
+                if ratio > 3:
+                    camp.health = "critical"
+                elif ratio > 1.8:
+                    camp.health = "warning"
+                else:
+                    camp.health = "good"
+            elif camp.effective_status == "WITH_ISSUES":
+                camp.health = "critical"
+
+        # 5. Recommendations
+        rec_rows = self._db.execute(
+            text("""
+                SELECT * FROM ad_recommendations
+                WHERE tenant_id = :tenant_id
+                  AND deleted_at IS NULL
+                ORDER BY opportunity_score DESC NULLS LAST, importance, created_at DESC
+                LIMIT 20
+            """),
+            {"tenant_id": str(tenant_id)},
+        ).fetchall()
+
+        recommendations = [
+            RecommendationDTO(
+                recommendation_type=r._mapping["recommendation_type"],
+                source=r._mapping["source"],
+                title=r._mapping.get("title"),
+                body=r._mapping.get("body"),
+                importance=r._mapping.get("importance"),
+                lift_estimate=r._mapping.get("lift_estimate"),
+                opportunity_score=r._mapping.get("opportunity_score"),
+                url=r._mapping.get("url"),
+                object_ids=r._mapping.get("object_ids", []),
+            )
+            for r in rec_rows
+        ]
+
+        # 6. Currency from official_metrics
+        currency_row = self._db.execute(
+            text("""
+                SELECT currency FROM official_metrics
+                WHERE tenant_id = :tenant_id
+                  AND channel_slug = 'meta-ads'
+                  AND currency IS NOT NULL
+                LIMIT 1
+            """),
+            {"tenant_id": str(tenant_id)},
+        ).fetchone()
+        currency = currency_row._mapping["currency"] if currency_row else None
+
+        # 7. Last synced
+        last_synced_row = self._db.execute(
+            text("""
+                SELECT MAX(updated_at) AS last_synced FROM ad_campaigns
+                WHERE tenant_id = :tenant_id AND deleted_at IS NULL
+            """),
+            {"tenant_id": str(tenant_id)},
+        ).fetchone()
+        last_synced = (
+            last_synced_row._mapping["last_synced"] if last_synced_row else None
+        )
+
+        active_count = sum(1 for c in campaigns if c.effective_status == "ACTIVE")
+
+        return CampaignPerformanceDTO(
+            campaigns=campaigns,
+            recommendations=recommendations,
+            total_campaigns=len(campaigns),
+            active_campaigns=active_count,
+            currency=currency,
             last_synced=last_synced,
         )
 

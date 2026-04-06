@@ -115,3 +115,18 @@ class CampaignPerformanceDTO(BaseModel):
     active_campaigns: int
     currency: str | None = None
     last_synced: datetime | None = None
+
+
+# Rebuild models that reference TYPE_CHECKING-only imports (datetime)
+# so Pydantic can resolve forward references at runtime.
+def _rebuild_models() -> None:
+    import datetime as _dt
+
+    ns = {"datetime": _dt.datetime}
+    CampaignDTO.model_rebuild(_types_namespace=ns)
+    CampaignOverviewDTO.model_rebuild(_types_namespace=ns)
+    CampaignWithMetricsDTO.model_rebuild(_types_namespace=ns)
+    CampaignPerformanceDTO.model_rebuild(_types_namespace=ns)
+
+
+_rebuild_models()
