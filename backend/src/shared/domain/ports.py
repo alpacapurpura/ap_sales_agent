@@ -89,3 +89,17 @@ class OfferReadPort(ABC):
     ) -> OfferReadDTO | None:
         """Single offer by ID, scoped to tenant when provided."""
         ...
+
+
+# ──────────────────────────────────────────────────────────────
+# Brand ports (used by analytics for industry benchmarks)
+# ──────────────────────────────────────────────────────────────
+
+
+class BrandReadPort(ABC):
+    """Port for accessing brand identity data across bounded contexts."""
+
+    @abstractmethod
+    async def get_industry(self, tenant_id: UUID) -> str | None:
+        """Retrieve the industry string for a tenant's brand."""
+        ...

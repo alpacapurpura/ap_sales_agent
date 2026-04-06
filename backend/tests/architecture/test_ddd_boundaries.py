@@ -45,6 +45,7 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "analytics -> crm | analytics/infrastructure/repositories/sales_metrics_repository.py",
     "analytics -> crm | analytics/workers/manychat_sync.py",
     "analytics -> crm | analytics/workers/tasks.py",
+    "analytics -> brand | analytics/api/metrics.py",  # BrandReadPort DI (same pattern as OfferReadPort)
     "analytics -> offer | analytics/api/metrics.py",
     "analytics -> offer | analytics/application/services/etl_service.py",
     # --- connections ---

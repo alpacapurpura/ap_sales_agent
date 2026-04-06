@@ -38,11 +38,14 @@ interface GrowthStudioContextValue {
   sidebarOpen: boolean;
   selectedChannel: ChannelMetric | null;
   channelSidebarOpen: boolean;
+  metaAdsDashboardOpen: boolean;
   configureChannel: { slug: string; name: string } | null;
   handleMetricClick: (metric: MetricClickData) => void;
   handleSidebarClose: () => void;
   handleChannelClick: (channel: ChannelMetric) => void;
   handleChannelSidebarClose: () => void;
+  handleOpenMetaAdsDashboard: () => void;
+  handleCloseMetaAdsDashboard: () => void;
   handleConfigure: (slug: string, name: string) => void;
   handleCloseConfigure: () => void;
 }
@@ -78,6 +81,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<ChannelMetric | null>(null);
   const [channelSidebarOpen, setChannelSidebarOpen] = useState(false);
+  const [metaAdsDashboardOpen, setMetaAdsDashboardOpen] = useState(false);
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
 
   // Reset sidebars when stage changes — legitimately syncs multiple pieces
@@ -91,6 +95,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setChannelSidebarOpen(false);
 
     setSelectedChannel(null);
+
+    setMetaAdsDashboardOpen(false);
 
     setConfigureChannel(null);
   }, [activeStage]);
@@ -120,6 +126,16 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setSelectedChannel(null);
   }, []);
 
+  const handleOpenMetaAdsDashboard = useCallback(() => {
+    setChannelSidebarOpen(false);
+    setSelectedChannel(null);
+    setMetaAdsDashboardOpen(true);
+  }, []);
+
+  const handleCloseMetaAdsDashboard = useCallback(() => {
+    setMetaAdsDashboardOpen(false);
+  }, []);
+
   const handleConfigure = useCallback((slug: string, name: string) => {
     setConfigureChannel({ slug, name });
   }, []);
@@ -136,11 +152,14 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     sidebarOpen,
     selectedChannel,
     channelSidebarOpen,
+    metaAdsDashboardOpen,
     configureChannel,
     handleMetricClick,
     handleSidebarClose,
     handleChannelClick,
     handleChannelSidebarClose,
+    handleOpenMetaAdsDashboard,
+    handleCloseMetaAdsDashboard,
     handleConfigure,
     handleCloseConfigure,
   }), [
@@ -150,11 +169,14 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     sidebarOpen,
     selectedChannel,
     channelSidebarOpen,
+    metaAdsDashboardOpen,
     configureChannel,
     handleMetricClick,
     handleSidebarClose,
     handleChannelClick,
     handleChannelSidebarClose,
+    handleOpenMetaAdsDashboard,
+    handleCloseMetaAdsDashboard,
     handleConfigure,
     handleCloseConfigure,
   ]);

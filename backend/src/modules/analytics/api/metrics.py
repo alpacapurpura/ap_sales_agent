@@ -9,6 +9,9 @@ from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO
 from src.modules.analytics.application.dto.capture_dto import CaptureDetailDTO
+from src.modules.analytics.application.dto.channel_dashboard_dto import (
+    ChannelDashboardDTO,
+)
 from src.modules.analytics.application.dto.evangelization_dto import (
     EvangelizationDetailDTO,
 )
@@ -608,6 +611,40 @@ def get_metric_catalog(
         for defn in METRIC_CATALOG.values()
     ]
     return MetricCatalogResponse(metrics=entries, count=len(entries))
+
+
+@router.get(
+    "/channel/{channel_slug}/dashboard",
+    response_model=ChannelDashboardDTO,
+)
+async def get_channel_dashboard(
+    channel_slug: str,
+    period: str = Query(default="30d"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get a channel-specific dashboard with KPIs, benchmarks, time series, and funnel.
+
+    Returns industry-contextualized benchmarks based on the tenant's brand identity.
+    Generic endpoint — works for any channel slug, not just meta-ads.
+    """
+    valid_periods = {"7d", "30d", "90d"}
+    if period not in valid_periods:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Use 7d, 30d, or 90d.",
+        )
+
+    from src.modules.analytics.application.services.channel_dashboard_service import (
+        ChannelDashboardService,
+    )
+    from src.modules.brand.application.services.brand_read_port_impl import (
+        BrandReadPortImpl,
+    )
+
+    brand_port = BrandReadPortImpl(db)
+    service = ChannelDashboardService(db, brand_port=brand_port)
+    return await service.get_dashboard(user.tenant_id, channel_slug, period)
 
 
 _VALID_PROVIDERS = {"meta", "google_analytics", "google_ads", "shopify", "mailerlite"}

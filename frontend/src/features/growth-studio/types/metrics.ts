@@ -532,3 +532,68 @@ export interface YouTubeCountry {
   views: number;
   estimatedMinutesWatched: number;
 }
+
+// ---------------------------------------------------------------------------
+// Channel Dashboard (Meta Ads deep-dive)
+// ---------------------------------------------------------------------------
+
+export type MetaAdsPeriod = '7d' | '30d' | '90d';
+
+export interface BenchmarkRange {
+  low: number;
+  median: number;
+  high: number;
+  unit: string;
+  interpretation: string;
+}
+
+export interface MetricKpiData {
+  metricName: string;
+  displayName: string;
+  currentValue: number;
+  previousValue: number | null;
+  deltaPct: number | null;
+  deltaAbsolute: number | null;
+  unit: string;
+  currency?: string;
+  higherIsBetter: boolean;
+  benchmark: BenchmarkRange | null;
+}
+
+export interface DashboardTimeSeriesPoint {
+  date: string;
+  value: number;
+}
+
+export interface MetricTimeSeries {
+  metricName: string;
+  displayName: string;
+  unit: string;
+  dataPoints: DashboardTimeSeriesPoint[];
+}
+
+export interface FunnelStep {
+  label: string;
+  metricName: string;
+  value: number;
+  conversionRate: number | null;
+}
+
+export interface FrequencyAlert {
+  currentValue: number;
+  severity: 'warning' | 'critical';
+  message: string;
+}
+
+export interface ChannelDashboardData {
+  channelSlug: string;
+  channelName: string;
+  industryCategory: string;
+  period: string;
+  kpis: MetricKpiData[];
+  timeSeries: MetricTimeSeries[];
+  funnel: { steps: FunnelStep[] };
+  frequencyAlert: FrequencyAlert | null;
+}
+
+export type MetaAdsDashboardTab = 'overview' | 'campaigns' | 'audience' | 'video' | 'costs';

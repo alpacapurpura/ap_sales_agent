@@ -15,6 +15,12 @@ import { useCopilotOffset } from '@/hooks/use-copilot-offset';
 // ── Constants ────────────────────────────────────────────────────────
 const ANIMATION_MS = 300;
 
+const SIZE_CLASSES = {
+  sm: 'sm:w-[400px]',
+  md: 'sm:w-[550px]',
+  lg: 'sm:w-[650px]',
+} as const;
+
 // ── Hook: keep component mounted during exit animation ───────────────
 function useDetailPanelTransition(open: boolean) {
   const [mounted, setMounted] = useState(open);
@@ -47,9 +53,10 @@ interface DetailPanelProps {
   onClose: () => void;
   children: ReactNode;
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-function DetailPanel({ open, onClose, children, className }: DetailPanelProps) {
+function DetailPanel({ open, onClose, children, className, size = 'sm' }: DetailPanelProps) {
   const { mounted, visible } = useDetailPanelTransition(open);
   const copilotWidth = useCopilotOffset();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -99,7 +106,7 @@ function DetailPanel({ open, onClose, children, className }: DetailPanelProps) {
         aria-modal="false"
         tabIndex={-1}
         className={cn(
-          'fixed top-0 bottom-0 z-[45] flex w-full flex-col overflow-y-auto border-l bg-background shadow-lg outline-none sm:w-[400px]',
+          `fixed top-0 bottom-0 z-[45] flex w-full flex-col overflow-y-auto border-l bg-background shadow-lg outline-none ${SIZE_CLASSES[size]}`,
           'transition-transform duration-300 ease-in-out',
           visible ? 'translate-x-0' : 'translate-x-full',
           className,

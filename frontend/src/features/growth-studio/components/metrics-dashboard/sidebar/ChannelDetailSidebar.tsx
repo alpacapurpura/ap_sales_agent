@@ -28,6 +28,8 @@ import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { connectionsApi, type ChannelInfoResponse } from '@/lib/api/connections';
+import { useGrowthStudioContext } from '../context/GrowthStudioContext';
+import { MetaAdsOverviewPanel } from './meta-ads/MetaAdsOverviewPanel';
 import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
 import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
 import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
@@ -96,6 +98,7 @@ interface ChannelDetailSidebarProps {
 }
 
 export default function ChannelDetailSidebar({ isOpen, onClose, channel }: ChannelDetailSidebarProps) {
+  const { handleOpenMetaAdsDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -130,6 +133,19 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
   }, [isOpen, providerName, getToken]);
 
   if (!channel) return null;
+
+  // Meta Ads: Wider sidebar with dedicated overview panel
+  if (channel.slug === 'meta-ads') {
+    return (
+      <DetailPanel open={isOpen} onClose={onClose} size="lg">
+        <MetaAdsOverviewPanel
+          channel={channel}
+          onClose={onClose}
+          onExpand={handleOpenMetaAdsDashboard}
+        />
+      </DetailPanel>
+    );
+  }
 
   const Icon = getChannelIcon(channel.slug);
   const iconColor = getChannelColor(channel.slug);

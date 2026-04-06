@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.domain.enums import AggregationType
@@ -289,5 +289,87 @@ class OfficialMetricsRepository:
                 # use most recent daily value as best approximation
                 latest = max(entries, key=lambda x: x[0])
                 result[metric_name] = float(latest[1])
+
+        return result
+
+    def get_channel_daily_metrics(
+        self,
+        tenant_id: UUID,
+        channel_slug: str,
+        metric_names: list[str],
+        start_date: date,
+        end_date: date,
+    ) -> list[tuple[date, str, float]]:
+        """Get daily metric values for a channel in a date range.
+
+        Returns list of (metric_date, metric_name, value) tuples for time series charts.
+        Aggregates across campaigns (sums per day per metric) so we get channel-level totals.
+        """
+        stmt = (
+            select(
+                OfficialMetricModel.metric_date,
+                OfficialMetricModel.metric_name,
+                func.sum(OfficialMetricModel.value).label("total_value"),
+            )
+            .where(
+                OfficialMetricModel.tenant_id == tenant_id,
+                OfficialMetricModel.channel_slug == channel_slug,
+                OfficialMetricModel.metric_name.in_(metric_names),
+                OfficialMetricModel.metric_date.between(start_date, end_date),
+            )
+            .group_by(
+                OfficialMetricModel.metric_date,
+                OfficialMetricModel.metric_name,
+            )
+            .order_by(OfficialMetricModel.metric_date)
+        )
+        rows = self.db.execute(stmt).all()
+        return [
+            (row.metric_date, row.metric_name, float(row.total_value)) for row in rows
+        ]
+
+    def get_channel_metrics_for_period(
+        self,
+        tenant_id: UUID,
+        channel_slug: str,
+        start_date: date,
+        end_date: date,
+    ) -> dict[str, float]:
+        """Get aggregated metrics for a channel across a date range.
+
+        Uses catalog-aware aggregation: SUM for additive metrics,
+        latest value for snapshots/non-aggregable.
+        Returns: {metric_name: aggregated_value}
+        """
+        stmt = (
+            select(
+                OfficialMetricModel.metric_name,
+                OfficialMetricModel.metric_date,
+                OfficialMetricModel.value,
+            )
+            .where(
+                OfficialMetricModel.tenant_id == tenant_id,
+                OfficialMetricModel.channel_slug == channel_slug,
+                OfficialMetricModel.metric_date.between(start_date, end_date),
+            )
+            .order_by(
+                OfficialMetricModel.metric_name,
+                OfficialMetricModel.metric_date,
+            )
+        )
+        rows = self.db.execute(stmt).all()
+
+        grouped: dict[str, list[tuple[date, float]]] = defaultdict(list)
+        for row in rows:
+            grouped[row.metric_name].append((row.metric_date, float(row.value)))
+
+        result: dict[str, float] = {}
+        for metric_name, entries in grouped.items():
+            defn = get_metric_def(metric_name)
+            if defn is None or defn.aggregation == AggregationType.ADDITIVE:
+                result[metric_name] = sum(v for _, v in entries)
+            else:
+                latest = max(entries, key=lambda x: x[0])
+                result[metric_name] = latest[1]
 
         return result

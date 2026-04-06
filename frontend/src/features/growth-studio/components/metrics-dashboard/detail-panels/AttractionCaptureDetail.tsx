@@ -16,11 +16,19 @@ import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
 import { ConversionBridge } from '../attraction/ConversionBridge';
 import { ChannelGroup } from '../attraction/ChannelGroup';
 import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
+import { MetaAdsDashboard } from '../sidebar/meta-ads/MetaAdsDashboard';
+import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
 function getMetric(metrics: { name: string; value: number }[], name: string): number {
   return metrics.find((m) => m.name === name)?.value ?? 0;
+}
+
+function MetaAdsDashboardWrapper() {
+  const { metaAdsDashboardOpen, handleCloseMetaAdsDashboard } = useGrowthStudioContext();
+  if (!metaAdsDashboardOpen) return null;
+  return <MetaAdsDashboard onClose={handleCloseMetaAdsDashboard} />;
 }
 
 // ─── Mobile Charts Expand ────────────────────────────────────────────────────
@@ -368,6 +376,9 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         onClose={() => setSidebarChannel(null)}
         channel={sidebarChannel}
       />
+
+      {/* Meta Ads Full Dashboard */}
+      <MetaAdsDashboardWrapper />
     </div>
   );
 });
