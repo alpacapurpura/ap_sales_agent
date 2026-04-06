@@ -1,14 +1,19 @@
 """Campaign management API routes."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
 from src.modules.analytics.application.dto.campaign_dto import (
     AdDTO,
+    AdPerformanceListDTO,
     AdSetDTO,
     CampaignOverviewDTO,
+    FormatComparisonDTO,
+)
+from src.modules.analytics.application.services.ad_performance_service import (
+    AdPerformanceService,
 )
 from src.modules.analytics.application.services.campaign_service import (
     CampaignService,
@@ -26,6 +31,8 @@ class CampaignSyncResponse(BaseModel):
 
 router = APIRouter(prefix="/campaigns", tags=["Analytics - Campaigns"])
 
+_VALID_PERIODS = {"7d", "30d", "90d"}
+
 
 @router.get("", response_model=CampaignOverviewDTO)
 async def get_campaigns_overview(
@@ -34,6 +41,39 @@ async def get_campaigns_overview(
 ):
     service = CampaignService(db)
     return service.get_overview(user.tenant_id)
+
+
+@router.get("/ads/performance", response_model=AdPerformanceListDTO)
+async def get_ads_performance(
+    period: str = Query(default="30d"),
+    limit: int = Query(default=10, ge=1, le=50),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get top ads with per-ad performance metrics (ROAS, CPA, CTR, CPC)."""
+    if period not in _VALID_PERIODS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Must be one of {_VALID_PERIODS}",
+        )
+    service = AdPerformanceService(db)
+    return service.get_top_ads(user.tenant_id, "meta-ads", period, limit)
+
+
+@router.get("/ads/format-comparison", response_model=FormatComparisonDTO)
+async def get_ads_format_comparison(
+    period: str = Query(default="30d"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get aggregated metrics by ad format (video, carousel, image)."""
+    if period not in _VALID_PERIODS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid period: {period}. Must be one of {_VALID_PERIODS}",
+        )
+    service = AdPerformanceService(db)
+    return service.get_format_comparison(user.tenant_id, "meta-ads", period)
 
 
 @router.get("/{campaign_external_id}/adsets", response_model=list[AdSetDTO])
