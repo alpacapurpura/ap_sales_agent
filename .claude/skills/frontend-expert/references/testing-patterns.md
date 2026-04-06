@@ -1,5 +1,17 @@
 # Frontend Testing Patterns
 
+## TDD Protocol (OBLIGATORIO)
+
+**REGLA NO NEGOCIABLE:** Tests PRIMERO, implementación DESPUÉS.
+
+1. **Hooks:** `hook-name.test.ts` con comportamiento esperado (RED) → implementar hook (GREEN)
+2. **Components:** `component-name.test.tsx` con renders esperados (RED) → implementar (GREEN)
+3. **Stores:** `store-name.test.ts` con estado esperado (RED) → implementar (GREEN)
+
+Feature existente sin tests → cubrir comportamiento actual (baseline) → luego test del cambio (RED) → implementar (GREEN).
+
+---
+
 ## Stack
 
 - **Vitest** (happy-dom environment)

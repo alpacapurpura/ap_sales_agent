@@ -1,8 +1,10 @@
 # Testing Backend
 
-## TDD Protocol by DDD Layer
+## TDD Protocol by DDD Layer (OBLIGATORIO)
 
-Write tests BEFORE implementation, following this order:
+**REGLA NO NEGOCIABLE:** Escribir tests ANTES de implementar. Cada test debe FALLAR (RED) antes de escribir código. Sin esta evidencia, el código no se considera listo para commit.
+
+Orden por capa:
 
 1. **Domain** (Pydantic models, enums, value objects) → Pure unit tests, no fixtures needed
 2. **Infrastructure** (repositories) → Use `db` fixture (SQLite in-memory), `seed_tenant`

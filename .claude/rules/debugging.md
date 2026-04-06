@@ -46,3 +46,4 @@ Every bug fix MUST follow these rules:
 - **No new debt.** No `// TODO`, no `// HACK`, no `type: any`, no disabled lint rules. Fix it properly or flag it.
 - **Verify natively.** Run the relevant CI commands natively (lint + tests) BEFORE claiming the fix works.
 - **One fix per hypothesis.** Never bundle multiple changes. If the first fix doesn't work, revert and re-analyze.
+- **Regression test FIRST.** Escribir test que reproduce el bug ANTES del fix. El test debe fallar (RED). Solo entonces implementar el fix (GREEN). Sin excepciones.

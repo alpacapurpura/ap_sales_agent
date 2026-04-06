@@ -94,7 +94,7 @@ Launch these agents IN PARALLEL (single message, multiple Agent tool calls):
 ```
 Agent(
   subagent_type="nicolify-backend",
-  prompt="Implement backend from CONTRACT.md at [path]. Module: [module]. Follow Inside-Out DDD pattern. Run tests when done.",
+  prompt="Implement backend from CONTRACT.md at [path]. Module: [module]. Follow TDD + Inside-Out DDD: for each layer, write failing tests FIRST (RED), then implement until tests pass (GREEN). Coverage must increase.",
   description="Implement backend",
   run_in_background=true
 )
@@ -108,7 +108,7 @@ Agent(
 
 Agent(
   subagent_type="nicolify-frontend",
-  prompt="Implement frontend from CONTRACT.md at [path]. Start with types and API layer. When UI-SPEC.md appears, implement components. Module: [module].",
+  prompt="Implement frontend from CONTRACT.md at [path]. Follow TDD: write hook/component tests FIRST (RED), then implement (GREEN). Start with types and API layer. When UI-SPEC.md appears, write component tests then implement. Module: [module].",
   description="Implement frontend",
   run_in_background=true
 )
@@ -154,6 +154,9 @@ Summarize implementation results to the user:
 ---
 
 ## Phase 4: Testing (YOU — Direct Execution)
+
+**Los tests deben existir desde Phase 3 (TDD).** Esta fase verifica cobertura e integración.
+Si algún módulo carece de tests, escribirlos AHORA antes de continuar.
 
 Run all tests natively in WSL (NEVER use docker exec for lint/tests):
 

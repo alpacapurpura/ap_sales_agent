@@ -13,6 +13,7 @@ Antes de escribir codigo, ubicar el modulo destino:
 
 ### Nuevos features (Inside-Out)
 
+0. **Tests (TDD):** Para CADA capa, escribir test que falla (RED) antes de implementar. Orden: domain → infra → app. Ver `references/testing.md`.
 1. **`domain/`:** Entidades (`entity.py`), enums, eventos. Puros Python — cero dependencias de BD.
 2. **`infrastructure/`:** Modelo SQLAlchemy (`models/`), Repositorio (`repositories/`), migracion Alembic.
 3. **`application/`:** DTOs Pydantic entrada/salida, Servicio que orqueste logica via repositorio.
@@ -20,6 +21,7 @@ Antes de escribir codigo, ubicar el modulo destino:
 
 ### Modificaciones (Code-First)
 
+0. **Tests primero:** Si hay tests, actualizarlos para reflejar el cambio (RED). Si NO hay tests, escribir tests del comportamiento actual primero.
 1. Leer codigo actual: rastrear router → service → repository. Identificar reglas implicitas.
 2. Evaluar impacto por capas: dominio primero, luego infra, luego aplicacion.
 3. Implementar siguiendo patrones existentes — no mezclar estilos.
@@ -27,7 +29,7 @@ Antes de escribir codigo, ubicar el modulo destino:
 ### Bugs (Outside-In)
 
 1. Trazar desde `api/` descendiendo capa por capa hasta la discrepancia.
-2. Reproducir con test/script antes de corregir.
+2. Escribir test de regresión que reproduce el bug (DEBE fallar RED). NO corregir hasta tener test rojo.
 3. Corregir en la capa mas profunda posible. Verificar con tests de regresion.
 
 ## Ubicacion de modulos

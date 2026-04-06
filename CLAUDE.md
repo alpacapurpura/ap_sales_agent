@@ -165,6 +165,7 @@ docker run --rm ... ruff|pytest|tsc|vitest ...
 10. **Copilot:** Schema introspection, module registry, route-based tools. See `.claude/rules/copilot-resilience.md`.
 11. **Spanish text:** Todo texto visible al usuario en español DEBE llevar tildes y eñes correctas (`días` no `dias`, `Campaña` no `Campana`, `Inversión` no `Inversion`). Verificar antes de commitear. See `.claude/rules/spanish-text.md`.
 12. **Mejora continua:** Cualquier problema de proceso, test frágil, patrón incorrecto, o aprendizaje detectado durante ejecución → agregarlo como `[] descripción corta` en `docs/mejoras-proceso/to-do.md` (crear si no existe). Sin verbosidad, solo el hallazgo concreto.
+13. **TDD Obligatorio:** Tests PRIMERO, implementación DESPUÉS. Sin excepciones. Features: test por capa antes de implementar. Bugs: test de regresión antes del fix. Existente sin tests: cubrir primero, luego modificar. See `.claude/rules/tdd-mandatory.md`.
 
 ## Product Vision
 

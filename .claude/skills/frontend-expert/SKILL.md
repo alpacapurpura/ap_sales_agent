@@ -9,13 +9,14 @@ Sigue este orden para cualquier tarea frontend:
 
 1. **Ubicación:** Lee `docs/domains/INDEX.md` → identifica el feature/dominio destino.
 2. **Explorar código existente:** Lista `frontend/src/features/{nombre}/` y lee archivos relevantes. Consulta `frontend/src/components/` para reutilizar primitivos.
-3. **Scaffold (solo features nuevas):**
+3. **Tests (TDD):** Escribir tests para hooks y componentes clave ANTES de implementar (ver `references/testing-patterns.md`). El test debe fallar (RED). Para features existentes sin tests, cubrir comportamiento actual primero.
+4. **Scaffold (solo features nuevas):**
    ```bash
    python .claude/skills/frontend-expert/scripts/scaffold_feature.py <nombre-en-kebab-case> --layer features --path frontend/src
    ```
    Detente si el módulo no existe en INDEX — propón nombre y propósito, espera confirmación.
-4. **Crear/modificar componentes:** Usa la plantilla [component.tsx](frontend-expert/assets/templates/component.tsx) y las reglas de [component-rules.md](frontend-expert/references/component-rules.md).
-5. **Integrar datos:** Si necesita fetching/mutaciones, sigue [api-standards.md](frontend-expert/references/api-standards.md).
+5. **Crear/modificar componentes:** Usa la plantilla [component.tsx](frontend-expert/assets/templates/component.tsx) y las reglas de [component-rules.md](frontend-expert/references/component-rules.md).
+6. **Integrar datos:** Si necesita fetching/mutaciones, sigue [api-standards.md](frontend-expert/references/api-standards.md).
 
 ## Arquitectura (FSD-Lite)
 
@@ -69,6 +70,8 @@ Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md]
 | ¿Dónde va este componente? | Ante la duda: `features/{dominio}/components/`. Refactorizar después es más barato que sobre-ingenierizar. |
 
 ## E2E Testing
+
+**TDD aplica también a E2E:** Para rutas nuevas, escribir el smoke test ANTES de implementar la página.
 
 **E2E smoke es obligatorio para rutas nuevas o flujos críticos modificados.**
 
