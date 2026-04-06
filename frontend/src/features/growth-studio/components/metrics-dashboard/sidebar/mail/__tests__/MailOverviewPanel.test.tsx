@@ -26,10 +26,10 @@ const MOCK_DATA: ChannelDashboardData = {
   ],
   timeSeries: [],
   funnel: { steps: [
-    { label: 'Enviados', metricName: 'emails_sent', value: 5000, conversionRateFromPrevious: null },
-    { label: 'Aperturas', metricName: 'unique_opens', value: 1000, conversionRateFromPrevious: 20.0 },
-    { label: 'Clics', metricName: 'unique_clicks', value: 150, conversionRateFromPrevious: 15.0 },
-    { label: 'Conversiones', metricName: 'form_conversions', value: 30, conversionRateFromPrevious: 20.0 },
+    { label: 'Enviados', metricName: 'emails_sent', value: 5000, conversionRate: null },
+    { label: 'Aperturas', metricName: 'unique_opens', value: 1000, conversionRate: 20.0 },
+    { label: 'Clics', metricName: 'unique_clicks', value: 150, conversionRate: 15.0 },
+    { label: 'Conversiones', metricName: 'form_conversions', value: 30, conversionRate: 20.0 },
   ] },
   frequencyAlert: null,
 };
@@ -49,6 +49,7 @@ import { MailOverviewPanel } from '../MailOverviewPanel';
 const MOCK_CHANNEL: ChannelMetric = {
   slug: 'email-nurture',
   name: 'eMailing Nurturing',
+  channelType: 'automation',
   connected: true,
   metrics: [],
   sourceLabel: 'MailerLite',

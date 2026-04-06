@@ -43,7 +43,7 @@ describe('MailHeroKpiGrid', () => {
     );
     expect(container.textContent).toContain('22.50%');
     expect(container.textContent).toContain('3.10%');
-    expect(container.textContent).toContain('5k');
+    expect(container.textContent).toContain('5.0k');
     expect(container.textContent).toContain('12k');
   });
 
