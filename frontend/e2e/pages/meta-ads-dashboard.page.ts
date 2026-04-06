@@ -4,7 +4,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
  * Page Object Model for the Meta Ads Dashboard.
  *
  * Covers both the sidebar overview panel (650px) and the full-page dashboard
- * with 5 tabs (Overview, Campañas, Audiencia, Video, Costos).
+ * with 5 tabs (Resumen, Campañas, Creativos, Audiencia, Costos).
  */
 export class MetaAdsDashboardPage {
   readonly mainContent: Locator;
@@ -119,35 +119,47 @@ export class MetaAdsDashboardPage {
   /** Expects the tab bar to show all 5 tabs. */
   async expectAllTabs() {
     const tabList = this.page.locator('[role="tablist"]');
-    await expect(tabList.getByText('Overview')).toBeVisible();
+    await expect(tabList.getByText('Resumen')).toBeVisible();
     await expect(tabList.getByText('Campañas')).toBeVisible();
+    await expect(tabList.getByText('Creativos')).toBeVisible();
     await expect(tabList.getByText('Audiencia')).toBeVisible();
-    await expect(tabList.getByText('Video')).toBeVisible();
     await expect(tabList.getByText('Costos')).toBeVisible();
   }
 
   /** Clicks a specific tab. */
-  async clickTab(name: 'Overview' | 'Campañas' | 'Audiencia' | 'Video' | 'Costos') {
+  async clickTab(name: 'Resumen' | 'Campañas' | 'Creativos' | 'Audiencia' | 'Costos') {
     const tabList = this.page.locator('[role="tablist"]');
     await tabList.getByText(name).click();
   }
 
-  /** Checks that Overview tab shows charts. */
-  async expectOverviewTabContent() {
-    await expect(this.page.getByText('Inversión vs Conversiones')).toBeVisible();
+  /** Checks that Resumen tab shows charts. */
+  async expectResumenTabContent() {
+    await expect(this.page.getByText('Inversión vs Resultados')).toBeVisible();
   }
 
-  /** Checks that Costs tab shows cost KPI cards. */
-  async expectCostsTabContent() {
+  /** Checks that Campañas tab shows the campaign table. */
+  async expectCampanasTabContent() {
+    await this.clickTab('Campañas');
+    await expect(this.page.getByText('Activas / Total').first()).toBeVisible();
+  }
+
+  /** Checks that Costos tab shows cost KPI cards. */
+  async expectCostosTabContent() {
     await this.clickTab('Costos');
     await expect(this.page.getByText('CPC')).toBeVisible();
     await expect(this.page.getByText('CPM')).toBeVisible();
   }
 
-  /** Checks placeholder tabs show "Próximamente". */
-  async expectPlaceholderTab(tabName: 'Campañas' | 'Audiencia' | 'Video') {
-    await this.clickTab(tabName);
-    await expect(this.page.getByText('Próximamente')).toBeVisible();
+  /** Checks that Creativos tab renders. */
+  async expectCreativosTabContent() {
+    await this.clickTab('Creativos');
+    await expect(this.page.getByText('Top anuncios por rendimiento').first()).toBeVisible();
+  }
+
+  /** Checks that Audiencia tab shows reach/frequency. */
+  async expectAudienciaTabContent() {
+    await this.clickTab('Audiencia');
+    await expect(this.page.getByText('Alcance').first()).toBeVisible();
   }
 
   /** Closes the full dashboard via the "Volver" button. */

@@ -16,7 +16,7 @@ test.describe('Meta Ads Dashboard @smoke', () => {
     await metaAds.expectMiniFunnel();
   });
 
-  test('full dashboard opens from sidebar and shows tabs', async ({ growthStudioPage, tenantId }) => {
+  test('full dashboard opens from sidebar and shows all 5 redesigned tabs', async ({ growthStudioPage, tenantId }) => {
     const metaAds = new MetaAdsDashboardPage(growthStudioPage, tenantId);
     await setupMetaAdsMocks(growthStudioPage);
 
@@ -27,5 +27,31 @@ test.describe('Meta Ads Dashboard @smoke', () => {
     await metaAds.clickOpenFullDashboard();
     await metaAds.expectFullDashboardVisible();
     await metaAds.expectAllTabs();
+  });
+
+  test('each tab renders content without errors', async ({ growthStudioPage, tenantId }) => {
+    const metaAds = new MetaAdsDashboardPage(growthStudioPage, tenantId);
+    await setupMetaAdsMocks(growthStudioPage);
+
+    await metaAds.gotoGrowthStudio();
+    await metaAds.clickMetaAdsChannel();
+    await metaAds.expectSidebarVisible();
+    await metaAds.clickOpenFullDashboard();
+    await metaAds.expectFullDashboardVisible();
+
+    // Resumen tab (default)
+    await metaAds.expectResumenTabContent();
+
+    // Campañas tab
+    await metaAds.expectCampanasTabContent();
+
+    // Creativos tab
+    await metaAds.expectCreativosTabContent();
+
+    // Audiencia tab
+    await metaAds.expectAudienciaTabContent();
+
+    // Costos tab
+    await metaAds.expectCostosTabContent();
   });
 });
