@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 import type { MetaAdsPeriod } from '../../../../types/metrics';
 
 const PERIODS: { value: MetaAdsPeriod; label: string }[] = [
-  { value: '7d', label: '7 dias' },
-  { value: '30d', label: '30 dias' },
-  { value: '90d', label: '90 dias' },
+  { value: '7d', label: '7 días' },
+  { value: '30d', label: '30 días' },
+  { value: '90d', label: '90 días' },
 ];
 
 interface MetaAdsPeriodSelectorProps {

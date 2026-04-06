@@ -6,23 +6,23 @@ import { MetaAdsPeriodSelector } from '../MetaAdsPeriodSelector';
 describe('MetaAdsPeriodSelector', () => {
   it('renders all three period options', () => {
     render(<MetaAdsPeriodSelector value="30d" onChange={() => {}} />);
-    // Component uses "dias" without accent
-    expect(screen.getByText('7 dias')).toBeInTheDocument();
-    expect(screen.getByText('30 dias')).toBeInTheDocument();
-    expect(screen.getByText('90 dias')).toBeInTheDocument();
+    // Component uses "días" without accent
+    expect(screen.getByText('7 días')).toBeInTheDocument();
+    expect(screen.getByText('30 días')).toBeInTheDocument();
+    expect(screen.getByText('90 días')).toBeInTheDocument();
   });
 
   it('calls onChange when a period button is clicked', () => {
     const onChange = vi.fn();
     render(<MetaAdsPeriodSelector value="30d" onChange={onChange} />);
-    fireEvent.click(screen.getByText('7 dias'));
+    fireEvent.click(screen.getByText('7 días'));
     expect(onChange).toHaveBeenCalledWith('7d');
   });
 
   it('calls onChange with 90d when that button is clicked', () => {
     const onChange = vi.fn();
     render(<MetaAdsPeriodSelector value="7d" onChange={onChange} />);
-    fireEvent.click(screen.getByText('90 dias'));
+    fireEvent.click(screen.getByText('90 días'));
     expect(onChange).toHaveBeenCalledWith('90d');
   });
 
@@ -31,7 +31,7 @@ describe('MetaAdsPeriodSelector', () => {
       <MetaAdsPeriodSelector value="90d" onChange={() => {}} />,
     );
     const buttons = container.querySelectorAll('button');
-    const activeButton = Array.from(buttons).find(b => b.textContent === '90 dias');
+    const activeButton = Array.from(buttons).find(b => b.textContent === '90 días');
     expect(activeButton?.className).toContain('bg-background');
   });
 
@@ -40,7 +40,7 @@ describe('MetaAdsPeriodSelector', () => {
       <MetaAdsPeriodSelector value="30d" onChange={() => {}} />,
     );
     const buttons = container.querySelectorAll('button');
-    const inactiveButton = Array.from(buttons).find(b => b.textContent === '7 dias');
+    const inactiveButton = Array.from(buttons).find(b => b.textContent === '7 días');
     expect(inactiveButton?.className).not.toContain('bg-background');
   });
 

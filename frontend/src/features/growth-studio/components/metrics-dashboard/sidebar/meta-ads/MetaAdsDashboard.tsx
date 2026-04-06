@@ -50,7 +50,7 @@ export function MetaAdsDashboard({ onClose }: MetaAdsDashboardProps) {
         <div className="border-b px-6">
           <TabsList className="h-10">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="campaigns">Campanas</TabsTrigger>
+            <TabsTrigger value="campaigns">Campañas</TabsTrigger>
             <TabsTrigger value="audience">Audiencia</TabsTrigger>
             <TabsTrigger value="video">Video</TabsTrigger>
             <TabsTrigger value="costs">Costos</TabsTrigger>
