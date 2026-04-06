@@ -6,6 +6,7 @@ import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { getChannelConfig } from '../../../config/channel-display-registry';
 import { CostLink } from './CostLink';
 import { formatNum, formatCurrency } from '../utils/format';
+import { MetricInfoCard } from './KpiTooltip';
 
 /* ── Formatting helpers ──────────────────────────────────────────────── */
 
@@ -37,7 +38,7 @@ interface MetricDisplayProps {
   channelSlug?: string;
   stageId?: StageId;
   onMetricClick?: (metric: MetricClickData) => void;
-  catalogByName?: Record<string, { display_name: string; interpretation: string; formula?: string }>;
+  catalogByName?: Record<string, { display_name: string; interpretation: string; formula?: string; benchmarks?: string | null }>;
 }
 
 function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByName }: MetricDisplayProps) {
@@ -50,13 +51,11 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByN
 
   const canClick = onMetricClick && channelSlug && stageId;
 
-  const tooltipText = catalogEntry?.interpretation
-    ? `${label}${catalogEntry.formula ? ` (${catalogEntry.formula})` : ''}: ${catalogEntry.interpretation}`
-    : `Ver detalle: ${label}`;
-
   const content = (
     <div className="flex flex-col items-end min-w-[52px]">
-      <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">{label}</span>
+      <MetricInfoCard metricName={metric.name}>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wide leading-tight">{label}</span>
+      </MetricInfoCard>
       <span className="text-sm font-semibold tabular-nums leading-tight">{formatted}</span>
       {metric.breakdown && Object.keys(metric.breakdown).length > 0 && (
         <span className="text-[10px] text-muted-foreground truncate max-w-[180px]">
@@ -77,14 +76,13 @@ function MetricDisplay({ metric, channelSlug, stageId, onMetricClick, catalogByN
           currency: metric.currency,
         })}
         className="cursor-pointer hover:bg-primary/5 px-1.5 py-1 rounded-md transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
-        title={tooltipText}
       >
         {content}
       </button>
     );
   }
 
-  return <div title={tooltipText}>{content}</div>;
+  return <div>{content}</div>;
 }
 
 /* ── ChannelRowMetrics ───────────────────────────────────────────────── */
@@ -105,7 +103,7 @@ export interface ChannelRowMetricsProps {
   /** Whether the channel has a zero leads metric */
   hasZeroLeads: boolean;
   /** Catalog entries for display_name resolution */
-  catalogByName: Record<string, { display_name: string; interpretation: string; formula?: string }>;
+  catalogByName: Record<string, { display_name: string; interpretation: string; formula?: string; benchmarks?: string | null }>;
   /** Callback when user clicks a metric value */
   onMetricClick?: (metric: MetricClickData) => void;
 }

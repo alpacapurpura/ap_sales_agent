@@ -431,6 +431,7 @@ class MetricCatalogEntryResponse(BaseModel):
     weight_metric: str | None = None
     formula: str | None = None
     formula_components: list[str] = []
+    benchmarks: str | None = None
 
 
 class MetricCatalogResponse(BaseModel):
@@ -602,6 +603,7 @@ def get_metric_catalog(
             weight_metric=defn.weight_metric,
             formula=defn.formula,
             formula_components=list(defn.formula_components),
+            benchmarks=defn.benchmarks,
         )
         for defn in METRIC_CATALOG.values()
     ]

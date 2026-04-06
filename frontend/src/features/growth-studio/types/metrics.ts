@@ -465,6 +465,7 @@ export interface MetricCatalogEntry {
   weight_metric?: string;
   formula?: string;
   formula_components: string[];
+  benchmarks?: string | null;
 }
 
 export interface MetricCatalog {

@@ -35,5 +35,18 @@ export function useMetricCatalog() {
     /** True only for ADDITIVE metrics — safe to sum across channels/groups. */
     isAdditive: (name: string): boolean =>
       catalogByName[name]?.aggregation === 'additive',
+    /** Returns full tooltip data for a metric, or undefined if not found. */
+    getTooltipData: (name: string) => {
+      const e = catalogByName[name];
+      if (!e) return undefined;
+      return {
+        displayName: e.display_name,
+        description: e.description,
+        interpretation: e.interpretation,
+        formula: e.formula,
+        benchmarks: e.benchmarks,
+        higherIsBetter: e.higher_is_better,
+      };
+    },
   };
 }

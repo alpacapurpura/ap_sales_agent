@@ -9,12 +9,12 @@ Pure Python tests: no DB, no async, no mocking required.
 
 from src.modules.analytics.domain.enums import AggregationType, MetricUnit
 from src.modules.analytics.domain.metric_catalog import (
-    METRIC_CATALOG,
     _ADDITIVE,
     _DERIVED,
     _NON_AGGREGABLE,
     _SNAPSHOT,
     _WEIGHTED_AVERAGE,
+    METRIC_CATALOG,
 )
 
 
@@ -23,14 +23,26 @@ class TestNoDuplicateMetricNames:
 
     def test_no_duplicates_in_source_lists(self):
         """No name appears in more than one definition across all source lists."""
-        all_metrics = [*_ADDITIVE, *_WEIGHTED_AVERAGE, *_DERIVED, *_NON_AGGREGABLE, *_SNAPSHOT]
+        all_metrics = [
+            *_ADDITIVE,
+            *_WEIGHTED_AVERAGE,
+            *_DERIVED,
+            *_NON_AGGREGABLE,
+            *_SNAPSHOT,
+        ]
         names = [m.name for m in all_metrics]
         duplicates = [name for name in set(names) if names.count(name) > 1]
         assert not duplicates, f"Duplicate metric names: {duplicates}"
 
     def test_catalog_size_matches_source_lists(self):
         """METRIC_CATALOG dict size matches total metrics across all source lists."""
-        all_metrics = [*_ADDITIVE, *_WEIGHTED_AVERAGE, *_DERIVED, *_NON_AGGREGABLE, *_SNAPSHOT]
+        all_metrics = [
+            *_ADDITIVE,
+            *_WEIGHTED_AVERAGE,
+            *_DERIVED,
+            *_NON_AGGREGABLE,
+            *_SNAPSHOT,
+        ]
         assert len(METRIC_CATALOG) == len(all_metrics), (
             f"METRIC_CATALOG has {len(METRIC_CATALOG)} entries but source lists "
             f"have {len(all_metrics)} — likely duplicates collapsed"
@@ -43,7 +55,9 @@ class TestRequiredFields:
     def test_all_have_name(self):
         for name, defn in METRIC_CATALOG.items():
             assert defn.name, f"Metric {name} has empty name"
-            assert defn.name == name, f"Key '{name}' does not match defn.name '{defn.name}'"
+            assert defn.name == name, (
+                f"Key '{name}' does not match defn.name '{defn.name}'"
+            )
 
     def test_all_have_unit(self):
         for name, defn in METRIC_CATALOG.items():
@@ -80,8 +94,11 @@ class TestCatalogMinimumSize:
         )
 
     def test_has_additive_metrics(self):
-        additive = [d for d in METRIC_CATALOG.values()
-                     if d.aggregation == AggregationType.ADDITIVE]
+        additive = [
+            d
+            for d in METRIC_CATALOG.values()
+            if d.aggregation == AggregationType.ADDITIVE
+        ]
         assert len(additive) >= 20, (
             f"Expected >= 20 ADDITIVE metrics, found {len(additive)}"
         )
@@ -94,8 +111,10 @@ class TestAdditiveUnitCoherence:
         """No ADDITIVE metric should have unit=PERCENTAGE (percentages cannot be summed)."""
         violations = []
         for name, defn in METRIC_CATALOG.items():
-            if (defn.aggregation == AggregationType.ADDITIVE
-                    and defn.unit == MetricUnit.PERCENTAGE):
+            if (
+                defn.aggregation == AggregationType.ADDITIVE
+                and defn.unit == MetricUnit.PERCENTAGE
+            ):
                 violations.append(name)
         assert not violations, (
             f"ADDITIVE metrics with PERCENTAGE unit (should be WEIGHTED_AVERAGE): {violations}"
@@ -105,8 +124,10 @@ class TestAdditiveUnitCoherence:
         """No ADDITIVE metric should have unit=RATIO (ratios cannot be summed)."""
         violations = []
         for name, defn in METRIC_CATALOG.items():
-            if (defn.aggregation == AggregationType.ADDITIVE
-                    and defn.unit == MetricUnit.RATIO):
+            if (
+                defn.aggregation == AggregationType.ADDITIVE
+                and defn.unit == MetricUnit.RATIO
+            ):
                 violations.append(name)
         assert not violations, (
             f"ADDITIVE metrics with RATIO unit (should be DERIVED): {violations}"
@@ -142,7 +163,9 @@ class TestSnapshotMetricsExist:
 
     def test_active_subscribers_is_snapshot(self):
         assert "active_subscribers" in METRIC_CATALOG
-        assert METRIC_CATALOG["active_subscribers"].aggregation == AggregationType.SNAPSHOT
+        assert (
+            METRIC_CATALOG["active_subscribers"].aggregation == AggregationType.SNAPSHOT
+        )
 
     def test_top_pages_is_snapshot(self):
         assert "top_pages" in METRIC_CATALOG
@@ -150,12 +173,17 @@ class TestSnapshotMetricsExist:
 
     def test_ig_followers_count_is_snapshot(self):
         assert "ig_followers_count" in METRIC_CATALOG
-        assert METRIC_CATALOG["ig_followers_count"].aggregation == AggregationType.SNAPSHOT
+        assert (
+            METRIC_CATALOG["ig_followers_count"].aggregation == AggregationType.SNAPSHOT
+        )
 
     def test_snapshot_count(self):
         """There should be several SNAPSHOT metrics."""
-        snapshots = [d for d in METRIC_CATALOG.values()
-                      if d.aggregation == AggregationType.SNAPSHOT]
+        snapshots = [
+            d
+            for d in METRIC_CATALOG.values()
+            if d.aggregation == AggregationType.SNAPSHOT
+        ]
         assert len(snapshots) >= 5, (
             f"Expected >= 5 SNAPSHOT metrics, found {len(snapshots)}"
         )
@@ -173,14 +201,20 @@ class TestWeightedAverageIntegrity:
 
     def test_weight_metrics_exist_in_catalog(self):
         for name, defn in METRIC_CATALOG.items():
-            if defn.aggregation == AggregationType.WEIGHTED_AVERAGE and defn.weight_metric:
+            if (
+                defn.aggregation == AggregationType.WEIGHTED_AVERAGE
+                and defn.weight_metric
+            ):
                 assert defn.weight_metric in METRIC_CATALOG, (
                     f"{name}.weight_metric '{defn.weight_metric}' not found in catalog"
                 )
 
     def test_weight_metrics_are_additive(self):
         for name, defn in METRIC_CATALOG.items():
-            if defn.aggregation == AggregationType.WEIGHTED_AVERAGE and defn.weight_metric:
+            if (
+                defn.aggregation == AggregationType.WEIGHTED_AVERAGE
+                and defn.weight_metric
+            ):
                 wm = METRIC_CATALOG[defn.weight_metric]
                 assert wm.aggregation == AggregationType.ADDITIVE, (
                     f"{name}.weight_metric '{defn.weight_metric}' has aggregation "
@@ -194,9 +228,7 @@ class TestDerivedIntegrity:
     def test_all_have_formula(self):
         for name, defn in METRIC_CATALOG.items():
             if defn.aggregation == AggregationType.DERIVED:
-                assert defn.formula is not None, (
-                    f"{name} is DERIVED but has no formula"
-                )
+                assert defn.formula is not None, f"{name} is DERIVED but has no formula"
 
     def test_formula_components_exist_in_catalog(self):
         for name, defn in METRIC_CATALOG.items():
@@ -205,3 +237,28 @@ class TestDerivedIntegrity:
                     assert comp in METRIC_CATALOG, (
                         f"{name}.formula_components includes '{comp}' not in catalog"
                     )
+
+
+class TestBenchmarksField:
+    """Benchmarks field must be well-formed and have minimum coverage."""
+
+    def test_benchmarks_field_type(self):
+        """benchmarks must be None or a non-empty string."""
+        for name, defn in METRIC_CATALOG.items():
+            if defn.benchmarks is not None:
+                assert isinstance(defn.benchmarks, str), (
+                    f"{name}.benchmarks is {type(defn.benchmarks)}, expected str"
+                )
+                assert len(defn.benchmarks.strip()) > 0, (
+                    f"{name}.benchmarks is an empty string"
+                )
+
+    def test_minimum_benchmark_coverage(self):
+        """At least 40 metrics must have benchmarks populated (ratchet)."""
+        with_benchmarks = [
+            name for name, defn in METRIC_CATALOG.items() if defn.benchmarks is not None
+        ]
+        assert len(with_benchmarks) >= 40, (
+            f"Only {len(with_benchmarks)} metrics have benchmarks, expected >= 40. "
+            f"Missing benchmarks is OK for niche metrics, but core metrics need them."
+        )

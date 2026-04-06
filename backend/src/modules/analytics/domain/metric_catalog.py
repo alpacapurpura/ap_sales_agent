@@ -37,6 +37,9 @@ class MetricDefinition:
     real_api_name: str | None = None  # Si metric_name difiere del nombre real en la API
     source: str | None = None  # Fuente exacta de la API (endpoint/campo)
     higher_is_better: bool = True
+    benchmarks: str | None = (
+        None  # Referencia de industria (fuente: MetricHQ/Klipfolio)
+    )
     providers: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -70,6 +73,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Controlar vs presupuesto. spend/conversions = CPA.",
         unit=MetricUnit.CURRENCY,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia inversión publicitaria: B2B 2-5% de revenue, B2C 5-10% (eMarketer).",
         providers=("meta", "google_ads", "tiktok"),
     ),
     MetricDefinition(
@@ -79,6 +83,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Meta: compras atribuidas a ads. Si es 0, revisar pixel/tracking.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia CVR: Search 3.75%, Display 0.77%, Social 1-5%. >5% = excelente.",
         providers=("meta", "google_ads", "tiktok", "google_analytics"),
     ),
     MetricDefinition(
@@ -97,6 +102,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Más = más tráfico. sessions creciendo + users estable = usuarios vuelven (bueno para retención).",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia semanal: B2C 1,850-9,050, B2B 1,020-3,300 según tamaño empresa.",
         providers=("google_analytics",),
     ),
     MetricDefinition(
@@ -106,6 +112,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="engagedSessions / sessions = engagement rate del sitio.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: 55-85% de sesiones son engaged. Típico: 60-70%. E-commerce: 70-80%.",
         providers=("google_analytics",),
     ),
     MetricDefinition(
@@ -124,6 +131,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="screenPageViews / sessions = profundidad de navegación.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: promedio 5 páginas por sesión. B2B: 2, Grocery: 7.",
         providers=("google_analytics",),
     ),
     MetricDefinition(
@@ -133,6 +141,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="engagement / reach = engagement rate. Alto = contenido que genera conversación.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia engagement rate: Facebook 0.08%, Instagram 0.98% (RivalIQ 2021).",
         providers=("meta", "tiktok", "youtube"),
     ),
     MetricDefinition(
@@ -178,6 +187,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Línea base para calcular tasas. Alta variabilidad = campañas puntuales.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: >50% del presupuesto publicitario se invierte en digital (eMarketer).",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -206,6 +216,7 @@ _ADDITIVE: list[MetricDefinition] = [
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
         higher_is_better=False,
+        benchmarks="Referencia: ~2.5% promedio global (Mailchimp). >5% = limpiar lista urgente.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -216,6 +227,7 @@ _ADDITIVE: list[MetricDefinition] = [
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
         higher_is_better=False,
+        benchmarks="Referencia: ~0.6% promedio global (Mailchimp).",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -226,6 +238,7 @@ _ADDITIVE: list[MetricDefinition] = [
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
         higher_is_better=False,
+        benchmarks="Referencia: 0.1-0.3% promedio global. >0.5% = señal de alarma.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -236,6 +249,7 @@ _ADDITIVE: list[MetricDefinition] = [
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
         higher_is_better=False,
+        benchmarks="Referencia: debe ser <0.1% de enviados. >0.1% afecta deliverability.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -254,6 +268,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Mide captación directa. form_conversions / form_views = tasa de conversión del form.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: tasa conversión promedio 2.4%. Landing optimizada: ~4%.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -263,6 +278,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Crecimiento de lista. new_subscribers / emails_sent = tasa de crecimiento.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: crecimiento de lista saludable 2-5% mensual.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -337,6 +353,7 @@ _ADDITIVE: list[MetricDefinition] = [
         unit=MetricUnit.CURRENCY,
         aggregation=AggregationType.ADDITIVE,
         higher_is_better=False,
+        benchmarks="Referencia: tasa reembolso monetaria típica 1-3%. >5% = problema de calidad.",
         providers=("shopify",),
     ),
     MetricDefinition(
@@ -347,6 +364,7 @@ _ADDITIVE: list[MetricDefinition] = [
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
         higher_is_better=False,
+        benchmarks="Referencia: tasa reembolso típica 1-3%. <1% excelente (SaaS). >5% = problema.",
         providers=("shopify",),
     ),
     MetricDefinition(
@@ -529,6 +547,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Más preciso que 'clicks' total — excluye clics en perfil/reacciones.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: CPC al destino Facebook promedio $1.72 (Wordstream 2020).",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -547,6 +566,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Engagement total del ad. Alto = creative resonante.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: engagement Facebook 0.08% mediana, Instagram 0.98% (RivalIQ 2021).",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -556,6 +576,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="Captación directa. meta_leads / clicks = tasa de conversión a lead.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: CPA Facebook promedio $18.68 (Wordstream). Tasa leads/clicks 2-5%.",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -700,6 +721,7 @@ _ADDITIVE: list[MetricDefinition] = [
         interpretation="meta_conversion_value / spend = ROAS. Principal métrica de retorno.",
         unit=MetricUnit.CURRENCY,
         aggregation=AggregationType.ADDITIVE,
+        benchmarks="Referencia: conversion_value / spend = ROAS. >3x es excelente.",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -828,6 +850,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         weight_metric="sessions",
         formula="bounced_sessions / sessions × 100",
         higher_is_better=False,
+        benchmarks="Referencia: 47% promedio global. B2B: 75-83%. Blogs/news: hasta 90%.",
         providers=("google_analytics",),
     ),
     MetricDefinition(
@@ -839,6 +862,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="impressions",
         formula="clicks / impressions × 100",
+        benchmarks="Referencia: Display 0.5%, Search 3.2% (WordStream). >3% = excelente.",
         providers=("meta", "google_ads", "tiktok", "search_console"),
     ),
     MetricDefinition(
@@ -862,6 +886,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="emails_sent",
         formula="unique_opens / emails_sent × 100",
+        benchmarks="Referencia: 18% promedio industrias (Campaign Monitor 2021). >40% = excelente.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -873,6 +898,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="emails_sent",
         formula="unique_clicks / emails_sent × 100",
+        benchmarks="Referencia: 2.6% promedio global (Campaign Monitor 2021). Rango: 1-4%.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -884,6 +910,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="unique_opens",
         formula="unique_clicks / unique_opens × 100",
+        benchmarks="Referencia: 14.1% promedio global (Campaign Monitor 2021). >15% = bueno.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -895,6 +922,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="sessions",
         formula="total_duration / sessions",
+        benchmarks="Referencia: 2-4 min promedio. Mobile: 4min 24s. >3 min = buen engagement.",
         providers=("google_analytics",),
     ),
     MetricDefinition(
@@ -907,6 +935,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         weight_metric="count",
         formula="abandoned_count / total_checkout_count × 100",
         higher_is_better=False,
+        benchmarks="Referencia: 55-80% rango industria, ~75% promedio. Mobile típicamente más alto.",
         providers=("shopify",),
     ),
     MetricDefinition(
@@ -929,6 +958,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="views",
         higher_is_better=True,
+        benchmarks="Referencia: >50% es bueno para videos >10 min. Videos cortos (<1 min): >70%.",
         providers=("youtube",),
     ),
     MetricDefinition(
@@ -940,6 +970,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="sessions",
         higher_is_better=True,
+        benchmarks="Referencia GA4: >50% saludable. E-commerce: 70-80%. B2B: 75-85%.",
         providers=("google_analytics",),
     ),
     MetricDefinition(
@@ -951,6 +982,7 @@ _WEIGHTED_AVERAGE: list[MetricDefinition] = [
         aggregation=AggregationType.WEIGHTED_AVERAGE,
         weight_metric="impressions",
         higher_is_better=False,
+        benchmarks="Referencia: <10 = primera página Google. <3 = posición premium.",
         providers=("search_console",),
     ),
 ]
@@ -970,6 +1002,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="spend / clicks",
         formula_components=("spend", "clicks"),
         higher_is_better=False,
+        benchmarks="Referencia: $2.69 search, $0.63 display (promedio global). Facebook: $1.72.",
         providers=("google_ads",),
     ),
     # ── Meta Ads Derived ──
@@ -995,6 +1028,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="spend / meta_inline_link_clicks",
         formula_components=("spend", "meta_inline_link_clicks"),
         higher_is_better=False,
+        benchmarks="Referencia: CPC link Facebook promedio $1.72 (Wordstream 2020).",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -1007,6 +1041,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="spend / meta_outbound_clicks",
         formula_components=("spend", "meta_outbound_clicks"),
         higher_is_better=False,
+        benchmarks="Referencia: similar a CPC link, $1.50-$3.00 rango típico.",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -1019,6 +1054,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="spend / conversions",
         formula_components=("spend", "conversions"),
         higher_is_better=False,
+        benchmarks="Referencia: CPA Facebook promedio $18.68 (Wordstream 2020, 18 industrias).",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -1031,6 +1067,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="spend / meta_leads",
         formula_components=("spend", "meta_leads"),
         higher_is_better=False,
+        benchmarks="Referencia: CPL Facebook varía por industria. $5-$50 rango típico B2C.",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -1043,6 +1080,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="meta_conversion_value / spend",
         formula_components=("meta_conversion_value", "spend"),
         higher_is_better=True,
+        benchmarks="Referencia: >1x = rentable, >3x = excelente, <1x = perdiendo dinero.",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -1054,6 +1092,7 @@ _DERIVED: list[MetricDefinition] = [
         aggregation=AggregationType.DERIVED,
         formula="revenue / order_count",
         formula_components=("revenue", "order_count"),
+        benchmarks="Referencia: varía por industria. Monitorear tendencia propia; AOV subiendo = upsell funciona.",
         providers=("shopify",),
     ),
     MetricDefinition(
@@ -1066,6 +1105,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="(hard_bounces + soft_bounces) / emails_sent × 100",
         formula_components=("hard_bounces", "soft_bounces", "emails_sent"),
         higher_is_better=False,
+        benchmarks="Referencia: 0.7% promedio (Campaign Monitor 2020). >5% = lista sucia.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -1078,6 +1118,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="unsubscribes / emails_sent × 100",
         formula_components=("unsubscribes", "emails_sent"),
         higher_is_better=False,
+        benchmarks="Referencia: 0.1% promedio (Campaign Monitor 2021). >0.5% = contenido desalineado.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -1089,6 +1130,7 @@ _DERIVED: list[MetricDefinition] = [
         aggregation=AggregationType.DERIVED,
         formula="unique_opens / emails_sent × 100",
         formula_components=("unique_opens", "emails_sent"),
+        benchmarks="Referencia: similar a open_rate. 18% promedio. Secuencias reactivación: 5-10%.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -1100,6 +1142,7 @@ _DERIVED: list[MetricDefinition] = [
         aggregation=AggregationType.DERIVED,
         formula="responses / contacts × 100",
         formula_components=("responses", "contacts"),
+        benchmarks="Referencia outbound: 10-15% considerado bueno. <5% = mejorar mensaje/segmentación.",
         providers=("crm_internal",),
     ),
     MetricDefinition(
@@ -1112,6 +1155,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="form_conversions / form_views × 100",
         # form_views is not tracked as a separate metric; cannot auto-recalculate
         formula_components=(),
+        benchmarks="Referencia: promedio 2.4%. SaaS: 3-5%. Landing page optimizada: ~4%.",
         providers=("mailerlite",),
     ),
     MetricDefinition(
@@ -1124,6 +1168,7 @@ _DERIVED: list[MetricDefinition] = [
         formula="completed / triggered × 100",
         # 'triggered' and 'completed' are not tracked as separate metrics
         formula_components=(),
+        benchmarks="Referencia: automatización email típica 30-60% completado.",
         providers=("mailerlite",),
     ),
 ]
@@ -1162,6 +1207,7 @@ _NON_AGGREGABLE: list[MetricDefinition] = [
         aggregation=AggregationType.NON_AGGREGABLE,
         is_unique_metric=False,
         higher_is_better=False,
+        benchmarks="Referencia: >3 = fatiga de audiencia, rotar creativos. 1-2 ideal para awareness.",
         providers=("meta",),
     ),
     MetricDefinition(
@@ -1275,6 +1321,7 @@ _SNAPSHOT: list[MetricDefinition] = [
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.SNAPSHOT,
         source="IG User Node (fields=followers_count)",
+        benchmarks="Referencia: crecimiento orgánico IG saludable 1-3% mensual.",
         providers=("meta",),
     ),
     MetricDefinition(

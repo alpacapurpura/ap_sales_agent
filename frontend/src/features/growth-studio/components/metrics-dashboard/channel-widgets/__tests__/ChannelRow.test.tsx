@@ -31,6 +31,7 @@ vi.mock('../../../../hooks/useMetricCatalog', () => ({
     catalogByName: {},
     getLabel: (name: string, fallback?: string) => fallback ?? name,
     isAdditive: () => false,
+    getTooltipData: () => undefined,
   }),
 }));
 

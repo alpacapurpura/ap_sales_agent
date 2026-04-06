@@ -5,6 +5,7 @@ import { Area, AreaChart } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import type { StageTimeSeries } from '../../../types/metrics';
+import { MetricInfoCard } from '../channel-widgets/KpiTooltip';
 
 interface AttractionScorecardsProps {
   timeSeries: StageTimeSeries | undefined;
@@ -21,6 +22,7 @@ interface ScorecardData {
   format: 'number' | 'percent' | 'money';
   delta: number | null;
   sparkData: { v: number }[];
+  metricName?: string;
 }
 
 function formatValue(value: number, format: 'number' | 'percent' | 'money'): string {
@@ -71,6 +73,7 @@ export function AttractionScorecards({
         format: 'number',
         delta: reachDelta,
         sparkData: dailyTotals,
+        metricName: 'impressions',
       },
       {
         label: 'Visitantes',
@@ -78,6 +81,7 @@ export function AttractionScorecards({
         format: 'number',
         delta: null,
         sparkData: [],
+        metricName: 'users',
       },
       {
         label: 'Leads',
@@ -112,9 +116,17 @@ export function AttractionScorecards({
           key={card.label}
           className="bg-card border border-border rounded-lg p-4 flex flex-col gap-1"
         >
-          <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">
-            {card.label}
-          </span>
+          {card.metricName ? (
+            <MetricInfoCard metricName={card.metricName}>
+              <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">
+                {card.label}
+              </span>
+            </MetricInfoCard>
+          ) : (
+            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">
+              {card.label}
+            </span>
+          )}
           <div className="flex items-end justify-between gap-2">
             <span className="text-2xl font-black text-foreground leading-none">
               {formatValue(card.value, card.format)}
