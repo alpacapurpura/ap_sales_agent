@@ -145,6 +145,38 @@ _CHANNEL_CONFIGS: dict[str, ChannelDashboardConfig] = {
         ],
         has_frequency_alert=False,
     ),
+    "email-nurture": ChannelDashboardConfig(
+        channel_name="Email Marketing",
+        hero_metrics=[
+            "open_rate",
+            "click_rate",
+            "emails_sent",
+            "active_subscribers",
+        ],
+        timeseries_metrics=[
+            "emails_sent",
+            "unique_opens",
+            "unique_clicks",
+            "open_rate",
+            "click_rate",
+            "click_to_open_rate",
+            "hard_bounces",
+            "soft_bounces",
+            "unsubscribes",
+            "forwards",
+            "new_subscribers",
+            "spam_reports",
+            "automation_completed",
+            "completion_rate",
+        ],
+        funnel_steps=[
+            ("Enviados", "emails_sent"),
+            ("Aperturas", "unique_opens"),
+            ("Clics", "unique_clicks"),
+            ("Conversiones", "form_conversions"),
+        ],
+        has_frequency_alert=False,
+    ),
 }
 
 _DEFAULT_CONFIG = ChannelDashboardConfig(channel_name="Canal")
@@ -157,6 +189,7 @@ _CHANNEL_NAMES: dict[str, str] = {
     "tiktok-ads": "TikTok Ads",
     "ig-organic": "Instagram Orgánico",
     "yt-organic": "YouTube Orgánico",
+    "email-nurture": "Email Marketing",
 }
 
 # Period string -> days
@@ -202,6 +235,26 @@ def _compute_derived_metrics(metrics: dict[str, float]) -> dict[str, float]:
         metrics["end_screen_click_rate"] = round(
             (end_clicks / end_impressions) * 100, 2
         )
+
+    # Email: CTOR, bounce_rate, unsubscribe_rate
+    emails_sent_val = metrics.get("emails_sent", 0)
+    unique_opens_val = metrics.get("unique_opens", 0)
+    unique_clicks_val = metrics.get("unique_clicks", 0)
+    if unique_opens_val > 0 and "click_to_open_rate" not in metrics:
+        metrics["click_to_open_rate"] = round(
+            (unique_clicks_val / unique_opens_val) * 100, 2
+        )
+    hard_b = metrics.get("hard_bounces", 0)
+    soft_b = metrics.get("soft_bounces", 0)
+    if emails_sent_val > 0:
+        if "bounce_rate" not in metrics:
+            metrics["bounce_rate"] = round(
+                ((hard_b + soft_b) / emails_sent_val) * 100, 2
+            )
+        if "unsubscribe_rate" not in metrics:
+            metrics["unsubscribe_rate"] = round(
+                (metrics.get("unsubscribes", 0) / emails_sent_val) * 100, 2
+            )
 
     return metrics
 

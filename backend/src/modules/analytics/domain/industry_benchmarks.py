@@ -140,6 +140,61 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             unit="percentage",
             interpretation_es="Efectividad de los elementos de pantalla final.",
         ),
+        # ── Email Marketing ──
+        IndustryBenchmarkEntry(
+            metric_name="open_rate",
+            low=10.0,
+            median=18.0,
+            high=40.0,
+            unit="percentage",
+            interpretation_es=(
+                "Tasa de apertura de emails. 18% promedio global. >40% excelente."
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="click_rate",
+            low=1.0,
+            median=2.6,
+            high=4.0,
+            unit="percentage",
+            interpretation_es="Tasa de clics sobre emails enviados.",
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="click_to_open_rate",
+            low=8.0,
+            median=14.1,
+            high=20.0,
+            unit="percentage",
+            interpretation_es=("Calidad del contenido post-apertura. >15% bueno."),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="bounce_rate",
+            low=0.0,
+            median=0.7,
+            high=5.0,
+            unit="percentage",
+            interpretation_es="Tasa de rebote. >5% indica lista sucia.",
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="unsubscribe_rate",
+            low=0.0,
+            median=0.1,
+            high=0.5,
+            unit="percentage",
+            interpretation_es=(
+                "Tasa de desuscripción. >0.5% indica contenido desalineado."
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="completion_rate",
+            low=30.0,
+            median=45.0,
+            high=60.0,
+            unit="percentage",
+            interpretation_es=(
+                "Tasa de completado de automatizaciones. Mide eficacia de secuencias."
+            ),
+        ),
     ],
     IndustryCategory.EDUCATION: [
         IndustryBenchmarkEntry(
