@@ -67,7 +67,7 @@ const connectedChannel: ChannelMetric = {
   name: 'Instagram Organic',
   channelType: 'organic_social',
   metrics: [
-    { name: 'impressions', value: 50000 },
+    { name: 'ig_views', value: 50000 },
     { name: 'reach', value: 15000 },
     { name: 'total_interactions', value: 450 },
     { name: 'ig_followers_count', value: 8200 },
@@ -153,8 +153,8 @@ describe('ChannelRow', () => {
   it('shows metric labels from METRIC_LABELS fallback', () => {
     render(<ChannelRow channel={connectedChannel} />);
 
-    // Labels from METRIC_LABELS map: impressions -> Impresiones, reach -> Alcance, total_interactions -> Interacciones
-    expect(screen.getByText('Impresiones')).toBeInTheDocument();
+    // Labels from METRIC_LABELS map: ig_views -> Vistas, reach -> Alcance, total_interactions -> Interacciones
+    expect(screen.getByText('Vistas')).toBeInTheDocument();
     expect(screen.getByText('Alcance')).toBeInTheDocument();
     expect(screen.getByText('Interacciones')).toBeInTheDocument();
   });
