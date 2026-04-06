@@ -55,17 +55,18 @@ describe('getSummaryMetrics', () => {
   it('filters ig-organic to only configured summary metrics', () => {
     const result = getSummaryMetrics('ig-organic', igMetrics);
 
-    expect(result).toHaveLength(3);
-    expect(result.map(m => m.name)).toEqual(['reach', 'total_interactions', 'ig_followers_count']);
+    expect(result).toHaveLength(4);
+    expect(result.map(m => m.name)).toEqual(['impressions', 'reach', 'total_interactions', 'ig_followers_count']);
   });
 
   it('preserves registry-defined order, not backend order', () => {
     const result = getSummaryMetrics('ig-organic', igMetrics);
 
-    // Registry order: reach, total_interactions, ig_followers_count
-    expect(result[0].name).toBe('reach');
-    expect(result[1].name).toBe('total_interactions');
-    expect(result[2].name).toBe('ig_followers_count');
+    // Registry order: impressions, reach, total_interactions, ig_followers_count
+    expect(result[0].name).toBe('impressions');
+    expect(result[1].name).toBe('reach');
+    expect(result[2].name).toBe('total_interactions');
+    expect(result[3].name).toBe('ig_followers_count');
   });
 
   it('filters meta-ads to configured 5 summary metrics', () => {

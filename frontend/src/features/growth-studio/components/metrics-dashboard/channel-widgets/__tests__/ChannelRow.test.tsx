@@ -67,6 +67,7 @@ const connectedChannel: ChannelMetric = {
   name: 'Instagram Organic',
   channelType: 'organic_social',
   metrics: [
+    { name: 'impressions', value: 50000 },
     { name: 'reach', value: 15000 },
     { name: 'total_interactions', value: 450 },
     { name: 'ig_followers_count', value: 8200 },
@@ -138,8 +139,10 @@ describe('ChannelRow', () => {
   it('shows metric values for connected channels', () => {
     render(<ChannelRow channel={connectedChannel} />);
 
-    // ig-organic summary metrics: reach, total_interactions, ig_followers_count
-    // formatNumber: 15000 >= 10000 -> (15000/1000).toFixed(0) = "15k"
+    // ig-organic summary metrics: impressions, reach, total_interactions, ig_followers_count
+    // formatNumber: 50000 >= 10000 -> (50000/1000).toFixed(0) = "50k"
+    expect(screen.getByText('50k')).toBeInTheDocument();
+    // 15000 >= 10000 -> (15000/1000).toFixed(0) = "15k"
     expect(screen.getByText('15k')).toBeInTheDocument();
     // 450 < 1000 -> toLocaleString
     expect(screen.getByText('450')).toBeInTheDocument();
@@ -150,7 +153,8 @@ describe('ChannelRow', () => {
   it('shows metric labels from METRIC_LABELS fallback', () => {
     render(<ChannelRow channel={connectedChannel} />);
 
-    // Labels from METRIC_LABELS map: reach -> Alcance, total_interactions -> Interacciones
+    // Labels from METRIC_LABELS map: impressions -> Impresiones, reach -> Alcance, total_interactions -> Interacciones
+    expect(screen.getByText('Impresiones')).toBeInTheDocument();
     expect(screen.getByText('Alcance')).toBeInTheDocument();
     expect(screen.getByText('Interacciones')).toBeInTheDocument();
   });

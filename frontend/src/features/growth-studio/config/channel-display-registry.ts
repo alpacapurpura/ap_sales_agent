@@ -33,6 +33,7 @@ export interface ChannelDisplayConfig {
 export const CHANNEL_DISPLAY_REGISTRY: Record<string, ChannelDisplayConfig> = {
   'ig-organic': {
     summaryMetrics: [
+      { name: 'impressions', label: 'Impresiones' },
       { name: 'reach', label: 'Alcance' },
       { name: 'total_interactions', label: 'Interacciones' },
       { name: 'ig_followers_count', label: 'Seguidores' },
