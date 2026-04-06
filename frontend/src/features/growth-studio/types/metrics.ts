@@ -596,7 +596,7 @@ export interface ChannelDashboardData {
   frequencyAlert: FrequencyAlert | null;
 }
 
-export type MetaAdsDashboardTab = 'overview' | 'campaigns' | 'audience' | 'video' | 'costs';
+export type MetaAdsDashboardTab = 'resumen' | 'campanas' | 'creativos' | 'audiencia' | 'costos';
 
 /** Generic alias -- usable by any channel dashboard */
 export type ChannelDashboardPeriod = MetaAdsPeriod;
@@ -606,3 +606,57 @@ export type IgOrganicDashboardTab = 'overview' | 'contenido' | 'audiencia' | 'al
 export type YouTubeDashboardTab = 'overview' | 'videos' | 'audiencia' | 'engagement' | 'retencion';
 
 export type MailDashboardTab = 'overview' | 'engagement' | 'entregabilidad' | 'lista' | 'automatizacion';
+
+// ── Campaign Performance Types ──
+
+export interface CampaignMetrics {
+  spend: number;
+  conversions: number;
+  cpa: number | null;
+  roas: number | null;
+  ctr: number | null;
+  cpc: number | null;
+  cpm: number | null;
+  frequency: number | null;
+  impressions: number;
+  clicks: number;
+  reach: number;
+}
+
+export interface CampaignWithMetrics {
+  externalId: string;
+  name: string;
+  objective: string | null;
+  status: string | null;
+  effectiveStatus: string | null;
+  dailyBudget: number | null;
+  lifetimeBudget: number | null;
+  budgetRemaining: number | null;
+  startTime: string | null;
+  stopTime: string | null;
+  adSetsCount: number;
+  adsCount: number;
+  metrics: CampaignMetrics;
+  health: 'good' | 'warning' | 'critical';
+}
+
+export interface CampaignRecommendation {
+  recommendationType: string;
+  source: string;
+  title: string | null;
+  body: string | null;
+  importance: string | null;
+  liftEstimate: string | null;
+  opportunityScore: number | null;
+  url: string | null;
+  objectIds: string[];
+}
+
+export interface CampaignPerformanceData {
+  campaigns: CampaignWithMetrics[];
+  recommendations: CampaignRecommendation[];
+  totalCampaigns: number;
+  activeCampaigns: number;
+  currency: string | null;
+  lastSynced: string | null;
+}
