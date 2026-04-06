@@ -126,7 +126,7 @@ services:
       - SENTRY_PROJECT=nicolify-frontend
       - INTERNAL_API_URL=${INTERNAL_API_URL}
       - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
-      - NODE_OPTIONS=--max-old-space-size=2048
+      - NODE_OPTIONS=--max-old-space-size=1280
       - CHOKIDAR_USEPOLLING=true # Essential for Windows/WSL hot reload
       - WATCHPACK_POLLING=true
     extra_hosts:
@@ -138,6 +138,12 @@ services:
     networks:
       - internal_net
       - gateway
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK}"
@@ -148,9 +154,9 @@ services:
       resources:
         limits:
           cpus: '1.50'
-          memory: 1536M
+          memory: 2048M
         reservations:
-          memory: 256M
+          memory: 512M
 
   frontend_tooling:
     build:
@@ -242,8 +248,10 @@ services:
       - ./frontend/test-results:/app/test-results
       - ./frontend/playwright-report:/app/playwright-report
     depends_on:
-      - client_dashboard_dev
-      - api_dev
+      client_dashboard_dev:
+        condition: service_healthy
+      api_dev:
+        condition: service_started
     networks:
       - internal_net
     profiles:
