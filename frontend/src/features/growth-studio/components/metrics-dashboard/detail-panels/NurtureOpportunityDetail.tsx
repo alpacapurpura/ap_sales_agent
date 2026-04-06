@@ -103,9 +103,19 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
 
   if (!nurtureData || !oppData) return null;
 
+  // Extract currency from retargeting channel metrics (first available)
+  const currency = (() => {
+    for (const ch of nurtureData.retargeting.channels) {
+      for (const m of ch.metrics) {
+        if (m.currency) return m.currency;
+      }
+    }
+    return 'USD';
+  })();
+
   // Formatters
   const formatNum = (num: number) => num.toLocaleString('es-ES');
-  const fmtMoney = (num: number) => formatMoney(num, 'USD', { fractionDigits: 0 });
+  const fmtMoney = (num: number) => formatMoney(num, currency, { fractionDigits: 0 });
 
   // Helper to get specific metric
   const getMetric = (metrics: any[], name: string) => metrics.find((m) => m.name === name)?.value ?? 0;

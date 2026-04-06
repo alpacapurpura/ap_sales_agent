@@ -11,6 +11,7 @@ import { ExternalLink, Package, PlusCircle, RefreshCw, Settings, ShoppingBag, Tr
 import type { MetricClickData, StageId } from '../../../types/metrics';
 import { getChannelColor, getChannelIcon } from '../../../lib/channelIcons';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
+import { formatMoney } from '@/lib/format-money';
 import { getOfferProductsDetail } from '../../../api/product-mapping-api';
 import type { OfferProductDetail } from '../../../api/product-mapping-api';
 
@@ -164,7 +165,7 @@ function AttractionMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -214,7 +215,7 @@ function CaptureMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -264,7 +265,7 @@ function NurtureMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -314,7 +315,7 @@ function OpportunityMetricDetail({ metric }: { metric: MetricClickData }) {
               <Card key={idx} className="border-muted bg-card shadow-sm">
                 <CardContent className="p-3 flex flex-col items-center justify-center text-center">
                   <span className="text-xl font-bold text-foreground">
-                    {m.currency ? '$' : ''}{m.value.toLocaleString('es-ES')}{m.unit || ''}
+                    {m.currency ? formatMoney(m.value, m.currency, { fractionDigits: 0 }) : `${m.value.toLocaleString('es-ES')}${m.unit || ''}`}
                   </span>
                   <span className="text-[10px] text-muted-foreground mt-1">
                     {METRIC_LABELS[m.name] || m.name}
@@ -554,12 +555,7 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
   }
 
   const fmt = (value: number, cur?: string) =>
-    new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: cur || currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+    formatMoney(value, cur || currency, { fractionDigits: 0 });
 
   const archetypeLabels: Record<string, string> = {
     producto: 'Producto',

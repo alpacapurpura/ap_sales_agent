@@ -14,8 +14,8 @@ interface CostsTabProps {
 
 const COST_METRICS = ['CPC', 'CPM', 'CPL', 'CPA'];
 
-function formatCost(value: number): string {
-  return formatMoney(value, 'USD');
+function formatCost(value: number, currency?: string): string {
+  return formatMoney(value, currency || 'USD');
 }
 
 export function CostsTab({ data, isLoading }: CostsTabProps) {
@@ -45,7 +45,7 @@ export function CostsTab({ data, isLoading }: CostsTabProps) {
         {costKpis.map(kpi => (
           <div key={kpi.metricName} className="space-y-1.5 rounded-lg border bg-card p-4">
             <p className="text-xs text-muted-foreground">{kpi.displayName}</p>
-            <p className="text-2xl font-semibold tabular-nums">{formatCost(kpi.currentValue)}</p>
+            <p className="text-2xl font-semibold tabular-nums">{formatCost(kpi.currentValue, kpi.currency)}</p>
             {kpi.benchmark && (
               <BenchmarkBadge
                 value={kpi.currentValue}

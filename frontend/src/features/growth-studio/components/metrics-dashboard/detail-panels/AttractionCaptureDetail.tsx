@@ -9,6 +9,7 @@ import DetailError from '../ui/DetailError';
 import type { MetricClickData, StageTimeSeries as TSType, ChannelMetric } from '../../../types/metrics';
 import { Button } from '@/components/ui/button';
 import { Settings, RefreshCw, Plug, Zap, Megaphone, UserPlus, Coins, TrendingUp, Globe, Bot } from 'lucide-react';
+import { formatMoney } from '@/lib/format-money';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { AttractionScorecards } from '../attraction/AttractionScorecards';
 import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
@@ -152,10 +153,19 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
     return `${impressions.toLocaleString('es-ES')} impresiones`;
   }, [paidChannels]);
 
+  const paidCurrency = useMemo(() => {
+    for (const ch of paidChannels) {
+      for (const m of ch.metrics) {
+        if (m.currency) return m.currency;
+      }
+    }
+    return 'USD';
+  }, [paidChannels]);
+
   const paidSpendSummary = useMemo(() => {
     const spend = paidChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'spend'), 0);
-    return spend > 0 ? `$${spend.toLocaleString('es-ES')} invertidos` : undefined;
-  }, [paidChannels]);
+    return spend > 0 ? `${formatMoney(spend, paidCurrency, { fractionDigits: 0 })} invertidos` : undefined;
+  }, [paidChannels, paidCurrency]);
 
   const organicSummary = useMemo(() => {
     const sessions = organicChannels.reduce((s, ch) => s + getMetric(ch.metrics, 'sessions'), 0);
@@ -261,6 +271,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
             totalLeads={totalLeads}
             leadConvRate={leadConvRate}
             totalSpend={totalSpend}
+            currency={paidCurrency}
           />
 
           {/* Section 2: Charts Side-by-Side */}

@@ -9,6 +9,7 @@ import {
   PlusCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatMoney } from '@/lib/format-money';
 import type { ChannelMetric, GroupType, MetricClickData, StageId } from '../../../types/metrics';
 import { ChannelRow } from './ChannelRow';
 
@@ -35,8 +36,8 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-function formatCurrency(n: number): string {
-  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+function fmtCurrency(n: number, currency: string): string {
+  return formatMoney(n, currency, { fractionDigits: 0 });
 }
 
 /** Icon + accent color per group type. */
@@ -57,8 +58,18 @@ function getGroupMeta(groupType: GroupType) {
   }
 }
 
+/** Extract the first available currency code from channel metrics. */
+function extractCurrency(channels: ChannelMetric[]): string {
+  for (const ch of channels) {
+    for (const m of ch.metrics) {
+      if (m.currency) return m.currency;
+    }
+  }
+  return 'USD';
+}
+
 /** Build metric chip data per group type. */
-function getMetricChips(groupType: GroupType, totals: Record<string, number>) {
+function getMetricChips(groupType: GroupType, totals: Record<string, number>, currency: string) {
   switch (groupType) {
     case 'organic_social':
       return [
@@ -74,7 +85,7 @@ function getMetricChips(groupType: GroupType, totals: Record<string, number>) {
       return [
         { label: 'Alcance', value: formatNumber(totals.reach ?? 0), color: 'bg-amber-500/15 text-amber-400' },
         { label: 'Clicks', value: formatNumber(totals.clicks ?? 0), color: 'bg-orange-500/15 text-orange-400' },
-        { label: 'Gasto', value: formatCurrency(totals.spend ?? 0), color: 'bg-red-500/15 text-red-300' },
+        { label: 'Gasto', value: fmtCurrency(totals.spend ?? 0, currency), color: 'bg-red-500/15 text-red-300' },
       ];
     case 'outbound':
       return [
@@ -92,7 +103,8 @@ function getMetricChips(groupType: GroupType, totals: Record<string, number>) {
 
 export function ChannelGroupCard({ title, totals, channels, groupType, stageId, onMetricClick, onChannelClick, onConfigure }: ChannelGroupCardProps) {
   const { Icon, accent, bg } = getGroupMeta(groupType);
-  const chips = getMetricChips(groupType, totals);
+  const currency = extractCurrency(channels);
+  const chips = getMetricChips(groupType, totals, currency);
 
   const connectedChannels = channels.filter((c) => c.connected);
   const availableChannels = channels.filter((c) => !c.connected);

@@ -5,6 +5,7 @@ import { Area, AreaChart } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import type { StageTimeSeries } from '../../../types/metrics';
+import { formatMoney } from '@/lib/format-money';
 import { MetricInfoCard } from '../channel-widgets/KpiTooltip';
 
 interface AttractionScorecardsProps {
@@ -14,6 +15,8 @@ interface AttractionScorecardsProps {
   totalLeads: number;
   leadConvRate: number;
   totalSpend: number;
+  /** ISO 4217 currency code for monetary values (defaults to 'USD'). */
+  currency?: string;
 }
 
 interface ScorecardData {
@@ -25,11 +28,11 @@ interface ScorecardData {
   metricName?: string;
 }
 
-function formatValue(value: number, format: 'number' | 'percent' | 'money'): string {
+function formatValue(value: number, format: 'number' | 'percent' | 'money', currency = 'USD'): string {
   if (format === 'percent') return `${value.toFixed(1)}%`;
   if (format === 'money') {
     if (value === 0) return '--';
-    return `$${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}`;
+    return formatMoney(value, currency);
   }
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
@@ -48,6 +51,7 @@ export function AttractionScorecards({
   totalLeads,
   leadConvRate,
   totalSpend,
+  currency = 'USD',
 }: AttractionScorecardsProps) {
   const cards = useMemo((): ScorecardData[] => {
     // Build sparkline from timeseries data (sum all channels per day)
@@ -129,7 +133,7 @@ export function AttractionScorecards({
           )}
           <div className="flex items-end justify-between gap-2">
             <span className="text-2xl font-black text-foreground leading-none">
-              {formatValue(card.value, card.format)}
+              {formatValue(card.value, card.format, currency)}
             </span>
             {card.sparkData.length > 2 && (
               <ChartContainer config={sparkConfig} className="h-[28px] w-[56px] !aspect-auto">

@@ -188,7 +188,7 @@ function ChannelRowCard({
             const metricSpec = config?.summaryMetrics.find(s => s.name === m.name);
             const isCurrency = m.unit === 'currency' || metricSpec?.format === 'currency';
             const formatted = isCurrency
-              ? formatMetricValue(m.value, 'currency')
+              ? formatMetricValue(m.value, 'currency', m.currency)
               : formatNum(m.value);
             const metricLabel = metricSpec?.label ?? m.name;
             const isResponsiveSm = metricSpec?.responsive === 'sm';
@@ -265,7 +265,7 @@ function WebsiteExpandedRow({
                 {spec.label ?? spec.name}
               </p>
               <p className="text-base font-bold tabular-nums">
-                {formatMetricValue(getMetricValue(channel.metrics, spec.name), spec.format)}
+                {formatMetricValue(getMetricValue(channel.metrics, spec.name), spec.format, channel.metrics.find(m => m.name === spec.name)?.currency)}
               </p>
             </div>
           ))}

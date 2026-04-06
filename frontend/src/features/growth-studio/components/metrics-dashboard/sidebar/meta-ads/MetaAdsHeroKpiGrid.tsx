@@ -16,9 +16,9 @@ interface MetaAdsHeroKpiGridProps {
 
 const HERO_METRICS = ['spend', 'ROAS', 'CPL', 'CTR'];
 
-function formatValue(value: number, unit: string): string {
+function formatValue(value: number, unit: string, currency?: string): string {
   if (unit === 'currency')
-    return formatMoney(value, 'USD');
+    return formatMoney(value, currency || 'USD');
   if (unit === 'percentage') return `${value.toFixed(2)}%`;
   if (unit === 'ratio') return `${value.toFixed(2)}x`;
   return value.toLocaleString('en-US');
@@ -46,7 +46,7 @@ export function MetaAdsHeroKpiGrid({ kpis, timeSeries }: MetaAdsHeroKpiGridProps
             <p className="text-xs text-muted-foreground">{kpi.displayName}</p>
             <div className="flex items-baseline justify-between">
               <span className="text-xl font-semibold tabular-nums">
-                {formatValue(kpi.currentValue, kpi.unit)}
+                {formatValue(kpi.currentValue, kpi.unit, kpi.currency)}
               </span>
               {sparkData.length > 2 && (
                 <ChartContainer

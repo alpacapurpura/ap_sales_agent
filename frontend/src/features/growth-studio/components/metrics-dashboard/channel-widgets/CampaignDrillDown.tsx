@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { CampaignMetric, MetricValue } from '../../../types/metrics';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
+import { formatMoney } from '@/lib/format-money';
 
 // Format helpers (inline to avoid cross-file dependency)
 function formatNumber(n: number): string {
@@ -13,12 +14,8 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-function formatCurrency(n: number): string {
-  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 function formatMetricValue(m: MetricValue): string {
-  if (m.unit === 'currency') return formatCurrency(m.value);
+  if (m.unit === 'currency') return formatMoney(m.value, m.currency || 'USD');
   if (m.unit === 'percentage') return `${m.value.toFixed(1)}%`;
   return formatNumber(m.value);
 }
