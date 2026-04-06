@@ -17,10 +17,12 @@ import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
 import { ConversionBridge } from '../attraction/ConversionBridge';
 import { ChannelGroup } from '../attraction/ChannelGroup';
 import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
-import { MetaAdsDashboard } from '../sidebar/meta-ads/MetaAdsDashboard';
-import { IgOrganicDashboard } from '../sidebar/ig-organic/IgOrganicDashboard';
-import { YouTubeDashboard } from '../sidebar/youtube-organic/YouTubeDashboard';
-import { MailDashboard } from '../sidebar/mail/MailDashboard';
+import dynamic from 'next/dynamic';
+
+const MetaAdsDashboard = dynamic(() => import('../sidebar/meta-ads/MetaAdsDashboard').then(m => ({ default: m.MetaAdsDashboard })), { ssr: false });
+const IgOrganicDashboard = dynamic(() => import('../sidebar/ig-organic/IgOrganicDashboard').then(m => ({ default: m.IgOrganicDashboard })), { ssr: false });
+const YouTubeDashboard = dynamic(() => import('../sidebar/youtube-organic/YouTubeDashboard').then(m => ({ default: m.YouTubeDashboard })), { ssr: false });
+const MailDashboard = dynamic(() => import('../sidebar/mail/MailDashboard').then(m => ({ default: m.MailDashboard })), { ssr: false });
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
