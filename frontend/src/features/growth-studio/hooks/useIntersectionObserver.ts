@@ -53,7 +53,6 @@ export function useIntersectionObserver(options?: UseIntersectionObserverOptions
     return () => {
       observerRef.current?.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options?.rootMargin, options?.threshold]);
 
   // Ref callback — attach/detach element
