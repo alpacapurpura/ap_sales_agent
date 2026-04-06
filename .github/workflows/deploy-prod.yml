@@ -158,9 +158,17 @@ jobs:
       - name: Start services
         run: |
           docker network create gateway || true
-          docker compose --profile e2e up -d --build --wait
+          docker compose up -d --build postgres redis qdrant api_dev client_dashboard_dev
           echo "--- Disk usage after build ---"
           df -h / | tail -1
+          echo "Waiting for Next.js to be healthy..."
+          for i in $(seq 1 30); do
+            if docker exec visionarias_client_dev wget -q --spider http://localhost:3000 2>/dev/null; then
+              echo "Next.js ready after $((i*10))s"
+              break
+            fi
+            sleep 10
+          done
 
       - name: Run migrations
         run: docker exec visionarias_brain_dev bash -c "cd /app && alembic upgrade head"
