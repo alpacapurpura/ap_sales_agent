@@ -383,6 +383,18 @@ class MetaProvider(BaseMetricsProvider):
                 if fail:
                     failures.append(fail)
 
+                ad_level_metrics, fail = await self._safe_extract(
+                    self._extract_meta_ads_by_ad,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
+                    extractor_name="meta_ads_by_ad",
+                )
+                metrics.extend(ad_level_metrics)
+                if fail:
+                    failures.append(fail)
+
                 breakdowns_metrics, fail = await self._safe_extract(
                     self._extract_meta_ads_breakdowns,
                     client,
@@ -1439,6 +1451,51 @@ class MetaProvider(BaseMetricsProvider):
             parsed = self._parse_ads_row(row, currency, metric_date)
             for m in parsed:
                 m.campaign_id = campaign_id
+            metrics.extend(parsed)
+        return metrics
+
+    # ── Phase 2b: Ad-level extraction ──
+
+    async def _extract_meta_ads_by_ad(
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+    ) -> list[ExtractedMetric]:
+        """Extract Meta Ads metrics at individual ad level."""
+        ad_account_id = credentials.get("ad_account_id")
+        if not ad_account_id:
+            return []
+        access_token = credentials.get("access_token", "")
+        currency = credentials.get("currency", "USD")
+
+        response = await client.get(
+            f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
+            headers=_auth_headers(access_token),
+            params={
+                "fields": f"ad_id,ad_name,{_ADS_EXPANDED_FIELDS}",
+                "time_range": json.dumps(
+                    {
+                        "since": start_date.isoformat(),
+                        "until": end_date.isoformat(),
+                    }
+                ),
+                "level": "ad",
+                "limit": "500",
+            },
+        )
+        _raise_for_meta_error(response, "meta_ads_by_ad")
+        rows = response.json().get("data", [])
+
+        metrics: list[ExtractedMetric] = []
+        for row in rows:
+            ad_id = row.get("ad_id")
+            ad_name = row.get("ad_name", "")
+            parsed = self._parse_ads_row(row, currency, end_date)
+            for m in parsed:
+                m.ad_id = ad_id
+                m.extra = {**m.extra, "ad_name": ad_name}
             metrics.extend(parsed)
         return metrics
 
