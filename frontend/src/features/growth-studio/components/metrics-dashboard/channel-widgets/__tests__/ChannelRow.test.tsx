@@ -257,4 +257,32 @@ describe('ChannelRow', () => {
     // React.memo components have a special type property
     expect((ChannelRow as { $$typeof?: symbol }).$$typeof).toBeDefined();
   });
+
+  // ── DOM ID anchor tests (Phase 0: deep-linkable channels) ────────────
+
+  it('renders id="channel-{slug}" on connected channel row', () => {
+    const { container } = render(<ChannelRow channel={connectedChannel} />);
+    const el = container.querySelector('#channel-ig-organic');
+    expect(el).not.toBeNull();
+  });
+
+  it('renders id="channel-{slug}" on disconnected channel row', () => {
+    const { container } = render(<ChannelRow channel={disconnectedChannel} />);
+    const el = container.querySelector('#channel-tiktok-organic');
+    expect(el).not.toBeNull();
+  });
+
+  it('renders id="channel-{slug}" on próximamente channel row', () => {
+    const aiSdrChannel: ChannelMetric = {
+      slug: 'ai-sdr',
+      name: 'AI SDR',
+      channelType: 'ai_agent',
+      metrics: [],
+      sourceLabel: 'Nicolify AI',
+      connected: true,
+    };
+    const { container } = render(<ChannelRow channel={aiSdrChannel} />);
+    const el = container.querySelector('#channel-ai-sdr');
+    expect(el).not.toBeNull();
+  });
 });
