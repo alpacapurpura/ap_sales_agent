@@ -88,7 +88,7 @@ def get_conversation(
 
 
 @router.post("/conversations/{lead_id}/stop", response_model=StopResponse)
-def stop_ai(
+async def stop_ai(
     lead_id: UUID,
     body: StopRequest = None,
     db: Session = Depends(get_db),
@@ -99,6 +99,21 @@ def stop_ai(
     if not result:
         raise HTTPException(status_code=404, detail="Conversation not found")
     db.commit()
+
+    try:
+        from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
+
+        await ws_manager.emit(
+            str(user.tenant_id),
+            {
+                "type": "handler_changed",
+                "lead_id": str(lead_id),
+                "handler_mode": "human",
+            },
+        )
+    except Exception:  # noqa: S110
+        pass
+
     return StopResponse(**result)
 
 
@@ -106,7 +121,7 @@ def stop_ai(
 
 
 @router.post("/conversations/{lead_id}/resume", response_model=ResumeResponse)
-def resume_ai(
+async def resume_ai(
     lead_id: UUID,
     body: ResumeRequest = ResumeRequest(),
     db: Session = Depends(get_db),
@@ -117,6 +132,17 @@ def resume_ai(
     if not result:
         raise HTTPException(status_code=404, detail="Conversation not found")
     db.commit()
+
+    try:
+        from src.modules.sales_agent.infrastructure.ws_manager import ws_manager
+
+        await ws_manager.emit(
+            str(user.tenant_id),
+            {"type": "handler_changed", "lead_id": str(lead_id), "handler_mode": "ai"},
+        )
+    except Exception:  # noqa: S110
+        pass
+
     return ResumeResponse(**result)
 
 
