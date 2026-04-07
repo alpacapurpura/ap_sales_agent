@@ -136,7 +136,7 @@ class CloserStudioService:
                     "lead_score": checkpoint.lead_score
                     if checkpoint
                     else (lead.intent_score or 0),
-                    "handler_mode": checkpoint.handler_mode if checkpoint else "ai",
+                    "handler_mode": checkpoint.handler_mode if checkpoint else "human",
                     "funnel_stage": checkpoint.current_stage
                     if checkpoint
                     else "rapport",
@@ -234,7 +234,7 @@ class CloserStudioService:
             "channel": checkpoint.channel_type if checkpoint else None,
             "temperature": lead.temperature,
             "lead_score": checkpoint.lead_score if checkpoint else 0,
-            "handler_mode": checkpoint.handler_mode if checkpoint else "ai",
+            "handler_mode": checkpoint.handler_mode if checkpoint else "human",
             "funnel_stage": checkpoint.current_stage if checkpoint else "rapport",
             "pipeline_stage": self._lifecycle_stage(lead),
             "paused_at": checkpoint.paused_at if checkpoint else None,
