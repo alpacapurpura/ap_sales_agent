@@ -4,22 +4,19 @@ Unit tests for StateRepository (agent state checkpoint persistence).
 Covers: create, load, update, deactivate, tenant isolation, and
 session-timeout deactivation.
 """
+
 import uuid
 
-import pytest
 from sqlalchemy.orm import Session
 
-from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
-    AgentStateCheckpointModel,
-)
 from src.modules.sales_agent.infrastructure.repositories.state_repository import (
     StateRepository,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_repo(db: Session) -> StateRepository:
     return StateRepository(db)
@@ -31,7 +28,9 @@ def _make_repo(db: Session) -> StateRepository:
 
 
 class TestCreateNewCheckpoint:
-    def test_create_new_checkpoint(self, db: Session, tenant_id, lead_id, customer_profile_id):
+    def test_create_new_checkpoint(
+        self, db: Session, tenant_id, lead_id, customer_profile_id
+    ):
         repo = _make_repo(db)
 
         cp = repo.save_checkpoint(

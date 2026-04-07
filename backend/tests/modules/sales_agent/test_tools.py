@@ -8,20 +8,20 @@ Covers:
 """
 
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from src.modules.sales_agent.application.agents.sales.tools import (
-    tool_send_payment_link,
-    tool_check_schedule,
-    tool_recommend_product,
-    tool_escalate_to_human,
     TOOL_REGISTRY,
+    tool_check_schedule,
+    tool_escalate_to_human,
+    tool_recommend_product,
+    tool_send_payment_link,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 def _base_state(**overrides) -> dict:
     """Minimal AgentState dict for testing."""
@@ -63,8 +63,10 @@ _TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_
 
 def _noop_trace(name):
     """No-op replacement for trace_node decorator in tests."""
+
     def decorator(func):
         return func
+
     return decorator
 
 
@@ -72,13 +74,16 @@ def _noop_trace(name):
 # tool_send_payment_link
 # ---------------------------------------------------------------------------
 
+
 class TestSendPaymentLink:
     def test_success_with_checkout_url(self):
-        state = _base_state(active_product={
-            "id": "abc-123",
-            "name": "Programa Premium",
-            "checkout_page_url": "https://pay.example.com/premium",
-        })
+        state = _base_state(
+            active_product={
+                "id": "abc-123",
+                "name": "Programa Premium",
+                "checkout_page_url": "https://pay.example.com/premium",
+            }
+        )
         result = tool_send_payment_link(state)
         assert result["status"] == "success"
         assert "https://pay.example.com/premium" in result["url"]
@@ -99,6 +104,7 @@ class TestSendPaymentLink:
 # ---------------------------------------------------------------------------
 # tool_check_schedule
 # ---------------------------------------------------------------------------
+
 
 class TestCheckSchedule:
     def test_error_when_no_calendar_type_id(self):
@@ -125,8 +131,7 @@ class TestCheckSchedule:
         assert result["status"] == "error"
 
     @patch(
-        "src.modules.sales_agent.application.agents.sales.tools."
-        "AvailabilityService",
+        "src.modules.sales_agent.application.agents.sales.tools.AvailabilityService",
         create=True,
     )
     def test_success_when_calendar_connected(self, _mock_cls):
@@ -154,13 +159,16 @@ class TestCheckSchedule:
 # tool_recommend_product
 # ---------------------------------------------------------------------------
 
+
 class TestRecommendProduct:
     def test_returns_lead_context(self):
-        state = _base_state(qualification_answers={
-            "main_pain": "no tengo tiempo",
-            "budget_range": "5000-10000",
-            "timeline": "este mes",
-        })
+        state = _base_state(
+            qualification_answers={
+                "main_pain": "no tengo tiempo",
+                "budget_range": "5000-10000",
+                "timeline": "este mes",
+            }
+        )
         result = tool_recommend_product(state)
         assert result["status"] == "success"
         assert result["lead_context"]["pain"] == "no tengo tiempo"
@@ -180,6 +188,7 @@ class TestRecommendProduct:
 # tool_escalate_to_human
 # ---------------------------------------------------------------------------
 
+
 class TestEscalateToHuman:
     def test_returns_escalated_status(self):
         state = _base_state()
@@ -193,9 +202,15 @@ class TestEscalateToHuman:
 # TOOL_REGISTRY
 # ---------------------------------------------------------------------------
 
+
 class TestToolRegistry:
     def test_has_all_four_tools(self):
-        expected = {"send_payment_link", "check_schedule", "recommend_product", "escalate_to_human"}
+        expected = {
+            "send_payment_link",
+            "check_schedule",
+            "recommend_product",
+            "escalate_to_human",
+        }
         assert set(TOOL_REGISTRY.keys()) == expected
 
     def test_all_values_are_callable(self):
@@ -207,11 +222,14 @@ class TestToolRegistry:
 # node_tool_executor dispatch
 # ---------------------------------------------------------------------------
 
+
 class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_dispatches_to_correct_tool(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
@@ -235,7 +253,9 @@ class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_unknown_tool_returns_error(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -250,7 +270,9 @@ class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_no_pending_tool_returns_respond(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -260,7 +282,9 @@ class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_tool_exception_returns_error_message(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -283,7 +307,9 @@ class TestToolExecutor:
     def test_passes_db_from_state(self):
         """Verifies that _db from state is forwarded to tool functions."""
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         mock_tool = MagicMock(return_value={"status": "success", "message": "ok"})

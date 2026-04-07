@@ -1,8 +1,9 @@
 """Tests for CampaignRepository — upsert and query operations."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.repositories.campaign_repository import (
     CampaignRepository,

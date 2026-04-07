@@ -1,11 +1,12 @@
 """Smoke tests to verify factories produce valid instances."""
+
 from tests.factories import (
-    TenantFactory,
-    BrandIdentityFactory,
-    BrandVisualsFactory,
-    BrandStoryFactory,
-    BrandSettingsFactory,
     AvatarFactory,
+    BrandIdentityFactory,
+    BrandSettingsFactory,
+    BrandStoryFactory,
+    BrandVisualsFactory,
+    TenantFactory,
 )
 
 

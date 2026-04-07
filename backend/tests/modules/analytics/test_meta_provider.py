@@ -3,15 +3,14 @@
 All external API calls mocked via httpx responses.
 """
 
-import pytest
 from datetime import date
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import httpx
+import pytest
 
 from src.modules.analytics.infrastructure.providers.meta_provider import MetaProvider
-
 
 TENANT_ID = uuid4()
 CREDS = {
@@ -65,86 +64,107 @@ class TestInstagramOrganic:
     async def test_happy_path_excludes_ad_from_breakdown(self):
         """Breakdownable metrics exclude AD values; non-breakdownable kept as-is."""
         # Breakdownable response: includes AD that must be excluded
-        mock_breakdown_response = _ok_response({
-            "data": [
-                {
-                    "name": "reach",
-                    "total_value": {
-                        "value": 500,
-                        "breakdowns": [{
-                            "dimension_keys": ["media_product_type"],
-                            "results": [
-                                {"dimension_values": ["AD"], "value": 200},
-                                {"dimension_values": ["FEED"], "value": 150},
-                                {"dimension_values": ["REELS"], "value": 100},
-                                {"dimension_values": ["STORY"], "value": 50},
+        mock_breakdown_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "name": "reach",
+                        "total_value": {
+                            "value": 500,
+                            "breakdowns": [
+                                {
+                                    "dimension_keys": ["media_product_type"],
+                                    "results": [
+                                        {"dimension_values": ["AD"], "value": 200},
+                                        {"dimension_values": ["FEED"], "value": 150},
+                                        {"dimension_values": ["REELS"], "value": 100},
+                                        {"dimension_values": ["STORY"], "value": 50},
+                                    ],
+                                }
                             ],
-                        }],
+                        },
                     },
-                },
-                {
-                    "name": "total_interactions",
-                    "total_value": {
-                        "value": 900,
-                        "breakdowns": [{
-                            "dimension_keys": ["media_product_type"],
-                            "results": [
-                                {"dimension_values": ["AD"], "value": 100},
-                                {"dimension_values": ["FEED"], "value": 500},
-                                {"dimension_values": ["REELS"], "value": 300},
+                    {
+                        "name": "total_interactions",
+                        "total_value": {
+                            "value": 900,
+                            "breakdowns": [
+                                {
+                                    "dimension_keys": ["media_product_type"],
+                                    "results": [
+                                        {"dimension_values": ["AD"], "value": 100},
+                                        {"dimension_values": ["FEED"], "value": 500},
+                                        {"dimension_values": ["REELS"], "value": 300},
+                                    ],
+                                }
                             ],
-                        }],
+                        },
                     },
-                },
-                {
-                    "name": "likes",
-                    "total_value": {
-                        "value": 330,
-                        "breakdowns": [{
-                            "dimension_keys": ["media_product_type"],
-                            "results": [
-                                {"dimension_values": ["AD"], "value": 30},
-                                {"dimension_values": ["FEED"], "value": 200},
-                                {"dimension_values": ["REELS"], "value": 100},
+                    {
+                        "name": "likes",
+                        "total_value": {
+                            "value": 330,
+                            "breakdowns": [
+                                {
+                                    "dimension_keys": ["media_product_type"],
+                                    "results": [
+                                        {"dimension_values": ["AD"], "value": 30},
+                                        {"dimension_values": ["FEED"], "value": 200},
+                                        {"dimension_values": ["REELS"], "value": 100},
+                                    ],
+                                }
                             ],
-                        }],
+                        },
                     },
-                },
-            ]
-        })
+                ]
+            }
+        )
 
         # Non-breakdownable response: no breakdown available
-        mock_no_breakdown_response = _ok_response({
-            "data": [
-                {
-                    "name": "accounts_engaged",
-                    "total_value": {"value": 250},
-                },
-                {
-                    "name": "replies",
-                    "total_value": {"value": 45},
-                },
-            ]
-        })
-
-        mock_user_node_response = _ok_response({
-            "id": "12345",
-            "followers_count": 28400,
-            "media_count": 342,
-        })
-
-        mock_demographics_response = _ok_response({
-            "data": [
-                {
-                    "name": "follower_demographics",
-                    "total_value": {
-                        "breakdowns": [
-                            {"results": [{"dimension_values": ["25-34", "F"], "value": 4200}]}
-                        ]
+        mock_no_breakdown_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "name": "accounts_engaged",
+                        "total_value": {"value": 250},
                     },
-                }
-            ]
-        })
+                    {
+                        "name": "replies",
+                        "total_value": {"value": 45},
+                    },
+                ]
+            }
+        )
+
+        mock_user_node_response = _ok_response(
+            {
+                "id": "12345",
+                "followers_count": 28400,
+                "media_count": 342,
+            }
+        )
+
+        mock_demographics_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "name": "follower_demographics",
+                        "total_value": {
+                            "breakdowns": [
+                                {
+                                    "results": [
+                                        {
+                                            "dimension_values": ["25-34", "F"],
+                                            "value": 4200,
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                    }
+                ]
+            }
+        )
 
         async def mock_get(url, **kwargs):
             params = kwargs.get("params", {})
@@ -180,7 +200,9 @@ class TestInstagramOrganic:
         assert reach.provider == "meta"
 
         # total_interactions is ADDITIVE, AD excluded (900 - 100 = 800)
-        interactions = next(m for m in ig_metrics if m.metric_name == "total_interactions")
+        interactions = next(
+            m for m in ig_metrics if m.metric_name == "total_interactions"
+        )
         assert interactions.value == 800.0
 
         # ig_likes is ADDITIVE, AD excluded (330 - 30 = 300)
@@ -202,7 +224,9 @@ class TestInstagramOrganic:
         assert media.value == 342.0
 
         # Demographics
-        demo = next(m for m in ig_metrics if m.metric_name == "ig_follower_demographics")
+        demo = next(
+            m for m in ig_metrics if m.metric_name == "ig_follower_demographics"
+        )
         assert demo.unit == "json"
         assert demo.value == 0.0
 
@@ -237,23 +261,27 @@ class TestInstagramOrganic:
 class TestFacebookOrganic:
     @pytest.mark.asyncio
     async def test_happy_path_uses_organic_metric(self):
-        mock_reach_response = _ok_response({
-            "data": [
-                {
-                    "name": "page_impressions_organic_unique",
-                    "values": [{"value": 5000}],
-                }
-            ]
-        })
+        mock_reach_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "name": "page_impressions_organic_unique",
+                        "values": [{"value": 5000}],
+                    }
+                ]
+            }
+        )
 
-        mock_engagement_response = _ok_response({
-            "data": [
-                {
-                    "name": "page_post_engagements",
-                    "values": [{"value": 800}],
-                }
-            ]
-        })
+        mock_engagement_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "name": "page_post_engagements",
+                        "values": [{"value": 800}],
+                    }
+                ]
+            }
+        )
 
         async def mock_get(url, **kwargs):
             params = kwargs.get("params", {})
@@ -314,8 +342,14 @@ class TestMetaAds:
             {"action_type": "link_click", "value": "300"},
             {"action_type": "offsite_conversion.fb_pixel_lead", "value": "25"},
             {"action_type": "offsite_conversion.fb_pixel_add_to_cart", "value": "40"},
-            {"action_type": "offsite_conversion.fb_pixel_initiate_checkout", "value": "20"},
-            {"action_type": "offsite_conversion.fb_pixel_complete_registration", "value": "10"},
+            {
+                "action_type": "offsite_conversion.fb_pixel_initiate_checkout",
+                "value": "20",
+            },
+            {
+                "action_type": "offsite_conversion.fb_pixel_complete_registration",
+                "value": "10",
+            },
             {"action_type": "offsite_conversion.fb_pixel_view_content", "value": "200"},
             {"action_type": "landing_page_view", "value": "350"},
             {"action_type": "video_view", "value": "1200"},
@@ -568,10 +602,22 @@ class TestMetaAds:
     async def test_currency_from_credentials(self):
         """P6: Currency should come from credentials, not hardcoded USD."""
         creds_eur = {**CREDS, "currency": "EUR"}
-        mock_ads_response = _ok_response({
-            "data": [{"reach": "1", "impressions": "1", "clicks": "0", "spend": "10.00",
-                       "ctr": "0", "cpm": "0", "frequency": "1", "actions": []}]
-        })
+        mock_ads_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "reach": "1",
+                        "impressions": "1",
+                        "clicks": "0",
+                        "spend": "10.00",
+                        "ctr": "0",
+                        "cpm": "0",
+                        "frequency": "1",
+                        "actions": [],
+                    }
+                ]
+            }
+        )
 
         async def mock_get(url, **kwargs):
             if "/act_" in url:
@@ -591,17 +637,33 @@ class TestMetaAds:
             )
         metrics = result.metrics
 
-        spend = next(m for m in metrics if m.metric_name == "spend" and m.channel_slug == "meta-ads")
+        spend = next(
+            m
+            for m in metrics
+            if m.metric_name == "spend" and m.channel_slug == "meta-ads"
+        )
         assert spend.currency == "EUR"
 
     @pytest.mark.asyncio
     async def test_currency_defaults_to_usd(self):
         """P6: Without currency in credentials, should default to USD."""
         creds_no_currency = {k: v for k, v in CREDS.items() if k != "currency"}
-        mock_ads_response = _ok_response({
-            "data": [{"reach": "1", "impressions": "1", "clicks": "0", "spend": "5.00",
-                       "ctr": "0", "cpm": "0", "frequency": "1", "actions": []}]
-        })
+        mock_ads_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "reach": "1",
+                        "impressions": "1",
+                        "clicks": "0",
+                        "spend": "5.00",
+                        "ctr": "0",
+                        "cpm": "0",
+                        "frequency": "1",
+                        "actions": [],
+                    }
+                ]
+            }
+        )
 
         async def mock_get(url, **kwargs):
             if "/act_" in url:
@@ -621,7 +683,11 @@ class TestMetaAds:
             )
         metrics = result.metrics
 
-        spend = next(m for m in metrics if m.metric_name == "spend" and m.channel_slug == "meta-ads")
+        spend = next(
+            m
+            for m in metrics
+            if m.metric_name == "spend" and m.channel_slug == "meta-ads"
+        )
         assert spend.currency == "USD"
 
 
@@ -636,7 +702,7 @@ class TestExtractMetricsDaily:
         # Map since-timestamp → per-day breakdownable response (with AD)
         day_breakdown_data = {
             int(dt.combine(date(2026, 3, 1), dt.min.time()).timestamp()): {
-                "reach": (1000, 200),   # (total, ad_value)
+                "reach": (1000, 200),  # (total, ad_value)
                 "total_interactions": (300, 50),
             },
             int(dt.combine(date(2026, 3, 2), dt.min.time()).timestamp()): {
@@ -655,11 +721,13 @@ class TestExtractMetricsDaily:
             "replies": 10,
         }
 
-        mock_user_node_response = _ok_response({
-            "id": "12345",
-            "followers_count": 28400,
-            "media_count": 342,
-        })
+        mock_user_node_response = _ok_response(
+            {
+                "id": "12345",
+                "followers_count": 28400,
+                "media_count": 342,
+            }
+        )
 
         async def mock_get(url, **kwargs):
             params = kwargs.get("params", {})
@@ -670,34 +738,52 @@ class TestExtractMetricsDaily:
                 if "breakdown" in params:
                     # Breakdownable call — return with AD breakdown
                     values = day_breakdown_data.get(since, {})
-                    return _ok_response({
-                        "data": [
-                            {
-                                "name": name,
-                                "total_value": {
-                                    "value": total,
-                                    "breakdowns": [{
-                                        "dimension_keys": ["media_product_type"],
-                                        "results": [
-                                            {"dimension_values": ["AD"], "value": ad},
-                                            {"dimension_values": ["FEED"], "value": total - ad},
-                                        ] if ad > 0 else [
-                                            {"dimension_values": ["FEED"], "value": total},
+                    return _ok_response(
+                        {
+                            "data": [
+                                {
+                                    "name": name,
+                                    "total_value": {
+                                        "value": total,
+                                        "breakdowns": [
+                                            {
+                                                "dimension_keys": [
+                                                    "media_product_type"
+                                                ],
+                                                "results": [
+                                                    {
+                                                        "dimension_values": ["AD"],
+                                                        "value": ad,
+                                                    },
+                                                    {
+                                                        "dimension_values": ["FEED"],
+                                                        "value": total - ad,
+                                                    },
+                                                ]
+                                                if ad > 0
+                                                else [
+                                                    {
+                                                        "dimension_values": ["FEED"],
+                                                        "value": total,
+                                                    },
+                                                ],
+                                            }
                                         ],
-                                    }],
-                                },
-                            }
-                            for name, (total, ad) in values.items()
-                        ]
-                    })
-                else:
-                    # Non-breakdownable call
-                    return _ok_response({
+                                    },
+                                }
+                                for name, (total, ad) in values.items()
+                            ]
+                        }
+                    )
+                # Non-breakdownable call
+                return _ok_response(
+                    {
                         "data": [
                             {"name": name, "total_value": {"value": val}}
                             for name, val in no_breakdown_data.items()
                         ]
-                    })
+                    }
+                )
             if url.endswith("/12345") and "fields" in params:
                 return mock_user_node_response
             return _ok_response({"data": []})
@@ -717,7 +803,11 @@ class TestExtractMetricsDaily:
         metrics = result.metrics
 
         # Reach: 3 days, AD excluded
-        reach_metrics = [m for m in metrics if m.metric_name == "reach" and m.channel_slug == "ig-organic"]
+        reach_metrics = [
+            m
+            for m in metrics
+            if m.metric_name == "reach" and m.channel_slug == "ig-organic"
+        ]
         assert len(reach_metrics) == 3
         assert reach_metrics[0].date == date(2026, 3, 1)
         assert reach_metrics[0].value == 800.0  # 1000 - 200
@@ -727,7 +817,11 @@ class TestExtractMetricsDaily:
         assert reach_metrics[2].value == 500.0  # 500 - 0
 
         # total_interactions: 3 days
-        interactions = [m for m in metrics if m.metric_name == "total_interactions" and m.channel_slug == "ig-organic"]
+        interactions = [
+            m
+            for m in metrics
+            if m.metric_name == "total_interactions" and m.channel_slug == "ig-organic"
+        ]
         assert len(interactions) == 3
 
         # Snapshots: only on end_date
@@ -738,36 +832,41 @@ class TestExtractMetricsDaily:
     @pytest.mark.asyncio
     async def test_meta_ads_daily_uses_time_increment(self):
         """Meta Ads daily should use time_increment=1 and emit per-day metrics."""
-        mock_ads_response = _ok_response({
-            "data": [
-                {
-                    "date_start": "2026-03-01",
-                    "date_stop": "2026-03-01",
-                    "reach": "5000",
-                    "impressions": "20000",
-                    "clicks": "200",
-                    "spend": "50.00",
-                    "ctr": "1.0",
-                    "cpm": "2.5",
-                    "frequency": "4.0",
-                    "actions": [],
-                },
-                {
-                    "date_start": "2026-03-02",
-                    "date_stop": "2026-03-02",
-                    "reach": "6000",
-                    "impressions": "25000",
-                    "clicks": "300",
-                    "spend": "60.00",
-                    "ctr": "1.2",
-                    "cpm": "2.4",
-                    "frequency": "4.2",
-                    "actions": [
-                        {"action_type": "offsite_conversion.fb_pixel_purchase", "value": "5"},
-                    ],
-                },
-            ]
-        })
+        mock_ads_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "date_start": "2026-03-01",
+                        "date_stop": "2026-03-01",
+                        "reach": "5000",
+                        "impressions": "20000",
+                        "clicks": "200",
+                        "spend": "50.00",
+                        "ctr": "1.0",
+                        "cpm": "2.5",
+                        "frequency": "4.0",
+                        "actions": [],
+                    },
+                    {
+                        "date_start": "2026-03-02",
+                        "date_stop": "2026-03-02",
+                        "reach": "6000",
+                        "impressions": "25000",
+                        "clicks": "300",
+                        "spend": "60.00",
+                        "ctr": "1.2",
+                        "cpm": "2.4",
+                        "frequency": "4.2",
+                        "actions": [
+                            {
+                                "action_type": "offsite_conversion.fb_pixel_purchase",
+                                "value": "5",
+                            },
+                        ],
+                    },
+                ]
+            }
+        )
 
         captured_params = []
 
@@ -804,40 +903,52 @@ class TestExtractMetricsDaily:
         assert len(ads_params) >= 1
 
         # Check day 1 reach
-        day1_reach = [m for m in ads_metrics if m.metric_name == "reach" and m.date == date(2026, 3, 1)]
+        day1_reach = [
+            m
+            for m in ads_metrics
+            if m.metric_name == "reach" and m.date == date(2026, 3, 1)
+        ]
         assert len(day1_reach) == 1
         assert day1_reach[0].value == 5000.0
 
         # Check day 2 conversions
-        day2_conv = [m for m in ads_metrics if m.metric_name == "conversions" and m.date == date(2026, 3, 2)]
+        day2_conv = [
+            m
+            for m in ads_metrics
+            if m.metric_name == "conversions" and m.date == date(2026, 3, 2)
+        ]
         assert len(day2_conv) == 1
         assert day2_conv[0].value == 5.0
 
     @pytest.mark.asyncio
     async def test_fb_organic_daily_emits_per_day(self):
         """FB organic daily should parse values[] for both reach and engagement."""
-        mock_reach_response = _ok_response({
-            "data": [
-                {
-                    "name": "page_impressions_organic_unique",
-                    "values": [
-                        {"value": 3000, "end_time": "2026-03-01T08:00:00+0000"},
-                        {"value": 4000, "end_time": "2026-03-02T08:00:00+0000"},
-                    ],
-                }
-            ]
-        })
-        mock_engagement_response = _ok_response({
-            "data": [
-                {
-                    "name": "page_post_engagements",
-                    "values": [
-                        {"value": 200, "end_time": "2026-03-01T08:00:00+0000"},
-                        {"value": 300, "end_time": "2026-03-02T08:00:00+0000"},
-                    ],
-                }
-            ]
-        })
+        mock_reach_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "name": "page_impressions_organic_unique",
+                        "values": [
+                            {"value": 3000, "end_time": "2026-03-01T08:00:00+0000"},
+                            {"value": 4000, "end_time": "2026-03-02T08:00:00+0000"},
+                        ],
+                    }
+                ]
+            }
+        )
+        mock_engagement_response = _ok_response(
+            {
+                "data": [
+                    {
+                        "name": "page_post_engagements",
+                        "values": [
+                            {"value": 200, "end_time": "2026-03-01T08:00:00+0000"},
+                            {"value": 300, "end_time": "2026-03-02T08:00:00+0000"},
+                        ],
+                    }
+                ]
+            }
+        )
 
         call_count = 0
 
@@ -869,11 +980,19 @@ class TestExtractMetricsDaily:
         metrics = result.metrics
 
         fb_metrics = [m for m in metrics if m.channel_slug == "fb-organic"]
-        reach_d1 = [m for m in fb_metrics if m.metric_name == "reach" and m.date == date(2026, 3, 1)]
+        reach_d1 = [
+            m
+            for m in fb_metrics
+            if m.metric_name == "reach" and m.date == date(2026, 3, 1)
+        ]
         assert len(reach_d1) == 1
         assert reach_d1[0].value == 3000.0
 
-        eng_d2 = [m for m in fb_metrics if m.metric_name == "engagement" and m.date == date(2026, 3, 2)]
+        eng_d2 = [
+            m
+            for m in fb_metrics
+            if m.metric_name == "engagement" and m.date == date(2026, 3, 2)
+        ]
         assert len(eng_d2) == 1
         assert eng_d2[0].value == 300.0
 
@@ -938,7 +1057,9 @@ class TestMetaAdsCampaigns:
         assert all(m.channel_slug == "meta-ads" for m in campaign_metrics)
 
         # Account-level metrics should have no campaign_id
-        account_metrics = [m for m in metrics if m.channel_slug == "meta-ads" and m.campaign_id is None]
+        account_metrics = [
+            m for m in metrics if m.channel_slug == "meta-ads" and m.campaign_id is None
+        ]
         assert len(account_metrics) >= 30  # from the full data
 
     @pytest.mark.asyncio
@@ -995,12 +1116,34 @@ class TestMetaAdsBreakdowns:
             {"age": "25-34", "reach": "5000", "impressions": "20000", "spend": "60.00"},
         ]
         gender_data = [
-            {"gender": "female", "reach": "4000", "impressions": "15000", "spend": "50.00"},
-            {"gender": "male", "reach": "3000", "impressions": "13000", "spend": "40.00"},
+            {
+                "gender": "female",
+                "reach": "4000",
+                "impressions": "15000",
+                "spend": "50.00",
+            },
+            {
+                "gender": "male",
+                "reach": "3000",
+                "impressions": "13000",
+                "spend": "40.00",
+            },
         ]
         placement_data = [
-            {"publisher_platform": "facebook", "platform_position": "feed", "reach": "5000", "impressions": "20000", "spend": "60.00"},
-            {"publisher_platform": "instagram", "platform_position": "story", "reach": "2000", "impressions": "8000", "spend": "30.00"},
+            {
+                "publisher_platform": "facebook",
+                "platform_position": "feed",
+                "reach": "5000",
+                "impressions": "20000",
+                "spend": "60.00",
+            },
+            {
+                "publisher_platform": "instagram",
+                "platform_position": "story",
+                "reach": "2000",
+                "impressions": "8000",
+                "spend": "30.00",
+            },
         ]
 
         call_index = 0
@@ -1034,10 +1177,12 @@ class TestMetaAdsBreakdowns:
         metrics = result.metrics
 
         # Find breakdown metrics
-        breakdown_metrics = [m for m in metrics if m.unit == "json" and m.channel_slug == "meta-ads"]
+        breakdown_metrics = [
+            m for m in metrics if m.unit == "json" and m.channel_slug == "meta-ads"
+        ]
         breakdown_names = {m.metric_name for m in breakdown_metrics}
 
-        # Should have 9 breakdown metrics (3 base × 3 dimensions)
+        # Should have 9 breakdown metrics (3 base x 3 dimensions)
         assert "meta_reach_by_age" in breakdown_names
         assert "meta_spend_by_age" in breakdown_names
         assert "meta_impressions_by_age" in breakdown_names
@@ -1049,7 +1194,9 @@ class TestMetaAdsBreakdowns:
         assert "meta_impressions_by_placement" in breakdown_names
 
         # Verify age breakdown structure
-        age_reach = next(m for m in breakdown_metrics if m.metric_name == "meta_reach_by_age")
+        age_reach = next(
+            m for m in breakdown_metrics if m.metric_name == "meta_reach_by_age"
+        )
         assert age_reach.value == 0.0  # JSON metrics use 0 as placeholder
         assert "breakdowns" in age_reach.extra
         assert len(age_reach.extra["breakdowns"]) == 2
@@ -1057,12 +1204,18 @@ class TestMetaAdsBreakdowns:
         assert age_reach.extra["breakdowns"][0]["value"] == 2000.0
 
         # Verify placement breakdown has two dimension values
-        placement_reach = next(m for m in breakdown_metrics if m.metric_name == "meta_reach_by_placement")
-        assert placement_reach.extra["breakdowns"][0]["dimension_values"] == ["facebook", "feed"]
+        placement_reach = next(
+            m for m in breakdown_metrics if m.metric_name == "meta_reach_by_placement"
+        )
+        assert placement_reach.extra["breakdowns"][0]["dimension_values"] == [
+            "facebook",
+            "feed",
+        ]
 
     @pytest.mark.asyncio
     async def test_breakdowns_empty_data(self):
         """Breakdowns should gracefully handle empty API responses."""
+
         async def mock_get(url, **kwargs):
             if "/act_" in url:
                 return _ok_response({"data": [TestMetaAds.FULL_ADS_DATA]})
@@ -1098,15 +1251,17 @@ class TestExtractOrganicFromBreakdown:
             "name": "reach",
             "total_value": {
                 "value": 500,
-                "breakdowns": [{
-                    "dimension_keys": ["media_product_type"],
-                    "results": [
-                        {"dimension_values": ["AD"], "value": 200},
-                        {"dimension_values": ["FEED"], "value": 150},
-                        {"dimension_values": ["REELS"], "value": 100},
-                        {"dimension_values": ["STORY"], "value": 50},
-                    ],
-                }],
+                "breakdowns": [
+                    {
+                        "dimension_keys": ["media_product_type"],
+                        "results": [
+                            {"dimension_values": ["AD"], "value": 200},
+                            {"dimension_values": ["FEED"], "value": 150},
+                            {"dimension_values": ["REELS"], "value": 100},
+                            {"dimension_values": ["STORY"], "value": 50},
+                        ],
+                    }
+                ],
             },
         }
         assert _extract_organic_from_breakdown(item) == 300.0
@@ -1121,13 +1276,15 @@ class TestExtractOrganicFromBreakdown:
             "name": "reach",
             "total_value": {
                 "value": 400,
-                "breakdowns": [{
-                    "dimension_keys": ["media_product_type"],
-                    "results": [
-                        {"dimension_values": ["FEED"], "value": 250},
-                        {"dimension_values": ["REELS"], "value": 150},
-                    ],
-                }],
+                "breakdowns": [
+                    {
+                        "dimension_keys": ["media_product_type"],
+                        "results": [
+                            {"dimension_values": ["FEED"], "value": 250},
+                            {"dimension_values": ["REELS"], "value": 150},
+                        ],
+                    }
+                ],
             },
         }
         assert _extract_organic_from_breakdown(item) == 400.0
@@ -1166,12 +1323,14 @@ class TestExtractOrganicFromBreakdown:
             "name": "reach",
             "total_value": {
                 "value": 500,
-                "breakdowns": [{
-                    "dimension_keys": ["media_product_type"],
-                    "results": [
-                        {"dimension_values": ["AD"], "value": 500},
-                    ],
-                }],
+                "breakdowns": [
+                    {
+                        "dimension_keys": ["media_product_type"],
+                        "results": [
+                            {"dimension_values": ["AD"], "value": 500},
+                        ],
+                    }
+                ],
             },
         }
         assert _extract_organic_from_breakdown(item) == 0.0
@@ -1186,15 +1345,17 @@ class TestExtractOrganicFromBreakdown:
             "name": "likes",
             "total_value": {
                 "value": 600,
-                "breakdowns": [{
-                    "dimension_keys": ["media_product_type"],
-                    "results": [
-                        {"dimension_values": ["AD"], "value": 100},
-                        {"dimension_values": ["FEED"], "value": 200},
-                        {"dimension_values": ["CAROUSEL_CONTAINER"], "value": 150},
-                        {"dimension_values": ["POST"], "value": 150},
-                    ],
-                }],
+                "breakdowns": [
+                    {
+                        "dimension_keys": ["media_product_type"],
+                        "results": [
+                            {"dimension_values": ["AD"], "value": 100},
+                            {"dimension_values": ["FEED"], "value": 200},
+                            {"dimension_values": ["CAROUSEL_CONTAINER"], "value": 150},
+                            {"dimension_values": ["POST"], "value": 150},
+                        ],
+                    }
+                ],
             },
         }
         # 600 - 100 (AD) = 500
@@ -1227,8 +1388,7 @@ class TestFBOrganicMetricName:
             )
 
         fb_reach_calls = [
-            p for p in captured_params
-            if "page_impressions" in p.get("metric", "")
+            p for p in captured_params if "page_impressions" in p.get("metric", "")
         ]
         assert len(fb_reach_calls) >= 1
         assert fb_reach_calls[0]["metric"] == "page_impressions_organic_unique"
@@ -1246,6 +1406,7 @@ class TestMetaProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_api_error_returns_empty(self):
         """P3: HTTP errors should be caught and return empty, not silently return 0s."""
+
         async def mock_get(url, **kwargs):
             return _error_response(500)
 
@@ -1270,6 +1431,7 @@ class TestMetaProviderErrorHandling:
     @pytest.mark.asyncio
     async def test_401_does_not_return_zero_metrics(self):
         """P3: A 401 must NOT silently produce metrics with value 0."""
+
         async def mock_get(url, **kwargs):
             return _error_response(401)
 

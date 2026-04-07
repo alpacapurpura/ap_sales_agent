@@ -4,23 +4,22 @@ Tests for InactivityService: batch inactivity detection and score decay.
 CRM-04: Profiles inactive 14+ days flagged, 5%/day score decay,
 CUSTOMER decay paused, backward transitions on threshold crossing.
 """
-import uuid
-from datetime import datetime, timezone, timedelta
 
-import pytest
+import uuid
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from src.modules.crm.application.services.inactivity_service import InactivityService
 from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.domain.scoring import DECAY_CONFIG, INACTIVITY_CONFIG
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
-    JourneyEventModel,
 )
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
-from src.modules.crm.application.services.inactivity_service import InactivityService
 
 SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
@@ -28,6 +27,7 @@ SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_profile(
     db: Session,
@@ -58,6 +58,7 @@ def _make_profile(
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestInactivityDetection:
     """Test is_inactive flag setting based on last_activity_at threshold."""
@@ -120,7 +121,8 @@ class TestScoreDecay:
             db,
             stage=LifecycleStage.MQL,
             score=40.0,
-            last_activity_at=datetime.now(timezone.utc) - timedelta(days=7 + INACTIVITY_CONFIG.inactive_days),
+            last_activity_at=datetime.now(timezone.utc)
+            - timedelta(days=7 + INACTIVITY_CONFIG.inactive_days),
         )
         svc = InactivityService(db)
         svc.run_batch(tenant_id=SAMPLE_TENANT_ID)
@@ -129,7 +131,9 @@ class TestScoreDecay:
         # 40 * (1-0.05)^(7+14) = 40 * 0.95^21 ~ 13.6
         # Actually the days_inactive = total days since last activity
         # days_inactive = 21, so score = 40 * 0.95^21
-        expected = 40.0 * (1 - DECAY_CONFIG.daily_decay_rate) ** (7 + INACTIVITY_CONFIG.inactive_days)
+        expected = 40.0 * (1 - DECAY_CONFIG.daily_decay_rate) ** (
+            7 + INACTIVITY_CONFIG.inactive_days
+        )
         assert abs(profile.lead_score - expected) < 0.1
 
     def test_decay_clamps_to_floor(self, db: Session):
@@ -187,7 +191,8 @@ class TestDecayTransitions:
             db,
             stage=LifecycleStage.MQL,
             score=42.0,
-            last_activity_at=datetime.now(timezone.utc) - timedelta(days=days_past_threshold),
+            last_activity_at=datetime.now(timezone.utc)
+            - timedelta(days=days_past_threshold),
         )
         svc = InactivityService(db)
         result = svc.run_batch(tenant_id=SAMPLE_TENANT_ID)
@@ -199,12 +204,16 @@ class TestDecayTransitions:
         assert result["transitions"] >= 1
 
         # Check audit record
-        transitions = db.execute(
-            select(LifecycleTransitionModel).where(
-                LifecycleTransitionModel.profile_id == profile.id,
-                LifecycleTransitionModel.triggered_by == "decay",
+        transitions = (
+            db.execute(
+                select(LifecycleTransitionModel).where(
+                    LifecycleTransitionModel.profile_id == profile.id,
+                    LifecycleTransitionModel.triggered_by == "decay",
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(transitions) >= 1
         assert transitions[0].from_stage == LifecycleStage.MQL
         assert transitions[0].to_stage == LifecycleStage.LEAD
@@ -246,7 +255,7 @@ class TestBatchProcessing:
         )
 
         svc = InactivityService(db)
-        result = svc.run_batch(tenant_id=None)
+        svc.run_batch(tenant_id=None)
 
         db.refresh(p_a)
         db.refresh(p_b)

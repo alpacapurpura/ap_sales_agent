@@ -4,19 +4,19 @@ Tests for churn detection and manual override.
 CRM-05: Cancellation events trigger CHURNED stage, inactivity is independent,
 manual override API with audit trail.
 """
-import uuid
-from datetime import datetime, timezone, timedelta
 
-import pytest
+import uuid
+from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from src.modules.crm.application.services.lifecycle_service import LifecycleService
 from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.infrastructure.models.customer_model import CustomerProfileModel
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
-from src.modules.crm.application.services.lifecycle_service import LifecycleService
 from src.shared.domain.events import DomainEvent
 
 SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
@@ -25,6 +25,7 @@ SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_profile(
     db: Session,
@@ -75,6 +76,7 @@ def _make_churn_event(
 # Tests: Churn Detection
 # ---------------------------------------------------------------------------
 
+
 class TestChurnDetection:
     """Test subscription cancellation -> CHURNED lifecycle stage."""
 
@@ -99,12 +101,16 @@ class TestChurnDetection:
         svc.handle_churn_event(event)
         db.flush()
 
-        transitions = db.execute(
-            select(LifecycleTransitionModel).where(
-                LifecycleTransitionModel.profile_id == profile.id,
-                LifecycleTransitionModel.triggered_by == "churn_event",
+        transitions = (
+            db.execute(
+                select(LifecycleTransitionModel).where(
+                    LifecycleTransitionModel.profile_id == profile.id,
+                    LifecycleTransitionModel.triggered_by == "churn_event",
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(transitions) == 1
         assert transitions[0].from_stage == LifecycleStage.CUSTOMER
         assert transitions[0].to_stage == LifecycleStage.CHURNED
@@ -121,11 +127,15 @@ class TestChurnDetection:
         svc.handle_churn_event(event)
         db.flush()
 
-        transitions = db.execute(
-            select(LifecycleTransitionModel).where(
-                LifecycleTransitionModel.profile_id == profile.id,
+        transitions = (
+            db.execute(
+                select(LifecycleTransitionModel).where(
+                    LifecycleTransitionModel.profile_id == profile.id,
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(transitions) == 0
 
     def test_inactivity_does_not_trigger_churn(self, db: Session):
@@ -153,6 +163,7 @@ class TestChurnDetection:
 # ---------------------------------------------------------------------------
 # Tests: Manual Override
 # ---------------------------------------------------------------------------
+
 
 class TestManualOverride:
     """Test force_stage manual override with audit trail."""
@@ -188,12 +199,16 @@ class TestManualOverride:
         )
         db.flush()
 
-        transitions = db.execute(
-            select(LifecycleTransitionModel).where(
-                LifecycleTransitionModel.profile_id == profile.id,
-                LifecycleTransitionModel.triggered_by == "manual",
+        transitions = (
+            db.execute(
+                select(LifecycleTransitionModel).where(
+                    LifecycleTransitionModel.profile_id == profile.id,
+                    LifecycleTransitionModel.triggered_by == "manual",
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(transitions) == 1
         meta = transitions[0].transition_metadata or {}
         assert meta.get("admin_user_id") == "admin-001"

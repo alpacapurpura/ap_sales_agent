@@ -25,7 +25,7 @@ class TestModuleRegistryStructure:
         registry = get_module_registry()
         modules_root = _modules_root()
 
-        for module_id, descriptor in registry.items():
+        for module_id in registry:
             module_dir = modules_root / module_id
             assert module_dir.is_dir(), (
                 f"Module '{module_id}' is registered in MODULE_REGISTRY but "
@@ -48,7 +48,14 @@ class TestModuleRegistryStructure:
         from src.modules.copilot.domain.module_registry import get_module_registry
 
         registry = get_module_registry()
-        expected = {"brand", "offer", "crm", "analytics", "commercial_calendar", "landing"}
+        expected = {
+            "brand",
+            "offer",
+            "crm",
+            "analytics",
+            "commercial_calendar",
+            "landing",
+        }
         missing = expected - set(registry.keys())
         assert not missing, f"Expected modules not in registry: {missing}"
 

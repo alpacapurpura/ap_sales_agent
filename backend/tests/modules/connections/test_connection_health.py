@@ -5,8 +5,6 @@ TDD: Written BEFORE implementation. These must fail until health.py exists.
 
 from datetime import datetime, timedelta, timezone
 
-import pytest
-
 
 class TestEvaluateConnectionHealth:
     """Unit tests for the pure function that evaluates token health."""
@@ -38,7 +36,9 @@ class TestEvaluateConnectionHealth:
 
         future = datetime.now(timezone.utc) + timedelta(days=30)
         creds = {"access_token": "tok", "expires_at": future.isoformat()}
-        result = evaluate_connection_health(credentials=creds, channel_slug="google-analytics")
+        result = evaluate_connection_health(
+            credentials=creds, channel_slug="google-analytics"
+        )
 
         assert result.status == "healthy"
         assert result.channel_slug == "google-analytics"

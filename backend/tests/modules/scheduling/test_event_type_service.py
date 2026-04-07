@@ -15,7 +15,9 @@ import uuid
 
 import pytest
 
-from src.modules.scheduling.application.services.event_type_service import EventTypeService
+from src.modules.scheduling.application.services.event_type_service import (
+    EventTypeService,
+)
 from src.modules.scheduling.domain.event_type_schema import EventType, EventTypeUpdate
 
 TENANT_ID = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")

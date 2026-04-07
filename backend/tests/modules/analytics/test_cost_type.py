@@ -1,7 +1,5 @@
 """Tests for domain enums: CostType, MetricUnit, ExtractionStatus."""
 
-import pytest
-
 
 class TestCostType:
     def test_has_exactly_four_members(self):
@@ -57,7 +55,14 @@ class TestExtractionStatus:
     def test_values(self):
         from src.modules.analytics.domain.enums import ExtractionStatus
 
-        expected = {"pending", "running", "success", "failed", "partial_success", "retrying"}
+        expected = {
+            "pending",
+            "running",
+            "success",
+            "failed",
+            "partial_success",
+            "retrying",
+        }
         actual = {member.value for member in ExtractionStatus}
         assert actual == expected
 

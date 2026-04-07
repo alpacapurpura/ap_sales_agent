@@ -9,12 +9,9 @@ Tests cover:
 - invalidate_tenant() deletes matching keys
 """
 
-import json
 import asyncio
-from unittest.mock import MagicMock, patch
-
-import pytest
-
+import json
+from unittest.mock import MagicMock
 
 TENANT_ID = "11111111-1111-1111-1111-111111111111"
 

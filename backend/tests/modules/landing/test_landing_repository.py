@@ -1,11 +1,15 @@
 """Tests for LandingRepository — CRUD, slug uniqueness, soft delete, tenant isolation."""
+
 import uuid
+
 import pytest
 
 from src.modules.landing.domain.content import LandingPageConfig, SqueezeContent
 from src.modules.landing.domain.enums import LandingPageArchetype
 from src.modules.landing.domain.landing_page import LandingPage
-from src.modules.landing.infrastructure.repositories.landing_repository import LandingRepository
+from src.modules.landing.infrastructure.repositories.landing_repository import (
+    LandingRepository,
+)
 
 
 def _make_landing(
@@ -51,7 +55,9 @@ class TestLandingRepositoryCRUD:
         result = repo.get_by_id(uuid.uuid4())
         assert result is None
 
-    def test_list_by_tenant_returns_only_own_pages(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_list_by_tenant_returns_only_own_pages(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         repo = LandingRepository(db)
         repo.create(_make_landing(tenant_id, slug="page-a1"))
         repo.create(_make_landing(tenant_id, slug="page-a2"))
@@ -88,7 +94,9 @@ class TestLandingRepositoryCRUD:
 
 
 class TestSlugUniquenessPerTenant:
-    def test_same_slug_different_tenants_is_allowed(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_same_slug_different_tenants_is_allowed(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         """Slug uniqueness is scoped per tenant — same slug for two tenants must not conflict."""
         repo = LandingRepository(db)
         repo.create(_make_landing(tenant_id, slug="shared-slug"))
@@ -97,7 +105,9 @@ class TestSlugUniquenessPerTenant:
         assert result.slug == "shared-slug"
         assert result.tenant_id == other_tenant_id
 
-    def test_get_by_slug_and_tenant_returns_correct_page(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_get_by_slug_and_tenant_returns_correct_page(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         repo = LandingRepository(db)
         repo.create(_make_landing(tenant_id, slug="shared-slug"))
         repo.create(_make_landing(other_tenant_id, slug="shared-slug"))
@@ -108,7 +118,9 @@ class TestSlugUniquenessPerTenant:
         assert page_a.tenant_id == tenant_id
         assert page_b.tenant_id == other_tenant_id
 
-    def test_get_by_slug_and_tenant_nonexistent_returns_none(self, db, seed_tenant, tenant_id):
+    def test_get_by_slug_and_tenant_nonexistent_returns_none(
+        self, db, seed_tenant, tenant_id
+    ):
         repo = LandingRepository(db)
         result = repo.get_by_slug_and_tenant("ghost-slug", tenant_id)
         assert result is None
@@ -117,9 +129,13 @@ class TestSlugUniquenessPerTenant:
 class TestSoftDelete:
     def test_soft_deleted_page_not_in_list(self, db, seed_tenant, tenant_id):
         """After setting deleted_at, the page should not appear in list_by_tenant."""
-        from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
-        from sqlalchemy import select
         from datetime import datetime, timezone
+
+        from sqlalchemy import select
+
+        from src.modules.landing.infrastructure.models.landing_model import (
+            LandingPageModel,
+        )
 
         repo = LandingRepository(db)
         landing = _make_landing(tenant_id, slug="to-delete")
@@ -135,9 +151,13 @@ class TestSoftDelete:
         assert all(p.id != created.id for p in pages)
 
     def test_soft_deleted_page_not_found_by_id(self, db, seed_tenant, tenant_id):
-        from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
-        from sqlalchemy import select
         from datetime import datetime, timezone
+
+        from sqlalchemy import select
+
+        from src.modules.landing.infrastructure.models.landing_model import (
+            LandingPageModel,
+        )
 
         repo = LandingRepository(db)
         landing = _make_landing(tenant_id, slug="to-delete-by-id")
@@ -151,9 +171,13 @@ class TestSoftDelete:
         assert repo.get_by_id(created.id) is None
 
     def test_soft_deleted_page_not_found_by_slug(self, db, seed_tenant, tenant_id):
-        from src.modules.landing.infrastructure.models.landing_model import LandingPageModel
-        from sqlalchemy import select
         from datetime import datetime, timezone
+
+        from sqlalchemy import select
+
+        from src.modules.landing.infrastructure.models.landing_model import (
+            LandingPageModel,
+        )
 
         repo = LandingRepository(db)
         landing = _make_landing(tenant_id, slug="deleted-slug")
@@ -168,7 +192,9 @@ class TestSoftDelete:
 
 
 class TestTenantIsolation:
-    def test_get_by_id_returns_page_regardless_of_tenant(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_get_by_id_returns_page_regardless_of_tenant(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         """get_by_id has no tenant filter — tests that data exists but is opaque without slug+tenant."""
         repo = LandingRepository(db)
         page_b = repo.create(_make_landing(other_tenant_id, slug="tenant-b-page"))
@@ -178,14 +204,18 @@ class TestTenantIsolation:
         assert result is not None
         assert result.tenant_id == other_tenant_id
 
-    def test_list_by_tenant_a_does_not_include_tenant_b_pages(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_list_by_tenant_a_does_not_include_tenant_b_pages(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         repo = LandingRepository(db)
         repo.create(_make_landing(other_tenant_id, slug="only-b-page"))
 
         pages_a = repo.list_by_tenant(tenant_id)
         assert len(pages_a) == 0
 
-    def test_get_by_slug_and_tenant_does_not_cross_tenants(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_get_by_slug_and_tenant_does_not_cross_tenants(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         """Tenant A cannot fetch tenant B's page using tenant B's slug with tenant A's ID."""
         repo = LandingRepository(db)
         repo.create(_make_landing(other_tenant_id, slug="secret-page"))

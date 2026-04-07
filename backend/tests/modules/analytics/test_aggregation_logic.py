@@ -11,9 +11,8 @@ Tests cover:
 import uuid
 from datetime import date
 
-from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
 from src.modules.analytics.domain.period_config import TenantPeriodConfig
-
+from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
 
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
@@ -202,10 +201,16 @@ class TestGroupingByMetric:
         ]
         result = compute_aggregations(rows, TENANT_ID)
 
-        clicks_daily = [r for r in result
-                         if r["metric_name"] == "clicks" and r["period_type"] == "daily"]
-        spend_daily = [r for r in result
-                        if r["metric_name"] == "spend" and r["period_type"] == "daily"]
+        clicks_daily = [
+            r
+            for r in result
+            if r["metric_name"] == "clicks" and r["period_type"] == "daily"
+        ]
+        spend_daily = [
+            r
+            for r in result
+            if r["metric_name"] == "spend" and r["period_type"] == "daily"
+        ]
         assert len(clicks_daily) == 1
         assert clicks_daily[0]["value"] == 100
         assert len(spend_daily) == 1
@@ -244,9 +249,14 @@ class TestAggregationRecordShape:
         assert len(result) > 0
         record = result[0]
         required_keys = {
-            "tenant_id", "channel_slug", "metric_name",
-            "period_type", "period_start", "period_end",
-            "value", "unit",
+            "tenant_id",
+            "channel_slug",
+            "metric_name",
+            "period_type",
+            "period_start",
+            "period_end",
+            "value",
+            "unit",
         }
         for key in required_keys:
             assert key in record, f"Aggregation record missing key '{key}'"

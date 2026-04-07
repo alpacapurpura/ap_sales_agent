@@ -1,27 +1,30 @@
 """Tests for AssetRepository — CRUD, hard delete, and tenant isolation."""
+
 import uuid
 
 from sqlalchemy import select
 
-from src.modules.assets.infrastructure.repositories.asset_repository import AssetRepository
-from src.modules.assets.infrastructure.models.asset_model import AssetModel
 from src.modules.assets.domain.entity import Asset
-from src.modules.assets.domain.enums import AssetType, AssetStatus, StorageProvider
+from src.modules.assets.domain.enums import AssetStatus, AssetType, StorageProvider
+from src.modules.assets.infrastructure.models.asset_model import AssetModel
+from src.modules.assets.infrastructure.repositories.asset_repository import (
+    AssetRepository,
+)
 
 
 def _make_asset(tenant_id: uuid.UUID, **kwargs) -> Asset:
     """Helper to build a minimal Asset domain entity."""
-    defaults = dict(
-        id=uuid.uuid4(),
-        tenant_id=tenant_id,
-        type=AssetType.IMAGE.value,
-        filename="test.png",
-        mime_type="image/png",
-        storage_provider=StorageProvider.LOCAL.value,
-        storage_path="/tmp/test.png",
-        public_url="/static/uploads/test.png",
-        status=AssetStatus.PROCESSING.value,
-    )
+    defaults = {
+        "id": uuid.uuid4(),
+        "tenant_id": tenant_id,
+        "type": AssetType.IMAGE.value,
+        "filename": "test.png",
+        "mime_type": "image/png",
+        "storage_provider": StorageProvider.LOCAL.value,
+        "storage_path": "/tmp/test.png",  # noqa: S108
+        "public_url": "/static/uploads/test.png",
+        "status": AssetStatus.PROCESSING.value,
+    }
     defaults.update(kwargs)
     return Asset(**defaults)
 
@@ -74,14 +77,20 @@ class TestAssetRepositoryListByTenant:
 
     def test_list_by_tenant_filters_by_type(self, db, seed_tenant, tenant_id):
         repo = AssetRepository(db)
-        repo.create(_make_asset(tenant_id, filename="image.png", type=AssetType.IMAGE.value))
-        repo.create(_make_asset(tenant_id, filename="doc.pdf", type=AssetType.DOCUMENT.value))
+        repo.create(
+            _make_asset(tenant_id, filename="image.png", type=AssetType.IMAGE.value)
+        )
+        repo.create(
+            _make_asset(tenant_id, filename="doc.pdf", type=AssetType.DOCUMENT.value)
+        )
 
         images = repo.list_by_tenant(tenant_id, asset_type=AssetType.IMAGE.value)
         assert len(images) == 1
         assert images[0].filename == "image.png"
 
-    def test_list_by_tenant_isolation(self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id):
+    def test_list_by_tenant_isolation(
+        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+    ):
         """Assets from tenant A must not appear in tenant B's list."""
         repo = AssetRepository(db)
         repo.create(_make_asset(tenant_id))

@@ -5,14 +5,13 @@ prompt construction, LLM parameters, and state transformations.
 """
 
 import importlib
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from src.core.enums import ModelRole
 from src.modules.sales_agent.application.agents.sales.nodes import (
     _build_system_prompt,
     _determine_stage,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -24,6 +23,7 @@ _TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_
 def _noop_trace(name):
     def decorator(func):
         return func
+
     return decorator
 
 
@@ -98,6 +98,7 @@ class TestSupervisorNode:
         """Verify that node_sales_supervisor passes buying_signals_count,
         objection_count, etc. to prompt_loader.render."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
@@ -108,8 +109,10 @@ class TestSupervisorNode:
             last_specialist="product_expert",
         )
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "qualifier"
             mock_llm_factory.get_service.return_value = mock_service
@@ -128,12 +131,15 @@ class TestSupervisorNode:
     def test_supervisor_uses_fast_model_low_temperature(self):
         """Verify supervisor calls LLM with model_type='fast' and temperature=0.0."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "qualifier"
             mock_llm_factory.get_service.return_value = mock_service
@@ -157,12 +163,15 @@ class TestQualifierNode:
     def test_builds_system_prompt_with_identity(self):
         """Verify qualifier prepends agent_identity to the skill prompt."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(agent_identity="Brand Identity: Nicolify Premium")
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "Hola! Cuéntame más."
             mock_llm_factory.get_service.return_value = mock_service
@@ -179,12 +188,15 @@ class TestQualifierNode:
     def test_qualifier_uses_smart_model(self):
         """Verify qualifier uses model_type='smart'."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "Respuesta"
             mock_llm_factory.get_service.return_value = mock_service
@@ -207,12 +219,15 @@ class TestCloserNode:
     def test_closer_uses_higher_temperature(self):
         """Verify closer uses temperature=0.4 for more creative closing responses."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_service.generate_response.return_value = "Perfecto, aquí va tu link."
             mock_llm_factory.get_service.return_value = mock_service
@@ -235,15 +250,18 @@ class TestSignalAccumulatorStageProgression:
     def test_stage_progression_to_discovery(self):
         """1 qualification answer -> discovery."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
             current_state="rapport",
             turn_count=1,
-            messages=[{
-                "role": "assistant",
-                "content": '[QUALIFICATION_DATA: {"budget": "5k"}] Genial!',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": '[QUALIFICATION_DATA: {"budget": "5k"}] Genial!',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         assert result["current_state"] == "discovery"
@@ -252,16 +270,19 @@ class TestSignalAccumulatorStageProgression:
     def test_stage_progression_to_presentation(self):
         """3 qualification answers -> presentation."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
             current_state="discovery",
             turn_count=3,
             qualification_answers={"q1": "a", "q2": "b"},
-            messages=[{
-                "role": "assistant",
-                "content": '[QUALIFICATION_DATA: {"q3": "c"}] Excelente!',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": '[QUALIFICATION_DATA: {"q3": "c"}] Excelente!',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         # q1, q2 (existing) + q3 (new) = 3 answers -> presentation
@@ -271,6 +292,7 @@ class TestSignalAccumulatorStageProgression:
     def test_stage_progression_to_closing(self):
         """score >= 70 and 3 buying signals -> closing."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
@@ -281,10 +303,12 @@ class TestSignalAccumulatorStageProgression:
                 {"type": "asked_price", "turn": 1},
                 {"type": "mentioned_deadline", "turn": 2},
             ],
-            messages=[{
-                "role": "assistant",
-                "content": '[SIGNALS: {"buying": ["ready_to_commit"], "objections": []}] Vamos!',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": '[SIGNALS: {"buying": ["ready_to_commit"], "objections": []}] Vamos!',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         # 55 base + 15 (1 buying signal) = 70, 3 total signals -> closing
@@ -303,6 +327,7 @@ class TestEscalationNode:
     def test_returns_handoff_message(self):
         """Verify escalation returns empathetic message and routes to respond."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -319,6 +344,7 @@ class TestEscalationNode:
     def test_escalation_content_is_empathetic(self):
         """Handoff message should acknowledge the user's situation."""
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()

@@ -19,7 +19,6 @@ from src.modules.analytics.domain.metric_catalog import METRIC_CATALOG
 from src.modules.analytics.domain.period_config import TenantPeriodConfig
 from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -207,7 +206,7 @@ class TestMetricCatalogLookupPerformance:
         total_lookups = len(lookup_names) * iterations
 
         # Build the lookup dict (simulating what code does at import time)
-        lookup_dict = {name: defn for name, defn in METRIC_CATALOG.items()}
+        lookup_dict = dict(METRIC_CATALOG.items())
 
         start = time.perf_counter()
         for _ in range(iterations):

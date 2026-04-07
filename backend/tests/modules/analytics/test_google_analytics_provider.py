@@ -3,15 +3,15 @@
 Mocks GoogleAnalyticsAdapter.run_report() responses.
 """
 
-import pytest
 from datetime import date
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.providers.google_analytics_provider import (
     GoogleAnalyticsProvider,
 )
-
 
 TENANT_ID = uuid4()
 CREDS = {
@@ -39,9 +39,36 @@ class TestGA4Segmentation:
         mock_report = {
             "row_count": 3,
             "rows": [
-                {"dimensions": ["google", "organic"], "metrics": ["1000", "800", "0.35", "650", "500", "1200", "750", "0.65"]},
-                {"dimensions": ["(direct)", "(none)"], "metrics": ["500", "400", "0.20", "400", "300", "600", "380", "0.80"]},
-                {"dimensions": ["bing", "organic"], "metrics": ["100", "80", "0.50", "50", "40", "90", "75", "0.50"]},
+                {
+                    "dimensions": ["google", "organic"],
+                    "metrics": [
+                        "1000",
+                        "800",
+                        "0.35",
+                        "650",
+                        "500",
+                        "1200",
+                        "750",
+                        "0.65",
+                    ],
+                },
+                {
+                    "dimensions": ["(direct)", "(none)"],
+                    "metrics": [
+                        "500",
+                        "400",
+                        "0.20",
+                        "400",
+                        "300",
+                        "600",
+                        "380",
+                        "0.80",
+                    ],
+                },
+                {
+                    "dimensions": ["bing", "organic"],
+                    "metrics": ["100", "80", "0.50", "50", "40", "90", "75", "0.50"],
+                },
             ],
             "metadata": {},
         }
@@ -72,11 +99,15 @@ class TestGA4Segmentation:
         assert engaged.value == 650.0
         new_users = next(m for m in google_organic if m.metric_name == "newUsers")
         assert new_users.value == 500.0
-        page_views = next(m for m in google_organic if m.metric_name == "screenPageViews")
+        page_views = next(
+            m for m in google_organic if m.metric_name == "screenPageViews"
+        )
         assert page_views.value == 1200.0
         active_users = next(m for m in google_organic if m.metric_name == "activeUsers")
         assert active_users.value == 750.0
-        engagement = next(m for m in google_organic if m.metric_name == "engagementRate")
+        engagement = next(
+            m for m in google_organic if m.metric_name == "engagementRate"
+        )
         assert engagement.value == pytest.approx(0.65)
         assert engagement.unit == "percentage"
 
@@ -85,7 +116,19 @@ class TestGA4Segmentation:
         mock_report = {
             "row_count": 1,
             "rows": [
-                {"dimensions": ["(direct)", "(none)"], "metrics": ["500", "400", "0.20", "400", "300", "600", "380", "0.80"]},
+                {
+                    "dimensions": ["(direct)", "(none)"],
+                    "metrics": [
+                        "500",
+                        "400",
+                        "0.20",
+                        "400",
+                        "300",
+                        "600",
+                        "380",
+                        "0.80",
+                    ],
+                },
             ],
             "metadata": {},
         }
@@ -113,8 +156,32 @@ class TestGA4Segmentation:
         mock_report = {
             "row_count": 2,
             "rows": [
-                {"dimensions": ["perplexity.ai", "referral"], "metrics": ["200", "180", "0.10", "180", "150", "300", "170", "0.90"]},
-                {"dimensions": ["chatgpt.com", "referral"], "metrics": ["150", "120", "0.20", "120", "90", "200", "110", "0.80"]},
+                {
+                    "dimensions": ["perplexity.ai", "referral"],
+                    "metrics": [
+                        "200",
+                        "180",
+                        "0.10",
+                        "180",
+                        "150",
+                        "300",
+                        "170",
+                        "0.90",
+                    ],
+                },
+                {
+                    "dimensions": ["chatgpt.com", "referral"],
+                    "metrics": [
+                        "150",
+                        "120",
+                        "0.20",
+                        "120",
+                        "90",
+                        "200",
+                        "110",
+                        "0.80",
+                    ],
+                },
             ],
             "metadata": {},
         }
@@ -150,9 +217,27 @@ class TestGA4DailyExtraction:
         """extract_metrics_daily with date dimension returns per-day metrics."""
         mock_report = {
             "rows": [
-                {"dimensions": ["google", "organic", "20260301"], "metrics": ["100", "80", "0.30", "70", "50", "120", "75", "0.70"]},
-                {"dimensions": ["google", "organic", "20260302"], "metrics": ["200", "160", "0.25", "150", "100", "240", "150", "0.75"]},
-                {"dimensions": ["(direct)", "(none)", "20260301"], "metrics": ["50", "40", "0.15", "45", "30", "60", "38", "0.90"]},
+                {
+                    "dimensions": ["google", "organic", "20260301"],
+                    "metrics": ["100", "80", "0.30", "70", "50", "120", "75", "0.70"],
+                },
+                {
+                    "dimensions": ["google", "organic", "20260302"],
+                    "metrics": [
+                        "200",
+                        "160",
+                        "0.25",
+                        "150",
+                        "100",
+                        "240",
+                        "150",
+                        "0.75",
+                    ],
+                },
+                {
+                    "dimensions": ["(direct)", "(none)", "20260301"],
+                    "metrics": ["50", "40", "0.15", "45", "30", "60", "38", "0.90"],
+                },
             ],
         }
 
@@ -170,19 +255,31 @@ class TestGA4DailyExtraction:
 
         metrics = result.metrics
         # Google organic on March 1
-        go_mar1 = [m for m in metrics if m.channel_slug == "google-organic" and m.date == date(2026, 3, 1)]
+        go_mar1 = [
+            m
+            for m in metrics
+            if m.channel_slug == "google-organic" and m.date == date(2026, 3, 1)
+        ]
         assert len(go_mar1) == 8
         sessions_mar1 = next(m for m in go_mar1 if m.metric_name == "sessions")
         assert sessions_mar1.value == 100.0
 
         # Google organic on March 2
-        go_mar2 = [m for m in metrics if m.channel_slug == "google-organic" and m.date == date(2026, 3, 2)]
+        go_mar2 = [
+            m
+            for m in metrics
+            if m.channel_slug == "google-organic" and m.date == date(2026, 3, 2)
+        ]
         assert len(go_mar2) == 8
         sessions_mar2 = next(m for m in go_mar2 if m.metric_name == "sessions")
         assert sessions_mar2.value == 200.0
 
         # Direct on March 1
-        direct_mar1 = [m for m in metrics if m.channel_slug == "direct" and m.date == date(2026, 3, 1)]
+        direct_mar1 = [
+            m
+            for m in metrics
+            if m.channel_slug == "direct" and m.date == date(2026, 3, 1)
+        ]
         assert len(direct_mar1) == 8
 
     @pytest.mark.asyncio

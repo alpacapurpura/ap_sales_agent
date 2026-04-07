@@ -1,19 +1,21 @@
 """Tests for IAM domain models — Pydantic validation, defaults, construction."""
+
 import uuid
+
 import pytest
 from pydantic import ValidationError
 
 from src.modules.iam.domain.tenant import (
-    Tenant,
     AISettings,
-    TenantSettingsUpdate,
     GeneralSettings,
     GeneralSettingsUpdate,
-    WebhookSettings,
+    Tenant,
     TenantProfile,
+    TenantSettingsUpdate,
+    WebhookSettings,
 )
-from src.modules.iam.domain.user import User, SystemUserProfile, TeamMemberCreate
 from src.modules.iam.domain.tracking_config import TrackingConfig
+from src.modules.iam.domain.user import SystemUserProfile, TeamMemberCreate, User
 
 
 class TestTenant:
@@ -34,7 +36,7 @@ class TestTenant:
             config_json={"company_name": "Big Corp"},
             openai_api_key="sk-abc",
             gemini_api_key="gm-xyz",
-            webhook_secret="secret",
+            webhook_secret="secret",  # noqa: S106
             can_use_platform_keys=True,
             is_active=False,
         )
@@ -127,8 +129,10 @@ class TestWebhookSettings:
         assert w.webhook_secret is None
 
     def test_with_secret(self):
-        w = WebhookSettings(webhook_url="https://example.com/hook", webhook_secret="mysecret")
-        assert w.webhook_secret == "mysecret"
+        w = WebhookSettings(
+            webhook_url="https://example.com/hook", webhook_secret="mysecret"
+        )  # noqa: S106
+        assert w.webhook_secret == "mysecret"  # noqa: S105
 
     def test_url_required(self):
         with pytest.raises(ValidationError):
@@ -206,15 +210,19 @@ class TestSystemUserProfile:
         assert p.tenant is None
 
     def test_with_tenant(self):
-        p = SystemUserProfile(id="u1", full_name="Alice", email="alice@example.com", tenant={"id": "t1"})
+        p = SystemUserProfile(
+            id="u1", full_name="Alice", email="alice@example.com", tenant={"id": "t1"}
+        )
         assert p.tenant == {"id": "t1"}
 
 
 class TestTeamMemberCreate:
     def test_construction(self):
-        m = TeamMemberCreate(full_name="Bob", email="bob@example.com", password="secret123")
+        m = TeamMemberCreate(
+            full_name="Bob", email="bob@example.com", password="secret123"
+        )  # noqa: S106
         assert m.full_name == "Bob"
-        assert m.password == "secret123"
+        assert m.password == "secret123"  # noqa: S105
 
     def test_all_fields_required(self):
         with pytest.raises(ValidationError):

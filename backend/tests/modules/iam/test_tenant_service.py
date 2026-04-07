@@ -1,4 +1,5 @@
 """Tests for TenantService — create_tenant (slug conflict), update_tenant."""
+
 import uuid
 
 from src.modules.iam.application.services.tenant_service import TenantService
@@ -127,7 +128,11 @@ class TestTenantServiceUpdateTenant:
         )
         assert tenant is None
         assert error is not None
-        assert "no encontrado" in error.lower() or "not found" in error.lower() or "Error" in error
+        assert (
+            "no encontrado" in error.lower()
+            or "not found" in error.lower()
+            or "Error" in error
+        )
 
     def test_update_tenant_deactivate(self, db, seed_tenant, tenant_id):
         service = TenantService(db)
@@ -152,7 +157,9 @@ class TestTenantServiceUpdateTenant:
             can_use_keys=False,
             is_active=True,
         )
-        from src.modules.iam.infrastructure.repositories.tenant_repository import TenantRepository
+        from src.modules.iam.infrastructure.repositories.tenant_repository import (
+            TenantRepository,
+        )
 
         repo = TenantRepository(db)
         fresh = repo.get_by_id(tenant_id)

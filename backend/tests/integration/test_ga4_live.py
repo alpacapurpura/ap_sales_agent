@@ -13,7 +13,9 @@ Run manually:
 
 Skipped automatically when credentials are not available.
 """
+
 import os
+
 import pytest
 
 from src.modules.connections.infrastructure.channels.google_analytics import (

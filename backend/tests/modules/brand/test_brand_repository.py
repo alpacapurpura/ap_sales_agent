@@ -1,8 +1,13 @@
 """Tests for BrandRepository -- JSONB persistence in Tenant.config_json."""
-import pytest
+
 import uuid
-from src.modules.brand.infrastructure.repositories.brand_repository import BrandRepository
-from src.modules.brand.domain import BrandSettings, BrandIdentity
+
+import pytest
+
+from src.modules.brand.domain import BrandIdentity, BrandSettings
+from src.modules.brand.infrastructure.repositories.brand_repository import (
+    BrandRepository,
+)
 
 
 class TestBrandRepository:
@@ -43,7 +48,9 @@ class TestBrandRepository:
     def test_tenant_isolation(self, db, seed_tenant, tenant_id):
         """Settings saved for tenant A are not visible to tenant B."""
         repo = BrandRepository(db)
-        repo.save_settings(tenant_id, BrandSettings(identity=BrandIdentity(brand_name="A")))
+        repo.save_settings(
+            tenant_id, BrandSettings(identity=BrandIdentity(brand_name="A"))
+        )
 
         other = repo.get_settings(uuid.uuid4())
         assert other.identity is None

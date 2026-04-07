@@ -1,6 +1,8 @@
 """Tests for verify_token_payload — valid JWT, expired, missing claims, misconfig."""
-import pytest
+
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi import HTTPException
 
 
@@ -27,7 +29,10 @@ class TestVerifyTokenPayload:
 
         with (
             patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
-            patch("src.modules.iam.application.auth.CLERK_ISSUER", "https://clerk.example.com"),
+            patch(
+                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "https://clerk.example.com",
+            ),
             patch("jwt.decode", return_value=expected_payload),
         ):
             from src.modules.iam.application.auth import verify_token_payload
@@ -46,8 +51,14 @@ class TestVerifyTokenPayload:
 
         with (
             patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
-            patch("src.modules.iam.application.auth.CLERK_ISSUER", "https://clerk.example.com"),
-            patch("jwt.decode", side_effect=pyjwt.exceptions.ExpiredSignatureError("Token expired")),
+            patch(
+                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "https://clerk.example.com",
+            ),
+            patch(
+                "jwt.decode",
+                side_effect=pyjwt.exceptions.ExpiredSignatureError("Token expired"),
+            ),
         ):
             from src.modules.iam.application.auth import verify_token_payload
 
@@ -55,7 +66,10 @@ class TestVerifyTokenPayload:
                 verify_token_payload("expired.jwt.token")
 
         assert exc_info.value.status_code == 401
-        assert "Invalid Token" in exc_info.value.detail or "expired" in exc_info.value.detail.lower()
+        assert (
+            "Invalid Token" in exc_info.value.detail
+            or "expired" in exc_info.value.detail.lower()
+        )
 
     def test_invalid_signature_raises_401(self):
         """A token with a bad signature must raise HTTPException 401."""
@@ -66,8 +80,16 @@ class TestVerifyTokenPayload:
 
         with (
             patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
-            patch("src.modules.iam.application.auth.CLERK_ISSUER", "https://clerk.example.com"),
-            patch("jwt.decode", side_effect=pyjwt.exceptions.InvalidSignatureError("Signature mismatch")),
+            patch(
+                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "https://clerk.example.com",
+            ),
+            patch(
+                "jwt.decode",
+                side_effect=pyjwt.exceptions.InvalidSignatureError(
+                    "Signature mismatch"
+                ),
+            ),
         ):
             from src.modules.iam.application.auth import verify_token_payload
 
@@ -85,7 +107,10 @@ class TestVerifyTokenPayload:
                 verify_token_payload("any.jwt.token")
 
         assert exc_info.value.status_code == 500
-        assert "misconfiguration" in exc_info.value.detail.lower() or "CLERK_ISSUER" in exc_info.value.detail
+        assert (
+            "misconfiguration" in exc_info.value.detail.lower()
+            or "CLERK_ISSUER" in exc_info.value.detail
+        )
 
     def test_jwks_client_error_raises_401(self):
         """If JWKS key lookup fails (network/format error), return 401."""
@@ -94,7 +119,10 @@ class TestVerifyTokenPayload:
 
         with (
             patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
-            patch("src.modules.iam.application.auth.CLERK_ISSUER", "https://clerk.example.com"),
+            patch(
+                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "https://clerk.example.com",
+            ),
         ):
             from src.modules.iam.application.auth import verify_token_payload
 
@@ -112,8 +140,13 @@ class TestVerifyTokenPayload:
 
         with (
             patch("src.modules.iam.application.auth.jwks_client", mock_jwks),
-            patch("src.modules.iam.application.auth.CLERK_ISSUER", "https://clerk.example.com"),
-            patch("jwt.decode", side_effect=pyjwt.exceptions.DecodeError("Cannot decode")),
+            patch(
+                "src.modules.iam.application.auth.CLERK_ISSUER",
+                "https://clerk.example.com",
+            ),
+            patch(
+                "jwt.decode", side_effect=pyjwt.exceptions.DecodeError("Cannot decode")
+            ),
         ):
             from src.modules.iam.application.auth import verify_token_payload
 

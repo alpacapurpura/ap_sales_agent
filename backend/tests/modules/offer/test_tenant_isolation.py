@@ -1,9 +1,15 @@
 """Tests for tenant isolation in Offer module."""
+
 import uuid
+
 import pytest
 from sqlalchemy.orm import Session
-from tests.modules.offer.conftest import create_product_model, TENANT_A, TENANT_B
-from src.modules.offer.infrastructure.repositories.offer_repository import OfferRepository
+
+from src.modules.offer.infrastructure.repositories.offer_repository import (
+    OfferRepository,
+)
+from tests.modules.offer.conftest import TENANT_A, TENANT_B
+
 
 class TestGetByIdTenantIsolation:
     def test_returns_own_tenant_offer(self, db: Session, db_with_offers):
@@ -21,11 +27,13 @@ class TestGetByIdTenantIsolation:
         repo = OfferRepository(db)
         assert repo.get_by_id(uuid.uuid4(), TENANT_A) is None
 
+
 class TestGetAllByTenantIsolation:
     def test_only_returns_own_tenant(self, db: Session, db_with_offers):
         repo = OfferRepository(db)
         assert len(repo.get_all_by_tenant(TENANT_A)) == 2
         assert len(repo.get_all_by_tenant(TENANT_B)) == 1
+
 
 class TestUpdateTenantIsolation:
     def test_update_rejects_cross_tenant(self, db: Session, db_with_offers):

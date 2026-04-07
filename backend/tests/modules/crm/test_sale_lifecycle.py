@@ -5,14 +5,14 @@ CRM-02/CRM-03: SaleService emits SaleCompletedEvent, handler transitions
 profile to CUSTOMER (CONVERSION), increments lifetime_value (EXPANSION),
 and reactivates CHURNED profiles.
 """
-import uuid
-from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, MagicMock
 
-import pytest
+import uuid
+from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
+
 from sqlalchemy.orm import Session
 
-from src.modules.crm.domain.enums import LifecycleStage, SaleStage
+from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
 )
@@ -27,6 +27,7 @@ SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_profile(
     db: Session,
@@ -58,11 +59,14 @@ def _make_profile(
 # Sale -> Lifecycle Transitions (via LifecycleService.handle_sale_completed)
 # ---------------------------------------------------------------------------
 
+
 class TestConversionSale:
     """CONVERSION sale transitions profile to CUSTOMER."""
 
     def test_conversion_sale_triggers_customer_stage(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
         from src.modules.crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.SQL)
@@ -83,7 +87,9 @@ class TestConversionSale:
         assert profile.lifecycle_stage == LifecycleStage.CUSTOMER
 
     def test_conversion_sets_first_conversion_at(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
         from src.modules.crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.SQL)
@@ -105,10 +111,14 @@ class TestConversionSale:
         assert profile.first_conversion_at is not None
 
     def test_conversion_increments_lifetime_value(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
         from src.modules.crm.domain.events import SaleCompletedEvent
 
-        profile = _make_profile(db, tenant_id, stage=LifecycleStage.SQL, lifetime_value=0.0)
+        profile = _make_profile(
+            db, tenant_id, stage=LifecycleStage.SQL, lifetime_value=0.0
+        )
 
         event = SaleCompletedEvent.create(
             tenant_id=tenant_id,
@@ -130,11 +140,14 @@ class TestExpansionSale:
     """EXPANSION sale increments lifetime_value and keeps CUSTOMER stage."""
 
     def test_expansion_sale_increments_lifetime_value(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
         from src.modules.crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
-            db, tenant_id,
+            db,
+            tenant_id,
             stage=LifecycleStage.CUSTOMER,
             lifetime_value=100.0,
             first_conversion_at=datetime.now(timezone.utc) - timedelta(days=30),
@@ -156,11 +169,14 @@ class TestExpansionSale:
         assert profile.lifetime_value == 150.0
 
     def test_expansion_keeps_customer_stage(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
         from src.modules.crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
-            db, tenant_id,
+            db,
+            tenant_id,
             stage=LifecycleStage.CUSTOMER,
             lifetime_value=100.0,
             first_conversion_at=datetime.now(timezone.utc) - timedelta(days=30),
@@ -186,11 +202,14 @@ class TestChurnedReactivation:
     """CHURNED profile reactivated by new sale becomes CUSTOMER."""
 
     def test_churned_reactivation(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
         from src.modules.crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
-            db, tenant_id,
+            db,
+            tenant_id,
             stage=LifecycleStage.CHURNED,
             lifetime_value=200.0,
         )
@@ -225,6 +244,7 @@ class TestChurnedReactivation:
 # EventBus Integration
 # ---------------------------------------------------------------------------
 
+
 class TestSaleEventEmission:
     """SaleService emits SaleCompletedEvent via EventBus."""
 
@@ -239,7 +259,7 @@ class TestSaleEventEmission:
 
         with patch.object(EventBus, "publish") as mock_publish:
             svc = SaleService(db)
-            sale = svc.create_sale(
+            svc.create_sale(
                 tenant_id=tenant_id,
                 customer_id=profile.id,
                 offer_id=offer_id,
@@ -275,14 +295,20 @@ class TestEventHandlerRegistration:
 # Module Decoupling
 # ---------------------------------------------------------------------------
 
+
 class TestModuleDecoupling:
     """Sales module does not import CRM services directly."""
 
     def test_sales_module_does_not_import_crm(self):
         """Static check: sale_service.py has no imports from crm.application.services."""
         import inspect
+
         import src.modules.crm.application.services.sale_service as sale_mod
 
         source = inspect.getsource(sale_mod)
-        assert "from src.modules.crm.application.services.lifecycle_service" not in source
-        assert "from src.modules.crm.application.services.customer_service" not in source
+        assert (
+            "from src.modules.crm.application.services.lifecycle_service" not in source
+        )
+        assert (
+            "from src.modules.crm.application.services.customer_service" not in source
+        )

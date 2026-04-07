@@ -5,14 +5,14 @@ that state propagates correctly across supervisor → specialist → signal_accu
 """
 
 import importlib
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from src.modules.sales_agent.application.orchestrator.state import create_initial_state
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_state(**overrides):
     """Helper to create a test state with defaults."""
@@ -33,13 +33,15 @@ _TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_
 def _noop_trace(name):
     def decorator(func):
         return func
+
     return decorator
 
 
 def _reload_graph():
     """Reload nodes and graph modules after patching trace_node."""
-    import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
     import src.modules.sales_agent.application.agents.sales.graph as graph_mod
+    import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
     importlib.reload(nodes_mod)
     importlib.reload(graph_mod)
     return nodes_mod, graph_mod
@@ -60,16 +62,18 @@ class TestChatFlowIntegration:
         state has incremented turn_count."""
         nodes_mod, graph_mod = _reload_graph()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_llm_factory.get_service.return_value = mock_service
             mock_prompt.render.return_value = "system prompt"
 
             # Supervisor returns "qualifier", qualifier returns a simple response
             mock_service.generate_response.side_effect = [
-                "qualifier",                         # supervisor call
-                "Hola! Cuéntame sobre ti.",          # qualifier call
+                "qualifier",  # supervisor call
+                "Hola! Cuéntame sobre ti.",  # qualifier call
             ]
 
             graph = graph_mod.create_sales_subgraph()
@@ -90,8 +94,10 @@ class TestChatFlowIntegration:
         extracts it -> state.qualification_answers has the data."""
         nodes_mod, graph_mod = _reload_graph()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_llm_factory.get_service.return_value = mock_service
             mock_prompt.render.return_value = "system prompt"
@@ -117,8 +123,10 @@ class TestChatFlowIntegration:
         """Response with SIGNALS block -> lead_score increases by 15 per signal."""
         nodes_mod, graph_mod = _reload_graph()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_llm_factory.get_service.return_value = mock_service
             mock_prompt.render.return_value = "system prompt"
@@ -147,16 +155,18 @@ class TestChatFlowIntegration:
         Verifies the _pending_tool was set and cleared during the flow."""
         nodes_mod, graph_mod = _reload_graph()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_llm_factory.get_service.return_value = mock_service
             mock_prompt.render.return_value = "system prompt"
 
             mock_service.generate_response.side_effect = [
-                "closer",                         # supervisor (1st pass)
+                "closer",  # supervisor (1st pass)
                 'Aquí va el link [TOOL_REQUEST: {"tool": "send_payment_link"}]',  # closer
-                "respond",                        # supervisor (2nd pass, after tool)
+                "respond",  # supervisor (2nd pass, after tool)
             ]
 
             graph = graph_mod.create_sales_subgraph()
@@ -184,8 +194,10 @@ class TestChatFlowIntegration:
         carries through graph execution and gets updated."""
         nodes_mod, graph_mod = _reload_graph()
 
-        with patch.object(nodes_mod, "LLMFactory") as mock_llm_factory, \
-             patch.object(nodes_mod, "prompt_loader") as mock_prompt:
+        with (
+            patch.object(nodes_mod, "LLMFactory") as mock_llm_factory,
+            patch.object(nodes_mod, "prompt_loader") as mock_prompt,
+        ):
             mock_service = MagicMock()
             mock_llm_factory.get_service.return_value = mock_service
             mock_prompt.render.return_value = "system prompt"

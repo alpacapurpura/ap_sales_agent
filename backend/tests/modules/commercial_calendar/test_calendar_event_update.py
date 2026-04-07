@@ -12,7 +12,9 @@ Covers:
 import uuid
 from datetime import date
 
-from src.modules.commercial_calendar.application.calendar_event_service import CalendarEventService
+from src.modules.commercial_calendar.application.calendar_event_service import (
+    CalendarEventService,
+)
 
 TENANT_A = uuid.UUID("aaaa0000-0000-0000-0000-000000000001")
 TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")

@@ -82,8 +82,16 @@ class TestCreateAndGetById:
 class TestListEvents:
     def test_list_filters_by_country_code(self, db, tenant_id):
         repo = CalendarEventRepository(db)
-        repo.create(_make_event(country_code="PE", name="Peru Event", event_date=date(2026, 3, 1)))
-        repo.create(_make_event(country_code="CO", name="Colombia Event", event_date=date(2026, 3, 1)))
+        repo.create(
+            _make_event(
+                country_code="PE", name="Peru Event", event_date=date(2026, 3, 1)
+            )
+        )
+        repo.create(
+            _make_event(
+                country_code="CO", name="Colombia Event", event_date=date(2026, 3, 1)
+            )
+        )
 
         results = repo.list_events(country_code="PE", year=2026, tenant_id=TENANT_A)
         names = [e.name for e in results]
@@ -110,7 +118,9 @@ class TestListEvents:
         repo.create(_make_event(event_date=week1_date, name="Week 2 Event"))
         repo.create(_make_event(event_date=week10_date, name="Week 10 Event"))
 
-        results = repo.list_events(country_code="PE", year=2026, tenant_id=TENANT_A, week=w1)
+        results = repo.list_events(
+            country_code="PE", year=2026, tenant_id=TENANT_A, week=w1
+        )
         names = [e.name for e in results]
         assert "Week 2 Event" in names
         assert "Week 10 Event" not in names
@@ -118,10 +128,19 @@ class TestListEvents:
     def test_list_filters_by_category(self, db, tenant_id):
         repo = CalendarEventRepository(db)
         repo.create(_make_event(category="feriado_nacional", name="Holiday"))
-        repo.create(_make_event(category="campaña_comercial", name="Campaign", event_date=date(2026, 11, 27)))
+        repo.create(
+            _make_event(
+                category="campaña_comercial",
+                name="Campaign",
+                event_date=date(2026, 11, 27),
+            )
+        )
 
         results = repo.list_events(
-            country_code="PE", year=2026, tenant_id=TENANT_A, category="feriado_nacional"
+            country_code="PE",
+            year=2026,
+            tenant_id=TENANT_A,
+            category="feriado_nacional",
         )
         names = [e.name for e in results]
         assert "Holiday" in names
@@ -199,6 +218,7 @@ class TestDeleteEvent:
 
     def test_soft_delete_preserves_row_in_db(self, db, tenant_id):
         from sqlalchemy import select
+
         from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
             CalendarEventModel,
         )

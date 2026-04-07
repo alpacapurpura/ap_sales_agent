@@ -1,7 +1,8 @@
 """Tests for ExtractionTraceCollector -- event accumulation and DB persistence."""
-import pytest
+
 import uuid
 from unittest.mock import MagicMock
+
 from src.modules.brand.application.extraction_trace import ExtractionTraceCollector
 
 
@@ -96,7 +97,7 @@ class TestExtractionTraceCollector:
     def test_finish_calculates_duration(self):
         mock_db = MagicMock()
         tc = self._make_collector(db=mock_db)
-        trace_id = tc.finish(status="completed", sections_succeeded=0)
+        tc.finish(status="completed", sections_succeeded=0)
 
         row = mock_db.add.call_args[0][0]
         assert row.total_duration_s >= 0

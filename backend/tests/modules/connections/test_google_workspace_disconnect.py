@@ -8,13 +8,15 @@ the user unlinked their Google account.
 Fix: repo.revoke() clears credentials + sets is_active=False, so the
 has_credentials check in get_status correctly returns is_connected=False.
 """
+
 import uuid
+
 import pytest
 
+from src.modules.connections.domain.enums import ChannelType
 from src.modules.connections.infrastructure.repositories.channel_connection_repository import (
     ChannelConnectionRepository,
 )
-from src.modules.connections.domain.enums import ChannelType
 
 GOOGLE_SERVICE_TYPES = [
     ChannelType.GMAIL,
@@ -46,7 +48,6 @@ def connected_google_tenant(repo):
 
 
 class TestGoogleWorkspaceDisconnect:
-
     def test_revoke_clears_credentials(self, repo, connected_google_tenant):
         """repo.revoke() must clear OAuth credentials (set to empty dict)."""
         tenant_id = connected_google_tenant
@@ -100,7 +101,9 @@ class TestGoogleWorkspaceDisconnect:
         repo.revoke(conn)
 
         new_creds = {"access_token": "ya29.new", "refresh_token": "1//new"}
-        repo.upsert(tenant_id, ChannelType.GMAIL, new_creds, {"email": "user@gmail.com"})
+        repo.upsert(
+            tenant_id, ChannelType.GMAIL, new_creds, {"email": "user@gmail.com"}
+        )
 
         conn = repo.get_by_tenant_and_type(tenant_id, ChannelType.GMAIL)
         assert conn.is_active is True

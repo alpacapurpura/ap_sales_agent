@@ -1,6 +1,10 @@
 """Tests for offer_generator decoupling from copilot."""
-import ast, inspect
+
+import ast
+import inspect
+
 from src.modules.offer.application.offer_generator import OfferGeneratorService
+
 
 def test_no_copilot_application_import():
     source = inspect.getsource(OfferGeneratorService)
@@ -9,6 +13,7 @@ def test_no_copilot_application_import():
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             module = getattr(node, "module", "") or ""
             assert "copilot.application" not in module
+
 
 def test_generator_accepts_port_interface():
     sig = inspect.signature(OfferGeneratorService.__init__)

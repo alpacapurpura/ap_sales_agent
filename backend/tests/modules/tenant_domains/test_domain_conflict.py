@@ -1,4 +1,5 @@
 """Tests for DomainService.detect_domain_conflict — mocks socket.gethostbyname."""
+
 import socket
 from unittest.mock import patch
 
@@ -42,7 +43,9 @@ class TestDetectDomainConflict:
 
     def test_dns_failure_returns_none(self, service):
         """If DNS resolution fails, no conflict — domain simply unresolvable."""
-        with patch("socket.gethostbyname", side_effect=socket.gaierror("Name not found")):
+        with patch(
+            "socket.gethostbyname", side_effect=socket.gaierror("Name not found")
+        ):
             result = service.detect_domain_conflict("nonexistent.example.com")
 
         assert result is None

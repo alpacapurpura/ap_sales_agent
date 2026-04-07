@@ -6,8 +6,6 @@ Validates:
 - AttractionDetailDTO structure with all 4 groups
 """
 
-import pytest
-
 from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
     AvailableChannelsDTO,
@@ -30,18 +28,14 @@ class TestMetricValueDTO:
         assert data["breakdown"] is None
 
     def test_with_currency(self):
-        mv = MetricValueDTO(
-            name="spend", value=123.45, unit="currency", currency="USD"
-        )
+        mv = MetricValueDTO(name="spend", value=123.45, unit="currency", currency="USD")
         assert mv.unit == "currency"
         assert mv.currency == "USD"
         assert mv.value == 123.45
 
     def test_with_breakdown(self):
         breakdown = {"likes": 120, "comments": 45, "shares": 30, "saves": 10}
-        mv = MetricValueDTO(
-            name="engagement", value=205.0, breakdown=breakdown
-        )
+        mv = MetricValueDTO(name="engagement", value=205.0, breakdown=breakdown)
         assert mv.breakdown == breakdown
         assert mv.value == 205.0
 

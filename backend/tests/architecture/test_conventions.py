@@ -4,6 +4,7 @@ Validates project-wide conventions that Ruff cannot catch:
 - No hard deletes (session.delete)
 - SA 2.0 syntax only (no session.query)
 """
+
 import re
 
 from tests.architecture.conftest import MODULES_DIR
@@ -50,9 +51,7 @@ def test_no_sqlalchemy_1x_query_syntax():
 
     SA 2.0 select() is required for async compatibility and type safety.
     """
-    query_pattern = re.compile(
-        r"(?:session|db|self\.db|self\.session)\.query\s*\("
-    )
+    query_pattern = re.compile(r"(?:session|db|self\.db|self\.session)\.query\s*\(")
     violations: list[str] = []
 
     for py_file in sorted(MODULES_DIR.rglob("*.py")):

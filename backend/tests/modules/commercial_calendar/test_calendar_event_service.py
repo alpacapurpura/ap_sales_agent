@@ -1,6 +1,8 @@
 from datetime import date
 
-from src.modules.commercial_calendar.application.calendar_event_service import CalendarEventService
+from src.modules.commercial_calendar.application.calendar_event_service import (
+    CalendarEventService,
+)
 
 
 class TestCreateSingleDayEvent:
@@ -51,7 +53,9 @@ class TestListEventsTenantIsolation:
             tenant_id=other_tenant_id,
         )
 
-        events_a = service.list_events(country_code="PE", year=2026, tenant_id=tenant_id)
+        events_a = service.list_events(
+            country_code="PE", year=2026, tenant_id=tenant_id
+        )
         names_a = [e.name for e in events_a]
         assert "Evento Tenant A" in names_a
         assert "Evento Tenant B" not in names_a
@@ -100,7 +104,11 @@ class TestDeleteIsSoft:
 
         # But row still exists in DB (soft deleted)
         from sqlalchemy import select
-        from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import CalendarEventModel
+
+        from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
+            CalendarEventModel,
+        )
+
         stmt = select(CalendarEventModel).where(CalendarEventModel.id == event_id)
         row = db.execute(stmt).scalar_one_or_none()
         assert row is not None

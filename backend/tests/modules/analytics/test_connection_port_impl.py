@@ -11,7 +11,7 @@ Tests cover:
 import asyncio
 import uuid
 from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -20,7 +20,6 @@ from src.modules.analytics.domain.exceptions import (
     TokenRefreshFailed,
 )
 from src.modules.analytics.domain.ports import ConnectionCredentials
-
 
 # Fixed test UUIDs
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
@@ -69,7 +68,7 @@ class TestConnectionPortImplGetCredentials:
 
         assert isinstance(result, ConnectionCredentials)
         assert result.channel_type == "meta"
-        assert result.credentials["access_token"] == "valid-token"
+        assert result.credentials["access_token"] == "valid-token"  # noqa: S105
 
     def test_raises_connection_revoked_when_no_active_connection(self):
         """No active connection -> ConnectionRevokedException."""
@@ -83,11 +82,13 @@ class TestConnectionPortImplGetCredentials:
         port.repo = MagicMock()
         port.repo.get_active = MagicMock(return_value=None)
 
-        with patch("asyncio.to_thread", _sync_to_thread):
-            with pytest.raises(ConnectionRevokedException):
-                asyncio.get_event_loop().run_until_complete(
-                    port.get_credentials(TENANT_ID, "meta")
-                )
+        with (
+            patch("asyncio.to_thread", _sync_to_thread),
+            pytest.raises(ConnectionRevokedException),
+        ):
+            asyncio.get_event_loop().run_until_complete(
+                port.get_credentials(TENANT_ID, "meta")
+            )
 
     def test_detects_expired_token_and_refreshes(self):
         """Expired token triggers _refresh_token, persists, returns refreshed credentials."""
@@ -159,11 +160,13 @@ class TestConnectionPortImplGetCredentials:
 
         port._refresh_token = mock_refresh_fail
 
-        with patch("asyncio.to_thread", _sync_to_thread):
-            with pytest.raises(TokenRefreshFailed):
-                asyncio.get_event_loop().run_until_complete(
-                    port.get_credentials(TENANT_ID, "meta")
-                )
+        with (
+            patch("asyncio.to_thread", _sync_to_thread),
+            pytest.raises(TokenRefreshFailed),
+        ):
+            asyncio.get_event_loop().run_until_complete(
+                port.get_credentials(TENANT_ID, "meta")
+            )
 
 
 class TestConnectionPortImplListActive:
@@ -222,7 +225,9 @@ class TestConnectionPortImplListActive:
         port = ConnectionPortImpl(mock_db)
 
         active = _make_connection_model(channel_type="meta", is_active=True)
-        inactive = _make_connection_model(channel_type="google_analytics", is_active=False)
+        inactive = _make_connection_model(
+            channel_type="google_analytics", is_active=False
+        )
         port.repo = MagicMock()
         port.repo.get_all_by_tenant = MagicMock(return_value=[active, inactive])
 

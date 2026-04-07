@@ -25,7 +25,7 @@ def _create_adapter_with_mocks(token: str, mock_api_class, mock_session_class):
 
     adapter = MetaAdapter(
         app_id="test_app_id",
-        app_secret="test_app_secret",
+        app_secret="test_app_secret",  # noqa: S106
         access_token=token,
     )
     return adapter, mock_api_instance
@@ -38,18 +38,22 @@ class TestSequentialTenantIsolation:
     @pytest.mark.asyncio
     async def test_sequential_isolation(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         tenant_a_data = {"id": "111", "name": "Tenant A User", "email": "a@test.com"}
         tenant_b_data = {"id": "222", "name": "Tenant B User", "email": "b@test.com"}
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
-        ) as mock_api_class, patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookSession"
-        ) as mock_session_class, patch(
-            "src.modules.connections.infrastructure.channels.meta.User"
-        ) as mock_user_class:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+            ) as mock_api_class,
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+            ),
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.User"
+            ) as mock_user_class,
+        ):
             # Create two adapters with different tokens
             # We need to track which api instance maps to which adapter
             api_instances = {}
@@ -66,15 +70,15 @@ class TestSequentialTenantIsolation:
 
             adapter_a = MetaAdapter(
                 app_id="test_app_id",
-                app_secret="test_app_secret",
-                access_token="tenant_A_token",
+                app_secret="test_app_secret",  # noqa: S106
+                access_token="tenant_A_token",  # noqa: S106
             )
             api_a = adapter_a._api_instance
 
             adapter_b = MetaAdapter(
                 app_id="test_app_id",
-                app_secret="test_app_secret",
-                access_token="tenant_B_token",
+                app_secret="test_app_secret",  # noqa: S106
+                access_token="tenant_B_token",  # noqa: S106
             )
             api_b = adapter_b._api_instance
 
@@ -91,7 +95,7 @@ class TestSequentialTenantIsolation:
                     user.api_get.return_value = user
                     user.export_all_data.return_value = tenant_b_data
                 else:
-                    raise AssertionError(f"User created without explicit api parameter")
+                    raise AssertionError("User created without explicit api parameter")
                 return user
 
             mock_user_class.side_effect = make_user
@@ -106,7 +110,9 @@ class TestSequentialTenantIsolation:
             # Verify User was called with explicit api= each time
             assert mock_user_class.call_count == 2
             for call in mock_user_class.call_args_list:
-                assert "api" in call.kwargs, "User() must be called with api= keyword argument"
+                assert "api" in call.kwargs, (
+                    "User() must be called with api= keyword argument"
+                )
 
 
 @patch("src.modules.connections.infrastructure.channels.meta.settings")
@@ -116,22 +122,26 @@ class TestConcurrentTenantIsolation:
     @pytest.mark.asyncio
     async def test_concurrent_isolation(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         tenant_a_data = {"id": "111", "name": "Tenant A User", "email": "a@test.com"}
         tenant_b_data = {"id": "222", "name": "Tenant B User", "email": "b@test.com"}
 
         # Use events to force interleaving
-        event_a_started = asyncio.Event()
-        event_b_started = asyncio.Event()
+        asyncio.Event()
+        asyncio.Event()
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
-        ) as mock_api_class, patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookSession"
-        ) as mock_session_class, patch(
-            "src.modules.connections.infrastructure.channels.meta.User"
-        ) as mock_user_class:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+            ) as mock_api_class,
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+            ),
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.User"
+            ) as mock_user_class,
+        ):
             api_a = MagicMock()
             api_b = MagicMock()
             api_instances = []
@@ -145,15 +155,15 @@ class TestConcurrentTenantIsolation:
 
             adapter_a = MetaAdapter(
                 app_id="test_app_id",
-                app_secret="test_app_secret",
-                access_token="tenant_A_token",
+                app_secret="test_app_secret",  # noqa: S106
+                access_token="tenant_A_token",  # noqa: S106
             )
             api_a = adapter_a._api_instance
 
             adapter_b = MetaAdapter(
                 app_id="test_app_id",
-                app_secret="test_app_secret",
-                access_token="tenant_B_token",
+                app_secret="test_app_secret",  # noqa: S106
+                access_token="tenant_B_token",  # noqa: S106
             )
             api_b = adapter_b._api_instance
 
@@ -190,20 +200,24 @@ class TestConcurrentTenantIsolation:
     async def test_concurrent_isolation_with_interleaving(self, mock_settings):
         """Force interleaving to catch race conditions in global state."""
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         tenant_a_data = {"id": "111", "name": "Tenant A User", "email": "a@test.com"}
         tenant_b_data = {"id": "222", "name": "Tenant B User", "email": "b@test.com"}
 
-        barrier = asyncio.Barrier(2)
+        asyncio.Barrier(2)
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
-        ) as mock_api_class, patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookSession"
-        ), patch(
-            "src.modules.connections.infrastructure.channels.meta.User"
-        ) as mock_user_class:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+            ) as mock_api_class,
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+            ),
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.User"
+            ) as mock_user_class,
+        ):
 
             def make_api(session, api_version=None):
                 return MagicMock()
@@ -212,15 +226,15 @@ class TestConcurrentTenantIsolation:
 
             adapter_a = MetaAdapter(
                 app_id="test_app_id",
-                app_secret="test_app_secret",
-                access_token="tenant_A_token",
+                app_secret="test_app_secret",  # noqa: S106
+                access_token="tenant_A_token",  # noqa: S106
             )
             api_a = adapter_a._api_instance
 
             adapter_b = MetaAdapter(
                 app_id="test_app_id",
-                app_secret="test_app_secret",
-                access_token="tenant_B_token",
+                app_secret="test_app_secret",  # noqa: S106
+                access_token="tenant_B_token",  # noqa: S106
             )
             api_b = adapter_b._api_instance
 

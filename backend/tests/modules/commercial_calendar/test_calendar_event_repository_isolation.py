@@ -5,6 +5,7 @@ Proves at the repository level that:
 - get_by_id with wrong tenant returns None
 - System events (tenant_id=None) are visible to any tenant
 """
+
 import uuid
 from datetime import date
 

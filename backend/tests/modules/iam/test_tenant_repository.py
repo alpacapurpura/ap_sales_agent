@@ -1,9 +1,13 @@
 """Tests for TenantRepository — CRUD + slug uniqueness + tenant isolation."""
+
 import uuid
+
 import pytest
 
 from src.modules.iam.domain.tenant import Tenant
-from src.modules.iam.infrastructure.repositories.tenant_repository import TenantRepository
+from src.modules.iam.infrastructure.repositories.tenant_repository import (
+    TenantRepository,
+)
 
 
 class TestTenantRepositoryGetById:
@@ -168,7 +172,9 @@ class TestTenantIsolation:
         assert result_a.slug == "test-tenant"
         assert result_b.slug == "other-tenant"
 
-    def test_slug_lookup_is_scoped_to_exact_slug(self, db, seed_tenant, seed_other_tenant):
+    def test_slug_lookup_is_scoped_to_exact_slug(
+        self, db, seed_tenant, seed_other_tenant
+    ):
         repo = TenantRepository(db)
         a = repo.get_by_slug("test-tenant")
         b = repo.get_by_slug("other-tenant")

@@ -1,4 +1,5 @@
 """Tests for TenantDomain entity, DomainStatus and DomainType enums."""
+
 import uuid
 from datetime import datetime, timezone
 

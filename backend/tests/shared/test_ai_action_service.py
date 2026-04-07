@@ -1,10 +1,10 @@
-from uuid import uuid4
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 import pytest
 from pydantic import BaseModel
 
-from src.shared.application.ai_action_service import AIActionService, AIActionPolicy
+from src.shared.application.ai_action_service import AIActionPolicy, AIActionService
 
 
 class PsychologyPayload(BaseModel):
@@ -17,7 +17,10 @@ def test_run_structured_action_parses_valid_json():
     llm_service = MagicMock()
     llm_service.generate_response.return_value = '{"pains":["p1"],"desires":["d1"]}'
 
-    with patch("src.shared.application.ai_action_service.LLMFactory.get_service", return_value=llm_service):
+    with patch(
+        "src.shared.application.ai_action_service.LLMFactory.get_service",
+        return_value=llm_service,
+    ):
         result = service.run_structured_action(
             action_name="offer_psychology_generation",
             tenant_id=uuid4(),
@@ -38,7 +41,10 @@ def test_run_structured_action_retries_until_valid_payload():
         '{"pains":["p1"],"desires":["d1"]}',
     ]
 
-    with patch("src.shared.application.ai_action_service.LLMFactory.get_service", return_value=llm_service):
+    with patch(
+        "src.shared.application.ai_action_service.LLMFactory.get_service",
+        return_value=llm_service,
+    ):
         result = service.run_structured_action(
             action_name="offer_psychology_generation",
             tenant_id=uuid4(),
@@ -57,16 +63,21 @@ def test_run_structured_action_fails_after_all_retries():
     llm_service = MagicMock()
     llm_service.generate_response.return_value = "not-json"
 
-    with patch("src.shared.application.ai_action_service.LLMFactory.get_service", return_value=llm_service):
-        with pytest.raises(ValueError, match="respuesta inválida"):
-            service.run_structured_action(
-                action_name="offer_psychology_generation",
-                tenant_id=uuid4(),
-                system_prompt="PROMPT",
-                user_prompt="USER",
-                response_model=PsychologyPayload,
-                policy=AIActionPolicy(retries=2, retry_delay_seconds=0),
-            )
+    with (
+        patch(
+            "src.shared.application.ai_action_service.LLMFactory.get_service",
+            return_value=llm_service,
+        ),
+        pytest.raises(ValueError, match="respuesta inválida"),
+    ):
+        service.run_structured_action(
+            action_name="offer_psychology_generation",
+            tenant_id=uuid4(),
+            system_prompt="PROMPT",
+            user_prompt="USER",
+            response_model=PsychologyPayload,
+            policy=AIActionPolicy(retries=2, retry_delay_seconds=0),
+        )
 
 
 def test_run_structured_action_validates_inputs():

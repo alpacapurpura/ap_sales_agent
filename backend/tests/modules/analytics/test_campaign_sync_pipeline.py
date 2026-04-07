@@ -1,8 +1,9 @@
 """Tests for CampaignSyncPipeline — orchestrates full campaign sync."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
     CampaignSyncPipeline,
@@ -13,20 +14,45 @@ class TestCampaignSyncPipeline:
     @pytest.mark.asyncio
     async def test_run_sync_calls_all_extractors_and_upserts(self):
         mock_provider = MagicMock()
-        mock_provider.extract_campaigns = AsyncMock(return_value=[
-            {"external_id": "c1", "name": "Camp 1"},
-        ])
-        mock_provider.extract_ad_sets = AsyncMock(return_value=(
-            [{"external_id": "as1", "campaign_external_id": "c1", "name": "AdSet 1"}],
-            [{"source": "ad_set", "recommendation_type": "1942008", "body": "tip"}],
-        ))
-        mock_provider.extract_ads = AsyncMock(return_value=(
-            [{"external_id": "ad1", "campaign_external_id": "c1", "ad_set_external_id": "as1", "name": "Ad 1"}],
-            [],
-        ))
-        mock_provider.extract_account_recommendations = AsyncMock(return_value=[
-            {"source": "account", "recommendation_type": "CREATIVE_FATIGUE", "body": "Refresh creative"},
-        ])
+        mock_provider.extract_campaigns = AsyncMock(
+            return_value=[
+                {"external_id": "c1", "name": "Camp 1"},
+            ]
+        )
+        mock_provider.extract_ad_sets = AsyncMock(
+            return_value=(
+                [
+                    {
+                        "external_id": "as1",
+                        "campaign_external_id": "c1",
+                        "name": "AdSet 1",
+                    }
+                ],
+                [{"source": "ad_set", "recommendation_type": "1942008", "body": "tip"}],
+            )
+        )
+        mock_provider.extract_ads = AsyncMock(
+            return_value=(
+                [
+                    {
+                        "external_id": "ad1",
+                        "campaign_external_id": "c1",
+                        "ad_set_external_id": "as1",
+                        "name": "Ad 1",
+                    }
+                ],
+                [],
+            )
+        )
+        mock_provider.extract_account_recommendations = AsyncMock(
+            return_value=[
+                {
+                    "source": "account",
+                    "recommendation_type": "CREATIVE_FATIGUE",
+                    "body": "Refresh creative",
+                },
+            ]
+        )
 
         mock_repo = MagicMock()
         mock_repo.upsert_campaigns = AsyncMock(return_value=1)

@@ -1,4 +1,5 @@
 """Tests for AssetsService._detect_type — pure MIME → AssetType mapping."""
+
 from src.modules.assets.application.assets_service import AssetsService
 from src.modules.assets.domain.enums import AssetType
 

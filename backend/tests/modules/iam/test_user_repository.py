@@ -1,5 +1,7 @@
 """Tests for UserRepository — get_by_email, get_by_clerk_id, create, tenant context."""
+
 import uuid
+
 import pytest
 
 from src.modules.iam.domain.user import User
@@ -99,7 +101,9 @@ class TestUserRepositoryCreate:
         from sqlalchemy.exc import IntegrityError
 
         repo = UserRepository(db)
-        duplicate = User(id=uuid.uuid4(), email="alice@example.com")  # same as seed_user
+        duplicate = User(
+            id=uuid.uuid4(), email="alice@example.com"
+        )  # same as seed_user
         with pytest.raises(IntegrityError):
             repo.create(duplicate)
 

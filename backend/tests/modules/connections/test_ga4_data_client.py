@@ -7,8 +7,9 @@ Tests cover:
 - Missing credentials error
 - asyncio.to_thread usage for sync-safe execution
 """
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
+
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from src.modules.connections.infrastructure.channels.google_analytics import (
@@ -57,11 +58,14 @@ class TestRunReportHappyPath:
     async def test_returns_normalized_dict(self):
         fake_response = _make_fake_response()
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
-        ) as MockClient, patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
-        ) as mock_asyncio:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+            ) as MockClient,
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+            ) as mock_asyncio,
+        ):
             mock_client_instance = MagicMock()
             MockClient.return_value = mock_client_instance
 
@@ -104,11 +108,14 @@ class TestRunReportHappyPath:
     async def test_creates_client_with_credentials(self):
         fake_response = _make_fake_response()
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
-        ) as MockClient, patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
-        ) as mock_asyncio:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+            ) as MockClient,
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+            ) as mock_asyncio,
+        ):
             mock_client_instance = MagicMock()
             MockClient.return_value = mock_client_instance
 
@@ -141,13 +148,17 @@ class TestRunReportHappyPath:
     async def test_constructs_request_with_correct_property_format(self):
         fake_response = _make_fake_response()
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
-        ) as MockClient, patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
-        ) as mock_asyncio, patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.RunReportRequest"
-        ) as MockRequest:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+            ) as MockClient,
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+            ) as mock_asyncio,
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.RunReportRequest"
+            ) as MockRequest,
+        ):
             mock_client_instance = MagicMock()
             MockClient.return_value = mock_client_instance
 
@@ -178,9 +189,11 @@ class TestRunReportHappyPath:
 
         # Verify the property format includes "properties/" prefix
         call_kwargs = MockRequest.call_args
-        assert call_kwargs.kwargs.get("property") == "properties/123456" or \
-               (call_kwargs.args and False) or \
-               call_kwargs[1].get("property") == "properties/123456"
+        assert (
+            call_kwargs.kwargs.get("property") == "properties/123456"
+            or (False)
+            or call_kwargs[1].get("property") == "properties/123456"
+        )
 
 
 class TestRunReportAsyncSafety:
@@ -190,11 +203,14 @@ class TestRunReportAsyncSafety:
     async def test_uses_asyncio_to_thread(self):
         fake_response = _make_fake_response()
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
-        ) as MockClient, patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
-        ) as mock_asyncio:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+            ) as MockClient,
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+            ) as mock_asyncio,
+        ):
             mock_client_instance = MagicMock()
             MockClient.return_value = mock_client_instance
 
@@ -231,11 +247,14 @@ class TestRunReportEmptyResponse:
     async def test_empty_response(self):
         fake_response = _make_fake_response(rows=[], row_count=0)
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
-        ) as MockClient, patch(
-            "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
-        ) as mock_asyncio:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+            ) as MockClient,
+            patch(
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+            ) as mock_asyncio,
+        ):
             mock_client_instance = MagicMock()
             MockClient.return_value = mock_client_instance
 

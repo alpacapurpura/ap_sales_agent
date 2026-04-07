@@ -14,7 +14,9 @@ import uuid
 
 import pytest
 
-from src.modules.scheduling.application.services.availability_service import AvailabilityService
+from src.modules.scheduling.application.services.availability_service import (
+    AvailabilityService,
+)
 from src.modules.scheduling.domain.availability_schema import (
     AvailabilitySchedule,
     DaySchedule,
@@ -39,7 +41,9 @@ def _make_schedule(
         timezone=timezone,
         is_default=is_default,
         schedule=WeeklySchedule(
-            monday=DaySchedule(active=monday_active, ranges=ranges if monday_active else []),
+            monday=DaySchedule(
+                active=monday_active, ranges=ranges if monday_active else []
+            ),
             tuesday=DaySchedule(active=False, ranges=[]),
             wednesday=DaySchedule(active=False, ranges=[]),
             thursday=DaySchedule(active=False, ranges=[]),
@@ -94,7 +98,10 @@ class TestScheduleMigration:
             "timezone": "UTC",
             "is_default": True,
             "weekly_hours": {
-                "monday": {"active": True, "ranges": [{"start": "08:00", "end": "16:00"}]},
+                "monday": {
+                    "active": True,
+                    "ranges": [{"start": "08:00", "end": "16:00"}],
+                },
             },
         }
         tenant.config_json = {"availability_schedules": [legacy_data]}
@@ -116,7 +123,10 @@ class TestScheduleMigration:
             "timezone": "UTC",
             "is_default": True,
             "schedule": {
-                "monday": {"is_active": True, "ranges": [{"start": "09:00", "end": "17:00"}]},
+                "monday": {
+                    "is_active": True,
+                    "ranges": [{"start": "09:00", "end": "17:00"}],
+                },
             },
         }
         tenant.config_json = {"availability_schedules": [legacy_data]}

@@ -7,7 +7,6 @@ and proper job enqueue behavior.
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
-from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -32,9 +31,9 @@ def tenants():
     """Three tenants across different timezones with different priorities."""
     return [
         # Ordered by extraction_priority DESC (as the query returns them)
-        _make_tenant(uuid.uuid4(), "America/Bogota", 10),   # UTC-5, highest priority
-        _make_tenant(uuid.uuid4(), "Asia/Tokyo", 5),         # UTC+9
-        _make_tenant(uuid.uuid4(), "UTC", 0),                # UTC
+        _make_tenant(uuid.uuid4(), "America/Bogota", 10),  # UTC-5, highest priority
+        _make_tenant(uuid.uuid4(), "Asia/Tokyo", 5),  # UTC+9
+        _make_tenant(uuid.uuid4(), "UTC", 0),  # UTC
     ]
 
 
@@ -71,11 +70,9 @@ async def test_tick_enqueues_tenant_at_3am_local(tenants, mock_ctx):
     mock_result.scalars.return_value = mock_scalars
     mock_db.execute.return_value = mock_result
 
-    with patch(
-        "src.modules.analytics.workers.scheduler.datetime"
-    ) as mock_datetime:
+    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
-        mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
+        mock_datetime.side_effect = datetime
 
         await run_tick_scheduler(ctx)
 
@@ -100,11 +97,9 @@ async def test_tick_no_enqueue_when_no_3am_match(tenants, mock_ctx):
     mock_result.scalars.return_value = mock_scalars
     mock_db.execute.return_value = mock_result
 
-    with patch(
-        "src.modules.analytics.workers.scheduler.datetime"
-    ) as mock_datetime:
+    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
-        mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
+        mock_datetime.side_effect = datetime
 
         await run_tick_scheduler(ctx)
 
@@ -114,7 +109,7 @@ async def test_tick_no_enqueue_when_no_3am_match(tenants, mock_ctx):
 @pytest.mark.asyncio
 async def test_tick_tenants_ordered_by_priority(mock_ctx):
     """Verify the SQL query orders by extraction_priority DESC."""
-    ctx, mock_db, mock_redis = mock_ctx
+    ctx, mock_db, _mock_redis = mock_ctx
 
     mock_result = MagicMock()
     mock_scalars = MagicMock()
@@ -124,11 +119,9 @@ async def test_tick_tenants_ordered_by_priority(mock_ctx):
 
     fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
 
-    with patch(
-        "src.modules.analytics.workers.scheduler.datetime"
-    ) as mock_datetime:
+    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
-        mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
+        mock_datetime.side_effect = datetime
 
         await run_tick_scheduler(ctx)
 
@@ -161,11 +154,9 @@ async def test_tick_multiple_tenants_at_3am(mock_ctx):
     # 08:00 UTC = 3:00 AM Bogota
     fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
 
-    with patch(
-        "src.modules.analytics.workers.scheduler.datetime"
-    ) as mock_datetime:
+    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
-        mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
+        mock_datetime.side_effect = datetime
 
         await run_tick_scheduler(ctx)
 
@@ -191,11 +182,9 @@ async def test_tick_handles_invalid_timezone(mock_ctx):
     # 08:00 UTC = 3:00 AM Bogota
     fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
 
-    with patch(
-        "src.modules.analytics.workers.scheduler.datetime"
-    ) as mock_datetime:
+    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
         mock_datetime.now.return_value = fixed_utc
-        mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
+        mock_datetime.side_effect = datetime
 
         await run_tick_scheduler(ctx)
 

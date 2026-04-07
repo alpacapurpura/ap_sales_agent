@@ -3,10 +3,11 @@
 Mocks YouTubeAnalyticsAdapter methods.
 """
 
-import pytest
 from datetime import date
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.providers.youtube_provider import (
     YouTubeProvider,
@@ -56,7 +57,7 @@ def _patch_adapter_and_thread(overview=None, card_data=None):
     }
 
     async def fake_to_thread(fn, *args, **kwargs):
-        name = getattr(fn, '_mock_name', None) or getattr(fn, '__name__', '')
+        name = getattr(fn, "_mock_name", None) or getattr(fn, "__name__", "")
         if name in call_results:
             return call_results[name]
         return fn(*args, **kwargs)
@@ -84,7 +85,9 @@ class TestYouTubeOrganic:
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
-            adapter_instance.get_channel_overview = MagicMock(return_value=MOCK_OVERVIEW)
+            adapter_instance.get_channel_overview = MagicMock(
+                return_value=MOCK_OVERVIEW
+            )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
@@ -113,7 +116,9 @@ class TestYouTubeExpandedMetrics:
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
-            adapter_instance.get_channel_overview = MagicMock(return_value=MOCK_OVERVIEW)
+            adapter_instance.get_channel_overview = MagicMock(
+                return_value=MOCK_OVERVIEW
+            )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
@@ -122,7 +127,9 @@ class TestYouTubeExpandedMetrics:
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
-        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
+        yt_metrics = {
+            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
+        }
 
         assert "comments" in yt_metrics
         assert yt_metrics["comments"].value == 340.0
@@ -136,7 +143,9 @@ class TestYouTubeExpandedMetrics:
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
-            adapter_instance.get_channel_overview = MagicMock(return_value=MOCK_OVERVIEW)
+            adapter_instance.get_channel_overview = MagicMock(
+                return_value=MOCK_OVERVIEW
+            )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
@@ -145,7 +154,9 @@ class TestYouTubeExpandedMetrics:
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
-        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
+        yt_metrics = {
+            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
+        }
 
         assert "subscribers_lost" in yt_metrics
         assert yt_metrics["subscribers_lost"].value == 15.0
@@ -156,7 +167,9 @@ class TestYouTubeExpandedMetrics:
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
-            adapter_instance.get_channel_overview = MagicMock(return_value=MOCK_OVERVIEW)
+            adapter_instance.get_channel_overview = MagicMock(
+                return_value=MOCK_OVERVIEW
+            )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
@@ -165,7 +178,9 @@ class TestYouTubeExpandedMetrics:
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
-        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
+        yt_metrics = {
+            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
+        }
 
         assert "avg_view_percentage" in yt_metrics
         assert yt_metrics["avg_view_percentage"].value == 42.3
@@ -181,7 +196,9 @@ class TestYouTubeCardMetrics:
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
-            adapter_instance.get_channel_overview = MagicMock(return_value=MOCK_OVERVIEW)
+            adapter_instance.get_channel_overview = MagicMock(
+                return_value=MOCK_OVERVIEW
+            )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
@@ -190,7 +207,9 @@ class TestYouTubeCardMetrics:
                 TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
             )
 
-        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
+        yt_metrics = {
+            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
+        }
 
         assert "card_clicks" in yt_metrics
         assert yt_metrics["card_clicks"].value == 250.0
@@ -216,11 +235,15 @@ class TestYouTubeCardMetrics:
             "endScreenElementClicks": 0,
             "endScreenElementImpressions": 0,
         }
-        adapter_patch, thread_patch, _ = _patch_adapter_and_thread(card_data=zero_card_data)
+        adapter_patch, thread_patch, _ = _patch_adapter_and_thread(
+            card_data=zero_card_data
+        )
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
-            adapter_instance.get_channel_overview = MagicMock(return_value=MOCK_OVERVIEW)
+            adapter_instance.get_channel_overview = MagicMock(
+                return_value=MOCK_OVERVIEW
+            )
             adapter_instance.get_card_metrics = MagicMock(return_value=zero_card_data)
             MockAdapter.return_value = adapter_instance
 
@@ -241,7 +264,7 @@ class TestYouTubeCardMetrics:
         )
 
         async def fake_to_thread(fn, *args, **kwargs):
-            name = getattr(fn, '_mock_name', None) or getattr(fn, '__name__', '')
+            name = getattr(fn, "_mock_name", None) or getattr(fn, "__name__", "")
             if name == "get_channel_overview":
                 return MOCK_OVERVIEW
             if name == "get_card_metrics":
@@ -255,8 +278,12 @@ class TestYouTubeCardMetrics:
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
-            adapter_instance.get_channel_overview = MagicMock(return_value=MOCK_OVERVIEW)
-            adapter_instance.get_card_metrics = MagicMock(side_effect=RuntimeError("Card metrics unavailable"))
+            adapter_instance.get_channel_overview = MagicMock(
+                return_value=MOCK_OVERVIEW
+            )
+            adapter_instance.get_card_metrics = MagicMock(
+                side_effect=RuntimeError("Card metrics unavailable")
+            )
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()

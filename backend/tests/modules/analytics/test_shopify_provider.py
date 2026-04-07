@@ -28,7 +28,14 @@ def credentials():
 TENANT_ID = uuid.uuid4()
 
 
-def _make_order(order_id, created_at, total_price, currency="USD", line_items=None, financial_status="paid"):
+def _make_order(
+    order_id,
+    created_at,
+    total_price,
+    currency="USD",
+    line_items=None,
+    financial_status="paid",
+):
     return {
         "id": order_id,
         "created_at": created_at,
@@ -75,7 +82,10 @@ class TestShopifyProviderBasics:
     @pytest.mark.asyncio
     async def test_unsupported_stage_returns_empty(self, provider, credentials):
         extraction = await provider.extract_metrics(
-            TENANT_ID, credentials, date(2026, 3, 1), date(2026, 3, 10),
+            TENANT_ID,
+            credentials,
+            date(2026, 3, 1),
+            date(2026, 3, 10),
             stage="attraction",
         )
         assert extraction.metrics == []
@@ -85,12 +95,22 @@ class TestSalesStage:
     @pytest.mark.asyncio
     async def test_sales_metrics(self, provider, credentials):
         orders = [
-            _make_order(1, "2026-03-01T10:00:00Z", 100.0, line_items=[
-                {"quantity": 2, "price": "50.00"},
-            ]),
-            _make_order(2, "2026-03-01T15:00:00Z", 200.0, line_items=[
-                {"quantity": 1, "price": "200.00"},
-            ]),
+            _make_order(
+                1,
+                "2026-03-01T10:00:00Z",
+                100.0,
+                line_items=[
+                    {"quantity": 2, "price": "50.00"},
+                ],
+            ),
+            _make_order(
+                2,
+                "2026-03-01T15:00:00Z",
+                200.0,
+                line_items=[
+                    {"quantity": 1, "price": "200.00"},
+                ],
+            ),
             _make_order(3, "2026-03-02T10:00:00Z", 50.0),
         ]
 
@@ -105,8 +125,10 @@ class TestSalesStage:
             mock_client_cls.return_value = mock_client
 
             extraction = await provider.extract_metrics(
-                TENANT_ID, credentials,
-                date(2026, 3, 1), date(2026, 3, 2),
+                TENANT_ID,
+                credentials,
+                date(2026, 3, 1),
+                date(2026, 3, 2),
                 stage="sales",
             )
         result = extraction.metrics
@@ -114,14 +136,26 @@ class TestSalesStage:
         assert len(result) > 0
 
         # Check March 1 metrics
-        mar1_revenue = [m for m in result if m.date == date(2026, 3, 1) and m.metric_name == "revenue"]
+        mar1_revenue = [
+            m
+            for m in result
+            if m.date == date(2026, 3, 1) and m.metric_name == "revenue"
+        ]
         assert len(mar1_revenue) == 1
         assert mar1_revenue[0].value == 300.0  # 100 + 200
 
-        mar1_orders = [m for m in result if m.date == date(2026, 3, 1) and m.metric_name == "order_count"]
+        mar1_orders = [
+            m
+            for m in result
+            if m.date == date(2026, 3, 1) and m.metric_name == "order_count"
+        ]
         assert mar1_orders[0].value == 2.0
 
-        mar1_units = [m for m in result if m.date == date(2026, 3, 1) and m.metric_name == "units_sold"]
+        mar1_units = [
+            m
+            for m in result
+            if m.date == date(2026, 3, 1) and m.metric_name == "units_sold"
+        ]
         assert mar1_units[0].value == 3.0  # 2 + 1
 
     @pytest.mark.asyncio
@@ -142,8 +176,10 @@ class TestSalesStage:
             mock_client_cls.return_value = mock_client
 
             extraction = await provider.extract_metrics(
-                TENANT_ID, credentials,
-                date(2026, 3, 1), date(2026, 3, 1),
+                TENANT_ID,
+                credentials,
+                date(2026, 3, 1),
+                date(2026, 3, 1),
                 stage="sales",
             )
         result = extraction.metrics
@@ -181,16 +217,26 @@ class TestOpportunityStage:
             mock_client_cls.return_value = mock_client
 
             extraction = await provider.extract_metrics(
-                TENANT_ID, credentials,
-                date(2026, 3, 1), date(2026, 3, 1),
+                TENANT_ID,
+                credentials,
+                date(2026, 3, 1),
+                date(2026, 3, 1),
                 stage="opportunity",
             )
         result = extraction.metrics
 
-        checkout_count = [m for m in result if m.channel_slug == "checkout-init" and m.metric_name == "count"]
+        checkout_count = [
+            m
+            for m in result
+            if m.channel_slug == "checkout-init" and m.metric_name == "count"
+        ]
         assert checkout_count[0].value == 3.0
 
-        abandoned_count = [m for m in result if m.channel_slug == "abandoned-cart" and m.metric_name == "count"]
+        abandoned_count = [
+            m
+            for m in result
+            if m.channel_slug == "abandoned-cart" and m.metric_name == "count"
+        ]
         assert abandoned_count[0].value == 2.0  # 2 not completed
 
         abandonment = [m for m in result if m.metric_name == "abandonment_rate"]
@@ -200,8 +246,12 @@ class TestOpportunityStage:
 class TestPagination:
     @pytest.mark.asyncio
     async def test_follows_link_header(self, provider, credentials):
-        page1_orders = [_make_order(i, "2026-03-01T10:00:00Z", 10.0) for i in range(250)]
-        page2_orders = [_make_order(250 + i, "2026-03-01T10:00:00Z", 10.0) for i in range(50)]
+        page1_orders = [
+            _make_order(i, "2026-03-01T10:00:00Z", 10.0) for i in range(250)
+        ]
+        page2_orders = [
+            _make_order(250 + i, "2026-03-01T10:00:00Z", 10.0) for i in range(50)
+        ]
 
         call_count = 0
 
@@ -223,8 +273,10 @@ class TestPagination:
             mock_client_cls.return_value = mock_client
 
             extraction = await provider.extract_metrics(
-                TENANT_ID, credentials,
-                date(2026, 3, 1), date(2026, 3, 1),
+                TENANT_ID,
+                credentials,
+                date(2026, 3, 1),
+                date(2026, 3, 1),
                 stage="sales",
             )
         result = extraction.metrics
@@ -255,21 +307,33 @@ class TestDailyExtraction:
             mock_client_cls.return_value = mock_client
 
             extraction = await provider.extract_metrics_daily(
-                TENANT_ID, credentials,
-                date(2026, 3, 1), date(2026, 3, 2),
+                TENANT_ID,
+                credentials,
+                date(2026, 3, 1),
+                date(2026, 3, 2),
                 stage="sales",
             )
         result = extraction.metrics
 
-        mar1 = [m for m in result if m.date == date(2026, 3, 1) and m.metric_name == "revenue"]
-        mar2 = [m for m in result if m.date == date(2026, 3, 2) and m.metric_name == "revenue"]
+        mar1 = [
+            m
+            for m in result
+            if m.date == date(2026, 3, 1) and m.metric_name == "revenue"
+        ]
+        mar2 = [
+            m
+            for m in result
+            if m.date == date(2026, 3, 2) and m.metric_name == "revenue"
+        ]
         assert mar1[0].value == 100.0
         assert mar2[0].value == 350.0
 
 
 class TestCleanDomain:
     def test_strips_protocol(self, provider):
-        assert provider._clean_domain("https://shop.myshopify.com") == "shop.myshopify.com"
+        assert (
+            provider._clean_domain("https://shop.myshopify.com") == "shop.myshopify.com"
+        )
 
     def test_adds_myshopify(self, provider):
         assert provider._clean_domain("mystore") == "mystore.myshopify.com"

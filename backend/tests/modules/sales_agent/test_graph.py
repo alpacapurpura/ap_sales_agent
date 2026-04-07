@@ -9,18 +9,18 @@ Covers:
 - Graph topology (edges, conditional routing)
 """
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from src.modules.sales_agent.application.agents.sales.nodes import (
+    _determine_stage,
     _extract_json_block,
     _strip_blocks,
-    _determine_stage,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 def _base_state(**overrides) -> dict:
     """Minimal AgentState dict for testing."""
@@ -63,8 +63,10 @@ _TRACE_PATCH = "src.modules.sales_agent.infrastructure.monitoring.tracing.trace_
 
 def _noop_trace(name):
     """No-op replacement for trace_node decorator in tests."""
+
     def decorator(func):
         return func
+
     return decorator
 
 
@@ -93,7 +95,7 @@ class TestExtractJsonBlock:
         assert result is None
 
     def test_returns_none_for_invalid_json(self):
-        text = '[QUALIFICATION_DATA: {invalid json here}]'
+        text = "[QUALIFICATION_DATA: {invalid json here}]"
         result = _extract_json_block(text, "QUALIFICATION_DATA")
         assert result is None
 
@@ -173,7 +175,9 @@ class TestSupervisorRouting:
     def test_routes_to_qualifier_for_unknown_intent(self):
         # Re-import after patching trace_node so the decorator is no-op
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(detected_intent="unknown", current_state="rapport")
@@ -190,7 +194,9 @@ class TestSupervisorRouting:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_routes_to_closer_for_closing_stage(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(detected_intent="buy", current_state="closing")
@@ -207,7 +213,9 @@ class TestSupervisorRouting:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_fallback_to_closer_in_closing_stage_for_invalid_decision(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(current_state="closing")
@@ -224,7 +232,9 @@ class TestSupervisorRouting:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_fallback_to_qualifier_in_non_closing_stage_for_invalid_decision(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(current_state="rapport")
@@ -241,7 +251,9 @@ class TestSupervisorRouting:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_scheduler_maps_to_closer(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -258,7 +270,9 @@ class TestSupervisorRouting:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_supervisor_passes_accumulated_context_to_prompt(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
@@ -287,14 +301,18 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_extracts_qualification_data_block(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
-            messages=[{
-                "role": "assistant",
-                "content": 'Genial! [QUALIFICATION_DATA: {"budget": "10k", "team_size": "5"}] Te cuento...',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": 'Genial! [QUALIFICATION_DATA: {"budget": "10k", "team_size": "5"}] Te cuento...',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         assert result["qualification_answers"] == {"budget": "10k", "team_size": "5"}
@@ -302,14 +320,18 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_extracts_signals_block(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
-            messages=[{
-                "role": "assistant",
-                "content": '[SIGNALS: {"buying": ["asked_price"], "objections": ["too_expensive"]}] Ok!',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": '[SIGNALS: {"buying": ["asked_price"], "objections": ["too_expensive"]}] Ok!',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         assert len(result["buying_signals"]) == 1
@@ -321,10 +343,14 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_strips_blocks_from_output(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
-        raw_msg = 'Hola! [QUALIFICATION_DATA: {"budget": "5k"}] Te cuento sobre el programa.'
+        raw_msg = (
+            'Hola! [QUALIFICATION_DATA: {"budget": "5k"}] Te cuento sobre el programa.'
+        )
         state = _base_state(
             messages=[{"role": "assistant", "content": raw_msg}],
         )
@@ -338,7 +364,9 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_increments_turn_count(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(turn_count=3)
@@ -348,7 +376,9 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_increments_internal_turn(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(internal_turn=1)
@@ -358,17 +388,21 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_stage_transitions(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         # Starts in rapport, adds qualification data → should transition to discovery
         state = _base_state(
             current_state="rapport",
             turn_count=1,
-            messages=[{
-                "role": "assistant",
-                "content": '[QUALIFICATION_DATA: {"budget": "5k"}] Genial!',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": '[QUALIFICATION_DATA: {"budget": "5k"}] Genial!',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         assert result["current_state"] == "discovery"
@@ -376,15 +410,19 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_lead_score_increases_with_qualification_data(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
             lead_score=20,
-            messages=[{
-                "role": "assistant",
-                "content": '[QUALIFICATION_DATA: {"budget": "5k", "team": "10"}] Ok!',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": '[QUALIFICATION_DATA: {"budget": "5k", "team": "10"}] Ok!',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         # 20 base + 10*2 (two qual fields) = 40
@@ -393,18 +431,22 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_lead_score_capped_at_100(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
             lead_score=95,
-            messages=[{
-                "role": "assistant",
-                "content": (
-                    '[QUALIFICATION_DATA: {"a": "1", "b": "2"}] '
-                    '[SIGNALS: {"buying": ["x", "y"], "objections": []}] Ok!'
-                ),
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": (
+                        '[QUALIFICATION_DATA: {"a": "1", "b": "2"}] '
+                        '[SIGNALS: {"buying": ["x", "y"], "objections": []}] Ok!'
+                    ),
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         assert result["lead_score"] == 100
@@ -412,14 +454,18 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_tool_request_routes_to_tool_executor(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state(
-            messages=[{
-                "role": "assistant",
-                "content": '[TOOL_REQUEST: {"tool": "schedule", "args": {}}] Un momento...',
-            }],
+            messages=[
+                {
+                    "role": "assistant",
+                    "content": '[TOOL_REQUEST: {"tool": "schedule", "args": {}}] Un momento...',
+                }
+            ],
         )
         result = nodes_mod.node_signal_accumulator(state)
         assert result["next_node"] == "tool_executor"
@@ -428,7 +474,9 @@ class TestSignalAccumulator:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_default_routes_to_respond(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -440,7 +488,9 @@ class TestEscalationNode:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_produces_handoff_message(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -456,7 +506,9 @@ class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_returns_respond_when_no_pending_tool(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -466,13 +518,17 @@ class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_executes_registered_tool_and_clears_pending(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
-        state = _base_state(active_product={
-            "name": "Curso Premium",
-            "checkout_page_url": "https://pay.example.com/curso",
-        })
+        state = _base_state(
+            active_product={
+                "name": "Curso Premium",
+                "checkout_page_url": "https://pay.example.com/curso",
+            }
+        )
         state["_pending_tool"] = {"tool": "send_payment_link", "args": {}}
         result = nodes_mod.node_tool_executor(state)
         assert result["_pending_tool"] is None
@@ -482,7 +538,9 @@ class TestToolExecutor:
     @patch(_TRACE_PATCH, _noop_trace)
     def test_returns_error_for_unknown_tool(self):
         import importlib
+
         import src.modules.sales_agent.application.agents.sales.nodes as nodes_mod
+
         importlib.reload(nodes_mod)
 
         state = _base_state()
@@ -504,7 +562,14 @@ class TestGraphRouting:
             _route_after_supervisor,
         )
 
-        for node in ["qualifier", "product_expert", "closer", "tool_executor", "escalate", "respond"]:
+        for node in [
+            "qualifier",
+            "product_expert",
+            "closer",
+            "tool_executor",
+            "escalate",
+            "respond",
+        ]:
             state = _base_state(next_node=node)
             assert _route_after_supervisor(state) == node
 

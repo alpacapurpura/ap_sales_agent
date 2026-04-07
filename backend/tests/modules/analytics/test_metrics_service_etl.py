@@ -109,26 +109,37 @@ async def test_get_attraction_uses_channel_registry(
     mock_db, mock_cache, mock_connection_port, test_tenant_id
 ):
     """MetricsService delegates channel list to ChannelRegistry, not hardcoded defs."""
-    service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
+    service = _make_service(
+        mock_db, cache=mock_cache, connection_port=mock_connection_port
+    )
 
-    with patch(
-        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
-    ) as MockRepo:
+    with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
-        with patch(
-            f"{_ATTRACTION_MODULE}.ChannelRegistry"
-        ) as MockReg:
+        with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
                 return_value={
                     "connected": [
-                        {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta"},
+                        {
+                            "slug": "ig-organic",
+                            "name": "Instagram Organic",
+                            "channel_type": "social",
+                            "source_label": "Instagram",
+                            "provider_name": "meta",
+                        },
                     ],
                     "available": [
-                        {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "badge_type": "configurar"},
+                        {
+                            "slug": "tiktok-organic",
+                            "name": "TikTok Organic",
+                            "channel_type": "social",
+                            "source_label": "TikTok",
+                            "provider_name": "tiktok",
+                            "badge_type": "configurar",
+                        },
                     ],
                 }
             )
@@ -152,24 +163,34 @@ async def test_get_attraction_populates_values_from_repo(
     mock_db, mock_cache, mock_connection_port, sample_aggregations, test_tenant_id
 ):
     """Channel metric values come from OfficialMetricsRepository.get_channel_summary()."""
-    service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
+    service = _make_service(
+        mock_db, cache=mock_cache, connection_port=mock_connection_port
+    )
 
-    with patch(
-        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
-    ) as MockRepo:
+    with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = sample_aggregations
         MockRepo.return_value = mock_repo_inst
 
-        with patch(
-            f"{_ATTRACTION_MODULE}.ChannelRegistry"
-        ) as MockReg:
+        with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
                 return_value={
                     "connected": [
-                        {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta"},
-                        {"slug": "meta-ads", "name": "Meta Ads", "channel_type": "paid", "source_label": "Meta Ads", "provider_name": "meta"},
+                        {
+                            "slug": "ig-organic",
+                            "name": "Instagram Organic",
+                            "channel_type": "social",
+                            "source_label": "Instagram",
+                            "provider_name": "meta",
+                        },
+                        {
+                            "slug": "meta-ads",
+                            "name": "Meta Ads",
+                            "channel_type": "paid",
+                            "source_label": "Meta Ads",
+                            "provider_name": "meta",
+                        },
                     ],
                     "available": [],
                 }
@@ -211,11 +232,11 @@ async def test_get_attraction_returns_cached_on_hit(
     mock_cache.get = AsyncMock(return_value=cached_data)
     mock_cache.set = AsyncMock()
 
-    service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
+    service = _make_service(
+        mock_db, cache=mock_cache, connection_port=mock_connection_port
+    )
 
-    with patch(
-        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
-    ) as MockRepo:
+    with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
         mock_repo_inst = MagicMock()
         MockRepo.return_value = mock_repo_inst
 
@@ -236,18 +257,16 @@ async def test_get_attraction_sets_cache_after_query(
     mock_db, mock_cache, mock_connection_port, test_tenant_id
 ):
     """After DB query, result is stored in cache."""
-    service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
+    service = _make_service(
+        mock_db, cache=mock_cache, connection_port=mock_connection_port
+    )
 
-    with patch(
-        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
-    ) as MockRepo:
+    with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
-        with patch(
-            f"{_ATTRACTION_MODULE}.ChannelRegistry"
-        ) as MockReg:
+        with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
                 return_value={"connected": [], "available": []}
@@ -272,24 +291,29 @@ async def test_unconnected_channels_return_zero(
     mock_db, mock_cache, mock_connection_port, test_tenant_id
 ):
     """Available (unconnected) channels have value=0 and connected=False."""
-    service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
+    service = _make_service(
+        mock_db, cache=mock_cache, connection_port=mock_connection_port
+    )
 
-    with patch(
-        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
-    ) as MockRepo:
+    with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
-        with patch(
-            f"{_ATTRACTION_MODULE}.ChannelRegistry"
-        ) as MockReg:
+        with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
                 return_value={
                     "connected": [],
                     "available": [
-                        {"slug": "tiktok-organic", "name": "TikTok Organic", "channel_type": "social", "source_label": "TikTok", "provider_name": "tiktok", "badge_type": "configurar"},
+                        {
+                            "slug": "tiktok-organic",
+                            "name": "TikTok Organic",
+                            "channel_type": "social",
+                            "source_label": "TikTok",
+                            "provider_name": "tiktok",
+                            "badge_type": "configurar",
+                        },
                     ],
                 }
             )
@@ -298,7 +322,9 @@ async def test_unconnected_channels_return_zero(
             result = await service.get_attraction_metrics(test_tenant_id)
 
     assert result.available is not None
-    tiktok = next((ch for ch in result.available.channels if ch.slug == "tiktok-organic"), None)
+    tiktok = next(
+        (ch for ch in result.available.channels if ch.slug == "tiktok-organic"), None
+    )
     assert tiktok is not None
     assert tiktok.value == 0
     assert tiktok.connected is False
@@ -312,23 +338,27 @@ async def test_connected_channels_include_last_updated(
     mock_db, mock_cache, mock_connection_port, sample_aggregations, test_tenant_id
 ):
     """Connected channels that have aggregation data include last_updated timestamp."""
-    service = _make_service(mock_db, cache=mock_cache, connection_port=mock_connection_port)
+    service = _make_service(
+        mock_db, cache=mock_cache, connection_port=mock_connection_port
+    )
 
-    with patch(
-        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
-    ) as MockRepo:
+    with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = sample_aggregations
         MockRepo.return_value = mock_repo_inst
 
-        with patch(
-            f"{_ATTRACTION_MODULE}.ChannelRegistry"
-        ) as MockReg:
+        with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
                 return_value={
                     "connected": [
-                        {"slug": "ig-organic", "name": "Instagram Organic", "channel_type": "social", "source_label": "Instagram", "provider_name": "meta"},
+                        {
+                            "slug": "ig-organic",
+                            "name": "Instagram Organic",
+                            "channel_type": "social",
+                            "source_label": "Instagram",
+                            "provider_name": "meta",
+                        },
                     ],
                     "available": [],
                 }
@@ -337,7 +367,9 @@ async def test_connected_channels_include_last_updated(
 
             result = await service.get_attraction_metrics(test_tenant_id)
 
-    ig = next((ch for ch in result.organic_social.channels if ch.slug == "ig-organic"), None)
+    ig = next(
+        (ch for ch in result.organic_social.channels if ch.slug == "ig-organic"), None
+    )
     assert ig is not None
     assert ig.last_updated is not None
     assert ig.connected is True
@@ -351,16 +383,12 @@ async def test_works_without_cache(mock_db, mock_connection_port, test_tenant_id
     """When cache=None, service queries DB directly without caching."""
     service = _make_service(mock_db, cache=None, connection_port=mock_connection_port)
 
-    with patch(
-        f"{_ATTRACTION_MODULE}.OfficialMetricsRepository"
-    ) as MockRepo:
+    with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
         mock_repo_inst = MagicMock()
         mock_repo_inst.get_channel_summary.return_value = []
         MockRepo.return_value = mock_repo_inst
 
-        with patch(
-            f"{_ATTRACTION_MODULE}.ChannelRegistry"
-        ) as MockReg:
+        with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
                 return_value={"connected": [], "available": []}

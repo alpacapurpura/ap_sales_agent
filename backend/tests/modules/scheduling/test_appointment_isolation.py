@@ -2,12 +2,15 @@
 
 Proves that Tenant B cannot see or retrieve appointments belonging to Tenant A.
 """
+
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
-from src.modules.scheduling.infrastructure.models.appointment_model import AppointmentModel
+from src.modules.scheduling.infrastructure.models.appointment_model import (
+    AppointmentModel,
+)
 from src.modules.scheduling.infrastructure.repositories.appointment_repository import (
     AppointmentRepository,
 )
@@ -70,8 +73,12 @@ class TestGetAppointmentsByDateRangeTenantIsolation:
         window_start = _BASE_TIME - timedelta(hours=1)
         window_end = _BASE_TIME + timedelta(hours=4)
 
-        results_a = repo.get_appointments_by_date_range(window_start, window_end, TENANT_A)
-        results_b = repo.get_appointments_by_date_range(window_start, window_end, TENANT_B)
+        results_a = repo.get_appointments_by_date_range(
+            window_start, window_end, TENANT_A
+        )
+        results_b = repo.get_appointments_by_date_range(
+            window_start, window_end, TENANT_B
+        )
 
         assert len(results_a) == 2
         assert all(r.tenant_id == TENANT_A for r in results_a)

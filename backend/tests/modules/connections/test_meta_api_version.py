@@ -7,7 +7,6 @@ Verifies that:
 - get_user_profile() passes explicit api= to User()
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -33,11 +32,11 @@ class TestAuthorizationUrlVersion:
     @patch("src.modules.connections.infrastructure.channels.meta.settings")
     def test_authorization_url_contains_v24(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
         mock_settings.META_CONFIG_ID = None
 
-        adapter = MetaAdapter(app_id="test_app_id", app_secret="test_app_secret")
-        url, state = adapter.get_authorization_url("https://example.com/callback")
+        adapter = MetaAdapter(app_id="test_app_id", app_secret="test_app_secret")  # noqa: S106
+        url, _state = adapter.get_authorization_url("https://example.com/callback")
 
         assert "/v24.0/" in url
         assert "/v19.0/" not in url
@@ -50,9 +49,9 @@ class TestExchangeCodeVersion:
     @pytest.mark.asyncio
     async def test_exchange_code_uses_v24_in_url(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
-        adapter = MetaAdapter(app_id="test_app_id", app_secret="test_app_secret")
+        adapter = MetaAdapter(app_id="test_app_id", app_secret="test_app_secret")  # noqa: S106
 
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -84,12 +83,12 @@ class TestGetBusinessAssetsVersion:
     @pytest.mark.asyncio
     async def test_get_business_assets_uses_v24_in_url(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         adapter = MetaAdapter(
             app_id="test_app_id",
-            app_secret="test_app_secret",
-            access_token="test_token",
+            app_secret="test_app_secret",  # noqa: S106
+            access_token="test_token",  # noqa: S106
         )
 
         mock_response = MagicMock()
@@ -119,7 +118,7 @@ class TestInitApiNotSingleton:
     def test_init_api_does_not_call_global_init(self, mock_settings):
         """FacebookAdsApi.init() must never be called."""
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         with patch(
             "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
@@ -129,10 +128,10 @@ class TestInitApiNotSingleton:
                 "src.modules.connections.infrastructure.channels.meta.FacebookSession",
                 return_value=mock_session,
             ):
-                adapter = MetaAdapter(
+                MetaAdapter(
                     app_id="test_app_id",
-                    app_secret="test_app_secret",
-                    access_token="test_token",
+                    app_secret="test_app_secret",  # noqa: S106
+                    access_token="test_token",  # noqa: S106
                 )
 
                 # FacebookAdsApi.init() must NOT have been called
@@ -142,7 +141,7 @@ class TestInitApiNotSingleton:
     def test_init_api_creates_per_instance_api(self, mock_settings):
         """_init_api() must create FacebookAdsApi via FacebookSession and store as _api_instance."""
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         with patch(
             "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
@@ -157,8 +156,8 @@ class TestInitApiNotSingleton:
             ):
                 adapter = MetaAdapter(
                     app_id="test_app_id",
-                    app_secret="test_app_secret",
-                    access_token="test_token",
+                    app_secret="test_app_secret",  # noqa: S106
+                    access_token="test_token",  # noqa: S106
                 )
 
                 # FacebookSession should have been created with credentials
@@ -172,7 +171,7 @@ class TestInitApiNotSingleton:
     def test_init_api_does_not_set_default_api(self, mock_settings):
         """_init_api() must NOT call FacebookAdsApi.set_default_api()."""
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         with patch(
             "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
@@ -184,8 +183,8 @@ class TestInitApiNotSingleton:
             ):
                 MetaAdapter(
                     app_id="test_app_id",
-                    app_secret="test_app_secret",
-                    access_token="test_token",
+                    app_secret="test_app_secret",  # noqa: S106
+                    access_token="test_token",  # noqa: S106
                 )
 
                 mock_api_class.set_default_api.assert_not_called()
@@ -198,18 +197,22 @@ class TestGetUserProfileExplicitApi:
     @pytest.mark.asyncio
     async def test_get_user_profile_passes_explicit_api(self, mock_settings):
         mock_settings.META_APP_ID = "test_app_id"
-        mock_settings.META_APP_SECRET = "test_app_secret"
+        mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         mock_api_instance = MagicMock()
         mock_profile_data = {"id": "123", "name": "Test User", "email": "test@test.com"}
 
-        with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
-        ) as mock_api_class, patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookSession"
-        ), patch(
-            "src.modules.connections.infrastructure.channels.meta.User"
-        ) as mock_user_class:
+        with (
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+            ) as mock_api_class,
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+            ),
+            patch(
+                "src.modules.connections.infrastructure.channels.meta.User"
+            ) as mock_user_class,
+        ):
             mock_api_class.return_value = mock_api_instance
 
             mock_user_instance = MagicMock()
@@ -219,14 +222,12 @@ class TestGetUserProfileExplicitApi:
 
             adapter = MetaAdapter(
                 app_id="test_app_id",
-                app_secret="test_app_secret",
-                access_token="test_token",
+                app_secret="test_app_secret",  # noqa: S106
+                access_token="test_token",  # noqa: S106
             )
 
             result = await adapter.get_user_profile()
 
             # User must be called with explicit api= parameter
-            mock_user_class.assert_called_once_with(
-                fbid="me", api=mock_api_instance
-            )
+            mock_user_class.assert_called_once_with(fbid="me", api=mock_api_instance)
             assert result == mock_profile_data

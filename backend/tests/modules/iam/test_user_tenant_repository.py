@@ -1,8 +1,11 @@
 """Tests for UserTenantRepository — get_tenants_for_user, tenant isolation."""
+
 import uuid
 
-from src.modules.iam.infrastructure.repositories.user_tenant_repository import UserTenantRepository
 from src.modules.iam.domain.tenant import Tenant
+from src.modules.iam.infrastructure.repositories.user_tenant_repository import (
+    UserTenantRepository,
+)
 
 
 class TestUserTenantRepository:
@@ -35,7 +38,9 @@ class TestUserTenantRepository:
         self, db, seed_user, seed_tenant, user_id, tenant_id
     ):
         """Inactive user-tenant links must be excluded."""
-        from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
+        from src.modules.iam.infrastructure.models.user_tenant_model import (
+            UserTenantModel,
+        )
 
         inactive_link = UserTenantModel(
             user_id=user_id,
@@ -55,8 +60,10 @@ class TestUserTenantRepository:
         self, db, seed_user, user_id, tenant_id
     ):
         """Links to inactive tenants must be excluded."""
+        from src.modules.iam.infrastructure.models.user_tenant_model import (
+            UserTenantModel,
+        )
         from tests.factories import TenantFactory
-        from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel
 
         inactive_tenant = TenantFactory.build(
             id=tenant_id,
@@ -81,9 +88,7 @@ class TestUserTenantRepository:
         results = repo.get_tenants_for_user(user_id)
         assert results == []
 
-    def test_returns_domain_entities(
-        self, db, seed_user_tenant_link, user_id
-    ):
+    def test_returns_domain_entities(self, db, seed_user_tenant_link, user_id):
         repo = UserTenantRepository(db)
         results = repo.get_tenants_for_user(user_id)
         for tenant, role in results:

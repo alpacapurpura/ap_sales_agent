@@ -5,10 +5,9 @@ in staging_metrics, official_metrics, and metric_aggregations.
 """
 
 import uuid
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock
 
 import pytest
-
 
 # The seed script defines a seed function we can test
 from scripts.seed_metrics import (

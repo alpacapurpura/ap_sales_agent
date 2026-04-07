@@ -4,10 +4,6 @@ Validates that DTO Pydantic models have all expected fields and
 can be instantiated with valid data. Pure Python — no DB, no async.
 """
 
-from src.modules.analytics.application.dto.summary_dto import (
-    BowtiesSummaryDTO,
-    StageSummaryKpiDTO,
-)
 from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
     AvailableChannelsDTO,
@@ -15,6 +11,10 @@ from src.modules.analytics.application.dto.attraction_dto import (
     MetricValueDTO,
     SubSourceDTO,
     TrafficGroupDTO,
+)
+from src.modules.analytics.application.dto.summary_dto import (
+    BowtiesSummaryDTO,
+    StageSummaryKpiDTO,
 )
 
 
@@ -52,9 +52,18 @@ class TestStageSummaryKpiDTO:
     def test_all_fields_present(self):
         """DTO should have stage, main_kpi, main_label, main_unit, secondary_kpi, secondary_label, secondary_unit."""
         fields = set(StageSummaryKpiDTO.model_fields.keys())
-        expected = {"stage", "main_kpi", "main_label", "main_unit",
-                    "secondary_kpi", "secondary_label", "secondary_unit"}
-        assert fields == expected, f"Missing fields: {expected - fields}; extra: {fields - expected}"
+        expected = {
+            "stage",
+            "main_kpi",
+            "main_label",
+            "main_unit",
+            "secondary_kpi",
+            "secondary_label",
+            "secondary_unit",
+        }
+        assert fields == expected, (
+            f"Missing fields: {expected - fields}; extra: {fields - expected}"
+        )
 
 
 class TestBowtiesSummaryDTO:
@@ -70,8 +79,16 @@ class TestBowtiesSummaryDTO:
                 secondary_kpi=50.0,
                 secondary_label="KPI2",
             )
-            for s in ["attraction", "capture", "nurture", "opportunity",
-                       "sales", "adoption", "expansion", "evangelization"]
+            for s in [
+                "attraction",
+                "capture",
+                "nurture",
+                "opportunity",
+                "sales",
+                "adoption",
+                "expansion",
+                "evangelization",
+            ]
         ]
         dto = BowtiesSummaryDTO(stages=stages, period="last_30_days")
         assert len(dto.stages) == 8
@@ -101,7 +118,9 @@ class TestMetricValueDTO:
 
     def test_with_currency(self):
         """Can specify unit and currency."""
-        dto = MetricValueDTO(name="spend", value=123.45, unit="currency", currency="USD")
+        dto = MetricValueDTO(
+            name="spend", value=123.45, unit="currency", currency="USD"
+        )
         assert dto.unit == "currency"
         assert dto.currency == "USD"
 
@@ -254,7 +273,13 @@ class TestAttractionDetailDTO:
     def test_all_channel_group_fields(self):
         """AttractionDetailDTO should have organic_social, ga4_search, paid, outbound, website."""
         fields = set(AttractionDetailDTO.model_fields.keys())
-        expected_groups = {"organic_social", "ga4_search", "paid", "outbound", "website"}
+        expected_groups = {
+            "organic_social",
+            "ga4_search",
+            "paid",
+            "outbound",
+            "website",
+        }
         assert expected_groups.issubset(fields), (
             f"Missing channel group fields: {expected_groups - fields}"
         )

@@ -3,10 +3,7 @@
 from datetime import date
 from uuid import uuid4
 
-import pytest
-
 from src.modules.analytics.infrastructure.etl.aggregations import compute_aggregations
-
 
 TENANT = uuid4()
 

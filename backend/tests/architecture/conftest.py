@@ -1,6 +1,6 @@
 """Shared helpers for architectural fitness tests."""
+
 import ast
-import os
 from pathlib import Path
 
 import pytest

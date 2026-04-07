@@ -22,8 +22,7 @@ class TestParseResponseBlockStripping:
 
     def test_strip_signals_block(self):
         raw = (
-            "Me alegra que te interese. "
-            '[SIGNALS: {"intent": "high", "urgency": true}]'
+            'Me alegra que te interese. [SIGNALS: {"intent": "high", "urgency": true}]'
         )
         chunks = OutputManager._parse_response(raw)
         joined = " ".join(chunks)

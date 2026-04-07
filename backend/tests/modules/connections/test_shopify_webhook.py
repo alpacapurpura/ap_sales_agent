@@ -9,12 +9,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Helpers: mock payloads
 # ---------------------------------------------------------------------------
 
-def _checkout_payload(email: str = "buyer@example.com", token: str = "tok_123") -> dict:
+
+def _checkout_payload(email: str = "buyer@example.com", token: str = "tok_123") -> dict:  # noqa: S107
     return {
         "email": email,
         "token": token,
@@ -41,6 +41,7 @@ def _order_payload(email: str = "buyer@example.com", order_id: int = 999) -> dic
 # Mock profile helper
 # ---------------------------------------------------------------------------
 
+
 def _mock_profile():
     profile = MagicMock()
     profile.id = uuid.uuid4()
@@ -51,6 +52,7 @@ def _mock_profile():
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_checkout_created_creates_journey_event():
@@ -63,14 +65,19 @@ async def test_checkout_created_creates_journey_event():
     # Make idempotency check return None (no duplicate)
     mock_db.execute.return_value.scalar_one_or_none.return_value = None
 
-    with patch(
-        "src.modules.crm.application.services.customer_service.CustomerService.identify",
-        return_value=profile,
-    ), patch(
-        "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
-        return_value=None,
+    with (
+        patch(
+            "src.modules.crm.application.services.customer_service.CustomerService.identify",
+            return_value=profile,
+        ),
+        patch(
+            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            return_value=None,
+        ),
     ):
-        from src.modules.connections.api.marketing_webhooks import _handle_checkout_created
+        from src.modules.connections.api.marketing_webhooks import (
+            _handle_checkout_created,
+        )
 
         await _handle_checkout_created(mock_db, tenant_id, payload)
 
@@ -80,7 +87,7 @@ async def test_checkout_created_creates_journey_event():
     assert event.event_name == "checkout_initiated"
     assert event.event_type == "track"
     assert event.properties["source"] == "shopify"
-    assert event.properties["checkout_token"] == "tok_123"
+    assert event.properties["checkout_token"] == "tok_123"  # noqa: S105
     assert event.properties["total_price"] == 49.99
     assert event.tenant_id == tenant_id
 
@@ -109,10 +116,13 @@ async def test_checkout_created_idempotent():
 @pytest.mark.asyncio
 async def test_shopify_webhook_returns_200_on_error():
     """The shopify_webhook endpoint always returns 200 even on processing errors."""
-    from fastapi.testclient import TestClient
     from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
     from src.core.database import get_db
-    from src.modules.connections.api.dependencies.webhook_security import verify_shopify_signature
+    from src.modules.connections.api.dependencies.webhook_security import (
+        verify_shopify_signature,
+    )
     from src.modules.connections.api.marketing_webhooks import router
 
     app = FastAPI()
@@ -143,7 +153,10 @@ async def test_shopify_webhook_returns_200_on_error():
 @pytest.mark.asyncio
 async def test_tenant_resolution_from_shop_domain():
     """_resolve_tenant looks up tenant_id via connections table."""
-    from src.modules.connections.api.marketing_webhooks import _resolve_tenant, _shop_tenant_cache
+    from src.modules.connections.api.marketing_webhooks import (
+        _resolve_tenant,
+        _shop_tenant_cache,
+    )
 
     tenant_id = uuid.uuid4()
     shop_domain = "test-shop.myshopify.com"
@@ -156,7 +169,9 @@ async def test_tenant_resolution_from_shop_domain():
     # The function calls db.execute twice: first for tenant list, second for config
     mock_db.execute.side_effect = [
         MagicMock(all=MagicMock(return_value=[(tenant_id,)])),
-        MagicMock(scalar_one_or_none=MagicMock(return_value={"shop_domain": shop_domain})),
+        MagicMock(
+            scalar_one_or_none=MagicMock(return_value={"shop_domain": shop_domain})
+        ),
     ]
 
     result = await _resolve_tenant(mock_db, shop_domain)

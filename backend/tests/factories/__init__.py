@@ -1,17 +1,17 @@
 from tests.factories.base import (
-    TenantFactory,
-    BrandIdentityFactory,
-    BrandVisualsFactory,
-    BrandStoryFactory,
-    BrandSettingsFactory,
     AvatarFactory,
+    BrandIdentityFactory,
+    BrandSettingsFactory,
+    BrandStoryFactory,
+    BrandVisualsFactory,
+    TenantFactory,
 )
 
 __all__ = [
-    "TenantFactory",
-    "BrandIdentityFactory",
-    "BrandVisualsFactory",
-    "BrandStoryFactory",
-    "BrandSettingsFactory",
     "AvatarFactory",
+    "BrandIdentityFactory",
+    "BrandSettingsFactory",
+    "BrandStoryFactory",
+    "BrandVisualsFactory",
+    "TenantFactory",
 ]

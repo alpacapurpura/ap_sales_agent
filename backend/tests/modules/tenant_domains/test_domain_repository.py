@@ -1,13 +1,22 @@
 """Tests for DomainRepositoryImpl — CRUD, soft delete, tenant isolation, hostname uniqueness."""
+
 import uuid
 
 import pytest
 
-from src.modules.tenant_domains.domain.domain_entity import TenantDomain, DomainStatus, DomainType
-from src.modules.tenant_domains.infrastructure.domain_repository_impl import DomainRepositoryImpl
+from src.modules.tenant_domains.domain.domain_entity import (
+    DomainStatus,
+    DomainType,
+    TenantDomain,
+)
+from src.modules.tenant_domains.infrastructure.domain_repository_impl import (
+    DomainRepositoryImpl,
+)
 
 
-def _make_domain(tenant_id: uuid.UUID, hostname: str = "shop.example.com") -> TenantDomain:
+def _make_domain(
+    tenant_id: uuid.UUID, hostname: str = "shop.example.com"
+) -> TenantDomain:
     return TenantDomain(
         id=uuid.uuid4(),
         tenant_id=tenant_id,

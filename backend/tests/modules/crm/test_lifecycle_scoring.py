@@ -4,11 +4,10 @@ Tests for LifecycleService scoring engine with threshold-based transitions.
 CRM-01: Score recalculation, stage transitions (forward/backward/skip),
 CUSTOMER exemption, audit trail, and journey_event write hook.
 """
-import uuid
-from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, MagicMock
 
-import pytest
+import uuid
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 from src.modules.crm.domain.enums import LifecycleStage
@@ -26,6 +25,7 @@ SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_profile(
     db: Session,
@@ -80,15 +80,20 @@ def _add_events(
 # Score Recalculation
 # ---------------------------------------------------------------------------
 
+
 class TestRecalculateScore:
     """recalculate_score sums event weights and returns the result."""
 
     def test_recalculate_score_sums_event_weights(self, db: Session, tenant_id):
         """page_view(1) + email_opened(2) + form_submitted(5) = 8.0"""
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         profile = _make_profile(db, tenant_id)
-        _add_events(db, profile.id, tenant_id, ["page_view", "email_opened", "form_submitted"])
+        _add_events(
+            db, profile.id, tenant_id, ["page_view", "email_opened", "form_submitted"]
+        )
 
         svc = LifecycleService(db)
         score = svc.recalculate_score(profile.id, tenant_id)
@@ -99,9 +104,13 @@ class TestRecalculateScore:
 
     def test_customer_stage_exempt(self, db: Session, tenant_id):
         """CUSTOMER profile score not recalculated -- returns current score."""
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
-        profile = _make_profile(db, tenant_id, stage=LifecycleStage.CUSTOMER, score=80.0)
+        profile = _make_profile(
+            db, tenant_id, stage=LifecycleStage.CUSTOMER, score=80.0
+        )
         _add_events(db, profile.id, tenant_id, ["page_view", "page_view"])
 
         svc = LifecycleService(db)
@@ -114,12 +123,15 @@ class TestRecalculateScore:
 # Threshold Transitions
 # ---------------------------------------------------------------------------
 
+
 class TestThresholdTransitions:
     """Stage transitions driven by score thresholds."""
 
     def test_threshold_transition_subscriber_to_lead(self, db: Session, tenant_id):
         """Score crosses 10 -> SUBSCRIBER to LEAD."""
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         profile = _make_profile(db, tenant_id)
         # meeting_requested=10 + page_view=1 = 11
@@ -133,12 +145,16 @@ class TestThresholdTransitions:
 
     def test_threshold_transition_lead_to_mql(self, db: Session, tenant_id):
         """Score crosses 40 -> LEAD to MQL."""
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.LEAD, score=35.0)
         # form_submitted(5)*3 + meeting_requested(10)*2 + email_clicked(3)*2 = 15+20+6 = 41
         _add_events(
-            db, profile.id, tenant_id,
+            db,
+            profile.id,
+            tenant_id,
             ["form_submitted"] * 3 + ["meeting_requested"] * 2 + ["email_clicked"] * 2,
         )
 
@@ -150,12 +166,16 @@ class TestThresholdTransitions:
 
     def test_threshold_transition_mql_to_sql(self, db: Session, tenant_id):
         """Score crosses 70 -> MQL to SQL."""
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.MQL, score=65.0)
         # demo_requested(10)*7 + page_view(1)*2 = 72
         _add_events(
-            db, profile.id, tenant_id,
+            db,
+            profile.id,
+            tenant_id,
             ["demo_requested"] * 7 + ["page_view"] * 2,
         )
 
@@ -167,12 +187,16 @@ class TestThresholdTransitions:
 
     def test_stage_skipping(self, db: Session, tenant_id):
         """Score jumps from 5 to 75 -> goes directly SUBSCRIBER to SQL."""
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         profile = _make_profile(db, tenant_id, score=5.0)
         # demo_requested(10)*7 + form_submitted(5) = 75
         _add_events(
-            db, profile.id, tenant_id,
+            db,
+            profile.id,
+            tenant_id,
             ["demo_requested"] * 7 + ["form_submitted"],
         )
 
@@ -184,7 +208,9 @@ class TestThresholdTransitions:
 
     def test_backward_transition(self, db: Session, tenant_id):
         """Score drops below threshold -> stage moves back."""
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         # MQL profile but only 2 page_views = 2.0 actual event score -> should go to SUBSCRIBER
         profile = _make_profile(db, tenant_id, stage=LifecycleStage.MQL, score=42.0)
@@ -202,11 +228,14 @@ class TestThresholdTransitions:
 # Audit Trail
 # ---------------------------------------------------------------------------
 
+
 class TestAuditTrail:
     """Every stage transition is recorded in lifecycle_transitions."""
 
     def test_transition_creates_audit_record(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         profile = _make_profile(db, tenant_id)
         _add_events(db, profile.id, tenant_id, ["meeting_requested", "page_view"])
@@ -234,15 +263,22 @@ class TestAuditTrail:
 # Fit Score
 # ---------------------------------------------------------------------------
 
+
 class TestFitScore:
     """Fit score applied once from profile traits."""
 
     def test_fit_score_applied_once(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.lifecycle_service import LifecycleService
+        from src.modules.crm.application.services.lifecycle_service import (
+            LifecycleService,
+        )
 
         profile = _make_profile(
-            db, tenant_id,
-            computed_traits={"financial_capacity": "high", "sophistication_level": "most_aware"},
+            db,
+            tenant_id,
+            computed_traits={
+                "financial_capacity": "high",
+                "sophistication_level": "most_aware",
+            },
         )
         _add_events(db, profile.id, tenant_id, ["page_view"])
 
@@ -261,12 +297,15 @@ class TestFitScore:
 # Journey Event Write Hook
 # ---------------------------------------------------------------------------
 
+
 class TestJourneyEventWriteHook:
     """Writing a journey_event via CustomerService.track_event triggers
     recalculate_score automatically and updates last_activity_at."""
 
     def test_journey_event_write_triggers_recalculation(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.customer_service import CustomerService
+        from src.modules.crm.application.services.customer_service import (
+            CustomerService,
+        )
 
         profile = _make_profile(db, tenant_id)
         svc = CustomerService(db)
@@ -282,7 +321,9 @@ class TestJourneyEventWriteHook:
         assert profile.lead_score == 5.0  # form_submitted weight
 
     def test_journey_event_write_updates_last_activity_at(self, db: Session, tenant_id):
-        from src.modules.crm.application.services.customer_service import CustomerService
+        from src.modules.crm.application.services.customer_service import (
+            CustomerService,
+        )
 
         profile = _make_profile(db, tenant_id)
         assert profile.last_activity_at is None
@@ -298,9 +339,13 @@ class TestJourneyEventWriteHook:
         db.refresh(profile)
         assert profile.last_activity_at is not None
 
-    def test_journey_event_write_triggers_stage_transition(self, db: Session, tenant_id):
+    def test_journey_event_write_triggers_stage_transition(
+        self, db: Session, tenant_id
+    ):
         """Write enough high-weight events to cross LEAD threshold (>=10)."""
-        from src.modules.crm.application.services.customer_service import CustomerService
+        from src.modules.crm.application.services.customer_service import (
+            CustomerService,
+        )
 
         profile = _make_profile(db, tenant_id)
         svc = CustomerService(db)

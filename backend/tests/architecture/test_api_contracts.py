@@ -3,6 +3,7 @@
 Every FastAPI endpoint MUST declare response_model= (PII allowlist pattern).
 Exceptions: webhooks, redirects, 204 No Content, SSE/streaming.
 """
+
 import ast
 import re
 from pathlib import Path
@@ -104,13 +105,15 @@ def _find_route_decorators(filepath: Path) -> list[dict]:
                         if match:
                             status_code = int(match.group(1))
 
-            routes.append({
-                "function": node.name,
-                "method": func.attr.upper(),
-                "has_response_model": has_response_model,
-                "status_code": status_code,
-                "line": node.lineno,
-            })
+            routes.append(
+                {
+                    "function": node.name,
+                    "method": func.attr.upper(),
+                    "has_response_model": has_response_model,
+                    "status_code": status_code,
+                    "line": node.lineno,
+                }
+            )
     return routes
 
 

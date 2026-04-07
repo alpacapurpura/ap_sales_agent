@@ -2,8 +2,11 @@
 
 These are pure Pydantic validation tests — no DB required.
 """
-import pytest
+
 from datetime import datetime, timezone
+
+import pytest
+from pydantic import ValidationError
 
 from src.modules.landing.domain.content import (
     BrochureContent,
@@ -39,14 +42,14 @@ class TestSqueezeContent:
         assert content.visual_url is None
 
     def test_squeeze_content_missing_headline_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             SqueezeContent(
                 subheadline="sub",
                 bullets=["b1"],
             )
 
     def test_squeeze_content_missing_bullets_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             SqueezeContent(
                 headline="headline",
                 subheadline="sub",
@@ -68,7 +71,7 @@ class TestEventContent:
         assert content.event_date == event_date
 
     def test_event_content_missing_required_field_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             EventContent(
                 headline="headline",
                 # missing event_date
@@ -94,7 +97,7 @@ class TestFlashOfferContent:
         assert content.guarantee_text == "30 días o devolución"
 
     def test_flash_offer_content_missing_prices_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             FlashOfferContent(
                 headline="headline",
                 offer_name="offer",
@@ -129,11 +132,19 @@ class TestTransformerContent:
 
     def test_transformer_content_bonuses_optional(self):
         content = TransformerContent(
-            headline="h", subheadline="s", problem_text="p", agitation_text="a",
-            solution_text="sol", method_name="M", method_description="md",
-            authority_name="A", authority_bio="b",
+            headline="h",
+            subheadline="s",
+            problem_text="p",
+            agitation_text="a",
+            solution_text="sol",
+            method_name="M",
+            method_description="md",
+            authority_name="A",
+            authority_bio="b",
             modules=[FeatureBullet(title="Mod 1")],
-            price_anchor="$1k", price_offer="$500", scarcity_text="5 left",
+            price_anchor="$1k",
+            price_offer="$500",
+            scarcity_text="5 left",
         )
         assert content.bonuses == []
         assert content.story_hook is None
@@ -148,11 +159,14 @@ class TestVelvetRopeContent:
             who_is_NOT_for=["Hobbyists", "Tire-kickers"],
             scarcity_text="Only 10 annual spots",
         )
-        assert content.who_is_this_for == ["Coaches earning $5k+/mo", "Serious entrepreneurs"]
+        assert content.who_is_this_for == [
+            "Coaches earning $5k+/mo",
+            "Serious entrepreneurs",
+        ]
         assert content.experience_image_urls == []
 
     def test_velvet_rope_content_missing_manifesto_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             VelvetRopeContent(
                 headline="headline",
                 # missing manifesto_text
@@ -167,7 +181,9 @@ class TestBrochureContent:
         content = BrochureContent(
             headline="Grow Revenue by 3x in 6 Months",
             process_steps=[
-                FeatureBullet(title="Discovery Call", description="We audit your funnel"),
+                FeatureBullet(
+                    title="Discovery Call", description="We audit your funnel"
+                ),
                 FeatureBullet(title="Strategy", description="Custom roadmap"),
             ],
             deliverables=["Monthly reports", "Weekly calls", "Slack access"],
@@ -177,7 +193,7 @@ class TestBrochureContent:
         assert content.case_studies == []
 
     def test_brochure_content_missing_deliverables_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             BrochureContent(
                 headline="headline",
                 process_steps=[FeatureBullet(title="Step 1")],
@@ -193,7 +209,9 @@ class TestFeatureBullet:
         assert bullet.description is None
 
     def test_feature_bullet_full(self):
-        bullet = FeatureBullet(icon="🎯", title="Core Skill", description="Master the fundamentals")
+        bullet = FeatureBullet(
+            icon="🎯", title="Core Skill", description="Master the fundamentals"
+        )
         assert bullet.icon == "🎯"
 
 
@@ -240,18 +258,22 @@ class TestLandingPageConfig:
             archetype=LandingPageArchetype.THE_SQUEEZE,
             slug="no-seo",
             content=SqueezeContent(
-                headline="h", subheadline="s", bullets=["b1"],
+                headline="h",
+                subheadline="s",
+                bullets=["b1"],
             ),
         )
         assert config.seo_title is None
         assert config.seo_description is None
 
     def test_config_missing_slug_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             LandingPageConfig(
                 archetype=LandingPageArchetype.THE_SQUEEZE,
                 # missing slug
                 content=SqueezeContent(
-                    headline="h", subheadline="s", bullets=["b1"],
+                    headline="h",
+                    subheadline="s",
+                    bullets=["b1"],
                 ),
             )

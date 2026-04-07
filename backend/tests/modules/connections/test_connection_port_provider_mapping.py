@@ -4,16 +4,16 @@ Verifies that get_credentials("google_ads") resolves to ChannelType.GOOGLE_ANALY
 without raising ValueError, since Google Ads shares OAuth with GA4.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
+import pytest
+
 from src.modules.connections.application.services.connection_port_impl import (
-    ConnectionPortImpl,
     PROVIDER_TO_CHANNEL_TYPE_ALIAS,
+    ConnectionPortImpl,
 )
 from src.modules.connections.domain.enums import ChannelType
-
 
 TENANT_ID = uuid4()
 
@@ -50,4 +50,4 @@ class TestProviderToChannelTypeMapping:
 
         with patch.object(port.repo, "get_active", return_value=mock_conn):
             creds = await port.get_credentials(TENANT_ID, "google_ads")
-            assert creds.credentials["access_token"] == "test"
+            assert creds.credentials["access_token"] == "test"  # noqa: S105

@@ -3,15 +3,15 @@
 Mocks SQLAlchemy database session.
 """
 
-import pytest
-from datetime import date, datetime
-from unittest.mock import MagicMock, patch
+from datetime import date
+from unittest.mock import MagicMock
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.providers.crm_internal_provider import (
     CRMInternalProvider,
 )
-
 
 TENANT_ID = uuid4()
 

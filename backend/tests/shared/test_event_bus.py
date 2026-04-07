@@ -1,8 +1,10 @@
 """Tests for the shared EventBus and DomainEvent."""
-import pytest
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timezone
+
+from datetime import datetime
+from unittest.mock import MagicMock
 from uuid import uuid4
+
+import pytest
 
 from src.shared.domain.events import DomainEvent, EventBus
 

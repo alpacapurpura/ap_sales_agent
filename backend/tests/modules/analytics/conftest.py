@@ -1,9 +1,9 @@
 import uuid
 from datetime import date
 from unittest.mock import AsyncMock, MagicMock
+from uuid import UUID
 
 import pytest
-from uuid import UUID
 
 
 @pytest.fixture

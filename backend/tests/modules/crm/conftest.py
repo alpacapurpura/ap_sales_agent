@@ -4,12 +4,14 @@ CRM test fixtures.
 Provides sample CustomerProfileModel, JourneyEventModel, and LifecycleTransitionModel
 instances for use across CRM test modules (plans 02 and 03).
 """
+
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy.orm import Session
 
+from src.modules.crm.domain.enums import LifecycleStage
 from src.modules.crm.infrastructure.models.customer_model import (
     CustomerProfileModel,
     JourneyEventModel,
@@ -17,8 +19,6 @@ from src.modules.crm.infrastructure.models.customer_model import (
 from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
     LifecycleTransitionModel,
 )
-from src.modules.crm.domain.enums import LifecycleStage
-
 
 SAMPLE_TENANT_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
@@ -148,7 +148,11 @@ def sample_transition(
         reason="Score crossed LEAD threshold (12.0 >= 10)",
         triggered_by="scoring_rule",
         score_at_transition=12.0,
-        transition_metadata={"score": 12.0, "threshold": 10.0, "threshold_name": "lead"},
+        transition_metadata={
+            "score": 12.0,
+            "threshold": 10.0,
+            "threshold_name": "lead",
+        },
     )
     db.add(transition)
     db.flush()

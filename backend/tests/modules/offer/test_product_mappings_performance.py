@@ -4,10 +4,10 @@ Covers:
 - Batch dedup logic in backfill (Phase 1-3 pattern)
 - Detail endpoint aggregation query consolidation
 """
+
 import uuid
 from datetime import datetime, timezone
 
-import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,9 +17,6 @@ from src.modules.crm.infrastructure.models.customer_model import (
     JourneyEventModel,
 )
 from src.modules.crm.infrastructure.models.sale_model import SaleModel
-from src.modules.offer.infrastructure.models.external_product_mapping_model import (
-    ExternalProductMappingModel,
-)
 from tests.modules.offer.conftest import TENANT_A, create_product_model
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -117,9 +114,7 @@ class TestBackfillBatchCreatesOnlyNew:
 
         # Pre-create sale for ORD-1 (should be skipped during backfill)
         existing_txn = f"{source}-ORD-1-{ext_product_id}"
-        db.add(
-            _make_sale(TENANT_A, offer.id, profile.id, existing_txn)
-        )
+        db.add(_make_sale(TENANT_A, offer.id, profile.id, existing_txn))
         db.flush()
 
         # ── Reproduce batch dedup logic from product_mappings.py ──
@@ -150,14 +145,16 @@ class TestBackfillBatchCreatesOnlyNew:
                 if txn_id in candidate_txn_ids:
                     continue
                 candidate_txn_ids.add(txn_id)
-                candidates.append({
-                    "txn_id": txn_id,
-                    "profile_id": pid,
-                    "occurred_at": occ,
-                    "currency": props.get("currency", "USD"),
-                    "amount": float(item.get("price", 0)),
-                    "order_id": order_id,
-                })
+                candidates.append(
+                    {
+                        "txn_id": txn_id,
+                        "profile_id": pid,
+                        "occurred_at": occ,
+                        "currency": props.get("currency", "USD"),
+                        "amount": float(item.get("price", 0)),
+                        "order_id": order_id,
+                    }
+                )
 
         # Should find 3 candidates
         assert len(candidates) == 3
@@ -229,7 +226,7 @@ class TestBackfillBatchCreatesOnlyNew:
 
         candidate_txn_ids: set[str] = set()
         candidates: list[dict] = []
-        for props, pid, occ in all_events:
+        for props, pid, _occ in all_events:
             if not props or not pid:
                 continue
             order_id = props.get("order_id", "")
@@ -294,9 +291,9 @@ class TestDetailEndpointReturnsData:
                 sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label(
                     "total_revenue"
                 ),
-                sa_func.count(
-                    sa_func.distinct(SaleModel.customer_id)
-                ).label("unique_customers"),
+                sa_func.count(sa_func.distinct(SaleModel.customer_id)).label(
+                    "unique_customers"
+                ),
                 sa_func.min(SaleModel.occurred_at).label("first_sale"),
                 sa_func.max(SaleModel.occurred_at).label("last_sale"),
                 sa_func.min(SaleModel.currency).label("currency"),
@@ -329,9 +326,9 @@ class TestDetailEndpointReturnsData:
                 sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label(
                     "total_revenue"
                 ),
-                sa_func.count(
-                    sa_func.distinct(SaleModel.customer_id)
-                ).label("unique_customers"),
+                sa_func.count(sa_func.distinct(SaleModel.customer_id)).label(
+                    "unique_customers"
+                ),
                 sa_func.min(SaleModel.occurred_at).label("first_sale"),
                 sa_func.max(SaleModel.occurred_at).label("last_sale"),
                 sa_func.min(SaleModel.currency).label("currency"),
@@ -382,7 +379,7 @@ class TestDetailEndpointReturnsData:
             )
             .group_by(SaleModel.source)
         ).all()
-        breakdown = {src: cnt for src, cnt in source_rows}
+        breakdown = dict(source_rows)
 
         assert breakdown["SHOPIFY"] == 2
         assert breakdown["STRIPE"] == 1

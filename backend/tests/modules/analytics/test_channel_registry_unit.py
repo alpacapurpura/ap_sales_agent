@@ -44,15 +44,13 @@ class TestStageChannelMapStructure:
         for stage, channels in STAGE_CHANNEL_MAP.items():
             slugs = [ch["slug"] for ch in channels]
             duplicates = [s for s in set(slugs) if slugs.count(s) > 1]
-            assert not duplicates, (
-                f"Stage '{stage}' has duplicate slugs: {duplicates}"
-            )
+            assert not duplicates, f"Stage '{stage}' has duplicate slugs: {duplicates}"
 
     def test_all_channels_have_name(self):
         """Every channel must have a 'name' key."""
         for stage, channels in STAGE_CHANNEL_MAP.items():
             for ch in channels:
-                assert "name" in ch and ch["name"], (
+                assert ch.get("name"), (
                     f"Channel slug='{ch.get('slug')}' in stage '{stage}' missing name"
                 )
 
@@ -60,7 +58,7 @@ class TestStageChannelMapStructure:
         """Every channel must have a 'channel_type' key."""
         for stage, channels in STAGE_CHANNEL_MAP.items():
             for ch in channels:
-                assert "channel_type" in ch and ch["channel_type"], (
+                assert ch.get("channel_type"), (
                     f"Channel slug='{ch.get('slug')}' in stage '{stage}' missing channel_type"
                 )
 
@@ -68,7 +66,7 @@ class TestStageChannelMapStructure:
         """Every channel must have a 'provider_name' key."""
         for stage, channels in STAGE_CHANNEL_MAP.items():
             for ch in channels:
-                assert "provider_name" in ch and ch["provider_name"], (
+                assert ch.get("provider_name"), (
                     f"Channel slug='{ch.get('slug')}' in stage '{stage}' missing provider_name"
                 )
 
@@ -76,7 +74,7 @@ class TestStageChannelMapStructure:
         """Every channel must have a 'source_label' key."""
         for stage, channels in STAGE_CHANNEL_MAP.items():
             for ch in channels:
-                assert "source_label" in ch and ch["source_label"], (
+                assert ch.get("source_label"), (
                     f"Channel slug='{ch.get('slug')}' in stage '{stage}' missing source_label"
                 )
 
@@ -132,11 +130,14 @@ class TestChannelRegistryAvailableChannels:
         connected_slugs = [ch["slug"] for ch in result["connected"]]
         # "landing-form" is internal in capture stage
         internal_channels = [
-            ch["slug"] for ch in STAGE_CHANNEL_MAP["capture"]
+            ch["slug"]
+            for ch in STAGE_CHANNEL_MAP["capture"]
             if ch.get("provider_name") == "internal"
         ]
         for slug in internal_channels:
-            assert slug in connected_slugs, f"Internal channel '{slug}' should be connected"
+            assert slug in connected_slugs, (
+                f"Internal channel '{slug}' should be connected"
+            )
 
     @pytest.mark.asyncio
     async def test_connected_provider_shows_connected(self):

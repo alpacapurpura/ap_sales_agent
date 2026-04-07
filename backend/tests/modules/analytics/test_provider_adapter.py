@@ -1,8 +1,9 @@
 """Tests for BaseMetricsProvider ABC and ExtractedMetric model."""
 
-import pytest
 from datetime import date
 from uuid import UUID
+
+import pytest
 
 
 class TestBaseMetricsProvider:
@@ -16,11 +17,11 @@ class TestBaseMetricsProvider:
 
     def test_concrete_provider_works(self):
         """A concrete DummyProvider implementing all abstract methods can be instantiated."""
+
         from src.modules.analytics.infrastructure.providers.base import (
             BaseMetricsProvider,
             ExtractedMetric,
         )
-        from typing import List
 
         class DummyProvider(BaseMetricsProvider):
             async def extract_metrics(
@@ -29,7 +30,7 @@ class TestBaseMetricsProvider:
                 credentials: dict,
                 start_date: date,
                 end_date: date,
-            ) -> List[ExtractedMetric]:
+            ) -> list[ExtractedMetric]:
                 return [
                     ExtractedMetric(
                         provider="dummy",
@@ -54,12 +55,12 @@ class TestBaseMetricsProvider:
     @pytest.mark.asyncio
     async def test_concrete_provider_extract_returns_list(self):
         """DummyProvider.extract_metrics returns List[ExtractedMetric]."""
+        import uuid
+
         from src.modules.analytics.infrastructure.providers.base import (
             BaseMetricsProvider,
             ExtractedMetric,
         )
-        from typing import List
-        import uuid
 
         class DummyProvider(BaseMetricsProvider):
             async def extract_metrics(
@@ -68,7 +69,7 @@ class TestBaseMetricsProvider:
                 credentials: dict,
                 start_date: date,
                 end_date: date,
-            ) -> List[ExtractedMetric]:
+            ) -> list[ExtractedMetric]:
                 return [
                     ExtractedMetric(
                         provider="dummy",
@@ -131,9 +132,11 @@ class TestExtractedMetric:
         assert metric.extra == {}
 
     def test_rejects_missing_required(self):
+        from pydantic import ValidationError
+
         from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             ExtractedMetric(
                 provider="meta",
                 # missing channel_slug, metric_name, value, unit, date

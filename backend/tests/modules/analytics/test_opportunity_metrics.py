@@ -4,24 +4,22 @@ Covers: OpportunityDetailDTO construction, bottleneck threshold logic
 for abandoned cart and meeting no-show rates at all severity levels.
 """
 
-import pytest
-
-from src.modules.analytics.application.dto.opportunity_dto import (
-    BottleneckDTO,
-    OpportunityDetailDTO,
-    OpportunityHeaderKpisDTO,
-)
 from src.modules.analytics.application.dto.attraction_dto import (
     ChannelMetricDTO,
     MetricValueDTO,
     TrafficGroupDTO,
 )
 from src.modules.analytics.application.dto.capture_dto import MiniFunnelDTO
-
+from src.modules.analytics.application.dto.opportunity_dto import (
+    BottleneckDTO,
+    OpportunityDetailDTO,
+    OpportunityHeaderKpisDTO,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _build_dto(
     total_sqls: int = 10,
@@ -40,44 +38,52 @@ def _build_dto(
     if checkout_count > 0:
         abandon_rate = (abandoned_count / checkout_count) * 100
         if abandon_rate > 50:
-            bottlenecks.append(BottleneckDTO(
-                type="abandoned_cart",
-                metric_label="Tasa de Abandono",
-                current_rate=round(abandon_rate, 1),
-                severity="critical",
-                threshold=50.0,
-                tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="abandoned_cart",
+                    metric_label="Tasa de Abandono",
+                    current_rate=round(abandon_rate, 1),
+                    severity="critical",
+                    threshold=50.0,
+                    tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
+                )
+            )
         elif abandon_rate > 30:
-            bottlenecks.append(BottleneckDTO(
-                type="abandoned_cart",
-                metric_label="Tasa de Abandono",
-                current_rate=round(abandon_rate, 1),
-                severity="warning",
-                threshold=30.0,
-                tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="abandoned_cart",
+                    metric_label="Tasa de Abandono",
+                    current_rate=round(abandon_rate, 1),
+                    severity="warning",
+                    threshold=30.0,
+                    tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
+                )
+            )
 
     if meeting_booked > 0:
         no_show_rate = (meeting_no_show / meeting_booked) * 100
         if no_show_rate > 40:
-            bottlenecks.append(BottleneckDTO(
-                type="meeting_no_show",
-                metric_label="Tasa de No-Show",
-                current_rate=round(no_show_rate, 1),
-                severity="critical",
-                threshold=40.0,
-                tip="Considera recordatorios automaticos antes de la reunion",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="meeting_no_show",
+                    metric_label="Tasa de No-Show",
+                    current_rate=round(no_show_rate, 1),
+                    severity="critical",
+                    threshold=40.0,
+                    tip="Considera recordatorios automaticos antes de la reunion",
+                )
+            )
         elif no_show_rate > 20:
-            bottlenecks.append(BottleneckDTO(
-                type="meeting_no_show",
-                metric_label="Tasa de No-Show",
-                current_rate=round(no_show_rate, 1),
-                severity="warning",
-                threshold=20.0,
-                tip="Considera recordatorios automaticos antes de la reunion",
-            ))
+            bottlenecks.append(
+                BottleneckDTO(
+                    type="meeting_no_show",
+                    metric_label="Tasa de No-Show",
+                    current_rate=round(no_show_rate, 1),
+                    severity="warning",
+                    threshold=20.0,
+                    tip="Considera recordatorios automaticos antes de la reunion",
+                )
+            )
 
     return OpportunityDetailDTO(
         header_kpis=OpportunityHeaderKpisDTO(
@@ -101,6 +107,7 @@ def _build_dto(
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 def test_opportunity_dto_construction():
     """Build OpportunityDetailDTO with all fields and verify serialization."""
@@ -126,7 +133,9 @@ def test_opportunity_dto_construction():
                     channel_type="checkout",
                     metrics=[
                         MetricValueDTO(name="count", value=45.0),
-                        MetricValueDTO(name="value", value=2250.0, unit="currency", currency="USD"),
+                        MetricValueDTO(
+                            name="value", value=2250.0, unit="currency", currency="USD"
+                        ),
                     ],
                     source_label="Shopify",
                     connected=True,
@@ -135,7 +144,12 @@ def test_opportunity_dto_construction():
         ),
         payment_links=TrafficGroupDTO(totals={}, channels=[]),
         qualification=TrafficGroupDTO(
-            totals={"booked": 24.0, "completed": 18.0, "no_show": 3.0, "rescheduled": 3.0},
+            totals={
+                "booked": 24.0,
+                "completed": 18.0,
+                "no_show": 3.0,
+                "rescheduled": 3.0,
+            },
             channels=[
                 ChannelMetricDTO(
                     slug="meeting-booked",

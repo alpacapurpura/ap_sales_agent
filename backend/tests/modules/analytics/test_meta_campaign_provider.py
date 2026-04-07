@@ -1,8 +1,9 @@
 """Tests for MetaCampaignProvider — campaign hierarchy extraction from Meta API."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
+
+import pytest
 
 from src.modules.analytics.infrastructure.providers.meta_campaign_provider import (
     MetaCampaignProvider,
@@ -27,26 +28,28 @@ def _ok_response(json_data: dict) -> MagicMock:
 class TestExtractCampaigns:
     @pytest.mark.asyncio
     async def test_extracts_campaigns_with_all_fields(self):
-        mock_resp = _ok_response({
-            "data": [
-                {
-                    "id": "camp_001",
-                    "name": "Spring Sale",
-                    "objective": "OUTCOME_SALES",
-                    "status": "ACTIVE",
-                    "effective_status": "ACTIVE",
-                    "bid_strategy": "LOWEST_COST_WITHOUT_CAP",
-                    "daily_budget": "5000",
-                    "budget_remaining": "3200",
-                    "buying_type": "AUCTION",
-                    "special_ad_categories": [],
-                    "start_time": "2026-03-01T00:00:00-0500",
-                    "created_time": "2026-02-28T10:00:00-0500",
-                    "updated_time": "2026-03-15T14:00:00-0500",
-                },
-            ],
-            "paging": {},
-        })
+        mock_resp = _ok_response(
+            {
+                "data": [
+                    {
+                        "id": "camp_001",
+                        "name": "Spring Sale",
+                        "objective": "OUTCOME_SALES",
+                        "status": "ACTIVE",
+                        "effective_status": "ACTIVE",
+                        "bid_strategy": "LOWEST_COST_WITHOUT_CAP",
+                        "daily_budget": "5000",
+                        "budget_remaining": "3200",
+                        "buying_type": "AUCTION",
+                        "special_ad_categories": [],
+                        "start_time": "2026-03-01T00:00:00-0500",
+                        "created_time": "2026-02-28T10:00:00-0500",
+                        "updated_time": "2026-03-15T14:00:00-0500",
+                    },
+                ],
+                "paging": {},
+            }
+        )
 
         async def mock_get(url, **kwargs):
             return mock_resp
@@ -75,40 +78,42 @@ class TestExtractCampaigns:
 class TestExtractAdSets:
     @pytest.mark.asyncio
     async def test_extracts_ad_sets_with_targeting(self):
-        mock_resp = _ok_response({
-            "data": [
-                {
-                    "id": "adset_001",
-                    "campaign_id": "camp_001",
-                    "name": "Mujeres 25-34 CDMX",
-                    "status": "ACTIVE",
-                    "effective_status": "ACTIVE",
-                    "optimization_goal": "CONVERSIONS",
-                    "billing_event": "IMPRESSIONS",
-                    "daily_budget": "2000",
-                    "targeting": {
-                        "age_min": 25,
-                        "age_max": 34,
-                        "genders": [2],
-                        "geo_locations": {"cities": [{"key": "2673660"}]},
-                        "interests": [{"id": "123", "name": "Yoga"}],
+        mock_resp = _ok_response(
+            {
+                "data": [
+                    {
+                        "id": "adset_001",
+                        "campaign_id": "camp_001",
+                        "name": "Mujeres 25-34 CDMX",
+                        "status": "ACTIVE",
+                        "effective_status": "ACTIVE",
+                        "optimization_goal": "CONVERSIONS",
+                        "billing_event": "IMPRESSIONS",
+                        "daily_budget": "2000",
+                        "targeting": {
+                            "age_min": 25,
+                            "age_max": 34,
+                            "genders": [2],
+                            "geo_locations": {"cities": [{"key": "2673660"}]},
+                            "interests": [{"id": "123", "name": "Yoga"}],
+                        },
+                        "destination_type": "WEBSITE",
+                        "learning_stage_info": {"status": "SUCCESS"},
+                        "recommendations": [
+                            {
+                                "title": "Expand Audience",
+                                "message": "Your audience is too narrow",
+                                "code": 1942008,
+                                "importance": "HIGH",
+                                "confidence": "HIGH",
+                                "blame_field": "targeting",
+                            }
+                        ],
                     },
-                    "destination_type": "WEBSITE",
-                    "learning_stage_info": {"status": "SUCCESS"},
-                    "recommendations": [
-                        {
-                            "title": "Expand Audience",
-                            "message": "Your audience is too narrow",
-                            "code": 1942008,
-                            "importance": "HIGH",
-                            "confidence": "HIGH",
-                            "blame_field": "targeting",
-                        }
-                    ],
-                },
-            ],
-            "paging": {},
-        })
+                ],
+                "paging": {},
+            }
+        )
 
         async def mock_get(url, **kwargs):
             return mock_resp
@@ -134,24 +139,26 @@ class TestExtractAdSets:
 class TestExtractRecommendations:
     @pytest.mark.asyncio
     async def test_extracts_account_recommendations(self):
-        mock_resp = _ok_response({
-            "data": [
-                {
-                    "recommendation_data": {
-                        "recommendation_signature": "sig_abc123",
-                        "type": "CREATIVE_FATIGUE",
-                        "object_ids": ["camp_001"],
-                        "recommendation_content": {
-                            "body": "Your creative has been shown too many times",
-                            "lift_estimate": "+15% CTR",
-                            "opportunity_score_lift": 8.5,
+        mock_resp = _ok_response(
+            {
+                "data": [
+                    {
+                        "recommendation_data": {
+                            "recommendation_signature": "sig_abc123",
+                            "type": "CREATIVE_FATIGUE",
+                            "object_ids": ["camp_001"],
+                            "recommendation_content": {
+                                "body": "Your creative has been shown too many times",
+                                "lift_estimate": "+15% CTR",
+                                "opportunity_score_lift": 8.5,
+                            },
+                            "url": "https://business.facebook.com/adsmanager/...",
                         },
-                        "url": "https://business.facebook.com/adsmanager/...",
                     },
-                },
-            ],
-            "paging": {},
-        })
+                ],
+                "paging": {},
+            }
+        )
 
         async def mock_get(url, **kwargs):
             return mock_resp

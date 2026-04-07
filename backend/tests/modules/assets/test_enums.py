@@ -1,5 +1,6 @@
 """Tests for assets module enums — value correctness and string behaviour."""
-from src.modules.assets.domain.enums import AssetType, AssetStatus, StorageProvider
+
+from src.modules.assets.domain.enums import AssetStatus, AssetType, StorageProvider
 
 
 class TestAssetType:

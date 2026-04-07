@@ -11,8 +11,9 @@ class TestConnectionPort:
             ConnectionPort()
 
     def test_has_abstract_get_credentials(self):
-        from src.modules.analytics.domain.ports import ConnectionPort
         import inspect
+
+        from src.modules.analytics.domain.ports import ConnectionPort
 
         methods = {
             name
@@ -23,8 +24,9 @@ class TestConnectionPort:
         assert "get_credentials" in methods
 
     def test_has_abstract_list_active_connections(self):
-        from src.modules.analytics.domain.ports import ConnectionPort
         import inspect
+
+        from src.modules.analytics.domain.ports import ConnectionPort
 
         methods = {
             name
@@ -38,7 +40,7 @@ class TestConnectionPort:
 class TestConnectionCredentials:
     def test_validates_model(self, mock_connection_credentials):
         assert mock_connection_credentials.channel_type == "meta"
-        assert mock_connection_credentials.credentials["access_token"] == "test-token"
+        assert mock_connection_credentials.credentials["access_token"] == "test-token"  # noqa: S105
         assert mock_connection_credentials.config["page_id"] == "123456"
 
     def test_fields_required(self):

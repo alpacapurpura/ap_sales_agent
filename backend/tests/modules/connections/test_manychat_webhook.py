@@ -10,10 +10,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Helpers: mock payloads
 # ---------------------------------------------------------------------------
+
 
 def _subscriber_new_payload(
     channel: str = "instagram",
@@ -52,6 +52,7 @@ def _tag_applied_payload(
 # Mock profile helper
 # ---------------------------------------------------------------------------
 
+
 def _mock_profile():
     profile = MagicMock()
     profile.id = uuid.uuid4()
@@ -62,6 +63,7 @@ def _mock_profile():
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_subscriber_new_creates_message_received_event():
@@ -75,22 +77,30 @@ async def test_subscriber_new_creates_message_received_event():
 
     mock_db = MagicMock()
 
-    with patch(
-        "src.modules.crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
-        return_value=None,
-    ), patch(
-        "src.modules.crm.application.services.customer_service.CustomerService.identify",
-        return_value=profile,
-    ), patch(
-        "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
-        return_value=None,
-    ), patch(
-        "src.modules.analytics.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
-        return_value=None,
-    ), patch(
-        "src.modules.connections.api.marketing_webhooks.logger",
+    with (
+        patch(
+            "src.modules.crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
+            return_value=None,
+        ),
+        patch(
+            "src.modules.crm.application.services.customer_service.CustomerService.identify",
+            return_value=profile,
+        ),
+        patch(
+            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            return_value=None,
+        ),
+        patch(
+            "src.modules.analytics.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
+            return_value=None,
+        ),
+        patch(
+            "src.modules.connections.api.marketing_webhooks.logger",
+        ),
     ):
-        from src.modules.connections.api.marketing_webhooks import _handle_manychat_event
+        from src.modules.connections.api.marketing_webhooks import (
+            _handle_manychat_event,
+        )
 
         await _handle_manychat_event(mock_db, tenant_id, payload, "instagram")
 
@@ -125,22 +135,30 @@ async def test_tag_applied_does_not_create_message_received():
 
     mock_db = MagicMock()
 
-    with patch(
-        "src.modules.crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
-        return_value=None,
-    ), patch(
-        "src.modules.crm.application.services.customer_service.CustomerService.identify",
-        return_value=profile,
-    ), patch(
-        "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
-        return_value=None,
-    ), patch(
-        "src.modules.analytics.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
-        return_value=None,
-    ), patch(
-        "src.modules.connections.api.marketing_webhooks.logger",
+    with (
+        patch(
+            "src.modules.crm.infrastructure.repositories.customer_repository.CustomerRepository.find_by_trait",
+            return_value=None,
+        ),
+        patch(
+            "src.modules.crm.application.services.customer_service.CustomerService.identify",
+            return_value=profile,
+        ),
+        patch(
+            "src.modules.crm.application.services.lifecycle_service.LifecycleService.recalculate_score",
+            return_value=None,
+        ),
+        patch(
+            "src.modules.analytics.application.services.manychat_metrics_promoter.ManyChatMetricsPromoter.promote_event",
+            return_value=None,
+        ),
+        patch(
+            "src.modules.connections.api.marketing_webhooks.logger",
+        ),
     ):
-        from src.modules.connections.api.marketing_webhooks import _handle_manychat_event
+        from src.modules.connections.api.marketing_webhooks import (
+            _handle_manychat_event,
+        )
 
         await _handle_manychat_event(mock_db, tenant_id, payload, "instagram")
 

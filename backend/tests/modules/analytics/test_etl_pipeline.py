@@ -12,7 +12,6 @@ import uuid
 from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 
-
 TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 START_DATE = date(2026, 3, 1)
 END_DATE = date(2026, 3, 14)
@@ -65,8 +64,8 @@ class TestETLPipelineHappyPath:
 
     def test_run_executes_full_pipeline_in_order(self):
         """run() calls extract -> stage -> transform -> upsert -> aggregate -> cache in sequence."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
         from src.modules.analytics.domain.enums import ExtractionStatus
+        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         # Mock all dependencies
         mock_db = MagicMock()
@@ -120,13 +119,14 @@ class TestETLPipelineHappyPath:
         assert len(status_calls) >= 1
         # Last call should be SUCCESS
         last_call = status_calls[-1]
-        assert last_call[1].get("status") == ExtractionStatus.SUCCESS or \
-               (len(last_call[0]) > 1 and last_call[0][1] == ExtractionStatus.SUCCESS)
+        assert last_call[1].get("status") == ExtractionStatus.SUCCESS or (
+            len(last_call[0]) > 1 and last_call[0][1] == ExtractionStatus.SUCCESS
+        )
 
     def test_run_creates_extraction_run_with_success(self):
         """Happy path creates ExtractionRun and marks SUCCESS with metrics_count."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
         from src.modules.analytics.domain.enums import ExtractionStatus
+        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -137,7 +137,8 @@ class TestETLPipelineHappyPath:
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
-            credentials={"access_token": "test"}, config={},
+            credentials={"access_token": "test"},
+            config={},
         )
 
         run_model = _make_run_model()
@@ -164,8 +165,9 @@ class TestETLPipelineHappyPath:
 
         # Verify SUCCESS status was set
         update_calls = mock_run_repo.update_status.call_args_list
-        success_call = [c for c in update_calls
-                        if c[1].get("status") == ExtractionStatus.SUCCESS]
+        success_call = [
+            c for c in update_calls if c[1].get("status") == ExtractionStatus.SUCCESS
+        ]
         assert len(success_call) == 1
 
 
@@ -174,8 +176,8 @@ class TestETLPipelineFailure:
 
     def test_run_marks_failed_and_rolls_back_on_provider_error(self):
         """Provider error -> ExtractionRun FAILED, DB rollback."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
         from src.modules.analytics.domain.enums import ExtractionStatus
+        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -184,7 +186,8 @@ class TestETLPipelineFailure:
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
-            credentials={"access_token": "test"}, config={},
+            credentials={"access_token": "test"},
+            config={},
         )
 
         run_model = _make_run_model()
@@ -209,8 +212,9 @@ class TestETLPipelineFailure:
 
         # Verify FAILED status
         update_calls = mock_run_repo.update_status.call_args_list
-        failed_call = [c for c in update_calls
-                       if c[1].get("status") == ExtractionStatus.FAILED]
+        failed_call = [
+            c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED
+        ]
         assert len(failed_call) == 1
         assert "API rate limited" in failed_call[0][1].get("error", "")
 
@@ -222,9 +226,9 @@ class TestETLPipelineFailure:
 
     def test_run_marks_failed_on_connection_revoked(self):
         """ConnectionRevokedException -> FAILED, no retry."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
         from src.modules.analytics.domain.enums import ExtractionStatus
         from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -257,8 +261,9 @@ class TestETLPipelineFailure:
 
         # Verify FAILED status
         update_calls = mock_run_repo.update_status.call_args_list
-        failed_call = [c for c in update_calls
-                       if c[1].get("status") == ExtractionStatus.FAILED]
+        failed_call = [
+            c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED
+        ]
         assert len(failed_call) == 1
         assert "revoked" in failed_call[0][1].get("error", "").lower()
 
@@ -289,22 +294,25 @@ class TestETLPipelinePartialSuccess:
 
     def test_partial_success_when_failures_and_metrics(self):
         """If some sub-extractors fail but metrics are extracted, status = PARTIAL_SUCCESS."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
         from src.modules.analytics.domain.enums import ExtractionStatus
+        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
 
         # Return metrics AND failures
-        mock_provider.extract_metrics.return_value = _make_extraction_result_with_failures(
-            metrics=[_make_extracted_metric()],
-            failures=[_make_sub_extractor_failure()],
+        mock_provider.extract_metrics.return_value = (
+            _make_extraction_result_with_failures(
+                metrics=[_make_extracted_metric()],
+                failures=[_make_sub_extractor_failure()],
+            )
         )
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
-            credentials={"access_token": "test"}, config={},
+            credentials={"access_token": "test"},
+            config={},
         )
 
         run_model = _make_run_model()
@@ -331,8 +339,11 @@ class TestETLPipelinePartialSuccess:
 
         # Verify PARTIAL_SUCCESS status was set
         update_calls = mock_run_repo.update_status.call_args_list
-        partial_call = [c for c in update_calls
-                        if c[1].get("status") == ExtractionStatus.PARTIAL_SUCCESS]
+        partial_call = [
+            c
+            for c in update_calls
+            if c[1].get("status") == ExtractionStatus.PARTIAL_SUCCESS
+        ]
         assert len(partial_call) == 1, (
             f"Expected PARTIAL_SUCCESS but got statuses: "
             f"{[c[1].get('status') for c in update_calls]}"
@@ -345,14 +356,17 @@ class TestETLPipelinePartialSuccess:
         mock_db = MagicMock()
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
-        mock_provider.extract_metrics.return_value = _make_extraction_result_with_failures(
-            metrics=[_make_extracted_metric()],
-            failures=[_make_sub_extractor_failure()],
+        mock_provider.extract_metrics.return_value = (
+            _make_extraction_result_with_failures(
+                metrics=[_make_extracted_metric()],
+                failures=[_make_sub_extractor_failure()],
+            )
         )
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
-            credentials={"access_token": "test"}, config={},
+            credentials={"access_token": "test"},
+            config={},
         )
 
         run_model = _make_run_model()
@@ -382,25 +396,28 @@ class TestETLPipelinePartialSuccess:
 
     def test_all_sub_extractors_fail_no_metrics_marks_failed(self):
         """If all sub-extractors fail and no metrics extracted, status = FAILED."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
         from src.modules.analytics.domain.enums import ExtractionStatus
+        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
 
         # Return failures but NO metrics
-        mock_provider.extract_metrics.return_value = _make_extraction_result_with_failures(
-            metrics=[],
-            failures=[
-                _make_sub_extractor_failure("instagram_organic", "Auth error"),
-                _make_sub_extractor_failure("meta_ads", "Rate limited"),
-            ],
+        mock_provider.extract_metrics.return_value = (
+            _make_extraction_result_with_failures(
+                metrics=[],
+                failures=[
+                    _make_sub_extractor_failure("instagram_organic", "Auth error"),
+                    _make_sub_extractor_failure("meta_ads", "Rate limited"),
+                ],
+            )
         )
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
-            credentials={"access_token": "test"}, config={},
+            credentials={"access_token": "test"},
+            config={},
         )
 
         run_model = _make_run_model()
@@ -427,8 +444,9 @@ class TestETLPipelinePartialSuccess:
 
         # Verify FAILED status (not PARTIAL_SUCCESS)
         update_calls = mock_run_repo.update_status.call_args_list
-        failed_call = [c for c in update_calls
-                       if c[1].get("status") == ExtractionStatus.FAILED]
+        failed_call = [
+            c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED
+        ]
         assert len(failed_call) == 1, (
             f"Expected FAILED but got statuses: "
             f"{[c[1].get('status') for c in update_calls]}"
@@ -440,8 +458,8 @@ class TestETLPipelineEmptyExtraction:
 
     def test_zero_metrics_still_succeeds(self):
         """Extraction returning 0 metrics should still be SUCCESS (not FAILED)."""
-        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
         from src.modules.analytics.domain.enums import ExtractionStatus
+        from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
         mock_provider = AsyncMock()
@@ -452,7 +470,8 @@ class TestETLPipelineEmptyExtraction:
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
-            credentials={"access_token": "test"}, config={},
+            credentials={"access_token": "test"},
+            config={},
         )
 
         run_model = _make_run_model()
@@ -479,8 +498,9 @@ class TestETLPipelineEmptyExtraction:
 
         # Verify SUCCESS status (no failures = success even with 0 metrics)
         update_calls = mock_run_repo.update_status.call_args_list
-        success_call = [c for c in update_calls
-                        if c[1].get("status") == ExtractionStatus.SUCCESS]
+        success_call = [
+            c for c in update_calls if c[1].get("status") == ExtractionStatus.SUCCESS
+        ]
         assert len(success_call) == 1
 
     def test_zero_metrics_still_invalidates_cache(self):
@@ -494,7 +514,8 @@ class TestETLPipelineEmptyExtraction:
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.return_value = MagicMock(
-            credentials={"access_token": "test"}, config={},
+            credentials={"access_token": "test"},
+            config={},
         )
 
         run_model = _make_run_model()

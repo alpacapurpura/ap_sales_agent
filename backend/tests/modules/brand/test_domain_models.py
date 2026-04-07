@@ -1,16 +1,31 @@
 """Tests for Brand Studio domain models -- Pydantic validation, defaults, migration."""
-import pytest
-import uuid
+
 from src.modules.brand.domain import (
-    BrandSettings, BrandIdentity, BrandVisuals, BrandStory, BrandStrategy,
-    BrandContact, BrandTestimonial, BrandAuthorityItem, KeyFigure,
-    BrandPositioning, CompetitiveEnvironment, ConsumerInsight,
-    BrandBenefits, BrandValues, ReasonToBelieve,
-    BrandNarrative, StoryBrandHero, StoryBrandProblem, StoryBrandGuide,
-    StoryBrandPlanStep, StoryBrandCTA, StoryBrandOutcome,
-    CommunicationAssets, CreativeConcept, FunnelAsset,
-    BrandCompetitor, BrandMethodologyPillar, BrandStoryMilestone,
-    Avatar, BrandTeam,
+    BrandBenefits,
+    BrandContact,
+    BrandIdentity,
+    BrandMethodologyPillar,
+    BrandNarrative,
+    BrandPositioning,
+    BrandSettings,
+    BrandStory,
+    BrandStoryMilestone,
+    BrandStrategy,
+    BrandTestimonial,
+    BrandValues,
+    BrandVisuals,
+    CommunicationAssets,
+    CompetitiveEnvironment,
+    ConsumerInsight,
+    FunnelAsset,
+    KeyFigure,
+    ReasonToBelieve,
+    StoryBrandCTA,
+    StoryBrandGuide,
+    StoryBrandHero,
+    StoryBrandOutcome,
+    StoryBrandPlanStep,
+    StoryBrandProblem,
 )
 
 
@@ -38,7 +53,9 @@ class TestBrandSettings:
         data = {
             "strategy": {
                 "unique_value_proposition": "We are the best",
-                "competitors": [{"id": "1", "name": "Rival", "differentiation": "cheap"}],
+                "competitors": [
+                    {"id": "1", "name": "Rival", "differentiation": "cheap"}
+                ],
                 "methodology_name": "Test Method",
             }
         }
@@ -52,7 +69,10 @@ class TestBrandSettings:
         """Migration does NOT overwrite existing positioning fields."""
         data = {
             "strategy": {"unique_value_proposition": "old"},
-            "positioning": {"unique_value_proposition": "keep this", "brand_essence": "core"},
+            "positioning": {
+                "unique_value_proposition": "keep this",
+                "brand_essence": "core",
+            },
         }
         s = BrandSettings(**data)
         assert s.positioning.unique_value_proposition == "keep this"
@@ -91,7 +111,9 @@ class TestBrandStory:
         assert s.milestones == []
 
     def test_with_milestones(self):
-        m = BrandStoryMilestone(id="1", year="2020", title="Founded", description="Started")
+        m = BrandStoryMilestone(
+            id="1", year="2020", title="Founded", description="Started"
+        )
         s = BrandStory(milestones=[m])
         assert len(s.milestones) == 1
         assert s.milestones[0].year == "2020"
@@ -149,10 +171,16 @@ class TestBrandPositioning:
                 technical_enemy="Legacy tools",
                 philosophical_enemy="Complexity",
             ),
-            insight=ConsumerInsight(tension="Need simplicity", observation="Tools are complex"),
-            benefits=BrandBenefits(functional_benefits=["Fast"], emotional_benefits=["Calm"]),
+            insight=ConsumerInsight(
+                tension="Need simplicity", observation="Tools are complex"
+            ),
+            benefits=BrandBenefits(
+                functional_benefits=["Fast"], emotional_benefits=["Calm"]
+            ),
             values=BrandValues(core_values=["Innovation"], personality_traits=["Bold"]),
-            reasons_to_believe=[ReasonToBelieve(id="1", type="dato", statement="99% uptime")],
+            reasons_to_believe=[
+                ReasonToBelieve(id="1", type="dato", statement="99% uptime")
+            ],
             discriminator="Only AI-native solution",
             brand_essence="Simplicity",
             unique_value_proposition="AI that works",
@@ -184,8 +212,12 @@ class TestCommunicationAssets:
 
     def test_with_funnel_assets(self):
         fa = FunnelAsset(
-            id="1", funnel_stage="TOFU", asset_type="reel",
-            title="Intro Video", idea="Show product", objective="Awareness",
+            id="1",
+            funnel_stage="TOFU",
+            asset_type="reel",
+            title="Intro Video",
+            idea="Show product",
+            objective="Awareness",
         )
         ca = CommunicationAssets(assets=[fa])
         assert len(ca.assets) == 1

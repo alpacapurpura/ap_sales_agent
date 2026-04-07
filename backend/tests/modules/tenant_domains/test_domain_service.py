@@ -1,4 +1,5 @@
 """Tests for DomainService — mocks CloudflareClient, uses real repo + DB."""
+
 import uuid
 from unittest.mock import MagicMock
 
@@ -7,10 +8,10 @@ import pytest
 from src.modules.tenant_domains.application.domain_service import DomainService
 from src.modules.tenant_domains.domain.domain_entity import DomainStatus, DomainType
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_service(db) -> DomainService:
     """Build a DomainService with a mocked (no-op) CloudflareClient."""
@@ -28,6 +29,7 @@ def _make_service(db) -> DomainService:
 # ---------------------------------------------------------------------------
 # Platform domain
 # ---------------------------------------------------------------------------
+
 
 class TestCreatePlatformDomain:
     def test_creates_active_platform_domain(self, db, tenant_id):
@@ -61,6 +63,7 @@ class TestCreatePlatformDomain:
 # ---------------------------------------------------------------------------
 # Custom domain
 # ---------------------------------------------------------------------------
+
 
 class TestCreateCustomDomain:
     def test_creates_pending_custom_domain_no_cf(self, db, tenant_id):
@@ -109,6 +112,7 @@ class TestCreateCustomDomain:
 # Verify domain
 # ---------------------------------------------------------------------------
 
+
 class TestVerifyDomain:
     def test_verify_active_ssl_sets_domain_active(self, db, tenant_id):
         service = _make_service(db)
@@ -127,11 +131,15 @@ class TestVerifyDomain:
 
     def test_verify_pending_ssl_sets_domain_verifying(self, db, tenant_id):
         service = _make_service(db)
-        created = service.create_custom_domain(tenant_id, hostname="pending.example.com")
+        created = service.create_custom_domain(
+            tenant_id, hostname="pending.example.com"
+        )
         created.cloudflare_hostname_id = "cf-id-pending"
         service.repo.update(created)
 
-        service.cf.get_hostname_status.return_value = {"ssl": {"status": "pending_validation"}}
+        service.cf.get_hostname_status.return_value = {
+            "ssl": {"status": "pending_validation"}
+        }
         updated = service.verify_domain(created.id, tenant_id)
 
         assert updated.status is DomainStatus.VERIFYING
@@ -155,6 +163,7 @@ class TestVerifyDomain:
 # Delete domain
 # ---------------------------------------------------------------------------
 
+
 class TestDeleteDomain:
     def test_delete_soft_deletes_domain(self, db, tenant_id):
         service = _make_service(db)
@@ -167,8 +176,13 @@ class TestDeleteDomain:
 
     def test_delete_calls_cf_cleanup_when_cf_id_set(self, db, tenant_id):
         service = _make_service(db)
-        service.cf.create_custom_hostname.return_value = {"id": "cf-cleanup-id", "ssl": {}}
-        created = service.create_custom_domain(tenant_id, hostname="cleanup.example.com")
+        service.cf.create_custom_hostname.return_value = {
+            "id": "cf-cleanup-id",
+            "ssl": {},
+        }
+        created = service.create_custom_domain(
+            tenant_id, hostname="cleanup.example.com"
+        )
 
         service.delete_domain(created.id, tenant_id)
 
