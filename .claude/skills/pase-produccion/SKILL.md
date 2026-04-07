@@ -1,7 +1,7 @@
 ---
 name: pase-produccion
 description: >
-  Full production deployment pipeline: merge all feature branches to main, run /test-all fixing all errors,
+  Full production deployment pipeline: merge development to main, run /test-all fixing all errors,
   commit, push to trigger GitHub Actions, and monitor the workflow until deployment completes.
   Use when the user says "pase a producción", "hagamos un pase", "deploy to production",
   "pasamos a prod", "subamos a producción", or "vamos a producción".
@@ -16,7 +16,6 @@ hasta producción con cero intervención manual, verificando calidad en cada pas
 ## Parámetros Opcionales
 
 El usuario puede decir:
-- "pase a producción **sin mergear X**" → excluir rama X del merge
 - "pase a producción **solo main**" → skip merge phase, solo test+push
 - "pase a producción **dry-run**" → ejecutar todo excepto el push final
 
@@ -45,9 +44,7 @@ Si el usuario ya indicó exclusiones, proceder sin preguntar.
 
 ---
 
-## Fase 2: Consolidación (Merge All → Main)
-
-Para cada rama con commits pendientes (ordenar por fecha de último commit, más antigua primero):
+## Fase 2: Consolidación (Merge development → Main)
 
 ### 2.1 Preparar main
 ```bash
@@ -55,24 +52,16 @@ git checkout main
 git pull origin main
 ```
 
-### 2.2 Para cada rama feature:
+### 2.2 Merge development
 ```bash
-git checkout <branch>
-git pull origin <branch>  # sync con remote
-git rebase main            # rebase sobre main actualizado
+git merge development
 ```
 
 **Si hay conflictos:**
-1. Intentar resolver automáticamente (priorizar feature branch para código nuevo, main para infra)
+1. Intentar resolver automáticamente (priorizar development para código nuevo, main para infra)
 2. Si es ambiguo → preguntar al usuario mostrando el diff conflictivo
-3. Después de resolver: `git rebase --continue`
 
-```bash
-git checkout main
-git merge <branch> --no-ff -m "merge(<scope>): integrate <branch> into main"
-```
-
-### 2.3 Después de mergear TODAS las ramas:
+### 2.3 Verificar:
 ```bash
 git log --oneline -20  # verificar que todos los commits están en main
 ```
@@ -181,23 +170,13 @@ gh run view <run-id> --log-failed
 
 Solo después de un deploy exitoso:
 
-### 6.1 Limpiar ramas mergeadas
+### 6.1 Sincronizar development con main
 ```bash
-git branch --merged main | grep -v "main" | grep -v "^\*"
-```
-Preguntar al usuario antes de borrar:
-> "Estas ramas ya están mergeadas en main: [lista]. ¿Las elimino local y remotamente?"
-
-Si el usuario confirma:
-```bash
-git branch -d <branch>
-git push origin --delete <branch>
+git checkout development
+git merge main
 ```
 
-### 6.2 Actualizar memoria de branches
-Actualizar `git_branches.md` marcando ramas como mergeadas.
-
-### 6.3 Reporte final
+### 6.2 Reporte final
 ```
 ## Pase a Producción — Resumen
 

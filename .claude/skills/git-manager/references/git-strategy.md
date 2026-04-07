@@ -3,18 +3,14 @@
 ## Branch Model
 
 ```
-main (producción)
-  └── feature/audit-module-frontend
-  └── feature/shopify-integration
-  └── fix/telegram-typing-indicator
-  └── refactor/semantic-router-tenant-aware
-  └── chore/update-dependencies
+main (producción — push = deploy automático via GitHub Actions)
+  └── development (ÚNICA rama de trabajo — todos los agentes commitean aquí)
 ```
 
-- **main** = siempre deployable a producción
-- Nunca se trabaja directo en `main`
-- Cada feature/fix tiene su propia rama
-- Las ramas se mergean vía PR (o merge directo si el equipo es solo el founder)
+- **`main`** = siempre deployable a producción. Push a origin main = deploy automático.
+- **`development`** = rama de trabajo. TODO el desarrollo va aquí.
+- **NUNCA se crean feature branches, worktrees, ni ramas adicionales** salvo instrucción explícita de Chris.
+- Merge `development` → `main` solo durante pase a producción.
 
 ## Convención de Commits (Conventional Commits)
 
@@ -23,7 +19,7 @@ main (producción)
 
 [cuerpo opcional - qué y por qué, no el cómo]
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 ```
 
 ### Tipos válidos
@@ -74,25 +70,21 @@ docs(sales-agent): document AKS knowledge builder flow
 ## Workflow Diagram
 
 ```
-1. git checkout main && git pull
-2. git checkout -b feature/mi-feature
-3. [desarrollar, commits frecuentes]
-4. git fetch origin && git rebase origin/main
-5. git push origin feature/mi-feature
-6. gh pr create (o merge directo si es solo el founder)
-7. [review / merge]
-8. git checkout main && git pull
-9. [si es release] git tag -a vX.X.X && git push origin vX.X.X
-10. gh release create vX.X.X
+1. git checkout development (crear si no existe: git checkout -b development)
+2. [desarrollar, commits frecuentes en development]
+3. Cuando Chris dice "pase a producción":
+   a. git checkout main && git pull origin main
+   b. git merge development
+   c. Resolver conflictos si los hay
+   d. Ejecutar /test-all
+   e. git push origin main (= deploy automático)
+4. Volver a development: git checkout development && git merge main
+5. [si es release] git tag -a vX.X.X && git push origin vX.X.X
 ```
 
 ## Docker Deploy a Producción
 
-Después de mergear a `main` y crear el release tag:
-
-```bash
-# En el servidor de producción
-git pull origin main
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
-docker exec -it visionarias_brain_prod alembic upgrade head  # si hay migraciones
-```
+El push a `main` activa GitHub Actions (`deploy-prod.yml`) que:
+1. Ejecuta quality-gates (lint + test)
+2. Security scan (Trivy)
+3. Publica imágenes a GHCR (`ghcr.io/alpacapurpura/visionarias-{backend,frontend}:latest`)

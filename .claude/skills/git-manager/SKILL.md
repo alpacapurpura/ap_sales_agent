@@ -19,8 +19,10 @@ Tu objetivo es mantener el repositorio ordenado, las ramas bien gestionadas, y l
 ## Contexto del Proyecto
 
 - **Repo:** `https://github.com/alpacapurpura/ap_sales_agent`
-- **Rama principal:** `main` (producción)
-- **Estrategia:** Feature branches → PR → merge a `main` → Release Tag
+- **Rama principal:** `main` (producción — push = deploy automático)
+- **Rama de trabajo:** `development` (ÚNICA rama de desarrollo)
+- **Estrategia:** Todo en `development` → merge a `main` solo para pase a producción
+- **NUNCA crear feature branches, worktrees, ni ramas adicionales** salvo instrucción explícita de Chris
 
 ## Paso 0: Siempre Ejecutar Primero
 
@@ -50,19 +52,15 @@ Mostrar: rama actual, archivos modificados, commits pendientes de push.
 
 ---
 
-### `/git branch <nombre> [--from <base>]` — Crear rama de feature
+### `/git branch` — Verificar o crear rama development
 
-**Convención de nombres:** `feature/`, `fix/`, `refactor/`, `chore/` + `<descripcion-corta>`
+**REGLA:** Solo existen dos ramas: `main` y `development`. NUNCA crear otras salvo instrucción explícita de Chris.
 
 **Pasos:**
-1. Asegurarse de estar en `main` actualizado: `git checkout main && git pull origin main`
-2. Crear rama: `git checkout -b feature/<nombre>`
-3. Push inicial: `git push -u origin feature/<nombre>`
-4. **Guardar en memoria** en `git_branches.md`:
-   - Nombre de rama
-   - Propósito (descripción del feature)
-   - Fecha de creación
-   - Módulos afectados
+1. Verificar si `development` existe: `git branch --list development`
+2. Si NO existe: `git checkout -b development main`
+3. Si existe pero no estás en ella: `git checkout development`
+4. Sincronizar con main si hay commits nuevos: `git merge main`
 
 ---
 
