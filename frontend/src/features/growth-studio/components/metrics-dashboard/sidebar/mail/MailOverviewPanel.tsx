@@ -21,6 +21,7 @@ interface MailOverviewPanelProps {
   channel: ChannelMetric;
   onClose: () => void;
   onExpand?: () => void;
+  initialTab?: string | null;
 }
 
 export function MailOverviewPanel({

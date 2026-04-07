@@ -1,11 +1,21 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { StageId, MetricClickData, ChannelMetric, MetaAdsDashboardTab } from '../../../types/metrics';
 import type { PeriodType } from '../../../api/stage-detail-api';
 
 const CHANNEL_PARAM = 'channel';
+const TAB_PARAM = 'tab';
+
+/** Minimal shape needed to resolve a deep link channel. */
+interface ResolvableChannel {
+  slug: string;
+  name: string;
+  channelType: string;
+  connected: boolean;
+  providerName?: string;
+}
 
 // ── Slug ↔ StageId mappings ────────────────────────────────────────
 
@@ -30,7 +40,7 @@ export const STAGE_TO_SLUG: Record<CompositeStageId, string> = {
   EXPANSION_EVANGELIZACION: 'expansion-evangelizacion',
 };
 
-// ── Context shape ────���─────────────────────────────────────────────
+// ── Context shape ──────────────────────────────────────────────────
 
 interface GrowthStudioContextValue {
   activeStage: CompositeStageId | null;
@@ -56,6 +66,9 @@ interface GrowthStudioContextValue {
   handleCloseExpandedDashboard: () => void;
   handleConfigure: (slug: string, name: string) => void;
   handleCloseConfigure: () => void;
+  pendingChannelSlug: string | null;
+  pendingChannelTab: string | null;
+  resolvePendingChannel: (channels: ResolvableChannel[]) => void;
 }
 
 const GrowthStudioContext = createContext<GrowthStudioContextValue | null>(null);
@@ -103,6 +116,38 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const [metaAdsDashboardInitialTab, setMetaAdsDashboardInitialTab] = useState<MetaAdsDashboardTab | undefined>(undefined);
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
 
+  // ── Deep link: read ?channel= and ?tab= from URL ──────────────────
+  const pendingChannelSlug = searchParams.get(CHANNEL_PARAM);
+  const pendingChannelTab = searchParams.get(TAB_PARAM);
+
+  // Guard ref: once a slug is resolved (or the user closes the sidebar),
+  // don't re-open on subsequent renders for the same slug.
+  const resolvedSlugRef = useRef<string | null>(null);
+
+  const resolvePendingChannel = useCallback((channels: ResolvableChannel[]) => {
+    if (!pendingChannelSlug) return;
+    if (resolvedSlugRef.current === pendingChannelSlug) return;
+
+    const match = channels.find(c => c.slug === pendingChannelSlug);
+    if (match && match.connected && match.providerName) {
+      setSidebarOpen(false);
+      setSidebarMetric(null);
+      // Build a minimal ChannelMetric from the resolvable data
+      setSelectedChannel({
+        slug: match.slug,
+        name: match.name,
+        channelType: match.channelType,
+        connected: match.connected,
+        providerName: match.providerName,
+        sourceLabel: match.name,
+        metrics: [],
+      });
+      setChannelSidebarOpen(true);
+      // Do NOT update URL — it already has ?channel=
+    }
+    resolvedSlugRef.current = pendingChannelSlug;
+  }, [pendingChannelSlug]);
+
   // Reset sidebars when stage changes — legitimately syncs multiple pieces
   // of local UI state when the user navigates to a different funnel stage.
   useEffect(() => {
@@ -120,6 +165,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setMetaAdsDashboardInitialTab(undefined);
 
     setConfigureChannel(null);
+
+    resolvedSlugRef.current = null;
   }, [activeStage]);
 
   const handleMetricClick = useCallback((metric: MetricClickData) => {
@@ -149,12 +196,17 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const handleChannelSidebarClose = useCallback(() => {
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
-    // Remove channel param from URL
+    // Mark as resolved so deep link doesn't re-open
+    if (pendingChannelSlug) {
+      resolvedSlugRef.current = pendingChannelSlug;
+    }
+    // Remove channel and tab params from URL
     const params = new URLSearchParams(searchParams.toString());
     params.delete(CHANNEL_PARAM);
+    params.delete(TAB_PARAM);
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname);
-  }, [searchParams, router, pathname]);
+  }, [searchParams, router, pathname, pendingChannelSlug]);
 
   const handleOpenMetaAdsDashboard = useCallback(() => {
     setChannelSidebarOpen(false);
@@ -223,6 +275,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
+    pendingChannelSlug,
+    pendingChannelTab,
+    resolvePendingChannel,
   }), [
     activeStage,
     selectedPeriod,
@@ -245,6 +300,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
+    pendingChannelSlug,
+    pendingChannelTab,
+    resolvePendingChannel,
   ]);
 
   return (

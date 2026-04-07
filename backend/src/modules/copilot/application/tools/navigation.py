@@ -118,5 +118,74 @@ def list_app_pages() -> str:
     return "\n".join(lines)
 
 
+VALID_STAGES = {
+    "atraccion-captura",
+    "nutricion-oportunidad",
+    "ventas",
+    "adopcion",
+    "expansion-evangelizacion",
+}
+
+
+@tool
+def navigate_to_channel(
+    stage: str,
+    channel_slug: str,
+    tab: str | None = None,
+    expanded: bool = False,
+) -> dict:
+    """Navigate to a specific channel in Growth Studio.
+
+    Args:
+        stage: Funnel stage slug (atraccion-captura, nutricion-oportunidad,
+               ventas, adopcion, expansion-evangelizacion).
+        channel_slug: Channel identifier (meta-ads, ig-organic, yt-organic,
+                      email-nurture, google-analytics, google-ads, shopify, etc.).
+        tab: Optional tab within the channel sidebar/dashboard.
+        expanded: If true, opens full-page dashboard instead of sidebar.
+
+    Returns:
+        A ui_action payload that the frontend will execute.
+    """
+    if stage not in VALID_STAGES:
+        return {
+            "success": False,
+            "message": (
+                f"Stage '{stage}' no es válido. "
+                f"Opciones: {', '.join(sorted(VALID_STAGES))}"
+            ),
+        }
+
+    # Build the route template — {tenantId} placeholder is resolved by the frontend
+    if expanded:
+        route = f"/{{tenantId}}/growth-studio/{stage}/{channel_slug}"
+        if tab:
+            route += f"?tab={tab}"
+    else:
+        route = f"/{{tenantId}}/growth-studio/{stage}?channel={channel_slug}"
+        if tab:
+            route += f"&tab={tab}"
+
+    label = f"{channel_slug} en {stage}"
+    if tab:
+        label += f" > {tab}"
+
+    return {
+        "success": True,
+        "ui_action": {
+            "type": "navigate",
+            "route": route,
+            "page_label": label,
+        },
+        "message": f"Navegando a {label}",
+    }
+
+
 # Collect all navigation tools for easy import
-NAVIGATION_TOOLS = [navigate_to_page, scroll_to_field, open_form, list_app_pages]
+NAVIGATION_TOOLS = [
+    navigate_to_page,
+    scroll_to_field,
+    open_form,
+    list_app_pages,
+    navigate_to_channel,
+]

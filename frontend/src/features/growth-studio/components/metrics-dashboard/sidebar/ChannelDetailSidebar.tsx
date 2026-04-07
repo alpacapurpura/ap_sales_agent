@@ -98,9 +98,10 @@ interface ChannelDetailSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   channel: ChannelMetric | null;
+  initialTab?: string | null;
 }
 
-export default function ChannelDetailSidebar({ isOpen, onClose, channel }: ChannelDetailSidebarProps) {
+export default function ChannelDetailSidebar({ isOpen, onClose, channel, initialTab }: ChannelDetailSidebarProps) {
   const { handleOpenMetaAdsDashboard, handleOpenMetaAdsDashboardToTab, handleOpenExpandedDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
@@ -146,6 +147,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           onClose={onClose}
           onExpand={handleOpenMetaAdsDashboard}
           onExpandToTab={handleOpenMetaAdsDashboardToTab}
+          initialTab={initialTab}
         />
       </DetailPanel>
     );
@@ -159,6 +161,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           channel={channel}
           onClose={onClose}
           onExpand={() => handleOpenExpandedDashboard('ig-organic')}
+          initialTab={initialTab}
         />
       </DetailPanel>
     );
@@ -172,6 +175,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           channel={channel}
           onClose={onClose}
           onExpand={() => handleOpenExpandedDashboard('yt-organic')}
+          initialTab={initialTab}
         />
       </DetailPanel>
     );
@@ -185,6 +189,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
           channel={channel}
           onClose={onClose}
           onExpand={() => handleOpenExpandedDashboard('email-nurture')}
+          initialTab={initialTab}
         />
       </DetailPanel>
     );
@@ -538,7 +543,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel }: Chann
                   // YouTube: Tabbed layout with Métricas / Videos / Audiencia
                   if (channel.slug === 'yt-organic') {
                     return (
-                      <Tabs defaultValue="metricas" className="mt-2">
+                      <Tabs defaultValue={initialTab ?? 'metricas'} className="mt-2">
                         <TabsList className="w-full">
                           <TabsTrigger value="metricas" className="flex-1 text-xs">Métricas</TabsTrigger>
                           <TabsTrigger value="videos" className="flex-1 text-xs">Videos</TabsTrigger>

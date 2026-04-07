@@ -62,8 +62,6 @@ describe('GrowthStudioContext', () => {
     });
 
     it('derives activeStage for nested channel route (not the channelSlug)', () => {
-      // When navigating to /tenant/growth-studio/atraccion-captura/meta-ads
-      // activeStage should be ATRACCION_CAPTURA, not null (meta-ads is not a stage)
       currentPathname = '/tenant123/growth-studio/atraccion-captura/meta-ads';
       const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
       expect(result.current.activeStage).toBe('ATRACCION_CAPTURA');
@@ -211,6 +209,108 @@ describe('GrowthStudioContext', () => {
       expect(mockReplace).toHaveBeenCalledTimes(1);
       const calledUrl = mockReplace.mock.calls[0][0] as string;
       expect(calledUrl).not.toContain('channel=');
+    });
+  });
+
+  describe('pendingChannelSlug (deep link from URL)', () => {
+    it('exposes pendingChannelSlug from ?channel= search param', () => {
+      mockGet.mockImplementation((key: string) => key === 'channel' ? 'meta-ads' : null);
+      const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
+      expect(result.current.pendingChannelSlug).toBe('meta-ads');
+    });
+
+    it('exposes pendingChannelTab from ?tab= search param', () => {
+      mockGet.mockImplementation((key: string) => {
+        if (key === 'channel') return 'meta-ads';
+        if (key === 'tab') return 'campanas';
+        return null;
+      });
+      const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
+      expect(result.current.pendingChannelTab).toBe('campanas');
+    });
+
+    it('returns null pendingChannelSlug when no ?channel= param', () => {
+      mockGet.mockReturnValue(null);
+      const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
+      expect(result.current.pendingChannelSlug).toBeNull();
+    });
+
+    it('resolvePendingChannel opens sidebar when channel found and connected', () => {
+      mockGet.mockImplementation((key: string) => key === 'channel' ? 'meta-ads' : null);
+      const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
+
+      const channels = [
+        { slug: 'meta-ads', name: 'Meta Ads', channelType: 'paid', connected: true, providerName: 'meta' },
+        { slug: 'ig-organic', name: 'Instagram', channelType: 'organic_social', connected: true, providerName: 'instagram' },
+      ];
+
+      act(() => {
+        result.current.resolvePendingChannel(channels);
+      });
+
+      expect(result.current.channelSidebarOpen).toBe(true);
+      expect(result.current.selectedChannel?.slug).toBe('meta-ads');
+      // Should NOT call router.replace (URL already has the param)
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('resolvePendingChannel does NOT open sidebar for unknown slug', () => {
+      mockGet.mockImplementation((key: string) => key === 'channel' ? 'unknown-channel' : null);
+      const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
+
+      const channels = [
+        { slug: 'meta-ads', name: 'Meta Ads', channelType: 'paid', connected: true, providerName: 'meta' },
+      ];
+
+      act(() => {
+        result.current.resolvePendingChannel(channels);
+      });
+
+      expect(result.current.channelSidebarOpen).toBe(false);
+      expect(result.current.selectedChannel).toBeNull();
+    });
+
+    it('resolvePendingChannel does NOT open sidebar for disconnected channel', () => {
+      mockGet.mockImplementation((key: string) => key === 'channel' ? 'tiktok' : null);
+      const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
+
+      const channels = [
+        { slug: 'tiktok', name: 'TikTok', channelType: 'organic_social', connected: false, providerName: undefined },
+      ];
+
+      act(() => {
+        result.current.resolvePendingChannel(channels);
+      });
+
+      expect(result.current.channelSidebarOpen).toBe(false);
+      expect(result.current.selectedChannel).toBeNull();
+    });
+
+    it('does not re-open sidebar after manual close (resolvedSlugRef guard)', () => {
+      mockGet.mockImplementation((key: string) => key === 'channel' ? 'meta-ads' : null);
+      const { result } = renderHook(() => useGrowthStudioContext(), { wrapper });
+
+      const channels = [
+        { slug: 'meta-ads', name: 'Meta Ads', channelType: 'paid', connected: true, providerName: 'meta' },
+      ];
+
+      // First resolve — opens sidebar
+      act(() => {
+        result.current.resolvePendingChannel(channels);
+      });
+      expect(result.current.channelSidebarOpen).toBe(true);
+
+      // User closes sidebar manually
+      act(() => {
+        result.current.handleChannelSidebarClose();
+      });
+      expect(result.current.channelSidebarOpen).toBe(false);
+
+      // Calling resolvePendingChannel again should NOT re-open
+      act(() => {
+        result.current.resolvePendingChannel(channels);
+      });
+      expect(result.current.channelSidebarOpen).toBe(false);
     });
   });
 });

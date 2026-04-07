@@ -24,6 +24,7 @@ interface MetaAdsOverviewPanelProps {
   onClose: () => void;
   onExpand?: () => void;
   onExpandToTab?: (tab: MetaAdsDashboardTab) => void;
+  initialTab?: string | null;
 }
 
 export function MetaAdsOverviewPanel({

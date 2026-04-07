@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useStageTimeSeries } from '../../../hooks/useStageDetail';
 import { useStageOverview } from '../../../hooks/useStageOverview';
 import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
@@ -17,7 +17,6 @@ import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
 import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
 import { ConversionBridge } from '../attraction/ConversionBridge';
 import { LazyChannelGroup } from '../channel-widgets/LazyChannelGroup';
-import ChannelDetailSidebar from '../sidebar/ChannelDetailSidebar';
 import dynamic from 'next/dynamic';
 
 const MetaAdsDashboard = dynamic(() => import('../sidebar/meta-ads/MetaAdsDashboard').then(m => ({ default: m.MetaAdsDashboard })), { ssr: false });
@@ -88,20 +87,34 @@ function MobileChartsExpand({
 interface AttractionCaptureDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
   onConfigure?: (slug: string, name: string) => void;
+  onChannelClick?: (channel: ChannelMetric) => void;
 }
 
 export const AttractionCaptureDetail = React.memo(function AttractionCaptureDetail({
   onMetricClick,
   onConfigure,
+  onChannelClick,
 }: AttractionCaptureDetailProps) {
   // ─── TIER 1: Lightweight overviews (render immediately) ─────────────
   const { data: attrOverview, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useStageOverview('attraction');
   const { data: capOverview, isLoading: capLoading, error: capError, refetch: refetchCap } = useStageOverview('capture');
   const { startSync, isSyncing } = useGrowthSync();
+  const { pendingChannelSlug, resolvePendingChannel } = useGrowthStudioContext();
+
+  // Resolve deep link ?channel= once overview data arrives
+  useEffect(() => {
+    if (!pendingChannelSlug) return;
+    const allChannels = [
+      ...(attrOverview?.channelList ?? []),
+      ...(capOverview?.channelList ?? []),
+    ];
+    if (allChannels.length > 0) {
+      resolvePendingChannel(allChannels);
+    }
+  }, [pendingChannelSlug, attrOverview?.channelList, capOverview?.channelList, resolvePendingChannel]);
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [rangeDays, setRangeDays] = useState(30);
-  const [sidebarChannel, setSidebarChannel] = useState<ChannelMetric | null>(null);
   const granularity = rangeDays >= 90 ? 'weekly' : 'daily';
 
   // ─── TIER 3: Charts deferred until visible ──────────────────────────
@@ -155,8 +168,8 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
 
   // ─── Handlers ──────────────────────────────────────────────────────
   const handleChannelClick = useCallback((channel: ChannelMetric) => {
-    setSidebarChannel(channel);
-  }, []);
+    onChannelClick?.(channel);
+  }, [onChannelClick]);
 
   // ─── Loading / Error / Empty ──────────────────────────────────────
   if (attrLoading || capLoading) {
@@ -371,13 +384,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
           )}
         </>
       )}
-
-      {/* Channel Detail Sidebar */}
-      <ChannelDetailSidebar
-        isOpen={sidebarChannel !== null}
-        onClose={() => setSidebarChannel(null)}
-        channel={sidebarChannel}
-      />
 
       {/* Full-page dashboards */}
       <MetaAdsDashboardWrapper />

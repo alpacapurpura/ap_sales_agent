@@ -18,6 +18,7 @@ function GrowthStudioShell({ children }: { children: React.ReactNode }) {
     selectedChannel,
     channelSidebarOpen,
     configureChannel,
+    pendingChannelTab,
     handleSidebarClose,
     handleChannelSidebarClose,
     handleCloseConfigure,
@@ -60,6 +61,7 @@ function GrowthStudioShell({ children }: { children: React.ReactNode }) {
         isOpen={channelSidebarOpen}
         onClose={handleChannelSidebarClose}
         channel={selectedChannel}
+        initialTab={pendingChannelTab}
       />
 
       <ChannelConnectionModal
