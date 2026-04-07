@@ -1,0 +1,145 @@
+name: "🎭 E2E Playwright Tests"
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - regression
+          - full
+      branch:
+        description: 'Branch to test (default: triggering branch)'
+        required: false
+        type: string
+
+jobs:
+  e2e:
+    name: "🎭 Playwright (${{ inputs.suite }})"
+    runs-on: ubuntu-latest
+    environment: ap_sales_agent
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Free disk space (~25 GB)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Create .env for docker compose
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_API_URL: http://api_dev:8000
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          INTERNAL_API_URL: http://api_dev:8000
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          E2E_CLERK_USER_EMAIL: ${{ secrets.E2E_CLERK_USER_EMAIL }}
+          E2E_CLERK_USER_USERNAME: ${{ secrets.E2E_CLERK_USER_EMAIL }}
+          E2E_CLERK_USER_PASSWORD: ${{ secrets.E2E_CLERK_USER_PASSWORD }}
+          E2E_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: visionarias_test
+          TRAEFIK_NETWORK: gateway
+        run: |
+          env | grep -E '^(NEXT_PUBLIC_|CLERK_|INTERNAL_|E2E_|POSTGRES_|TRAEFIK_|SHOPIFY_)' > .env
+          echo "API_DOMAIN=localhost" >> .env
+          echo "DASHBOARD_DOMAIN=http://localhost:3000" >> .env
+          echo "CLOUDFLARE_TUNNEL_TOKEN=disabled" >> .env
+          echo "SHOPIFY_API_KEY=disabled" >> .env
+          echo "SHOPIFY_API_SECRET=disabled" >> .env
+          echo "SHOPIFY_APP_URL=http://localhost:8000" >> .env
+          echo "LOG_LEVEL=WARNING" >> .env
+          echo "DOMAIN_NAME=localhost" >> .env
+          echo "API_SECRET_KEY=e2e-test-secret-key-not-real" >> .env
+          echo "WHATSAPP_API_TOKEN=disabled" >> .env
+          echo "WHATSAPP_PHONE_NUMBER_ID=disabled" >> .env
+          echo "WHATSAPP_VERIFY_TOKEN=disabled" >> .env
+          echo "OPENAI_API_KEY=sk-disabled-for-e2e" >> .env
+          echo "REDIS_URL=redis://redis:6379/0" >> .env
+          echo "QDRANT_URL=http://qdrant:6333" >> .env
+          echo "POSTGRES_HOST=postgres" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "API_URL=http://api_dev:8000" >> .env
+
+      - name: Generate Clerk testing token
+        env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        run: |
+          TOKEN=$(curl -s -X POST "https://api.clerk.com/v1/testing_tokens" \
+            -H "Authorization: Bearer $CLERK_SECRET_KEY" \
+            | python3 -c "import sys,json;print(json.load(sys.stdin).get('token',''))")
+          echo "CLERK_TESTING_TOKEN=$TOKEN" >> .env
+
+      - name: Start services
+        run: |
+          docker network create gateway || true
+          docker compose up -d --build postgres redis qdrant api_dev client_dashboard_dev
+          echo "--- Disk usage after build ---"
+          df -h / | tail -1
+          echo "Waiting for Next.js to be healthy..."
+          for i in $(seq 1 30); do
+            if docker exec visionarias_client_dev wget -q --spider http://localhost:3000 2>/dev/null; then
+              echo "Next.js ready after $((i*10))s"
+              break
+            fi
+            sleep 10
+          done
+
+      - name: Run migrations
+        run: docker exec visionarias_brain_dev bash -c "cd /app && alembic upgrade head"
+
+      - name: Seed E2E tenant
+        env:
+          E2E_TENANT_ID: ${{ secrets.E2E_TENANT_ID }}
+        run: |
+          docker exec visionarias_postgres psql -U postgres -d visionarias_test -c "
+            INSERT INTO tenants (id, name, slug, is_active, default_currency, timezone)
+            VALUES ('$E2E_TENANT_ID', 'E2E Test Tenant', 'e2e-test', true, 'USD', 'UTC')
+            ON CONFLICT (id) DO NOTHING;
+          "
+
+      - name: Resolve Playwright grep filter
+        id: filter
+        run: |
+          case "${{ inputs.suite }}" in
+            smoke)      echo "args=--grep @smoke --project=smoke" >> $GITHUB_OUTPUT ;;
+            regression) echo "args=--project=regression" >> $GITHUB_OUTPUT ;;
+            full)       echo "args=" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: "Run Playwright tests (${{ inputs.suite }})"
+        run: |
+          docker compose --profile e2e run --rm e2e_runner \
+            npx playwright test ${{ steps.filter.outputs.args }}
+
+      - name: Cleanup
+        if: always()
+        run: docker compose --profile e2e down -v 2>/dev/null || true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ inputs.suite }}
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7
