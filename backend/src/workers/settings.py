@@ -20,6 +20,7 @@ from src.modules.analytics.workers.tasks import (
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
 from src.modules.copilot.application.services.event_cleanup import cleanup_old_events
+from src.modules.offer.workers.tasks import run_offer_extraction
 from src.modules.sales_agent.workers.frozen_detection import run_frozen_detection
 from src.modules.tenant_domains.workers.tasks import poll_domain_verification
 
@@ -34,6 +35,7 @@ class WorkerSettings:
         run_mailerlite_etl_sync,
         run_campaign_sync,
         run_brand_extraction,
+        run_offer_extraction,
         cleanup_old_events,
         poll_domain_verification,
         run_frozen_detection,
@@ -75,6 +77,7 @@ class SchedulerSettings:
         run_mailerlite_etl_sync,
         run_campaign_sync,
         run_brand_extraction,
+        run_offer_extraction,
         cleanup_old_events,
         poll_domain_verification,
         run_frozen_detection,

@@ -96,6 +96,31 @@ export const aiActionsApi = {
     return response.json();
   },
 
+  async extractFullOffer(data: FormData, token: string): Promise<{ job_id: string }> {
+    const response = await fetchClient(`${API_URL}/api/v1/offer/tools/extract-full-offer`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: data,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to start offer extraction: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  async pollOfferExtractionStatus(jobId: string, token: string): Promise<ExtractionStatus> {
+    const response = await fetchClient(
+      `${API_URL}/api/v1/offer/tools/extract-full-offer/status/${jobId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
+    return response.json();
+  },
+
   async generateOfferPsychology(data: OfferPsychologyPayload, token: string): Promise<OfferPsychologyResult> {
     const response = await fetchClient(`${API_URL}/api/v1/offer/ai/psychology`, {
       method: "POST",

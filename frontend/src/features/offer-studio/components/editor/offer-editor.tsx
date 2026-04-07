@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useForm, Resolver } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OfferSchema, OfferFormValues } from "../../types/schema";
 import { OfferStatus } from "../../types";
@@ -9,6 +10,7 @@ import { useOffer } from "../../hooks/use-offer";
 import { OfferStudioLayout } from "../container/offer-studio-layout";
 import { OfferLivePreview } from "./offer-live-preview";
 import { OfferEditSheetManager } from "./offer-edit-sheet-manager";
+import { OfferSmartFillDialog } from "./components/smart-fill/offer-smart-fill-dialog";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -19,9 +21,11 @@ export function OfferEditor({ offerId }: { offerId: string }) {
   const params = useParams();
   const tenantId = params?.tenantId as string;
 
+  const queryClient = useQueryClient();
   const { offer, formValues, loading, saving, error, saveOffer, saveSection } = useOffer(offerId);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [isSmartFillOpen, setIsSmartFillOpen] = useState(false);
 
   const form = useForm<OfferFormValues>({
     resolver: zodResolver(OfferSchema) as Resolver<OfferFormValues>,
@@ -94,19 +98,29 @@ export function OfferEditor({ offerId }: { offerId: string }) {
         activeSection={activeSection || ""}
         onNavigate={setActiveSection}
         isSaving={saving}
+        onSmartFill={() => setIsSmartFillOpen(true)}
     >
-        <OfferLivePreview 
-            form={form} 
-            onEdit={setEditingSection} 
+        <OfferLivePreview
+            form={form}
+            onEdit={setEditingSection}
         />
-        
-        <OfferEditSheetManager 
+
+        <OfferEditSheetManager
             sectionId={editingSection}
             isOpen={!!editingSection}
             onClose={() => setEditingSection(null)}
             form={form}
             onSave={handleSectionSave}
             isSaving={saving}
+        />
+
+        <OfferSmartFillDialog
+            open={isSmartFillOpen}
+            onOpenChange={setIsSmartFillOpen}
+            offerId={offerId}
+            onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["offer", offerId] });
+            }}
         />
     </OfferStudioLayout>
   );

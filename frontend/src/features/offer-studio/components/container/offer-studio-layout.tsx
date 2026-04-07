@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Offer } from "@/features/offer-studio/types";
 import { OfferNavRail } from "../navigation/OfferNavRail";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit3, Save, ExternalLink, Globe } from "lucide-react";
+import { Eye, Edit3, Save, ExternalLink, Globe, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useParams } from "next/navigation";
@@ -14,6 +14,7 @@ interface OfferStudioLayoutProps {
   activeSection: string;
   onNavigate: (sectionId: string) => void;
   isSaving?: boolean;
+  onSmartFill?: () => void;
 }
 
 export function OfferStudioLayout({
@@ -22,7 +23,8 @@ export function OfferStudioLayout({
   children,
   activeSection,
   onNavigate,
-  isSaving = false
+  isSaving = false,
+  onSmartFill
 }: OfferStudioLayoutProps) {
   const [mode, setMode] = useState<"edit" | "preview">("edit");
   const params = useParams();
@@ -84,6 +86,18 @@ export function OfferStudioLayout({
                <Globe className="h-3.5 w-3.5" />
                Landing Page
             </Button>
+
+            {onSmartFill && (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs font-medium gap-1.5"
+                    onClick={onSmartFill}
+                >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    Completar con IA
+                </Button>
+            )}
 
             <div className="h-6 w-px bg-border mx-1" />
 

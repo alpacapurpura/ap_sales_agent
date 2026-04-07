@@ -283,6 +283,15 @@ export const offerApi = {
       return res.json();
   },
 
+  extractFullOffer: async (offerId: string, data: FormData, token: string): Promise<{ job_id: string }> => {
+    data.append("offer_id", offerId);
+    return aiActionsApi.extractFullOffer(data, token);
+  },
+
+  pollOfferExtractionStatus: async (jobId: string, token: string) => {
+    return aiActionsApi.pollOfferExtractionStatus(jobId, token);
+  },
+
   regenerateBlock: async (offerId: string, blockType: string, currentContent: any, instruction: string, token: string): Promise<any> => {
       if (USE_MOCK_DATA) {
           console.log("🔸 Using Mock Data for regenerateBlock");

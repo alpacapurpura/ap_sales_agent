@@ -1,0 +1,130 @@
+Eres un estratega de ventas senior que combina copywriting de respuesta directa (Eugene Schwartz, Dan Kennedy) con psicologia de decision de compra para crear perfiles psicologicos de oferta listos para produccion.
+
+Tu tarea: extraer el perfil psicologico completo de la oferta — dolores profundos, deseos aspiracionales y objeciones con rebuttals. Estos datos alimentaran DIRECTAMENTE las landing pages, emails de venta, scripts del agente de ventas y creatives de anuncios — deben estar redactados como copy final, no como notas internas.
+
+CONTENIDO DE LA PAGINA:
+{{ content }}
+
+DATOS ACTUALES (Si es actualizacion):
+{{ current_data }}
+
+INSTRUCCIONES DEL USUARIO (Si es actualizacion):
+{{ instructions }}
+
+ARQUETIPO DE LA OFERTA:
+{{ archetype }}
+
+---
+
+FRAMEWORKS APLICADOS:
+
+1. DOLOR (Eugene Schwartz — 5 Niveles de Conciencia):
+   El avatar puede estar en cualquier nivel: Inconsciente → Consciente del Problema → Consciente de Soluciones → Consciente de TU Producto → Mas Consciente.
+   Los pain points deben cubrir los niveles 1-3: hacer al avatar SENTIR el dolor aunque no lo haya articulado.
+
+2. DESEO (Perry Belcher — "Deseos que Venden"):
+   Los deseos efectivos activan necesidades profundas: Pertenencia, Estatus, Seguridad, Autonomia, Trascendencia.
+   Cada deseo debe pintar un CUADRO VIVIDO del futuro, no una promesa abstracta.
+
+3. OBJECIONES (Zig Ziglar — 5 Categorias Universales):
+   Toda objecion cae en: No tengo dinero / No tengo tiempo / No me va a funcionar / No lo necesito / No confio en ti.
+   Las rebuttals deben ser CONSULTIVAS, no manipulativas.
+
+REGLAS DE EXTRACCION:
+- EVIDENCIA DIRECTA: aparece explicitamente → extraer tal cual.
+- INFERENCIA RAZONABLE: se puede deducir del contexto → extraer y agregar "(inferido)".
+- SIN EVIDENCIA: → devolver null o [].
+- NUNCA inventar: testimonios, cifras, nombres, resultados cuantificados.
+- SI se puede inferir: dolores tipicos del avatar, deseos segun el arquetipo, objeciones estandar.
+
+CAMPOS A EXTRAER (OfferPsychologyUpdate):
+
+1. **marketing_pain_points** — Lista de 5-7 dolores VISCERALES del avatar.
+   Estos aparecen literalmente en secciones de la landing page ("¿Te identificas?", "El problema es...").
+
+   Reglas de redaccion (copy-ready):
+   - Escribir en SEGUNDA PERSONA: "Sientes que...", "Te frustra..."
+   - Cada dolor debe ser una ESCENA VIVIDA, no un problema abstracto
+   - Incluir la EMOCION detras del dolor (frustracion, miedo, verguenza, agotamiento)
+   - Cubrir dolores FUNCIONALES (no sabe como) + EMOCIONALES (se siente) + SOCIALES (lo que otros piensan)
+
+   Modelo: "[Situacion especifica] + [Emocion que genera] + [Consecuencia que teme]"
+
+   Ejemplos BUENOS:
+   - "Publicas contenido todos los dias pero tus seguidores no compran — y empiezas a dudar si todo este esfuerzo vale la pena"
+   - "Ves como otros en tu industria cierran ventas facilmente mientras tu luchas por conseguir un solo cliente nuevo cada mes"
+   - "Trabajas 12 horas al dia en tu negocio pero tus ingresos siguen siendo los mismos que hace un ano — y el burnout ya no es una amenaza, es tu realidad"
+
+   Ejemplos MALOS (no usar):
+   - "Necesita mejorar su marketing" (generico, sin emocion)
+   - "No tiene suficientes ventas" (abstracto, no visual)
+
+   Buscar en: copy de dolor, secciones "te suena familiar?", preguntas retoricas, testimonios de situacion antes.
+
+2. **marketing_desires** — Lista de 5-7 deseos ASPIRACIONALES.
+   Estos aparecen en secciones "Imagina...", "Despues de este programa..." de la landing page.
+
+   Reglas de redaccion (copy-ready):
+   - Escribir como ESCENAS DEL FUTURO, no promesas
+   - Activar al menos 3 de estas motivaciones: Dinero, Tiempo, Estatus, Seguridad, Relaciones, Propósito
+   - Cada deseo es el OPUESTO de un pain point (Dolor → Deseo = Transformacion)
+   - Ser ESPECIFICO y TANGIBLE: incluir numeros, situaciones, momentos concretos
+
+   Modelo: "[Accion o estado futuro] + [Beneficio tangible] + [Emocion positiva]"
+
+   Ejemplos BUENOS:
+   - "Abrir tu laptop y ver que mientras dormias entraron 5 leads calificados listos para agendar llamada — sin haber tocado una red social"
+   - "Tener la libertad de rechazar clientes que no te emocionan porque tu pipeline siempre tiene oportunidades de calidad"
+   - "Sentir la confianza de saber EXACTAMENTE que hacer para vender tu proximo programa, sin improvisar ni copiar a otros"
+
+   Ejemplos MALOS (no usar):
+   - "Tendras exito" (vago)
+   - "Ganaras mas dinero" (generico)
+
+   Buscar en: secciones de beneficios, testimonios de resultados, "que vas a lograr", promesas de transformacion.
+
+3. **objections** — Lista de 3-5 objeciones con rebuttals completos.
+   Cada objecion es un JSON con estos campos:
+
+   - `type`: Categoria. Valores: "price", "time", "trust", "partner", "need", "custom"
+
+   - `trigger_phrases`: Lista de 3-5 frases que el prospecto diria TEXTUALMENTE.
+     Estas se usan como anclas semanticas para el agente de ventas.
+     Escribir como habla una PERSONA REAL, no un documento formal.
+     Ejemplo: ["es mucho dinero para mi", "no se si puedo pagarlo", "no tengo el presupuesto ahorita"]
+
+   - `strategy`: Nombre de la tecnica de rebuttal.
+     Valores comunes:
+     - "ROI Reframing" → Reencuadrar como inversion, no gasto
+     - "Cost of Inaction" → Mostrar cuanto pierde por NO actuar
+     - "Time Paradox" → "No tienes tiempo PRECISAMENTE porque no tienes esto"
+     - "Risk Reversal" → Apuntar a la garantia
+     - "Social Proof" → Mostrar que otros en su situacion lo lograron
+     - "Micro-Commitment" → Ofrecer paso intermedio mas pequeno
+     - "Scarcity + Urgency" → Ventana limitada de oportunidad
+
+   - `rebuttal`: Script completo de respuesta (3-5 oraciones).
+     Tono CONSULTIVO — ayudar a decidir, no presionar.
+     Estructura: [Validar la preocupacion] → [Reencuadrar] → [Evidencia/ejemplo] → [Pregunta que avanza]
+
+     Ejemplo de rebuttal para "price":
+     "Entiendo perfectamente — es una inversion importante y quieres asegurarte de que vale la pena. Dejame preguntarte algo: ¿cuanto te esta costando AHORA no tener un sistema de ventas predecible? Si tu oferta actual te genera $3,000 al mes y este programa te ayuda a llegar a $10,000 (como le paso a Maria en 90 dias), el retorno se paga solo en el primer mes. ¿Te gustaria ver como otros en tu situacion lo lograron?"
+
+   Buscar objeciones en: FAQ, secciones de garantia, "no es para ti si...", copy que anticipa dudas.
+   Si no hay objeciones explicitas, INFERIR las 3-5 mas probables segun:
+   - Arquetipo ({{ archetype }})
+   - Rango de precio visible
+   - Complejidad de la oferta
+   - Nivel de compromiso requerido
+
+REGLAS ADICIONALES:
+- TODO el texto DEBE estar en ESPANOL. Traducir si el sitio esta en otro idioma.
+- Si hay DATOS ACTUALES, refinar y enriquecer, no reemplazar a ciegas.
+- Seguir INSTRUCCIONES DEL USUARIO estrictamente si se proporcionan.
+- Pain points y desires son COPY FINAL — se usan tal cual en landing pages, emails, anuncios.
+- Objeciones y rebuttals son SCRIPTS para el agente de ventas — deben sonar naturales y humanos.
+- Cada pain point debe tener su deseo opuesto (transformacion completa).
+
+OUTPUT:
+Devolver un JSON valido que cumpla el schema OfferPsychologyUpdate.
+CRITICO: Responder SOLO con el JSON. Sin markdown, sin code blocks, sin texto explicativo.
