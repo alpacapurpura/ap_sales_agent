@@ -13,14 +13,14 @@ If anything fails, STOP and report the fix needed.
 
 ### 1. Backend lint (ruff check)
 ```bash
-cd backend && .venv/bin/ruff check src/ --no-cache
+cd backend && .venv/bin/ruff check src/ tests/ --no-cache
 ```
 
 ### 2. Backend format check (ruff format)
 ```bash
-cd backend && .venv/bin/ruff format --check src/
+cd backend && .venv/bin/ruff format --check src/ tests/
 ```
-Verifies formatting without modifying files. If this fails, run `ruff format src/` to fix.
+Verifies formatting without modifying files. If this fails, run `ruff format src/ tests/` to fix.
 
 ### 3. Backend architectural fitness tests
 ```bash

@@ -106,11 +106,11 @@ Run ALL validation natively in WSL (NEVER use docker exec for lint/tests).
 Every check must pass before considering the implementation complete.
 
 ```bash
-# 1. Lint (ruff check)
-cd backend && .venv/bin/ruff check src/ --no-cache
+# 1. Lint (ruff check) — MUST include tests/
+cd backend && .venv/bin/ruff check src/ tests/ --no-cache
 
-# 2. Format check (ruff format) — must match CI
-cd backend && .venv/bin/ruff format --check src/
+# 2. Format check (ruff format) — MUST include tests/
+cd backend && .venv/bin/ruff format --check src/ tests/
 
 # 3. Architectural fitness tests (DDD boundaries, response_model, SA 2.0)
 cd backend && .venv/bin/pytest tests/architecture/ -v

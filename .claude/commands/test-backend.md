@@ -15,16 +15,17 @@ If either is missing, STOP and tell the user to install dev dependencies.
 
 ### 2. Lint (ruff check)
 ```bash
-cd backend && .venv/bin/ruff check src/ --no-cache
+cd backend && .venv/bin/ruff check src/ tests/ --no-cache
 ```
 Use `--no-cache` to avoid permission issues with `.ruff_cache/`.
+**IMPORTANT:** Always lint `tests/` too — the pre-commit hook checks all staged files including tests.
 If the user wants auto-fix: add `--fix` flag.
 
 ### 3. Format check (ruff format)
 ```bash
-cd backend && .venv/bin/ruff format --check src/
+cd backend && .venv/bin/ruff format --check src/ tests/
 ```
-Verifies code formatting without modifying files. If this fails, run `ruff format src/` to fix.
+Verifies code formatting without modifying files. If this fails, run `ruff format src/ tests/` to fix.
 
 ### 5. Architectural fitness tests
 ```bash

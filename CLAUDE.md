@@ -30,7 +30,7 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 |---|---|---|
 | Start dev | `/dev-up` or `make dev` | `docker compose up -d` |
 | Start extended (admin, worker) | `make dev-extended` | `docker compose --profile extended up -d` |
-| Backend lint | `/test-backend` or `make ruff` | `cd backend && .venv/bin/ruff check src/ --no-cache` |
+| Backend lint | `/test-backend` or `make ruff` | `cd backend && .venv/bin/ruff check src/ tests/ --no-cache` |
 | Backend tests | `/test-backend` or `make pytest` | `cd backend && .venv/bin/pytest -x -q --tb=short` |
 | Arch tests | `make arch-test` | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
 | Single backend test | `make pytest args="-k test_name"` | `cd backend && .venv/bin/pytest tests/modules/brand/ -x -q` |
@@ -113,8 +113,8 @@ Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) →
 
 | Task | Native command (run from repo root) |
 |---|---|
-| Lint | `cd backend && .venv/bin/ruff check src/ --no-cache` |
-| Format check | `cd backend && .venv/bin/ruff format --check src/` |
+| Lint | `cd backend && .venv/bin/ruff check src/ tests/ --no-cache` |
+| Format check | `cd backend && .venv/bin/ruff format --check src/ tests/` |
 | All tests | `cd backend && .venv/bin/pytest -x -q --tb=short` |
 | Architecture tests | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
 | Tests with coverage | `cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short` |

@@ -20,8 +20,8 @@ Native tools read the actual filesystem, making them correct in all contexts.
 
 | Action | Command |
 |---|---|
-| Backend lint | `cd backend && .venv/bin/ruff check src/ --no-cache` |
-| Backend format check | `cd backend && .venv/bin/ruff format --check src/` |
+| Backend lint | `cd backend && .venv/bin/ruff check src/ tests/ --no-cache` |
+| Backend format check | `cd backend && .venv/bin/ruff format --check src/ tests/` |
 | All backend tests | `cd backend && .venv/bin/pytest -x -q --tb=short` |
 | Architecture tests | `cd backend && .venv/bin/pytest tests/architecture/ -x -q --tb=short` |
 | Tests with coverage | `cd backend && .venv/bin/pytest --cov=src/modules --cov=src/shared --cov-report=term-missing -x -q --tb=short` |

@@ -2,30 +2,33 @@
 
 # Frontend: ESLint + TypeScript (handled by lint-staged in package.json if configured)
 
-# Backend: Ruff lint + format check on staged Python files
+# Backend: Ruff lint + format check on staged Python files (NATIVE — never Docker)
 STAGED_PY=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$' | head -50)
 if [ -n "$STAGED_PY" ]; then
   echo "Running ruff on staged Python files..."
 
-  # Check if the backend container is running
-  if ! docker ps --format '{{.Names}}' | grep -q visionarias_brain_dev; then
-    echo "Backend container not running. Skipping Python lint."
-    echo "Start with: make dev"
+  RUFF="backend/.venv/bin/ruff"
+  if [ ! -x "$RUFF" ]; then
+    echo "Warning: $RUFF not found. Skipping Python lint."
     exit 0
   fi
 
-  # Strip the leading backend/ prefix so paths match Docker's /app layout
-  DOCKER_PY=$(echo "$STAGED_PY" | sed 's|^backend/||g' | tr '\n' ' ')
+  # Strip the leading backend/ prefix so paths are relative to backend/
+  RELATIVE_PY=$(echo "$STAGED_PY" | sed 's|^backend/||g' | tr '\n' ' ')
 
-  # Lint check (errors only, not auto-fix)
-  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff check $DOCKER_PY --no-cache --no-fix" || {
+  # Lint check (errors only, not auto-fix) — run from backend/ for pyproject.toml
+  cd backend || exit 0
+
+  .venv/bin/ruff check $RELATIVE_PY --no-cache --no-fix || {
     echo "Ruff lint failed. Fix errors before committing."
     exit 1
   }
 
   # Format check (report only)
-  docker exec -t visionarias_brain_dev bash -c "cd /app && ruff format --check $DOCKER_PY --no-cache" || {
-    echo "Ruff format check failed. Run: docker exec -t visionarias_brain_dev bash -c 'cd /app && ruff format src/modules/scheduling/'"
+  .venv/bin/ruff format --check $RELATIVE_PY --no-cache || {
+    echo "Ruff format check failed. Run: cd backend && .venv/bin/ruff format <files>"
     exit 1
   }
+
+  cd ..
 fi

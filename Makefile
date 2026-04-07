@@ -123,10 +123,10 @@ pytest:
 
 lint:
 	cd frontend && npx eslint src/
-	cd backend && .venv/bin/ruff check src/ --no-cache
+	cd backend && .venv/bin/ruff check src/ tests/ --no-cache
 
 ruff:
-	cd backend && .venv/bin/ruff check src/ --no-cache $(args)
+	cd backend && .venv/bin/ruff check src/ tests/ --no-cache $(args)
 
 tsc:
 	cd frontend && npx tsc --noEmit

@@ -18,7 +18,7 @@ When that skill says "reproduce", "gather evidence", or "verify" — use these c
 | Container health | `docker compose ps` |
 | Migration status | `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic current"` |
 | TypeScript check | `cd frontend && npx tsc --noEmit 2>&1 \| head -50` |
-| Backend lint | `cd backend && .venv/bin/ruff check src/ --no-cache` |
+| Backend lint | `cd backend && .venv/bin/ruff check src/ tests/ --no-cache` |
 | Backend tests | `cd backend && .venv/bin/pytest -x -q --tb=short` |
 | Frontend tests | `cd frontend && npx vitest run` |
 
