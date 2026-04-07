@@ -233,6 +233,41 @@ def _filter_groups(dto: T, requested_groups: list[str]) -> T:
 # ─── Stage Overview Endpoint ─────────────────────────────────────────────────
 
 
+async def _warm_stage_cache(
+    svc: MetricsService, tenant_id, stage: str, period: str
+) -> None:
+    """Call the detail service to populate the Redis cache for a stage.
+
+    Called as a fallback when the overview endpoint finds an empty cache.
+    The detail service queries the DB and caches the result, so a
+    subsequent overview read will find data.
+    """
+    try:
+        if stage == "attraction":
+            await svc.get_attraction_metrics(tenant_id, period=period)
+        elif stage == "capture":
+            await svc.get_capture_metrics(tenant_id, period=period)
+        elif stage == "nurture":
+            await svc.get_nurturing_metrics(tenant_id, period=period)
+        elif stage in (
+            "opportunity",
+            "sales",
+            "adoption",
+            "expansion",
+            "evangelization",
+        ):
+            now = datetime.now(UTC)
+            start = now - timedelta(days=30)
+            method = getattr(svc, f"get_{stage}_metrics")
+            await method(tenant_id, start, now)
+    except Exception:
+        import structlog
+
+        structlog.get_logger().warning(
+            "stage_cache_warm_failed", stage=stage, tenant_id=str(tenant_id)
+        )
+
+
 class FunnelStage(str, Enum):
     """Valid funnel stages for the overview endpoint."""
 
@@ -250,6 +285,7 @@ class FunnelStage(str, Enum):
 async def get_stage_overview(
     stage: FunnelStage = Path(...),
     period: str = Query(default="last_30_days"),
+    db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     """Lightweight overview for a funnel stage.
@@ -258,14 +294,35 @@ async def get_stage_overview(
     group summaries, optional mini-funnel and bottlenecks) instead of the
     ~500+ fields from the full detail endpoint.
 
-    Cache-first: reads from per-stage Redis caches with 5-min overview TTL.
+    Cache-first with DB fallback: reads from Redis caches, but when cache
+    is empty falls back to the detail service to query DB and warm cache.
     """
     if period not in _VALID_PERIODS:
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
 
     cache = MetricsCache(redis_client)
-    service = StageOverviewService(cache=cache)
-    return await service.get_stage_overview(str(user.tenant_id), stage.value, period)
+    overview_svc = StageOverviewService(cache=cache)
+    overview = await overview_svc.get_stage_overview(
+        str(user.tenant_id), stage.value, period
+    )
+
+    # Fallback: if cache was empty, warm it via the detail service (DB query)
+    if not overview.channel_list and not overview.groups:
+        connection_port = ConnectionPortImpl(db)
+        offer_port = (
+            OfferReadPortImpl(db)
+            if stage.value in ("sales", "adoption", "expansion")
+            else None
+        )
+        metrics_svc = MetricsService(
+            db, cache=cache, connection_port=connection_port, offer_port=offer_port
+        )
+        await _warm_stage_cache(metrics_svc, user.tenant_id, stage.value, period)
+        overview = await overview_svc.get_stage_overview(
+            str(user.tenant_id), stage.value, period
+        )
+
+    return overview
 
 
 @router.get("/{stage}/groups/{group_key}", response_model=GroupDetailDTO)
