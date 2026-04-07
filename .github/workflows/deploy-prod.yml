@@ -160,6 +160,7 @@ jobs:
           echo "POSTGRES_HOST=postgres" >> .env
           echo "POSTGRES_PORT=5432" >> .env
           echo "API_URL=http://api_dev:8000" >> .env
+          echo "CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}" >> .env
 
       - name: Generate Clerk testing token
         env:

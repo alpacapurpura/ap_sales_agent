@@ -34,8 +34,7 @@ setup('clerk setup', async ({}) => {
 
 setup('authenticate', async ({ page }) => {
   setup.setTimeout(60_000);
-  await setupClerkTestingToken({ page });
-  await page.goto('/sign-in', { waitUntil: 'domcontentloaded', timeout: 45_000 });
+  await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await withRetry(
     () =>
       clerk.signIn({
