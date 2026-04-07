@@ -74,6 +74,7 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     "sales_agent -> crm | sales_agent/application/services/channel_resolver.py",
     "sales_agent -> crm | sales_agent/application/services/closer_studio_service.py",
     "sales_agent -> crm | sales_agent/infrastructure/memory/audit_repository.py",
+    "sales_agent -> crm | sales_agent/workers/follow_up_engine.py",
     "sales_agent -> offer | sales_agent/application/services/knowledge_builder.py",
     "sales_agent -> offer | sales_agent/infrastructure/db/repositories/business_repository.py",
     "sales_agent -> scheduling | sales_agent/api/dto/public_links.py",

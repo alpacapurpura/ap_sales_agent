@@ -38,6 +38,12 @@ class AgentStateCheckpointModel(Base):
     close_strategy = Column(String(50), nullable=True)
     metadata_info = Column(JSONB, nullable=True)
 
+    # Question fatigue tracking (Fase 3)
+    consecutive_questions = Column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    follow_up_cadence = Column(JSONB, nullable=True)
+
     # Closer Studio — handler control
     handler_mode = Column(String(20), nullable=False, default="ai")
     paused_at = Column(DateTime, nullable=True)

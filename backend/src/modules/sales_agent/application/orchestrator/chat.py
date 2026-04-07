@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from src.core.context import set_tenant_id
 from src.core.database import SessionLocal
+from src.core.enums import ModelRole
 from src.modules.connections.infrastructure.channels.telegram import TelegramChannel
 from src.modules.connections.infrastructure.models.channel_connection_model import (
     ChannelConnectionModel,
@@ -54,6 +55,7 @@ from src.shared.domain.events import (
     LeadCapturedEvent,
 )
 from src.shared.domain.messages import IncomingMessage, OutgoingMessage
+from src.shared.infrastructure.llm.factory import LLMFactory
 
 logger = structlog.get_logger()
 
@@ -498,12 +500,16 @@ class ChatOrchestrator:
             last_msg = audit_repo.get_last_message(user.id)
             session_active = True
             last_intent = None
+            session_gap_hours = None
+            is_returning_user = False
 
             if last_msg and last_msg.created_at:
                 msg_time = last_msg.created_at
                 if msg_time.tzinfo is None:
                     msg_time = msg_time.replace(tzinfo=timezone.utc)
                 time_diff = datetime.now(timezone.utc) - msg_time
+                session_gap_hours = time_diff.total_seconds() / 3600
+                is_returning_user = True
                 if time_diff > timedelta(hours=SESSION_TIMEOUT_HOURS):
                     session_active = False
 
@@ -567,6 +573,7 @@ class ChatOrchestrator:
 
             # Build checkpoint data for state restoration
             checkpoint_data = {}
+            last_session_summary = None
             if checkpoint and session_active:
                 checkpoint_data = {
                     "current_state": checkpoint.current_stage,
@@ -577,8 +584,41 @@ class ChatOrchestrator:
                     "qualification_answers": checkpoint.qualification_answers or {},
                     "turn_count": checkpoint.turn_count or 0,
                     "close_strategy": checkpoint.close_strategy,
+                    "consecutive_questions": checkpoint.consecutive_questions or 0,
+                    "follow_up_cadence": checkpoint.follow_up_cadence,
                 }
+                last_session_summary = (checkpoint.lead_data or {}).get(
+                    "session_summary"
+                )
             elif checkpoint and not session_active:
+                if checkpoint.lead_data is not None:
+                    last_session_summary = (checkpoint.lead_data or {}).get(
+                        "session_summary"
+                    )
+                    if not last_session_summary and history:
+                        try:
+                            from src.modules.sales_agent.infrastructure.prompts.base import (
+                                prompt_loader,
+                            )
+
+                            summary_prompt = prompt_loader.render(
+                                "summary_generator",
+                                messages=history[-10:],
+                                user_profile=base_profile,
+                            )
+                            summary = LLMFactory.get_service().generate_response(
+                                messages=[],
+                                system_prompt=summary_prompt,
+                                model_type=ModelRole.FAST,
+                                temperature=0.0,
+                                max_output_tokens=100,
+                                metadata={"prompt_template": "summary_generator"},
+                            )
+                            last_session_summary = summary.strip()
+                        except Exception as e:
+                            logger.warning(
+                                "session_summary_generation_failed", error=str(e)
+                            )
                 state_repo.deactivate(tenant_uuid, user.id)
 
             initial_state = create_initial_state(
@@ -594,11 +634,20 @@ class ChatOrchestrator:
                 agent_identity=agent_identity,
                 customer_profile_id=customer.id,
                 channel_type=channel_type,
+                session_gap_hours=session_gap_hours,
+                last_session_summary=last_session_summary,
+                is_returning_user=is_returning_user,
                 **checkpoint_data,
             )
 
             if launch_stage:
                 initial_state["launch_stage"] = launch_stage
+
+            # Clear follow-up cadence when user re-engages (Fase 4)
+            if checkpoint and checkpoint.follow_up_cadence:
+                checkpoint.follow_up_cadence = None
+                db.flush()
+                initial_state["follow_up_cadence"] = None
 
             # Sanitize user input
             sanitized_text = incoming.text
@@ -673,6 +722,10 @@ class ChatOrchestrator:
             # Save state checkpoint after graph execution
             if tenant_uuid and user:
                 try:
+                    result_lead_data = result.get("lead_data", {}) or {}
+                    if last_session_summary:
+                        result_lead_data["session_summary"] = last_session_summary
+
                     state_repo.save_checkpoint(
                         tenant_id=tenant_uuid,
                         lead_id=user.id,
@@ -681,13 +734,15 @@ class ChatOrchestrator:
                         channel_type=channel_type,
                         current_stage=result.get("current_state", "rapport"),
                         lead_score=result.get("lead_score", 0),
-                        lead_data=result.get("lead_data", {}),
+                        lead_data=result_lead_data,
                         buying_signals=result.get("buying_signals", []),
                         objection_history=result.get("objection_history", []),
                         qualification_answers=result.get("qualification_answers", {}),
                         turn_count=result.get("turn_count", 0),
                         last_specialist=result.get("next_node"),
                         close_strategy=result.get("close_strategy"),
+                        consecutive_questions=result.get("consecutive_questions", 0),
+                        follow_up_cadence=result.get("follow_up_cadence"),
                     )
                     db.commit()
                 except Exception as e:

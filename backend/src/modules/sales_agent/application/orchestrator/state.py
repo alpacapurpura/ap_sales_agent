@@ -52,6 +52,15 @@ class AgentState(TypedDict):
     channel_type: str | None
     close_strategy: str | None
 
+    # Session continuity (Fase 2: cooldowns & greetings)
+    session_gap_hours: float | None
+    last_session_summary: str | None
+    is_returning_user: bool | None
+
+    # Question fatigue tracking (Fase 3)
+    consecutive_questions: int | None
+    follow_up_cadence: dict[str, Any] | None
+
     # Internal (graph loop control)
     internal_turn: int | None
     _pending_tool: dict[str, Any] | None
@@ -84,6 +93,13 @@ def create_initial_state(
     close_strategy: str = None,
     current_state: str = None,
     lead_score: int = None,
+    # Session continuity (Fase 2)
+    session_gap_hours: float = None,
+    last_session_summary: str = None,
+    is_returning_user: bool = None,
+    # Question fatigue (Fase 3)
+    consecutive_questions: int = None,
+    follow_up_cadence: dict = None,
 ) -> AgentState:
     """
     Factory for creating a clean AgentState.
@@ -127,6 +143,13 @@ def create_initial_state(
         "customer_profile_id": customer_profile_id,
         "channel_type": channel_type,
         "close_strategy": close_strategy,
+        # Session continuity
+        "session_gap_hours": session_gap_hours,
+        "last_session_summary": last_session_summary,
+        "is_returning_user": is_returning_user,
+        # Question fatigue
+        "consecutive_questions": consecutive_questions or 0,
+        "follow_up_cadence": follow_up_cadence,
         # Internal
         "internal_turn": 0,
         "_pending_tool": None,

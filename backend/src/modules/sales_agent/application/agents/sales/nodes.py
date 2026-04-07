@@ -6,6 +6,7 @@ from src.core.enums import ModelRole
 from src.modules.sales_agent.application.orchestrator.state import AgentState
 from src.modules.sales_agent.domain.tuning import (
     BUYING_SIGNAL_WEIGHT,
+    FOLLOW_UP_CADENCES,
     LEAD_SCORE_MAX,
     MAX_INTERNAL_TURNS,
     QUALIFICATION_FIELD_WEIGHT,
@@ -102,6 +103,8 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
             qualification_completeness=len(state.get("qualification_answers") or {}),
             last_specialist=state.get("last_specialist"),
             turn_count=state.get("turn_count", 0),
+            consecutive_questions=state.get("consecutive_questions", 0),
+            session_gap_hours=state.get("session_gap_hours"),
         )
         decision = LLMFactory.get_service().generate_response(
             messages=state["messages"][-SUPERVISOR_MESSAGE_WINDOW:],
@@ -133,7 +136,12 @@ def node_sales_supervisor(state: AgentState) -> dict[str, Any]:
 
 @trace_node("qualifier")
 def node_qualifier(state: AgentState) -> dict[str, Any]:
-    skill_prompt = prompt_loader.render("specialist_qualifier")
+    skill_prompt = prompt_loader.render(
+        "specialist_qualifier",
+        consecutive_questions=state.get("consecutive_questions", 0),
+        session_gap_hours=state.get("session_gap_hours"),
+        last_session_summary=state.get("last_session_summary"),
+    )
     system_prompt = _build_system_prompt(state, skill_prompt)
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
@@ -150,6 +158,8 @@ def node_product_expert(state: AgentState) -> dict[str, Any]:
     skill_prompt = prompt_loader.render(
         "specialist_product_expert",
         context_rag=state.get("context_rag"),
+        session_gap_hours=state.get("session_gap_hours"),
+        last_session_summary=state.get("last_session_summary"),
     )
     system_prompt = _build_system_prompt(state, skill_prompt)
     response = LLMFactory.get_service().generate_response(
@@ -164,7 +174,11 @@ def node_product_expert(state: AgentState) -> dict[str, Any]:
 
 @trace_node("closer")
 def node_closer(state: AgentState) -> dict[str, Any]:
-    skill_prompt = prompt_loader.render("specialist_closer")
+    skill_prompt = prompt_loader.render(
+        "specialist_closer",
+        session_gap_hours=state.get("session_gap_hours"),
+        last_session_summary=state.get("last_session_summary"),
+    )
     system_prompt = _build_system_prompt(state, skill_prompt)
     response = LLMFactory.get_service().generate_response(
         messages=state["messages"],
@@ -225,6 +239,43 @@ def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
     updates["current_state"] = _determine_stage(state, updates)
     updates["turn_count"] = (state.get("turn_count") or 0) + 1
     updates["internal_turn"] = (state.get("internal_turn") or 0) + 1
+
+    # Track consecutive questions (Fase 3: fatigue detection)
+    current_next = state.get("next_node")
+    if current_next == "qualifier":
+        updates["consecutive_questions"] = (state.get("consecutive_questions") or 0) + 1
+    else:
+        updates["consecutive_questions"] = 0
+
+    # Initialize follow-up cadence when transitioning to closing (Fase 4)
+    prev_stage = state.get("current_state")
+    new_stage = updates.get("current_state", prev_stage)
+    if (
+        new_stage == "closing"
+        and prev_stage != "closing"
+        and not state.get("follow_up_cadence")
+    ):
+        product = state.get("active_product") or {}
+        price = product.get("price") or 0
+        try:
+            price = float(price)
+        except (ValueError, TypeError):
+            price = 0
+        if price > 500:
+            tier = "high"
+        elif price > 100:
+            tier = "mid"
+        else:
+            tier = "low"
+        from datetime import datetime, timezone
+
+        updates["follow_up_cadence"] = {
+            **FOLLOW_UP_CADENCES.get(tier, FOLLOW_UP_CADENCES["mid"]),
+            "tier": tier,
+            "follow_ups_sent": 0,
+            "last_follow_up_at": None,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     # Clean structured blocks from message for user output
     clean_text = _strip_blocks(last_msg)

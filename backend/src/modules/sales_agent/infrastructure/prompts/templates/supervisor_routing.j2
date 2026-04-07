@@ -15,6 +15,8 @@ Context:
 - Qualification Fields: {{ qualification_completeness | default(0) }}/5
 - Last Specialist: {{ last_specialist | default("none") }}
 - Conversation Turn: {{ turn_count | default(0) }}
+{% if consecutive_questions is defined and consecutive_questions is not none %}- Consecutive Questions (qualifier): {{ consecutive_questions }}{% endif %}
+{% if session_gap_hours is defined and session_gap_hours is not none %}- Session Gap: {{ session_gap_hours | round(1) }} hours{% endif %}
 {% if lead_data %}- Known Lead Data: {{ lead_data }}{% endif %}
 {% if user_profile %}- User Profile: {{ user_profile }}{% endif %}
 
@@ -27,5 +29,7 @@ Decision Rules:
 - If turn_count > 10 and no progress, consider "escalate"
 - If explicit request for human help → "escalate"
 - If a message contains [INSTRUCCION DEL OPERADOR], follow that instruction with HIGHEST PRIORITY. Route to the specialist best suited to execute the operator's instruction.
+{% if consecutive_questions is defined and consecutive_questions is not none and consecutive_questions >= 3 %}- FATIGUE ALERT: qualifier has asked {{ consecutive_questions }} consecutive questions. PREFER "product_expert" to give value before more questions.{% endif %}
+{% if session_gap_hours is defined and session_gap_hours is not none %}- Session gap awareness: {% if session_gap_hours > 168 %}Long absence (>7 days). PREFER "qualifier" to re-discover.{% elif session_gap_hours < 6 %}Short gap (<6h). PREFER "{{ last_specialist | default('qualifier') }}" for continuity.{% endif %}{% endif %}
 
 Output ONLY one word: "qualifier", "product_expert", "closer", or "escalate".

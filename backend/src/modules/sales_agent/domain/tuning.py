@@ -37,3 +37,16 @@ MICRO_DELAY_RANGE = (0.4, 0.8)  # Seconds between chunks
 # ─── Session ──────────────────────────────────────────────────────────────────
 SESSION_TIMEOUT_HOURS = 6  # Hours before session is considered expired
 MESSAGE_HISTORY_LIMIT = 10  # Max messages loaded from audit history
+
+# ─── Question Fatigue (Fase 3) ───────────────────────────────────────────────
+CONSECUTIVE_QUESTION_FATIGUE_LIMIT = (
+    3  # Max consecutive qualifier turns before forcing value
+)
+
+# ─── Follow-up Cadences (Fase 4) ─────────────────────────────────────────────
+FOLLOW_UP_CADENCES = {
+    "low": {"delays_hours": [2, 24, 48]},
+    "mid": {"delays_hours": [6, 24, 72]},
+    "high": {"delays_hours": [4, 24]},
+}
+FOLLOW_UP_MAX_TOTAL = 3  # Hard cap: never more than 3 follow-ups per lead

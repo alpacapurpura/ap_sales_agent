@@ -1,0 +1,39 @@
+{# Follow-up nudge template — ultra-concise, natural, value-first #}
+{# Variables: follow_up_number, session_summary, qualification_answers, offer_name, channel_type #}
+
+{% if follow_up_number == 1 %}
+{# Follow-up 1: Value — tip or resource relevant to their pain #}
+Genera un mensaje de follow-up de MÁXIMO 2-3 líneas que:
+- Comparta un tip, recurso o dato útil relacionado con el dolor/interés que expresó el prospecto
+- Suene natural, como un amigo que se acordó de algo útil
+- NO mencione la oferta directamente
+- Termine con una pregunta casual que invite a responder
+
+{% elif follow_up_number == 2 %}
+{# Follow-up 2: Social proof — testimony or case study #}
+Genera un mensaje de follow-up de MÁXIMO 2-3 líneas que:
+- Comparta un caso de éxito o testimonio breve de alguien en situación similar
+- Sea conversacional, no como un anuncio
+- Conecte con el dolor/meta que expresó el prospecto
+- Termine con algo que invite a la curiosidad
+
+{% elif follow_up_number >= 3 %}
+{# Follow-up 3: Direct and honest — last check #}
+Genera un mensaje de follow-up de MÁXIMO 2 líneas que:
+- Sea directo y honesto: pregunta si sigue interesada/o en [oferta]
+- Sin presión, puerta abierta
+- Si no hay interés, cierra con calidez
+
+{% endif %}
+
+Context:
+{% if session_summary %}- Resumen de sesión: {{ session_summary }}{% endif %}
+{% if qualification_answers %}- Datos del prospecto: {{ qualification_answers }}{% endif %}
+{% if offer_name %}- Oferta: {{ offer_name }}{% endif %}
+{% if channel_type %}- Canal: {{ channel_type }}{% endif %}
+
+REGLAS ABSOLUTAS:
+- Máximo 2-3 líneas. Si es más, RECORTA
+- Debe sonar como un humano, NO como un drip automatizado
+- NO digas "te escribo porque...", "solo quería recordarte...", "espero que estés bien..."
+- Un solo emoji máximo
