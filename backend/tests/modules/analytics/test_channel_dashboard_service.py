@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.modules.analytics.application.services.channel_dashboard_service import (
+    _CHANNEL_CONFIGS,
     ChannelDashboardService,
 )
 
@@ -115,3 +116,59 @@ class TestFrequencyAlert:
         alert = service._check_frequency({"frequency": 6.0})
         assert alert is not None
         assert alert.severity == "critical"
+
+
+class TestMetricResolverIntegration:
+    """Test MetricResolver integration in _build_kpis.
+
+    Verifies that aliases like ROAS, CTR, CPC are properly resolved
+    to get display_name, unit, benchmarks from the metric catalog.
+    """
+
+    def test_alias_kpi_gets_catalog_metadata(self, mock_db):
+        """ROAS alias should get display_name, unit, benchmarks from catalog."""
+        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+
+        service = ChannelDashboardService(mock_db)
+        config = _CHANNEL_CONFIGS["meta-ads"]
+        # Provide ROAS by alias key (as resolver will put it) and also spend
+        current = {"spend": 1000.0, "ROAS": 3.0}
+        previous = {"spend": 800.0, "ROAS": 2.5}
+
+        kpis = service._build_kpis(current, previous, IndustryCategory.GENERAL, config)
+        roas_kpi = next((k for k in kpis if k.metric_name == "ROAS"), None)
+        assert roas_kpi is not None
+        assert roas_kpi.current_value == 3.0
+        # Catalog should provide "ROAS" as display_name for meta_purchase_roas
+        assert roas_kpi.display_name == "ROAS"
+        assert roas_kpi.unit == "ratio"
+
+    def test_ctr_alias_gets_benchmark(self, mock_db):
+        """CTR alias should get benchmark from catalog."""
+        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+
+        service = ChannelDashboardService(mock_db)
+        config = _CHANNEL_CONFIGS["meta-ads"]
+        current = {"spend": 1000.0, "CTR": 1.5}
+        previous = {}
+
+        kpis = service._build_kpis(current, previous, IndustryCategory.GENERAL, config)
+        ctr_kpi = next((k for k in kpis if k.metric_name == "CTR"), None)
+        assert ctr_kpi is not None
+        assert ctr_kpi.benchmark is not None
+        assert ctr_kpi.display_name == "CTR"
+        assert ctr_kpi.unit == "percentage"
+
+    def test_cpc_alias_higher_is_better_false(self, mock_db):
+        """CPC alias should resolve higher_is_better=False from catalog."""
+        from src.modules.analytics.domain.industry_benchmarks import IndustryCategory
+
+        service = ChannelDashboardService(mock_db)
+        config = _CHANNEL_CONFIGS["meta-ads"]
+        current = {"spend": 1000.0, "CPC": 2.5}
+        previous = {}
+
+        kpis = service._build_kpis(current, previous, IndustryCategory.GENERAL, config)
+        cpc_kpi = next((k for k in kpis if k.metric_name == "CPC"), None)
+        assert cpc_kpi is not None
+        assert cpc_kpi.higher_is_better is False

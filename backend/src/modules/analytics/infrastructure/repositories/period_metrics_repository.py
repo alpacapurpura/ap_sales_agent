@@ -113,6 +113,43 @@ class PeriodMetricsRepository:
         stmt = stmt.order_by(PeriodMetricModel.period_start.desc())
         return list(self.db.execute(stmt).scalars().all())
 
+    def get_best_period_metric(
+        self,
+        tenant_id: UUID,
+        channel_slug: str,
+        metric_name: str,
+        start_date: date,
+        end_date: date,
+    ) -> float | None:
+        """Find the best matching period metric value for a date range.
+
+        Looks for a period_metrics row whose period_start/period_end
+        best covers the requested [start_date, end_date] range.
+        Priority: period that contains the requested range, ordered by
+        shortest (most precise) period first.
+
+        Returns the metric value if found, None otherwise.
+        """
+        stmt = (
+            select(PeriodMetricModel.value)
+            .where(
+                PeriodMetricModel.tenant_id == tenant_id,
+                PeriodMetricModel.channel_slug == channel_slug,
+                PeriodMetricModel.metric_name == metric_name,
+                PeriodMetricModel.period_start <= start_date,
+                PeriodMetricModel.period_end >= end_date,
+            )
+            .order_by(
+                # Prefer shortest covering period (most precise)
+                (PeriodMetricModel.period_end - PeriodMetricModel.period_start),
+            )
+            .limit(1)
+        )
+        row = self.db.execute(stmt).first()
+        if row is None:
+            return None
+        return float(row.value)
+
     def get_existing_periods(
         self,
         tenant_id: UUID,

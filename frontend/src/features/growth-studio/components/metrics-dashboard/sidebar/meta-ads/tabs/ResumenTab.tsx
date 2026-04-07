@@ -25,6 +25,13 @@ interface ResumenTabProps {
 
 const RESUMEN_KPIS = ['spend', 'ROAS', 'conversions', 'CPA', 'CTR', 'reach'];
 
+/** Metrics that require Meta Pixel to report meaningful data. When value is 0, show "--" placeholder. */
+const PIXEL_DEPENDENT_METRICS = new Set(['ROAS', 'CPA', 'CPL', 'conversions']);
+
+function isPixelPlaceholder(metricName: string, value: number): boolean {
+  return PIXEL_DEPENDENT_METRICS.has(metricName) && value === 0;
+}
+
 function formatKpiValue(value: number, unit: string, currency?: string): string {
   if (unit === 'currency') return formatMoney(value, currency || 'USD');
   if (unit === 'percentage') return `${value.toFixed(2)}%`;
@@ -151,7 +158,11 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
                 {kpi.displayName}
               </p>
               <p className="text-xl font-bold tabular-nums">
-                {formatKpiValue(kpi.currentValue, kpi.unit, kpi.currency)}
+                {isPixelPlaceholder(kpi.metricName, kpi.currentValue) ? (
+                  <span title="Requiere Meta Pixel configurado">--</span>
+                ) : (
+                  formatKpiValue(kpi.currentValue, kpi.unit, kpi.currency)
+                )}
               </p>
               {kpi.deltaPct != null && (
                 <span

@@ -17,6 +17,13 @@ interface CostosTabProps {
 
 const COST_METRICS = ['CPC', 'CPM', 'CPL', 'CPA'];
 
+/** Metrics that require Meta Pixel to report meaningful data. When value is 0, show "--" placeholder. */
+const PIXEL_DEPENDENT_METRICS = new Set(['ROAS', 'CPA', 'CPL', 'conversions']);
+
+function isPixelPlaceholder(metricName: string, value: number): boolean {
+  return PIXEL_DEPENDENT_METRICS.has(metricName) && value === 0;
+}
+
 const COST_TOOLTIPS: Record<string, string> = {
   CPC: 'CPC = Cuánto pagas cada vez que alguien hace clic en tu anuncio. Menor es mejor.',
   CPM: 'CPM = Cuánto pagas por cada 1,000 veces que se muestra tu anuncio.',
@@ -84,7 +91,11 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
           >
             <p className="text-xs text-muted-foreground">{kpi.displayName}</p>
             <p className="text-2xl font-semibold tabular-nums">
-              {formatMoney(kpi.currentValue, kpi.currency || 'USD')}
+              {isPixelPlaceholder(kpi.metricName, kpi.currentValue) ? (
+                <span title="Requiere Meta Pixel configurado">--</span>
+              ) : (
+                formatMoney(kpi.currentValue, kpi.currency || 'USD')
+              )}
             </p>
             {kpi.benchmark && (
               <BenchmarkBadge
