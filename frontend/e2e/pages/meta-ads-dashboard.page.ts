@@ -166,4 +166,64 @@ export class MetaAdsDashboardPage {
   async closeFullDashboard() {
     await this.page.getByRole('button', { name: /Volver/i }).click();
   }
+
+  // ── Full Dashboard: Header Elements ──────────────────────
+
+  /** Checks the sync button is visible in the full dashboard header. */
+  async expectSyncButtonVisible() {
+    await expect(this.page.getByRole('button', { name: /Sincronizar/i })).toBeVisible();
+  }
+
+  /** Checks the last sync timestamp is displayed. */
+  async expectLastSyncVisible() {
+    await expect(this.page.getByText(/Última sync:/i)).toBeVisible();
+  }
+
+  /** Checks the period selector is in the header area (top of full dashboard). */
+  async expectPeriodSelectorInHeader() {
+    // Period selector should be inside the header (border-b area)
+    const header = this.page.locator('.fixed .border-b').first();
+    await expect(header.getByText('30 días')).toBeVisible();
+  }
+
+  // ── Full Dashboard: Resumen Tab Alerts ───────────────────
+
+  /** Checks that recommendation alert cards are visible in Resumen tab. */
+  async expectResumenAlerts() {
+    // At least one alert card should be visible (from campaign recommendations)
+    await expect(this.page.getByText(/CPA.*alto|gastando sin resultados/i).first()).toBeVisible({ timeout: 5_000 });
+  }
+
+  // ── Full Dashboard: Audiencia Tab Demographics ───────────
+
+  /** Checks the Audiencia tab renders age distribution chart. */
+  async expectAgeDistribution() {
+    await this.clickTab('Audiencia');
+    await expect(this.page.getByText('Distribución por edad')).toBeVisible();
+    // Check for age range labels
+    await expect(this.page.getByText('25-34')).toBeVisible();
+    await expect(this.page.getByText('18-24')).toBeVisible();
+    // Check for dominant marker (★)
+    await expect(this.page.getByText(/★/)).toBeVisible();
+    // Check percentage values are shown
+    await expect(this.page.getByText('42%')).toBeVisible();
+  }
+
+  /** Checks the Audiencia tab renders gender distribution. */
+  async expectGenderDistribution() {
+    await expect(this.page.getByText('Distribución por género')).toBeVisible();
+    await expect(this.page.getByText('Femenino')).toBeVisible();
+    await expect(this.page.getByText('Masculino')).toBeVisible();
+    await expect(this.page.getByText('68%')).toBeVisible();
+    await expect(this.page.getByText('32%')).toBeVisible();
+  }
+
+  /** Checks the Audiencia tab renders placement distribution. */
+  async expectPlacementDistribution() {
+    await expect(this.page.getByText('Dónde aparecen tus ads')).toBeVisible();
+    await expect(this.page.getByText('Feed')).toBeVisible();
+    await expect(this.page.getByText('Stories')).toBeVisible();
+    await expect(this.page.getByText('Reels')).toBeVisible();
+    await expect(this.page.getByText('55%')).toBeVisible();
+  }
 }

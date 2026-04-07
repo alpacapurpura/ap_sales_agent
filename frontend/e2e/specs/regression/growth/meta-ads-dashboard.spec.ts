@@ -137,6 +137,76 @@ test.describe('Meta Ads Dashboard - Full Page', () => {
   });
 });
 
+test.describe('Meta Ads Dashboard - Design Validation', () => {
+  let metaAds: MetaAdsDashboardPage;
+
+  test.beforeEach(async ({ growthStudioPage, tenantId }) => {
+    metaAds = new MetaAdsDashboardPage(growthStudioPage, tenantId);
+  });
+
+  test('full dashboard header has period selector, sync button, and last sync', async ({ growthStudioPage }) => {
+    await setupAndNavigate(growthStudioPage, metaAds);
+    await metaAds.clickMetaAdsChannel();
+    await metaAds.expectSidebarVisible();
+    await metaAds.clickOpenFullDashboard();
+    await metaAds.expectFullDashboardVisible();
+
+    // Period selector in header
+    await metaAds.expectPeriodSelectorInHeader();
+    // Sync button visible
+    await metaAds.expectSyncButtonVisible();
+    // Last sync timestamp
+    await metaAds.expectLastSyncVisible();
+  });
+
+  test('Resumen tab shows alert cards from recommendations', async ({ growthStudioPage }) => {
+    await setupAndNavigate(growthStudioPage, metaAds);
+    await metaAds.clickMetaAdsChannel();
+    await metaAds.expectSidebarVisible();
+    await metaAds.clickOpenFullDashboard();
+    await metaAds.expectFullDashboardVisible();
+    await metaAds.expectResumenAlerts();
+  });
+
+  test('Audiencia tab shows age distribution with dominant highlight', async ({ growthStudioPage }) => {
+    await setupAndNavigate(growthStudioPage, metaAds);
+    await metaAds.clickMetaAdsChannel();
+    await metaAds.expectSidebarVisible();
+    await metaAds.clickOpenFullDashboard();
+    await metaAds.expectFullDashboardVisible();
+    await metaAds.expectAgeDistribution();
+  });
+
+  test('Audiencia tab shows gender split with colors', async ({ growthStudioPage }) => {
+    await setupAndNavigate(growthStudioPage, metaAds);
+    await metaAds.clickMetaAdsChannel();
+    await metaAds.expectSidebarVisible();
+    await metaAds.clickOpenFullDashboard();
+    await metaAds.expectFullDashboardVisible();
+    await metaAds.clickTab('Audiencia');
+    await metaAds.expectGenderDistribution();
+  });
+
+  test('Audiencia tab shows placement distribution with emerald bars', async ({ growthStudioPage }) => {
+    await setupAndNavigate(growthStudioPage, metaAds);
+    await metaAds.clickMetaAdsChannel();
+    await metaAds.expectSidebarVisible();
+    await metaAds.clickOpenFullDashboard();
+    await metaAds.expectFullDashboardVisible();
+    await metaAds.clickTab('Audiencia');
+    await metaAds.expectPlacementDistribution();
+  });
+
+  test('Creativos tab shows format comparison and video retention', async ({ growthStudioPage }) => {
+    await setupAndNavigate(growthStudioPage, metaAds);
+    await metaAds.clickMetaAdsChannel();
+    await metaAds.expectSidebarVisible();
+    await metaAds.clickOpenFullDashboard();
+    await metaAds.expectFullDashboardVisible();
+    await metaAds.expectCreativosTabContent();
+  });
+});
+
 test.describe('Meta Ads Dashboard - API & Tenant', () => {
   let metaAds: MetaAdsDashboardPage;
 

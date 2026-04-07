@@ -36,6 +36,16 @@ _FORMAT_EMOJIS = {
 }
 
 
+def _detect_format_type(creative: dict[str, str | None]) -> str:
+    """Determine ad format from creative metadata columns.
+
+    Priority: video_id present -> "video", else -> "image" (default).
+    """
+    if creative.get("creative_video_id"):
+        return "video"
+    return "image"
+
+
 class AdPerformanceService:
     def __init__(self, db: Session) -> None:
         self._db = db
@@ -45,6 +55,52 @@ class AdPerformanceService:
         end = date.today()
         start = end - timedelta(days=days)
         return start, end
+
+    def _fetch_creative_metadata(
+        self,
+        tenant_id: UUID,
+        ad_external_ids: list[str],
+    ) -> dict[str, dict[str, str | None]]:
+        """Bulk-fetch creative columns from ads table for format detection.
+
+        Returns a lookup: {external_id: {creative_video_id, creative_image_url, ...}}.
+        Uses a single query for all ad_ids to avoid N+1.
+        """
+        if not ad_external_ids:
+            return {}
+
+        placeholders = ", ".join(f":aid_{i}" for i in range(len(ad_external_ids)))
+        params: dict[str, str] = {"tenant_id": str(tenant_id)}
+        params.update({f"aid_{i}": eid for i, eid in enumerate(ad_external_ids)})
+
+        rows = self._db.execute(
+            text(f"""
+                SELECT external_id, creative_video_id,
+                       creative_image_url, creative_thumbnail_url
+                FROM ads
+                WHERE tenant_id = :tenant_id
+                  AND external_id IN ({placeholders})
+                  AND deleted_at IS NULL
+            """),  # noqa: S608 — placeholders are parameterised, not user input
+            params,
+        ).fetchall()
+
+        lookup: dict[str, dict[str, str | None]] = {}
+        for row in rows:
+            r = row._mapping
+            lookup[r["external_id"]] = {
+                "creative_video_id": r.get("creative_video_id"),
+                "creative_image_url": r.get("creative_image_url"),
+                "creative_thumbnail_url": r.get("creative_thumbnail_url"),
+            }
+
+        logger.info(
+            "creative_metadata_fetched",
+            tenant_id=str(tenant_id),
+            requested=len(ad_external_ids),
+            found=len(lookup),
+        )
+        return lookup
 
     def get_top_ads(
         self,
@@ -84,15 +140,24 @@ class AdPerformanceService:
                 metrics_by_ad[aid] = {"_ad_name": r.get("ad_name") or aid}
             metrics_by_ad[aid][r["metric_name"]] = float(r["total_value"])
 
+        # Fetch creative metadata from ads table (bulk query for all ad_ids)
+        creative_lookup = self._fetch_creative_metadata(
+            tenant_id, list(metrics_by_ad.keys())
+        )
+
         # Build ad DTOs
         ads: list[AdMetricsDTO] = []
         for aid, m in metrics_by_ad.items():
             spend = m.get("spend", 0.0)
             conversions = m.get("conversions", 0.0)
+            creative = creative_lookup.get(aid, {})
+            format_type = _detect_format_type(creative)
             ads.append(
                 AdMetricsDTO(
                     ad_id=aid,
                     ad_name=str(m.get("_ad_name", aid)),
+                    format_type=format_type,
+                    thumbnail_url=creative.get("creative_thumbnail_url"),
                     spend=float(spend),
                     impressions=float(m.get("impressions", 0)),
                     clicks=float(m.get("clicks", 0)),
@@ -133,8 +198,8 @@ class AdPerformanceService:
     ) -> FormatComparisonDTO:
         """Aggregate metrics by ad format type.
 
-        Format type is derived from ad metadata stored in the campaigns table.
-        Falls back to 'unknown' if not available.
+        Format type is derived from creative metadata stored in the ads table.
+        Falls back to 'image' when creative data is not available.
         """
         # Get ad-level metrics
         result = self.get_top_ads(tenant_id, channel_slug, period, limit=500)

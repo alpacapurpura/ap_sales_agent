@@ -8,11 +8,19 @@ import { formatMoney } from '@/lib/format-money';
 import { cn } from '@/lib/utils';
 import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
 import { MetaAdsMiniFunnel } from '../MetaAdsMiniFunnel';
-import type { ChannelDashboardData, MetricKpiData } from '../../../../../types/metrics';
+import type {
+  ChannelDashboardData,
+  MetricKpiData,
+  CampaignPerformanceData,
+  CampaignRecommendation,
+  MetaAdsDashboardTab,
+} from '../../../../../types/metrics';
 
 interface ResumenTabProps {
   data: ChannelDashboardData | undefined;
   isLoading: boolean;
+  campaignData?: CampaignPerformanceData;
+  onNavigateToTab?: (tab: MetaAdsDashboardTab) => void;
 }
 
 const RESUMEN_KPIS = ['spend', 'ROAS', 'conversions', 'CPA', 'CTR', 'reach'];
@@ -34,7 +42,65 @@ const KPI_TOOLTIPS: Record<string, string> = {
   reach: 'Personas únicas que vieron tus anuncios. No es una suma diaria.',
 };
 
-export function ResumenTab({ data, isLoading }: ResumenTabProps) {
+function AlertCard({
+  recommendation,
+  onAction,
+}: {
+  recommendation: CampaignRecommendation;
+  onAction?: () => void;
+}) {
+  const isCritical =
+    recommendation.importance === 'HIGH' || recommendation.importance === 'CRITICAL';
+
+  return (
+    <div
+      className={cn(
+        'rounded-lg border bg-card p-3 flex items-start justify-between gap-3',
+        isCritical ? 'border-l-2 border-l-red-500' : 'border-l-2 border-l-blue-500',
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={cn(
+            'rounded-full p-1.5 mt-0.5 shrink-0',
+            isCritical ? 'bg-red-500/10' : 'bg-blue-500/10',
+          )}
+        >
+          {isCritical ? (
+            <svg className="h-4 w-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          ) : (
+            <TrendingUp className="h-4 w-4 text-blue-400" />
+          )}
+        </div>
+        <div>
+          <p className={cn('text-sm font-medium', isCritical ? 'text-red-300' : 'text-blue-300')}>
+            {recommendation.title}
+          </p>
+          {recommendation.body && (
+            <p className="text-xs text-muted-foreground mt-0.5">{recommendation.body}</p>
+          )}
+        </div>
+      </div>
+      {onAction && (
+        <button
+          onClick={onAction}
+          className={cn(
+            'shrink-0 rounded-md border px-3 py-1.5 text-xs',
+            isCritical
+              ? 'bg-red-500/10 border-red-500/30 text-red-400'
+              : 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+          )}
+        >
+          {isCritical ? 'Ver en Campañas' : 'Ver detalle'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: ResumenTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -113,6 +179,19 @@ export function ResumenTab({ data, isLoading }: ResumenTabProps) {
           );
         })}
       </div>
+
+      {/* Alerts / Recommendations */}
+      {campaignData?.recommendations && campaignData.recommendations.length > 0 && (
+        <div className="space-y-2">
+          {campaignData.recommendations.slice(0, 3).map((rec, i) => (
+            <AlertCard
+              key={rec.title ?? i}
+              recommendation={rec}
+              onAction={() => onNavigateToTab?.('campanas')}
+            />
+          ))}
+        </div>
+      )}
 
       {/* 2-column: Chart + Funnel */}
       <div className="grid grid-cols-2 gap-4">

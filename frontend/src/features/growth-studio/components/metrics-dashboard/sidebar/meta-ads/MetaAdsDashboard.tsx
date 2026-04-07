@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, BarChart3 } from 'lucide-react';
+import { ArrowLeft, BarChart3, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
 import { useConnectionHealth } from '../../../../hooks/useConnectionHealth';
+import { useSyncAllSources } from '../../../../hooks/useSyncAllSources';
 import { useCampaignPerformance } from '../../../../api/campaigns-api';
 import type { MetaAdsPeriod, MetaAdsDashboardTab } from '../../../../types/metrics';
 import { ConnectionHealthBanner } from '../../../connection-health-banner';
@@ -29,6 +31,7 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
   const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
   const { data: health } = useConnectionHealth('meta-ads');
+  const { trigger: syncAll, isLoading: isSyncing } = useSyncAllSources();
 
   const content = (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
@@ -46,6 +49,22 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
         </div>
         <div className="flex items-center gap-3">
           <MetaAdsPeriodSelector value={period} onChange={setPeriod} />
+          {campaignData?.lastSynced && (
+            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Última sync: {new Date(campaignData.lastSynced).toLocaleDateString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => syncAll(30)}
+            disabled={isSyncing}
+            className="gap-1.5 text-xs"
+          >
+            <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />
+            {isSyncing ? 'Sincronizando…' : 'Sincronizar'}
+          </Button>
         </div>
       </div>
 
@@ -79,7 +98,12 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
 
         <div className="flex-1 overflow-y-auto">
           <TabsContent value="resumen" className="m-0 p-6">
-            <ResumenTab data={dashboardData} isLoading={isDashboardLoading} />
+            <ResumenTab
+              data={dashboardData}
+              isLoading={isDashboardLoading}
+              campaignData={campaignData}
+              onNavigateToTab={setActiveTab}
+            />
           </TabsContent>
           <TabsContent value="campanas" className="m-0 p-6">
             <CampaignsTab
