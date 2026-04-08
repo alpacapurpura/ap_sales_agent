@@ -6,18 +6,9 @@ import { useCopilotStore, type UIAction } from "../store/copilot-store";
 import { streamCopilotChat, reportCopilotEvent } from "../api/copilot-api";
 
 export function useCopilotChat() {
-  const {
-    conversationId,
-    currentRoute,
-    addMessage,
-    appendToLastAssistant,
-    addUIActionToLastAssistant,
-    enqueuUIAction,
-    setStatus,
-    setConversationId,
-    openPanel,
-    setActiveProcedure,
-  } = useCopilotStore();
+  // Subscribe only to reactive values; read functions from getState() inside callbacks
+  const conversationId = useCopilotStore((s) => s.conversationId);
+  const currentRoute = useCopilotStore((s) => s.currentRoute);
 
   const { getToken } = useAuth();
 
@@ -27,8 +18,10 @@ export function useCopilotChat() {
     async (text: string) => {
       if (!text.trim()) return;
 
+      const store = useCopilotStore.getState();
+
       // Open panel if not already
-      openPanel();
+      store.openPanel();
 
       // Add user message
       const userMsg = {
@@ -37,7 +30,7 @@ export function useCopilotChat() {
         content: text.trim(),
         timestamp: Date.now(),
       };
-      addMessage(userMsg);
+      store.addMessage(userMsg);
 
       // Create placeholder assistant message for streaming
       const assistantMsg = {
@@ -46,21 +39,21 @@ export function useCopilotChat() {
         content: "",
         timestamp: Date.now(),
       };
-      addMessage(assistantMsg);
+      store.addMessage(assistantMsg);
 
       // Abort any in-flight request
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
-      setStatus("thinking");
+      store.setStatus("thinking");
 
       try {
         // Get Clerk auth token
         const token = await getToken();
         if (!token) {
-          appendToLastAssistant("\n\n_Error: No se pudo obtener el token de autenticación._");
-          setStatus("idle");
+          store.appendToLastAssistant("\n\n_Error: No se pudo obtener el token de autenticación._");
+          store.setStatus("idle");
           return;
         }
 
@@ -92,21 +85,21 @@ export function useCopilotChat() {
           },
           {
             onTextChunk: (content) => {
-              appendToLastAssistant(content);
+              useCopilotStore.getState().appendToLastAssistant(content);
             },
             onStatus: (state) => {
-              setStatus(state as "idle" | "thinking" | "streaming" | "done");
+              useCopilotStore.getState().setStatus(state as "idle" | "thinking" | "streaming" | "done");
             },
             onDone: (convId) => {
-              setConversationId(convId);
-              setStatus("idle");
+              useCopilotStore.getState().setConversationId(convId);
+              useCopilotStore.getState().setStatus("idle");
             },
             onError: (message) => {
-              appendToLastAssistant(`\n\n_Error: ${message}_`);
-              setStatus("idle");
+              useCopilotStore.getState().appendToLastAssistant(`\n\n_Error: ${message}_`);
+              useCopilotStore.getState().setStatus("idle");
             },
             onToolStart: (tool) => {
-              appendToLastAssistant(`\n🔧 _${tool}..._\n`);
+              useCopilotStore.getState().appendToLastAssistant(`\n🔧 _${tool}..._\n`);
             },
             onToolResult: () => {
               // Tool result feeds back into the LLM via subsequent text_chunk
@@ -114,14 +107,14 @@ export function useCopilotChat() {
             onUIAction: (action) => {
               const uiAction = action as unknown as UIAction;
               // Attach to the current assistant message for rendering NavigationCards
-              addUIActionToLastAssistant(uiAction);
+              useCopilotStore.getState().addUIActionToLastAssistant(uiAction);
               // Navigation actions execute immediately (reads, not writes)
               if (uiAction.type === "navigate") {
-                enqueuUIAction(uiAction);
+                useCopilotStore.getState().enqueuUIAction(uiAction);
               }
               // Procedure progress → update store for stepper
               if (uiAction.type === "procedure_progress" && uiAction.procedure_id && uiAction.steps) {
-                setActiveProcedure({
+                useCopilotStore.getState().setActiveProcedure({
                   id: uiAction.procedure_id,
                   name: uiAction.procedure_name || uiAction.procedure_id,
                   steps: uiAction.steps,
@@ -135,18 +128,18 @@ export function useCopilotChat() {
         );
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          appendToLastAssistant("\n\n_Error de conexión. Intenta de nuevo._");
-          setStatus("idle");
+          useCopilotStore.getState().appendToLastAssistant("\n\n_Error de conexión. Intenta de nuevo._");
+          useCopilotStore.getState().setStatus("idle");
         }
       }
     },
-    [conversationId, currentRoute, getToken, addMessage, appendToLastAssistant, addUIActionToLastAssistant, enqueuUIAction, setStatus, setConversationId, openPanel, setActiveProcedure],
+    [conversationId, currentRoute, getToken],
   );
 
   const stopStreaming = useCallback(() => {
     abortRef.current?.abort();
-    setStatus("idle");
-  }, [setStatus]);
+    useCopilotStore.getState().setStatus("idle");
+  }, []);
 
   return { sendMessage, stopStreaming };
 }

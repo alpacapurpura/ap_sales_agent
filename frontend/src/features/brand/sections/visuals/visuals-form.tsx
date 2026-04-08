@@ -64,88 +64,39 @@ interface VisualsFormProps {
   isSaving: boolean;
 }
 
-export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: getDefaults(initialData),
-  });
-
-  useEffect(() => {
-    form.reset(getDefaults(initialData));
-  }, [initialData, form]);
-
-  const guidelines = form.watch("usage_guidelines") || [];
-  const colorPalette = form.watch("color_palette") || [];
-  const neutralColors = form.watch("neutral_colors") || [];
-  const gradients = form.watch("gradient_definitions") || [];
-  const moodAdjectives = form.watch("brand_mood.adjectives") || [];
-
-  // --- List helpers ---
-  const addToList = (field: "usage_guidelines" | "color_palette" | "neutral_colors" | "gradient_definitions", defaultVal = "") => {
-    const current = form.getValues(field) || [];
-    form.setValue(field, [...current, defaultVal]);
-  };
-
-  const removeFromList = (field: "usage_guidelines" | "color_palette" | "neutral_colors" | "gradient_definitions", index: number) => {
-    const current = form.getValues(field) || [];
-    form.setValue(field, current.filter((_, i) => i !== index));
-  };
-
-  const updateInList = (field: "usage_guidelines" | "color_palette" | "neutral_colors" | "gradient_definitions", index: number, value: string) => {
-    const current = form.getValues(field) || [];
-    const updated = [...current];
-    updated[index] = value;
-    form.setValue(field, updated);
-  };
-
-  const addMoodAdjective = () => {
-    const current = form.getValues("brand_mood.adjectives") || [];
-    form.setValue("brand_mood.adjectives", [...current, ""]);
-  };
-
-  const removeMoodAdjective = (index: number) => {
-    const current = form.getValues("brand_mood.adjectives") || [];
-    form.setValue("brand_mood.adjectives", current.filter((_, i) => i !== index));
-  };
-
-  const updateMoodAdjective = (index: number, value: string) => {
-    const current = form.getValues("brand_mood.adjectives") || [];
-    const updated = [...current];
-    updated[index] = value;
-    form.setValue("brand_mood.adjectives", updated);
-  };
-
-
 // Helper for color inputs
-const ColorInput = ({ label, name, desc, control }: { label: string, name: any, desc?: string, control: any }) => (
-  <FormField
-    control={control}
-    name={name}
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel>{label}</FormLabel>
-        <div className="flex gap-2 items-center">
-          <div
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ColorInput({ label, name, desc, control }: { label: string; name: any; desc?: string; control: any }) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <div className="flex gap-2 items-center">
+            <div
               className="w-10 h-10 rounded border overflow-hidden shrink-0 shadow-sm"
               style={{ backgroundColor: field.value || "#ffffff" }}
-          >
+            >
               <input
-                  type="color"
-                  className="w-[150%] h-[150%] -m-[25%] cursor-pointer opacity-0"
-                  value={field.value || "#ffffff"}
-                  onChange={field.onChange}
+                type="color"
+                className="w-[150%] h-[150%] -m-[25%] cursor-pointer opacity-0"
+                value={field.value || "#ffffff"}
+                onChange={field.onChange}
               />
+            </div>
+            <FormControl>
+              <Input placeholder="#000000" {...field} value={field.value || ""} className="font-mono" />
+            </FormControl>
           </div>
-          <FormControl>
-            <Input placeholder="#000000" {...field} value={field.value || ""} className="font-mono" />
-          </FormControl>
-        </div>
-        {desc && <FormDescription>{desc}</FormDescription>}
-        <FormMessage />
-      </FormItem>
-    )}
-  />
-);
+          {desc && <FormDescription>{desc}</FormDescription>}
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
 
 export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -319,10 +270,10 @@ export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps)
                     {/* Semantic Colors (collapsible) */}
                     <CollapsibleSection title="Colores Semanticos">
                         <div className="grid grid-cols-2 gap-4">
-                            <ColorInput label="Success" name="semantic_colors.success" />
-                            <ColorInput label="Error" name="semantic_colors.error" />
-                            <ColorInput label="Warning" name="semantic_colors.warning" />
-                            <ColorInput label="Info" name="semantic_colors.info" />
+                            <ColorInput label="Success" name="semantic_colors.success" control={form.control} />
+                            <ColorInput label="Error" name="semantic_colors.error" control={form.control} />
+                            <ColorInput label="Warning" name="semantic_colors.warning" control={form.control} />
+                            <ColorInput label="Info" name="semantic_colors.info" control={form.control} />
                         </div>
                     </CollapsibleSection>
 

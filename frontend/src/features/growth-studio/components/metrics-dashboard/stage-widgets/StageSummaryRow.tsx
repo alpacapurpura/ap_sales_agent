@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useNavigation } from '@/components/shared/navigation';
 import type { StageId, StageSummary } from '../../../types/metrics';
@@ -21,7 +21,7 @@ interface StageSummaryRowProps {
  * Horizontal scrolling row of StageCard components formatted as a Bowtie Funnel.
  * Clicking a card navigates to the corresponding stage route.
  */
-export function StageSummaryRow({
+export const StageSummaryRow = memo(function StageSummaryRow({
   stages,
   activeStage,
   loadingMap = {},
@@ -79,4 +79,5 @@ export function StageSummaryRow({
       </div>
     </div>
   );
-}
+});
+StageSummaryRow.displayName = 'StageSummaryRow';

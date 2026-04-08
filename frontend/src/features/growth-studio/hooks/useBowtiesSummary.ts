@@ -15,5 +15,7 @@ export function useBowtiesSummary() {
       return fetchBowtiesSummary(token);
     },
     staleTime: 1000 * 60 * 1, // 1 min — shorter than detail hooks for Bowtie freshness
+    gcTime: 1000 * 60 * 5,   // 5 min — keep cached between stage navigations
+    refetchOnWindowFocus: false,
   });
 }

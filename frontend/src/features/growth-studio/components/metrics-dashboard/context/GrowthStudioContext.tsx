@@ -5,6 +5,33 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { StageId, MetricClickData, ChannelMetric, MetaAdsDashboardTab } from '../../../types/metrics';
 import type { PeriodType } from '../../../api/stage-detail-api';
 
+// ── Split contexts: stable actions vs reactive state ──────────────
+// Actions context never changes identity after mount, preventing
+// unnecessary re-renders of components that only call handlers.
+interface GrowthStudioActionsValue {
+  setSelectedPeriod: (period: PeriodType) => void;
+  handleMetricClick: (metric: MetricClickData) => void;
+  handleSidebarClose: () => void;
+  handleChannelClick: (channel: ChannelMetric) => void;
+  handleChannelSidebarClose: () => void;
+  handleOpenMetaAdsDashboard: () => void;
+  handleOpenMetaAdsDashboardToTab: (tab: MetaAdsDashboardTab) => void;
+  handleCloseMetaAdsDashboard: () => void;
+  handleOpenExpandedDashboard: (channelSlug: string) => void;
+  handleCloseExpandedDashboard: () => void;
+  handleConfigure: (slug: string, name: string) => void;
+  handleCloseConfigure: () => void;
+  resolvePendingChannel: (channels: ResolvableChannel[]) => void;
+}
+
+const GrowthStudioActionsContext = createContext<GrowthStudioActionsValue | null>(null);
+
+export function useGrowthStudioActions() {
+  const ctx = useContext(GrowthStudioActionsContext);
+  if (!ctx) throw new Error('useGrowthStudioActions must be used inside GrowthStudioProvider');
+  return ctx;
+}
+
 const CHANNEL_PARAM = 'channel';
 const TAB_PARAM = 'tab';
 
@@ -88,6 +115,13 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Keep a stable ref to searchParams so callbacks don't depend on the
+  // ever-changing object identity from useSearchParams().
+  const searchParamsRef = useRef(searchParams);
+  const pathnameRef = useRef(pathname);
+  useEffect(() => { searchParamsRef.current = searchParams; }, [searchParams]);
+  useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
+
   // Derive activeStage from URL — scan all segments so nested routes
   // like /tenant/growth-studio/atraccion-captura/meta-ads still resolve
   // to 'ATRACCION_CAPTURA' (the stage segment, not the channel segment).
@@ -151,7 +185,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   // Reset sidebars when stage changes — legitimately syncs multiple pieces
   // of local UI state when the user navigates to a different funnel stage.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimately resets UI on stage nav
     setSidebarOpen(false);
 
     setSidebarMetric(null);
@@ -187,26 +221,28 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setSidebarMetric(null);
     setSelectedChannel(channel);
     setChannelSidebarOpen(true);
-    // Sync channel selection to URL search params
-    const params = new URLSearchParams(searchParams.toString());
+    // Sync channel selection to URL search params (read from refs for stable deps)
+    const params = new URLSearchParams(searchParamsRef.current.toString());
     params.set(CHANNEL_PARAM, channel.slug);
-    router.replace(`${pathname}?${params.toString()}`);
-  }, [searchParams, router, pathname]);
+    router.replace(`${pathnameRef.current}?${params.toString()}`);
+  }, [router]);
 
   const handleChannelSidebarClose = useCallback(() => {
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
     // Mark as resolved so deep link doesn't re-open
-    if (pendingChannelSlug) {
-      resolvedSlugRef.current = pendingChannelSlug;
+    const slug = searchParamsRef.current.get(CHANNEL_PARAM);
+    if (slug) {
+      resolvedSlugRef.current = slug;
     }
-    // Remove channel and tab params from URL
-    const params = new URLSearchParams(searchParams.toString());
+    // Remove channel and tab params from URL (read from refs for stable deps)
+    const params = new URLSearchParams(searchParamsRef.current.toString());
     params.delete(CHANNEL_PARAM);
     params.delete(TAB_PARAM);
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname);
-  }, [searchParams, router, pathname, pendingChannelSlug]);
+    const currentPath = pathnameRef.current;
+    router.replace(qs ? `${currentPath}?${qs}` : currentPath);
+  }, [router]);
 
   const handleOpenMetaAdsDashboard = useCallback(() => {
     setChannelSidebarOpen(false);
@@ -227,18 +263,21 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setMetaAdsDashboardInitialTab(undefined);
   }, []);
 
+  const activeStageRef = useRef(activeStage);
+  useEffect(() => { activeStageRef.current = activeStage; }, [activeStage]);
+
   const handleOpenExpandedDashboard = useCallback((channelSlug: string) => {
     // Close sidebars
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
     // Navigate to the nested channel route instead of overlay state
-    const stageSlug = activeStage ? STAGE_TO_SLUG[activeStage] : 'atraccion-captura';
+    const stageSlug = activeStageRef.current ? STAGE_TO_SLUG[activeStageRef.current] : 'atraccion-captura';
     // Extract tenantId from pathname: /{tenantId}/growth-studio/...
-    const segments = pathname.split('/');
+    const segments = pathnameRef.current.split('/');
     const gsIndex = segments.findIndex(s => s === 'growth-studio');
     const tenantId = gsIndex > 0 ? segments[gsIndex - 1] : '';
     router.push(`/${tenantId}/growth-studio/${stageSlug}/${channelSlug}`);
-  }, [activeStage, pathname, router]);
+  }, [router]);
 
   const handleCloseExpandedDashboard = useCallback(() => {
     setExpandedDashboardChannel(null);
@@ -252,6 +291,37 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setConfigureChannel(null);
   }, []);
 
+  // Actions value — stable identity (callbacks use refs, deps are minimal)
+  const actions = useMemo<GrowthStudioActionsValue>(() => ({
+    setSelectedPeriod,
+    handleMetricClick,
+    handleSidebarClose,
+    handleChannelClick,
+    handleChannelSidebarClose,
+    handleOpenMetaAdsDashboard,
+    handleOpenMetaAdsDashboardToTab,
+    handleCloseMetaAdsDashboard,
+    handleOpenExpandedDashboard,
+    handleCloseExpandedDashboard,
+    handleConfigure,
+    handleCloseConfigure,
+    resolvePendingChannel,
+  }), [
+    handleMetricClick,
+    handleSidebarClose,
+    handleChannelClick,
+    handleChannelSidebarClose,
+    handleOpenMetaAdsDashboard,
+    handleOpenMetaAdsDashboardToTab,
+    handleCloseMetaAdsDashboard,
+    handleOpenExpandedDashboard,
+    handleCloseExpandedDashboard,
+    handleConfigure,
+    handleCloseConfigure,
+    resolvePendingChannel,
+  ]);
+
+  // Full value — includes both state and actions for backward compatibility
   const value = useMemo<GrowthStudioContextValue>(() => ({
     activeStage,
     selectedPeriod,
@@ -289,6 +359,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     metaAdsDashboardInitialTab,
     expandedDashboardChannel,
     configureChannel,
+    pendingChannelSlug,
+    pendingChannelTab,
     handleMetricClick,
     handleSidebarClose,
     handleChannelClick,
@@ -300,14 +372,14 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
-    pendingChannelSlug,
-    pendingChannelTab,
     resolvePendingChannel,
   ]);
 
   return (
-    <GrowthStudioContext.Provider value={value}>
-      {children}
-    </GrowthStudioContext.Provider>
+    <GrowthStudioActionsContext.Provider value={actions}>
+      <GrowthStudioContext.Provider value={value}>
+        {children}
+      </GrowthStudioContext.Provider>
+    </GrowthStudioActionsContext.Provider>
   );
 }

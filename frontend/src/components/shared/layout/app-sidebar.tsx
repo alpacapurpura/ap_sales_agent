@@ -29,7 +29,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { memo, useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useSidebar } from "./sidebar-context";
@@ -284,7 +284,7 @@ interface NavContentProps {
   mounted: boolean;
 }
 
-function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname, mounted }: NavContentProps) {
+const NavContent = memo(function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpen, pathname, mounted }: NavContentProps) {
   const { user } = useUser();
   const { data: profile } = useUserProfile();
   const { resolvedTheme } = useTheme();
@@ -444,7 +444,8 @@ function NavContent({ mobile = false, isCollapsed, toggleSidebar, setIsMobileOpe
       </div>
     </div>
   );
-}
+});
+NavContent.displayName = "NavContent";
 
 // ---------------------------------------------------------------------------
 // AppSidebar

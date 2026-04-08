@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Nicolify - Dashboard",
   description: "AI Sales & Marketing Dashboard",

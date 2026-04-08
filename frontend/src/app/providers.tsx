@@ -11,7 +11,16 @@ import { useUser } from '@clerk/nextjs'
 import * as Sentry from "@sentry/nextjs"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient())
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000,        // 5 min — data considered fresh
+        gcTime: 10 * 60 * 1000,           // 10 min — cache kept after unmount
+        refetchOnWindowFocus: false,       // Prevent cascade refetch on tab switch
+        retry: 1,                          // Single retry on failure
+      },
+    },
+  }))
   const { user } = useUser()
 
   useEffect(() => {

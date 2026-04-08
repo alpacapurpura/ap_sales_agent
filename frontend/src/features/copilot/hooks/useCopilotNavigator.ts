@@ -16,7 +16,6 @@ export function useCopilotNavigator() {
   const params = useParams();
   const tenantId = params?.tenantId as string | undefined;
   const pendingUIActions = useCopilotStore((s) => s.pendingUIActions);
-  const dequeuUIAction = useCopilotStore((s) => s.dequeuUIAction);
 
   const executeAction = useCallback(
     (action: UIAction) => {
@@ -82,14 +81,16 @@ export function useCopilotNavigator() {
     [navigate, tenantId]
   );
 
-  // Process pending actions from the queue
+  // Process pending actions — read queue from store directly to avoid
+  // unstable array reference in deps causing effect churn.
+  const pendingLength = pendingUIActions.length;
   useEffect(() => {
-    if (pendingUIActions.length === 0) return;
-    const action = dequeuUIAction();
+    if (pendingLength === 0) return;
+    const action = useCopilotStore.getState().dequeuUIAction();
     if (action) {
       executeAction(action);
     }
-  }, [pendingUIActions, dequeuUIAction, executeAction]);
+  }, [pendingLength, executeAction]);
 
   return { executeAction };
 }

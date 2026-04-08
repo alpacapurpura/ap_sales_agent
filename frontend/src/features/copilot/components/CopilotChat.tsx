@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Send, Square } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { ContextChips } from "./ContextChips";
 import { ProcedureProgress } from "./ProcedureProgress";
 import { NudgeBanner } from "./NudgeBanner";
 
-export function CopilotChat() {
+export const CopilotChat = memo(function CopilotChat() {
   const messages = useCopilotStore((s) => s.messages);
   const status = useCopilotStore((s) => s.status);
   const activeProcedure = useCopilotStore((s) => s.activeProcedure);
@@ -172,4 +172,5 @@ export function CopilotChat() {
       </div>
     </div>
   );
-}
+});
+CopilotChat.displayName = "CopilotChat";

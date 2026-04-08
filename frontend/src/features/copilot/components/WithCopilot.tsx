@@ -28,6 +28,12 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
   const [isHighlighted, setIsHighlighted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Stable ref for getValue — avoids effect churn from inline arrow props
+  const getValueRef = useRef(getValue);
+  useEffect(() => {
+    getValueRef.current = getValue;
+  });
+
   const showButton = isHovered || isFocused || isSelected;
 
   const handleToggle = useCallback(() => {
@@ -37,24 +43,23 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
       addSelectedField({
         fieldId,
         fieldLabel,
-        fieldValue: getValue(),
+        fieldValue: getValueRef.current(),
       });
       openPanel();
     }
-  }, [isSelected, fieldId, fieldLabel, getValue, addSelectedField, removeSelectedField, openPanel]);
+  }, [isSelected, fieldId, fieldLabel, addSelectedField, removeSelectedField, openPanel]);
 
   // Listen for copilot:collect-values — refresh field value in store before send
   useEffect(() => {
     const collectHandler = () => {
-      // Access state directly from store to avoid dependency on selectedFields array
       const currentSelected = useCopilotStore.getState().selectedFields;
       if (currentSelected.some((f) => f.fieldId === fieldId)) {
-        useCopilotStore.getState().updateFieldValue(fieldId, getValue());
+        useCopilotStore.getState().updateFieldValue(fieldId, getValueRef.current());
       }
     };
     window.addEventListener("copilot:collect-values", collectHandler);
     return () => window.removeEventListener("copilot:collect-values", collectHandler);
-  }, [fieldId, getValue]);
+  }, [fieldId]);
 
   // Listen for copilot:field-update events targeting this field
   useEffect(() => {
@@ -100,11 +105,9 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
         onClick={handleToggle}
         className={[
           "absolute -top-3.5 right-3 z-10 flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-medium shadow-sm transition-all duration-200",
-          // Visibility: fade-in + slide-up
           showButton
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-1 opacity-0",
-          // Color states
           isSelected
             ? "border-purple-300 bg-purple-500 text-white hover:bg-purple-600"
             : "border-purple-200 bg-white text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:bg-slate-800 dark:text-purple-300 dark:hover:bg-slate-700",

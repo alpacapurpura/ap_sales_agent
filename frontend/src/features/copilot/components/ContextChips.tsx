@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCopilotStore } from "../store/copilot-store";
@@ -8,7 +9,7 @@ import { useCopilotStore } from "../store/copilot-store";
  * Shows selected field context chips above the chat input.
  * Each chip represents a field the user has added as context for the copilot.
  */
-export function ContextChips() {
+export const ContextChips = memo(function ContextChips() {
   const selectedFields = useCopilotStore((s) => s.selectedFields);
   const removeSelectedField = useCopilotStore((s) => s.removeSelectedField);
   const clearSelectedFields = useCopilotStore((s) => s.clearSelectedFields);
@@ -47,4 +48,5 @@ export function ContextChips() {
       )}
     </div>
   );
-}
+});
+ContextChips.displayName = "ContextChips";

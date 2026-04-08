@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { PanelRightClose, RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCopilotStore } from "../store/copilot-store";
@@ -8,7 +9,7 @@ import { useCopilotNavigator } from "../hooks/useCopilotNavigator";
 import { CopilotChat } from "./CopilotChat";
 import { CopilotRail } from "./CopilotRail";
 
-export function CopilotPanel() {
+export const CopilotPanel = memo(function CopilotPanel() {
   useRouteTracker();
   useCopilotNavigator(); // Processes pending UI action queue
   const { isOpen, closePanel, clearMessages } = useCopilotStore();
@@ -56,4 +57,5 @@ export function CopilotPanel() {
       )}
     </div>
   );
-}
+});
+CopilotPanel.displayName = "CopilotPanel";

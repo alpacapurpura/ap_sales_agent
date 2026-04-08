@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { memo, useMemo } from 'react';
+import type React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
@@ -60,7 +61,7 @@ interface LazyChannelGroupProps {
  * Renders immediately with overview data (channel names + 1 headline KPI).
  * When scrolled into view, fetches full detail for just this group's channels.
  */
-export function LazyChannelGroup({
+export const LazyChannelGroup = memo(function LazyChannelGroup({
   stage,
   groupKey,
   title,
@@ -141,4 +142,5 @@ export function LazyChannelGroup({
       </Accordion>
     </div>
   );
-}
+});
+LazyChannelGroup.displayName = 'LazyChannelGroup';

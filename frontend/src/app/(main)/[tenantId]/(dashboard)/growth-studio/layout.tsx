@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { GrowthStudioProvider, useGrowthStudioContext } from '@/features/growth-studio/components/metrics-dashboard/context/GrowthStudioContext';
 import { StageSummaryRow } from '@/features/growth-studio/components/metrics-dashboard/stage-widgets/StageSummaryRow';
 import { useStageSummaries } from '@/features/growth-studio/components/metrics-dashboard/hooks/useStageSummaries';
@@ -10,7 +11,7 @@ import { ChannelConnectionModal } from '@/features/growth-studio/components/metr
 import { GrowthSyncProvider } from '@/features/growth-studio/context/growth-sync-context';
 import { SyncProgressDialog } from '@/features/growth-studio/components/sync-progress-dialog';
 
-function GrowthStudioShell({ children }: { children: React.ReactNode }) {
+const GrowthStudioShell = memo(function GrowthStudioShell({ children }: { children: React.ReactNode }) {
   const {
     activeStage,
     sidebarMetric,
@@ -71,7 +72,7 @@ function GrowthStudioShell({ children }: { children: React.ReactNode }) {
       />
     </>
   );
-}
+});
 
 export default function GrowthStudioLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-
-export const dynamic = 'force-dynamic';
 import Providers from "../providers";
 import { Suspense } from "react";
 import { TenantGuard } from "@/components/auth/tenant-guard";
