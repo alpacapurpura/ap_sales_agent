@@ -59,9 +59,10 @@ class AssetRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def get_by_id(self, asset_id: UUID) -> Asset | None:
+    def get_by_id(self, asset_id: UUID, tenant_id: UUID) -> Asset | None:
         stmt = select(AssetModel).where(
             AssetModel.id == asset_id,
+            AssetModel.tenant_id == tenant_id,
             AssetModel.deleted_at.is_(None),
         )
         model = self.db.execute(stmt).scalars().first()

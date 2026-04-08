@@ -23,9 +23,10 @@ class AvatarRepository:
         models = result.scalars().all()
         return [Avatar.model_validate(m) for m in models]
 
-    def get_by_id(self, avatar_id: UUID) -> Avatar | None:
+    def get_by_id(self, avatar_id: UUID, tenant_id: UUID) -> Avatar | None:
         stmt = select(AvatarModel).where(
             AvatarModel.id == avatar_id,
+            AvatarModel.tenant_id == tenant_id,
             AvatarModel.deleted_at.is_(None),
         )
         result = self.db.execute(stmt)

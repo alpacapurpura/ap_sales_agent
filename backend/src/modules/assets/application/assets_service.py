@@ -86,12 +86,15 @@ class AssetsService:
             background_tasks.add_task(
                 self._process_asset_task,
                 created_asset.id,
+                tenant_id,  # Added tenant_id
                 storage_path,
             )
 
         return created_asset
 
-    async def _process_asset_task(self, asset_id: UUID, storage_path: str):
+    async def _process_asset_task(
+        self, asset_id: UUID, tenant_id: UUID, storage_path: str
+    ):
         """Background task: fetch file bytes from storage, then run AI processing."""
         try:
             from src.core.database import SessionLocal
@@ -99,7 +102,7 @@ class AssetsService:
             db = SessionLocal()
             repo = AssetRepository(db)
 
-            asset = repo.get_by_id(asset_id)
+            asset = repo.get_by_id(asset_id, tenant_id=tenant_id)
             if not asset:
                 return
 
@@ -157,7 +160,7 @@ class AssetsService:
     def delete_asset(
         self, tenant_id: UUID, asset_id: UUID, offer_id: UUID | None = None
     ) -> bool:
-        asset = self.repository.get_by_id(asset_id)
+        asset = self.repository.get_by_id(asset_id, tenant_id=tenant_id)
         if not asset or str(asset.tenant_id) != str(tenant_id):
             return False
 

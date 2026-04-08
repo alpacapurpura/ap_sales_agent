@@ -25,7 +25,7 @@ from src.modules.analytics.infrastructure.etl.aggregations import (
 from src.modules.analytics.infrastructure.etl.transformers import (
     transform_staging_to_official,
 )
-from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+from src.modules.analytics.infrastructure.models.metric_aggregation_model import (  # noqa: F401
     MetricAggregationModel,
 )
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
@@ -34,6 +34,9 @@ from src.modules.analytics.infrastructure.models.staging_metrics_model import (
 from src.modules.analytics.infrastructure.providers.base import BaseMetricsProvider
 from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
+)
+from src.modules.analytics.infrastructure.repositories.metric_aggregation_repository import (
+    MetricAggregationRepository,
 )
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
@@ -168,24 +171,12 @@ class ETLPipeline:
                 period_config=self.period_config,
             )
             if agg_dicts:
-                agg_models = [
-                    MetricAggregationModel(
-                        id=uuid.uuid4(),
-                        tenant_id=agg["tenant_id"],
-                        channel_slug=agg["channel_slug"],
-                        metric_name=agg["metric_name"],
-                        period_type=agg["period_type"],
-                        period_start=agg["period_start"],
-                        period_end=agg["period_end"],
-                        value=agg["value"],
-                        unit=agg["unit"],
-                        currency=agg.get("currency"),
-                        cost_type=agg.get("cost_type"),
-                        extraction_run_id=agg.get("extraction_run_id"),
-                    )
-                    for agg in agg_dicts
-                ]
-                self.db.add_all(agg_models)
+                # Group agg_dicts by channel_slug for scoped replace
+                channels_in_batch: set[str] = {a["channel_slug"] for a in agg_dicts}
+                agg_repo = MetricAggregationRepository(self.db)
+                for ch in channels_in_batch:
+                    ch_aggs = [a for a in agg_dicts if a["channel_slug"] == ch]
+                    agg_repo.replace_aggregations(tenant_id, ch, ch_aggs)
 
             # Step 8: Determine final status based on partial failures
             duration = time.monotonic() - start_time

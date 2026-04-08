@@ -57,7 +57,7 @@ async def get_avatar(
     user: User = Depends(get_current_user),
 ):
     repo = AvatarRepository(db)
-    avatar = repo.get_by_id(uuid.UUID(avatar_id))
+    avatar = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
 
     if not avatar or str(avatar.tenant_id) != str(user.tenant_id):
         raise HTTPException(status_code=404, detail="Avatar not found")
@@ -73,7 +73,7 @@ async def update_avatar(
 ):
     repo = AvatarRepository(db)
     # Verify ownership first
-    existing = repo.get_by_id(uuid.UUID(avatar_id))
+    existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
     if not existing or str(existing.tenant_id) != str(user.tenant_id):
         raise HTTPException(status_code=404, detail="Avatar not found")
 
@@ -95,7 +95,7 @@ async def delete_avatar(
 ):
     repo = AvatarRepository(db)
     # Verify ownership first
-    existing = repo.get_by_id(uuid.UUID(avatar_id))
+    existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
     if not existing or str(existing.tenant_id) != str(user.tenant_id):
         raise HTTPException(status_code=404, detail="Avatar not found")
 
@@ -112,7 +112,7 @@ async def set_default_avatar(
 ):
     repo = AvatarRepository(db)
     # Verify ownership first
-    existing = repo.get_by_id(uuid.UUID(avatar_id))
+    existing = repo.get_by_id(uuid.UUID(avatar_id), tenant_id=user.tenant_id)
     if not existing or str(existing.tenant_id) != str(user.tenant_id):
         raise HTTPException(status_code=404, detail="Avatar not found")
 

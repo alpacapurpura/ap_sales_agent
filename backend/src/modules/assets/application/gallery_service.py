@@ -77,7 +77,7 @@ class GalleryService:
     def delete_image(
         self, tenant_id: UUID, image_id: UUID, offer_id: UUID | None = None
     ) -> bool:
-        image = self.repository.get_by_id(image_id)
+        image = self.repository.get_by_id(image_id, tenant_id=tenant_id)
         if not image or str(image.tenant_id) != str(tenant_id):
             return False
 

@@ -35,7 +35,7 @@ class GalleryRepository:
             tenant_id=entity.tenant_id,
             offer_id=entity.offer_id,
             filename=entity.filename,
-            file_path=entity.file_path,
+            file_path=entity.storage_path,  # Fixed: entity is Asset (aliased as GalleryImage), uses storage_path
             public_url=entity.public_url,
             user_description=entity.user_description,
             ai_description=entity.ai_description,
@@ -51,9 +51,10 @@ class GalleryRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def get_by_id(self, image_id: UUID) -> GalleryImage | None:
+    def get_by_id(self, image_id: UUID, tenant_id: UUID) -> GalleryImage | None:
         stmt = select(GalleryImageModel).where(
             GalleryImageModel.id == image_id,
+            GalleryImageModel.tenant_id == tenant_id,
             GalleryImageModel.deleted_at.is_(None),
         )
         model = self.db.execute(stmt).scalars().first()

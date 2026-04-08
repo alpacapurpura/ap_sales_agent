@@ -16,7 +16,11 @@ import { ProcedureProgress } from "./ProcedureProgress";
 import { NudgeBanner } from "./NudgeBanner";
 
 export function CopilotChat() {
-  const { messages, status, activeProcedure, isOpen, clearActiveProcedure } = useCopilotStore();
+  const messages = useCopilotStore((s) => s.messages);
+  const status = useCopilotStore((s) => s.status);
+  const activeProcedure = useCopilotStore((s) => s.activeProcedure);
+  const isOpen = useCopilotStore((s) => s.isOpen);
+  const clearActiveProcedure = useCopilotStore((s) => s.clearActiveProcedure);
   const { sendMessage, stopStreaming } = useCopilotChat();
   const { nudges, dismissNudge } = useProactiveNudges();
   const { getToken } = useAuth();

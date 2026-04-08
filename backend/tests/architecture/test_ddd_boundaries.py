@@ -20,6 +20,7 @@ from tests.architecture.conftest import (
 KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # --- analytics ---
     "analytics -> connections | analytics/api/metrics.py",
+    "analytics -> connections | analytics/application/services/campaign_service.py",
     "analytics -> connections | analytics/application/services/etl_service.py",
     "analytics -> connections | analytics/application/services/metrics_service.py",
     "analytics -> connections | analytics/infrastructure/providers/google_ads_provider.py",

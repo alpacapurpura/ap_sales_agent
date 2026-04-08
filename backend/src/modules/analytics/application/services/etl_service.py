@@ -27,9 +27,6 @@ from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 from src.modules.analytics.infrastructure.etl.transformers import (
     transform_staging_to_official,
 )
-from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
-    MetricAggregationModel,
-)
 from src.modules.analytics.infrastructure.models.staging_metrics_model import (
     StagingMetricModel,
 )
@@ -39,6 +36,9 @@ from src.modules.analytics.infrastructure.providers.registry import (
 )
 from src.modules.analytics.infrastructure.repositories.extraction_run_repository import (
     ExtractionRunRepository,
+)
+from src.modules.analytics.infrastructure.repositories.metric_aggregation_repository import (
+    MetricAggregationRepository,
 )
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
@@ -535,24 +535,11 @@ class ETLService:
             period_config=period_config,
         )
         if agg_dicts:
-            agg_models = [
-                MetricAggregationModel(
-                    id=uuid.uuid4(),
-                    tenant_id=agg["tenant_id"],
-                    channel_slug=agg["channel_slug"],
-                    metric_name=agg["metric_name"],
-                    period_type=agg["period_type"],
-                    period_start=agg["period_start"],
-                    period_end=agg["period_end"],
-                    value=agg["value"],
-                    unit=agg["unit"],
-                    currency=agg.get("currency"),
-                    cost_type=agg.get("cost_type"),
-                    extraction_run_id=agg.get("extraction_run_id"),
-                )
-                for agg in agg_dicts
-            ]
-            self.db.add_all(agg_models)
+            channels_in_batch: set[str] = {a["channel_slug"] for a in agg_dicts}
+            agg_repo = MetricAggregationRepository(self.db)
+            for ch in channels_in_batch:
+                ch_aggs = [a for a in agg_dicts if a["channel_slug"] == ch]
+                agg_repo.replace_aggregations(tenant_id, ch, ch_aggs)
 
         # Create CRM records (journey_events + SaleModel) for Shopify backfill
         if provider_name == "shopify":
@@ -571,6 +558,12 @@ class ETLService:
         await self.cache.invalidate_tenant(str(tenant_id))
 
         loaded = len({m.date for m in extracted})
+
+        # Step: Period extraction for NON_AGGREGABLE metrics (reach, frequency, etc.)
+        await self._try_period_extraction(
+            tenant_id, provider_name, start_date, end_date, run_repo
+        )
+
         if progress_callback:
             progress_callback(total, total, "completed")
 
@@ -857,6 +850,54 @@ class ETLService:
             "checkouts_processed": checkouts_processed,
             "sales_created": sales_created,
         }
+
+    async def _try_period_extraction(
+        self,
+        tenant_id: UUID,
+        provider_name: str,
+        start_date: date,
+        end_date: date,
+        run_repo: ExtractionRunRepository,
+    ) -> None:
+        """Trigger period extraction for NON_AGGREGABLE metrics (non-fatal).
+
+        Called after the main initial_load completes. Fetches period-level
+        values (e.g. reach, frequency) that cannot be summed across days.
+        """
+        from src.modules.analytics.infrastructure.etl.period_pipeline import (
+            PeriodExtractionPipeline,
+        )
+        from src.modules.analytics.infrastructure.repositories.period_metrics_repository import (
+            PeriodMetricsRepository,
+        )
+
+        try:
+            provider = get_provider(provider_name)
+            if not provider.has_period_extraction():
+                return
+
+            period_repo = PeriodMetricsRepository(self.db)
+            period_pipeline = PeriodExtractionPipeline(
+                db=self.db,
+                provider=provider,
+                connection_port=self.connection_port,
+                period_repo=period_repo,
+                run_repo=run_repo,
+                cache=self.cache,
+            )
+            await period_pipeline.run(
+                tenant_id=tenant_id,
+                period_type="last_30_days",
+                period_start=start_date,
+                period_end=end_date,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Period extraction failed (non-fatal): tenant=%s provider=%s error=%s",
+                tenant_id,
+                provider_name,
+                exc,
+            )
 
     @staticmethod
     def _parse_shopify_datetime(iso_str: str):

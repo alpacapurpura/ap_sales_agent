@@ -36,5 +36,7 @@ class MessageService:
         )
         return self.repository.create(new_message)
 
-    def get_history(self, lead_id: UUID, limit: int = 50) -> list[Message]:
-        return self.repository.get_history(lead_id, limit)
+    def get_history(
+        self, lead_id: UUID, tenant_id: UUID, limit: int = 50
+    ) -> list[Message]:
+        return self.repository.get_history(lead_id, tenant_id=tenant_id, limit=limit)

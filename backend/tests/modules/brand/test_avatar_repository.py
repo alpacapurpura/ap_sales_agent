@@ -15,9 +15,17 @@ class TestAvatarRepository:
         created = repo.create(sample_avatar)
         assert created.name == "Ideal Customer"
 
-        retrieved = repo.get_by_id(created.id)
+        retrieved = repo.get_by_id(created.id, tenant_id=sample_avatar.tenant_id)
         assert retrieved is not None
         assert retrieved.name == "Ideal Customer"
+
+    def test_get_by_id_filters_by_tenant(self, db, sample_avatar, other_tenant_id):
+        repo = AvatarRepository(db)
+        created = repo.create(sample_avatar)
+
+        # Should return None when searching with the wrong tenant_id
+        retrieved = repo.get_by_id(created.id, tenant_id=other_tenant_id)
+        assert retrieved is None
 
     def test_get_by_tenant(self, db, sample_avatar):
         repo = AvatarRepository(db)

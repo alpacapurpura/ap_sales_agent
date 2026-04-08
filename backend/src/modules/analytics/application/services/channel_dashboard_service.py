@@ -310,6 +310,13 @@ class ChannelDashboardService:
         # Use channel-specific timeseries metrics when available
         timeseries_metrics = config.timeseries_metrics or []
 
+        # Resolve aliases to canonical names + collect component metrics
+        # needed for DERIVED/WEIGHTED_AVERAGE recalculation (CPC, CPM, CTR, etc.)
+        resolver = MetricResolver()
+        daily_fetch_metrics = self._resolve_daily_fetch_metrics(
+            resolver, timeseries_metrics
+        )
+
         # Fetch data in parallel via thread pool (sync repo)
         current_metrics, previous_metrics, daily_data = await asyncio.gather(
             asyncio.to_thread(
@@ -330,7 +337,7 @@ class ChannelDashboardService:
                 self.repo.get_channel_daily_metrics,
                 tenant_id,
                 channel_slug,
-                timeseries_metrics,
+                daily_fetch_metrics,
                 start,
                 today,
             ),
@@ -349,7 +356,6 @@ class ChannelDashboardService:
         _compute_derived_metrics(previous_metrics)
 
         # Resolve aliases and recalculate derived metrics (ROAS, CTR, CPC, etc.)
-        resolver = MetricResolver()
         all_metric_names = list(config.hero_metrics) + [
             m for m in config.timeseries_metrics if m not in config.hero_metrics
         ]
@@ -370,8 +376,11 @@ class ChannelDashboardService:
         # Build KPIs
         kpis = self._build_kpis(current_metrics, previous_metrics, industry, config)
 
-        # Build time series
-        time_series = self._build_time_series(daily_data)
+        # Build time series — resolve derived metrics (CPC, CPM, CTR, ROAS)
+        # from raw component data (spend, clicks, impressions, etc.)
+        raw_rows = [(d, name, val, None, None, None) for d, name, val in daily_data]
+        resolved_ts = resolver.resolve_daily_timeseries(raw_rows, timeseries_metrics)
+        time_series = self._build_time_series_from_resolved(resolved_ts)
 
         # Build funnel
         funnel = self._build_funnel(current_metrics, config)
@@ -460,11 +469,74 @@ class ChannelDashboardService:
 
         return kpis
 
+    @staticmethod
+    def _resolve_daily_fetch_metrics(
+        resolver: MetricResolver,
+        timeseries_metrics: list[str],
+    ) -> list[str]:
+        """Expand timeseries metric names to include component metrics.
+
+        DERIVED/WEIGHTED_AVERAGE metrics (CPC, CPM, CTR, ROAS) don't exist
+        as individual rows in the DB — they are recalculated from component
+        metrics (spend, clicks, impressions, etc.). This method collects
+        all canonical metric names + their components for the DB query.
+        """
+        from src.modules.analytics.domain.metric_resolver import (
+            _get_formula_components,
+        )
+
+        fetch_set: set[str] = set()
+        for m in timeseries_metrics:
+            canonical = resolver.resolve_alias(m)
+            fetch_set.add(canonical)
+            defn = get_metric_def(canonical)
+            if defn is not None:
+                components = _get_formula_components(defn)
+                if components:
+                    fetch_set.add(components[0])  # numerator
+                    fetch_set.add(components[1])  # denominator
+        return list(fetch_set)
+
+    def _build_time_series_from_resolved(
+        self,
+        resolved: dict[str, list[tuple[date, float]]],
+    ) -> list[MetricTimeSeriesDTO]:
+        """Build time series DTOs from MetricResolver output.
+
+        Args:
+            resolved: {metric_name: [(date, value), ...]} from resolve_daily_timeseries
+        """
+        resolver = self._resolver
+        series: list[MetricTimeSeriesDTO] = []
+        for metric_name, points in resolved.items():
+            if not points:
+                continue
+            canonical = resolver.resolve_alias(metric_name)
+            defn = get_metric_def(canonical)
+            display_name = defn.display_name if defn else metric_name
+            unit = defn.unit.value if defn else "count"
+
+            data_points = [
+                TimeSeriesDataPointDTO(date=d.isoformat(), value=round(v, 2))
+                for d, v in points  # already sorted by resolver
+            ]
+
+            series.append(
+                MetricTimeSeriesDTO(
+                    metric_name=metric_name,
+                    display_name=display_name,
+                    unit=unit,
+                    data_points=data_points,
+                )
+            )
+
+        return series
+
     def _build_time_series(
         self,
         daily_data: list[tuple[date, str, float]],
     ) -> list[MetricTimeSeriesDTO]:
-        """Group daily data into per-metric time series."""
+        """Group daily data into per-metric time series (legacy, kept for compat)."""
         grouped: dict[str, list[tuple[date, float]]] = defaultdict(list)
         for metric_date, metric_name, value in daily_data:
             grouped[metric_name].append((metric_date, value))

@@ -9,8 +9,9 @@ import { useCopilotStore } from "../store/copilot-store";
  * Each chip represents a field the user has added as context for the copilot.
  */
 export function ContextChips() {
-  const { selectedFields, removeSelectedField, clearSelectedFields } =
-    useCopilotStore();
+  const selectedFields = useCopilotStore((s) => s.selectedFields);
+  const removeSelectedField = useCopilotStore((s) => s.removeSelectedField);
+  const clearSelectedFields = useCopilotStore((s) => s.clearSelectedFields);
 
   if (selectedFields.length === 0) return null;
 

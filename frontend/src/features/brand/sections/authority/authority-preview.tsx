@@ -10,35 +10,35 @@ interface TrustSectionProps {
   onEditAuthority: (item?: any) => void;
 }
 
-export function TrustSection({ identity, authority, visuals, onEditIdentity, onEditAuthority }: TrustSectionProps) {
-  // Helpers
-  const AuthorityBadge = ({ item }: { item: AuthorityItem }) => (
-    <div 
-        onClick={(e) => { e.stopPropagation(); onEditAuthority(item); }}
-        className="flex items-center gap-3 p-3 rounded-lg border border-transparent hover:border-border hover:bg-muted/30 transition-all cursor-pointer group/badge"
-    >
-        <div className="h-12 w-12 rounded bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground overflow-hidden shrink-0">
-            {item.logo_url ? (
-                <Image
-                    src={item.logo_url}
-                    alt={item.entity_name}
-                    width={48}
-                    height={48}
-                    className="h-full w-full object-cover"
-                    unoptimized
-                />
-            ) : (
-                item.entity_name.substring(0,2)
-            )}
-        </div>
-        <div className="flex-1 min-w-0">
-            <h5 className="text-sm font-medium text-foreground truncate group-hover/badge:text-primary transition-colors">{item.entity_name}</h5>
-            <p className="text-xs text-muted-foreground truncate">{item.context || item.type}</p>
-        </div>
-        {item.proof_url && <ExternalLink className="w-3 h-3 text-muted-foreground ml-2 opacity-0 group-hover/badge:opacity-50 transition-opacity" />}
-    </div>
-  );
+// Helpers
+const AuthorityBadge = ({ item, onEditAuthority }: { item: AuthorityItem, onEditAuthority: (item: any) => void }) => (
+  <div 
+      onClick={(e) => { e.stopPropagation(); onEditAuthority(item); }}
+      className="flex items-center gap-3 p-3 rounded-lg border border-transparent hover:border-border hover:bg-muted/30 transition-all cursor-pointer group/badge"
+  >
+      <div className="h-12 w-12 rounded bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground overflow-hidden shrink-0">
+          {item.logo_url ? (
+              <Image
+                  src={item.logo_url}
+                  alt={item.entity_name}
+                  width={48}
+                  height={48}
+                  className="h-full w-full object-cover"
+                  unoptimized
+              />
+          ) : (
+              item.entity_name.substring(0,2)
+          )}
+      </div>
+      <div className="flex-1 min-w-0">
+          <h5 className="text-sm font-medium text-foreground truncate group-hover/badge:text-primary transition-colors">{item.entity_name}</h5>
+          <p className="text-xs text-muted-foreground truncate">{item.context || item.type}</p>
+      </div>
+      {item.proof_url && <ExternalLink className="w-3 h-3 text-muted-foreground ml-2 opacity-0 group-hover/badge:opacity-50 transition-opacity" />}
+  </div>
+);
 
+export function TrustSection({ identity, authority, visuals, onEditIdentity, onEditAuthority }: TrustSectionProps) {
   return (
     <section className="pt-8 border-t border-border">
         {/* Authority Vault (Centered & Expanded) */}
@@ -67,7 +67,7 @@ export function TrustSection({ identity, authority, visuals, onEditIdentity, onE
                 {authority && authority.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {authority.map(item => (
-                            <AuthorityBadge key={item.id} item={item} />
+                            <AuthorityBadge key={item.id} item={item} onEditAuthority={onEditAuthority} />
                         ))}
                     </div>
                 ) : (

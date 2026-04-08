@@ -74,6 +74,13 @@ interface EditSheetManagerProps {
   };
 }
 
+const PlaceholderForm = ({ name }: { name: string }) => (
+    <div className="p-8 text-center border-2 border-dashed rounded-xl bg-muted/20">
+        <p className="text-muted-foreground">El formulario de <strong>{name}</strong> esta en construccion.</p>
+        <p className="text-xs text-muted-foreground mt-2">Pronto podras editar esta seccion.</p>
+    </div>
+);
+
 export function EditSheetManager({
   mode,
   selectedItem,
@@ -87,13 +94,6 @@ export function EditSheetManager({
   const queryClient = useQueryClient();
 
   const { title, desc } = EDIT_MODE_META[mode] ?? EDIT_MODE_META.none;
-
-  const PlaceholderForm = ({ name }: { name: string }) => (
-      <div className="p-8 text-center border-2 border-dashed rounded-xl bg-muted/20">
-          <p className="text-muted-foreground">El formulario de <strong>{name}</strong> esta en construccion.</p>
-          <p className="text-xs text-muted-foreground mt-2">Pronto podras editar esta seccion.</p>
-      </div>
-  );
 
   // Avatar Handler
   const handleAvatarSubmit = async (data: CreateAvatarDTO) => {

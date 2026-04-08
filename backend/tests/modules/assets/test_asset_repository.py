@@ -60,6 +60,18 @@ class TestAssetRepositoryGetById:
         assert result is not None
         assert result.id == sample_asset.id
 
+    def test_get_by_id_filters_by_tenant(
+        self, db, sample_asset, seed_other_tenant, other_tenant_id
+    ):
+        """Must return None if the asset belongs to a different tenant."""
+        repo = AssetRepository(db)
+        # Should NOT find it when searching with wrong tenant_id
+        # Note: currently it ignores tenant_id because the parameter doesn't exist yet,
+        # so this test will fail to compile/run once we add the parameter,
+        # but for now we'll write it as it SHOULD be.
+        result = repo.get_by_id(sample_asset.id, tenant_id=other_tenant_id)
+        assert result is None
+
     def test_get_by_id_nonexistent_returns_none(self, db, seed_tenant):
         repo = AssetRepository(db)
         result = repo.get_by_id(uuid.uuid4())

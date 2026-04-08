@@ -505,7 +505,50 @@ class CampaignService:
         )
 
     async def trigger_sync(self, tenant_id: UUID) -> dict:
-        """Enqueue a campaign sync job via ARQ."""
+        """Run campaign sync inline (synchronous) with ARQ fallback.
+
+        Prefers inline execution so results are available immediately.
+        Falls back to ARQ enqueue if inline fails.
+        """
+        try:
+            return await self._sync_campaigns_inline(tenant_id)
+        except Exception as exc:
+            logger.warning("Inline campaign sync failed, falling back to ARQ: %s", exc)
+            return await self._enqueue_campaign_sync_arq(tenant_id)
+
+    async def _sync_campaigns_inline(self, tenant_id: UUID) -> dict:
+        """Execute campaign sync synchronously (inline, no worker needed)."""
+        from src.modules.analytics.infrastructure.providers.meta_campaign_provider import (
+            MetaCampaignProvider,
+        )
+        from src.modules.analytics.infrastructure.repositories.campaign_repository import (
+            CampaignRepository,
+        )
+        from src.modules.analytics.infrastructure.sync.campaign_sync_pipeline import (
+            CampaignSyncPipeline,
+        )
+        from src.modules.connections.application.services.connection_port_impl import (
+            ConnectionPortImpl,
+        )
+
+        connection_port = ConnectionPortImpl(self._db)
+        creds = await connection_port.get_credentials(tenant_id, "meta")
+        credentials = {**creds.credentials, **creds.config}
+
+        campaign_repo = CampaignRepository(self._db)
+        campaign_provider = MetaCampaignProvider()
+        pipeline = CampaignSyncPipeline(
+            provider=campaign_provider,
+            repository=campaign_repo,
+        )
+
+        result = await pipeline.run_sync(tenant_id, credentials)
+        self._db.commit()
+
+        return {"status": "success", **result}
+
+    async def _enqueue_campaign_sync_arq(self, tenant_id: UUID) -> dict:
+        """Fallback: enqueue a campaign sync job via ARQ."""
         from arq.connections import ArqRedis, RedisSettings, create_pool
 
         from src.core.config import settings as app_settings

@@ -116,6 +116,89 @@ export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps)
   };
 
 
+// Helper for color inputs
+const ColorInput = ({ label, name, desc, control }: { label: string, name: any, desc?: string, control: any }) => (
+  <FormField
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>{label}</FormLabel>
+        <div className="flex gap-2 items-center">
+          <div
+              className="w-10 h-10 rounded border overflow-hidden shrink-0 shadow-sm"
+              style={{ backgroundColor: field.value || "#ffffff" }}
+          >
+              <input
+                  type="color"
+                  className="w-[150%] h-[150%] -m-[25%] cursor-pointer opacity-0"
+                  value={field.value || "#ffffff"}
+                  onChange={field.onChange}
+              />
+          </div>
+          <FormControl>
+            <Input placeholder="#000000" {...field} value={field.value || ""} className="font-mono" />
+          </FormControl>
+        </div>
+        {desc && <FormDescription>{desc}</FormDescription>}
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
+
+export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: getDefaults(initialData),
+  });
+
+  useEffect(() => {
+    form.reset(getDefaults(initialData));
+  }, [initialData, form]);
+
+  const guidelines = form.watch("usage_guidelines") || [];
+  const colorPalette = form.watch("color_palette") || [];
+  const neutralColors = form.watch("neutral_colors") || [];
+  const gradients = form.watch("gradient_definitions") || [];
+  const moodAdjectives = form.watch("brand_mood.adjectives") || [];
+
+  // --- List helpers ---
+  const addToList = (field: "usage_guidelines" | "color_palette" | "neutral_colors" | "gradient_definitions", defaultVal = "") => {
+    const current = form.getValues(field) || [];
+    form.setValue(field, [...current, defaultVal]);
+  };
+
+  const removeFromList = (field: "usage_guidelines" | "color_palette" | "neutral_colors" | "gradient_definitions", index: number) => {
+    const current = form.getValues(field) || [];
+    form.setValue(field, current.filter((_, i) => i !== index));
+  };
+
+  const updateInList = (field: "usage_guidelines" | "color_palette" | "neutral_colors" | "gradient_definitions", index: number, value: string) => {
+    const current = form.getValues(field) || [];
+    const updated = [...current];
+    updated[index] = value;
+    form.setValue(field, updated);
+  };
+
+  const addMoodAdjective = () => {
+    const current = form.getValues("brand_mood.adjectives") || [];
+    form.setValue("brand_mood.adjectives", [...current, ""]);
+  };
+
+  const removeMoodAdjective = (index: number) => {
+    const current = form.getValues("brand_mood.adjectives") || [];
+    form.setValue("brand_mood.adjectives", current.filter((_, i) => i !== index));
+  };
+
+  const updateMoodAdjective = (index: number, value: string) => {
+    const current = form.getValues("brand_mood.adjectives") || [];
+    const updated = [...current];
+    updated[index] = value;
+    form.setValue("brand_mood.adjectives", updated);
+  };
+
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     const fullData: BrandVisuals = {
       ...initialData,
@@ -131,37 +214,6 @@ export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps)
     };
     onSave(fullData);
   }
-
-  // Helper for color inputs
-  const ColorInput = ({ label, name, desc }: { label: string, name: any, desc?: string }) => (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <div className="flex gap-2 items-center">
-            <div
-                className="w-10 h-10 rounded border overflow-hidden shrink-0 shadow-sm"
-                style={{ backgroundColor: field.value || "#ffffff" }}
-            >
-                <input
-                    type="color"
-                    className="w-[150%] h-[150%] -m-[25%] cursor-pointer opacity-0"
-                    value={field.value || "#ffffff"}
-                    onChange={field.onChange}
-                />
-            </div>
-            <FormControl>
-              <Input placeholder="#000000" {...field} value={field.value || ""} className="font-mono" />
-            </FormControl>
-          </div>
-          {desc && <FormDescription>{desc}</FormDescription>}
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
 
   // Collapsible section wrapper
   const CollapsibleSection = ({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) => {
@@ -195,23 +247,23 @@ export function VisualsForm({ initialData, onSave, isSaving }: VisualsFormProps)
                 <div className="space-y-6 pl-3 border-l-2 border-muted ml-1.5">
                     {/* Main brand colors */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <ColorInput label="Primario" name="primary_color" desc="Color principal de marca." />
-                        <ColorInput label="Secundario" name="secondary_color" desc="2do color de marca." />
-                        <ColorInput label="Acento" name="accent_color" desc="Highlights y CTAs." />
+                        <ColorInput label="Primario" name="primary_color" desc="Color principal de marca." control={form.control} />
+                        <ColorInput label="Secundario" name="secondary_color" desc="2do color de marca." control={form.control} />
+                        <ColorInput label="Acento" name="accent_color" desc="Highlights y CTAs." control={form.control} />
                     </div>
 
                     {/* Background colors */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <ColorInput label="Fondo" name="background_color" desc="Fondo principal." />
-                        <ColorInput label="Superficie" name="surface_color" desc="Cards y modales." />
+                        <ColorInput label="Fondo" name="background_color" desc="Fondo principal." control={form.control} />
+                        <ColorInput label="Superficie" name="surface_color" desc="Cards y modales." control={form.control} />
                     </div>
 
                     {/* Text colors */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <ColorInput label="Texto Principal" name="text_primary_color" desc="Parrafos." />
-                        <ColorInput label="Texto Secundario" name="text_secondary_color" desc="Subtitulos." />
-                        <ColorInput label="Texto sobre Primario" name="text_on_primary" desc="Texto en botones primarios." />
-                        <ColorInput label="Texto sobre Secundario" name="text_on_secondary" desc="Texto sobre secondary." />
+                        <ColorInput label="Texto Principal" name="text_primary_color" desc="Parrafos." control={form.control} />
+                        <ColorInput label="Texto Secundario" name="text_secondary_color" desc="Subtitulos." control={form.control} />
+                        <ColorInput label="Texto sobre Primario" name="text_on_primary" desc="Texto en botones primarios." control={form.control} />
+                        <ColorInput label="Texto sobre Secundario" name="text_on_secondary" desc="Texto sobre secondary." control={form.control} />
                     </div>
 
                     {/* Extended Palette (collapsible) */}

@@ -422,3 +422,80 @@ class TestResolveFromAggregated:
         original = dict(aggregated)
         resolver.resolve_from_aggregated(aggregated, ["CPC"])
         assert aggregated == original
+
+
+# ── _resolve_daily_fetch_metrics tests ──────────────────────────────────────
+
+
+class TestResolveDailyFetchMetrics:
+    """Test that time series metric expansion includes component metrics."""
+
+    def test_derived_cpc_includes_components(self) -> None:
+        """CPC time series should trigger fetching spend and clicks."""
+        from src.modules.analytics.application.services.channel_dashboard_service import (
+            ChannelDashboardService,
+        )
+
+        resolver = MetricResolver()
+        result = ChannelDashboardService._resolve_daily_fetch_metrics(resolver, ["CPC"])
+        assert "spend" in result
+        assert "clicks" in result
+        assert "cpc" in result  # canonical name
+
+    def test_weighted_avg_cpm_includes_components(self) -> None:
+        """CPM time series should trigger fetching spend and impressions."""
+        from src.modules.analytics.application.services.channel_dashboard_service import (
+            ChannelDashboardService,
+        )
+
+        resolver = MetricResolver()
+        result = ChannelDashboardService._resolve_daily_fetch_metrics(resolver, ["CPM"])
+        assert "spend" in result
+        assert "impressions" in result
+
+    def test_additive_metric_no_extra_components(self) -> None:
+        """Additive metrics (spend) should not add extra component metrics."""
+        from src.modules.analytics.application.services.channel_dashboard_service import (
+            ChannelDashboardService,
+        )
+
+        resolver = MetricResolver()
+        result = ChannelDashboardService._resolve_daily_fetch_metrics(
+            resolver, ["spend"]
+        )
+        assert "spend" in result
+        assert len(result) == 1
+
+    def test_meta_ads_full_timeseries_config(self) -> None:
+        """Full meta-ads timeseries config should include all component metrics."""
+        from src.modules.analytics.application.services.channel_dashboard_service import (
+            ChannelDashboardService,
+        )
+
+        resolver = MetricResolver()
+        timeseries = [
+            "spend",
+            "impressions",
+            "clicks",
+            "reach",
+            "conversions",
+            "ROAS",
+            "CPC",
+            "CPM",
+            "CPL",
+        ]
+        result = ChannelDashboardService._resolve_daily_fetch_metrics(
+            resolver, timeseries
+        )
+        # Must include base metrics
+        for base in ["spend", "impressions", "clicks", "reach", "conversions"]:
+            assert base in result, f"{base} should be in fetch list"
+        # Must include components for ROAS (meta_conversion_value)
+        assert "meta_conversion_value" in result
+        # Must include components for CPL (meta_leads)
+        assert "meta_leads" in result
+
+    def test_conversions_resolves_to_itself(self) -> None:
+        """'conversions' is a canonical metric name — should NOT be aliased."""
+        resolver = MetricResolver()
+        assert resolver.resolve_alias("conversions") == "conversions"

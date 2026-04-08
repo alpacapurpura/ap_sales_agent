@@ -18,15 +18,16 @@ interface WithCopilotProps {
  * - Listens for `copilot:field-update` events to highlight when AI updates the field
  */
 export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCopilotProps) {
-  const { selectedFields, addSelectedField, removeSelectedField, openPanel } =
-    useCopilotStore();
+  const isSelected = useCopilotStore((s) => s.selectedFields.some((f) => f.fieldId === fieldId));
+  const addSelectedField = useCopilotStore((s) => s.addSelectedField);
+  const removeSelectedField = useCopilotStore((s) => s.removeSelectedField);
+  const openPanel = useCopilotStore((s) => s.openPanel);
 
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isHighlighted, setIsHighlighted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const isSelected = selectedFields.some((f) => f.fieldId === fieldId);
   const showButton = isHovered || isFocused || isSelected;
 
   const handleToggle = useCallback(() => {
@@ -45,13 +46,15 @@ export function WithCopilot({ fieldId, fieldLabel, getValue, children }: WithCop
   // Listen for copilot:collect-values — refresh field value in store before send
   useEffect(() => {
     const collectHandler = () => {
-      if (selectedFields.some((f) => f.fieldId === fieldId)) {
+      // Access state directly from store to avoid dependency on selectedFields array
+      const currentSelected = useCopilotStore.getState().selectedFields;
+      if (currentSelected.some((f) => f.fieldId === fieldId)) {
         useCopilotStore.getState().updateFieldValue(fieldId, getValue());
       }
     };
     window.addEventListener("copilot:collect-values", collectHandler);
     return () => window.removeEventListener("copilot:collect-values", collectHandler);
-  }, [fieldId, getValue, selectedFields]);
+  }, [fieldId, getValue]);
 
   // Listen for copilot:field-update events targeting this field
   useEffect(() => {

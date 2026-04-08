@@ -29,12 +29,12 @@ class MessageRepository:
         return MessageModel(
             id=message.id,
             tenant_id=message.tenant_id,
-            lead_id=message.lead_id,
-            sender_type=message.sender_type.value,
+            user_id=message.lead_id,  # Use actual column name
+            role=message.sender_type.value,  # Use actual column name
             content=message.content,
             channel=message.channel,
             external_id=message.external_id,
-            metadata_info=message.metadata_info,
+            metadata_log=message.metadata_info,  # Use actual column name
         )
 
     def create(self, message: Message) -> Message:
@@ -44,11 +44,15 @@ class MessageRepository:
         self.db.refresh(model)
         return self._to_domain(model)
 
-    def get_history(self, lead_id: UUID, limit: int = 50) -> list[Message]:
+    def get_history(
+        self, lead_id: UUID, tenant_id: UUID, limit: int = 50
+    ) -> list[Message]:
         models = (
             self.db.execute(
                 select(MessageModel)
-                .where(MessageModel.lead_id == lead_id)
+                .where(
+                    MessageModel.lead_id == lead_id, MessageModel.tenant_id == tenant_id
+                )
                 .order_by(MessageModel.created_at.asc())
                 .limit(limit)
             )
