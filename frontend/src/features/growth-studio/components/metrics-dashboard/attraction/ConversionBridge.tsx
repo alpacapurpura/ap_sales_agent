@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface ConversionBridgeProps {
@@ -17,7 +18,7 @@ function formatNum(n: number): string {
   return n.toLocaleString('es-ES');
 }
 
-export function ConversionBridge({
+export const ConversionBridge = memo(function ConversionBridge({
   impressions,
   visitors,
   leads,
@@ -96,7 +97,7 @@ export function ConversionBridge({
       </div>
     </div>
   );
-}
+});
 
 function RatePill({ rate, label, delta }: { rate: number; label: string; delta: number | null }) {
   const isPositive = delta != null && delta >= 0;

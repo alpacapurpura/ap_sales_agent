@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { ChannelMetric } from '../../../types/metrics';
 import { getChannelColor } from '../../../lib/channelIcons';
 
@@ -17,7 +17,7 @@ interface ChartEntry {
   fill: string;
 }
 
-export function CaptureBreakdownChart({ channels, isLoading }: CaptureBreakdownChartProps) {
+export const CaptureBreakdownChart = memo(function CaptureBreakdownChart({ channels, isLoading }: CaptureBreakdownChartProps) {
   const { chartData, total } = useMemo(() => {
     if (!channels.length) {
       return { chartData: [] as ChartEntry[], total: 0 };
@@ -101,4 +101,4 @@ export function CaptureBreakdownChart({ channels, isLoading }: CaptureBreakdownC
       </div>
     </div>
   );
-}
+});

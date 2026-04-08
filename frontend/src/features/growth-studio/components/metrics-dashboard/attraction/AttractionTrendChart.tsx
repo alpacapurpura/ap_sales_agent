@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
   ChartContainer,
@@ -21,7 +21,7 @@ interface AttractionTrendChartProps {
 /** Max channels to show individually — rest grouped as "otros". */
 const MAX_CHANNELS = 6;
 
-export function AttractionTrendChart({ timeSeries, isLoading }: AttractionTrendChartProps) {
+export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSeries, isLoading }: AttractionTrendChartProps) {
   const { chartData, channelKeys, chartConfig } = useMemo(() => {
     if (!timeSeries?.dataPoints.length || !timeSeries.channelsPresent.length) {
       return { chartData: [], channelKeys: [] as string[], chartConfig: {} as ChartConfig };
@@ -134,4 +134,4 @@ export function AttractionTrendChart({ timeSeries, isLoading }: AttractionTrendC
       </ChartContainer>
     </div>
   );
-}
+});

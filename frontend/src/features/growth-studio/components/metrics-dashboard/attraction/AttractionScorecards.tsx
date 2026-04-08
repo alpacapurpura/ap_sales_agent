@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, TrendingDown } from 'lucide-react';
@@ -44,7 +44,7 @@ function computeDelta(current: number, previous: number | null): number | null {
   return ((current - previous) / previous) * 100;
 }
 
-export function AttractionScorecards({
+export const AttractionScorecards = memo(function AttractionScorecards({
   timeSeries,
   totalImpressions,
   totalVisitors,
@@ -160,4 +160,4 @@ export function AttractionScorecards({
       ))}
     </div>
   );
-}
+});
