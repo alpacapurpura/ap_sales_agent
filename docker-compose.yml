@@ -6,7 +6,7 @@ services:
       target: dev
     container_name: visionarias_brain_dev
     restart: unless-stopped
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir src
     env_file:
       - .env
     environment:
@@ -44,10 +44,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.00'
-          memory: 1024M
+          cpus: '2.00'
+          memory: 1536M
         reservations:
-          memory: 256M
+          memory: 512M
 
   # --- Admin Interface (Streamlit - Development) ---
   admin_dashboard_dev:
@@ -126,7 +126,7 @@ services:
       - SENTRY_PROJECT=nicolify-frontend
       - INTERNAL_API_URL=${INTERNAL_API_URL}
       - SHOPIFY_API_KEY=${SHOPIFY_API_KEY}
-      - NODE_OPTIONS=--max-old-space-size=1792
+      - NODE_OPTIONS=--max-old-space-size=3584
       - CHOKIDAR_USEPOLLING=true # Essential for Windows/WSL hot reload
       - WATCHPACK_POLLING=true
     extra_hosts:
@@ -153,10 +153,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.50'
-          memory: 2048M
+          cpus: '4.00'
+          memory: 4096M
         reservations:
-          memory: 512M
+          memory: 1024M
 
   frontend_tooling:
     build:

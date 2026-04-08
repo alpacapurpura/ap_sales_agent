@@ -2,7 +2,6 @@ import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
 import { ENABLE_MOCKS } from '@/lib/mock-config';
 import type { AttractionDetail, CaptureDetail, NurtureDetail, OpportunityDetail, SalesDetail, AdoptionDetail, ExpansionDetailData, EvangelizationDetail, ExpansionOfferData, ExpansionGroupData, StageTimeSeries, MetricCatalog } from '../types/metrics';
-import { MOCK_ATTRACTION_DETAIL, MOCK_CAPTURE_DETAIL, MOCK_NURTURE_DETAIL, MOCK_OPPORTUNITY_DETAIL, MOCK_SALES_DETAIL, MOCK_ADOPTION_DETAIL, MOCK_EXPANSION_DETAIL, MOCK_EVANGELIZATION_DETAIL, MOCK_TIME_SERIES } from './metrics-mock-data';
 import { mapChannel, mapGroup } from './mappers/shared';
 
 const API_URL = config.api.baseUrl;
@@ -337,7 +336,7 @@ function buildPeriodUrl(base: string, period?: PeriodType): string {
 
 export const metricsApi = {
   getAttractionDetail: async (token: string, period?: PeriodType): Promise<AttractionDetail> => {
-    if (ENABLE_MOCKS) return MOCK_ATTRACTION_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_ATTRACTION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_ATTRACTION_DETAIL; }
     const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/attraction`, period), {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -347,7 +346,7 @@ export const metricsApi = {
   },
 
   getCaptureDetail: async (token: string, period?: PeriodType): Promise<CaptureDetail> => {
-    if (ENABLE_MOCKS) return MOCK_CAPTURE_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_CAPTURE_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_CAPTURE_DETAIL; }
     const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/capture`, period), {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -357,7 +356,7 @@ export const metricsApi = {
   },
 
   getNurtureDetail: async (token: string, period?: PeriodType): Promise<NurtureDetail> => {
-    if (ENABLE_MOCKS) return MOCK_NURTURE_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_NURTURE_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_NURTURE_DETAIL; }
     const res = await fetchClient(buildPeriodUrl(`${API_URL}/api/v1/analytics/metrics/nurturing`, period), {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -367,7 +366,7 @@ export const metricsApi = {
   },
 
   getOpportunityDetail: async (token: string): Promise<OpportunityDetail> => {
-    if (ENABLE_MOCKS) return MOCK_OPPORTUNITY_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_OPPORTUNITY_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_OPPORTUNITY_DETAIL; }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/opportunity`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -377,7 +376,7 @@ export const metricsApi = {
   },
 
   getSalesDetail: async (token: string): Promise<SalesDetail> => {
-    if (ENABLE_MOCKS) return MOCK_SALES_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_SALES_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_SALES_DETAIL; }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/sales`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -387,7 +386,7 @@ export const metricsApi = {
   },
 
   getAdoptionDetail: async (token: string): Promise<AdoptionDetail> => {
-    if (ENABLE_MOCKS) return MOCK_ADOPTION_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_ADOPTION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_ADOPTION_DETAIL; }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/adoption`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -397,7 +396,7 @@ export const metricsApi = {
   },
 
   getExpansionDetail: async (token: string): Promise<ExpansionDetailData> => {
-    if (ENABLE_MOCKS) return MOCK_EXPANSION_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_EXPANSION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_EXPANSION_DETAIL; }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/expansion`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -407,7 +406,7 @@ export const metricsApi = {
   },
 
   getEvangelizationDetail: async (token: string): Promise<EvangelizationDetail> => {
-    if (ENABLE_MOCKS) return MOCK_EVANGELIZATION_DETAIL;
+    if (ENABLE_MOCKS) { const { MOCK_EVANGELIZATION_DETAIL } = await import('../__mocks__/metrics-mock-data'); return MOCK_EVANGELIZATION_DETAIL; }
     const res = await fetchClient(`${API_URL}/api/v1/analytics/metrics/evangelization`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -431,7 +430,7 @@ export const metricsApi = {
     rangeDays: number,
     granularity: string,
   ): Promise<StageTimeSeries> => {
-    if (ENABLE_MOCKS) return MOCK_TIME_SERIES;
+    if (ENABLE_MOCKS) { const { MOCK_TIME_SERIES } = await import('../__mocks__/metrics-mock-data'); return MOCK_TIME_SERIES; }
     const params = new URLSearchParams({
       stage,
       metric,

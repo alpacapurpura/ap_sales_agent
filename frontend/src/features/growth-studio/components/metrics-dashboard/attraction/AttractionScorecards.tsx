@@ -5,7 +5,7 @@ import { Area, AreaChart } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import type { StageTimeSeries } from '../../../types/metrics';
-import { formatMoney } from '@/lib/format-money';
+import { formatMetricValue } from '../../../utils/format-metric-value';
 import { MetricInfoCard } from '../channel-widgets/KpiTooltip';
 
 interface AttractionScorecardsProps {
@@ -28,16 +28,7 @@ interface ScorecardData {
   metricName?: string;
 }
 
-function formatValue(value: number, format: 'number' | 'percent' | 'money', currency = 'USD'): string {
-  if (format === 'percent') return `${value.toFixed(1)}%`;
-  if (format === 'money') {
-    if (value === 0) return '--';
-    return formatMoney(value, currency);
-  }
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-  return value.toLocaleString('es-ES');
-}
+const FORMAT_MAP: Record<string, string> = { number: 'count', percent: 'percentage', money: 'currency' };
 
 function computeDelta(current: number, previous: number | null): number | null {
   if (previous === null || previous === 0) return null;
@@ -133,7 +124,7 @@ export const AttractionScorecards = memo(function AttractionScorecards({
           )}
           <div className="flex items-end justify-between gap-2">
             <span className="text-2xl font-black text-foreground leading-none">
-              {formatValue(card.value, card.format, currency)}
+              {formatMetricValue(card.value, FORMAT_MAP[card.format] ?? 'count', { currency, percentDecimals: 1 })}
             </span>
             {card.sparkData.length > 2 && (
               <ChartContainer config={sparkConfig} className="h-[28px] w-[56px] !aspect-auto">

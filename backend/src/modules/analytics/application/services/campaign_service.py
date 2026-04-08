@@ -37,15 +37,27 @@ class CampaignService:
         rows = self._db.execute(
             text("""
                 SELECT c.*,
-                    (SELECT COUNT(*) FROM ad_sets s
-                     WHERE s.tenant_id = c.tenant_id
-                       AND s.campaign_external_id = c.external_id
-                       AND s.deleted_at IS NULL) AS ad_sets_count,
-                    (SELECT COUNT(*) FROM ads a
-                     WHERE a.tenant_id = c.tenant_id
-                       AND a.campaign_external_id = c.external_id
-                       AND a.deleted_at IS NULL) AS ads_count
+                    COALESCE(sc.ad_sets_count, 0) AS ad_sets_count,
+                    COALESCE(ac.ads_count, 0) AS ads_count
                 FROM ad_campaigns c
+                LEFT JOIN (
+                    SELECT s.campaign_external_id, s.tenant_id,
+                           COUNT(*) AS ad_sets_count
+                    FROM ad_sets s
+                    WHERE s.tenant_id = :tenant_id
+                      AND s.deleted_at IS NULL
+                    GROUP BY s.campaign_external_id, s.tenant_id
+                ) sc ON sc.campaign_external_id = c.external_id
+                    AND sc.tenant_id = c.tenant_id
+                LEFT JOIN (
+                    SELECT a.campaign_external_id, a.tenant_id,
+                           COUNT(*) AS ads_count
+                    FROM ads a
+                    WHERE a.tenant_id = :tenant_id
+                      AND a.deleted_at IS NULL
+                    GROUP BY a.campaign_external_id, a.tenant_id
+                ) ac ON ac.campaign_external_id = c.external_id
+                    AND ac.tenant_id = c.tenant_id
                 WHERE c.tenant_id = :tenant_id
                   AND c.deleted_at IS NULL
                 ORDER BY c.effective_status = 'ACTIVE' DESC, c.name
@@ -145,15 +157,27 @@ class CampaignService:
         camp_rows = self._db.execute(
             text("""
                 SELECT c.*,
-                    (SELECT COUNT(*) FROM ad_sets s
-                     WHERE s.tenant_id = c.tenant_id
-                       AND s.campaign_external_id = c.external_id
-                       AND s.deleted_at IS NULL) AS ad_sets_count,
-                    (SELECT COUNT(*) FROM ads a
-                     WHERE a.tenant_id = c.tenant_id
-                       AND a.campaign_external_id = c.external_id
-                       AND a.deleted_at IS NULL) AS ads_count
+                    COALESCE(sc.ad_sets_count, 0) AS ad_sets_count,
+                    COALESCE(ac.ads_count, 0) AS ads_count
                 FROM ad_campaigns c
+                LEFT JOIN (
+                    SELECT s.campaign_external_id, s.tenant_id,
+                           COUNT(*) AS ad_sets_count
+                    FROM ad_sets s
+                    WHERE s.tenant_id = :tenant_id
+                      AND s.deleted_at IS NULL
+                    GROUP BY s.campaign_external_id, s.tenant_id
+                ) sc ON sc.campaign_external_id = c.external_id
+                    AND sc.tenant_id = c.tenant_id
+                LEFT JOIN (
+                    SELECT a.campaign_external_id, a.tenant_id,
+                           COUNT(*) AS ads_count
+                    FROM ads a
+                    WHERE a.tenant_id = :tenant_id
+                      AND a.deleted_at IS NULL
+                    GROUP BY a.campaign_external_id, a.tenant_id
+                ) ac ON ac.campaign_external_id = c.external_id
+                    AND ac.tenant_id = c.tenant_id
                 WHERE c.tenant_id = :tenant_id
                   AND c.deleted_at IS NULL
                 ORDER BY
@@ -334,11 +358,17 @@ class CampaignService:
         rows = self._db.execute(
             text("""
                 SELECT s.*,
-                    (SELECT COUNT(*) FROM ads a
-                     WHERE a.tenant_id = s.tenant_id
-                       AND a.ad_set_external_id = s.external_id
-                       AND a.deleted_at IS NULL) AS ads_count
+                    COALESCE(ac.ads_count, 0) AS ads_count
                 FROM ad_sets s
+                LEFT JOIN (
+                    SELECT a.ad_set_external_id, a.tenant_id,
+                           COUNT(*) AS ads_count
+                    FROM ads a
+                    WHERE a.tenant_id = :tenant_id
+                      AND a.deleted_at IS NULL
+                    GROUP BY a.ad_set_external_id, a.tenant_id
+                ) ac ON ac.ad_set_external_id = s.external_id
+                    AND ac.tenant_id = s.tenant_id
                 WHERE s.tenant_id = :tenant_id
                   AND s.campaign_external_id = :campaign_external_id
                   AND s.deleted_at IS NULL

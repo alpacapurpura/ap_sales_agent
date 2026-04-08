@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect, useMemo, u
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { StageId, MetricClickData, ChannelMetric, MetaAdsDashboardTab } from '../../../types/metrics';
 import type { PeriodType } from '../../../api/stage-detail-api';
+import { useMetricClickHandler } from './useMetricClickHandler';
 
 // ── Split contexts: stable actions vs reactive state ──────────────
 // Actions context never changes identity after mount, preventing
@@ -140,12 +141,26 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   // Period selection state (persists across stage navigation)
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('last_30_days');
 
-  // Sidebar state
-  const [sidebarMetric, setSidebarMetric] = useState<MetricClickData | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Metric sidebar state (extracted hook — provides open/close + handlers)
+  const {
+    sidebarMetric,
+    sidebarOpen,
+    setSidebarOpen,
+    setSidebarMetric,
+    handleMetricClick: baseHandleMetricClick,
+    handleSidebarClose,
+  } = useMetricClickHandler();
+
   const [selectedChannel, setSelectedChannel] = useState<ChannelMetric | null>(null);
   const [channelSidebarOpen, setChannelSidebarOpen] = useState(false);
   const [expandedDashboardChannel, setExpandedDashboardChannel] = useState<string | null>(null);
+
+  // Wrap metric click to also close channel sidebar
+  const handleMetricClick = useCallback((metric: MetricClickData) => {
+    setChannelSidebarOpen(false);
+    setSelectedChannel(null);
+    baseHandleMetricClick(metric);
+  }, [baseHandleMetricClick]);
   const metaAdsDashboardOpen = expandedDashboardChannel === 'meta-ads';
   const [metaAdsDashboardInitialTab, setMetaAdsDashboardInitialTab] = useState<MetaAdsDashboardTab | undefined>(undefined);
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
@@ -164,8 +179,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
 
     const match = channels.find(c => c.slug === pendingChannelSlug);
     if (match && match.connected && match.providerName) {
-      setSidebarOpen(false);
-      setSidebarMetric(null);
+      handleSidebarClose();
       // Build a minimal ChannelMetric from the resolvable data
       setSelectedChannel({
         slug: match.slug,
@@ -202,18 +216,6 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
 
     resolvedSlugRef.current = null;
   }, [activeStage]);
-
-  const handleMetricClick = useCallback((metric: MetricClickData) => {
-    setChannelSidebarOpen(false);
-    setSelectedChannel(null);
-    setSidebarMetric(metric);
-    setSidebarOpen(true);
-  }, []);
-
-  const handleSidebarClose = useCallback(() => {
-    setSidebarOpen(false);
-    setSidebarMetric(null);
-  }, []);
 
   const handleChannelClick = useCallback((channel: ChannelMetric) => {
     if (!channel.connected || !channel.providerName) return;
