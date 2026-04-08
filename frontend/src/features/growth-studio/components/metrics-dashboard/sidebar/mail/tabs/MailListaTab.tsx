@@ -15,6 +15,7 @@ import { ChartContainer } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import type { ChannelDashboardData } from '../../../../../types/metrics';
 import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
+import { ChartSection } from '../../shared/ChartSection';
 
 interface MailListaTabProps {
   data: ChannelDashboardData | undefined;
@@ -55,102 +56,110 @@ export function MailListaTab({ data, isLoading }: MailListaTabProps) {
   return (
     <div className="space-y-8">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-lg border bg-card p-4 space-y-1">
-          <p className="text-xs text-muted-foreground">Suscriptores Activos</p>
-          <p className="text-2xl font-semibold tabular-nums">
-            {(activeSubsKpi?.currentValue ?? 0).toLocaleString('en-US')}
-          </p>
-          {activeSubsKpi?.deltaPct != null && (
-            <p className={cn('text-xs font-medium', activeSubsKpi.deltaPct >= 0 ? 'text-emerald-600' : 'text-red-600')}>
-              {activeSubsKpi.deltaPct >= 0 ? '+' : ''}{activeSubsKpi.deltaPct.toFixed(1)}% vs anterior
+      <ChartSection slug="kpis-lista">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg border bg-card p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Suscriptores Activos</p>
+            <p className="text-2xl font-semibold tabular-nums">
+              {(activeSubsKpi?.currentValue ?? 0).toLocaleString('en-US')}
             </p>
-          )}
+            {activeSubsKpi?.deltaPct != null && (
+              <p className={cn('text-xs font-medium', activeSubsKpi.deltaPct >= 0 ? 'text-emerald-600' : 'text-red-600')}>
+                {activeSubsKpi.deltaPct >= 0 ? '+' : ''}{activeSubsKpi.deltaPct.toFixed(1)}% vs anterior
+              </p>
+            )}
+          </div>
+          <div className="rounded-lg border bg-card p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Nuevos (periodo)</p>
+            <p className="text-2xl font-semibold tabular-nums text-emerald-600">
+              +{newSubsTotal.toLocaleString('en-US')}
+            </p>
+          </div>
         </div>
-        <div className="rounded-lg border bg-card p-4 space-y-1">
-          <p className="text-xs text-muted-foreground">Nuevos (periodo)</p>
-          <p className="text-2xl font-semibold tabular-nums text-emerald-600">
-            +{newSubsTotal.toLocaleString('en-US')}
-          </p>
-        </div>
-      </div>
+      </ChartSection>
 
       {/* Growth Chart */}
       {compositeData.length > 0 && (
-        <div className="space-y-2">
-          <ChartInfoTooltip
-            title="Crecimiento de Lista"
-            description="Lista saludable crece 2-5% mensual. Barras verdes = nuevos, rojas = desuscripciones, línea = total activos."
-          />
-          <ChartContainer
-            config={{
-              new_subscribers: { label: 'Nuevos', color: 'hsl(142 76% 36%)' },
-              unsubscribes: { label: 'Desuscripciones', color: 'hsl(0 72% 51%)' },
-              active_subscribers: { label: 'Activos', color: 'hsl(var(--chart-2))' },
-            }}
-            className="h-[280px] w-full"
-          >
-            <ComposedChart data={compositeData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-xs" />
-              <YAxis yAxisId="left" className="text-xs" />
-              <YAxis yAxisId="right" orientation="right" className="text-xs" />
-              <RechartsTooltip />
-              <Bar yAxisId="left" dataKey="new_subscribers" fill="var(--color-new_subscribers)" radius={[2, 2, 0, 0]} />
-              <Bar yAxisId="left" dataKey="unsubscribes" fill="var(--color-unsubscribes)" radius={[2, 2, 0, 0]} />
-              <Line yAxisId="right" type="monotone" dataKey="active_subscribers" stroke="var(--color-active_subscribers)" strokeWidth={2} dot={false} />
-            </ComposedChart>
-          </ChartContainer>
-        </div>
+        <ChartSection slug="crecimiento-lista">
+          <div className="space-y-2">
+            <ChartInfoTooltip
+              title="Crecimiento de Lista"
+              description="Lista saludable crece 2-5% mensual. Barras verdes = nuevos, rojas = desuscripciones, línea = total activos."
+            />
+            <ChartContainer
+              config={{
+                new_subscribers: { label: 'Nuevos', color: 'hsl(142 76% 36%)' },
+                unsubscribes: { label: 'Desuscripciones', color: 'hsl(0 72% 51%)' },
+                active_subscribers: { label: 'Activos', color: 'hsl(var(--chart-2))' },
+              }}
+              className="h-[280px] w-full"
+            >
+              <ComposedChart data={compositeData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-xs" />
+                <YAxis yAxisId="left" className="text-xs" />
+                <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                <RechartsTooltip />
+                <Bar yAxisId="left" dataKey="new_subscribers" fill="var(--color-new_subscribers)" radius={[2, 2, 0, 0]} />
+                <Bar yAxisId="left" dataKey="unsubscribes" fill="var(--color-unsubscribes)" radius={[2, 2, 0, 0]} />
+                <Line yAxisId="right" type="monotone" dataKey="active_subscribers" stroke="var(--color-active_subscribers)" strokeWidth={2} dot={false} />
+              </ComposedChart>
+            </ChartContainer>
+          </div>
+        </ChartSection>
       )}
 
       {/* Churn Ratio */}
-      <div className="space-y-2">
-        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          Ratio de Churn
-        </h4>
-        <div className={cn(
-          'rounded-lg border p-4 flex items-center gap-4',
-          churnRatio < 50 ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900' :
-          churnRatio < 100 ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900' :
-          'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900',
-        )}>
-          <span className={cn(
-            'text-3xl font-bold tabular-nums',
-            churnRatio < 50 ? 'text-emerald-600' : churnRatio < 100 ? 'text-amber-600' : 'text-red-600',
+      <ChartSection slug="ratio-churn">
+        <div className="space-y-2">
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Ratio de Churn
+          </h4>
+          <div className={cn(
+            'rounded-lg border p-4 flex items-center gap-4',
+            churnRatio < 50 ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900' :
+            churnRatio < 100 ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900' :
+            'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900',
           )}>
-            {churnRatio.toFixed(0)}%
-          </span>
-          <div>
-            <p className="text-sm font-medium">
-              {churnRatio < 50 ? 'Lista creciendo' : churnRatio < 100 ? 'Crecimiento lento' : 'Lista encogiendo'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {unsubsTotal} desuscripciones / {newSubsTotal} nuevos
-            </p>
+            <span className={cn(
+              'text-3xl font-bold tabular-nums',
+              churnRatio < 50 ? 'text-emerald-600' : churnRatio < 100 ? 'text-amber-600' : 'text-red-600',
+            )}>
+              {churnRatio.toFixed(0)}%
+            </span>
+            <div>
+              <p className="text-sm font-medium">
+                {churnRatio < 50 ? 'Lista creciendo' : churnRatio < 100 ? 'Crecimiento lento' : 'Lista encogiendo'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {unsubsTotal} desuscripciones / {newSubsTotal} nuevos
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </ChartSection>
 
       {/* Form Performance */}
       {formConversionsKpi && formConversionsKpi.currentValue > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Formularios
-          </h4>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg border bg-card p-4 space-y-1">
-              <p className="text-xs text-muted-foreground">Conversiones</p>
-              <p className="text-2xl font-semibold tabular-nums">{formConversionsKpi.currentValue.toLocaleString('en-US')}</p>
-            </div>
-            {formConvRateKpi && (
+        <ChartSection slug="formularios">
+          <div className="space-y-2">
+            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Formularios
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg border bg-card p-4 space-y-1">
-                <p className="text-xs text-muted-foreground">Tasa Conversión</p>
-                <p className="text-2xl font-semibold tabular-nums">{formConvRateKpi.currentValue.toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">Conversiones</p>
+                <p className="text-2xl font-semibold tabular-nums">{formConversionsKpi.currentValue.toLocaleString('en-US')}</p>
               </div>
-            )}
+              {formConvRateKpi && (
+                <div className="rounded-lg border bg-card p-4 space-y-1">
+                  <p className="text-xs text-muted-foreground">Tasa Conversión</p>
+                  <p className="text-2xl font-semibold tabular-nums">{formConvRateKpi.currentValue.toFixed(1)}%</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </ChartSection>
       )}
     </div>
   );

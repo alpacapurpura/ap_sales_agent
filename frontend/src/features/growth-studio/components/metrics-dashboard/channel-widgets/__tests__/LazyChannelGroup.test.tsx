@@ -41,6 +41,15 @@ vi.mock('../ChannelRow', () => ({
     React.createElement('div', { 'data-testid': `channel-row-${channel.slug}` }, channel.name),
 }));
 
+// Mock ChannelChip
+vi.mock('../ChannelChip', () => ({
+  ChannelChip: ({ channel, variant }: { channel: { name: string; slug: string }; variant: string }) =>
+    React.createElement('div', {
+      'data-testid': `channel-chip-${channel.slug}`,
+      'data-variant': variant,
+    }, channel.name),
+}));
+
 // Mock Accordion components
 vi.mock('@/components/ui/accordion', () => ({
   Accordion: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children),
@@ -56,17 +65,45 @@ import type { ChannelOverview } from '../../../../types/metrics';
 
 // ── Test data ──────────────────────────────────────────────────────────────────
 
-const overviewChannels: ChannelOverview[] = [
-  {
-    slug: 'meta-ads',
-    name: 'Meta Ads',
-    channelType: 'paid',
-    groupKey: 'paid',
-    connected: true,
-    headlineKpi: { name: 'spend', value: 1500, unit: 'currency' },
-    stale: false,
-  },
-];
+const connectedWithData: ChannelOverview = {
+  slug: 'meta-ads',
+  name: 'Meta Ads',
+  channelType: 'paid',
+  groupKey: 'paid',
+  connected: true,
+  headlineKpi: { name: 'spend', value: 1500, unit: 'currency' },
+  stale: false,
+};
+
+const disconnectedChannel: ChannelOverview = {
+  slug: 'tiktok-organic',
+  name: 'TikTok Organic',
+  channelType: 'organic_social',
+  groupKey: 'paid',
+  connected: false,
+  headlineKpi: null,
+  stale: false,
+};
+
+const connectedNoData: ChannelOverview = {
+  slug: 'ga4-search',
+  name: 'Google Analytics',
+  channelType: 'ga4_search',
+  groupKey: 'paid',
+  connected: true,
+  headlineKpi: null,
+  stale: false,
+};
+
+const proximamenteChannel: ChannelOverview = {
+  slug: 'checkout-lp',
+  name: 'Checkout Landing',
+  channelType: 'checkout',
+  groupKey: 'paid',
+  connected: true,
+  headlineKpi: { name: 'views', value: 100, unit: 'count' },
+  stale: false,
+};
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
@@ -85,7 +122,7 @@ describe('LazyChannelGroup', () => {
         stage="attraction"
         groupKey="paid"
         title="Paid"
-        overviewChannels={overviewChannels}
+        overviewChannels={[connectedWithData]}
       />,
     );
 
@@ -101,11 +138,10 @@ describe('LazyChannelGroup', () => {
         stage="attraction"
         groupKey="paid"
         title="Paid"
-        overviewChannels={overviewChannels}
+        overviewChannels={[connectedWithData]}
       />,
     );
 
-    // Channel name should still be visible
     expect(screen.getByText('Meta Ads')).toBeDefined();
   });
 
@@ -118,11 +154,113 @@ describe('LazyChannelGroup', () => {
         stage="attraction"
         groupKey="paid"
         title="Paid"
-        overviewChannels={overviewChannels}
+        overviewChannels={[connectedWithData]}
       />,
     );
 
-    // Should still render the group title and overview data while loading
     expect(screen.getByText('Meta Ads')).toBeDefined();
+  });
+
+  // ── New chip tests ──────────────────────────────────────────────────────────
+
+  it('renders disconnected channels as chips, not rows', () => {
+    render(
+      <LazyChannelGroup
+        stage="attraction"
+        groupKey="paid"
+        title="Paid"
+        overviewChannels={[connectedWithData, disconnectedChannel]}
+      />,
+    );
+
+    // Active channel renders as a row
+    expect(screen.getByTestId('channel-row-meta-ads')).toBeInTheDocument();
+    // Disconnected channel renders as a chip
+    expect(screen.getByTestId('channel-chip-tiktok-organic')).toBeInTheDocument();
+    // Disconnected channel does NOT render as a row
+    expect(screen.queryByTestId('channel-row-tiktok-organic')).not.toBeInTheDocument();
+  });
+
+  it('renders connected-no-data channels as chips', () => {
+    render(
+      <LazyChannelGroup
+        stage="attraction"
+        groupKey="paid"
+        title="Paid"
+        overviewChannels={[connectedWithData, connectedNoData]}
+      />,
+    );
+
+    expect(screen.getByTestId('channel-row-meta-ads')).toBeInTheDocument();
+    expect(screen.getByTestId('channel-chip-ga4-search')).toBeInTheDocument();
+    expect(screen.queryByTestId('channel-row-ga4-search')).not.toBeInTheDocument();
+  });
+
+  it('applies correct variant to disconnected chips', () => {
+    render(
+      <LazyChannelGroup
+        stage="attraction"
+        groupKey="paid"
+        title="Paid"
+        overviewChannels={[disconnectedChannel]}
+      />,
+    );
+
+    const chip = screen.getByTestId('channel-chip-tiktok-organic');
+    expect(chip.getAttribute('data-variant')).toBe('disconnected');
+  });
+
+  it('applies correct variant to no-data chips', () => {
+    render(
+      <LazyChannelGroup
+        stage="attraction"
+        groupKey="paid"
+        title="Paid"
+        overviewChannels={[connectedNoData]}
+      />,
+    );
+
+    const chip = screen.getByTestId('channel-chip-ga4-search');
+    expect(chip.getAttribute('data-variant')).toBe('no-data');
+  });
+
+  it('renders "Próximamente" channels as rows (not chips)', () => {
+    render(
+      <LazyChannelGroup
+        stage="attraction"
+        groupKey="paid"
+        title="Paid"
+        overviewChannels={[proximamenteChannel]}
+      />,
+    );
+
+    expect(screen.getByTestId('channel-row-checkout-lp')).toBeInTheDocument();
+    expect(screen.queryByTestId('channel-chip-checkout-lp')).not.toBeInTheDocument();
+  });
+
+  it('does not render chips section when all channels are active', () => {
+    const { container } = render(
+      <LazyChannelGroup
+        stage="attraction"
+        groupKey="paid"
+        title="Paid"
+        overviewChannels={[connectedWithData]}
+      />,
+    );
+
+    expect(container.querySelector('[data-testid^="channel-chip-"]')).toBeNull();
+  });
+
+  it('returns null when there are no channels at all', () => {
+    const { container } = render(
+      <LazyChannelGroup
+        stage="attraction"
+        groupKey="paid"
+        title="Paid"
+        overviewChannels={[]}
+      />,
+    );
+
+    expect(container.firstChild).toBeNull();
   });
 });

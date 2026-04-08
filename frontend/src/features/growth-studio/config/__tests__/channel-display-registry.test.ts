@@ -42,7 +42,7 @@ describe('getChannelConfig', () => {
     expect(getChannelConfig('ig-organic')).toBeDefined();
     expect(getChannelConfig('meta-ads')).toBeDefined();
     expect(getChannelConfig('yt-organic')).toBeDefined();
-    expect(getChannelConfig('website-capture')).toBeDefined();
+    expect(getChannelConfig('website-total')).toBeDefined();
   });
 
   it('returns undefined for unknown channels', () => {
@@ -124,8 +124,8 @@ describe('getPrimaryMetricSpec', () => {
     expect(getPrimaryMetricSpec('yt-organic', 'organic_social'))
       .toEqual({ name: 'views', label: 'vistas' });
 
-    expect(getPrimaryMetricSpec('website-capture', 'website'))
-      .toEqual({ name: 'leads', label: 'leads' });
+    expect(getPrimaryMetricSpec('website-total', 'website'))
+      .toEqual({ name: 'sessions', label: 'sesiones' });
   });
 
   it('falls back to channelType for unknown channels', () => {
@@ -148,23 +148,9 @@ describe('getPrimaryMetricSpec', () => {
 // ─── getExpandedMetrics ─────────────────────────────────────────────────────
 
 describe('getExpandedMetrics', () => {
-  it('returns expanded specs for website-capture', () => {
-    const specs = getExpandedMetrics('website-capture');
-
-    expect(specs).toBeDefined();
-    expect(specs).toHaveLength(5);
-    expect(specs!.map(s => s.name)).toEqual([
-      'users', 'sessions', 'engagementRate', 'bounceRate', 'avgSessionDuration',
-    ]);
-  });
-
-  it('returns format hints for website metrics', () => {
-    const specs = getExpandedMetrics('website-capture')!;
-
-    expect(specs.find(s => s.name === 'engagementRate')?.format).toBe('percentage');
-    expect(specs.find(s => s.name === 'bounceRate')?.format).toBe('percentage');
-    expect(specs.find(s => s.name === 'avgSessionDuration')?.format).toBe('duration');
-    expect(specs.find(s => s.name === 'users')?.format).toBeUndefined(); // default = number
+  it('returns undefined for website-total (no expanded layout)', () => {
+    const specs = getExpandedMetrics('website-total');
+    expect(specs).toBeUndefined();
   });
 
   it('returns undefined for channels without expanded config', () => {

@@ -91,6 +91,7 @@ class ChannelDashboardDTO(BaseModel):
     time_series: list[MetricTimeSeriesDTO]
     funnel: AdFunnelDTO
     frequency_alert: FrequencyAlertDTO | None = None
+    extra_data: dict | None = None
 
 
 # ---------------------------------------------------------------------------

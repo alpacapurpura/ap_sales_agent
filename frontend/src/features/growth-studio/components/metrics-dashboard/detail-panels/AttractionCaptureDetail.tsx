@@ -17,35 +17,8 @@ import { AttractionTrendChart } from '../attraction/AttractionTrendChart';
 import { CaptureBreakdownChart } from '../attraction/CaptureBreakdownChart';
 import { ConversionBridge } from '../attraction/ConversionBridge';
 import { LazyChannelGroup } from '../channel-widgets/LazyChannelGroup';
-import dynamic from 'next/dynamic';
 
-const MetaAdsDashboard = dynamic(() => import('../sidebar/meta-ads/MetaAdsDashboard').then(m => ({ default: m.MetaAdsDashboard })), { ssr: false });
-const IgOrganicDashboard = dynamic(() => import('../sidebar/ig-organic/IgOrganicDashboard').then(m => ({ default: m.IgOrganicDashboard })), { ssr: false });
-const YouTubeDashboard = dynamic(() => import('../sidebar/youtube-organic/YouTubeDashboard').then(m => ({ default: m.YouTubeDashboard })), { ssr: false });
-const MailDashboard = dynamic(() => import('../sidebar/mail/MailDashboard').then(m => ({ default: m.MailDashboard })), { ssr: false });
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
-
-// ─── Helper ──────────────────────────────────────────────────────────────────
-
-function MetaAdsDashboardWrapper() {
-  const { metaAdsDashboardOpen, metaAdsDashboardInitialTab, handleCloseMetaAdsDashboard } = useGrowthStudioContext();
-  if (!metaAdsDashboardOpen) return null;
-  return <MetaAdsDashboard onClose={handleCloseMetaAdsDashboard} initialTab={metaAdsDashboardInitialTab} />;
-}
-
-function ExpandedDashboardWrapper() {
-  const { expandedDashboardChannel, handleCloseExpandedDashboard } = useGrowthStudioContext();
-  if (expandedDashboardChannel === 'ig-organic') {
-    return <IgOrganicDashboard onClose={handleCloseExpandedDashboard} />;
-  }
-  if (expandedDashboardChannel === 'yt-organic') {
-    return <YouTubeDashboard onClose={handleCloseExpandedDashboard} />;
-  }
-  if (expandedDashboardChannel === 'email-nurture') {
-    return <MailDashboard onClose={handleCloseExpandedDashboard} />;
-  }
-  return null;
-}
 
 // ─── Mobile Charts Expand ────────────────────────────────────────────────────
 
@@ -88,12 +61,16 @@ interface AttractionCaptureDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
   onConfigure?: (slug: string, name: string) => void;
   onChannelClick?: (channel: ChannelMetric) => void;
+  onDisconnectedClick?: (channel: ChannelMetric) => void;
+  onNoDataClick?: (channel: ChannelMetric) => void;
 }
 
 export const AttractionCaptureDetail = React.memo(function AttractionCaptureDetail({
   onMetricClick,
   onConfigure,
   onChannelClick,
+  onDisconnectedClick,
+  onNoDataClick,
 }: AttractionCaptureDetailProps) {
   // ─── TIER 1: Lightweight overviews (render immediately) ─────────────
   const { data: attrOverview, isLoading: attrLoading, error: attrError, refetch: refetchAttr } = useStageOverview('attraction');
@@ -187,7 +164,7 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
   }
 
   const hasAttrData = (attrOverview?.channelList.length ?? 0) > 0;
-  const hasCaptureData = totalLeads > 0;
+  const hasCaptureData = totalLeads > 0 || (capOverview?.channelList.length ?? 0) > 0;
   const isEmpty = !hasAttrData && !hasCaptureData;
 
   return (
@@ -301,6 +278,8 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
                   stageId="ATRACCION"
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
+                  onDisconnectedClick={onDisconnectedClick}
+                  onNoDataClick={onNoDataClick}
                 />
               )}
 
@@ -315,6 +294,8 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
                   stageId="ATRACCION"
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
+                  onDisconnectedClick={onDisconnectedClick}
+                  onNoDataClick={onNoDataClick}
                 />
               )}
             </div>
@@ -353,6 +334,8 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
                   stageId="CAPTURA"
                   onChannelClick={handleChannelClick}
                   onConfigure={onConfigure}
+                  onDisconnectedClick={onDisconnectedClick}
+                  onNoDataClick={onNoDataClick}
                 />
               )}
             </div>
@@ -385,9 +368,6 @@ export const AttractionCaptureDetail = React.memo(function AttractionCaptureDeta
         </>
       )}
 
-      {/* Full-page dashboards */}
-      <MetaAdsDashboardWrapper />
-      <ExpandedDashboardWrapper />
     </div>
   );
 });

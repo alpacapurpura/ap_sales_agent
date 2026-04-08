@@ -6,6 +6,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip,
 import { ChartContainer } from '@/components/ui/chart';
 import type { ChannelDashboardData } from '../../../../../types/metrics';
 import { ChartInfoTooltip } from '../ChartInfoTooltip';
+import { ChartSection } from '../../shared/ChartSection';
 
 interface IgContentTabProps {
   data: ChannelDashboardData | undefined;
@@ -43,6 +44,7 @@ export function IgContentTab({ data, isLoading }: IgContentTabProps) {
   return (
     <div className="space-y-8">
       {stackedData.length > 0 && (
+        <ChartSection slug="engagement-diario">
         <div className="space-y-2">
           <ChartInfoTooltip title="Desglose de Engagement Diario" description="Distribución diaria de likes, comentarios, compartidos y guardados." />
           <ChartContainer
@@ -60,8 +62,10 @@ export function IgContentTab({ data, isLoading }: IgContentTabProps) {
             </BarChart>
           </ChartContainer>
         </div>
+        </ChartSection>
       )}
       {donutData.length > 0 && (
+        <ChartSection slug="distribucion-engagement">
         <div className="space-y-2">
           <ChartInfoTooltip title="Distribución del Engagement" description="Proporción de cada tipo de interacción. Guardados y compartidos indican contenido de alto valor." />
           <div className="flex items-center gap-6">
@@ -88,6 +92,7 @@ export function IgContentTab({ data, isLoading }: IgContentTabProps) {
             </div>
           </div>
         </div>
+        </ChartSection>
       )}
     </div>
   );

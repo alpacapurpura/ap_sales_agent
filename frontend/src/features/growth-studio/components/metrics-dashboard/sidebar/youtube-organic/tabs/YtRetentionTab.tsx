@@ -13,6 +13,7 @@ import {
 import { ChartContainer } from '@/components/ui/chart';
 import { MetricInfoCard } from '../../../channel-widgets/KpiTooltip';
 import { ChartInfoTooltip } from '../../ig-organic/ChartInfoTooltip';
+import { ChartSection } from '../../shared/ChartSection';
 import type { ChannelDashboardData, MetricKpiData } from '../../../../../types/metrics';
 
 interface YtRetentionTabProps {
@@ -75,55 +76,59 @@ export function YtRetentionTab({ data, isLoading }: YtRetentionTabProps) {
   return (
     <div className="space-y-8">
       {/* Retention KPI cards */}
-      <div className="grid grid-cols-3 gap-4">
-        {retentionKpis.map(kpi => {
-          const deltaIsPositive =
-            kpi.deltaPct != null &&
-            (kpi.higherIsBetter ? kpi.deltaPct >= 0 : kpi.deltaPct <= 0);
+      <ChartSection slug="kpis-retencion">
+        <div className="grid grid-cols-3 gap-4">
+          {retentionKpis.map(kpi => {
+            const deltaIsPositive =
+              kpi.deltaPct != null &&
+              (kpi.higherIsBetter ? kpi.deltaPct >= 0 : kpi.deltaPct <= 0);
 
-          return (
-            <div key={kpi.metricName} className="rounded-lg border bg-card p-4 space-y-1">
-              <MetricInfoCard metricName={kpi.metricName}>
-                <p className="text-xs text-muted-foreground">{kpi.displayName}</p>
-              </MetricInfoCard>
-              <p className="text-2xl font-semibold tabular-nums">
-                {formatRetentionValue(kpi)}
-              </p>
-              {kpi.deltaPct != null && (
-                <p className={`text-xs font-medium ${deltaIsPositive ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {kpi.deltaPct > 0 ? '+' : ''}{kpi.deltaPct.toFixed(1)}% vs anterior
+            return (
+              <div key={kpi.metricName} className="rounded-lg border bg-card p-4 space-y-1">
+                <MetricInfoCard metricName={kpi.metricName}>
+                  <p className="text-xs text-muted-foreground">{kpi.displayName}</p>
+                </MetricInfoCard>
+                <p className="text-2xl font-semibold tabular-nums">
+                  {formatRetentionValue(kpi)}
                 </p>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                {kpi.deltaPct != null && (
+                  <p className={`text-xs font-medium ${deltaIsPositive ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {kpi.deltaPct > 0 ? '+' : ''}{kpi.deltaPct.toFixed(1)}% vs anterior
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </ChartSection>
 
       {/* Retention trend chart */}
       {chartData.length > 0 && (
-        <div className="space-y-2">
-          <ChartInfoTooltip
-            title="Tendencia de Retenci&oacute;n"
-            description="El algoritmo de YouTube prioriza watch time sobre views. Una retenci&oacute;n alta indica que tu contenido mantiene la atenci&oacute;n."
-          />
-          <ChartContainer
-            config={{
-              watch_time_minutes: { label: 'Minutos Vistos', color: 'hsl(var(--chart-1))' },
-              avg_view_percentage: { label: '% Retenci&oacute;n', color: 'hsl(var(--chart-2))' },
-            }}
-            className="h-[250px] w-full"
-          >
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-xs" />
-              <YAxis yAxisId="left" className="text-xs" />
-              <YAxis yAxisId="right" orientation="right" className="text-xs" domain={[0, 100]} />
-              <RechartsTooltip />
-              <Line yAxisId="left" type="monotone" dataKey="watch_time_minutes" stroke="var(--color-watch_time_minutes)" strokeWidth={2} dot={false} />
-              <Line yAxisId="right" type="monotone" dataKey="avg_view_percentage" stroke="var(--color-avg_view_percentage)" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ChartContainer>
-        </div>
+        <ChartSection slug="tendencia-retencion">
+          <div className="space-y-2">
+            <ChartInfoTooltip
+              title="Tendencia de Retenci&oacute;n"
+              description="El algoritmo de YouTube prioriza watch time sobre views. Una retenci&oacute;n alta indica que tu contenido mantiene la atenci&oacute;n."
+            />
+            <ChartContainer
+              config={{
+                watch_time_minutes: { label: 'Minutos Vistos', color: 'hsl(var(--chart-1))' },
+                avg_view_percentage: { label: '% Retenci&oacute;n', color: 'hsl(var(--chart-2))' },
+              }}
+              className="h-[250px] w-full"
+            >
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-xs" />
+                <YAxis yAxisId="left" className="text-xs" />
+                <YAxis yAxisId="right" orientation="right" className="text-xs" domain={[0, 100]} />
+                <RechartsTooltip />
+                <Line yAxisId="left" type="monotone" dataKey="watch_time_minutes" stroke="var(--color-watch_time_minutes)" strokeWidth={2} dot={false} />
+                <Line yAxisId="right" type="monotone" dataKey="avg_view_percentage" stroke="var(--color-avg_view_percentage)" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ChartContainer>
+          </div>
+        </ChartSection>
       )}
     </div>
   );

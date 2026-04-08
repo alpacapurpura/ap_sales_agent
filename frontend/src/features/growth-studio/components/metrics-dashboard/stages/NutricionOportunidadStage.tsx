@@ -4,6 +4,13 @@ import { NurtureOpportunityDetail } from '../detail-panels/NurtureOpportunityDet
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 export function NutricionOportunidadStage() {
-  const { handleMetricClick, handleConfigure } = useGrowthStudioContext();
-  return <NurtureOpportunityDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} />;
+  const { handleMetricClick, handleConfigure, handleDisconnectedClick, handleNoDataClick } = useGrowthStudioContext();
+  return (
+    <NurtureOpportunityDetail
+      onMetricClick={handleMetricClick}
+      onConfigure={handleConfigure}
+      onDisconnectedClick={handleDisconnectedClick}
+      onNoDataClick={handleNoDataClick}
+    />
+  );
 }

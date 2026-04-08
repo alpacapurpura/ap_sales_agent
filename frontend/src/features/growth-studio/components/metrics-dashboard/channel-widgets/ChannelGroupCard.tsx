@@ -167,7 +167,6 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
                 stageId={stageId}
                 onMetricClick={onMetricClick}
                 onChannelClick={onChannelClick}
-                onConfigure={onConfigure}
               />
             ))}
           </div>
@@ -193,7 +192,6 @@ export function ChannelGroupCard({ title, totals, channels, groupType, stageId, 
                 stageId={stageId}
                 onMetricClick={onMetricClick}
                 onChannelClick={onChannelClick}
-                onConfigure={onConfigure}
               />
             ))}
           </div>

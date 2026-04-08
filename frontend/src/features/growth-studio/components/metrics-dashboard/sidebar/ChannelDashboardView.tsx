@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { MetaAdsDashboardTab } from '../../../types/metrics';
 
 const DashboardSkeleton = () => (
   <div className="flex flex-col gap-4 p-6">
@@ -26,6 +27,10 @@ const MailDashboard = dynamic(
   () => import('./mail/MailDashboard').then(m => ({ default: m.MailDashboard })),
   { ssr: false, loading: DashboardSkeleton },
 );
+const WebsiteDashboard = dynamic(
+  () => import('./website/WebsiteDashboard').then(m => ({ default: m.WebsiteDashboard })),
+  { ssr: false, loading: DashboardSkeleton },
+);
 
 interface ChannelDashboardViewProps {
   channelSlug: string;
@@ -37,13 +42,16 @@ export function ChannelDashboardView({ channelSlug, initialTab }: ChannelDashboa
     return <IgOrganicDashboard initialTab={initialTab} isRouteBased />;
   }
   if (channelSlug === 'meta-ads') {
-    return <MetaAdsDashboard onClose={() => window.history.back()} />;
+    return <MetaAdsDashboard initialTab={initialTab as MetaAdsDashboardTab} isRouteBased />;
   }
   if (channelSlug === 'yt-organic') {
     return <YouTubeDashboard initialTab={initialTab} isRouteBased />;
   }
   if (channelSlug === 'email-nurture') {
     return <MailDashboard initialTab={initialTab} isRouteBased />;
+  }
+  if (channelSlug === 'website-total') {
+    return <WebsiteDashboard initialTab={initialTab} isRouteBased />;
   }
   return <div className="flex items-center justify-center py-24 text-sm text-muted-foreground">Dashboard no disponible para este canal</div>;
 }

@@ -8,6 +8,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
+import { useHashScroll } from '../../../../hooks/useHashScroll';
 import type { MetaAdsPeriod, MailDashboardTab } from '../../../../types/metrics';
 import { ChannelPeriodSelector } from '../ig-organic/ChannelPeriodSelector';
 import { MailOverviewTab } from './tabs/MailOverviewTab';
@@ -36,8 +37,17 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
       ? (tabFromUrl as MailDashboardTab)
       : 'overview',
   );
-  const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
+  const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
+  const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
   const { data, isLoading } = useChannelDashboard('email-nurture', period);
+  useHashScroll();
+
+  const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
+    setPeriod(p);
+    const url = new URL(window.location.href);
+    if (p === '30d') { url.searchParams.delete('period'); } else { url.searchParams.set('period', p); }
+    window.history.replaceState(null, '', url.toString());
+  }, []);
 
   const handleTabChange = useCallback(
     (value: string) => {
@@ -75,7 +85,7 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
             <h1 className="text-lg font-semibold">Email Marketing &middot; Dashboard</h1>
           </div>
         </div>
-        <ChannelPeriodSelector value={period} onChange={setPeriod} />
+        <ChannelPeriodSelector value={period} onChange={handlePeriodChange} />
       </div>
 
       <Tabs

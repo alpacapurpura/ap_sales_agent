@@ -6,6 +6,7 @@ import type { ChannelDashboardData } from '../../../../../types/metrics';
 import { YouTubeTopVideosList } from '../../youtube/YouTubeTopVideosList';
 import { YouTubeTrafficSourcesChart } from '../../youtube/YouTubeTrafficSourcesChart';
 import { ChartInfoTooltip } from '../../ig-organic/ChartInfoTooltip';
+import { ChartSection } from '../../shared/ChartSection';
 
 interface YtVideosTabProps {
   data: ChannelDashboardData | undefined;
@@ -31,21 +32,25 @@ export function YtVideosTab({ data, isLoading }: YtVideosTabProps) {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <ChartInfoTooltip
-          title="Top Videos"
-          description="Videos con mejor rendimiento en el periodo seleccionado. Ordenados por vistas. Los videos de 60s o menos se clasifican como Shorts."
-        />
-        <YouTubeTopVideosList enabled />
-      </div>
+      <ChartSection slug="top-videos">
+        <div className="space-y-3">
+          <ChartInfoTooltip
+            title="Top Videos"
+            description="Videos con mejor rendimiento en el periodo seleccionado. Ordenados por vistas. Los videos de 60s o menos se clasifican como Shorts."
+          />
+          <YouTubeTopVideosList enabled />
+        </div>
+      </ChartSection>
 
-      <div className="space-y-3">
-        <ChartInfoTooltip
-          title="Fuentes de Tr&aacute;fico"
-          description="De d&oacute;nde vienen tus vistas. 'Recomendaciones YT' = el algoritmo te est&aacute; promoviendo. 'B&uacute;squeda YT' = tu SEO funciona."
-        />
-        <YouTubeTrafficSourcesChart enabled />
-      </div>
+      <ChartSection slug="fuentes-trafico">
+        <div className="space-y-3">
+          <ChartInfoTooltip
+            title="Fuentes de Tr&aacute;fico"
+            description="De d&oacute;nde vienen tus vistas. 'Recomendaciones YT' = el algoritmo te est&aacute; promoviendo. 'B&uacute;squeda YT' = tu SEO funciona."
+          />
+          <YouTubeTrafficSourcesChart enabled />
+        </div>
+      </ChartSection>
     </div>
   );
 }

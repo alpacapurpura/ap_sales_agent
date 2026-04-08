@@ -68,19 +68,14 @@ export const CHANNEL_DISPLAY_REGISTRY: Record<string, ChannelDisplayConfig> = {
     ],
     primaryMetric: { name: 'open_rate', label: 'tasa de apertura' },
   },
-  'website-capture': {
+  'website-total': {
     summaryMetrics: [
-      { name: 'visitors' },
-    ],
-    primaryMetric: { name: 'leads', label: 'leads' },
-    layout: 'expanded',
-    expandedMetrics: [
-      { name: 'users', label: 'Visitantes' },
       { name: 'sessions', label: 'Sesiones' },
       { name: 'engagementRate', label: 'Engagement', format: 'percentage' },
       { name: 'bounceRate', label: 'Bounce', format: 'percentage' },
-      { name: 'avgSessionDuration', label: 'Duracion', format: 'duration' },
+      { name: 'conversions', label: 'Conversiones' },
     ],
+    primaryMetric: { name: 'sessions', label: 'sesiones' },
   },
 };
 

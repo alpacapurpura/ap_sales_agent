@@ -5,7 +5,6 @@ import React, { useState, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric, CampaignMetric, MetricClickData, StageId } from '../../../types/metrics';
-import { ConnectionBadge } from './ConnectionBadge';
 import { CampaignDrillDown } from './CampaignDrillDown';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import { useMetricCatalog } from '../../../hooks/useMetricCatalog';
@@ -33,11 +32,9 @@ export interface ChannelRowProps {
   onMetricClick?: (metric: MetricClickData) => void;
   /** Callback when the entire connected channel row is clicked */
   onChannelClick?: (channel: ChannelMetric) => void;
-  /** Callback when user clicks "Configurar" on an unconnected channel */
-  onConfigure?: (slug: string, name: string) => void;
 }
 
-export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onMetricClick, onChannelClick, onConfigure }: ChannelRowProps) {
+export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onMetricClick, onChannelClick }: ChannelRowProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [cooldown, setCooldown] = useState(false);
   const { catalogByName } = useMetricCatalog();
@@ -62,24 +59,6 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
       setRefreshing(false);
     }
   }, [channel.slug, refreshing, cooldown]);
-
-  // ── Early return: unconnected channels ──────────────────────────────
-  if (!channel.connected) {
-    return (
-      <div id={`channel-${channel.slug}`} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors duration-100 opacity-60 hover:opacity-80">
-        <div className="flex items-center gap-3 min-w-0">
-          <div
-            className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
-            style={{ backgroundColor: hexToRgba(iconColor, 0.1) }}
-          >
-            <Icon className="w-4 h-4" style={{ color: iconColor }} aria-hidden="true" />
-          </div>
-          <p className="text-sm font-medium truncate">{channel.name}</p>
-        </div>
-        <ConnectionBadge connected={false} onConfigure={onConfigure ? () => onConfigure(channel.slug, channel.name) : undefined} />
-      </div>
-    );
-  }
 
   // ── Early return: "Proximamente" channels ───────────────────────────
   const isProximamente =

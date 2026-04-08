@@ -90,6 +90,39 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             unit="currency",
             interpretation_es="Costo por cada mil impresiones",
         ),
+        # ── Website / GA4 ──
+        IndustryBenchmarkEntry(
+            metric_name="engagementRate",
+            low=45.0,
+            median=56.0,
+            high=70.0,
+            unit="percentage",
+            interpretation_es=(
+                "Porcentaje de sesiones con interacción activa. "
+                ">50% saludable, E-commerce 70-80%, B2B 75-85%"
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="bounceRate",
+            low=25.0,
+            median=40.0,
+            high=55.0,
+            unit="percentage",
+            interpretation_es=(
+                "Porcentaje de sesiones sin interacción. "
+                "<40% bueno, >55% revisar contenido y velocidad"
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="averageSessionDuration",
+            low=60.0,
+            median=137.0,
+            high=300.0,
+            unit="seconds",
+            interpretation_es=(
+                "Duración promedio de sesión. <30s sin valor, >180s alto engagement"
+            ),
+        ),
         # ── Instagram Organic ──
         IndustryBenchmarkEntry(
             metric_name="ig_engagement_rate",

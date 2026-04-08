@@ -10,13 +10,18 @@ import { Button } from '@/components/ui/button';
 import { Settings, Calendar, Flame, Coins, Target, AlertTriangle, Lightbulb, MailOpen, Workflow, Repeat, Crosshair, CalendarCheck, ShoppingCart, Plug } from 'lucide-react';
 import { BrandIcon } from '@/components/ui/brand-icons';
 import { formatMoney } from '@/lib/format-money';
+import { ChannelChip } from '../channel-widgets/ChannelChip';
+import { classifyChannel } from '../../../lib/classifyChannel';
+import type { ChannelMetric } from '../../../types/metrics';
 
 interface NurtureOpportunityDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
   onConfigure?: (slug: string, name: string) => void;
+  onDisconnectedClick?: (channel: ChannelMetric) => void;
+  onNoDataClick?: (channel: ChannelMetric) => void;
 }
 
-export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDetail({ onMetricClick, onConfigure }: NurtureOpportunityDetailProps) {
+export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDetail({ onMetricClick, onConfigure, onDisconnectedClick, onNoDataClick }: NurtureOpportunityDetailProps) {
   const { data: nurtureData, isLoading: nurtureLoading, error: nurtureError, refetch: refetchNurture } = useNurtureDetail();
   const { data: oppData, isLoading: oppLoading, error: oppError, refetch: refetchOpp } = useOpportunityDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -124,23 +129,23 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
   const availableNurtureChannels = nurtureData.available?.channels || [];
   const availableOppChannels = oppData.available?.channels || [];
 
-  const ChannelRow = ({ channel, stageId, defaultMetricName, defaultMetricLabel, baseColor }: { channel: any, stageId: 'NUTRICION' | 'OPORTUNIDAD', defaultMetricName: string, defaultMetricLabel: string, baseColor?: string }) => {
-    if (!channel.connected) {
-      return (
-        <div className="bg-card text-card-foreground border border-border text-center p-3 rounded-md hover:bg-muted cursor-pointer transition-colors shadow-sm flex flex-col items-center justify-center gap-2"
-          onClick={() => onConfigure && onConfigure(channel.slug, channel.name)}>
-          <span className="text-xl">⚡</span>
-          <span className="text-xs font-medium text-foreground">{channel.name}</span>
-        </div>
-      );
+  // Helper: split a channel list into active rows + chips
+  const splitChannels = (channels: any[]) => {
+    const rows: any[] = [];
+    const chips: any[] = [];
+    for (const ch of channels) {
+      const cat = classifyChannel(ch);
+      if (cat === 'active' || cat === 'proximamente') rows.push(ch);
+      else chips.push(ch);
     }
+    return { rows, chips };
+  };
 
-    const hasData = channel.metrics && channel.metrics.length > 0 && channel.metrics.some((m: any) => m.value > 0);
-
+  const NurtureChannelRow = ({ channel, stageId, defaultMetricName, defaultMetricLabel, baseColor }: { channel: any, stageId: 'NUTRICION' | 'OPORTUNIDAD', defaultMetricName: string, defaultMetricLabel: string, baseColor?: string }) => {
     let Icon: React.ReactNode = '🔹';
     let bgColor = 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
     let borderColor = 'hover:border-slate-300 dark:hover:border-slate-600';
-    
+
     // Custom colors for this specific view based on stage
     if (baseColor === 'amber') {
       bgColor = 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
@@ -175,36 +180,10 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
       Icon = '❖';
     }
 
-    if (!hasData) {
-      return (
-        <div 
-          className="border border-border rounded-md p-3 justify-between items-center bg-muted/30 hover:bg-muted/60 transition-colors flex cursor-pointer"
-          onClick={() => handleMetricClick(stageId, channel, defaultMetricName, 0)}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded flex items-center justify-center font-bold ${bgColor}`}>{Icon}</div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{channel.name}</p>
-              <p className="text-[10px] text-amber-600 dark:text-amber-500 font-semibold">Conectado, sin datos</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-bold text-muted-foreground underline decoration-dashed underline-offset-4">
-              0
-            </p>
-            <p className="text-[10px] text-muted-foreground">{defaultMetricLabel}</p>
-          </div>
-        </div>
-      );
-    }
-
     const mainVal = getMetric(channel.metrics, defaultMetricName) || getMetric(channel.metrics, 'total_mqls') || getMetric(channel.metrics, 'total_sqls') || channel.value || 0;
-    
-    // For eMailing Nurturing, the metric should be clicks and label 'Tasa de interacción' is requested but 'clicks' fits better as a number
-    // We'll use the defaultMetricName and defaultMetricLabel passed to ChannelRow.
-    
+
     return (
-      <div 
+      <div
         className={`border border-border rounded-md p-3 flex justify-between items-center bg-card transition-colors group cursor-pointer ${borderColor}`}
         onClick={() => handleMetricClick(stageId, channel, defaultMetricName, mainVal)}
       >
@@ -224,6 +203,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
       </div>
     );
   };
+
 
   return (
     <div className="space-y-12 animate-fade-in bg-background p-6 rounded-2xl text-foreground border border-border">
@@ -356,16 +336,25 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
                 <span className="text-muted-foreground">{formatNum(nurtureData.automation.totals.leads || 0)} MQLs</span>
               </div>
             </div>
-            <div className="p-4 grid grid-cols-1 gap-2">
-              {nurtureChannels.map((c) => {
-                const isEmail = c.slug.includes('mail');
-                const isAgent = c.slug.includes('agent');
-                const metricName = isEmail ? 'clicks' : isAgent ? 'responses' : 'leads';
-                const metricLabel = isEmail ? 'Tasa de interacción' : isAgent ? 'Leads Interactuando' : 'leads interactuaron';
-                return (
-                  <ChannelRow key={c.slug} channel={c} stageId="NUTRICION" defaultMetricName={metricName} defaultMetricLabel={metricLabel} baseColor="amber" />
-                );
-              })}
+            <div className="p-4 space-y-2">
+              <div className="grid grid-cols-1 gap-2">
+                {splitChannels(nurtureChannels).rows.map((c) => {
+                  const isEmail = c.slug.includes('mail');
+                  const isAgent = c.slug.includes('agent');
+                  const metricName = isEmail ? 'clicks' : isAgent ? 'responses' : 'leads';
+                  const metricLabel = isEmail ? 'Tasa de interacción' : isAgent ? 'Leads Interactuando' : 'leads interactuaron';
+                  return (
+                    <NurtureChannelRow key={c.slug} channel={c} stageId="NUTRICION" defaultMetricName={metricName} defaultMetricLabel={metricLabel} baseColor="amber" />
+                  );
+                })}
+              </div>
+              {splitChannels(nurtureChannels).chips.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-border/30 mt-2">
+                  {splitChannels(nurtureChannels).chips.map((ch: ChannelMetric) => (
+                    <ChannelChip key={ch.slug} channel={ch} variant={ch.connected ? 'no-data' : 'disconnected'} onDisconnectedClick={onDisconnectedClick} onNoDataClick={onNoDataClick} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -378,29 +367,38 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
                 <span className="text-red-500">{fmtMoney(nurtureData.retargeting.totals.spend || 0)}</span>
               </div>
             </div>
-            <div className="p-4 grid grid-cols-1 gap-2">
-              {retargetingChannels.map((c) => {
-                const isMeta = c.slug.includes('meta') || c.slug.includes('fb') || c.slug.includes('ig');
-                const metricName = isMeta ? 'clicks' : 'leads';
-                const metricLabel = isMeta ? 'clicks' : 'leads re-enganchados';
-                return (
-                  <ChannelRow key={c.slug} channel={c} stageId="NUTRICION" defaultMetricName={metricName} defaultMetricLabel={metricLabel} baseColor="blue" />
-                );
-              })}
+            <div className="p-4 space-y-2">
+              <div className="grid grid-cols-1 gap-2">
+                {splitChannels(retargetingChannels).rows.map((c) => {
+                  const isMeta = c.slug.includes('meta') || c.slug.includes('fb') || c.slug.includes('ig');
+                  const metricName = isMeta ? 'clicks' : 'leads';
+                  const metricLabel = isMeta ? 'clicks' : 'leads re-enganchados';
+                  return (
+                    <NurtureChannelRow key={c.slug} channel={c} stageId="NUTRICION" defaultMetricName={metricName} defaultMetricLabel={metricLabel} baseColor="blue" />
+                  );
+                })}
+              </div>
+              {splitChannels(retargetingChannels).chips.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-border/30 mt-2">
+                  {splitChannels(retargetingChannels).chips.map((ch: ChannelMetric) => (
+                    <ChannelChip key={ch.slug} channel={ch} variant={ch.connected ? 'no-data' : 'disconnected'} onDisconnectedClick={onDisconnectedClick} onNoDataClick={onNoDataClick} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Canales Disponibles - Nutrición */}
           {availableNurtureChannels.length > 0 && (
-            <div className="bg-muted/30 rounded-lg border border-border border-dashed shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-transparent flex justify-between items-center text-muted-foreground">
-                <span className="font-medium text-sm flex items-center">➕ Canales Disponibles</span>
-              </div>
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {availableNurtureChannels.map((c) => (
-                  <ChannelRow key={c.slug} channel={c} stageId="NUTRICION" defaultMetricName="" defaultMetricLabel="" baseColor="amber" />
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {availableNurtureChannels.map((c: ChannelMetric) => (
+                <ChannelChip
+                  key={c.slug}
+                  channel={c}
+                  variant="disconnected"
+                  onDisconnectedClick={onDisconnectedClick}
+                />
+              ))}
             </div>
           )}
 
@@ -423,8 +421,19 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
                 <span className="text-orange-600 font-bold">{formatNum(oppData.qualification.totals.sqls || 0)} SQLs</span>
               </div>
             </div>
-            <div className="p-4 grid grid-cols-1 gap-2">
-              {oppQualificationChannels.map((c) => <ChannelRow key={c.slug} channel={c} stageId="OPORTUNIDAD" defaultMetricName="sqls" defaultMetricLabel="formularios / citas" baseColor="orange" />)}
+            <div className="p-4 space-y-2">
+              <div className="grid grid-cols-1 gap-2">
+                {splitChannels(oppQualificationChannels).rows.map((c) => (
+                  <NurtureChannelRow key={c.slug} channel={c} stageId="OPORTUNIDAD" defaultMetricName="sqls" defaultMetricLabel="formularios / citas" baseColor="orange" />
+                ))}
+              </div>
+              {splitChannels(oppQualificationChannels).chips.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-border/30 mt-2">
+                  {splitChannels(oppQualificationChannels).chips.map((ch: ChannelMetric) => (
+                    <ChannelChip key={ch.slug} channel={ch} variant={ch.connected ? 'no-data' : 'disconnected'} onDisconnectedClick={onDisconnectedClick} onNoDataClick={onNoDataClick} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -436,22 +445,33 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
                 <span className="text-emerald-600 font-bold">{formatNum((oppData.checkout.totals.sqls || 0) + (oppData.paymentLinks.totals.sqls || 0))} SQLs</span>
               </div>
             </div>
-            <div className="p-4 grid grid-cols-1 gap-2">
-              {oppCheckoutChannels.map((c) => <ChannelRow key={c.slug} channel={c} stageId="OPORTUNIDAD" defaultMetricName="sqls" defaultMetricLabel="iniciaron pago" baseColor="emerald" />)}
+            <div className="p-4 space-y-2">
+              <div className="grid grid-cols-1 gap-2">
+                {splitChannels(oppCheckoutChannels).rows.map((c) => (
+                  <NurtureChannelRow key={c.slug} channel={c} stageId="OPORTUNIDAD" defaultMetricName="sqls" defaultMetricLabel="iniciaron pago" baseColor="emerald" />
+                ))}
+              </div>
+              {splitChannels(oppCheckoutChannels).chips.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-border/30 mt-2">
+                  {splitChannels(oppCheckoutChannels).chips.map((ch: ChannelMetric) => (
+                    <ChannelChip key={ch.slug} channel={ch} variant={ch.connected ? 'no-data' : 'disconnected'} onDisconnectedClick={onDisconnectedClick} onNoDataClick={onNoDataClick} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Canales Disponibles - Oportunidad */}
           {availableOppChannels.length > 0 && (
-            <div className="bg-muted/30 rounded-lg border border-border border-dashed shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-transparent flex justify-between items-center text-muted-foreground">
-                <span className="font-medium text-sm flex items-center">➕ Canales Disponibles</span>
-              </div>
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {availableOppChannels.map((c) => (
-                  <ChannelRow key={c.slug} channel={c} stageId="OPORTUNIDAD" defaultMetricName="" defaultMetricLabel="" baseColor="orange" />
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {availableOppChannels.map((c: ChannelMetric) => (
+                <ChannelChip
+                  key={c.slug}
+                  channel={c}
+                  variant="disconnected"
+                  onDisconnectedClick={onDisconnectedClick}
+                />
+              ))}
             </div>
           )}
 

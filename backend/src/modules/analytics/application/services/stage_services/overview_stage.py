@@ -32,7 +32,6 @@ _STAGE_GROUPS: dict[str, list[tuple[str, str, str]]] = {
         ("ga4_search", "Búsqueda Orgánica", "ga4_search"),
         ("paid", "Pagado", "paid"),
         ("outbound", "Outbound", "outbound"),
-        ("website", "Sitio Web", "website"),
     ],
     "capture": [
         ("web_infrastructure", "Web / Infraestructura", "web_infrastructure"),
@@ -125,8 +124,8 @@ class StageOverviewService:
         # 3. Extract overview from stage data
         overview = self._extract_overview(stage, stage_data)
 
-        # 4. Cache the overview
-        if self.cache is not None:
+        # 4. Cache the overview (skip empty overviews to avoid cache poisoning)
+        if self.cache is not None and (overview.channel_list or overview.groups):
             overview_key = f"overview_{stage}"
             await self.cache.set(tenant_id, overview_key, period, overview.model_dump())
 

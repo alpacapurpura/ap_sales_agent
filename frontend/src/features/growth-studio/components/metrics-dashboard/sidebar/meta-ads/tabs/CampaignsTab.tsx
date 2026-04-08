@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/tooltip';
 import { formatMoney } from '@/lib/format-money';
 import { cn } from '@/lib/utils';
+import { ChartSection } from '../../shared/ChartSection';
 import type {
   CampaignPerformanceData,
   CampaignRecommendation,
@@ -921,77 +922,79 @@ export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="space-y-6">
-        {/* Section 0: Tab header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">Campañas</h2>
-            <p className="mt-0.5 text-xs text-zinc-500">
-              Rendimiento individual por campaña
-              {data.lastSynced && (
-                <>
-                  {' '}
-                  &middot; Última sincronización:{' '}
-                  {new Date(data.lastSynced).toLocaleDateString('es', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* Section 1: Summary KPIs */}
-        <CampaignSummaryKpis data={data} currency={resolvedCurrency} />
-
-        {/* Section 2: Alerts */}
-        <RecommendationAlerts recommendations={data.recommendations} />
-
-        {/* Section 3: Campaign Table */}
-        <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/30">
-          {/* Table header */}
-          <div className="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 border-b border-zinc-800 px-4 py-2.5 text-[11px] uppercase tracking-wider text-zinc-500">
-            <span>Campaña</span>
-            <HeaderTooltip content="Total invertido en esta campaña durante el periodo. Incluye todos los ad sets y anuncios.">
-              <span className="block text-right">Inversión</span>
-            </HeaderTooltip>
-            <HeaderTooltip content="Cantidad de conversiones (ventas, leads, registros) que esta campaña generó.">
-              <span className="block text-right">Resultados</span>
-            </HeaderTooltip>
-            <HeaderTooltip content="CPA = Cost Per Action. Cuánto pagaste en promedio por cada resultado. Menor es mejor.">
-              <span className="block text-right">CPA</span>
-            </HeaderTooltip>
-            <HeaderTooltip content="ROAS = Return On Ad Spend. Cuánto ganas por cada $1 invertido. Ej: 4.1x = ganas $4.10 por $1. Más alto es mejor.">
-              <span className="block text-right">ROAS</span>
-            </HeaderTooltip>
-            <HeaderTooltip content="CTR = Click-Through Rate. % de personas que ven tu anuncio y hacen clic. Indica qué tan atractivo es tu anuncio. Más alto es mejor.">
-              <span className="block text-right">CTR</span>
-            </HeaderTooltip>
-            <HeaderTooltip content="CPC = Cost Per Click. Cuánto pagas por cada clic en tu anuncio. Menor es mejor. Depende de la competencia en tu nicho.">
-              <span className="block text-right">CPC</span>
-            </HeaderTooltip>
-            <HeaderTooltip content="Frequency = cuántas veces en promedio cada persona vio tu anuncio. Arriba de 3 puede causar fatiga (la gente lo ignora).">
-              <span className="block text-right">Freq.</span>
-            </HeaderTooltip>
-            <span className="text-right">Acciones</span>
+      <ChartSection slug="campanas-tabla">
+        <div className="space-y-6">
+          {/* Section 0: Tab header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Campañas</h2>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Rendimiento individual por campaña
+                {data.lastSynced && (
+                  <>
+                    {' '}
+                    &middot; Última sincronización:{' '}
+                    {new Date(data.lastSynced).toLocaleDateString('es', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </>
+                )}
+              </p>
+            </div>
           </div>
 
-          {/* Campaign rows */}
-          {sortedCampaigns.map(campaign => (
-            <CampaignRow
-              key={campaign.externalId}
-              campaign={campaign}
-              currency={resolvedCurrency}
-            />
-          ))}
-        </div>
+          {/* Section 1: Summary KPIs */}
+          <CampaignSummaryKpis data={data} currency={resolvedCurrency} />
 
-        {/* Section 4: Indicator Guide */}
-        <IndicatorGuide />
-      </div>
+          {/* Section 2: Alerts */}
+          <RecommendationAlerts recommendations={data.recommendations} />
+
+          {/* Section 3: Campaign Table */}
+          <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/30">
+            {/* Table header */}
+            <div className="grid grid-cols-[1fr_100px_100px_100px_80px_80px_80px_72px_90px] gap-2 border-b border-zinc-800 px-4 py-2.5 text-[11px] uppercase tracking-wider text-zinc-500">
+              <span>Campaña</span>
+              <HeaderTooltip content="Total invertido en esta campaña durante el periodo. Incluye todos los ad sets y anuncios.">
+                <span className="block text-right">Inversión</span>
+              </HeaderTooltip>
+              <HeaderTooltip content="Cantidad de conversiones (ventas, leads, registros) que esta campaña generó.">
+                <span className="block text-right">Resultados</span>
+              </HeaderTooltip>
+              <HeaderTooltip content="CPA = Cost Per Action. Cuánto pagaste en promedio por cada resultado. Menor es mejor.">
+                <span className="block text-right">CPA</span>
+              </HeaderTooltip>
+              <HeaderTooltip content="ROAS = Return On Ad Spend. Cuánto ganas por cada $1 invertido. Ej: 4.1x = ganas $4.10 por $1. Más alto es mejor.">
+                <span className="block text-right">ROAS</span>
+              </HeaderTooltip>
+              <HeaderTooltip content="CTR = Click-Through Rate. % de personas que ven tu anuncio y hacen clic. Indica qué tan atractivo es tu anuncio. Más alto es mejor.">
+                <span className="block text-right">CTR</span>
+              </HeaderTooltip>
+              <HeaderTooltip content="CPC = Cost Per Click. Cuánto pagas por cada clic en tu anuncio. Menor es mejor. Depende de la competencia en tu nicho.">
+                <span className="block text-right">CPC</span>
+              </HeaderTooltip>
+              <HeaderTooltip content="Frequency = cuántas veces en promedio cada persona vio tu anuncio. Arriba de 3 puede causar fatiga (la gente lo ignora).">
+                <span className="block text-right">Freq.</span>
+              </HeaderTooltip>
+              <span className="text-right">Acciones</span>
+            </div>
+
+            {/* Campaign rows */}
+            {sortedCampaigns.map(campaign => (
+              <CampaignRow
+                key={campaign.externalId}
+                campaign={campaign}
+                currency={resolvedCurrency}
+              />
+            ))}
+          </div>
+
+          {/* Section 4: Indicator Guide */}
+          <IndicatorGuide />
+        </div>
+      </ChartSection>
     </TooltipProvider>
   );
 }

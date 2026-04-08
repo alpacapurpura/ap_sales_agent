@@ -9,6 +9,7 @@ import { MailHeroKpiGrid } from '../MailHeroKpiGrid';
 import { MetaAdsMiniFunnel } from '../../meta-ads/MetaAdsMiniFunnel';
 import { MailListGrowthIndicator } from '../MailListGrowthIndicator';
 import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
+import { ChartSection } from '../../shared/ChartSection';
 
 interface MailOverviewTabProps {
   data: ChannelDashboardData | undefined;
@@ -33,34 +34,42 @@ export function MailOverviewTab({ data, isLoading }: MailOverviewTabProps) {
 
   return (
     <div className="space-y-8">
-      <MailHeroKpiGrid kpis={data.kpis} timeSeries={data.timeSeries} />
+      <ChartSection slug="kpis">
+        <MailHeroKpiGrid kpis={data.kpis} timeSeries={data.timeSeries} />
+      </ChartSection>
       {compositeData.length > 0 && (
-        <div className="space-y-2">
-          <ChartInfoTooltip
-            title="Volumen vs Engagement"
-            description="Compara envíos (barras) con tasa de apertura (línea). Open rate estable al subir volumen = buena segmentación."
-          />
-          <ChartContainer
-            config={{
-              emails_sent: { label: 'Enviados', color: 'hsl(var(--chart-1))' },
-              open_rate: { label: 'Open Rate', color: 'hsl(var(--chart-2))' },
-            }}
-            className="h-[250px] w-full"
-          >
-            <ComposedChart data={compositeData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-xs" />
-              <YAxis yAxisId="left" className="text-xs" />
-              <YAxis yAxisId="right" orientation="right" className="text-xs" unit="%" />
-              <RechartsTooltip />
-              <Bar yAxisId="left" dataKey="emails_sent" fill="var(--color-emails_sent)" radius={[2, 2, 0, 0]} />
-              <Line yAxisId="right" type="monotone" dataKey="open_rate" stroke="var(--color-open_rate)" strokeWidth={2} dot={false} />
-            </ComposedChart>
-          </ChartContainer>
-        </div>
+        <ChartSection slug="volumen-vs-engagement">
+          <div className="space-y-2">
+            <ChartInfoTooltip
+              title="Volumen vs Engagement"
+              description="Compara envíos (barras) con tasa de apertura (línea). Open rate estable al subir volumen = buena segmentación."
+            />
+            <ChartContainer
+              config={{
+                emails_sent: { label: 'Enviados', color: 'hsl(var(--chart-1))' },
+                open_rate: { label: 'Open Rate', color: 'hsl(var(--chart-2))' },
+              }}
+              className="h-[250px] w-full"
+            >
+              <ComposedChart data={compositeData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-xs" />
+                <YAxis yAxisId="left" className="text-xs" />
+                <YAxis yAxisId="right" orientation="right" className="text-xs" unit="%" />
+                <RechartsTooltip />
+                <Bar yAxisId="left" dataKey="emails_sent" fill="var(--color-emails_sent)" radius={[2, 2, 0, 0]} />
+                <Line yAxisId="right" type="monotone" dataKey="open_rate" stroke="var(--color-open_rate)" strokeWidth={2} dot={false} />
+              </ComposedChart>
+            </ChartContainer>
+          </div>
+        </ChartSection>
       )}
-      <MetaAdsMiniFunnel steps={data.funnel.steps} />
-      <MailListGrowthIndicator kpis={data.kpis} />
+      <ChartSection slug="embudo">
+        <MetaAdsMiniFunnel steps={data.funnel.steps} />
+      </ChartSection>
+      <ChartSection slug="crecimiento-lista">
+        <MailListGrowthIndicator kpis={data.kpis} />
+      </ChartSection>
     </div>
   );
 }

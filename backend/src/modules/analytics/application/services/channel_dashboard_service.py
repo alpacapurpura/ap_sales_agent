@@ -153,6 +153,32 @@ _CHANNEL_CONFIGS: dict[str, ChannelDashboardConfig] = {
         ],
         has_frequency_alert=False,
     ),
+    "website-total": ChannelDashboardConfig(
+        channel_name="Tu Sitio Web",
+        hero_metrics=[
+            "sessions",
+            "engagementRate",
+            "bounceRate",
+            "conversions",
+            "averageSessionDuration",
+            "users",
+        ],
+        timeseries_metrics=[
+            "sessions",
+            "engagedSessions",
+            "bounceRate",
+            "conversions",
+            "engagementRate",
+            "users",
+        ],
+        funnel_steps=[
+            ("Sesiones", "sessions"),
+            ("Comprometidas", "engagedSessions"),
+            ("Pág. Vistas", "screenPageViews"),
+            ("Conversiones", "conversions"),
+        ],
+        has_frequency_alert=False,
+    ),
     "email-nurture": ChannelDashboardConfig(
         channel_name="Email Marketing",
         hero_metrics=[
@@ -198,6 +224,7 @@ _CHANNEL_NAMES: dict[str, str] = {
     "ig-organic": "Instagram Orgánico",
     "yt-organic": "YouTube Orgánico",
     "email-nurture": "Email Marketing",
+    "website-total": "Tu Sitio Web",
 }
 
 # Period string -> days

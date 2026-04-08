@@ -34,7 +34,7 @@ _GROUP_MAP: dict[str, str] = {
     "direct": "ga4_search",
     "paid": "paid",
     "outbound": "outbound",
-    "website": "website",
+    "website": "organic_social",
 }
 
 # Error message mapping from extraction run errors to user-facing messages

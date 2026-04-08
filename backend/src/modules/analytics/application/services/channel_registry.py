@@ -356,20 +356,6 @@ STAGE_CHANNEL_MAP: dict[str, list[dict]] = {
     ],
     "capture": [
         {
-            "slug": "website-capture",
-            "name": "Tu Sitio Web",
-            "channel_type": "website",
-            "source_label": "Google Analytics + Meta Ads",
-            "provider_name": "internal",
-            "metric_names": [
-                "visitors",
-                "campaign_visitors",
-                "seo_visitors",
-                "ai_search_visitors",
-                "direct_visitors",
-            ],
-        },
-        {
             "slug": "landing-form",
             "name": "Landing Page Form",
             "channel_type": "form",

@@ -46,6 +46,7 @@ interface ChannelDashboardResponse {
     severity: string;
     message: string;
   } | null;
+  extra_data?: Record<string, unknown> | null;
 }
 
 function mapResponse(raw: ChannelDashboardResponse): ChannelDashboardData {
@@ -85,6 +86,7 @@ function mapResponse(raw: ChannelDashboardResponse): ChannelDashboardData {
       severity: raw.frequency_alert.severity as 'warning' | 'critical',
       message: raw.frequency_alert.message,
     } : null,
+    extraData: raw.extra_data ?? null,
   };
 }
 

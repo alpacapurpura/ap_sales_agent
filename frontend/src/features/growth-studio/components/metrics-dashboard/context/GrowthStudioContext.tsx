@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { StageId, MetricClickData, ChannelMetric, MetaAdsDashboardTab } from '../../../types/metrics';
 import type { PeriodType } from '../../../api/stage-detail-api';
 import { useMetricClickHandler } from './useMetricClickHandler';
+import { providerToConnectionRoute } from '../../../lib/providerToConnectionRoute';
 
 // ── Split contexts: stable actions vs reactive state ──────────────
 // Actions context never changes identity after mount, preventing
@@ -22,6 +23,9 @@ interface GrowthStudioActionsValue {
   handleCloseExpandedDashboard: () => void;
   handleConfigure: (slug: string, name: string) => void;
   handleCloseConfigure: () => void;
+  handleNoDataClick: (channel: ChannelMetric) => void;
+  handleCloseNoData: () => void;
+  handleDisconnectedClick: (channel: ChannelMetric) => void;
   resolvePendingChannel: (channels: ResolvableChannel[]) => void;
 }
 
@@ -83,6 +87,7 @@ interface GrowthStudioContextValue {
   metaAdsDashboardInitialTab: MetaAdsDashboardTab | undefined;
   expandedDashboardChannel: string | null;
   configureChannel: { slug: string; name: string } | null;
+  noDataChannel: ChannelMetric | null;
   handleMetricClick: (metric: MetricClickData) => void;
   handleSidebarClose: () => void;
   handleChannelClick: (channel: ChannelMetric) => void;
@@ -94,6 +99,9 @@ interface GrowthStudioContextValue {
   handleCloseExpandedDashboard: () => void;
   handleConfigure: (slug: string, name: string) => void;
   handleCloseConfigure: () => void;
+  handleNoDataClick: (channel: ChannelMetric) => void;
+  handleCloseNoData: () => void;
+  handleDisconnectedClick: (channel: ChannelMetric) => void;
   pendingChannelSlug: string | null;
   pendingChannelTab: string | null;
   resolvePendingChannel: (channels: ResolvableChannel[]) => void;
@@ -164,6 +172,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
   const metaAdsDashboardOpen = expandedDashboardChannel === 'meta-ads';
   const [metaAdsDashboardInitialTab, setMetaAdsDashboardInitialTab] = useState<MetaAdsDashboardTab | undefined>(undefined);
   const [configureChannel, setConfigureChannel] = useState<{ slug: string; name: string } | null>(null);
+  const [noDataChannel, setNoDataChannel] = useState<ChannelMetric | null>(null);
 
   // ── Deep link: read ?channel= and ?tab= from URL ──────────────────
   const pendingChannelSlug = searchParams.get(CHANNEL_PARAM);
@@ -214,6 +223,8 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
 
     setConfigureChannel(null);
 
+    setNoDataChannel(null);
+
     resolvedSlugRef.current = null;
   }, [activeStage]);
 
@@ -246,20 +257,32 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     router.replace(qs ? `${currentPath}?${qs}` : currentPath);
   }, [router]);
 
+  /** @deprecated Use handleOpenExpandedDashboard('meta-ads') instead */
   const handleOpenMetaAdsDashboard = useCallback(() => {
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
     setMetaAdsDashboardInitialTab(undefined);
-    setExpandedDashboardChannel('meta-ads');
-  }, []);
+    // Navigate to route instead of overlay state
+    const stageSlug = activeStageRef.current ? STAGE_TO_SLUG[activeStageRef.current] : 'atraccion-captura';
+    const segments = pathnameRef.current.split('/');
+    const gsIndex = segments.findIndex(s => s === 'growth-studio');
+    const tid = gsIndex > 0 ? segments[gsIndex - 1] : '';
+    router.push(`/${tid}/growth-studio/${stageSlug}/meta-ads`);
+  }, [router]);
 
+  /** @deprecated Use handleOpenExpandedDashboard('meta-ads') instead */
   const handleOpenMetaAdsDashboardToTab = useCallback((tab: MetaAdsDashboardTab) => {
     setChannelSidebarOpen(false);
     setSelectedChannel(null);
     setMetaAdsDashboardInitialTab(tab);
-    setExpandedDashboardChannel('meta-ads');
-  }, []);
+    const stageSlug = activeStageRef.current ? STAGE_TO_SLUG[activeStageRef.current] : 'atraccion-captura';
+    const segments = pathnameRef.current.split('/');
+    const gsIndex = segments.findIndex(s => s === 'growth-studio');
+    const tid = gsIndex > 0 ? segments[gsIndex - 1] : '';
+    router.push(`/${tid}/growth-studio/${stageSlug}/meta-ads?tab=${tab}`);
+  }, [router]);
 
+  /** @deprecated Use handleCloseExpandedDashboard instead */
   const handleCloseMetaAdsDashboard = useCallback(() => {
     setExpandedDashboardChannel(null);
     setMetaAdsDashboardInitialTab(undefined);
@@ -293,6 +316,26 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setConfigureChannel(null);
   }, []);
 
+  const handleNoDataClick = useCallback((channel: ChannelMetric) => {
+    setNoDataChannel(channel);
+  }, []);
+
+  const handleCloseNoData = useCallback(() => {
+    setNoDataChannel(null);
+  }, []);
+
+  const handleDisconnectedClick = useCallback((channel: ChannelMetric) => {
+    const route = providerToConnectionRoute(channel.providerName);
+    const segments = pathnameRef.current.split('/');
+    const gsIndex = segments.findIndex(s => s === 'growth-studio');
+    const tenantId = gsIndex > 0 ? segments[gsIndex - 1] : '';
+    if (route) {
+      router.push(`/${tenantId}/connections/${route}`);
+    } else {
+      router.push(`/${tenantId}/connections`);
+    }
+  }, [router]);
+
   // Actions value — stable identity (callbacks use refs, deps are minimal)
   const actions = useMemo<GrowthStudioActionsValue>(() => ({
     setSelectedPeriod,
@@ -307,6 +350,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
+    handleNoDataClick,
+    handleCloseNoData,
+    handleDisconnectedClick,
     resolvePendingChannel,
   }), [
     handleMetricClick,
@@ -320,6 +366,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
+    handleNoDataClick,
+    handleCloseNoData,
+    handleDisconnectedClick,
     resolvePendingChannel,
   ]);
 
@@ -336,6 +385,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     metaAdsDashboardInitialTab,
     expandedDashboardChannel,
     configureChannel,
+    noDataChannel,
     handleMetricClick,
     handleSidebarClose,
     handleChannelClick,
@@ -347,6 +397,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
+    handleNoDataClick,
+    handleCloseNoData,
+    handleDisconnectedClick,
     pendingChannelSlug,
     pendingChannelTab,
     resolvePendingChannel,
@@ -361,6 +414,7 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     metaAdsDashboardInitialTab,
     expandedDashboardChannel,
     configureChannel,
+    noDataChannel,
     pendingChannelSlug,
     pendingChannelTab,
     handleMetricClick,
@@ -374,6 +428,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     handleCloseExpandedDashboard,
     handleConfigure,
     handleCloseConfigure,
+    handleNoDataClick,
+    handleCloseNoData,
+    handleDisconnectedClick,
     resolvePendingChannel,
   ]);
 

@@ -41,7 +41,6 @@ from src.modules.analytics.infrastructure.repositories.official_metrics_reposito
 _CAPTURE_GROUP_MAP: dict[str, str] = {
     "form": "web_infrastructure",
     "email": "web_infrastructure",
-    "website": "web_infrastructure",
     "messaging": "ai_agent",
 }
 

@@ -4,6 +4,14 @@ import { AttractionCaptureDetail } from '../detail-panels/AttractionCaptureDetai
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
 
 export function AtraccionCapturaStage() {
-  const { handleMetricClick, handleConfigure, handleChannelClick } = useGrowthStudioContext();
-  return <AttractionCaptureDetail onMetricClick={handleMetricClick} onConfigure={handleConfigure} onChannelClick={handleChannelClick} />;
+  const { handleMetricClick, handleConfigure, handleChannelClick, handleDisconnectedClick, handleNoDataClick } = useGrowthStudioContext();
+  return (
+    <AttractionCaptureDetail
+      onMetricClick={handleMetricClick}
+      onConfigure={handleConfigure}
+      onChannelClick={handleChannelClick}
+      onDisconnectedClick={handleDisconnectedClick}
+      onNoDataClick={handleNoDataClick}
+    />
+  );
 }

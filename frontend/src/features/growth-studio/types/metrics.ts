@@ -594,6 +594,7 @@ export interface ChannelDashboardData {
   timeSeries: MetricTimeSeries[];
   funnel: { steps: FunnelStep[] };
   frequencyAlert: FrequencyAlert | null;
+  extraData?: Record<string, unknown> | null;
 }
 
 export type MetaAdsDashboardTab = 'resumen' | 'campanas' | 'creativos' | 'audiencia' | 'costos';
@@ -606,6 +607,8 @@ export type IgOrganicDashboardTab = 'overview' | 'contenido' | 'audiencia' | 'al
 export type YouTubeDashboardTab = 'overview' | 'videos' | 'audiencia' | 'engagement' | 'retencion';
 
 export type MailDashboardTab = 'overview' | 'engagement' | 'entregabilidad' | 'lista' | 'automatizacion';
+
+export type WebsiteDashboardTab = 'overview' | 'trafico' | 'contenido' | 'conversiones';
 
 // ── Campaign Performance Types ──
 

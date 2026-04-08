@@ -12,6 +12,7 @@ import {
 import { useDemographics } from '../../../../../api/campaigns-api';
 import type { DemographicSegment } from '../../../../../api/campaigns-api';
 import type { ChannelDashboardData, MetaAdsPeriod } from '../../../../../types/metrics';
+import { ChartSection } from '../../shared/ChartSection';
 import { ReachFrequencySection } from '../ReachFrequencySection';
 
 interface AudienciaTabProps {
@@ -89,14 +90,17 @@ export function AudienciaTab({ data, isLoading, period }: AudienciaTabProps) {
   return (
     <div className="space-y-6">
       {/* Reach + Frequency */}
-      <ReachFrequencySection kpis={data.kpis} frequencyAlert={data.frequencyAlert} />
+      <ChartSection slug="alcance-frecuencia">
+        <ReachFrequencySection kpis={data.kpis} frequencyAlert={data.frequencyAlert} />
+      </ChartSection>
 
       {/* Demographic Breakdown */}
-      <div>
-        <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Demografía de tu audiencia
-        </h3>
-        <div className="grid grid-cols-3 gap-4">
+      <ChartSection slug="demografia">
+        <div>
+          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Demografía de tu audiencia
+          </h3>
+          <div className="grid grid-cols-3 gap-4">
           {/* Age Distribution */}
           {demographics?.age && demographics.age.length > 0 ? (
             <div className="rounded-xl border bg-card p-4">
@@ -212,6 +216,7 @@ export function AudienciaTab({ data, isLoading, period }: AudienciaTabProps) {
           )}
         </div>
       </div>
+      </ChartSection>
     </div>
   );
 }

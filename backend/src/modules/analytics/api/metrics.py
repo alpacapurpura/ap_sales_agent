@@ -318,6 +318,18 @@ async def get_stage_overview(
             db, cache=cache, connection_port=connection_port, offer_port=offer_port
         )
         await _warm_stage_cache(metrics_svc, user.tenant_id, stage.value, period)
+        # Invalidate any stale overview cache before re-reading
+        try:
+            overview_key = cache._key(
+                str(user.tenant_id), f"overview_{stage.value}", period
+            )
+            cache._redis.delete(overview_key)
+        except Exception:
+            import structlog
+
+            structlog.get_logger().debug(
+                "overview_cache_invalidation_failed", stage=stage.value
+            )
         overview = await overview_svc.get_stage_overview(
             str(user.tenant_id), stage.value, period
         )

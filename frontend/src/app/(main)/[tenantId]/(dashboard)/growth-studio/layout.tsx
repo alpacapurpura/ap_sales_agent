@@ -8,6 +8,7 @@ import MetricSidebar from '@/features/growth-studio/components/metrics-dashboard
 import ChannelDetailSidebar from '@/features/growth-studio/components/metrics-dashboard/sidebar/ChannelDetailSidebar';
 import { SidebarContent } from '@/features/growth-studio/components/metrics-dashboard/sidebar/SidebarContent';
 import { ChannelConnectionModal } from '@/features/growth-studio/components/metrics-dashboard/channel-widgets/ChannelConnectionModal';
+import { NoDataSidebarPanel } from '@/features/growth-studio/components/metrics-dashboard/channel-widgets/NoDataSidebarPanel';
 import { GrowthSyncProvider } from '@/features/growth-studio/context/growth-sync-context';
 import { SyncProgressDialog } from '@/features/growth-studio/components/sync-progress-dialog';
 
@@ -19,10 +20,12 @@ const GrowthStudioShell = memo(function GrowthStudioShell({ children }: { childr
     selectedChannel,
     channelSidebarOpen,
     configureChannel,
+    noDataChannel,
     pendingChannelTab,
     handleSidebarClose,
     handleChannelSidebarClose,
     handleCloseConfigure,
+    handleCloseNoData,
   } = useGrowthStudioContext();
 
   const { enrichedSummaries, loadingMap, mockMap } = useStageSummaries();
@@ -69,6 +72,12 @@ const GrowthStudioShell = memo(function GrowthStudioShell({ children }: { childr
         channelSlug={configureChannel?.slug ?? null}
         channelName={configureChannel?.name ?? ''}
         onClose={handleCloseConfigure}
+      />
+
+      <NoDataSidebarPanel
+        isOpen={!!noDataChannel}
+        onClose={handleCloseNoData}
+        channel={noDataChannel}
       />
     </>
   );

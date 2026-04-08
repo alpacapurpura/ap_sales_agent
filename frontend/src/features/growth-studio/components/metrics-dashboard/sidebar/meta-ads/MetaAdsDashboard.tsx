@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, BarChart3, RefreshCw } from 'lucide-react';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
+import { useHashScroll } from '../../../../hooks/useHashScroll';
 import { useConnectionHealth } from '../../../../hooks/useConnectionHealth';
 import { useSyncAllSources } from '../../../../hooks/useSyncAllSources';
 import { useCampaignPerformance } from '../../../../api/campaigns-api';
@@ -21,24 +23,69 @@ import { AudienciaTab } from './tabs/AudienciaTab';
 import { CostosTab } from './tabs/CostosTab';
 
 interface MetaAdsDashboardProps {
-  onClose: () => void;
+  onClose?: () => void;
   initialTab?: MetaAdsDashboardTab;
+  isRouteBased?: boolean;
 }
 
-export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps) {
-  const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
-  const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>(initialTab ?? 'resumen');
+const VALID_TABS: MetaAdsDashboardTab[] = ['resumen', 'campanas', 'creativos', 'audiencia', 'costos'];
+
+export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsDashboardProps) {
+  const router = useRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const tenantId = params?.tenantId as string;
+
+  const tabFromUrl = searchParams?.get('tab') ?? initialTab ?? 'resumen';
+  const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
+  const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
+  const [activeTab, setActiveTab] = useState<MetaAdsDashboardTab>(
+    VALID_TABS.includes(tabFromUrl as MetaAdsDashboardTab)
+      ? (tabFromUrl as MetaAdsDashboardTab)
+      : 'resumen',
+  );
   const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
   const { data: health } = useConnectionHealth('meta-ads');
   const { trigger: syncAll, isLoading: isSyncing } = useSyncAllSources();
+  useHashScroll();
+
+  const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
+    setPeriod(p);
+    const url = new URL(window.location.href);
+    if (p === '30d') { url.searchParams.delete('period'); } else { url.searchParams.set('period', p); }
+    window.history.replaceState(null, '', url.toString());
+  }, []);
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const tab = value as MetaAdsDashboardTab;
+      setActiveTab(tab);
+      const url = new URL(window.location.href);
+      if (tab === 'resumen') {
+        url.searchParams.delete('tab');
+      } else {
+        url.searchParams.set('tab', tab);
+      }
+      window.history.replaceState(null, '', url.toString());
+    },
+    [],
+  );
+
+  const handleBack = useCallback(() => {
+    if (onClose) {
+      onClose();
+      return;
+    }
+    router.push(`/${tenantId}/growth-studio/atraccion-captura?channel=meta-ads`);
+  }, [onClose, router, tenantId]);
 
   const content = (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
+    <div className={isRouteBased ? 'flex flex-col min-h-screen bg-background' : 'fixed inset-0 z-50 flex flex-col bg-background'}>
       {/* Header */}
       <div className="flex items-center justify-between border-b px-6 py-3">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onClose} className="gap-1.5">
+          <Button variant="ghost" size="sm" onClick={handleBack} className="gap-1.5">
             <ArrowLeft className="h-4 w-4" />
             Volver
           </Button>
@@ -48,7 +95,7 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <MetaAdsPeriodSelector value={period} onChange={setPeriod} />
+          <MetaAdsPeriodSelector value={period} onChange={handlePeriodChange} />
           {campaignData?.lastSynced && (
             <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -83,7 +130,7 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
       {/* Tabs */}
       <Tabs
         value={activeTab}
-        onValueChange={v => setActiveTab(v as MetaAdsDashboardTab)}
+        onValueChange={handleTabChange}
         className="flex flex-1 flex-col overflow-hidden"
       >
         <div className="border-b px-6">
@@ -130,6 +177,7 @@ export function MetaAdsDashboard({ onClose, initialTab }: MetaAdsDashboardProps)
     </div>
   );
 
+  if (isRouteBased) return content;
   if (typeof document === 'undefined') return null;
   return createPortal(content, document.body);
 }

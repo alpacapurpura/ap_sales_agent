@@ -4,6 +4,7 @@ import { Eye, Film, Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { formatMoney } from '@/lib/format-money';
+import { ChartSection } from '../../shared/ChartSection';
 import {
   useCreativesOverview,
   useAdPerformance,
@@ -219,52 +220,56 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
   return (
     <div className="space-y-6">
       {/* ── Top Anuncios por Rendimiento ─────────────────────────── */}
-      <div>
-        <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Top anuncios por rendimiento
-        </h3>
+      <ChartSection slug="top-creativos">
+        <div>
+          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Top anuncios por rendimiento
+          </h3>
 
-        {isAdPerfLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : topAds.length > 0 ? (
-          <div className="grid grid-cols-3 gap-3">
-            {topAds.map(ad => (
-              <AdCard key={ad.adId} ad={ad} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
-            <Film className="h-8 w-8 mx-auto mb-2 opacity-40" />
-            <p className="font-medium">Sin datos de rendimiento por anuncio</p>
-            <p className="mt-1 text-xs">
-              Los datos aparecerán cuando haya anuncios activos con métricas de rendimiento.
-            </p>
-          </div>
-        )}
-      </div>
+          {isAdPerfLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : topAds.length > 0 ? (
+            <div className="grid grid-cols-3 gap-3">
+              {topAds.map(ad => (
+                <AdCard key={ad.adId} ad={ad} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
+              <Film className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              <p className="font-medium">Sin datos de rendimiento por anuncio</p>
+              <p className="mt-1 text-xs">
+                Los datos aparecerán cuando haya anuncios activos con métricas de rendimiento.
+              </p>
+            </div>
+          )}
+        </div>
+      </ChartSection>
 
       {/* ── 2-Column: Format Comparison + Video Retention ────────── */}
       <div className="grid grid-cols-2 gap-4">
         {/* Format Comparison */}
-        <div>
-          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Rendimiento por formato
-          </h3>
-          <div className="rounded-lg border bg-card p-4 space-y-3">
-            {formats.length > 0 ? (
-              formats.map(fmt => <FormatRow key={fmt.formatType} format={fmt} />)
-            ) : (
-              <p className="py-4 text-center text-xs text-muted-foreground">
-                Sin datos de formatos disponibles
-              </p>
-            )}
+        <ChartSection slug="comparacion-formato">
+          <div>
+            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Rendimiento por formato
+            </h3>
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              {formats.length > 0 ? (
+                formats.map(fmt => <FormatRow key={fmt.formatType} format={fmt} />)
+              ) : (
+                <p className="py-4 text-center text-xs text-muted-foreground">
+                  Sin datos de formatos disponibles
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        </ChartSection>
 
         {/* Video Retention (kept from existing implementation) */}
-        <div>
+        <ChartSection slug="retencion-video"><div>
           <h3
             className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3"
             title="Cu\u00e1ntas personas ven tu video hasta cada punto. Ideal: >30% completa el video."
@@ -326,7 +331,7 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
               </p>
             </div>
           )}
-        </div>
+        </div></ChartSection>
       </div>
 
       {/* ── Video KPIs (only if retention data exists) ────────────── */}

@@ -35,21 +35,6 @@ vi.mock('../../../../hooks/useMetricCatalog', () => ({
   }),
 }));
 
-// Mock ConnectionBadge to simplify rendering
-vi.mock('../ConnectionBadge', () => ({
-  ConnectionBadge: ({ connected, onConfigure }: { connected: boolean; onConfigure?: () => void }) => {
-    if (connected) return <span data-testid="badge-connected">Conectado</span>;
-    if (onConfigure) {
-      return (
-        <button data-testid="badge-configure" onClick={onConfigure}>
-          Configurar
-        </button>
-      );
-    }
-    return <span data-testid="badge-configure">Configurar</span>;
-  },
-}));
-
 // Mock CostLink
 vi.mock('../CostLink', () => ({
   CostLink: () => <span data-testid="cost-link">Configurar costo</span>,
@@ -159,25 +144,6 @@ describe('ChannelRow', () => {
     expect(screen.getByText('Interacciones')).toBeInTheDocument();
   });
 
-  it('shows "Configurar" badge for unconnected channels', () => {
-    render(<ChannelRow channel={disconnectedChannel} />);
-
-    expect(screen.getByText('TikTok Organic')).toBeInTheDocument();
-    expect(screen.getByText('Configurar')).toBeInTheDocument();
-  });
-
-  it('calls onConfigure when "Configurar" is clicked on unconnected channel', async () => {
-    const handleConfigure = vi.fn();
-    const user = userEvent.setup();
-
-    render(<ChannelRow channel={disconnectedChannel} onConfigure={handleConfigure} />);
-
-    const configureBtn = screen.getByTestId('badge-configure');
-    await user.click(configureBtn);
-
-    expect(handleConfigure).toHaveBeenCalledWith('tiktok-organic', 'TikTok Organic');
-  });
-
   it('shows placeholder "---" and "Sin datos" for connected channels with no metrics', () => {
     render(<ChannelRow channel={noDataChannel} />);
 
@@ -263,12 +229,6 @@ describe('ChannelRow', () => {
   it('renders id="channel-{slug}" on connected channel row', () => {
     const { container } = render(<ChannelRow channel={connectedChannel} />);
     const el = container.querySelector('#channel-ig-organic');
-    expect(el).not.toBeNull();
-  });
-
-  it('renders id="channel-{slug}" on disconnected channel row', () => {
-    const { container } = render(<ChannelRow channel={disconnectedChannel} />);
-    const el = container.querySelector('#channel-tiktok-organic');
     expect(el).not.toBeNull();
   });
 

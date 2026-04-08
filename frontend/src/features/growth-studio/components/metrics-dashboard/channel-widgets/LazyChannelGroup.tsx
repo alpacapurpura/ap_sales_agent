@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { useIntersectionObserver } from '../../../hooks/useIntersectionObserver';
 import { useGroupDetail } from '../../../hooks/useGroupDetail';
 import { ChannelRow } from './ChannelRow';
+import { ChannelChip } from './ChannelChip';
+import { classifyChannel } from '../../../lib/classifyChannel';
 import type { ChannelOverview, ChannelMetric, MetricClickData, StageId } from '../../../types/metrics';
 import {
   Accordion,
@@ -53,6 +55,10 @@ interface LazyChannelGroupProps {
   onChannelClick?: (channel: ChannelMetric) => void;
   /** Callback when user clicks "Configurar" on unconnected channel */
   onConfigure?: (slug: string, name: string) => void;
+  /** Callback when user clicks a disconnected channel chip */
+  onDisconnectedClick?: (channel: ChannelMetric) => void;
+  /** Callback when user clicks a connected-but-no-data channel chip */
+  onNoDataClick?: (channel: ChannelMetric) => void;
 }
 
 /**
@@ -75,6 +81,8 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
   onMetricClick,
   onChannelClick,
   onConfigure,
+  onDisconnectedClick,
+  onNoDataClick,
 }: LazyChannelGroupProps) {
   const { ref, isVisible } = useIntersectionObserver({ rootMargin });
   const { data: groupDetail } = useGroupDetail(stage, groupKey, { enabled: isVisible });
@@ -98,6 +106,21 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
       providerName: ch.providerName,
     }));
   }, [groupDetail, overviewChannels]);
+
+  // Classify channels into rows vs chips
+  const { rowChannels, chipChannels } = useMemo(() => {
+    const rows: ChannelMetric[] = [];
+    const chips: ChannelMetric[] = [];
+    for (const ch of channels) {
+      const cat = classifyChannel(ch);
+      if (cat === 'active' || cat === 'proximamente') {
+        rows.push(ch);
+      } else {
+        chips.push(ch);
+      }
+    }
+    return { rowChannels: rows, chipChannels: chips };
+  }, [channels]);
 
   if (channels.length === 0) return null;
 
@@ -125,17 +148,34 @@ export const LazyChannelGroup = memo(function LazyChannelGroup({
             </div>
           </AccordionTrigger>
           <AccordionContent className="pb-0">
-            <div className="p-4 space-y-0.5">
-              {channels.map((channel) => (
-                <ChannelRow
-                  key={channel.slug}
-                  channel={channel}
-                  stageId={stageId}
-                  onMetricClick={onMetricClick}
-                  onChannelClick={onChannelClick}
-                  onConfigure={onConfigure}
-                />
-              ))}
+            <div className="p-4 space-y-3">
+              {rowChannels.length > 0 && (
+                <div className="space-y-0.5">
+                  {rowChannels.map((channel) => (
+                    <ChannelRow
+                      key={channel.slug}
+                      channel={channel}
+                      stageId={stageId}
+                      onMetricClick={onMetricClick}
+                      onChannelClick={onChannelClick}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {chipChannels.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-border/30">
+                  {chipChannels.map((ch) => (
+                    <ChannelChip
+                      key={ch.slug}
+                      channel={ch}
+                      variant={ch.connected ? 'no-data' : 'disconnected'}
+                      onDisconnectedClick={onDisconnectedClick}
+                      onNoDataClick={onNoDataClick}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>

@@ -28,7 +28,6 @@ _STAGE_GROUPS: dict[str, list[tuple[str, str, str]]] = {
         ("ga4_search", "Búsqueda Orgánica", "ga4_search"),
         ("paid", "Pagado", "paid"),
         ("outbound", "Outbound", "outbound"),
-        ("website", "Sitio Web", "website"),
     ],
     "capture": [
         ("web_infrastructure", "Web / Infraestructura", "web_infrastructure"),

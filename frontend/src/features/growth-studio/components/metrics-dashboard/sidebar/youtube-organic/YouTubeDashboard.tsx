@@ -8,6 +8,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
+import { useHashScroll } from '../../../../hooks/useHashScroll';
 import type { MetaAdsPeriod, YouTubeDashboardTab } from '../../../../types/metrics';
 import { ChannelPeriodSelector } from '../ig-organic/ChannelPeriodSelector';
 import { YtOverviewTab } from './tabs/YtOverviewTab';
@@ -36,8 +37,17 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
       ? (tabFromUrl as YouTubeDashboardTab)
       : 'overview',
   );
-  const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
+  const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
+  const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
   const { data, isLoading } = useChannelDashboard('yt-organic', period);
+  useHashScroll();
+
+  const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
+    setPeriod(p);
+    const url = new URL(window.location.href);
+    if (p === '30d') { url.searchParams.delete('period'); } else { url.searchParams.set('period', p); }
+    window.history.replaceState(null, '', url.toString());
+  }, []);
 
   const handleTabChange = useCallback(
     (value: string) => {
@@ -75,7 +85,7 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
             <h1 className="text-lg font-semibold">YouTube Org&aacute;nico &middot; Dashboard</h1>
           </div>
         </div>
-        <ChannelPeriodSelector value={period} onChange={setPeriod} />
+        <ChannelPeriodSelector value={period} onChange={handlePeriodChange} />
       </div>
 
       <Tabs

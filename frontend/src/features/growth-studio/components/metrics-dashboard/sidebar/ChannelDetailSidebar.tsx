@@ -37,6 +37,7 @@ import { YouTubeTopVideosList } from './youtube/YouTubeTopVideosList';
 import { YouTubeTrafficSourcesChart } from './youtube/YouTubeTrafficSourcesChart';
 import { YouTubeDemographicsChart } from './youtube/YouTubeDemographicsChart';
 import { MailOverviewPanel } from './mail/MailOverviewPanel';
+import { WebsiteOverviewPanel } from './website/WebsiteOverviewPanel';
 
 /** Section groupings for channels with many metrics. */
 const CHANNEL_METRIC_SECTIONS: Record<string, Array<{ title: string; metrics: string[] }>> = {
@@ -102,7 +103,7 @@ interface ChannelDetailSidebarProps {
 }
 
 export default function ChannelDetailSidebar({ isOpen, onClose, channel, initialTab }: ChannelDetailSidebarProps) {
-  const { handleOpenMetaAdsDashboard, handleOpenMetaAdsDashboardToTab, handleOpenExpandedDashboard } = useGrowthStudioContext();
+  const { handleOpenExpandedDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -145,8 +146,8 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
         <MetaAdsOverviewPanel
           channel={channel}
           onClose={onClose}
-          onExpand={handleOpenMetaAdsDashboard}
-          onExpandToTab={handleOpenMetaAdsDashboardToTab}
+          onExpand={() => handleOpenExpandedDashboard('meta-ads')}
+          onExpandToTab={() => handleOpenExpandedDashboard('meta-ads')}
           initialTab={initialTab}
         />
       </DetailPanel>
@@ -175,6 +176,20 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
           channel={channel}
           onClose={onClose}
           onExpand={() => handleOpenExpandedDashboard('yt-organic')}
+          initialTab={initialTab}
+        />
+      </DetailPanel>
+    );
+  }
+
+  // Website: Wider sidebar with dedicated overview panel
+  if (channel.slug === 'website-total') {
+    return (
+      <DetailPanel open={isOpen} onClose={onClose} size="lg">
+        <WebsiteOverviewPanel
+          channel={channel}
+          onClose={onClose}
+          onExpand={() => handleOpenExpandedDashboard('website-total')}
           initialTab={initialTab}
         />
       </DetailPanel>

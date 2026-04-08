@@ -14,6 +14,7 @@ import { ChartContainer } from '@/components/ui/chart';
 import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
 import { MetricInfoCard } from '../../../channel-widgets/KpiTooltip';
 import { ChartInfoTooltip } from '../../ig-organic/ChartInfoTooltip';
+import { ChartSection } from '../../shared/ChartSection';
 import type { ChannelDashboardData } from '../../../../../types/metrics';
 
 interface YtEngagementTabProps {
@@ -61,70 +62,74 @@ export function YtEngagementTab({ data, isLoading }: YtEngagementTabProps) {
     <div className="space-y-8">
       {/* CTR KPI Cards */}
       {(cardCtrKpi || endScreenCtrKpi) && (
-        <div className="grid grid-cols-2 gap-4">
-          {cardCtrKpi && (
-            <div className="rounded-lg border bg-card p-4 space-y-2">
-              <MetricInfoCard metricName="card_click_rate">
-                <p className="text-xs text-muted-foreground">{cardCtrKpi.displayName}</p>
-              </MetricInfoCard>
-              <p className="text-2xl font-semibold tabular-nums">
-                {cardCtrKpi.currentValue.toFixed(1)}%
-              </p>
-              {cardCtrKpi.benchmark && (
-                <BenchmarkBadge
-                  value={cardCtrKpi.currentValue}
-                  benchmark={cardCtrKpi.benchmark}
-                  higherIsBetter={cardCtrKpi.higherIsBetter}
-                />
-              )}
-            </div>
-          )}
-          {endScreenCtrKpi && (
-            <div className="rounded-lg border bg-card p-4 space-y-2">
-              <MetricInfoCard metricName="end_screen_click_rate">
-                <p className="text-xs text-muted-foreground">{endScreenCtrKpi.displayName}</p>
-              </MetricInfoCard>
-              <p className="text-2xl font-semibold tabular-nums">
-                {endScreenCtrKpi.currentValue.toFixed(1)}%
-              </p>
-              {endScreenCtrKpi.benchmark && (
-                <BenchmarkBadge
-                  value={endScreenCtrKpi.currentValue}
-                  benchmark={endScreenCtrKpi.benchmark}
-                  higherIsBetter={endScreenCtrKpi.higherIsBetter}
-                />
-              )}
-            </div>
-          )}
-        </div>
+        <ChartSection slug="kpis-ctr">
+          <div className="grid grid-cols-2 gap-4">
+            {cardCtrKpi && (
+              <div className="rounded-lg border bg-card p-4 space-y-2">
+                <MetricInfoCard metricName="card_click_rate">
+                  <p className="text-xs text-muted-foreground">{cardCtrKpi.displayName}</p>
+                </MetricInfoCard>
+                <p className="text-2xl font-semibold tabular-nums">
+                  {cardCtrKpi.currentValue.toFixed(1)}%
+                </p>
+                {cardCtrKpi.benchmark && (
+                  <BenchmarkBadge
+                    value={cardCtrKpi.currentValue}
+                    benchmark={cardCtrKpi.benchmark}
+                    higherIsBetter={cardCtrKpi.higherIsBetter}
+                  />
+                )}
+              </div>
+            )}
+            {endScreenCtrKpi && (
+              <div className="rounded-lg border bg-card p-4 space-y-2">
+                <MetricInfoCard metricName="end_screen_click_rate">
+                  <p className="text-xs text-muted-foreground">{endScreenCtrKpi.displayName}</p>
+                </MetricInfoCard>
+                <p className="text-2xl font-semibold tabular-nums">
+                  {endScreenCtrKpi.currentValue.toFixed(1)}%
+                </p>
+                {endScreenCtrKpi.benchmark && (
+                  <BenchmarkBadge
+                    value={endScreenCtrKpi.currentValue}
+                    benchmark={endScreenCtrKpi.benchmark}
+                    higherIsBetter={endScreenCtrKpi.higherIsBetter}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </ChartSection>
       )}
 
       {/* Engagement trend chart */}
       {chartData.length > 0 && (
-        <div className="space-y-2">
-          <ChartInfoTooltip
-            title="Tendencia de Engagement"
-            description="Comentarios, shares y engagement total a lo largo del tiempo. Un engagement constante indica contenido que conecta con tu audiencia."
-          />
-          <ChartContainer
-            config={{
-              comments: { label: 'Comentarios', color: 'hsl(var(--chart-1))' },
-              shares: { label: 'Compartidos', color: 'hsl(var(--chart-2))' },
-              engagement: { label: 'Engagement Total', color: 'hsl(var(--chart-3))' },
-            }}
-            className="h-[250px] w-full"
-          >
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-xs" />
-              <YAxis className="text-xs" />
-              <RechartsTooltip />
-              <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="shares" stroke="var(--color-shares)" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="engagement" stroke="var(--color-engagement)" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ChartContainer>
-        </div>
+        <ChartSection slug="tendencia-engagement">
+          <div className="space-y-2">
+            <ChartInfoTooltip
+              title="Tendencia de Engagement"
+              description="Comentarios, shares y engagement total a lo largo del tiempo. Un engagement constante indica contenido que conecta con tu audiencia."
+            />
+            <ChartContainer
+              config={{
+                comments: { label: 'Comentarios', color: 'hsl(var(--chart-1))' },
+                shares: { label: 'Compartidos', color: 'hsl(var(--chart-2))' },
+                engagement: { label: 'Engagement Total', color: 'hsl(var(--chart-3))' },
+              }}
+              className="h-[250px] w-full"
+            >
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-xs" />
+                <YAxis className="text-xs" />
+                <RechartsTooltip />
+                <Line type="monotone" dataKey="comments" stroke="var(--color-comments)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="shares" stroke="var(--color-shares)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="engagement" stroke="var(--color-engagement)" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ChartContainer>
+          </div>
+        </ChartSection>
       )}
     </div>
   );

@@ -117,7 +117,6 @@ export function ChannelGroup({ title, totals, channels, groupType, defaultOpen =
                 stageId={stageId}
                 onMetricClick={onMetricClick}
                 onChannelClick={onChannelClick}
-                onConfigure={onConfigure}
               />
             ))}
           </div>

@@ -8,6 +8,7 @@ import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
+import { useHashScroll } from '../../../../hooks/useHashScroll';
 import type { MetaAdsPeriod, IgOrganicDashboardTab } from '../../../../types/metrics';
 import { ChannelPeriodSelector } from './ChannelPeriodSelector';
 import { IgOverviewTab } from './tabs/IgOverviewTab';
@@ -35,8 +36,17 @@ export function IgOrganicDashboard({ onClose, initialTab, isRouteBased }: IgOrga
       ? (tabFromUrl as IgOrganicDashboardTab)
       : 'overview',
   );
-  const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
+  const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
+  const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
   const { data, isLoading } = useChannelDashboard('ig-organic', period);
+  useHashScroll();
+
+  const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
+    setPeriod(p);
+    const url = new URL(window.location.href);
+    if (p === '30d') { url.searchParams.delete('period'); } else { url.searchParams.set('period', p); }
+    window.history.replaceState(null, '', url.toString());
+  }, []);
 
   const handleTabChange = useCallback(
     (value: string) => {
@@ -74,7 +84,7 @@ export function IgOrganicDashboard({ onClose, initialTab, isRouteBased }: IgOrga
             <h1 className="text-lg font-semibold">Instagram Orgánico &middot; Dashboard</h1>
           </div>
         </div>
-        <ChannelPeriodSelector value={period} onChange={setPeriod} />
+        <ChannelPeriodSelector value={period} onChange={handlePeriodChange} />
       </div>
 
       <Tabs
