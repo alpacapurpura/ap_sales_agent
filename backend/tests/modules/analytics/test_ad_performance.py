@@ -27,6 +27,11 @@ def _make_ad_creative_row(
     creative_video_id: str | None = None,
     creative_image_url: str | None = None,
     creative_thumbnail_url: str | None = None,
+    preview_shareable_link: str | None = None,
+    creative_body: str | None = None,
+    creative_cta: str | None = None,
+    effective_status: str | None = None,
+    campaign_name: str | None = None,
 ):
     """Create a mock DB row for ads table creative metadata."""
     row = MagicMock()
@@ -35,15 +40,21 @@ def _make_ad_creative_row(
         "creative_video_id": creative_video_id,
         "creative_image_url": creative_image_url,
         "creative_thumbnail_url": creative_thumbnail_url,
+        "preview_shareable_link": preview_shareable_link,
+        "creative_body": creative_body,
+        "creative_cta": creative_cta,
+        "effective_status": effective_status,
+        "campaign_name": campaign_name,
     }
     return row
 
 
-def _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows):
-    """Configure mock_db.execute to return different results for two calls.
+def _setup_query_mocks(mock_db, metric_rows, ad_creative_rows, currency="USD"):
+    """Configure mock_db.execute for the three queries in get_top_ads.
 
-    First call: official_metrics aggregation query.
-    Second call: ads table creative metadata query.
+    1. official_metrics aggregation query
+    2. ads table creative metadata query
+    3. currency detection query
     """
     metrics_result = MagicMock()
     metrics_result.fetchall.return_value = metric_rows
@@ -51,7 +62,12 @@ def _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows):
     ads_result = MagicMock()
     ads_result.fetchall.return_value = ad_creative_rows
 
-    mock_db.execute.side_effect = [metrics_result, ads_result]
+    currency_row = MagicMock()
+    currency_row._mapping = {"currency": currency}
+    currency_result = MagicMock()
+    currency_result.fetchone.return_value = currency_row
+
+    mock_db.execute.side_effect = [metrics_result, ads_result, currency_result]
 
 
 class TestAdPerformanceService:
@@ -75,7 +91,7 @@ class TestAdPerformanceService:
                 "ad_002", creative_image_url="https://img.example.com/carousel.jpg"
             ),
         ]
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d", limit=10)
@@ -105,7 +121,7 @@ class TestAdPerformanceService:
             _make_metric_row("ad_bad", "roas", 0.5),
         ]
         ad_creative_rows = []  # No creative metadata — all default to "image"
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d")
@@ -117,13 +133,20 @@ class TestAdPerformanceService:
     def test_get_top_ads_empty_when_no_data(self):
         tenant_id = uuid4()
         mock_db = MagicMock()
-        mock_db.execute.return_value.fetchall.return_value = []
+
+        # First call: metrics query returns empty; second: currency returns None
+        empty_result = MagicMock()
+        empty_result.fetchall.return_value = []
+        currency_result = MagicMock()
+        currency_result.fetchone.return_value = None
+        mock_db.execute.side_effect = [empty_result, currency_result]
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d")
 
         assert result.total_ads == 0
         assert result.ads == []
+        assert result.currency is None
 
 
 class TestAdFormatDetection:
@@ -145,7 +168,7 @@ class TestAdFormatDetection:
                 creative_thumbnail_url="https://thumb.example.com/vid.jpg",
             ),
         ]
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d")
@@ -170,14 +193,15 @@ class TestAdFormatDetection:
                 creative_thumbnail_url="https://thumb.example.com/ad.jpg",
             ),
         ]
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d")
 
         assert len(result.ads) == 1
         assert result.ads[0].format_type == "image"
-        assert result.ads[0].thumbnail_url == "https://thumb.example.com/ad.jpg"
+        # Prefers creative_image_url (full res) over thumbnail_url
+        assert result.ads[0].thumbnail_url == "https://img.example.com/ad.jpg"
 
     def test_fallback_to_image_when_no_creative_metadata(self):
         """Ad not found in ads table -> format_type defaults to 'image'."""
@@ -188,7 +212,7 @@ class TestAdFormatDetection:
             _make_metric_row("ad_unknown", "spend", 50.0, "Unknown Ad"),
         ]
         ad_creative_rows = []  # No matching ads in the ads table
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d")
@@ -214,7 +238,7 @@ class TestAdFormatDetection:
             ),
             # ad_no_data not in ads table — will fallback to "image"
         ]
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d")
@@ -240,7 +264,7 @@ class TestAdFormatDetection:
                 creative_thumbnail_url="https://thumb.example.com/vid.jpg",
             ),
         ]
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_top_ads(tenant_id, "meta-ads", "30d")
@@ -277,7 +301,7 @@ class TestFormatComparisonGrouping:
 
         # get_format_comparison calls get_top_ads internally (limit=500),
         # so mock needs to return data for that call
-        _setup_two_query_mock(mock_db, metric_rows, ad_creative_rows)
+        _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
 
         service = AdPerformanceService(mock_db)
         result = service.get_format_comparison(tenant_id, "meta-ads", "30d")

@@ -255,7 +255,47 @@ class MetaCampaignProvider:
                         "confidence": rec.get("confidence"),
                     }
                 )
+        # Enrich video ads with high-resolution thumbnails
+        await self._enrich_video_thumbnails(client, credentials, ads)
+
         return ads, inline_recs
+
+    async def _enrich_video_thumbnails(
+        self,
+        client: httpx.AsyncClient,
+        credentials: dict,
+        ads: list[dict],
+    ) -> None:
+        """Fetch HD thumbnails for video ads (1080px vs default 64px).
+
+        For each ad with a creative_video_id and no creative_image_url,
+        fetches the first thumbnail from GET /{video_id}?fields=thumbnails.
+        Stores the HD URL in creative_image_url so the service layer picks it.
+        """
+        access_token = credentials.get("access_token", "")
+        video_ads = [
+            a
+            for a in ads
+            if a.get("creative_video_id") and not a.get("creative_image_url")
+        ]
+        if not video_ads:
+            return
+
+        for ad in video_ads:
+            vid = ad["creative_video_id"]
+            try:
+                resp = await client.get(
+                    f"{GRAPH_API_BASE}/{vid}",
+                    headers=_auth_headers(access_token),
+                    params={"fields": "thumbnails{uri,width,height}"},
+                )
+                if resp.status_code != 200:
+                    continue
+                thumbs = resp.json().get("thumbnails", {}).get("data", [])
+                if thumbs:
+                    ad["creative_image_url"] = thumbs[0]["uri"]
+            except Exception:
+                logger.debug("video_thumbnail_fetch_failed video_id=%s", vid)
 
     async def extract_account_recommendations(
         self,

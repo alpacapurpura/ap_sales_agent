@@ -55,11 +55,11 @@ class TestCampaignSyncPipeline:
         )
 
         mock_repo = MagicMock()
-        mock_repo.upsert_campaigns = AsyncMock(return_value=1)
-        mock_repo.upsert_ad_sets = AsyncMock(return_value=1)
-        mock_repo.upsert_ads = AsyncMock(return_value=1)
-        mock_repo.upsert_recommendations = AsyncMock(return_value=2)
-        mock_repo.soft_delete_stale = AsyncMock(return_value=0)
+        mock_repo.upsert_campaigns = MagicMock(return_value=1)
+        mock_repo.upsert_ad_sets = MagicMock(return_value=1)
+        mock_repo.upsert_ads = MagicMock(return_value=1)
+        mock_repo.upsert_recommendations = MagicMock(return_value=2)
+        mock_repo.soft_delete_stale = MagicMock(return_value=0)
 
         tenant_id = uuid4()
         creds = {"access_token": "tok", "ad_account_id": "123"}

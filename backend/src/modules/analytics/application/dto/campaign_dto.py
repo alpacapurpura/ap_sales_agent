@@ -186,6 +186,10 @@ class AdMetricsDTO(BaseModel):
     campaign_external_id: str | None = None
     format_type: str = "unknown"  # "video" | "carousel" | "image" | "unknown"
     thumbnail_url: str | None = None
+    preview_url: str | None = None
+    creative_body: str | None = None
+    creative_cta: str | None = None
+    effective_status: str | None = None
     spend: float = 0.0
     impressions: float = 0.0
     clicks: float = 0.0
@@ -203,6 +207,7 @@ class AdPerformanceListDTO(BaseModel):
     ads: list[AdMetricsDTO] = []
     period: str
     total_ads: int = 0
+    currency: str | None = None
 
 
 class FormatComparisonItemDTO(BaseModel):
@@ -223,3 +228,4 @@ class FormatComparisonDTO(BaseModel):
 
     formats: list[FormatComparisonItemDTO] = []
     period: str
+    currency: str | None = None

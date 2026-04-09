@@ -9,7 +9,7 @@ import logging
 from uuid import UUID
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class CampaignRepository:
     """CRUD operations for campaign hierarchy + recommendations."""
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: Session):
         self._session = session
 
     # ── Campaigns ──
@@ -61,14 +61,14 @@ class CampaignRepository:
             updated_at = NOW()
     """)
 
-    async def upsert_campaigns(
+    def upsert_campaigns(
         self,
         tenant_id: UUID,
         campaigns: list[dict],
     ) -> int:
         count = 0
         for c in campaigns:
-            await self._session.execute(
+            self._session.execute(
                 self._UPSERT_CAMPAIGN_SQL,
                 {
                     "tenant_id": str(tenant_id),
@@ -136,14 +136,14 @@ class CampaignRepository:
             updated_at = NOW()
     """)
 
-    async def upsert_ad_sets(
+    def upsert_ad_sets(
         self,
         tenant_id: UUID,
         ad_sets: list[dict],
     ) -> int:
         count = 0
         for a in ad_sets:
-            await self._session.execute(
+            self._session.execute(
                 self._UPSERT_ADSET_SQL,
                 {
                     "tenant_id": str(tenant_id),
@@ -211,14 +211,14 @@ class CampaignRepository:
             updated_at = NOW()
     """)
 
-    async def upsert_ads(
+    def upsert_ads(
         self,
         tenant_id: UUID,
         ads: list[dict],
     ) -> int:
         count = 0
         for ad in ads:
-            await self._session.execute(
+            self._session.execute(
                 self._UPSERT_AD_SQL,
                 {
                     "tenant_id": str(tenant_id),
@@ -263,14 +263,14 @@ class CampaignRepository:
         ON CONFLICT DO NOTHING
     """)
 
-    async def upsert_recommendations(
+    def upsert_recommendations(
         self,
         tenant_id: UUID,
         recommendations: list[dict],
     ) -> int:
         count = 0
         for r in recommendations:
-            await self._session.execute(
+            self._session.execute(
                 self._UPSERT_RECOMMENDATION_SQL,
                 {
                     "tenant_id": str(tenant_id),
@@ -295,12 +295,12 @@ class CampaignRepository:
 
     # ── Queries ──
 
-    async def get_campaigns(
+    def get_campaigns(
         self,
         tenant_id: UUID,
         provider: str = "meta",
     ) -> list:
-        result = await self._session.execute(
+        result = self._session.execute(
             text("""
                 SELECT * FROM ad_campaigns
                 WHERE tenant_id = :tenant_id
@@ -312,12 +312,12 @@ class CampaignRepository:
         )
         return [dict(row._mapping) for row in result.fetchall()]
 
-    async def get_ad_sets(
+    def get_ad_sets(
         self,
         tenant_id: UUID,
         campaign_external_id: str,
     ) -> list:
-        result = await self._session.execute(
+        result = self._session.execute(
             text("""
                 SELECT * FROM ad_sets
                 WHERE tenant_id = :tenant_id
@@ -329,12 +329,12 @@ class CampaignRepository:
         )
         return [dict(row._mapping) for row in result.fetchall()]
 
-    async def get_ads(
+    def get_ads(
         self,
         tenant_id: UUID,
         ad_set_external_id: str,
     ) -> list:
-        result = await self._session.execute(
+        result = self._session.execute(
             text("""
                 SELECT * FROM ads
                 WHERE tenant_id = :tenant_id
@@ -346,12 +346,12 @@ class CampaignRepository:
         )
         return [dict(row._mapping) for row in result.fetchall()]
 
-    async def get_recommendations(
+    def get_recommendations(
         self,
         tenant_id: UUID,
         provider: str = "meta",
     ) -> list:
-        result = await self._session.execute(
+        result = self._session.execute(
             text("""
                 SELECT * FROM ad_recommendations
                 WHERE tenant_id = :tenant_id
@@ -364,7 +364,7 @@ class CampaignRepository:
         )
         return [dict(row._mapping) for row in result.fetchall()]
 
-    async def soft_delete_stale(
+    def soft_delete_stale(
         self,
         tenant_id: UUID,
         provider: str,
@@ -377,7 +377,7 @@ class CampaignRepository:
         placeholders = ", ".join(f":id_{i}" for i in range(len(active_external_ids)))
         params: dict = {"tenant_id": str(tenant_id), "provider": provider}
         params.update({f"id_{i}": eid for i, eid in enumerate(active_external_ids)})
-        result = await self._session.execute(
+        result = self._session.execute(
             text(
                 f"""
                 UPDATE {table}

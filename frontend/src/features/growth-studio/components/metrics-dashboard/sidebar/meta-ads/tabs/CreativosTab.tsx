@@ -1,9 +1,17 @@
 'use client';
 
-import { Clock, Film, Loader2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Clock, ExternalLink, Film, Image, Loader2 } from 'lucide-react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 import { formatMoney } from '@/lib/format-money';
+import {
+  DetailPanel,
+  DetailPanelHeader,
+  DetailPanelTitle,
+  DetailPanelClose,
+} from '@/components/ui/detail-panel';
 import { ChartSection } from '../../shared/ChartSection';
 import {
   useCreativesOverview,
@@ -34,13 +42,6 @@ function roasColor(roas: number | null): string {
   return 'text-red-400';
 }
 
-function cpaColor(cpa: number | null, roas: number | null): string {
-  if (cpa == null) return 'text-muted-foreground';
-  if (roas != null && roas >= 3) return 'text-emerald-400';
-  if (roas != null && roas < 1) return 'text-red-400';
-  return '';
-}
-
 function performanceTagLabel(tag: string): { label: string; className: string } {
   switch (tag) {
     case 'top_performer':
@@ -52,30 +53,76 @@ function performanceTagLabel(tag: string): { label: string; className: string } 
   }
 }
 
-function formatTypeBadge(formatType: string): { label: string; className: string } {
+function formatTypeBadge(formatType: string): { label: string; icon: typeof Film; className: string } {
   switch (formatType) {
     case 'video':
-      return { label: 'Video', className: 'bg-blue-500/10 text-blue-400' };
+      return { label: 'Video', icon: Film, className: 'bg-blue-500/10 text-blue-400' };
     case 'carousel':
-      return { label: 'Carrusel', className: 'bg-blue-500/10 text-blue-400' };
+      return { label: 'Carrusel', icon: Image, className: 'bg-purple-500/10 text-purple-400' };
     case 'image':
-      return { label: 'Imagen', className: 'bg-zinc-500/10 text-zinc-400' };
     default:
-      return { label: formatType, className: 'bg-zinc-500/10 text-zinc-400' };
+      return { label: 'Imagen', icon: Image, className: 'bg-zinc-500/10 text-zinc-400' };
   }
+}
+
+function statusDot(status: string | null): string {
+  switch (status) {
+    case 'ACTIVE':
+      return 'bg-emerald-400';
+    case 'PAUSED':
+    case 'CAMPAIGN_PAUSED':
+      return 'bg-amber-400';
+    default:
+      return 'bg-zinc-400';
+  }
+}
+
+function ctaLabel(cta: string | null): string | null {
+  if (!cta) return null;
+  const labels: Record<string, string> = {
+    LEARN_MORE: 'Más info',
+    SHOP_NOW: 'Comprar',
+    SIGN_UP: 'Registrarse',
+    VIEW_INSTAGRAM_PROFILE: 'Ver perfil',
+    WATCH_MORE: 'Ver más',
+    CONTACT_US: 'Contactar',
+    SEND_MESSAGE: 'Mensaje',
+    BOOK_NOW: 'Reservar',
+    DOWNLOAD: 'Descargar',
+    GET_OFFER: 'Ver oferta',
+  };
+  return labels[cta] ?? cta.replace(/_/g, ' ').toLowerCase();
 }
 
 // ── Ad Card ──────────────────────────────────────────────────────────
 
-function AdCard({ ad }: { ad: AdMetrics }) {
+function AdCard({ ad, currency, onSelect }: { ad: AdMetrics; currency: string; onSelect: (ad: AdMetrics) => void }) {
   const isUnderperformer = ad.performanceTag === 'underperformer';
   const tagInfo = performanceTagLabel(ad.performanceTag);
   const formatInfo = formatTypeBadge(ad.formatType);
+  const FormatIcon = formatInfo.icon;
+  const cta = ctaLabel(ad.creativeCta);
+
+  // Smart KPIs: show metrics that have data
+  const hasConversions = ad.conversions > 0;
+  const kpis = hasConversions
+    ? [
+        { label: 'ROAS', value: ad.roas != null ? `${ad.roas.toFixed(1)}x` : '-', color: roasColor(ad.roas) },
+        { label: 'Ventas', value: formatCompact(ad.conversions), color: '' },
+        { label: 'CPA', value: ad.cpa != null ? formatMoney(ad.cpa, currency) : '-', color: '' },
+      ]
+    : [
+        { label: 'Gasto', value: formatMoney(ad.spend, currency), color: '' },
+        { label: 'CTR', value: ad.ctr != null ? `${(ad.ctr).toFixed(1)}%` : '-', color: ad.ctr != null && ad.ctr >= 2 ? 'text-emerald-400' : '' },
+        { label: 'CPC', value: ad.cpc != null ? formatMoney(ad.cpc, currency) : '-', color: '' },
+      ];
 
   return (
-    <div
+    <button
+      type="button"
+      onClick={() => onSelect(ad)}
       className={cn(
-        'rounded-xl border bg-card p-3 space-y-3',
+        'rounded-xl border bg-card p-3 space-y-2.5 text-left transition-colors hover:border-primary/30 hover:bg-accent/30 w-full',
         isUnderperformer && 'border-red-500/20',
       )}
     >
@@ -93,6 +140,20 @@ function AdCard({ ad }: { ad: AdMetrics }) {
         </div>
       )}
 
+      {/* Format + Status row */}
+      <div className="flex items-center gap-1.5">
+        <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px]', formatInfo.className)}>
+          <FormatIcon className="h-2.5 w-2.5" />
+          {formatInfo.label}
+        </span>
+        <span className={cn('h-1.5 w-1.5 rounded-full', statusDot(ad.effectiveStatus))} />
+        {cta && (
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] text-muted-foreground">
+            {cta}
+          </span>
+        )}
+      </div>
+
       {/* Name + Campaign */}
       <div>
         <p className="text-xs font-medium truncate">{ad.adName}</p>
@@ -101,44 +162,166 @@ function AdCard({ ad }: { ad: AdMetrics }) {
         </p>
       </div>
 
+      {/* Copy preview */}
+      {ad.creativeBody && (
+        <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed italic">
+          &ldquo;{ad.creativeBody}&rdquo;
+        </p>
+      )}
+
       {/* KPIs Grid */}
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div>
-          <p className="text-[9px] text-muted-foreground">ROAS</p>
-          <p className={cn('text-sm font-bold', roasColor(ad.roas))}>
-            {ad.roas != null ? `${ad.roas.toFixed(1)}x` : '-'}
-          </p>
-        </div>
-        <div>
-          <p className="text-[9px] text-muted-foreground">Ventas</p>
-          <p className="text-sm font-bold">{formatCompact(ad.conversions)}</p>
-        </div>
-        <div>
-          <p className="text-[9px] text-muted-foreground">CPA</p>
-          <p className={cn('text-sm font-bold', cpaColor(ad.cpa, ad.roas))}>
-            {ad.cpa != null ? formatMoney(ad.cpa, 'USD') : '-'}
-          </p>
-        </div>
+        {kpis.map(kpi => (
+          <div key={kpi.label}>
+            <p className="text-[9px] text-muted-foreground">{kpi.label}</p>
+            <p className={cn('text-sm font-bold tabular-nums', kpi.color)}>
+              {kpi.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Badges */}
-      <div className="flex items-center gap-1">
-        {tagInfo.label && (
-          <span className={cn('rounded-full px-2 py-0.5 text-[9px]', tagInfo.className)}>
-            {tagInfo.label}
-          </span>
-        )}
-        <span className={cn('rounded-full px-2 py-0.5 text-[9px]', formatInfo.className)}>
-          {formatInfo.label}
-        </span>
+      <div className="flex items-center justify-between">
+        <div>
+          {tagInfo.label && (
+            <span className={cn('rounded-full px-2 py-0.5 text-[9px]', tagInfo.className)}>
+              {tagInfo.label}
+            </span>
+          )}
+        </div>
+        <span className="text-[9px] text-primary/60">Ver detalle &rarr;</span>
       </div>
-    </div>
+    </button>
+  );
+}
+
+// ── Ad Detail Panel (Sidebar) ───────────────────────────────────────
+
+function AdDetailPanel({ ad, currency, open, onClose }: { ad: AdMetrics | null; currency: string; open: boolean; onClose: () => void }) {
+  if (!ad) return null;
+
+  const formatInfo = formatTypeBadge(ad.formatType);
+  const FormatIcon = formatInfo.icon;
+  const cta = ctaLabel(ad.creativeCta);
+  const hasConversions = ad.conversions > 0;
+
+  const allMetrics = [
+    { label: 'Gasto total', value: formatMoney(ad.spend, currency) },
+    { label: 'Impresiones', value: formatCompact(ad.impressions) },
+    { label: 'Clicks', value: formatCompact(ad.clicks) },
+    { label: 'CTR', value: ad.ctr != null ? `${ad.ctr.toFixed(2)}%` : '-' },
+    { label: 'CPC', value: ad.cpc != null ? formatMoney(ad.cpc, currency) : '-' },
+    ...(hasConversions
+      ? [
+          { label: 'Conversiones', value: formatCompact(ad.conversions) },
+          { label: 'ROAS', value: ad.roas != null ? `${ad.roas.toFixed(2)}x` : '-' },
+          { label: 'CPA', value: ad.cpa != null ? formatMoney(ad.cpa, currency) : '-' },
+        ]
+      : []),
+  ];
+
+  return (
+    <DetailPanel open={open} onClose={onClose} size="md">
+      {/* Header */}
+      <DetailPanelHeader>
+        <div className="flex items-center justify-between">
+          <DetailPanelTitle className="truncate pr-4">{ad.adName}</DetailPanelTitle>
+          <div className="flex items-center gap-2 shrink-0">
+            {ad.previewUrl && (
+              <a
+                href={ad.previewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs hover:bg-accent transition-colors"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Ver en Meta
+              </a>
+            )}
+            <DetailPanelClose onClose={onClose} />
+          </div>
+        </div>
+      </DetailPanelHeader>
+
+      <div className="space-y-5 p-6">
+        {/* Full preview image */}
+        {ad.thumbnailUrl && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={ad.thumbnailUrl}
+            alt={ad.adName}
+            className="w-full rounded-lg object-cover max-h-[300px]"
+          />
+        )}
+
+        {/* Format + Status + CTA */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs', formatInfo.className)}>
+            <FormatIcon className="h-3 w-3" />
+            {formatInfo.label}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className={cn('h-2 w-2 rounded-full', statusDot(ad.effectiveStatus))} />
+            {ad.effectiveStatus?.replace(/_/g, ' ') ?? 'Desconocido'}
+          </span>
+          {cta && (
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+              CTA: {cta}
+            </span>
+          )}
+        </div>
+
+        {/* Campaign */}
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Campa\u00f1a</p>
+          <p className="text-sm">{ad.campaignName ?? 'Sin campa\u00f1a'}</p>
+        </div>
+
+        {/* Creative Body (full copy) */}
+        {ad.creativeBody && (
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Copy del anuncio</p>
+            <div className="rounded-lg border bg-muted/30 p-3">
+              <p className="text-sm leading-relaxed whitespace-pre-line">{ad.creativeBody}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Performance Metrics */}
+        <div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">M\u00e9tricas de rendimiento</p>
+          <div className="grid grid-cols-3 gap-3">
+            {allMetrics.map(metric => (
+              <div key={metric.label} className="rounded-lg border bg-card p-2.5">
+                <p className="text-[10px] text-muted-foreground">{metric.label}</p>
+                <p className="text-lg font-bold tabular-nums mt-0.5">{metric.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Performance tag */}
+        {ad.performanceTag !== 'average' && (
+          <div className="pt-1">
+            {(() => {
+              const tag = performanceTagLabel(ad.performanceTag);
+              return tag.label ? (
+                <span className={cn('rounded-full px-3 py-1 text-xs', tag.className)}>
+                  {tag.label}
+                </span>
+              ) : null;
+            })()}
+          </div>
+        )}
+      </div>
+    </DetailPanel>
   );
 }
 
 // ── Format Comparison Row ────────────────────────────────────────────
 
-function FormatRow({ format }: { format: FormatComparisonItem }) {
+function FormatRow({ format, currency }: { format: FormatComparisonItem; currency: string }) {
   const scoreColor =
     format.performanceScore >= 70
       ? 'bg-emerald-500/60'
@@ -167,7 +350,7 @@ function FormatRow({ format }: { format: FormatComparisonItem }) {
           <span>
             CPA{' '}
             <strong className={valueColor}>
-              {format.avgCpa != null ? formatMoney(format.avgCpa, 'USD') : '-'}
+              {format.avgCpa != null ? formatMoney(format.avgCpa, currency) : '-'}
             </strong>
           </span>
           <span>
@@ -196,6 +379,36 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
   const { data: adPerf, isLoading: isAdPerfLoading } = useAdPerformance(activePeriod, 3);
   const { data: formatComp } = useFormatComparison(activePeriod);
 
+  // URL-addressable sidebar
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const adParam = searchParams.get('ad');
+
+  // Manual selection overrides URL param; URL param provides initial state
+  const [manualAdId, setManualAdId] = useState<string | null>(null);
+  const activeAdId = manualAdId ?? adParam;
+
+  const selectedAd = activeAdId && adPerf?.ads
+    ? (adPerf.ads.find(a => a.adId === activeAdId) ?? null)
+    : null;
+
+  const panelOpen = selectedAd !== null;
+
+  const handleSelectAd = useCallback((ad: AdMetrics) => {
+    setManualAdId(ad.adId);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('ad', ad.adId);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
+
+  const handleClosePanel = useCallback(() => {
+    setManualAdId(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('ad');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -216,6 +429,7 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
   const formats = formatComp?.formats ?? [];
   const retention = creatives?.videoRetention;
   const hasRetention = retention && retention.plays > 0;
+  const currency = adPerf?.currency ?? formatComp?.currency ?? 'USD';
 
   return (
     <div className="space-y-6">
@@ -233,7 +447,7 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
           ) : topAds.length > 0 ? (
             <div className="grid grid-cols-3 gap-3">
               {topAds.map(ad => (
-                <AdCard key={ad.adId} ad={ad} />
+                <AdCard key={ad.adId} ad={ad} currency={currency} onSelect={handleSelectAd} />
               ))}
             </div>
           ) : (
@@ -258,7 +472,7 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
             </h3>
             <div className="rounded-lg border bg-card p-4 space-y-3">
               {formats.length > 0 ? (
-                formats.map(fmt => <FormatRow key={fmt.formatType} format={fmt} />)
+                formats.map(fmt => <FormatRow key={fmt.formatType} format={fmt} currency={currency} />)
               ) : (
                 <p className="py-4 text-center text-xs text-muted-foreground">
                   Sin datos de formatos disponibles
@@ -268,7 +482,7 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
           </div>
         </ChartSection>
 
-        {/* Video Retention (kept from existing implementation) */}
+        {/* Video Retention */}
         <ChartSection slug="retencion-video"><div>
           <h3
             className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3"
@@ -357,7 +571,7 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
           <div className="rounded-lg border bg-card p-3">
             <p className="text-[10px] text-muted-foreground">
               <Clock className="mr-1 inline h-3 w-3" />
-              Duración promedio
+              Duraci&oacute;n promedio
             </p>
             <p className="text-xl font-bold tabular-nums mt-1">
               {retention.avgWatchTime != null && retention.avgWatchTime > 0
@@ -372,6 +586,9 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
           </div>
         </div>
       )}
+
+      {/* ── Ad Detail Sidebar ────────────────────────────────────── */}
+      <AdDetailPanel ad={selectedAd} currency={currency} open={panelOpen} onClose={handleClosePanel} />
     </div>
   );
 }

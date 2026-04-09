@@ -400,8 +400,31 @@ class ChannelDashboardService:
             if val is not None:
                 previous_metrics[name] = val
 
+        # Detect channel currency for monetary KPIs
+        try:
+            currency_row = self.repo.db.execute(
+                text("""
+                    SELECT currency FROM official_metrics
+                    WHERE tenant_id = :tenant_id
+                      AND channel_slug = :channel_slug
+                      AND currency IS NOT NULL
+                    LIMIT 1
+                """),
+                {"tenant_id": str(tenant_id), "channel_slug": channel_slug},
+            ).fetchone()
+            raw = currency_row._mapping["currency"] if currency_row else None
+            channel_currency = raw if isinstance(raw, str) else None
+        except Exception:
+            channel_currency = None
+
         # Build KPIs
-        kpis = self._build_kpis(current_metrics, previous_metrics, industry, config)
+        kpis = self._build_kpis(
+            current_metrics,
+            previous_metrics,
+            industry,
+            config,
+            channel_currency,
+        )
 
         # Build time series — resolve derived metrics (CPC, CPM, CTR, ROAS)
         # from raw component data (spend, clicks, impressions, etc.)
@@ -440,6 +463,7 @@ class ChannelDashboardService:
         previous: dict[str, float],
         industry: IndustryCategory,
         config: ChannelDashboardConfig | None = None,
+        channel_currency: str | None = None,
     ) -> list[MetricKpiDTO]:
         """Build KPI cards with deltas and benchmarks."""
         fallback_config = _CHANNEL_CONFIGS.get("meta-ads", _DEFAULT_CONFIG)
@@ -491,6 +515,7 @@ class ChannelDashboardService:
                     unit=unit,
                     higher_is_better=higher_is_better,
                     benchmark=benchmark,
+                    currency=channel_currency if unit == "currency" else None,
                 )
             )
 

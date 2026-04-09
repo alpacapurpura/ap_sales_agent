@@ -1,9 +1,7 @@
 """Tests for CampaignRepository — upsert and query operations."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 from uuid import uuid4
-
-import pytest
 
 from src.modules.analytics.infrastructure.repositories.campaign_repository import (
     CampaignRepository,
@@ -13,9 +11,8 @@ from src.modules.analytics.infrastructure.repositories.campaign_repository impor
 class TestCampaignRepositoryUpsert:
     """Test upsert methods call session.execute with correct params."""
 
-    @pytest.mark.asyncio
-    async def test_upsert_campaigns_executes_sql(self):
-        session = AsyncMock()
+    def test_upsert_campaigns_executes_sql(self):
+        session = MagicMock()
         repo = CampaignRepository(session)
         tenant_id = uuid4()
         campaigns = [
@@ -28,7 +25,7 @@ class TestCampaignRepositoryUpsert:
                 "daily_budget": 5000,
             }
         ]
-        count = await repo.upsert_campaigns(tenant_id, campaigns)
+        count = repo.upsert_campaigns(tenant_id, campaigns)
         assert count == 1
         session.execute.assert_called_once()
         call_args = session.execute.call_args
@@ -36,9 +33,8 @@ class TestCampaignRepositoryUpsert:
         assert params["external_id"] == "camp_001"
         assert params["tenant_id"] == str(tenant_id)
 
-    @pytest.mark.asyncio
-    async def test_upsert_ad_sets_executes_sql(self):
-        session = AsyncMock()
+    def test_upsert_ad_sets_executes_sql(self):
+        session = MagicMock()
         repo = CampaignRepository(session)
         tenant_id = uuid4()
         ad_sets = [
@@ -49,13 +45,12 @@ class TestCampaignRepositoryUpsert:
                 "targeting": {"age_min": 25, "age_max": 34},
             }
         ]
-        count = await repo.upsert_ad_sets(tenant_id, ad_sets)
+        count = repo.upsert_ad_sets(tenant_id, ad_sets)
         assert count == 1
         session.execute.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_upsert_ads_executes_sql(self):
-        session = AsyncMock()
+    def test_upsert_ads_executes_sql(self):
+        session = MagicMock()
         repo = CampaignRepository(session)
         tenant_id = uuid4()
         ads = [
@@ -66,13 +61,12 @@ class TestCampaignRepositoryUpsert:
                 "name": "Ad Creative 1",
             }
         ]
-        count = await repo.upsert_ads(tenant_id, ads)
+        count = repo.upsert_ads(tenant_id, ads)
         assert count == 1
         session.execute.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_upsert_recommendations_executes_sql(self):
-        session = AsyncMock()
+    def test_upsert_recommendations_executes_sql(self):
+        session = MagicMock()
         repo = CampaignRepository(session)
         tenant_id = uuid4()
         recs = [
@@ -82,13 +76,12 @@ class TestCampaignRepositoryUpsert:
                 "body": "Refresh your creative",
             }
         ]
-        count = await repo.upsert_recommendations(tenant_id, recs)
+        count = repo.upsert_recommendations(tenant_id, recs)
         assert count == 1
         session.execute.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_upsert_multiple_campaigns(self):
-        session = AsyncMock()
+    def test_upsert_multiple_campaigns(self):
+        session = MagicMock()
         repo = CampaignRepository(session)
         tenant_id = uuid4()
         campaigns = [
@@ -96,7 +89,7 @@ class TestCampaignRepositoryUpsert:
             {"external_id": "c2", "name": "Camp 2"},
             {"external_id": "c3", "name": "Camp 3"},
         ]
-        count = await repo.upsert_campaigns(tenant_id, campaigns)
+        count = repo.upsert_campaigns(tenant_id, campaigns)
         assert count == 3
         assert session.execute.call_count == 3
 
@@ -104,25 +97,51 @@ class TestCampaignRepositoryUpsert:
 class TestCampaignRepositoryQueries:
     """Test query methods."""
 
-    @pytest.mark.asyncio
-    async def test_get_campaigns_filters_by_tenant(self):
+    def test_get_campaigns_filters_by_tenant(self):
         mock_result = MagicMock()
         mock_result.fetchall.return_value = []
-        session = AsyncMock()
+        session = MagicMock()
         session.execute.return_value = mock_result
         repo = CampaignRepository(session)
         tenant_id = uuid4()
-        result = await repo.get_campaigns(tenant_id)
+        result = repo.get_campaigns(tenant_id)
         assert result == []
         call_args = session.execute.call_args
         params = call_args[0][1]
         assert params["tenant_id"] == str(tenant_id)
 
-    @pytest.mark.asyncio
-    async def test_soft_delete_stale_with_empty_ids_returns_zero(self):
-        session = AsyncMock()
+    def test_soft_delete_stale_with_empty_ids_returns_zero(self):
+        session = MagicMock()
         repo = CampaignRepository(session)
         tenant_id = uuid4()
-        result = await repo.soft_delete_stale(tenant_id, "meta", "ad_campaigns", [])
+        result = repo.soft_delete_stale(tenant_id, "meta", "ad_campaigns", [])
         assert result == 0
         session.execute.assert_not_called()
+
+
+class TestCampaignRepositoryWithSyncSession:
+    """Regression: CampaignRepository must work with sync Session (not AsyncSession)."""
+
+    def test_upsert_campaigns_is_sync(self):
+        """Repo methods must be synchronous — no 'await' on session.execute."""
+        session = MagicMock()
+        repo = CampaignRepository(session)
+        tenant_id = uuid4()
+        campaigns = [{"external_id": "c1", "name": "Test"}]
+
+        # This must NOT raise "object ... can't be used in 'await' expression"
+        count = repo.upsert_campaigns(tenant_id, campaigns)
+        assert count == 1
+        # Verify it called session.execute (sync), not awaited it
+        session.execute.assert_called_once()
+
+    def test_soft_delete_stale_is_sync(self):
+        """soft_delete_stale must be synchronous."""
+        session = MagicMock()
+        session.execute.return_value.rowcount = 2
+        repo = CampaignRepository(session)
+        tenant_id = uuid4()
+
+        result = repo.soft_delete_stale(tenant_id, "meta", "ad_campaigns", ["c1", "c2"])
+        assert result == 2
+        session.execute.assert_called_once()

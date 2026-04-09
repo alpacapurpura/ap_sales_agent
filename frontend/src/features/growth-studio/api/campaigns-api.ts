@@ -167,7 +167,8 @@ export async function fetchCreativesOverview(
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Failed to fetch creatives: ${res.status}`);
-  return res.json();
+  const json: unknown = await res.json();
+  return camelizeKeys<CreativesOverviewData>(json);
 }
 
 export function useCreativesOverview(
@@ -217,6 +218,10 @@ export interface AdMetrics {
   campaignExternalId: string | null;
   formatType: string;
   thumbnailUrl: string | null;
+  previewUrl: string | null;
+  creativeBody: string | null;
+  creativeCta: string | null;
+  effectiveStatus: string | null;
   spend: number;
   impressions: number;
   clicks: number;
@@ -232,6 +237,7 @@ export interface AdPerformanceData {
   ads: AdMetrics[];
   period: string;
   totalAds: number;
+  currency: string | null;
 }
 
 export interface FormatComparisonItem {
@@ -248,6 +254,7 @@ export interface FormatComparisonItem {
 export interface FormatComparisonData {
   formats: FormatComparisonItem[];
   period: string;
+  currency: string | null;
 }
 
 export async function fetchAdPerformance(

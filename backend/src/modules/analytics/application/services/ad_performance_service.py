@@ -46,6 +46,19 @@ def _detect_format_type(creative: dict[str, str | None]) -> str:
     return "image"
 
 
+def _best_thumbnail_url(
+    image_url: str | None,
+    thumbnail_url: str | None,
+) -> str | None:
+    """Pick the best available image for an ad.
+
+    Prefers creative_image_url (full resolution, image ads) over
+    thumbnail_url (64x64 preview, all ads). Meta CDN thumbnail URLs
+    contain a signed hash that forbids size modifications.
+    """
+    return image_url or thumbnail_url
+
+
 class AdPerformanceService:
     def __init__(self, db: Session) -> None:
         self._db = db
@@ -55,6 +68,20 @@ class AdPerformanceService:
         end = date.today()
         start = end - timedelta(days=days)
         return start, end
+
+    def _detect_currency(self, tenant_id: UUID, channel_slug: str) -> str | None:
+        """Read the currency stored in official_metrics for this channel."""
+        row = self._db.execute(
+            text("""
+                SELECT currency FROM official_metrics
+                WHERE tenant_id = :tenant_id
+                  AND channel_slug = :channel_slug
+                  AND currency IS NOT NULL
+                LIMIT 1
+            """),
+            {"tenant_id": str(tenant_id), "channel_slug": channel_slug},
+        ).fetchone()
+        return row._mapping["currency"] if row else None
 
     def _fetch_creative_metadata(
         self,
@@ -75,12 +102,20 @@ class AdPerformanceService:
 
         rows = self._db.execute(
             text(f"""
-                SELECT external_id, creative_video_id,
-                       creative_image_url, creative_thumbnail_url
-                FROM ads
-                WHERE tenant_id = :tenant_id
-                  AND external_id IN ({placeholders})
-                  AND deleted_at IS NULL
+                SELECT a.external_id, a.creative_video_id,
+                       a.creative_image_url, a.creative_thumbnail_url,
+                       a.preview_shareable_link, a.creative_body,
+                       a.creative_cta, a.effective_status,
+                       a.campaign_external_id,
+                       c.name AS campaign_name
+                FROM ads a
+                LEFT JOIN ad_campaigns c
+                    ON c.tenant_id = a.tenant_id
+                   AND c.external_id = a.campaign_external_id
+                   AND c.deleted_at IS NULL
+                WHERE a.tenant_id = :tenant_id
+                  AND a.external_id IN ({placeholders})
+                  AND a.deleted_at IS NULL
             """),  # noqa: S608 — placeholders are parameterised, not user input
             params,
         ).fetchall()
@@ -92,6 +127,11 @@ class AdPerformanceService:
                 "creative_video_id": r.get("creative_video_id"),
                 "creative_image_url": r.get("creative_image_url"),
                 "creative_thumbnail_url": r.get("creative_thumbnail_url"),
+                "preview_shareable_link": r.get("preview_shareable_link"),
+                "creative_body": r.get("creative_body"),
+                "creative_cta": r.get("creative_cta"),
+                "effective_status": r.get("effective_status"),
+                "campaign_name": r.get("campaign_name"),
             }
 
         logger.info(
@@ -152,12 +192,21 @@ class AdPerformanceService:
             conversions = m.get("conversions", 0.0)
             creative = creative_lookup.get(aid, {})
             format_type = _detect_format_type(creative)
+            thumb = _best_thumbnail_url(
+                creative.get("creative_image_url"),
+                creative.get("creative_thumbnail_url"),
+            )
             ads.append(
                 AdMetricsDTO(
                     ad_id=aid,
                     ad_name=str(m.get("_ad_name", aid)),
+                    campaign_name=creative.get("campaign_name"),
                     format_type=format_type,
-                    thumbnail_url=creative.get("creative_thumbnail_url"),
+                    thumbnail_url=thumb,
+                    preview_url=creative.get("preview_shareable_link"),
+                    creative_body=creative.get("creative_body"),
+                    creative_cta=creative.get("creative_cta"),
+                    effective_status=creative.get("effective_status"),
                     spend=float(spend),
                     impressions=float(m.get("impressions", 0)),
                     clicks=float(m.get("clicks", 0)),
@@ -184,10 +233,13 @@ class AdPerformanceService:
                         elif ad.roas < avg_roas * 0.7:
                             ad.performance_tag = "underperformer"
 
+        currency = self._detect_currency(tenant_id, channel_slug)
+
         return AdPerformanceListDTO(
             ads=ads[:limit],
             period=period,
             total_ads=len(ads),
+            currency=currency,
         )
 
     def get_format_comparison(
@@ -242,4 +294,8 @@ class AdPerformanceService:
 
         formats.sort(key=lambda f: f.performance_score, reverse=True)
 
-        return FormatComparisonDTO(formats=formats, period=period)
+        return FormatComparisonDTO(
+            formats=formats,
+            period=period,
+            currency=result.currency,
+        )
