@@ -91,7 +91,8 @@ class AvailabilityService:
         if "name" not in data:
             data["name"] = "Horario sin nombre"
         if "timezone" not in data:
-            data["timezone"] = "America/Bogota"
+            tenant = self._get_tenant()
+            data["timezone"] = tenant.timezone if tenant and tenant.timezone else "UTC"
 
         # 1. Top level rename
         if "weekly_hours" in data:
@@ -151,6 +152,8 @@ class AvailabilityService:
 
     def _create_default_schedule_object(self) -> AvailabilitySchedule:
         # Default: Mon-Fri 9-17
+        tenant = self._get_tenant()
+        tenant_tz = tenant.timezone if tenant and tenant.timezone else "UTC"
         ranges = [TimeRange(start="09:00", end="17:00")]
         schedule = WeeklySchedule(
             monday=DaySchedule(active=True, ranges=ranges),
@@ -164,7 +167,7 @@ class AvailabilityService:
         return AvailabilitySchedule(
             name="Horas laborales",
             is_default=True,
-            timezone="America/Bogota",  # Default or from user config
+            timezone=tenant_tz,
             schedule=schedule,
         )
 

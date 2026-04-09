@@ -80,13 +80,37 @@ class TestDefaultScheduleCreation:
         assert schedules[0].schedule.monday.active is True
         assert schedules[0].schedule.saturday.active is False
 
-    def test_default_schedule_timezone_is_bogota(self, db, tenant):
+    def test_default_schedule_uses_tenant_timezone(self, db, tenant):
+        """Default schedule timezone matches the tenant's configured timezone."""
         svc = AvailabilityService(db, TENANT_ID)
         svc.adapter = None
 
         schedules = svc.list_schedules()
 
-        assert "Bogota" in schedules[0].timezone or "America" in schedules[0].timezone
+        # Tenant has no explicit timezone set → falls back to "UTC"
+        assert schedules[0].timezone == "UTC"
+
+    def test_default_schedule_uses_custom_tenant_timezone(self, db):
+        """Default schedule uses the tenant's timezone when explicitly set."""
+        from tests.factories import TenantFactory
+
+        custom_tz_tenant_id = uuid.UUID("aaaa0000-0000-0000-0000-000000000099")
+        t = TenantFactory.build(
+            id=custom_tz_tenant_id,
+            name="Bogota Tenant",
+            slug="bogota-tenant",
+            config_json={},
+            timezone="America/Bogota",
+        )
+        db.add(t)
+        db.commit()
+
+        svc = AvailabilityService(db, custom_tz_tenant_id)
+        svc.adapter = None
+
+        schedules = svc.list_schedules()
+
+        assert schedules[0].timezone == "America/Bogota"
 
 
 class TestScheduleMigration:
