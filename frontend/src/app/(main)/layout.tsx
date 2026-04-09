@@ -4,6 +4,8 @@ import Providers from "../providers";
 import { Suspense } from "react";
 import { TenantGuard } from "@/components/auth/tenant-guard";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Nicolify - Dashboard",
   description: "AI Sales & Marketing Dashboard",

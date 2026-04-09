@@ -130,7 +130,7 @@ jobs:
           load: true
           tags: visionarias/frontend-scan:${{ github.sha }}
           build-args: |
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=ci-placeholder-key
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y2ktcGxhY2Vob2xkZXIuY2xlcmsuYWNjb3VudHMuZGV2
             NEXT_PUBLIC_API_URL=http://localhost:8000
             NEXT_PUBLIC_APP_URL=http://localhost:3000
             INTERNAL_API_URL=http://localhost:8000
