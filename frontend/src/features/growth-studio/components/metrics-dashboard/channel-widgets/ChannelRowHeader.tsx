@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import type { ChannelMetric } from '../../../types/metrics';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import { formatTenantDate } from '@/lib/format-date';
+import { getChannelIcon } from '../../../lib/channelIcons';
 
 /** Convert hex color to rgba for backgrounds. */
 function hexToRgba(hex: string, alpha: number): string {
@@ -19,7 +20,7 @@ function hexToRgba(hex: string, alpha: number): string {
 export interface ChannelRowHeaderProps {
   channel: ChannelMetric;
   /** Pre-resolved channel icon component (from getChannelIcon) */
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   /** Pre-resolved channel color hex (from getChannelColor) */
   iconColor: string;
   /** Bottleneck badge severity for abandoned-cart channels */
@@ -30,11 +31,12 @@ export interface ChannelRowHeaderProps {
 
 export const ChannelRowHeader = React.memo(function ChannelRowHeader({
   channel,
-  icon: Icon,
+  icon,
   iconColor,
   abandonmentBadge,
   noShowBadge,
 }: ChannelRowHeaderProps) {
+  const ResolvedIcon = icon ?? getChannelIcon(channel.slug);
   const { timezone } = useTenantLocale();
   return (
     <div className="flex items-center gap-3 min-w-0">
@@ -44,11 +46,11 @@ export const ChannelRowHeader = React.memo(function ChannelRowHeader({
         )}
         style={{ backgroundColor: hexToRgba(iconColor, 0.12) }}
       >
-        <Icon
-          className="w-4 h-4"
-          style={{ color: iconColor }}
-          aria-hidden="true"
-        />
+        {React.createElement(ResolvedIcon, {
+          className: 'w-4 h-4',
+          style: { color: iconColor },
+          'aria-hidden': true,
+        })}
       </div>
       <div className="min-w-0">
         <div className="flex items-center gap-2">

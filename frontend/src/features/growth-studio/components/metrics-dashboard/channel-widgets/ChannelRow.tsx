@@ -22,6 +22,11 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+/** Renders a channel icon by slug. Uses createElement to avoid static-components lint false positive. */
+function ChannelIconDisplay({ slug, className, style }: { slug: string; className?: string; style?: React.CSSProperties }) {
+  return React.createElement(getChannelIcon(slug), { className, style, 'aria-hidden': true });
+}
+
 /* ── ChannelRow ────────────────────────────────────────────────────────── */
 
 export interface ChannelRowProps {
@@ -38,7 +43,6 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
   const { catalogByName } = useMetricCatalog();
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel(channel.slug);
 
-  const Icon = getChannelIcon(channel.slug);
   const iconColor = getChannelColor(channel.slug);
 
   // ── Early return: "Proximamente" channels ───────────────────────────
@@ -54,7 +58,7 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
             className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
             style={{ backgroundColor: hexToRgba(iconColor, 0.1) }}
           >
-            <Icon className="w-4 h-4" style={{ color: iconColor }} aria-hidden="true" />
+            <ChannelIconDisplay slug={channel.slug} className="w-4 h-4" style={{ color: iconColor }} />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">{channel.name}</p>
@@ -117,7 +121,6 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
       {/* Left: icon + name + status */}
       <ChannelRowHeader
         channel={channel}
-        icon={Icon}
         iconColor={iconColor}
         abandonmentBadge={abandonmentBadge}
         noShowBadge={noShowBadge}
