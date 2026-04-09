@@ -42,6 +42,14 @@ export enum OfferStatus {
   SOLD_OUT = "sold_out",
 }
 
+export enum EditionStatus {
+  DRAFT = "draft",
+  UPCOMING = "upcoming",
+  ACTIVE = "active",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+}
+
 export enum GuaranteeType {
   NONE = "none",
   CONDITIONAL_ACTION_BASED = "conditional_action_based",
@@ -317,3 +325,53 @@ export interface ObjectionItem {
 
 /** @deprecated Use ObjectionItem instead */
 export type Objection = ObjectionItem;
+
+export interface LaunchEdition {
+  id: string;
+  offer_id: string;
+  edition_name: string;
+  edition_number: number;
+  start_date: string;
+  end_date: string | null;
+  registration_start: string | null;
+  registration_end: string | null;
+  timezone: string;
+  pricing_override: PricingStructure[] | null;
+  effective_pricing: PricingStructure[];
+  currency: string;
+  capacity: number | null;
+  enrollment_count: number;
+  status: EditionStatus;
+  location_override: Record<string, unknown> | null;
+  notes: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface LaunchEditionCreate {
+  edition_name?: string;
+  start_date: string;
+  end_date?: string;
+  registration_start?: string;
+  registration_end?: string;
+  timezone?: string;
+  pricing_override?: PricingStructure[];
+  capacity?: number;
+  location_override?: Record<string, unknown>;
+  notes?: string;
+}
+
+export interface LaunchEditionUpdate {
+  edition_name?: string;
+  start_date?: string;
+  end_date?: string;
+  registration_start?: string;
+  registration_end?: string;
+  timezone?: string;
+  pricing_override?: PricingStructure[] | null;
+  capacity?: number;
+  enrollment_count?: number;
+  status?: EditionStatus;
+  location_override?: Record<string, unknown>;
+  notes?: string;
+}
