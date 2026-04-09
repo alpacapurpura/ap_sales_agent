@@ -201,8 +201,9 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
     );
   }
 
-  // Email Marketing: Wider sidebar with dedicated overview panel
-  if (channel.slug === 'email-nurture' || channel.slug.startsWith('email-')) {
+  // Email Marketing: Only email-nurture gets the full Email Intelligence Hub
+  // Other email-* channels (email-capture, etc.) use the generic sidebar
+  if (channel.slug === 'email-nurture') {
     return (
       <DetailPanel open={isOpen} onClose={onClose} size="lg">
         <MailOverviewPanel
