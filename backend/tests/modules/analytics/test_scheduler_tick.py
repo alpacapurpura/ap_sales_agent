@@ -78,10 +78,11 @@ async def test_tick_enqueues_tenant_at_3am_local(tenants, mock_ctx):
         await run_tick_scheduler(ctx)
 
     # Only Bogota tenant (3am match) should be enqueued
-    assert mock_redis.enqueue_job.await_count == 1
-    call_args = mock_redis.enqueue_job.await_args
-    assert call_args[0][0] == "run_tenant_extraction"
-    assert call_args[0][1] == str(tenants[0].id)  # Bogota tenant
+    # 2 jobs per tenant: extraction + campaign sync
+    assert mock_redis.enqueue_job.await_count == 2
+    job_names = [c[0][0] for c in mock_redis.enqueue_job.call_args_list]
+    assert "run_tenant_extraction" in job_names
+    assert "run_campaign_sync" in job_names
 
 
 @pytest.mark.asyncio
@@ -161,7 +162,8 @@ async def test_tick_multiple_tenants_at_3am(mock_ctx):
 
         await run_tick_scheduler(ctx)
 
-    assert mock_redis.enqueue_job.await_count == 2
+    # 2 tenants x 2 jobs each = 4
+    assert mock_redis.enqueue_job.await_count == 4
 
 
 @pytest.mark.asyncio
@@ -190,4 +192,44 @@ async def test_tick_handles_invalid_timezone(mock_ctx):
         await run_tick_scheduler(ctx)
 
     # Only the Bogota tenant should be enqueued (invalid tz skipped)
-    assert mock_redis.enqueue_job.await_count == 1
+    # 2 jobs per tenant: extraction + campaign sync
+    assert mock_redis.enqueue_job.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_tick_enqueues_campaign_sync_alongside_extraction(mock_ctx):
+    """When a tenant is at 3am, both run_tenant_extraction and run_campaign_sync are enqueued."""
+    ctx, mock_db, mock_redis = mock_ctx
+
+    tenant = _make_tenant(uuid.uuid4(), "America/Bogota", 10)
+
+    mock_result = MagicMock()
+    mock_scalars = MagicMock()
+    mock_scalars.all.return_value = [tenant]
+    mock_result.scalars.return_value = mock_scalars
+    mock_db.execute.return_value = mock_result
+
+    # 08:00 UTC = 3:00 AM Bogota
+    fixed_utc = datetime(2026, 3, 15, 8, 0, 0, tzinfo=timezone.utc)
+
+    with patch("src.modules.analytics.workers.scheduler.datetime") as mock_datetime:
+        mock_datetime.now.return_value = fixed_utc
+        mock_datetime.side_effect = datetime
+
+        await run_tick_scheduler(ctx)
+
+    # Should have 2 enqueued jobs: extraction + campaign sync
+    assert mock_redis.enqueue_job.await_count == 2
+
+    job_names = [call[0][0] for call in mock_redis.enqueue_job.call_args_list]
+    assert "run_tenant_extraction" in job_names
+    assert "run_campaign_sync" in job_names
+
+    # Campaign sync receives tenant_id and provider="meta"
+    campaign_call = next(
+        c
+        for c in mock_redis.enqueue_job.call_args_list
+        if c[0][0] == "run_campaign_sync"
+    )
+    assert campaign_call[0][1] == str(tenant.id)
+    assert campaign_call[0][2] == "meta"

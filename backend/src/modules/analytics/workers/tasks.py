@@ -20,6 +20,71 @@ logger = structlog.get_logger(__name__)
 FIBONACCI_BACKOFF = [1, 1, 2, 3, 5, 8, 13]
 
 
+async def _maybe_enqueue_period_extraction(ctx: dict, db, tenant_id: str) -> None:
+    """Enqueue period extraction for current week+month if period_metrics is empty.
+
+    Called after a successful daily ETL to bootstrap period data on first run.
+    """
+    from datetime import date, timedelta
+
+    from sqlalchemy import func, select
+
+    redis = ctx.get("redis")
+    if not redis:
+        return
+
+    try:
+        from src.modules.analytics.infrastructure.models.period_metrics_model import (
+            PeriodMetricModel,
+        )
+
+        count = (
+            db.execute(
+                select(func.count()).where(PeriodMetricModel.tenant_id == tenant_id)
+            ).scalar()
+            or 0
+        )
+
+        if count > 0:
+            return  # Already has period data
+
+        today = date.today()
+        # Enqueue weekly: current week (Mon-Sun or custom)
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+        if week_end < today:
+            await redis.enqueue_job(
+                "run_period_extraction",
+                tenant_id,
+                "weekly",
+                week_start.isoformat(),
+                week_end.isoformat(),
+            )
+
+        # Enqueue monthly: previous month
+        first_of_month = today.replace(day=1)
+        last_month_end = first_of_month - timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+        await redis.enqueue_job(
+            "run_period_extraction",
+            tenant_id,
+            "monthly",
+            last_month_start.isoformat(),
+            last_month_end.isoformat(),
+        )
+
+        logger.info(
+            "Period extraction auto-triggered for tenant=%s (period_metrics was empty)",
+            tenant_id,
+        )
+    except Exception as exc:
+        logger.warning(
+            "Failed to auto-trigger period extraction for tenant=%s: %s",
+            tenant_id,
+            str(exc),
+        )
+
+
 async def run_tenant_extraction(
     ctx: dict,
     tenant_id: str,
@@ -70,6 +135,10 @@ async def run_tenant_extraction(
             tenant_id,
             provider,
         )
+
+        # Auto-trigger period extraction if period_metrics is empty
+        await _maybe_enqueue_period_extraction(ctx, db, tenant_id)
+
         capture_checkin(
             monitor_slug="etl-daily-extraction",
             check_in_id=check_in_id,
@@ -357,8 +426,27 @@ async def run_campaign_sync(
             repository=campaign_repo,
         )
 
-        result = await pipeline.run_sync(UUID(tenant_id), credentials)
+        result = await pipeline.run_sync(
+            UUID(tenant_id),
+            {**credentials.credentials, **credentials.config},
+        )
         db.commit()
+
+        sync_result = {
+            "status": "success",
+            "tenant_id": tenant_id,
+            "provider": provider,
+            **result,
+        }
+
+        # Store result in Redis for status polling
+        redis_cache = ctx.get("redis_cache")
+        if redis_cache:
+            redis_cache.setex(
+                f"campaign_sync:{tenant_id}:{provider}",
+                3600,
+                json.dumps(sync_result),
+            )
 
         logger.info(
             "Campaign sync completed for tenant=%s provider=%s: %s",
@@ -366,12 +454,7 @@ async def run_campaign_sync(
             provider,
             result,
         )
-        return {
-            "status": "success",
-            "tenant_id": tenant_id,
-            "provider": provider,
-            **result,
-        }
+        return sync_result
 
     except ConnectionRevokedException as exc:
         logger.error(

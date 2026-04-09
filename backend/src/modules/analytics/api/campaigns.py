@@ -1,5 +1,7 @@
 """Campaign management API routes."""
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -29,6 +31,16 @@ class CampaignSyncResponse(BaseModel):
 
     status: str
     job_id: str | None = None
+
+
+class CampaignSyncStatusDTO(BaseModel):
+    """Status of the last campaign sync job."""
+
+    status: str
+    campaigns_synced: int | None = None
+    ad_sets_synced: int | None = None
+    ads_synced: int | None = None
+    recommendations_synced: int | None = None
 
 
 router = APIRouter(prefix="/campaigns", tags=["Analytics - Campaigns"])
@@ -132,6 +144,31 @@ async def get_ad_set_ads(
 ):
     service = CampaignService(db)
     return service.get_ads(user.tenant_id, ad_set_external_id)
+
+
+@router.get("/sync/status", response_model=CampaignSyncStatusDTO)
+async def get_campaign_sync_status(
+    user: User = Depends(get_current_user),
+):
+    """Get the status of the last campaign sync job for this tenant."""
+    from src.core.database import redis_client
+
+    if not redis_client:
+        return CampaignSyncStatusDTO(status="unknown")
+
+    key = f"campaign_sync:{user.tenant_id}:meta"
+    raw = redis_client.get(key)
+    if not raw:
+        return CampaignSyncStatusDTO(status="never_synced")
+
+    data = json.loads(raw)
+    return CampaignSyncStatusDTO(
+        status=data.get("status", "unknown"),
+        campaigns_synced=data.get("campaigns_synced"),
+        ad_sets_synced=data.get("ad_sets_synced"),
+        ads_synced=data.get("ads_synced"),
+        recommendations_synced=data.get("recommendations_synced"),
+    )
 
 
 @router.post("/sync", response_model=CampaignSyncResponse)

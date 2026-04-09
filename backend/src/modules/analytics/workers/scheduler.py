@@ -70,6 +70,13 @@ async def run_tick_scheduler(ctx: dict) -> None:
                     str(tenant.id),
                     "all",
                 )
+
+                # Enqueue campaign hierarchy sync (campaigns, ad sets, ads)
+                await redis.enqueue_job(
+                    "run_campaign_sync",
+                    str(tenant.id),
+                    "meta",
+                )
                 enqueued += 1
 
                 # ── Period boundary detection ──

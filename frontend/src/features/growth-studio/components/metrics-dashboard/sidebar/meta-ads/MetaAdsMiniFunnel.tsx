@@ -3,6 +3,8 @@
 import { cn } from '@/lib/utils';
 import type { FunnelStep } from '../../../../types/metrics';
 
+const PIXEL_DEPENDENT_METRICS = new Set(['meta_leads', 'conversions']);
+
 interface MetaAdsMiniFunnelProps {
   steps: FunnelStep[];
 }
@@ -10,6 +12,9 @@ interface MetaAdsMiniFunnelProps {
 export function MetaAdsMiniFunnel({ steps }: MetaAdsMiniFunnelProps) {
   if (steps.length === 0) return null;
   const maxValue = Math.max(...steps.map(s => s.value), 1);
+
+  const pixelSteps = steps.filter(s => PIXEL_DEPENDENT_METRICS.has(s.metricName));
+  const needsPixelHint = pixelSteps.length > 0 && pixelSteps.every(s => s.value === 0);
 
   return (
     <div className="space-y-2">
@@ -45,6 +50,11 @@ export function MetaAdsMiniFunnel({ steps }: MetaAdsMiniFunnelProps) {
           </div>
         ))}
       </div>
+      {needsPixelHint && (
+        <p className="text-[10px] text-muted-foreground/70 leading-tight">
+          Leads y conversiones requieren Meta Pixel con eventos Lead/Purchase configurados.
+        </p>
+      )}
     </div>
   );
 }

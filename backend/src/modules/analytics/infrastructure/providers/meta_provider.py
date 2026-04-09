@@ -10,12 +10,12 @@ Per Phase 1 decision: per-instance API pattern for tenant isolation.
 """
 
 import json
-import logging
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 from uuid import UUID
 
 import httpx
+import structlog
 
 from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.domain.extraction_result import ExtractionResult
@@ -24,7 +24,7 @@ from src.modules.analytics.infrastructure.providers.base import (
     ExtractedMetric,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 GRAPH_API_BASE = "https://graph.facebook.com/v24.0"
 
@@ -729,6 +729,7 @@ class MetaProvider(BaseMetricsProvider):
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
         if not ad_account_id:
+            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
             return []
 
         headers = _auth_headers(access_token)
@@ -988,6 +989,7 @@ class MetaProvider(BaseMetricsProvider):
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
         if not ad_account_id:
+            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
             return []
 
         headers = _auth_headers(access_token)
@@ -1327,6 +1329,7 @@ class MetaProvider(BaseMetricsProvider):
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
         if not ad_account_id:
+            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
             return []
 
         headers = _auth_headers(access_token)
@@ -1374,6 +1377,7 @@ class MetaProvider(BaseMetricsProvider):
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
         if not ad_account_id:
+            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
             return []
 
         headers = _auth_headers(access_token)
@@ -1417,6 +1421,7 @@ class MetaProvider(BaseMetricsProvider):
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
         if not ad_account_id:
+            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
             return []
 
         headers = _auth_headers(access_token)
@@ -1466,6 +1471,7 @@ class MetaProvider(BaseMetricsProvider):
         """Extract Meta Ads metrics at individual ad level."""
         ad_account_id = credentials.get("ad_account_id")
         if not ad_account_id:
+            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
             return []
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
@@ -1514,6 +1520,7 @@ class MetaProvider(BaseMetricsProvider):
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
         if not ad_account_id:
+            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
             return []
 
         headers = _auth_headers(access_token)

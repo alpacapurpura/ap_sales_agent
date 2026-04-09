@@ -98,7 +98,18 @@ class BaseMetricsProvider(ABC):
         can filter by failure_type=partial.
         """
         try:
+            logger.debug(
+                "sub_extractor_start",
+                provider=self.provider_name(),
+                extractor=extractor_name,
+            )
             result = await fn(*args)
+            logger.info(
+                "sub_extractor_complete",
+                provider=self.provider_name(),
+                extractor=extractor_name,
+                metrics_count=len(result),
+            )
             return result, None
         except Exception as exc:
             sentry_sdk.set_tag("provider", self.provider_name())

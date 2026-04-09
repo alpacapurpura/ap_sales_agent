@@ -56,4 +56,26 @@ describe('MetaAdsMiniFunnel', () => {
     const bars = container.querySelectorAll('.bg-blue-500, .bg-blue-500\\/70');
     expect(bars.length).toBeGreaterThanOrEqual(STEPS.length);
   });
+
+  it('shows pixel hint when leads and conversions are both 0', () => {
+    const steps: FunnelStep[] = [
+      { label: 'Impresiones', metricName: 'impressions', value: 10000, conversionRate: null },
+      { label: 'Clics', metricName: 'clicks', value: 200, conversionRate: 2.0 },
+      { label: 'Leads', metricName: 'meta_leads', value: 0, conversionRate: 0 },
+      { label: 'Conversiones', metricName: 'conversions', value: 0, conversionRate: 0 },
+    ];
+    render(<MetaAdsMiniFunnel steps={steps} />);
+    expect(screen.getByText(/Meta Pixel/i)).toBeInTheDocument();
+  });
+
+  it('does not show pixel hint when leads have value', () => {
+    const steps: FunnelStep[] = [
+      { label: 'Impresiones', metricName: 'impressions', value: 10000, conversionRate: null },
+      { label: 'Clics', metricName: 'clicks', value: 200, conversionRate: 2.0 },
+      { label: 'Leads', metricName: 'meta_leads', value: 5, conversionRate: 2.5 },
+      { label: 'Conversiones', metricName: 'conversions', value: 0, conversionRate: 0 },
+    ];
+    render(<MetaAdsMiniFunnel steps={steps} />);
+    expect(screen.queryByText(/Meta Pixel/i)).not.toBeInTheDocument();
+  });
 });
