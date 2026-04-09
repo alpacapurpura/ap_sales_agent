@@ -2,13 +2,15 @@
 
 import { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Youtube } from 'lucide-react';
+import { ArrowLeft, Youtube, RefreshCw } from 'lucide-react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
 import { useHashScroll } from '../../../../hooks/useHashScroll';
+import { useSyncChannel } from '../../../../hooks/useSyncChannel';
 import type { MetaAdsPeriod, YouTubeDashboardTab } from '../../../../types/metrics';
 import { ChannelPeriodSelector } from '../ig-organic/ChannelPeriodSelector';
 import { YtOverviewTab } from './tabs/YtOverviewTab';
@@ -40,6 +42,7 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
   const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
   const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
   const { data, isLoading } = useChannelDashboard('yt-organic', period);
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel('yt-organic');
   useHashScroll();
 
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
@@ -85,7 +88,19 @@ export function YouTubeDashboard({ onClose, initialTab, isRouteBased }: YouTubeD
             <h1 className="text-lg font-semibold">YouTube Org&aacute;nico &middot; Dashboard</h1>
           </div>
         </div>
-        <ChannelPeriodSelector value={period} onChange={handlePeriodChange} />
+        <div className="flex items-center gap-3">
+          <ChannelPeriodSelector value={period} onChange={handlePeriodChange} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => sync()}
+            disabled={isSyncing || cooldownMinutes > 0}
+            className="gap-1.5 text-xs"
+          >
+            <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />
+            {isSyncing ? 'Sincronizando…' : 'Sincronizar'}
+          </Button>
+        </div>
       </div>
 
       <Tabs

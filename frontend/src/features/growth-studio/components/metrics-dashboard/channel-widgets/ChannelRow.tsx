@@ -1,13 +1,13 @@
 'use client';
 
-import * as Sentry from "@sentry/nextjs";
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric, CampaignMetric, MetricClickData, StageId } from '../../../types/metrics';
 import { CampaignDrillDown } from './CampaignDrillDown';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import { useMetricCatalog } from '../../../hooks/useMetricCatalog';
+import { useSyncChannel } from '../../../hooks/useSyncChannel';
 import { ChannelRowHeader } from './ChannelRowHeader';
 import { ChannelRowMetrics } from './ChannelRowMetrics';
 import { ChannelRowActions } from './ChannelRowActions';
@@ -35,30 +35,11 @@ export interface ChannelRowProps {
 }
 
 export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onMetricClick, onChannelClick }: ChannelRowProps) {
-  const [refreshing, setRefreshing] = useState(false);
-  const [cooldown, setCooldown] = useState(false);
   const { catalogByName } = useMetricCatalog();
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel(channel.slug);
 
   const Icon = getChannelIcon(channel.slug);
   const iconColor = getChannelColor(channel.slug);
-
-  const handleRefresh = useCallback(async () => {
-    if (refreshing || cooldown) return;
-    setRefreshing(true);
-    try {
-      const res = await fetch(`/api/v1/analytics/metrics/attraction/refresh/${channel.slug}`, {
-        method: 'POST',
-      });
-      if (res.status === 429) {
-        setCooldown(true);
-        setTimeout(() => setCooldown(false), 60_000);
-      }
-    } catch (err) {
-      Sentry.captureException(err, { tags: { channel: channel.slug, action: "etl_refresh" } });
-    } finally {
-      setRefreshing(false);
-    }
-  }, [channel.slug, refreshing, cooldown]);
 
   // ── Early return: "Proximamente" channels ───────────────────────────
   const isProximamente =
@@ -157,9 +138,9 @@ export const ChannelRow = React.memo(function ChannelRow({ channel, stageId, onM
         />
         <ChannelRowActions
           stale={!!channel.stale}
-          refreshing={refreshing}
-          cooldown={cooldown}
-          onRefresh={handleRefresh}
+          refreshing={isSyncing}
+          cooldown={cooldownMinutes > 0}
+          onRefresh={() => sync()}
         />
       </div>
     </div>

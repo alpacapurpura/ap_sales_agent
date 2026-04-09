@@ -35,6 +35,11 @@ vi.mock('../../../../hooks/useMetricCatalog', () => ({
   }),
 }));
 
+// Mock useSyncChannel
+vi.mock('../../../../hooks/useSyncChannel', () => ({
+  useSyncChannel: () => ({ sync: vi.fn(), isSyncing: false, cooldownMinutes: 0, result: null, error: null, reset: vi.fn() }),
+}));
+
 // Mock CostLink
 vi.mock('../CostLink', () => ({
   CostLink: () => <span data-testid="cost-link">Configurar costo</span>,

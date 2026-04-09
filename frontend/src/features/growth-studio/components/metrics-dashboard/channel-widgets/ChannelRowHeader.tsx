@@ -91,9 +91,9 @@ export const ChannelRowHeader = React.memo(function ChannelRowHeader({
             ? `${channel.sourceLabel} · ${channel.sourceDisplayName}`
             : channel.sourceLabel}
         </p>
-        {channel.stale && channel.lastUpdated && (
-          <p className="text-[10px] text-yellow-600 dark:text-yellow-400">
-            Última vez: {formatTenantDate(channel.lastUpdated, timezone, 'd MMM')}
+        {channel.lastUpdated && (
+          <p className={`text-[10px] ${channel.stale ? 'text-yellow-600 dark:text-yellow-400' : 'text-muted-foreground'}`}>
+            Última sync: {formatTenantDate(channel.lastUpdated, timezone, 'd MMM, HH:mm')}
           </p>
         )}
       </div>

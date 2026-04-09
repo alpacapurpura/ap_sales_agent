@@ -1,15 +1,19 @@
 'use client';
 
 import { memo, useState, type ReactNode } from 'react';
-import { ExternalLink, Loader2, type LucideIcon } from 'lucide-react';
+import { ExternalLink, Loader2, RefreshCw, type LucideIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   DetailPanelHeader,
   DetailPanelTitle,
   DetailPanelClose,
 } from '@/components/ui/detail-panel';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
+import { useSyncChannel } from '../../../../hooks/useSyncChannel';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDateTime } from '@/lib/format-date';
 import type {
   ChannelDashboardData,
   ChannelMetric,
@@ -59,11 +63,11 @@ export const ChannelOverviewPanel = memo(function ChannelOverviewPanel({
   formatOptions,
   children,
 }: ChannelOverviewPanelProps) {
+  const { timezone } = useTenantLocale();
   const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
-  const { data, isLoading } = useChannelDashboard(
-    dashboardSlug ?? channel.slug,
-    period,
-  );
+  const slug = dashboardSlug ?? channel.slug;
+  const { data, isLoading } = useChannelDashboard(slug, period);
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel(slug);
 
   return (
     <div className="flex h-full flex-col">
@@ -77,18 +81,35 @@ export const ChannelOverviewPanel = memo(function ChannelOverviewPanel({
 
       <div className="flex items-center justify-between px-4 py-2 border-b">
         <PeriodSelector value={period} onChange={setPeriod} />
-        {onExpand && (
+        <div className="flex items-center gap-2">
+          {channel.lastUpdated && (
+            <span className="text-[10px] text-muted-foreground">
+              Sync: {formatTenantDateTime(channel.lastUpdated, timezone)}
+            </span>
+          )}
           <Button
             variant="ghost"
-            size="sm"
-            onClick={onExpand}
-            className="gap-1.5 text-xs"
-            aria-label="Dashboard completo"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => sync()}
+            disabled={isSyncing || cooldownMinutes > 0}
+            title={cooldownMinutes > 0 ? `Disponible en ${Math.ceil(cooldownMinutes)} min` : 'Sincronizar'}
           >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Dashboard completo
+            <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
           </Button>
-        )}
+          {onExpand && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onExpand}
+              className="gap-1.5 text-xs"
+              aria-label="Dashboard completo"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Dashboard completo
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">

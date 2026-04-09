@@ -32,6 +32,7 @@ import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { connectionsApi, type ChannelInfoResponse } from '@/lib/api/connections';
 import { useGrowthStudioContext } from '../context/GrowthStudioContext';
+import { useSyncChannel } from '../../../hooks/useSyncChannel';
 import { MetaAdsOverviewPanel } from './meta-ads/MetaAdsOverviewPanel';
 import { IgOrganicOverviewPanel } from './ig-organic/IgOrganicOverviewPanel';
 import { YouTubeOverviewPanel } from './youtube-organic/YouTubeOverviewPanel';
@@ -108,6 +109,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
   const { timezone, currency: tenantCurrency } = useTenantLocale();
   const { handleOpenExpandedDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel(channel?.slug ?? '');
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -616,10 +618,15 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
               <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
                 Acciones
               </h3>
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2" disabled>
-                <RefreshCw className="h-3.5 w-3.5" />
-                Sincronizar ahora
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-auto">Pronto</Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={() => sync()}
+                disabled={isSyncing || cooldownMinutes > 0}
+              >
+                <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
+                {isSyncing ? 'Sincronizando…' : cooldownMinutes > 0 ? `Disponible en ${Math.ceil(cooldownMinutes)} min` : 'Sincronizar ahora'}
               </Button>
               <Button variant="outline" size="sm" className="w-full justify-start gap-2" disabled>
                 <Settings className="h-3.5 w-3.5" />

@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { useChannelDashboard } from '../../../../hooks/useChannelDashboard';
 import { useHashScroll } from '../../../../hooks/useHashScroll';
 import { useConnectionHealth } from '../../../../hooks/useConnectionHealth';
-import { useSyncAllSources } from '../../../../hooks/useSyncAllSources';
+import { useSyncChannel } from '../../../../hooks/useSyncChannel';
 import { useCampaignPerformance } from '../../../../api/campaigns-api';
 import type { MetaAdsPeriod, MetaAdsDashboardTab } from '../../../../types/metrics';
 import { ConnectionHealthBanner } from '../../../connection-health-banner';
@@ -50,7 +50,7 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
   const { data: health } = useConnectionHealth('meta-ads');
-  const { trigger: syncAll, isLoading: isSyncing } = useSyncAllSources();
+  const { sync, isSyncing, cooldownMinutes } = useSyncChannel('meta-ads');
   useHashScroll();
 
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
@@ -108,8 +108,8 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
           <Button
             variant="outline"
             size="sm"
-            onClick={() => syncAll(30)}
-            disabled={isSyncing}
+            onClick={() => sync()}
+            disabled={isSyncing || cooldownMinutes > 0}
             className="gap-1.5 text-xs"
           >
             <RefreshCw className={cn('h-3 w-3', isSyncing && 'animate-spin')} />

@@ -8,6 +8,10 @@ vi.mock('@clerk/nextjs', () => ({
   useAuth: () => ({ getToken: vi.fn().mockResolvedValue('test-token') }),
 }));
 
+vi.mock('../../../../../hooks/useSyncChannel', () => ({
+  useSyncChannel: () => ({ sync: vi.fn(), isSyncing: false, cooldownMinutes: 0, result: null, error: null, reset: vi.fn() }),
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   useParams: () => ({ tenantId: 'test-tenant' }),
