@@ -70,7 +70,13 @@ class TestEnsureUtc:
 class TestIsValidTimezone:
     @pytest.mark.parametrize(
         "tz",
-        ["America/Lima", "America/Bogota", "America/Mexico_City", "UTC", "US/Eastern"],
+        [
+            "America/Lima",
+            "America/Bogota",
+            "America/Mexico_City",
+            "UTC",
+            "America/New_York",
+        ],
     )
     def test_valid_timezones(self, tz: str) -> None:
         assert is_valid_timezone(tz) is True
