@@ -52,6 +52,9 @@ from src.modules.offer.infrastructure.models.external_product_mapping_model impo
 )
 
 # --- Offer ---
+from src.modules.offer.infrastructure.models.launch_edition_model import (
+    LaunchEditionModel,  # noqa: F401
+)
 from src.modules.offer.infrastructure.models.product_model import (
     ProductModel,  # noqa: F401
 )
