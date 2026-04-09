@@ -5,6 +5,7 @@ const API_URL = config.api.baseUrl;
 
 export interface GeneralSettings {
   default_currency: string;
+  timezone: string | null;
 }
 
 export interface WebhookSettings {
@@ -191,7 +192,7 @@ export const settingsApi = {
   },
 
   updateGeneralSettings: async (
-    data: GeneralSettings,
+    data: Partial<GeneralSettings>,
     token: string
   ): Promise<GeneralSettings> => {
     const res = await fetchClient(`${API_URL}/api/v1/iam/settings/general`, {

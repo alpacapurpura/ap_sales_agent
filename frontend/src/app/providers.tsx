@@ -9,6 +9,7 @@ import DevelopmentTools from '@/components/shared/development-tools'
 import { Toaster } from "@/components/ui/sonner"
 import { useUser } from '@clerk/nextjs'
 import * as Sentry from "@sentry/nextjs"
+import { TenantLocaleProvider } from '@/features/tenant/context/tenant-locale-context'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -46,7 +47,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       >
         <NavigationProvider>
           <NavigationOverlay />
-          {children}
+          <TenantLocaleProvider>
+            {children}
+          </TenantLocaleProvider>
         </NavigationProvider>
         <Toaster />
       </ThemeProvider>
