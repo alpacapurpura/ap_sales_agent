@@ -20,7 +20,6 @@ ALLOWED_USD_DEFAULT_FILES: set[str] = {
 }
 
 KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = {
-    "src/modules/analytics/application/dto/adoption_dto.py",
     "src/modules/analytics/application/dto/attraction_dto.py",
     "src/modules/analytics/application/dto/sales_dto.py",
     "src/modules/analytics/application/services/stage_services/capture_stage.py",
@@ -30,14 +29,10 @@ KNOWN_USD_DEFAULT_VIOLATIONS: set[str] = {
     "src/modules/analytics/infrastructure/providers/shopify_provider.py",
     "src/modules/analytics/infrastructure/providers/tiktok_provider.py",
     "src/modules/crm/application/services/sale_service.py",
-    "src/modules/crm/domain/sale.py",
     "src/modules/crm/infrastructure/models/sale_model.py",
     "src/modules/iam/infrastructure/models/tenant_model.py",
-    "src/modules/offer/api/dto/products.py",
     "src/modules/offer/api/product_mappings.py",
-    "src/modules/offer/domain/offer.py",
     "src/modules/offer/infrastructure/models/product_model.py",
-    "src/shared/domain/ports.py",
 }
 
 

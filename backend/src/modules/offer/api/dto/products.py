@@ -37,7 +37,7 @@ class ProductResponse(BaseModel):
     prerequisites: list[str] | None = []
 
     pricing_options: list[dict[str, Any]] | None = []
-    currency: str | None = "USD"
+    currency: str | None = None
 
     @field_validator("pricing_options", mode="before")
     @classmethod

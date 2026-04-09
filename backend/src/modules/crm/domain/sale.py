@@ -16,7 +16,7 @@ class Sale(BaseEntity):
     transaction_id: str | None = None
 
     amount: float
-    currency: str = "USD"
+    currency: str
 
     status: SaleStatus
     stage: SaleStage

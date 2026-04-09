@@ -103,7 +103,7 @@ class Offer(BaseEntity):
 
     pricing_options: list[PricingStructure]
     price_pay_in_full: float | None = None
-    currency: str = "USD"
+    currency: str
 
     guarantee_type: GuaranteeType
     guarantee_terms: str

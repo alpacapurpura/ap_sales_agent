@@ -32,6 +32,7 @@ def _make_offer(**overrides) -> Offer:
         "guarantee_type": "none",
         "guarantee_terms": "",
         "status": "draft",
+        "currency": "USD",
     }
     defaults.update(overrides)
     return Offer(**defaults)

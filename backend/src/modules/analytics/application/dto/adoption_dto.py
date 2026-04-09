@@ -35,7 +35,7 @@ class AdoptionHeaderKpisDTO(BaseModel):
     avg_ttv_days: float | None = None
     refund_count: int = 0
     refund_amount: float = 0.0
-    refund_currency: str = "USD"
+    refund_currency: str
     refund_amount_usd: float | None = None
 
 

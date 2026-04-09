@@ -54,7 +54,7 @@ class OfferReadDTO(BaseModel):
     offer_type: str  # Archetype string (e.g. "producto", "programa")
     value_level: str | None = None  # OfferValueLevel.value string
     pricing_type: str = "one_time"  # "one_time" | "subscription" | "payment_plan"
-    currency: str = "USD"
+    currency: str
 
 
 class ProductMappingPort(ABC):
