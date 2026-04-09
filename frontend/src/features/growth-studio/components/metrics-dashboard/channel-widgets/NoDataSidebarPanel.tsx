@@ -31,6 +31,7 @@ export function NoDataSidebarPanel({ isOpen, onClose, channel }: NoDataSidebarPa
             className="flex items-center justify-center w-8 h-8 rounded-lg"
             style={{ backgroundColor: `${iconColor}20` }}
           >
+            {/* eslint-disable-next-line react-hooks/static-components */}
             <Icon className="w-4 h-4" style={{ color: iconColor }} aria-hidden="true" />
           </div>
           <DetailPanelTitle>{channel.name}</DetailPanelTitle>

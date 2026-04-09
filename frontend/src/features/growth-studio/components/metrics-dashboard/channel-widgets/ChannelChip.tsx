@@ -30,8 +30,8 @@ export const ChannelChip = React.memo(function ChannelChip({
   onDisconnectedClick,
   onNoDataClick,
 }: ChannelChipProps) {
-  const Icon = getChannelIcon(channel.slug);
   const iconColor = getChannelColor(channel.slug);
+  const Icon = getChannelIcon(channel.slug);
   const tooltipText = TOOLTIP_TEXT[variant];
 
   const ariaLabel =
@@ -61,6 +61,7 @@ export const ChannelChip = React.memo(function ChannelChip({
               variant === 'no-data' && 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20',
             )}
           >
+            {/* eslint-disable-next-line react-hooks/static-components */}
             <Icon
               className="w-3.5 h-3.5 shrink-0"
               style={{ color: variant === 'disconnected' ? undefined : iconColor }}

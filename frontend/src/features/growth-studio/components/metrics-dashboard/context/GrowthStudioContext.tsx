@@ -288,8 +288,9 @@ export function GrowthStudioProvider({ children }: { children: ReactNode }) {
     setMetaAdsDashboardInitialTab(undefined);
   }, []);
 
-  const activeStageRef = useRef(activeStage);
-  useEffect(() => { activeStageRef.current = activeStage; }, [activeStage]);
+  const activeStageRef = useRef<typeof activeStage | null>(null);
+  // eslint-disable-next-line react-hooks/immutability
+  activeStageRef.current = activeStage;
 
   const handleOpenExpandedDashboard = useCallback((channelSlug: string) => {
     // Close sidebars

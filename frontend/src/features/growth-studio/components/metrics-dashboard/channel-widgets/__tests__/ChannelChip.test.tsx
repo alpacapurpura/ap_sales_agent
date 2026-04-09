@@ -19,16 +19,21 @@ vi.mock('../../../../lib/channelIcons', () => ({
 }));
 
 // Mock Tooltip to render content inline for testing
-vi.mock('@/components/ui/tooltip', () => ({
-  TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  TooltipTrigger: React.forwardRef<HTMLElement, React.PropsWithChildren<{ asChild?: boolean }>>(
-    ({ children, ...props }, _ref) => <span data-testid="tooltip-trigger" {...props}>{children}</span>,
-  ),
-  TooltipContent: ({ children }: { children: React.ReactNode }) => (
-    <span data-testid="tooltip-content">{children}</span>
-  ),
-}));
+vi.mock('@/components/ui/tooltip', () => {
+  const React = require('react');
+  const TooltipTrigger = React.forwardRef(
+    ({ children, ...props }: React.PropsWithChildren<{ asChild?: boolean }>, _ref: React.Ref<HTMLElement>) =>
+      React.createElement('span', { 'data-testid': 'tooltip-trigger', ...props }, children),
+  );
+  TooltipTrigger.displayName = 'TooltipTrigger';
+  return {
+    TooltipProvider: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+    Tooltip: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+    TooltipTrigger,
+    TooltipContent: ({ children }: { children: React.ReactNode }) =>
+      React.createElement('span', { 'data-testid': 'tooltip-content' }, children),
+  };
+});
 
 // ── Test data ────────────────────────────────────────────────────────────────
 
