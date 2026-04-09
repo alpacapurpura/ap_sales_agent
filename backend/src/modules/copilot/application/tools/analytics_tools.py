@@ -3,13 +3,14 @@ Analytics tools — give the copilot access to funnel metrics and sales data.
 """
 
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import structlog
 from langchain_core.tools import tool
 
 from src.core.context import get_tenant_id
 from src.core.database import SessionLocal
+from src.shared.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 
@@ -35,7 +36,7 @@ def get_funnel_metrics(period: str | None = None) -> str:
 
     days_map = {"7d": 7, "30d": 30, "90d": 90}
     days = days_map.get(period or "30d", 30)
-    end_date = datetime.utcnow()
+    end_date = utc_now()
     start_date = end_date - timedelta(days=days)
 
     db = SessionLocal()

@@ -12,6 +12,7 @@ from src.core.config import settings
 from src.modules.connections.infrastructure.marketing_connectors.base import (
     BaseConnector,
 )
+from src.shared.domain.datetime_utils import utc_now
 
 # Allow OAuth scope to change (e.g. if user granted extra scopes previously)
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"  # noqa: S105
@@ -46,7 +47,7 @@ class GoogleCalendarAdapter(BaseConnector):
         """
         Sync events implementation (Next 30 days).
         """
-        now = datetime.datetime.utcnow()
+        now = utc_now()
         end = now + datetime.timedelta(days=30)
         return self.list_events(now, end)
 

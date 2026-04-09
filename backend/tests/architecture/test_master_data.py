@@ -75,15 +75,8 @@ ALLOWED_UTCNOW_FILES: set[str] = {
 }
 
 KNOWN_UTCNOW_VIOLATIONS: set[str] = {
-    "src/modules/assets/infrastructure/repositories/asset_repository.py",
-    "src/modules/assets/infrastructure/repositories/gallery_repository.py",
-    "src/modules/brand/infrastructure/repositories/avatar_repository.py",
-    "src/modules/connections/infrastructure/channels/google_calendar.py",
-    "src/modules/copilot/application/tools/analytics_tools.py",
-    "src/modules/sales_agent/domain/events.py",
+    # agent_state_checkpoint_model.py — pending Task 7 (DateTime column + migration fix)
     "src/modules/sales_agent/infrastructure/models/agent_state_checkpoint_model.py",
-    "src/modules/sales_agent/infrastructure/repositories/state_repository.py",
-    "src/shared/links/service.py",
 }
 
 

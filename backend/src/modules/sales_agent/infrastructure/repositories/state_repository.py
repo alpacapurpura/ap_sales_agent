@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -7,6 +6,7 @@ from sqlalchemy.orm import Session
 from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
     AgentStateCheckpointModel,
 )
+from src.shared.domain.datetime_utils import utc_now
 
 
 class StateRepository:
@@ -45,7 +45,7 @@ class StateRepository:
             for key, value in fields.items():
                 if hasattr(existing, key):
                     setattr(existing, key, value)
-            existing.updated_at = datetime.utcnow()
+            existing.updated_at = utc_now()
             self.db.flush()
             return existing
 
@@ -67,7 +67,7 @@ class StateRepository:
                 AgentStateCheckpointModel.lead_id == lead_id,
                 AgentStateCheckpointModel.is_active.is_(True),
             )
-            .values(is_active=False, deleted_at=datetime.utcnow())
+            .values(is_active=False, deleted_at=utc_now())
         )
         self.db.execute(stmt)
         self.db.flush()

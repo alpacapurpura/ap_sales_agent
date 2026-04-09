@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -6,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.brand.domain import Avatar
 from src.modules.brand.infrastructure.models.avatar_model import AvatarModel
+from src.shared.domain.datetime_utils import utc_now
 
 
 class AvatarRepository:
@@ -81,7 +81,7 @@ class AvatarRepository:
         if not model:
             return False
 
-        model.deleted_at = datetime.utcnow()
+        model.deleted_at = utc_now()
         self.db.flush()
         self.db.commit()
         return True

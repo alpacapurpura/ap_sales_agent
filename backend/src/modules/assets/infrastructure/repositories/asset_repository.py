@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -6,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.assets.domain.entity import Asset
 from src.modules.assets.infrastructure.models.asset_model import AssetModel
+from src.shared.domain.datetime_utils import utc_now
 
 
 class AssetRepository:
@@ -97,7 +97,7 @@ class AssetRepository:
         )
         model = self.db.execute(stmt).scalars().first()
         if model:
-            model.deleted_at = datetime.utcnow()
+            model.deleted_at = utc_now()
             self.db.flush()
             self.db.commit()
             return True

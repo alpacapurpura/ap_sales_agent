@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.iam.domain.tenant import Tenant
+from src.shared.domain.datetime_utils import utc_now
 from src.shared.links.models import ShareableLink
 
 logger = structlog.get_logger()
@@ -28,7 +29,7 @@ class LinkService:
         random_part = "".join(secrets.choice(alphabet) for _ in range(length))
 
         # 2. Timestamp Component (hex) - ensures temporal uniqueness
-        timestamp_hex = f"{int(datetime.datetime.utcnow().timestamp()):x}"
+        timestamp_hex = f"{int(utc_now().timestamp()):x}"
 
         return f"{random_part}{timestamp_hex}"
 
@@ -49,9 +50,7 @@ class LinkService:
 
         expires_at = None
         if expires_days:
-            expires_at = datetime.datetime.utcnow() + datetime.timedelta(
-                days=expires_days
-            )
+            expires_at = utc_now() + datetime.timedelta(days=expires_days)
 
         link = ShareableLink(
             tenant_id=tenant_id,
@@ -89,7 +88,7 @@ class LinkService:
             logger.warning("link_resolution_failed", reason="inactive", token=token)
             return None
 
-        if link.expires_at and link.expires_at < datetime.datetime.utcnow().replace(
+        if link.expires_at and link.expires_at.replace(tzinfo=None) < utc_now().replace(
             tzinfo=None
         ):
             logger.warning("link_resolution_failed", reason="expired", token=token)
@@ -97,7 +96,7 @@ class LinkService:
 
         # Update Audit
         link.visit_count += 1
-        link.last_visited_at = datetime.datetime.utcnow()
+        link.last_visited_at = utc_now()
         self.db.commit()
 
         return link

@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -6,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.assets.domain.entity import GalleryImage
 from src.modules.assets.infrastructure.models.gallery_model import GalleryImageModel
+from src.shared.domain.datetime_utils import utc_now
 
 
 class GalleryRepository:
@@ -85,7 +85,7 @@ class GalleryRepository:
         )
         model = self.db.execute(stmt).scalars().first()
         if model:
-            model.deleted_at = datetime.utcnow()
+            model.deleted_at = utc_now()
             self.db.flush()
             self.db.commit()
             return True
