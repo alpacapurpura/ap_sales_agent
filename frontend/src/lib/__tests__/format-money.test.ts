@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatMoney, formatDualCurrency } from '../format-money';
+import { formatMoney, formatDualCurrency, formatMoneyDual, formatAggregatedMoney } from '../format-money';
 
 describe('formatMoney', () => {
   it('formats USD with dollar sign', () => {
@@ -69,6 +69,52 @@ describe('formatDualCurrency', () => {
 
   it('shows only local when usdAmount is undefined', () => {
     const result = formatDualCurrency(5000, 'MXN', undefined);
+    expect(result).not.toContain('USD');
+  });
+});
+
+describe('formatMoneyDual', () => {
+  it('shows single when source equals tenant', () => {
+    const result = formatMoneyDual(500, 'PEN', 'PEN');
+    expect(result).toMatch(/S\/|PEN/);
+    expect(result).toContain('500');
+    expect(result).not.toContain('~');
+  });
+
+  it('shows dual when source differs from tenant', () => {
+    const result = formatMoneyDual(100, 'USD', 'PEN', 370);
+    expect(result).toContain('$');
+    expect(result).toContain('100');
+    expect(result).toContain('~');
+    expect(result).toContain('370');
+  });
+
+  it('shows just source when tenantAmount not available', () => {
+    const result = formatMoneyDual(100, 'USD', 'PEN');
+    expect(result).toContain('100');
+  });
+});
+
+describe('formatAggregatedMoney', () => {
+  it('shows single when tenant is USD', () => {
+    const result = formatAggregatedMoney(1350, 'USD');
+    expect(result).toContain('$');
+    expect(result).toContain('1,350');
+    expect(result).not.toContain('~');
+  });
+
+  it('shows dual when tenant is not USD', () => {
+    const result = formatAggregatedMoney(5000, 'PEN', 1350);
+    expect(result).toMatch(/S\/|PEN/);
+    expect(result).toContain('5,000');
+    expect(result).toContain('~');
+    expect(result).toContain('1,350');
+    expect(result).toContain('USD');
+  });
+
+  it('shows single when usdAmount is null', () => {
+    const result = formatAggregatedMoney(5000, 'PEN');
+    expect(result).toMatch(/S\/|PEN/);
     expect(result).not.toContain('USD');
   });
 });
