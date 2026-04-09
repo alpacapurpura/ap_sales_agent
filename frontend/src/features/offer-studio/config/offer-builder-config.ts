@@ -17,6 +17,7 @@ import {
   Image,
   DollarSign,
   CheckCircle,
+  Rocket,
   LucideIcon
 } from 'lucide-react';
 
@@ -50,6 +51,7 @@ import { ProductDetailsForm } from '../components/editor/sections/product-detail
 import { ServiceDetailsForm } from '../components/editor/sections/service-details/service-form';
 import { EventDetailsForm } from '../components/editor/sections/event-details/event-form';
 import { SubscriptionDetailsForm } from '../components/editor/sections/subscription-details/subscription-form';
+import { EditionsSection } from '../components/editions/EditionsSection';
 
 // Placeholder for missing forms/previews if any
 import { PlaceholderForm } from '../components/editor/sections/common/placeholder-form';
@@ -183,16 +185,24 @@ export const SECTION_REGISTRY: Record<string, OfferBuilderSectionConfig> = {
     icon: CheckCircle,
     previewComponent: ClosingPreview,
     formComponent: ClosingForm
+  },
+  editions: {
+    id: 'editions',
+    title: 'Ediciones',
+    component: EditionsSection,
+    icon: Rocket,
+    previewComponent: PlaceholderPreview,
+    formComponent: EditionsSection,
   }
 };
 
 // --- ARCHETYPE-BASED CONFIG (new, preferred) ---
 export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
   [OfferArchetype.PRODUCTO]: ['identity', 'strategy', 'psychology', 'promise', 'product_details', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-  [OfferArchetype.PROGRAMA]: ['identity', 'strategy', 'psychology', 'promise', 'program_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-  [OfferArchetype.SERVICIO]: ['identity', 'strategy', 'psychology', 'promise', 'service_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
+  [OfferArchetype.PROGRAMA]: ['identity', 'strategy', 'psychology', 'promise', 'program_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'editions', 'closing'],
+  [OfferArchetype.SERVICIO]: ['identity', 'strategy', 'psychology', 'promise', 'service_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'editions', 'closing'],
   [OfferArchetype.MEMBRESIA]: ['identity', 'strategy', 'psychology', 'promise', 'subscription_details', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
-  [OfferArchetype.EXPERIENCIA]: ['identity', 'strategy', 'psychology', 'promise', 'event_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'closing'],
+  [OfferArchetype.EXPERIENCIA]: ['identity', 'strategy', 'psychology', 'promise', 'event_details', 'instructors', 'value_stack', 'resources', 'gallery', 'pricing', 'editions', 'closing'],
 };
 
 /**
