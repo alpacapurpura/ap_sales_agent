@@ -18,6 +18,7 @@ from src.modules.iam.infrastructure.models import (
     UserModel,
     UserTenantModel,
 )
+from src.shared.domain.locale import TenantLocale
 
 logger = structlog.get_logger()
 
@@ -389,3 +390,30 @@ def get_current_tenant_id(user: User = Depends(get_current_user)) -> str:
     if not user.tenant_id:
         raise HTTPException(status_code=403, detail="User has no tenant")
     return str(user.tenant_id)
+
+
+def _resolve_tenant_locale(db: Session, tenant_id: UUID) -> TenantLocale:
+    """Load TenantLocale from DB. Extracted for testability."""
+    tenant = (
+        db.execute(select(TenantModel).where(TenantModel.id == tenant_id))
+        .scalars()
+        .first()
+    )
+    if tenant:
+        return TenantLocale(
+            currency=tenant.default_currency or "USD",
+            timezone=tenant.timezone or "UTC",
+        )
+    return TenantLocale.default()
+
+
+def get_tenant_locale(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> TenantLocale:
+    """FastAPI dependency: resolves TenantLocale for the current request.
+
+    The tenant row is typically already in the SA session identity map
+    from get_current_user, so this is a cache hit, not a new query.
+    """
+    return _resolve_tenant_locale(db, user.tenant_id)
