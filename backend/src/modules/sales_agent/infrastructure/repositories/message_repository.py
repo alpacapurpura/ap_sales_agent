@@ -51,7 +51,7 @@ class MessageRepository:
             self.db.execute(
                 select(MessageModel)
                 .where(
-                    MessageModel.lead_id == lead_id, MessageModel.tenant_id == tenant_id
+                    MessageModel.user_id == lead_id, MessageModel.tenant_id == tenant_id
                 )
                 .order_by(MessageModel.created_at.asc())
                 .limit(limit)

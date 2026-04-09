@@ -130,8 +130,9 @@ class TestWebhookSettings:
 
     def test_with_secret(self):
         w = WebhookSettings(
-            webhook_url="https://example.com/hook", webhook_secret="mysecret"
-        )  # noqa: S106
+            webhook_url="https://example.com/hook",
+            webhook_secret="mysecret",  # noqa: S106
+        )
         assert w.webhook_secret == "mysecret"  # noqa: S105
 
     def test_url_required(self):
@@ -219,8 +220,10 @@ class TestSystemUserProfile:
 class TestTeamMemberCreate:
     def test_construction(self):
         m = TeamMemberCreate(
-            full_name="Bob", email="bob@example.com", password="secret123"
-        )  # noqa: S106
+            full_name="Bob",
+            email="bob@example.com",
+            password="secret123",  # noqa: S106
+        )
         assert m.full_name == "Bob"
         assert m.password == "secret123"  # noqa: S105
 

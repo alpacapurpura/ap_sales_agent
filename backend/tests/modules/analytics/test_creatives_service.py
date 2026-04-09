@@ -91,11 +91,13 @@ class TestGetCreativesOverview:
             MagicMock(
                 fetchall=MagicMock(
                     return_value=[
-                        _make_video_metric_row("video_play_actions", 10000.0),
-                        _make_video_metric_row("video_p25_watched_actions", 7500.0),
-                        _make_video_metric_row("video_p50_watched_actions", 5000.0),
-                        _make_video_metric_row("video_p75_watched_actions", 2500.0),
-                        _make_video_metric_row("video_p100_watched_actions", 1000.0),
+                        _make_video_metric_row("meta_video_views", 10000.0),
+                        _make_video_metric_row("meta_video_p25", 7500.0),
+                        _make_video_metric_row("meta_video_p50", 5000.0),
+                        _make_video_metric_row("meta_video_p75", 2500.0),
+                        _make_video_metric_row("meta_video_p100", 1000.0),
+                        _make_video_metric_row("meta_video_30sec", 6000.0),
+                        _make_video_metric_row("meta_video_avg_watch_time", 15.5),
                     ]
                 )
             ),
@@ -109,6 +111,8 @@ class TestGetCreativesOverview:
         assert result.video_retention.p50 == 5000.0
         assert result.video_retention.p75 == 2500.0
         assert result.video_retention.p100 == 1000.0
+        assert result.video_retention.views_30s == 6000.0
+        assert result.video_retention.avg_watch_time == 15.5
 
     def test_empty_data_returns_defaults(self):
         """When no ads or metrics exist, return empty defaults."""

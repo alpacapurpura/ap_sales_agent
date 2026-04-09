@@ -53,9 +53,9 @@ class TestAssetRepositoryCreate:
 
 
 class TestAssetRepositoryGetById:
-    def test_get_by_id_returns_asset(self, db, sample_asset):
+    def test_get_by_id_returns_asset(self, db, sample_asset, tenant_id):
         repo = AssetRepository(db)
-        result = repo.get_by_id(sample_asset.id)
+        result = repo.get_by_id(sample_asset.id, tenant_id)
 
         assert result is not None
         assert result.id == sample_asset.id
@@ -72,9 +72,9 @@ class TestAssetRepositoryGetById:
         result = repo.get_by_id(sample_asset.id, tenant_id=other_tenant_id)
         assert result is None
 
-    def test_get_by_id_nonexistent_returns_none(self, db, seed_tenant):
+    def test_get_by_id_nonexistent_returns_none(self, db, seed_tenant, tenant_id):
         repo = AssetRepository(db)
-        result = repo.get_by_id(uuid.uuid4())
+        result = repo.get_by_id(uuid.uuid4(), tenant_id)
         assert result is None
 
 

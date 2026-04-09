@@ -1,7 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { CartesianGrid, Line, LineChart, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
+import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
 
 import { ChartContainer } from '@/components/ui/chart';
 import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
@@ -134,6 +134,18 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
                 <Line type="monotone" dataKey="CPC" stroke="var(--color-CPC)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="CPM" stroke="var(--color-CPM)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="CPL" stroke="var(--color-CPL)" strokeWidth={2} dot={false} />
+                {(() => {
+                  const cpcBenchmark = costKpis.find(k => k.metricName === 'CPC')?.benchmark;
+                  return cpcBenchmark ? (
+                    <ReferenceLine
+                      y={cpcBenchmark.median}
+                      stroke="var(--color-CPC)"
+                      strokeDasharray="4 6"
+                      strokeOpacity={0.3}
+                      label={{ value: 'Prom. CPC', position: 'right', fontSize: 9, fill: 'var(--color-CPC)' }}
+                    />
+                  ) : null;
+                })()}
               </LineChart>
             </ChartContainer>
           </div>
@@ -178,6 +190,30 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
                   </div>
                 );
               })}
+              {(() => {
+                const cpaBenchmark = costKpis.find(k => k.metricName === 'CPA')?.benchmark;
+                if (!cpaBenchmark || maxCpa === 0) return null;
+                const benchPct = (cpaBenchmark.median / maxCpa) * 100;
+                return (
+                  <div className="flex items-center gap-3 pt-1 border-t border-dashed border-muted-foreground/20">
+                    <span className="text-[10px] text-muted-foreground w-36 text-right">
+                      Prom. industria
+                    </span>
+                    <div className="flex-1 relative h-5">
+                      <div
+                        className="absolute top-0 h-full border-l-2 border-dashed border-muted-foreground/40"
+                        style={{ left: `${Math.min(benchPct, 100)}%` }}
+                      />
+                      <span
+                        className="absolute top-0.5 text-[9px] text-muted-foreground"
+                        style={{ left: `${Math.min(benchPct + 1, 85)}%` }}
+                      >
+                        {formatMoney(cpaBenchmark.median, campaignData?.currency || 'USD')}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </ChartSection>

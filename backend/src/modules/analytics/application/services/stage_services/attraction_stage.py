@@ -1,7 +1,7 @@
 """Attraction stage service — extracted from MetricsService.
 
 Handles get_attraction_metrics() logic: ETL official tables,
-ChannelRegistry, grouping into organic_social/ga4_search/paid/outbound/website.
+ChannelRegistry, grouping into organic_social/ga4_search/paid/outbound.
 """
 
 from collections import defaultdict
@@ -21,41 +21,20 @@ from src.modules.analytics.application.services.aggregation_helpers import (
     compute_channel_totals,
 )
 from src.modules.analytics.application.services.channel_registry import ChannelRegistry
+from src.modules.analytics.application.services.stage_services.constants import (
+    ATTRACTION_GROUP_MAP as _GROUP_MAP,
+)
+from src.modules.analytics.application.services.stage_services.constants import (
+    DISPLAY_NAME_MAP as _DISPLAY_NAME_MAP,
+)
+from src.modules.analytics.application.services.stage_services.constants import (
+    ERROR_MESSAGES as _ERROR_MESSAGES,
+)
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-
-# Channel types -> group mapping for the 5-group structure
-_GROUP_MAP: dict[str, str] = {
-    "social": "organic_social",
-    "search": "ga4_search",
-    "direct": "ga4_search",
-    "paid": "paid",
-    "outbound": "outbound",
-    "website": "organic_social",
-}
-
-# Error message mapping from extraction run errors to user-facing messages
-_ERROR_MESSAGES: dict[str, str] = {
-    "token_expired": "Token expirado",
-    "token_refresh_failed": "Token expirado",
-    "connection_revoked": "Token expirado",
-    "rate_limited": "Reintentando...",
-    "rate_limit": "Reintentando...",
-    "provider_error": "Servicio no disponible",
-    "timeout": "Servicio no disponible",
-    "http_5xx": "Servicio no disponible",
-}
-
-# Maps provider_name -> config key that holds the display name
-_DISPLAY_NAME_MAP: dict[str, str] = {
-    "google_analytics": "property_display_name",
-    "youtube": "channel_title",
-    "meta": "tracked_ig_username",
-    "google_ads": "property_display_name",
-}
 
 
 def _enrich_with_derived_metrics(
@@ -190,7 +169,6 @@ class AttractionStageService:
             "ga4_search": [],
             "paid": [],
             "outbound": [],
-            "website": [],
         }
         available_channels: list[ChannelMetricDTO] = []
         latest_updated: str | None = None
@@ -325,15 +303,6 @@ class AttractionStageService:
             else None
         )
 
-        website_group = (
-            TrafficGroupDTO(
-                totals=compute_channel_totals(groups["website"]),
-                channels=groups["website"],
-            )
-            if groups["website"]
-            else None
-        )
-
         result = AttractionDetailDTO(
             organic_social=TrafficGroupDTO(
                 totals=compute_channel_totals(groups["organic_social"]),
@@ -351,7 +320,6 @@ class AttractionStageService:
                 totals=compute_channel_totals(groups["outbound"]),
                 channels=groups["outbound"],
             ),
-            website=website_group,
             available=available_dto,
             period="last_30_days",
             last_updated=latest_updated,

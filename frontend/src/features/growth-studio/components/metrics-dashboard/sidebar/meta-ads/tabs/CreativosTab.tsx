@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, Film, Loader2 } from 'lucide-react';
+import { Clock, Film, Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { formatMoney } from '@/lib/format-money';
@@ -342,8 +342,10 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
             <p className="text-xl font-bold tabular-nums mt-1">{formatCompact(retention.plays)}</p>
           </div>
           <div className="rounded-lg border bg-card p-3">
-            <p className="text-[10px] text-muted-foreground">Vistas 50%+</p>
-            <p className="text-xl font-bold tabular-nums mt-1">{formatCompact(retention.p50)}</p>
+            <p className="text-[10px] text-muted-foreground">Vistas 30s+</p>
+            <p className="text-xl font-bold tabular-nums mt-1">
+              {formatCompact(retention.views30s ?? retention.p50)}
+            </p>
           </div>
           <div className="rounded-lg border bg-card p-3">
             <p className="text-[10px] text-muted-foreground">Completados</p>
@@ -354,13 +356,19 @@ export function CreativosTab({ data, isLoading, period }: CreativosTabProps) {
           </div>
           <div className="rounded-lg border bg-card p-3">
             <p className="text-[10px] text-muted-foreground">
-              <Eye className="mr-1 inline h-3 w-3" />
-              Retenci&oacute;n 75%
+              <Clock className="mr-1 inline h-3 w-3" />
+              Duración promedio
             </p>
-            <p className="text-xl font-bold tabular-nums mt-1">{formatCompact(retention.p75)}</p>
-            <p className="text-[9px] text-muted-foreground">
-              {((retention.p75 / retention.plays) * 100).toFixed(0)}% del total
+            <p className="text-xl font-bold tabular-nums mt-1">
+              {retention.avgWatchTime != null && retention.avgWatchTime > 0
+                ? `${retention.avgWatchTime.toFixed(0)}s`
+                : `${((retention.p75 / retention.plays) * 100).toFixed(0)}%`}
             </p>
+            {retention.avgWatchTime != null && retention.avgWatchTime > 0 && (
+              <p className="text-[9px] text-muted-foreground">
+                tiempo promedio de vista
+              </p>
+            )}
           </div>
         </div>
       )}

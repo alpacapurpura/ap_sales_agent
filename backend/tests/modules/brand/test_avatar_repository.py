@@ -84,7 +84,7 @@ class TestAvatarRepository:
         created = repo.create(sample_avatar)
 
         assert repo.delete(created.id) is True
-        assert repo.get_by_id(created.id) is None
+        assert repo.get_by_id(created.id, tenant_id=sample_avatar.tenant_id) is None
 
     def test_delete_nonexistent(self, db):
         repo = AvatarRepository(db)
@@ -116,5 +116,5 @@ class TestAvatarRepository:
         assert result.is_default is True
 
         # Verify a1 is no longer default
-        a1_check = repo.get_by_id(a1.id)
+        a1_check = repo.get_by_id(a1.id, tenant_id=tenant_id)
         assert a1_check.is_default is False

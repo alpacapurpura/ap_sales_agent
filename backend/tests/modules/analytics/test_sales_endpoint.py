@@ -51,12 +51,12 @@ class TestSalesMetricsRepository:
 class TestSalesEndpoint:
     """GET /metrics/sales endpoint wiring tests."""
 
-    def test_metrics_service_has_get_sales_metrics(self):
-        from src.modules.analytics.application.services.metrics_service import (
-            MetricsService,
+    def test_sales_stage_service_has_get_metrics(self):
+        from src.modules.analytics.application.services.stage_services.sales_stage import (
+            SalesStageService,
         )
 
-        assert hasattr(MetricsService, "get_sales_metrics")
+        assert hasattr(SalesStageService, "get_metrics")
 
     def test_metrics_service_accepts_offer_port(self):
         """MetricsService __init__ accepts offer_port parameter."""

@@ -1,6 +1,6 @@
-"""Tests confirming MetricsService reads from official ETL tables.
+"""Tests confirming AttractionStageService reads from official ETL tables.
 
-Verifies that get_attraction_metrics() uses:
+Verifies that get_metrics() uses:
 - MetricsCache (check before DB query)
 - OfficialMetricsRepository.get_channel_summary() (aggregated data)
 - ChannelRegistry (dynamic channel list)
@@ -19,10 +19,9 @@ from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
 )
 
-# MetricsService.get_attraction_metrics() resolves ChannelRegistry and
-# OfficialMetricsRepository from its own module (metrics_service), not
-# from the extracted attraction_stage service.
-_ATTRACTION_MODULE = "src.modules.analytics.application.services.metrics_service"
+_ATTRACTION_MODULE = (
+    "src.modules.analytics.application.services.stage_services.attraction_stage"
+)
 
 
 @pytest.fixture
@@ -93,12 +92,12 @@ def sample_aggregations():
 
 
 def _make_service(db, cache=None, connection_port=None):
-    """Helper to build MetricsService with ETL dependencies."""
-    from src.modules.analytics.application.services.metrics_service import (
-        MetricsService,
+    """Helper to build AttractionStageService with ETL dependencies."""
+    from src.modules.analytics.application.services.stage_services.attraction_stage import (
+        AttractionStageService,
     )
 
-    return MetricsService(db, cache=cache, connection_port=connection_port)
+    return AttractionStageService(db, cache=cache, connection_port=connection_port)
 
 
 # ---------------------------------------------------------------------------
@@ -108,7 +107,7 @@ def _make_service(db, cache=None, connection_port=None):
 async def test_get_attraction_uses_channel_registry(
     mock_db, mock_cache, mock_connection_port, test_tenant_id
 ):
-    """MetricsService delegates channel list to ChannelRegistry, not hardcoded defs."""
+    """AttractionStageService delegates channel list to ChannelRegistry, not hardcoded defs."""
     service = _make_service(
         mock_db, cache=mock_cache, connection_port=mock_connection_port
     )
@@ -145,7 +144,7 @@ async def test_get_attraction_uses_channel_registry(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_attraction_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id)
 
             # ChannelRegistry was used
             mock_reg_inst.get_available_channels.assert_called_once_with(
@@ -197,7 +196,7 @@ async def test_get_attraction_populates_values_from_repo(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_attraction_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id)
 
     # Find the ig-organic channel in organic group
     all_channels = result.organic_social.channels + result.paid.channels
@@ -240,7 +239,7 @@ async def test_get_attraction_returns_cached_on_hit(
         mock_repo_inst = MagicMock()
         MockRepo.return_value = mock_repo_inst
 
-        result = await service.get_attraction_metrics(test_tenant_id)
+        result = await service.get_metrics(test_tenant_id)
 
         # Repository MUST NOT be called when cache hits
         mock_repo_inst.get_channel_summary.assert_not_called()
@@ -273,7 +272,7 @@ async def test_get_attraction_sets_cache_after_query(
             )
             MockReg.return_value = mock_reg_inst
 
-            await service.get_attraction_metrics(test_tenant_id)
+            await service.get_metrics(test_tenant_id)
 
     # Cache set must have been called
     mock_cache.set.assert_called_once()
@@ -319,7 +318,7 @@ async def test_unconnected_channels_return_zero(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_attraction_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id)
 
     assert result.available is not None
     tiktok = next(
@@ -365,7 +364,7 @@ async def test_connected_channels_include_last_updated(
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_attraction_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id)
 
     ig = next(
         (ch for ch in result.organic_social.channels if ch.slug == "ig-organic"), None
@@ -395,6 +394,6 @@ async def test_works_without_cache(mock_db, mock_connection_port, test_tenant_id
             )
             MockReg.return_value = mock_reg_inst
 
-            result = await service.get_attraction_metrics(test_tenant_id)
+            result = await service.get_metrics(test_tenant_id)
 
     assert isinstance(result, AttractionDetailDTO)

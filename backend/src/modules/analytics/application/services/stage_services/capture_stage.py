@@ -28,6 +28,12 @@ from src.modules.analytics.application.services.capture_cost_service import (
     CaptureCostService,
 )
 from src.modules.analytics.application.services.channel_registry import ChannelRegistry
+from src.modules.analytics.application.services.stage_services.constants import (
+    CAPTURE_GROUP_MAP as _CAPTURE_GROUP_MAP,
+)
+from src.modules.analytics.application.services.stage_services.constants import (
+    DISPLAY_NAME_MAP as _DISPLAY_NAME_MAP,
+)
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.analytics.infrastructure.repositories.capture_repository import (
@@ -36,21 +42,6 @@ from src.modules.analytics.infrastructure.repositories.capture_repository import
 from src.modules.analytics.infrastructure.repositories.official_metrics_repository import (
     OfficialMetricsRepository,
 )
-
-# Channel types -> capture group mapping (Stage 1)
-_CAPTURE_GROUP_MAP: dict[str, str] = {
-    "form": "web_infrastructure",
-    "email": "web_infrastructure",
-    "messaging": "ai_agent",
-}
-
-# Maps provider_name -> config key that holds the display name
-_DISPLAY_NAME_MAP: dict[str, str] = {
-    "google_analytics": "property_display_name",
-    "youtube": "channel_title",
-    "meta": "tracked_ig_username",
-    "google_ads": "property_display_name",
-}
 
 
 class CaptureStageService:

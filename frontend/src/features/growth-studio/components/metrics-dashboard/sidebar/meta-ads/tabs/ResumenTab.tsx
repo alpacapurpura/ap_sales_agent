@@ -131,13 +131,16 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
 
   const spendSeries = data.timeSeries.find(ts => ts.metricName === 'spend');
   const convSeries = data.timeSeries.find(ts => ts.metricName === 'conversions');
+  const roasSeries = data.timeSeries.find(ts => ts.metricName === 'ROAS');
 
   const compositeData = spendSeries?.dataPoints.map(sp => {
     const conv = convSeries?.dataPoints.find(c => c.date === sp.date);
+    const roas = roasSeries?.dataPoints.find(r => r.date === sp.date);
     return {
       date: sp.date.slice(5),
       spend: sp.value,
       conversions: conv?.value ?? 0,
+      roas: roas?.value ?? null,
     };
   }) ?? [];
 
@@ -222,6 +225,7 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
                 config={{
                   spend: { label: 'Inversión', color: 'hsl(var(--chart-1))' },
                   conversions: { label: 'Resultados', color: 'hsl(var(--chart-2))' },
+                  roas: { label: 'ROAS', color: 'hsl(45 93% 47%)' },
                 }}
                 className="h-[250px] w-full"
               >
@@ -233,6 +237,7 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
                   <RechartsTooltip />
                   <Bar yAxisId="left" dataKey="spend" fill="var(--color-spend)" radius={[2, 2, 0, 0]} />
                   <Line yAxisId="right" type="monotone" dataKey="conversions" stroke="var(--color-conversions)" strokeWidth={2} dot={false} />
+                  <Line yAxisId="right" type="monotone" dataKey="roas" stroke="var(--color-roas)" strokeWidth={1.5} strokeDasharray="6 4" dot={false} />
                 </ComposedChart>
               </ChartContainer>
             </div>

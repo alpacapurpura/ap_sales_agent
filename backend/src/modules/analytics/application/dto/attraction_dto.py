@@ -88,21 +88,19 @@ class AvailableChannelsDTO(BaseModel):
 
 
 class AttractionDetailDTO(BaseModel):
-    """Full attraction stage detail with 5 channel groups.
+    """Full attraction stage detail with 4 channel groups.
 
     Groups match CONTEXT.md headers:
-    - organic_social: Instagram, YouTube, Facebook, TikTok, LinkedIn
+    - organic_social: Instagram, YouTube, Facebook, TikTok, LinkedIn, Website (GA4)
     - ga4_search: Google Organic, Direct, AI Search Organic
     - paid: Meta Ads, Google Ads, TikTok Ads, YouTube Ads
     - outbound: Cold Contact
-    - website: Site-wide aggregate (GA4 website-total, Meta Pixel)
     """
 
     organic_social: TrafficGroupDTO
     ga4_search: TrafficGroupDTO
     paid: TrafficGroupDTO
     outbound: TrafficGroupDTO
-    website: TrafficGroupDTO | None = None
     available: AvailableChannelsDTO | None = None
     period: str = "last_30_days"
     last_updated: str | None = None

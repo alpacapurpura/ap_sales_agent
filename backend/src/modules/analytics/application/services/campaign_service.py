@@ -459,11 +459,13 @@ class CampaignService:
         WHERE tenant_id = :tenant_id
           AND channel_slug = 'meta-ads'
           AND metric_name IN (
-              'video_play_actions',
-              'video_p25_watched_actions',
-              'video_p50_watched_actions',
-              'video_p75_watched_actions',
-              'video_p100_watched_actions'
+              'meta_video_views',
+              'meta_video_p25',
+              'meta_video_p50',
+              'meta_video_p75',
+              'meta_video_p100',
+              'meta_video_30sec',
+              'meta_video_avg_watch_time'
           )
           AND metric_date BETWEEN :start_date AND :end_date
         GROUP BY metric_name
@@ -521,11 +523,13 @@ class CampaignService:
             vr_map[r["metric_name"]] = float(r["total_value"])
 
         video_retention = VideoRetentionDTO(
-            plays=vr_map.get("video_play_actions", 0),
-            p25=vr_map.get("video_p25_watched_actions", 0),
-            p50=vr_map.get("video_p50_watched_actions", 0),
-            p75=vr_map.get("video_p75_watched_actions", 0),
-            p100=vr_map.get("video_p100_watched_actions", 0),
+            plays=vr_map.get("meta_video_views", 0),
+            p25=vr_map.get("meta_video_p25", 0),
+            p50=vr_map.get("meta_video_p50", 0),
+            p75=vr_map.get("meta_video_p75", 0),
+            p100=vr_map.get("meta_video_p100", 0),
+            views_30s=vr_map.get("meta_video_30sec", 0),
+            avg_watch_time=vr_map.get("meta_video_avg_watch_time", 0),
         )
 
         return CreativesOverviewDTO(

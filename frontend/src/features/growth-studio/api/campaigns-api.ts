@@ -148,6 +148,8 @@ export interface VideoRetention {
   p50: number;
   p75: number;
   p100: number;
+  views30s: number;
+  avgWatchTime: number;
 }
 
 export interface CreativesOverviewData {

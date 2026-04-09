@@ -250,14 +250,13 @@ class TestAttractionDetailDTO:
         assert dto.outbound is not None
 
     def test_optional_groups_default_none(self):
-        """website and available groups are optional."""
+        """available group is optional."""
         dto = AttractionDetailDTO(
             organic_social=self._make_group(),
             ga4_search=self._make_group(),
             paid=self._make_group(),
             outbound=self._make_group(),
         )
-        assert dto.website is None
         assert dto.available is None
 
     def test_period_default(self):
@@ -271,14 +270,13 @@ class TestAttractionDetailDTO:
         assert dto.period == "last_30_days"
 
     def test_all_channel_group_fields(self):
-        """AttractionDetailDTO should have organic_social, ga4_search, paid, outbound, website."""
+        """AttractionDetailDTO should have organic_social, ga4_search, paid, outbound."""
         fields = set(AttractionDetailDTO.model_fields.keys())
         expected_groups = {
             "organic_social",
             "ga4_search",
             "paid",
             "outbound",
-            "website",
         }
         assert expected_groups.issubset(fields), (
             f"Missing channel group fields: {expected_groups - fields}"

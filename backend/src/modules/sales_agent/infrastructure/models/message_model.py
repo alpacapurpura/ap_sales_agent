@@ -24,6 +24,9 @@ class MessageModel(Base):
         String(20), nullable=False, server_default="auto"
     )  # auto / human_direct / human_instruction
     product_context_id = Column(UUID(as_uuid=True), nullable=True)
+    external_id = Column(
+        String, nullable=True
+    )  # Message ID from channel (e.g. ManyChat)
 
     metadata_log = Column("metadata_log", JSONB, default=dict)
 

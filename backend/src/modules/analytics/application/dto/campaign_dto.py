@@ -145,6 +145,8 @@ class VideoRetentionDTO(BaseModel):
     p50: float = 0
     p75: float = 0
     p100: float = 0
+    views_30s: float = 0
+    avg_watch_time: float = 0
 
 
 class CreativesOverviewDTO(BaseModel):

@@ -14,7 +14,8 @@ from src.modules.offer.domain.offer_ai_schemas import PsychologyGenerationRespon
 def _build_client(tenant_id):
     app = FastAPI()
     app.include_router(router, prefix="/api/v1/copilot/actions")
-    app.dependency_overrides[get_db] = lambda: MagicMock()
+    mock_db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: mock_db
     app.dependency_overrides[get_tenant_context] = lambda: tenant_id
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
         id=uuid4(), tenant_id=tenant_id

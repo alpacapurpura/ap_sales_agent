@@ -27,11 +27,19 @@ from src.modules.analytics.application.dto.stage_overview_dto import StageOvervi
 from src.modules.analytics.application.dto.summary_dto import BowtiesSummaryDTO
 from src.modules.analytics.application.dto.timeseries_dto import StageTimeSeriesDTO
 from src.modules.analytics.application.services.metrics_service import MetricsService
+from src.modules.analytics.application.services.stage_services import (
+    AdoptionStageService,
+    AttractionStageService,
+    CaptureStageService,
+    EvangelizationStageService,
+    ExpansionStageService,
+    NurtureStageService,
+    OpportunityStageService,
+    SalesStageService,
+    StageOverviewService,
+)
 from src.modules.analytics.application.services.stage_services.group_detail import (
     GroupDetailService,
-)
-from src.modules.analytics.application.services.stage_services.overview_stage import (
-    StageOverviewService,
 )
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 from src.modules.connections.application.services.connection_port_impl import (
@@ -234,32 +242,50 @@ def _filter_groups(dto: T, requested_groups: list[str]) -> T:
 
 
 async def _warm_stage_cache(
-    svc: MetricsService, tenant_id, stage: str, period: str
+    db: Session,
+    cache: MetricsCache,
+    tenant_id,
+    stage: str,
+    period: str,
 ) -> None:
-    """Call the detail service to populate the Redis cache for a stage.
+    """Call the stage service to populate the Redis cache for a stage.
 
     Called as a fallback when the overview endpoint finds an empty cache.
-    The detail service queries the DB and caches the result, so a
+    The stage service queries the DB and caches the result, so a
     subsequent overview read will find data.
     """
     try:
+        connection_port = ConnectionPortImpl(db)
         if stage == "attraction":
-            await svc.get_attraction_metrics(tenant_id, period=period)
+            svc = AttractionStageService(
+                db, cache=cache, connection_port=connection_port
+            )
+            await svc.get_metrics(tenant_id, period=period)
         elif stage == "capture":
-            await svc.get_capture_metrics(tenant_id, period=period)
+            svc = CaptureStageService(db, cache=cache, connection_port=connection_port)
+            await svc.get_metrics(tenant_id, period=period)
         elif stage == "nurture":
-            await svc.get_nurturing_metrics(tenant_id, period=period)
-        elif stage in (
-            "opportunity",
-            "sales",
-            "adoption",
-            "expansion",
-            "evangelization",
-        ):
+            svc = NurtureStageService(db, cache=cache, connection_port=connection_port)
+            await svc.get_metrics(tenant_id, period=period)
+        elif stage == "opportunity":
+            svc = OpportunityStageService(
+                db, cache=cache, connection_port=connection_port
+            )
             now = datetime.now(UTC)
-            start = now - timedelta(days=30)
-            method = getattr(svc, f"get_{stage}_metrics")
-            await method(tenant_id, start, now)
+            await svc.get_metrics(tenant_id, now - timedelta(days=30), now)
+        elif stage in ("sales", "adoption", "expansion", "evangelization"):
+            offer_port = OfferReadPortImpl(db)
+            stage_cls = {
+                "sales": SalesStageService,
+                "adoption": AdoptionStageService,
+                "expansion": ExpansionStageService,
+                "evangelization": EvangelizationStageService,
+            }[stage]
+            svc = stage_cls(
+                db, cache=cache, connection_port=connection_port, offer_port=offer_port
+            )
+            now = datetime.now(UTC)
+            await svc.get_metrics(tenant_id, now - timedelta(days=30), now)
     except Exception:
         import structlog
 
@@ -306,18 +332,9 @@ async def get_stage_overview(
         str(user.tenant_id), stage.value, period
     )
 
-    # Fallback: if cache was empty, warm it via the detail service (DB query)
+    # Fallback: if cache was empty, warm it via the stage service (DB query)
     if not overview.channel_list and not overview.groups:
-        connection_port = ConnectionPortImpl(db)
-        offer_port = (
-            OfferReadPortImpl(db)
-            if stage.value in ("sales", "adoption", "expansion")
-            else None
-        )
-        metrics_svc = MetricsService(
-            db, cache=cache, connection_port=connection_port, offer_port=offer_port
-        )
-        await _warm_stage_cache(metrics_svc, user.tenant_id, stage.value, period)
+        await _warm_stage_cache(db, cache, user.tenant_id, stage.value, period)
         # Invalidate any stale overview cache before re-reading
         try:
             overview_key = cache._key(
@@ -378,8 +395,8 @@ async def get_attraction_metrics(
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
-    service = MetricsService(db, cache=cache, connection_port=connection_port)
-    result = await service.get_attraction_metrics(user.tenant_id, period=period)
+    service = AttractionStageService(db, cache=cache, connection_port=connection_port)
+    result = await service.get_metrics(user.tenant_id, period=period)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -400,8 +417,8 @@ async def get_capture_metrics(
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
-    service = MetricsService(db, cache=cache, connection_port=connection_port)
-    result = await service.get_capture_metrics(user.tenant_id, period=period)
+    service = CaptureStageService(db, cache=cache, connection_port=connection_port)
+    result = await service.get_metrics(user.tenant_id, period=period)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -422,8 +439,8 @@ async def get_nurturing_metrics(
         raise HTTPException(status_code=400, detail=f"Invalid period: {period}")
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
-    service = MetricsService(db, cache=cache, connection_port=connection_port)
-    result = await service.get_nurturing_metrics(user.tenant_id, period=period)
+    service = NurtureStageService(db, cache=cache, connection_port=connection_port)
+    result = await service.get_metrics(user.tenant_id, period=period)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -446,10 +463,10 @@ async def get_opportunity_metrics(
     """
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
-    service = MetricsService(db, cache=cache, connection_port=connection_port)
+    service = OpportunityStageService(db, cache=cache, connection_port=connection_port)
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
-    result = await service.get_opportunity_metrics(user.tenant_id, start_date, now)
+    result = await service.get_metrics(user.tenant_id, start_date, now)
     if groups:
         return _filter_groups(result, groups.split(","))
     return result
@@ -469,12 +486,12 @@ async def get_sales_metrics(
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
-    service = MetricsService(
+    service = SalesStageService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
-    return await service.get_sales_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, start_date, now)
 
 
 @router.get("/adoption", response_model=AdoptionDetailDTO)
@@ -490,12 +507,12 @@ async def get_adoption_metrics(
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
-    service = MetricsService(
+    service = AdoptionStageService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
-    return await service.get_adoption_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, start_date, now)
 
 
 @router.get("/expansion", response_model=ExpansionDetailDTO)
@@ -512,12 +529,12 @@ async def get_expansion_metrics(
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
-    service = MetricsService(
+    service = ExpansionStageService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
-    return await service.get_expansion_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, start_date, now)
 
 
 @router.get("/evangelization", response_model=EvangelizationDetailDTO)
@@ -533,12 +550,12 @@ async def get_evangelization_metrics(
     cache = MetricsCache(redis_client)
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
-    service = MetricsService(
+    service = EvangelizationStageService(
         db, cache=cache, connection_port=connection_port, offer_port=offer_port
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
-    return await service.get_evangelization_metrics(user.tenant_id, start_date, now)
+    return await service.get_metrics(user.tenant_id, start_date, now)
 
 
 _VALID_STAGES = {

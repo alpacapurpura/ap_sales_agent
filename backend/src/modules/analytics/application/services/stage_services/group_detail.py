@@ -17,43 +17,12 @@ from src.modules.analytics.application.dto.attraction_dto import (
     MetricValueDTO,
 )
 from src.modules.analytics.application.dto.group_detail_dto import GroupDetailDTO
+from src.modules.analytics.application.services.stage_services.constants import (
+    STAGE_GROUPS as _STAGE_GROUPS,
+)
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 logger = structlog.get_logger()
-
-# Reuse group definitions from overview service
-_STAGE_GROUPS: dict[str, list[tuple[str, str, str]]] = {
-    "attraction": [
-        ("organic_social", "Social Orgánico", "organic_social"),
-        ("ga4_search", "Búsqueda Orgánica", "ga4_search"),
-        ("paid", "Pagado", "paid"),
-        ("outbound", "Outbound", "outbound"),
-    ],
-    "capture": [
-        ("web_infrastructure", "Web / Infraestructura", "web_infrastructure"),
-        ("ai_agent", "AI Agent / Mensajería", "ai_agent"),
-    ],
-    "nurture": [
-        ("retargeting", "Retargeting", "retargeting"),
-        ("automation", "Automatización", "automation"),
-    ],
-    "opportunity": [
-        ("checkout", "Checkout", "checkout"),
-        ("payment_links", "Links de Pago", "payment_links"),
-        ("qualification", "Calificación", "qualification"),
-    ],
-    "sales": [
-        ("adquisicion", "Adquisición", "adquisicion"),
-        ("expansion", "Expansión", "expansion"),
-    ],
-    "adoption": [],
-    "expansion": [
-        ("retencion", "Retención", "retencion"),
-        ("crecimiento", "Crecimiento", "crecimiento"),
-        ("cancelaciones", "Cancelaciones", "cancelaciones"),
-    ],
-    "evangelization": [],
-}
 
 GROUP_DETAIL_TTL = 300  # 5 minutes
 

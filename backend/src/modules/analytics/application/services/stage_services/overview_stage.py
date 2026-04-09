@@ -21,43 +21,12 @@ from src.modules.analytics.application.dto.stage_overview_dto import (
     MiniFunnelOverviewDTO,
     StageOverviewDTO,
 )
+from src.modules.analytics.application.services.stage_services.constants import (
+    STAGE_GROUPS as _STAGE_GROUPS,
+)
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
 
 logger = structlog.get_logger()
-
-# Stage -> group definitions: each entry is (group_key, group_label, dto_field_name)
-_STAGE_GROUPS: dict[str, list[tuple[str, str, str]]] = {
-    "attraction": [
-        ("organic_social", "Social Orgánico", "organic_social"),
-        ("ga4_search", "Búsqueda Orgánica", "ga4_search"),
-        ("paid", "Pagado", "paid"),
-        ("outbound", "Outbound", "outbound"),
-    ],
-    "capture": [
-        ("web_infrastructure", "Web / Infraestructura", "web_infrastructure"),
-        ("ai_agent", "AI Agent / Mensajería", "ai_agent"),
-    ],
-    "nurture": [
-        ("retargeting", "Retargeting", "retargeting"),
-        ("automation", "Automatización", "automation"),
-    ],
-    "opportunity": [
-        ("checkout", "Checkout", "checkout"),
-        ("payment_links", "Links de Pago", "payment_links"),
-        ("qualification", "Calificación", "qualification"),
-    ],
-    "sales": [
-        ("adquisicion", "Adquisición", "adquisicion"),
-        ("expansion", "Expansión", "expansion"),
-    ],
-    "adoption": [],  # No channel groups -- uses offers list
-    "expansion": [
-        ("retencion", "Retención", "retencion"),
-        ("crecimiento", "Crecimiento", "crecimiento"),
-        ("cancelaciones", "Cancelaciones", "cancelaciones"),
-    ],
-    "evangelization": [],  # No channel groups -- uses referidos, candidatos
-}
 
 # Stage -> header KPI keys to extract from the cached stage data
 _STAGE_HEADER_KPI_KEYS: dict[str, list[str]] = {
