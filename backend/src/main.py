@@ -88,6 +88,7 @@ from src.modules.iam.api.tracking import router as iam_tracking
 from src.modules.landing.api import landing as landing_ai
 from src.modules.landing.api import public_landing as landing_public
 from src.modules.offer.api import definitions as offer_definitions
+from src.modules.offer.api import launch_editions as offer_launch_editions
 from src.modules.offer.api import offer_ai
 from src.modules.offer.api import offer_extraction as offer_tools
 from src.modules.offer.api import product_mappings as offer_product_mappings
@@ -407,6 +408,12 @@ app.include_router(
     offer_tools.router,
     prefix="/api/v1/offer/tools",
     tags=["Offer - Tools"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    offer_launch_editions.router,
+    prefix="/api/v1/offer/products",
+    tags=["Offer - Launch Editions"],
     dependencies=[Depends(get_tenant_context)],
 )
 
