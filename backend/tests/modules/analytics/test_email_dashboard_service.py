@@ -46,6 +46,19 @@ class TestHealthScore:
         growth = next(s for s in score.sub_scores if s.area == "crecimiento")
         assert growth.color == "red"
 
+    def test_zero_values_no_division_error(self):
+        """Health score must not crash when all inputs are zero."""
+        score = compute_health_score(
+            open_rate=0.0,
+            benchmark_open_rate=21.5,
+            ctor=0.0,
+            benchmark_ctor=10.5,
+            deliverability_rate=0.0,
+            list_growth_rate=0.0,
+        )
+        assert 0 <= score.total <= 100
+        assert len(score.sub_scores) == 4
+
     def test_low_deliverability(self):
         score = compute_health_score(
             open_rate=22.0,

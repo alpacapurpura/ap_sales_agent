@@ -250,7 +250,7 @@ class EmailDashboardService:
 
         new_subs = current.get("new_subscribers", 0)
         unsubs = current.get("unsubscribes", 0)
-        active = current.get("active_subscribers", 1)
+        active = current.get("active_subscribers", 0) or 1
         current["list_growth_rate"] = (new_subs - unsubs) / active * 100
 
         fwd = current.get("forwards", 0)
@@ -660,7 +660,7 @@ class EmailDashboardService:
         # Merge nurture unsubs into capture metrics
         current["unsubscribes"] = nurture.get("unsubscribes", 0)
 
-        active = current.get("active_subscribers", 1)
+        active = current.get("active_subscribers", 0) or 1
         new_subs = current.get("new_subscribers", 0)
         unsubs = current.get("unsubscribes", 0)
         current["list_growth_rate"] = (new_subs - unsubs) / active * 100
