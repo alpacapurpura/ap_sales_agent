@@ -20,8 +20,8 @@ export function formatDuration(seconds: number): string {
   return `${min}m ${sec}s`;
 }
 
-export function formatCurrency(n: number, currency: string): string {
-  return formatMoney(n, currency);
+export function formatCurrency(n: number, currency: string | undefined, fallback = 'USD'): string {
+  return formatMoney(n, currency ?? fallback);
 }
 
 export type MetricFormat = 'number' | 'currency' | 'percentage' | 'duration';

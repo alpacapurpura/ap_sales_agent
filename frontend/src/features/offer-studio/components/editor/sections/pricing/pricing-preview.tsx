@@ -4,19 +4,21 @@ import { OfferFormValues } from '../../../../types/schema';
 import { useFormContext } from 'react-hook-form';
 import { CreditCard } from 'lucide-react';
 import { formatMoney } from '@/lib/format-money';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 
 interface PricingPreviewProps {
   data?: Partial<OfferFormValues>;
 }
 
 export const PricingPreview = ({ data: propsData }: PricingPreviewProps) => {
+  const { currency: tenantCurrency } = useTenantLocale();
   const form = useFormContext<OfferFormValues>();
   const data = propsData || (form ? form.watch() : null);
 
   if (!data?.pricing_options?.length) return null;
 
   const { pricing_options, currency } = data;
-  const currencyCode = currency || "USD";
+  const currencyCode = currency || tenantCurrency;
 
   return (
     <div className="w-full">

@@ -6,11 +6,11 @@ import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-met
 import { HighlightedText } from "@/components/ui/highlighted-text";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  MoreHorizontal, 
-  Users, 
-  CreditCard, 
-  Clock, 
+import {
+  MoreHorizontal,
+  Users,
+  CreditCard,
+  Clock,
   Package,
   Zap,
   Gem,
@@ -18,16 +18,17 @@ import {
   Sparkles,
   ExternalLink
 } from "lucide-react";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface OfferCardProps {
   offer: Offer;
@@ -72,7 +73,8 @@ export const OfferCard = memo(function OfferCard({ offer, searchQuery = "", comp
   const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
-  
+  const { currency: tenantCurrency } = useTenantLocale();
+
   const borderColor = DELIVERY_COLORS[offer.delivery_model] || "border-gray-200";
   const badgeConfig = DELIVERY_BADGES[offer.delivery_model] || DELIVERY_BADGES[OfferDeliveryModel.DIY];
   const statusConfig = STATUS_CONFIG[offer.status] || STATUS_CONFIG[OfferStatus.DRAFT];
@@ -84,8 +86,8 @@ export const OfferCard = memo(function OfferCard({ offer, searchQuery = "", comp
     : "Oferta";
 
   // Calculate Price Display
-  const priceDisplay = offer.pricing && offer.pricing.length > 0 
-    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency || 'USD' }).format(offer.pricing[0].total_amount)
+  const priceDisplay = offer.pricing && offer.pricing.length > 0
+    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency || tenantCurrency }).format(offer.pricing[0].total_amount)
     : "Free";
 
   const handleClick = (e: React.MouseEvent) => {

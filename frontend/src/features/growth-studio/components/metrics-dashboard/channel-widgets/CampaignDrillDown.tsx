@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import type { CampaignMetric, MetricValue } from '../../../types/metrics';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { formatMoney } from '@/lib/format-money';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 
 // Format helpers (inline to avoid cross-file dependency)
 function formatNumber(n: number): string {
@@ -14,8 +15,8 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-function formatMetricValue(m: MetricValue): string {
-  if (m.unit === 'currency') return formatMoney(m.value, m.currency || 'USD');
+function formatMetricValue(m: MetricValue, fallbackCurrency: string): string {
+  if (m.unit === 'currency') return formatMoney(m.value, m.currency || fallbackCurrency);
   if (m.unit === 'percentage') return `${m.value.toFixed(1)}%`;
   return formatNumber(m.value);
 }
@@ -27,6 +28,7 @@ interface CampaignDrillDownProps {
 
 export function CampaignDrillDown({ campaigns, children }: CampaignDrillDownProps) {
   const [open, setOpen] = useState(false);
+  const { currency: tenantCurrency } = useTenantLocale();
 
   if (campaigns.length === 0) {
     // No campaign data yet -- render the row content normally
@@ -66,7 +68,7 @@ export function CampaignDrillDown({ campaigns, children }: CampaignDrillDownProp
                       {METRIC_LABELS[m.name] ?? m.name}
                     </span>
                     <span className="text-xs font-semibold tabular-nums">
-                      {formatMetricValue(m)}
+                      {formatMetricValue(m, tenantCurrency)}
                     </span>
                   </div>
                 ))}

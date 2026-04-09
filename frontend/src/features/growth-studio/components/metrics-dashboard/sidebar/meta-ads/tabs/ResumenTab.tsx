@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
 import { ChartSection } from '../../shared/ChartSection';
 import { MetaAdsMiniFunnel } from '../MetaAdsMiniFunnel';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import type {
   ChannelDashboardData,
   MetricKpiData,
@@ -33,8 +34,8 @@ function isPixelPlaceholder(metricName: string, value: number): boolean {
   return PIXEL_DEPENDENT_METRICS.has(metricName) && value === 0;
 }
 
-function formatKpiValue(value: number, unit: string, currency?: string): string {
-  if (unit === 'currency') return formatMoney(value, currency || 'USD');
+function formatKpiValue(value: number, unit: string, currency?: string, fallbackCurrency = 'USD'): string {
+  if (unit === 'currency') return formatMoney(value, currency || fallbackCurrency);
   if (unit === 'percentage') return `${value.toFixed(2)}%`;
   if (unit === 'ratio') return `${value.toFixed(2)}x`;
   if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
@@ -109,6 +110,8 @@ function AlertCard({
 }
 
 export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: ResumenTabProps) {
+  const { currency: tenantCurrency } = useTenantLocale();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -166,7 +169,7 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
                   {isPixelPlaceholder(kpi.metricName, kpi.currentValue) ? (
                     <span title="Requiere Meta Pixel configurado">--</span>
                   ) : (
-                    formatKpiValue(kpi.currentValue, kpi.unit, kpi.currency)
+                    formatKpiValue(kpi.currentValue, kpi.unit, kpi.currency, tenantCurrency)
                   )}
                 </p>
                 {kpi.deltaPct != null && (

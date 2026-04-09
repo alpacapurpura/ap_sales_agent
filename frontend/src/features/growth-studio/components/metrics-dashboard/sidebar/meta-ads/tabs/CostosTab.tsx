@@ -9,6 +9,7 @@ import { formatMoney } from '@/lib/format-money';
 import { cn } from '@/lib/utils';
 import { ChartSection } from '../../shared/ChartSection';
 import type { ChannelDashboardData, MetricKpiData, CampaignPerformanceData } from '../../../../../types/metrics';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 
 interface CostosTabProps {
   data: ChannelDashboardData | undefined;
@@ -33,6 +34,8 @@ const COST_TOOLTIPS: Record<string, string> = {
 };
 
 export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
+  const { currency: tenantCurrency } = useTenantLocale();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -96,7 +99,7 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
                 {isPixelPlaceholder(kpi.metricName, kpi.currentValue) ? (
                   <span title="Requiere Meta Pixel configurado">--</span>
                 ) : (
-                  formatMoney(kpi.currentValue, kpi.currency || 'USD')
+                  formatMoney(kpi.currentValue, kpi.currency || tenantCurrency)
                 )}
               </p>
               {kpi.benchmark && (
@@ -184,7 +187,7 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
                         )}
                         style={{ width: `${Math.max(pct, 8)}%` }}
                       >
-                        {formatMoney(camp.metrics.cpa ?? 0, campaignData?.currency || 'USD')}
+                        {formatMoney(camp.metrics.cpa ?? 0, campaignData?.currency || tenantCurrency)}
                       </div>
                     </div>
                   </div>
@@ -208,7 +211,7 @@ export function CostosTab({ data, campaignData, isLoading }: CostosTabProps) {
                         className="absolute top-0.5 text-[9px] text-muted-foreground"
                         style={{ left: `${Math.min(benchPct + 1, 85)}%` }}
                       >
-                        {formatMoney(cpaBenchmark.median, campaignData?.currency || 'USD')}
+                        {formatMoney(cpaBenchmark.median, campaignData?.currency || tenantCurrency)}
                       </span>
                     </div>
                   </div>

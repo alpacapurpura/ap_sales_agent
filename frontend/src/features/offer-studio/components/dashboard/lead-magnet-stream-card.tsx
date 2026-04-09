@@ -1,3 +1,5 @@
+'use client';
+
 import { Offer, OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
 import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
 import { Card } from "@/components/ui/card";
@@ -8,15 +10,16 @@ import {
   Magnet,
   ExternalLink
 } from "lucide-react";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface LeadMagnetStreamCardProps {
   offer: Offer;
@@ -36,6 +39,7 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
   const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
+  const { currency: tenantCurrency } = useTenantLocale();
 
   const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype as OfferArchetype] : null;
   const Icon = archetypeMeta?.icon || Magnet;
@@ -51,7 +55,7 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
   };
 
   const priceDisplay = offer.pricing && offer.pricing.length > 0
-    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency || 'USD' }).format(offer.pricing[0].total_amount)
+    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency || tenantCurrency }).format(offer.pricing[0].total_amount)
     : "Gratis";
 
   return (

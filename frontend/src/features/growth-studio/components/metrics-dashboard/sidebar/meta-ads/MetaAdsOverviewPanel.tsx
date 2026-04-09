@@ -18,6 +18,7 @@ import { MetaAdsPeriodSelector } from './MetaAdsPeriodSelector';
 import { MetaAdsHeroKpiGrid } from './MetaAdsHeroKpiGrid';
 import { MetaAdsMiniFunnel } from './MetaAdsMiniFunnel';
 import { ReachFrequencySection } from './ReachFrequencySection';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 
 interface MetaAdsOverviewPanelProps {
   channel: ChannelMetric;
@@ -36,6 +37,7 @@ export function MetaAdsOverviewPanel({
   const [period, setPeriod] = useState<MetaAdsPeriod>('30d');
   const { data, isLoading } = useChannelDashboard(channel.slug, period);
   const { data: campaignData } = useCampaignPerformance(period);
+  const { currency: tenantCurrency } = useTenantLocale();
 
   return (
     <div className="flex h-full flex-col">
@@ -93,7 +95,7 @@ export function MetaAdsOverviewPanel({
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-[11px] text-muted-foreground tabular-nums">
-                            {formatMoney(camp.metrics.spend, campaignData.currency || 'USD')}
+                            {formatMoney(camp.metrics.spend, campaignData.currency || tenantCurrency)}
                           </span>
                           <span className={cn(
                             'text-xs font-semibold tabular-nums',

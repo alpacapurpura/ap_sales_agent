@@ -1,20 +1,24 @@
+'use client';
+
 import React from 'react';
 import { OfferFormValues } from '../../../../types/schema';
 import { useFormContext } from 'react-hook-form';
 import { Check, Sparkles } from 'lucide-react';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 
 interface ValueStackPreviewProps {
   data?: Partial<OfferFormValues>;
 }
 
 export const ValueStackPreview = ({ data: propsData }: ValueStackPreviewProps) => {
+  const { currency: tenantCurrency } = useTenantLocale();
   const form = useFormContext<OfferFormValues>();
   const data = propsData || (form ? form.watch() : null);
 
   if (!data?.deliverables?.length) return null;
 
   const { deliverables, currency } = data;
-  const currencyCode = currency || "USD";
+  const currencyCode = currency || tenantCurrency;
   const totalValue = deliverables.reduce((sum, item) => sum + (Number(item.value_stack_price) || 0), 0);
 
   return (

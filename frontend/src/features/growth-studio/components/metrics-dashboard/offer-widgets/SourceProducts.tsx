@@ -9,6 +9,7 @@ import { metricsApi, type SourceProduct } from '../../../api/metrics-api';
 import { offerApi } from '@/features/offer-studio/api';
 import type { Offer } from '@/features/offer-studio/types';
 import { AssociationDialog } from './AssociationDialog';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 
 const EMPTY_PRODUCTS: SourceProduct[] = [];
 const EMPTY_OFFERS: Offer[] = [];
@@ -26,6 +27,7 @@ interface SourceProductsProps {
 export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
+  const { currency: tenantCurrency } = useTenantLocale();
   const [dialogProduct, setDialogProduct] = useState<SourceProduct | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -75,7 +77,7 @@ export function SourceProducts({ source = 'shopify' }: SourceProductsProps) {
   const formatCurrency = (value: number, currency: string | null) =>
     new Intl.NumberFormat('es-MX', {
       style: 'currency',
-      currency: currency || 'USD',
+      currency: currency || tenantCurrency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);

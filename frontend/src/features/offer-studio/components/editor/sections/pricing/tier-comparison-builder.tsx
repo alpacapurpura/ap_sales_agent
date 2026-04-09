@@ -11,12 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Star, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface TierComparisonBuilderProps {
   form: UseFormReturn<OfferFormValues>;
 }
 
 export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
+  const { currency: tenantCurrency } = useTenantLocale();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "pricing_options",
@@ -38,7 +40,7 @@ export function TierComparisonBuilder({ form }: TierComparisonBuilderProps) {
     });
   };
 
-  const currency = form.watch("currency") || "USD";
+  const currency = form.watch("currency") || tenantCurrency;
 
   return (
     <Card className="overflow-hidden border-slate-200 dark:border-slate-800">

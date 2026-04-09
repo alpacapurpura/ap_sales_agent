@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { metricsApi, type SourceProduct } from '../../../api/metrics-api';
 import type { Offer } from '@/features/offer-studio/types';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 
 interface AssociationDialogProps {
   product: SourceProduct | null;
@@ -23,6 +24,7 @@ export function AssociationDialog({ product, offers, source, open, onOpenChange,
   const { getToken } = useAuth();
   const params = useParams();
   const tenantId = params?.tenantId as string;
+  const { currency: tenantCurrency } = useTenantLocale();
   const [selectedOfferId, setSelectedOfferId] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
@@ -52,7 +54,7 @@ export function AssociationDialog({ product, offers, source, open, onOpenChange,
   const formatCurrency = (value: number, currency: string | null) =>
     new Intl.NumberFormat('es-MX', {
       style: 'currency',
-      currency: currency || 'USD',
+      currency: currency || tenantCurrency,
       minimumFractionDigits: 0,
     }).format(value);
 

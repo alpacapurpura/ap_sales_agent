@@ -15,6 +15,7 @@ import { CURRENCIES } from "@/lib/constants/currencies";
 import { PaymentPlanType, OfferArchetype } from "../../../../types";
 import { TierComparisonBuilder } from "./tier-comparison-builder";
 import { cn } from "@/lib/utils";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 const PricingSchema = OfferSchema.pick({
   pricing_options: true,
@@ -31,6 +32,7 @@ export interface PricingFormProps {
 }
 
 function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
+  const { currency: tenantCurrency } = useTenantLocale();
   const { fields: pricingFields, append: addPricing, remove: removePricing, update: updatePricing } = useFieldArray({
     control: form.control,
     name: "pricing_options",
@@ -107,7 +109,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                         
                         // Calculate installment amount dynamically
                         const calculatedInstallment = installments > 0 ? (totalAmount - deposit) / installments : 0;
-                        const currency = form.watch("currency") || "USD";
+                        const currency = form.watch("currency") || tenantCurrency;
 
                         return (
                             <div key={field.id} className={cn(
@@ -341,9 +343,10 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
 }
 
 export function PricingForm({ defaultValues: propValues, onSave, archetype }: PricingFormProps) {
+  const { currency: tenantCurrency } = useTenantLocale();
   const defaultValues: PricingFormValues = {
     pricing_options: propValues?.pricing_options || [],
-    currency: propValues?.currency || "USD"
+    currency: propValues?.currency || tenantCurrency
   };
 
   const handleSave = async (data: PricingFormValues) => {
