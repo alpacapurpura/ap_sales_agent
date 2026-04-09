@@ -606,7 +606,7 @@ export type IgOrganicDashboardTab = 'overview' | 'contenido' | 'audiencia' | 'al
 
 export type YouTubeDashboardTab = 'overview' | 'videos' | 'audiencia' | 'engagement' | 'retencion';
 
-export type MailDashboardTab = 'overview' | 'engagement' | 'entregabilidad' | 'lista' | 'automatizacion';
+export type MailDashboardTab = 'panorama' | 'campanas' | 'automatizaciones' | 'audiencia' | 'entregabilidad' | 'crecimiento';
 
 export type WebsiteDashboardTab = 'overview' | 'trafico' | 'contenido' | 'conversiones';
 

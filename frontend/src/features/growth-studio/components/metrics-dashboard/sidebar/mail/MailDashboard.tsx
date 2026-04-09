@@ -25,7 +25,7 @@ interface MailDashboardProps {
   isRouteBased?: boolean;
 }
 
-const VALID_TABS: MailDashboardTab[] = ['overview', 'engagement', 'entregabilidad', 'lista', 'automatizacion'];
+const VALID_TABS: MailDashboardTab[] = ['panorama', 'campanas', 'automatizaciones', 'audiencia', 'entregabilidad', 'crecimiento'];
 
 export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboardProps) {
   const router = useRouter();
@@ -33,11 +33,11 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
   const searchParams = useSearchParams();
   const tenantId = params?.tenantId as string;
 
-  const tabFromUrl = searchParams?.get('tab') ?? initialTab ?? 'overview';
+  const tabFromUrl = searchParams?.get('tab') ?? initialTab ?? 'panorama';
   const [activeTab, setActiveTab] = useState<MailDashboardTab>(
     VALID_TABS.includes(tabFromUrl as MailDashboardTab)
       ? (tabFromUrl as MailDashboardTab)
-      : 'overview',
+      : 'panorama',
   );
   const periodFromUrl = (searchParams?.get('period') ?? '30d') as MetaAdsPeriod;
   const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
@@ -57,7 +57,7 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
       const tab = value as MailDashboardTab;
       setActiveTab(tab);
       const url = new URL(window.location.href);
-      if (tab === 'overview') {
+      if (tab === 'panorama') {
         url.searchParams.delete('tab');
       } else {
         url.searchParams.set('tab', tab);
@@ -110,29 +110,34 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
       >
         <div className="border-b px-6">
           <TabsList className="h-10">
-            <TabsTrigger value="overview">Resumen</TabsTrigger>
-            <TabsTrigger value="engagement">Engagement</TabsTrigger>
+            <TabsTrigger value="panorama">Panorama</TabsTrigger>
+            <TabsTrigger value="campanas">Campañas</TabsTrigger>
+            <TabsTrigger value="automatizaciones">Automatizaciones</TabsTrigger>
+            <TabsTrigger value="audiencia">Audiencia</TabsTrigger>
             <TabsTrigger value="entregabilidad">Entregabilidad</TabsTrigger>
-            <TabsTrigger value="lista">Lista</TabsTrigger>
-            <TabsTrigger value="automatizacion">Automatización</TabsTrigger>
+            <TabsTrigger value="crecimiento">Crecimiento</TabsTrigger>
           </TabsList>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <TabsContent value="overview" className="m-0 p-6">
+          <TabsContent value="panorama" className="m-0 p-6">
             <MailOverviewTab data={data} isLoading={isLoading} />
           </TabsContent>
-          <TabsContent value="engagement" className="m-0 p-6">
+          <TabsContent value="campanas" className="m-0 p-6">
             <MailEngagementTab data={data} isLoading={isLoading} />
+          </TabsContent>
+          <TabsContent value="automatizaciones" className="m-0 p-6">
+            <MailAutomatizacionTab data={data} isLoading={isLoading} />
+          </TabsContent>
+          <TabsContent value="audiencia" className="m-0 p-6">
+            <MailListaTab data={data} isLoading={isLoading} />
           </TabsContent>
           <TabsContent value="entregabilidad" className="m-0 p-6">
             <MailEntregabilidadTab data={data} isLoading={isLoading} />
           </TabsContent>
-          <TabsContent value="lista" className="m-0 p-6">
-            <MailListaTab data={data} isLoading={isLoading} />
-          </TabsContent>
-          <TabsContent value="automatizacion" className="m-0 p-6">
-            <MailAutomatizacionTab data={data} isLoading={isLoading} />
+          <TabsContent value="crecimiento" className="m-0 p-6">
+            {/* Growth tab placeholder - will be replaced by dedicated component */}
+            <MailOverviewTab data={data} isLoading={isLoading} />
           </TabsContent>
         </div>
       </Tabs>

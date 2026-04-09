@@ -69,6 +69,14 @@ export const METRIC_LABELS: Record<string, string> = {
   automation_completed: 'Automatizaciones',
   unsubscribes: 'Desuscripciones',
 
+  // ─── Email / Advanced ────────────────────────────────────────────────────────
+  deliverability_rate: 'Entregabilidad',
+  list_growth_rate: 'Crecimiento de Lista',
+  churn_rate: 'Tasa de Churn',
+  forward_rate: 'Tasa de Reenvío',
+  opens_count: 'Aperturas Totales',
+  clicks_count: 'Clics Totales',
+
   // ─── Instagram Organic ──────────────────────────────────────────────────────
   ig_views: 'Vistas',
   total_interactions: 'Interacciones',
