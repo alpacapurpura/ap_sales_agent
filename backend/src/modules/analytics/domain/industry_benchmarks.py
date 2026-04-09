@@ -228,6 +228,37 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
                 "Tasa de completado de automatizaciones. Mide eficacia de secuencias."
             ),
         ),
+        IndustryBenchmarkEntry(
+            metric_name="deliverability_rate",
+            low=90.0,
+            median=95.0,
+            high=99.0,
+            unit="percentage",
+            interpretation_es=(
+                "Tasa de entregabilidad. <90% indica problemas de reputación. "
+                ">99% excelente."
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="list_growth_rate",
+            low=1.0,
+            median=3.0,
+            high=8.0,
+            unit="percentage",
+            interpretation_es=(
+                "Crecimiento neto de lista. 3-8% mensual saludable para creadores."
+            ),
+        ),
+        IndustryBenchmarkEntry(
+            metric_name="forward_rate",
+            low=0.01,
+            median=0.05,
+            high=0.15,
+            unit="percentage",
+            interpretation_es=(
+                "Tasa de reenvío. >0.15% indica contenido viral que se comparte."
+            ),
+        ),
     ],
     IndustryCategory.EDUCATION: [
         IndustryBenchmarkEntry(
