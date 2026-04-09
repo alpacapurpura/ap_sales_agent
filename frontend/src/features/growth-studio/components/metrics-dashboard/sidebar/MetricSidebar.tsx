@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import type { MetricClickData } from '../../../types/metrics';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDateTime } from '@/lib/format-date';
 
 interface MetricSidebarProps {
   /** Whether the sidebar sheet is open */
@@ -35,6 +37,7 @@ interface MetricSidebarProps {
  * Uses DetailPanel to coexist with the CopilotPanel without overlapping.
  */
 export default function MetricSidebar({ isOpen, onClose, metric, children }: MetricSidebarProps) {
+  const { timezone } = useTenantLocale();
   const hasMetric = metric != null;
 
   function formatValue(value: number, currency?: string): string {
@@ -95,13 +98,7 @@ export default function MetricSidebar({ isOpen, onClose, metric, children }: Met
               {metric.lastUpdated && (
                 <p className="text-[10px] text-muted-foreground">
                   Actualizado:{' '}
-                  {new Date(metric.lastUpdated).toLocaleDateString('es-ES', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatTenantDateTime(metric.lastUpdated.toISOString(), timezone)}
                 </p>
               )}
             </div>

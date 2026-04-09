@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Settings, Calendar, Flame, Coins, Target, AlertTriangle, Lightbulb, MailOpen, Workflow, Repeat, Crosshair, CalendarCheck, ShoppingCart, Plug } from 'lucide-react';
 import { BrandIcon } from '@/components/ui/brand-icons';
 import { formatMoney } from '@/lib/format-money';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantTime } from '@/lib/format-date';
 import { ChannelChip } from '../channel-widgets/ChannelChip';
 import { classifyChannel } from '../../../lib/classifyChannel';
 import type { ChannelMetric } from '../../../types/metrics';
@@ -22,6 +24,7 @@ interface NurtureOpportunityDetailProps {
 }
 
 export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDetail({ onMetricClick, onConfigure, onDisconnectedClick, onNoDataClick }: NurtureOpportunityDetailProps) {
+  const { timezone } = useTenantLocale();
   const { data: nurtureData, isLoading: nurtureLoading, error: nurtureError, refetch: refetchNurture } = useNurtureDetail();
   const { data: oppData, isLoading: oppLoading, error: oppError, refetch: refetchOpp } = useOpportunityDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -218,7 +221,7 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
           <p className="text-muted-foreground text-sm mt-1">Calentamiento de leads (MQLs) y generación de intenciones de compra (SQLs).</p>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-xs text-muted-foreground italic mr-2">Actualizado: {nurtureData.lastUpdated ? new Date(nurtureData.lastUpdated).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : 'Hoy'}</p>
+          <p className="text-xs text-muted-foreground italic mr-2">Actualizado: {nurtureData.lastUpdated ? formatTenantTime(nurtureData.lastUpdated, timezone) : 'Hoy'}</p>
           <Button variant="outline" onClick={() => setIsPanelOpen(true)}>
             <Calendar className="mr-2 h-4 w-4" /> Últimos 30 días
           </Button>

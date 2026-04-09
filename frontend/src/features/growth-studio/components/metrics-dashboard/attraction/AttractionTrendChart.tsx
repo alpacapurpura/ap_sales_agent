@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/chart';
 import type { StageTimeSeries } from '../../../types/metrics';
 import { getChannelColor } from '../../../config/channel-chart-config';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDate } from '@/lib/format-date';
 
 interface AttractionTrendChartProps {
   timeSeries: StageTimeSeries | undefined;
@@ -22,6 +24,7 @@ interface AttractionTrendChartProps {
 const MAX_CHANNELS = 6;
 
 export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSeries, isLoading }: AttractionTrendChartProps) {
+  const { timezone } = useTenantLocale();
   const { chartData, channelKeys, chartConfig } = useMemo(() => {
     if (!timeSeries?.dataPoints.length || !timeSeries.channelsPresent.length) {
       return { chartData: [], channelKeys: [] as string[], chartConfig: {} as ChartConfig };
@@ -97,8 +100,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSer
             axisLine={false}
             tickMargin={8}
             tickFormatter={(v: string) => {
-              const d = new Date(v + 'T00:00:00');
-              return d.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+              return formatTenantDate(v + 'T00:00:00', timezone, 'MMM d');
             }}
           />
           <YAxis
@@ -111,8 +113,7 @@ export const AttractionTrendChart = memo(function AttractionTrendChart({ timeSer
             content={
               <ChartTooltipContent
                 labelFormatter={(val) => {
-                  const d = new Date(String(val) + 'T00:00:00');
-                  return d.toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric' });
+                  return formatTenantDate(String(val) + 'T00:00:00', timezone, 'eee, d MMM');
                 }}
               />
             }

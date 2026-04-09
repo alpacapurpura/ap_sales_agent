@@ -12,6 +12,8 @@ import type { MetricClickData, StageId } from '../../../types/metrics';
 import { getChannelColor, getChannelIcon } from '../../../lib/channelIcons';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
 import { formatMoney } from '@/lib/format-money';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDate } from '@/lib/format-date';
 import { getOfferProductsDetail } from '../../../api/product-mapping-api';
 import type { OfferProductDetail } from '../../../api/product-mapping-api';
 
@@ -364,8 +366,9 @@ function SalesRateBadge({ label, value }: { label: string; value: number }) {
 }
 
 function RevenueMetricDetail({ metric }: { metric: MetricClickData }) {
+  const { currency: tenantCurrency } = useTenantLocale();
   const d = metric.extraData || {};
-  const currency = metric.currency || 'USD';
+  const currency = metric.currency || tenantCurrency;
   const grossRevenue = d.totalRevenue || 0;
   const netSales = d.netSales || 0;
   const orderCount = d.sqls || 0; // using sqls as proxy if order_count not separate
@@ -422,11 +425,12 @@ function RevenueMetricDetail({ metric }: { metric: MetricClickData }) {
 }
 
 function CustomersMetricDetail({ metric }: { metric: MetricClickData }) {
+  const { currency: tenantCurrency } = useTenantLocale();
   const d = metric.extraData || {};
   const newCustomers = d.newCustomers || 0;
   const repeatCustomers = d.repeatCustomers || 0;
   const repeatRate = newCustomers > 0 ? (repeatCustomers / newCustomers * 100) : 0;
-  const currency = metric.currency || 'USD';
+  const currency = metric.currency || tenantCurrency;
   const cac = d.cac || 0;
 
   return (
@@ -525,6 +529,7 @@ function PipelineMetricDetail({ metric }: { metric: MetricClickData }) {
 
 function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: string }) {
   const { getToken } = useAuth();
+  const { timezone } = useTenantLocale();
 
   const { data, isLoading, error } = useQuery<OfferProductDetail>({
     queryKey: ['offer-products-detail', offerId],
@@ -616,9 +621,9 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
       {/* Date range */}
       {(data.first_sale || data.last_sale) && (
         <p className="text-[10px] text-muted-foreground text-center">
-          {data.first_sale && `Primera venta: ${new Date(data.first_sale).toLocaleDateString('es-MX')}`}
+          {data.first_sale && `Primera venta: ${formatTenantDate(data.first_sale, timezone)}`}
           {data.first_sale && data.last_sale && ' — '}
-          {data.last_sale && `Última: ${new Date(data.last_sale).toLocaleDateString('es-MX')}`}
+          {data.last_sale && `Última: ${formatTenantDate(data.last_sale, timezone)}`}
         </p>
       )}
 
@@ -729,10 +734,11 @@ function OfferRevenueDetail({ offerId, currency }: { offerId: string; currency: 
 }
 
 function SalesMetricDetail({ metric }: { metric: MetricClickData }) {
+  const { currency: tenantCurrency } = useTenantLocale();
   // Route to specialized detail based on metricName
   switch (metric.metricName) {
     case 'offer_detail':
-      return <OfferRevenueDetail offerId={metric.channelSlug} currency={metric.currency || 'USD'} />;
+      return <OfferRevenueDetail offerId={metric.channelSlug} currency={metric.currency || tenantCurrency} />;
     case 'revenue':
       return <RevenueMetricDetail metric={metric} />;
     case 'customers':

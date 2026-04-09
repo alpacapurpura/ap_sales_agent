@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Bot, User, AlertTriangle } from "lucide-react";
 import type { ConversationListItem } from "../../types";
 import { formatDistanceToNow } from "../../utils/format";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface ConversationItemProps {
   conversation: ConversationListItem;
@@ -25,6 +26,7 @@ const STAGE_LABEL: Record<string, string> = {
 };
 
 export function ConversationItem({ conversation: c, isSelected, onSelect }: ConversationItemProps) {
+  const { timezone } = useTenantLocale();
   const initials = c.display_name
     .split(" ")
     .map((w) => w[0])
@@ -68,7 +70,7 @@ export function ConversationItem({ conversation: c, isSelected, onSelect }: Conv
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-semibold truncate">{c.display_name}</span>
             <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-              {c.last_message_at ? formatDistanceToNow(c.last_message_at) : ""}
+              {c.last_message_at ? formatDistanceToNow(c.last_message_at, timezone) : ""}
             </span>
           </div>
 

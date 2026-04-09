@@ -12,6 +12,8 @@ import { clearLeadHistory } from "@/features/audit/api";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantDate } from "@/lib/format-date";
 
 interface ContextPanelProps {
   leadId: string | null;
@@ -22,6 +24,7 @@ interface ContextPanelProps {
 }
 
 export function ContextPanel({ leadId, lastTraceId, isOpen, onOpenChange, defaultTab = "profile" }: ContextPanelProps) {
+  const { timezone } = useTenantLocale();
   const { data: lead, isLoading: loadingLead } = useLeadDetails(leadId);
   const { data: trace, isLoading: loadingTrace } = useTraceDetails(lastTraceId);
   
@@ -124,7 +127,7 @@ export function ContextPanel({ leadId, lastTraceId, isOpen, onOpenChange, defaul
                             </div>
                             <div>
                                <label className="text-xs font-medium text-muted-foreground">Creado</label>
-                               <div className="text-sm">{new Date(lead.created_at).toLocaleDateString()}</div>
+                               <div className="text-sm">{formatTenantDate(lead.created_at, timezone)}</div>
                             </div>
                             <div>
                                <label className="text-xs font-medium text-muted-foreground">Canales</label>

@@ -13,6 +13,7 @@ import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
 import { formatLastUpdated, formatDualCurrency } from '../utils/format';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import { useInitialLoad } from '../../../hooks/useInitialLoad';
 import { useQueryClient } from '@tanstack/react-query';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
@@ -32,6 +33,7 @@ interface SalesDetailProps {
 }
 
 export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: SalesDetailProps) {
+  const { timezone } = useTenantLocale();
   const { data, isLoading, error, refetch } = useSalesDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -125,7 +127,7 @@ export const SalesDetail = React.memo(function SalesDetail({ onMetricClick }: Sa
         </div>
         <div className="flex items-center gap-3">
           <p className="text-xs text-muted-foreground italic mr-2">
-            Actualizado: {data.lastUpdated ? formatLastUpdated(data.lastUpdated) : 'Hoy'}
+            Actualizado: {data.lastUpdated ? formatLastUpdated(data.lastUpdated, timezone) : 'Hoy'}
           </p>
           <Button variant={shopifyError ? 'destructive' : 'outline'} onClick={handleShopifySync} disabled={isLoadingShopify}>
             {isLoadingShopify ? (

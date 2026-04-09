@@ -4,12 +4,14 @@ import { cn } from "@/lib/utils";
 import { Bot, User, Target, Info } from "lucide-react";
 import type { MessageItem } from "../../types";
 import { formatMessageTime } from "../../utils/format";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface MessageBubbleProps {
   message: MessageItem;
 }
 
 export function MessageBubble({ message: m }: MessageBubbleProps) {
+  const { timezone } = useTenantLocale();
   // System events
   if (m.role === "system") {
     const isInstruction = m.sender_source === "human_instruction";
@@ -28,7 +30,7 @@ export function MessageBubble({ message: m }: MessageBubbleProps) {
         </div>
         {m.created_at && (
           <span className="text-[10px] opacity-60 mt-0.5 block">
-            {formatMessageTime(m.created_at)}
+            {formatMessageTime(m.created_at, timezone)}
           </span>
         )}
       </div>
@@ -69,7 +71,7 @@ export function MessageBubble({ message: m }: MessageBubbleProps) {
             "text-[10px] block mt-1",
             isUser ? "text-background/60" : "text-muted-foreground"
           )}>
-            {formatMessageTime(m.created_at)}
+            {formatMessageTime(m.created_at, timezone)}
           </span>
         )}
       </div>

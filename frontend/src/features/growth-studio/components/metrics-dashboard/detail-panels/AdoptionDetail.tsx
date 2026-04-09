@@ -13,6 +13,7 @@ import DetailSkeleton from '../ui/DetailSkeleton';
 import DetailEmpty from '../ui/DetailEmpty';
 import DetailError from '../ui/DetailError';
 import { formatLastUpdated, formatDualCurrency } from '../utils/format';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import type { MetricClickData, StageSummary } from '../../../types/metrics';
 
 const ADOPCION_STAGE: StageSummary = {
@@ -30,6 +31,7 @@ interface AdoptionDetailProps {
 }
 
 export const AdoptionDetail = React.memo(function AdoptionDetail({ onMetricClick }: AdoptionDetailProps) {
+  const { timezone } = useTenantLocale();
   const { data, isLoading, error, refetch } = useAdoptionDetail();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
@@ -101,7 +103,7 @@ export const AdoptionDetail = React.memo(function AdoptionDetail({ onMetricClick
         </div>
         <div className="flex items-center gap-3">
           <p className="text-xs text-muted-foreground italic mr-2">
-            Actualizado: {data.lastUpdated ? formatLastUpdated(data.lastUpdated) : 'Hoy'}
+            Actualizado: {data.lastUpdated ? formatLastUpdated(data.lastUpdated, timezone) : 'Hoy'}
           </p>
           <Button variant="outline" onClick={() => setIsPanelOpen(true)}>
             <Calendar className="mr-2 h-4 w-4" /> Últimos 30 días

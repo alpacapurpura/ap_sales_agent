@@ -4,6 +4,8 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ChannelMetric } from '../../../types/metrics';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDate } from '@/lib/format-date';
 
 /** Convert hex color to rgba for backgrounds. */
 function hexToRgba(hex: string, alpha: number): string {
@@ -33,6 +35,7 @@ export const ChannelRowHeader = React.memo(function ChannelRowHeader({
   abandonmentBadge,
   noShowBadge,
 }: ChannelRowHeaderProps) {
+  const { timezone } = useTenantLocale();
   return (
     <div className="flex items-center gap-3 min-w-0">
       <div
@@ -90,7 +93,7 @@ export const ChannelRowHeader = React.memo(function ChannelRowHeader({
         </p>
         {channel.stale && channel.lastUpdated && (
           <p className="text-[10px] text-yellow-600 dark:text-yellow-400">
-            Ultima vez: {new Date(channel.lastUpdated).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+            Última vez: {formatTenantDate(channel.lastUpdated, timezone, 'd MMM')}
           </p>
         )}
       </div>

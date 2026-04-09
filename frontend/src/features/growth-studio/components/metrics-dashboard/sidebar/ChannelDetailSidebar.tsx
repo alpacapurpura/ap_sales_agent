@@ -25,6 +25,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { formatMoney } from '@/lib/format-money';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDate } from '@/lib/format-date';
 import type { ChannelMetric, MetricValue } from '../../../types/metrics';
 import { getChannelIcon, getChannelColor } from '../../../lib/channelIcons';
 import { METRIC_LABELS } from '../../../lib/metric-labels';
@@ -71,8 +73,8 @@ function formatNumber(n: number): string {
   return n.toLocaleString('es-ES');
 }
 
-function formatCurrency(n: number, currency?: string): string {
-  return formatMoney(n, currency || 'USD');
+function formatCurrency(n: number, currency?: string, fallback = 'USD'): string {
+  return formatMoney(n, currency || fallback);
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -103,6 +105,7 @@ interface ChannelDetailSidebarProps {
 }
 
 export default function ChannelDetailSidebar({ isOpen, onClose, channel, initialTab }: ChannelDetailSidebarProps) {
+  const { timezone, currency: tenantCurrency } = useTenantLocale();
   const { handleOpenExpandedDashboard } = useGrowthStudioContext();
   const { getToken } = useAuth();
   const [info, setInfo] = useState<ChannelInfoResponse | null>(null);
@@ -410,9 +413,9 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
                           Rango de datos
                         </span>
                         <span className="font-medium text-xs">
-                          {new Date(info.data_range.min_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                          {formatTenantDate(info.data_range.min_date, timezone, 'd MMM')}
                           {' — '}
-                          {new Date(info.data_range.max_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {formatTenantDate(info.data_range.max_date, timezone, 'd MMM yyyy')}
                         </span>
                       </div>
                     )}
@@ -502,7 +505,7 @@ export default function ChannelDetailSidebar({ isOpen, onClose, channel, initial
 
                     const isCurrency = m.unit === 'currency';
                     const formatted = isCurrency
-                      ? formatCurrency(m.value, m.currency)
+                      ? formatCurrency(m.value, m.currency, tenantCurrency)
                       : formatNumber(m.value);
 
                     return (

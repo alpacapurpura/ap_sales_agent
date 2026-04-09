@@ -18,6 +18,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { formatMoney } from '@/lib/format-money';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDate, formatTenantDateTime } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { ChartSection } from '../../shared/ChartSection';
 import type {
@@ -40,14 +42,14 @@ interface CampaignsTabProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Resolve a currency string falling back to USD. */
-function cur(currency: string | undefined | null): string {
-  return currency || 'USD';
+/** Resolve a currency string falling back to the provided fallback. */
+function cur(currency: string | undefined | null, fallback = 'USD'): string {
+  return currency || fallback;
 }
 
 /** Format a monetary value with fallback currency. */
-function money(value: number, currency: string | undefined | null): string {
-  return formatMoney(value, cur(currency));
+function money(value: number, currency: string | undefined | null, fallback = 'USD'): string {
+  return formatMoney(value, cur(currency, fallback));
 }
 
 /** Map campaign effective status to a visual status category. */
@@ -486,6 +488,7 @@ function CampaignRow({
   campaign: CampaignWithMetrics;
   currency: string;
 }) {
+  const { timezone } = useTenantLocale();
   const cat = campaignStatusCategory(campaign);
   const isPaused = cat === 'paused';
   const isCompleted = cat === 'completed';
@@ -574,10 +577,7 @@ function CampaignRow({
             {isPaused && campaign.stopTime && (
               <span className="text-[10px] text-zinc-600">
                 Pausada el{' '}
-                {new Date(campaign.stopTime).toLocaleDateString('es', {
-                  day: 'numeric',
-                  month: 'short',
-                })}
+                {formatTenantDate(campaign.stopTime, timezone, 'd MMM')}
               </span>
             )}
           </div>
@@ -892,6 +892,8 @@ function IndicatorGuide() {
 // ---------------------------------------------------------------------------
 
 export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
+  const { timezone, currency: tenantCurrency } = useTenantLocale();
+
   // Loading state
   if (isLoading) {
     return (
@@ -913,7 +915,7 @@ export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
     );
   }
 
-  const resolvedCurrency = cur(currency ?? data.currency);
+  const resolvedCurrency = cur(currency ?? data.currency, tenantCurrency);
 
   // Sort campaigns: critical first, then warning, then good, then paused/completed
   const sortedCampaigns = [...data.campaigns].sort(
@@ -934,12 +936,7 @@ export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
                   <>
                     {' '}
                     &middot; Última sincronización:{' '}
-                    {new Date(data.lastSynced).toLocaleDateString('es', {
-                      day: 'numeric',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatTenantDateTime(data.lastSynced, timezone)}
                   </>
                 )}
               </p>

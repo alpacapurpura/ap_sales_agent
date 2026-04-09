@@ -5,6 +5,7 @@ import { Bot, User } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
 import type { ConversationListItem } from "../../types";
 import { formatDistanceToNow } from "../../utils/format";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface PipelineCardProps {
   conversation: ConversationListItem;
@@ -18,6 +19,7 @@ const TEMP_BORDER: Record<string, string> = {
 };
 
 export function PipelineCard({ conversation: c, onClick }: PipelineCardProps) {
+  const { timezone } = useTenantLocale();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: c.lead_id,
   });
@@ -67,7 +69,7 @@ export function PipelineCard({ conversation: c, onClick }: PipelineCardProps) {
       <p className="text-xs text-muted-foreground truncate">{c.last_message_preview || "—"}</p>
       {c.last_message_at && (
         <span className="text-[10px] text-muted-foreground">
-          {formatDistanceToNow(c.last_message_at)}
+          {formatDistanceToNow(c.last_message_at, timezone)}
         </span>
       )}
     </div>

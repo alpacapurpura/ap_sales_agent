@@ -21,6 +21,8 @@ import { CampaignsTab } from './tabs/CampaignsTab';
 import { CreativosTab } from './tabs/CreativosTab';
 import { AudienciaTab } from './tabs/AudienciaTab';
 import { CostosTab } from './tabs/CostosTab';
+import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
+import { formatTenantDateTime } from '@/lib/format-date';
 
 interface MetaAdsDashboardProps {
   onClose?: () => void;
@@ -31,6 +33,7 @@ interface MetaAdsDashboardProps {
 const VALID_TABS: MetaAdsDashboardTab[] = ['resumen', 'campanas', 'creativos', 'audiencia', 'costos'];
 
 export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsDashboardProps) {
+  const { timezone } = useTenantLocale();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -99,7 +102,7 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
           {campaignData?.lastSynced && (
             <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Última sync: {new Date(campaignData.lastSynced).toLocaleDateString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              Última sync: {formatTenantDateTime(campaignData.lastSynced, timezone)}
             </span>
           )}
           <Button

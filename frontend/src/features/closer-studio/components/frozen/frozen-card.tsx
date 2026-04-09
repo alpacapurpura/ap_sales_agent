@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input";
 import { useConversationActions } from "../../hooks/use-conversation-actions";
 import type { FrozenConversation } from "../../types";
 import { formatDistanceToNow } from "../../utils/format";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface FrozenCardProps {
   conversation: FrozenConversation;
 }
 
 export function FrozenCard({ conversation: c }: FrozenCardProps) {
+  const { timezone } = useTenantLocale();
   const [expanded, setExpanded] = useState(false);
   const [objective, setObjective] = useState("");
   const actions = useConversationActions(c.lead_id);
@@ -42,7 +44,7 @@ export function FrozenCard({ conversation: c }: FrozenCardProps) {
             {c.frozen_at && (
               <>
                 <span>·</span>
-                <span>Congelada {formatDistanceToNow(c.frozen_at)}</span>
+                <span>Congelada {formatDistanceToNow(c.frozen_at, timezone)}</span>
               </>
             )}
           </div>

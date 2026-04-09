@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { getNodeIcon, getNodeColor } from "./node-icons";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantTime } from "@/lib/format-date";
 
 interface NodeDetailsPanelProps {
   traceId: string | null;
@@ -84,6 +86,7 @@ function NodeIcon({ nodeName, className }: { nodeName?: string; className?: stri
 /* eslint-enable react-hooks/static-components */
 
 export function NodeDetailsPanel({ traceId, isOpen, onOpenChange }: NodeDetailsPanelProps) {
+  const { timezone } = useTenantLocale();
   const { data: trace, isLoading } = useTraceDetails(traceId);
   const iconColor = trace ? getNodeColor(trace.node_name) : "text-slate-500";
 
@@ -129,7 +132,7 @@ export function NodeDetailsPanel({ traceId, isOpen, onOpenChange }: NodeDetailsP
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                    <div className="text-sm">{new Date(trace.created_at).toLocaleTimeString()}</div>
+                    <div className="text-sm">{formatTenantTime(trace.created_at, timezone)}</div>
                   </div>
                   {totalTokens > 0 && (
                     <div className="flex items-center gap-2 col-span-2">

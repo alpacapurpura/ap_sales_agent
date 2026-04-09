@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatTenantTime } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
 import { Bot, Hand, Loader2, Play, User, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ interface ConversationThreadProps {
 }
 
 export function ConversationThread({ leadId }: ConversationThreadProps) {
+  const { timezone } = useTenantLocale();
   const { data: detail, isLoading } = useConversationDetail(leadId);
   const actions = useConversationActions(leadId);
   const sidebarOpen = useCloserStore((s) => s.sidebarOpen);
@@ -47,7 +50,7 @@ export function ConversationThread({ leadId }: ConversationThreadProps) {
   const isHuman = detail.handler_mode === "human";
 
   const pausedAtFormatted = detail.paused_at
-    ? new Date(detail.paused_at).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })
+    ? formatTenantTime(detail.paused_at, timezone)
     : null;
 
   return (

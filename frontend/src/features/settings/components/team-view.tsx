@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/dialog"
 import { settingsApi, TeamMember } from "@/lib/api/settings"
 import { toast } from "sonner"
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context"
+import { formatTenantDate } from "@/lib/format-date"
 
 const formSchema = z.object({
   full_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -44,6 +46,7 @@ const formSchema = z.object({
 })
 
 export function TeamView() {
+  const { timezone } = useTenantLocale()
   const { getToken } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
@@ -208,7 +211,7 @@ export function TeamView() {
                                     </span>
                                 )}
                             </TableCell>
-                            <TableCell>{new Date(member.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell>{formatTenantDate(member.created_at, timezone)}</TableCell>
                         </TableRow>
                     ))}
                     {team.length === 0 && (
