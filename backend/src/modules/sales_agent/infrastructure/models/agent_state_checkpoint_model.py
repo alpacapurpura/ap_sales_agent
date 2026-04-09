@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.sql import func
 
 from src.shared.domain.base_entity import Base
 
@@ -46,25 +46,30 @@ class AgentStateCheckpointModel(Base):
 
     # Closer Studio — handler control
     handler_mode = Column(String(20), nullable=False, default="ai")
-    paused_at = Column(DateTime, nullable=True)
+    paused_at = Column(DateTime(timezone=True), nullable=True)
     paused_by = Column(UUID(as_uuid=True), nullable=True)
     resume_objective = Column(Text, nullable=True)
 
     # Closer Studio — frozen detection
     frozen_reason = Column(String(100), nullable=True)
-    frozen_at = Column(DateTime, nullable=True)
+    frozen_at = Column(DateTime(timezone=True), nullable=True)
     frozen_diagnosis = Column(JSONB, nullable=True)
 
     # Closer Studio — unread tracking
-    last_human_message_at = Column(DateTime, nullable=True)
+    last_human_message_at = Column(DateTime(timezone=True), nullable=True)
     unread_count = Column(Integer, nullable=False, default=0)
 
     # Lifecycle
     is_active = Column(Boolean, nullable=False, default=True)
-    deleted_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
     updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
     __table_args__ = (

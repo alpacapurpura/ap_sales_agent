@@ -117,9 +117,7 @@ class TestNoUtcnow:
 
 # ── Timezone: no DateTime() without timezone=True in models ─────────
 
-KNOWN_NAIVE_DATETIME_MODELS: set[str] = {
-    "src/modules/sales_agent/infrastructure/models/agent_state_checkpoint_model.py",
-}
+KNOWN_NAIVE_DATETIME_MODELS: set[str] = set()
 
 
 def _find_naive_datetime_columns(root: Path) -> set[str]:
