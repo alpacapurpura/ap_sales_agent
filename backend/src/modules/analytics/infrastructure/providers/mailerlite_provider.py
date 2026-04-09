@@ -78,7 +78,64 @@ MAILERLITE_METRIC_MAP: dict[str, tuple] = {
     "unsubscribes_count": ("unsubscribes", "count"),
     "spam_count": ("spam_reports", "count"),
     "forwards_count": ("forwards", "count"),
+    "opens_count": ("opens_count", "count"),
+    "clicks_count": ("clicks_count", "count"),
 }
+
+# Campaign type classification keywords (Spanish + English)
+_CAMPAIGN_TYPE_KEYWORDS: dict[str, list[str]] = {
+    "newsletter": [
+        "newsletter",
+        "semanal",
+        "quincenal",
+        "mensual",
+        "edición",
+        "digest",
+        "novedades",
+    ],
+    "lanzamiento": [
+        "lanzamiento",
+        "launch",
+        "nuevo",
+        "exclusivo",
+        "estreno",
+        "preventa",
+        "acceso",
+    ],
+    "promocion": [
+        "promo",
+        "descuento",
+        "oferta",
+        "%",
+        "black friday",
+        "cyber",
+        "sale",
+        "gratis",
+        "free",
+    ],
+    "reengagement": [
+        "extrañamos",
+        "miss you",
+        "vuelve",
+        "reactivar",
+        "inactivo",
+        "última oportunidad",
+    ],
+}
+
+
+def classify_campaign_type(name: str, subject: str) -> str:
+    """Classify a campaign into a type based on keywords in name and subject.
+
+    Returns one of: newsletter, lanzamiento, promocion, reengagement, contenido.
+    Falls back to 'contenido' when no keyword matches.
+    """
+    text = f"{name} {subject}".lower()
+    for campaign_type, keywords in _CAMPAIGN_TYPE_KEYWORDS.items():
+        if any(kw in text for kw in keywords):
+            return campaign_type
+    return "contenido"
+
 
 # Rate-limit budget: 100 requests/min of 120 allowed  →  0.6s between paginated calls
 _RATE_LIMIT_SLEEP = 0.6
@@ -586,6 +643,8 @@ class MailerLiteProvider(BaseMetricsProvider):
         rate_sums: dict[str, float] = {}
         campaign_count = len(campaigns)
 
+        # Build per-campaign metadata for the Campanas tab
+        campaigns_metadata: list[dict[str, str]] = []
         for campaign in campaigns:
             stats = campaign.get("stats", campaign.get("campaign_stats", {}))
             normalized = self._normalize_campaign_stats(stats)
@@ -595,6 +654,18 @@ class MailerLiteProvider(BaseMetricsProvider):
                     rate_sums[name] = rate_sums.get(name, 0.0) + value
                 else:
                     totals[name] = totals.get(name, 0.0) + value
+
+            # Extract campaign metadata
+            campaign_name = campaign.get("name", "")
+            campaign_subject = campaign.get("emails", [{}])[0].get("subject", "")
+            campaign_type = classify_campaign_type(campaign_name, campaign_subject)
+            campaigns_metadata.append(
+                {
+                    "campaign_name": campaign_name,
+                    "campaign_subject": campaign_subject,
+                    "campaign_type": campaign_type,
+                }
+            )
 
         metrics: list[ExtractedMetric] = []
 
@@ -668,6 +739,11 @@ class MailerLiteProvider(BaseMetricsProvider):
                     date=metric_date,
                 )
             )
+
+        # Attach campaign metadata to all metrics for the Campanas tab
+        if metrics and campaigns_metadata:
+            for metric in metrics:
+                metric.extra["campaigns"] = campaigns_metadata
 
         # Attach updated config info for traceability (new group auto-mapping)
         if metrics and known_groups_set:
