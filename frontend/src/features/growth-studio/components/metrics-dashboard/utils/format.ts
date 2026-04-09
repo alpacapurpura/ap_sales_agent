@@ -1,11 +1,10 @@
 import { formatMoney } from '@/lib/format-money';
+import { formatTenantDateTime } from '@/lib/format-date';
 
-export { formatDualCurrency } from '@/lib/format-money';
+export { formatDualCurrency, formatMoneyDual, formatAggregatedMoney } from '@/lib/format-money';
 
-export function formatLastUpdated(isoDate: string): string {
-  const d = new Date(isoDate);
-  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-    + ', ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+export function formatLastUpdated(isoDate: string, timezone: string): string {
+  return formatTenantDateTime(isoDate, timezone);
 }
 
 export function formatNum(n: number): string {
@@ -21,8 +20,8 @@ export function formatDuration(seconds: number): string {
   return `${min}m ${sec}s`;
 }
 
-export function formatCurrency(n: number, currency?: string): string {
-  return formatMoney(n, currency || 'USD');
+export function formatCurrency(n: number, currency: string): string {
+  return formatMoney(n, currency);
 }
 
 export type MetricFormat = 'number' | 'currency' | 'percentage' | 'duration';
@@ -34,7 +33,7 @@ export function formatMetricValue(
 ): string {
   switch (format) {
     case 'currency':
-      return formatCurrency(value, currency);
+      return formatCurrency(value, currency ?? 'USD');
     case 'percentage':
       return `${value.toFixed(1)}%`;
     case 'duration':
