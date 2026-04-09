@@ -18,6 +18,8 @@ export function mapChannel(raw: any): ChannelMetric {
     metrics: (raw.metrics ?? []).map(mapMetric),
     sourceLabel: raw.source_label,
     connected: raw.connected,
+    providerName: raw.provider_name ?? undefined,
+    sourceDisplayName: raw.source_display_name ?? undefined,
     costType: raw.cost_type ?? undefined,
     lastUpdated: raw.last_updated ?? undefined,
     stale: raw.stale ?? false,
