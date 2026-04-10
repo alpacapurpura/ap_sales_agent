@@ -144,14 +144,28 @@ _AUTOMATION_TYPE_KEYWORDS: dict[str, list[str]] = {
 }
 
 
-def _parse_rate(raw) -> float:
-    """MailerLite returns {'float': 0.625, 'string': '62.5%'} or bare float.
+def _parse_rate(raw: dict[str, float | str] | float | int | None) -> float:
+    """Normalize a MailerLite rate value to a 0-100 percentage.
 
-    Returns the rate as a percentage (0-100). Handles None and missing keys.
+    MailerLite returns one of:
+      - dict with 'float' key: {"float": 0.625, "string": "62.5%"}
+      - bare float / int: 0.625
+      - None or missing
+
+    Returns 0.0 on any unexpected shape (strings, nested dicts without 'float',
+    malformed values) rather than crashing the ETL.
     """
+    if raw is None:
+        return 0.0
     if isinstance(raw, dict):
-        return float(raw.get("float", 0.0)) * 100
-    return float(raw) * 100 if raw else 0.0
+        try:
+            return float(raw.get("float", 0.0)) * 100
+        except (TypeError, ValueError):
+            return 0.0
+    try:
+        return float(raw) * 100
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _extract_step_data(steps: list[dict]) -> list[dict]:
