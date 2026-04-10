@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup v2 — Chart Inversión adaptativo por Offer + Health Check</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0a0e1a', card: '#0f1424', border: '#1e2438',
+            text: '#e8ecf4', muted: '#7e87a3', accent: '#3b82f6',
+            ok: '#22c55e', warn: '#f59e0b', bad: '#ef4444',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background:#0a0e1a; color:#e8ecf4; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    .card { background:#0f1424; border:1px solid #1e2438; border-radius:0.75rem; }
+    .narrative { color:#9ca8c4; font-size:0.78rem; }
+    .label-tiny { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; color:#7e87a3; }
+    .kpi-num { font-size:1.45rem; font-weight:600; font-variant-numeric:tabular-nums; }
+    .delta-pos { color:#22c55e; }
+    .delta-neg { color:#ef4444; }
+    .legend-bullet { width:0.5rem; height:0.5rem; border-radius:0.125rem; display:inline-block; }
+    .legend-line { width:1rem; height:0.125rem; display:inline-block; vertical-align:middle; }
+    canvas { max-width:100%; }
+    .info-tooltip {
+      position:absolute; bottom:100%; left:50%; transform:translateX(-50%) translateY(-8px);
+      background:#1a1f33; border:1px solid #2a3148; border-radius:0.5rem; padding:0.85rem;
+      width:320px; font-size:0.7rem; line-height:1.5; color:#e8ecf4; z-index:50;
+      box-shadow:0 12px 32px rgba(0,0,0,0.5); text-transform:none; letter-spacing:normal;
+      opacity:0; pointer-events:none; transition:opacity 0.15s; text-align:left;
+    }
+    .info-trigger:hover .info-tooltip { opacity:1; pointer-events:auto; }
+    .info-trigger { position:relative; cursor:help; }
+    .badge {
+      display:inline-flex; align-items:center; gap:0.35rem; padding:0.2rem 0.55rem;
+      border-radius:999px; font-size:0.65rem; font-weight:600; text-transform:uppercase;
+      letter-spacing:0.05em; border:1px solid;
+    }
+    .badge-traffic { background:rgba(59,130,246,0.1); border-color:rgba(59,130,246,0.35); color:#93b8fc; }
+    .badge-engagement { background:rgba(168,85,247,0.1); border-color:rgba(168,85,247,0.35); color:#c084fc; }
+    .badge-awareness { background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.35); color:#fcd34d; }
+    .badge-leads { background:rgba(34,197,94,0.1); border-color:rgba(34,197,94,0.35); color:#86efac; }
+    .badge-sales { background:rgba(236,72,153,0.1); border-color:rgba(236,72,153,0.35); color:#f9a8d4; }
+    .badge-messages { background:rgba(20,184,166,0.1); border-color:rgba(20,184,166,0.35); color:#5eead4; }
+    .badge-paused { background:rgba(126,135,163,0.1); border-color:rgba(126,135,163,0.35); color:#7e87a3; }
+    .banner-info {
+      display:flex; gap:0.75rem; padding:0.85rem 1rem;
+      background:linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04));
+      border:1px solid rgba(59,130,246,0.3); border-left:3px solid #3b82f6;
+      border-radius:0.5rem; font-size:0.78rem;
+    }
+    .banner-warn {
+      display:flex; gap:0.75rem; padding:0.85rem 1rem;
+      background:linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04));
+      border:1px solid rgba(245,158,11,0.3); border-left:3px solid #f59e0b;
+      border-radius:0.5rem; font-size:0.78rem;
+    }
+    .nav-link {
+      display:block; padding:0.55rem 0.85rem; font-size:0.75rem; color:#9ca8c4;
+      border-radius:0.4rem; transition:all 0.15s;
+    }
+    .nav-link:hover { background:#1a1f33; color:#e8ecf4; }
+    .section-tag {
+      display:inline-block; font-size:0.65rem; font-weight:700; color:#3b82f6;
+      padding:0.2rem 0.55rem; background:rgba(59,130,246,0.1); border-radius:0.3rem;
+      letter-spacing:0.08em; text-transform:uppercase;
+    }
+    .seg-chip {
+      padding:0.45rem 0.85rem; font-size:0.7rem; border-radius:0.4rem;
+      border:1px solid #1e2438; background:#0f1424; color:#9ca8c4; cursor:pointer;
+      transition:all 0.15s; display:inline-flex; align-items:center; gap:0.4rem;
+    }
+    .seg-chip:hover { border-color:#3b82f6; color:#e8ecf4; }
+    .seg-chip.active { background:rgba(59,130,246,0.15); border-color:#3b82f6; color:#93b8fc; }
+    .health-row {
+      display:flex; align-items:start; gap:0.75rem; padding:0.75rem; border-radius:0.5rem;
+      background:#0a0e1a; border:1px solid #1e2438;
+    }
+    .ladder-step {
+      display:flex; align-items:center; gap:0.65rem; padding:0.65rem 0.85rem;
+      border-radius:0.5rem; background:#0a0e1a; border:1px solid #1e2438;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<div class="max-w-[1280px] mx-auto px-6 py-8">
+
+  <!-- Header -->
+  <div class="mb-10">
+    <div class="flex items-center gap-2 mb-2">
+      <h1 class="text-3xl font-bold">Chart "Inversión y Resultado"</h1>
+      <span class="badge badge-traffic">v2 — Multi-offer + Health Check</span>
+    </div>
+    <h2 class="text-base text-muted mb-1">Mockup adaptativo por Offer Ladder · Diagnóstico de campañas Meta · Tooltips educativos</h2>
+    <p class="text-xs text-muted">Datos reales de Visionarias (2026-03-12 a 2026-04-09). Las 2 campañas activas son objective=OUTCOME_TRAFFIC.</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="card p-4 mb-10">
+    <p class="label-tiny mb-2">Índice del mockup</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-1">
+      <a href="#actual" class="nav-link">1 · Cómo se ve hoy (problema)</a>
+      <a href="#health" class="nav-link">2 · Health Check de campañas ★</a>
+      <a href="#segmentador" class="nav-link">3 · Segmentador por offer ★</a>
+      <a href="#chart-real" class="nav-link">4 · Chart adaptado a Visionarias</a>
+      <a href="#filtered" class="nav-link">5 · Filtrado por offer (drill)</a>
+      <a href="#tooltips" class="nav-link">6 · Tooltips con "origen"</a>
+      <a href="#expectativa-rota" class="nav-link">7 · Expectativa rota (warn)</a>
+      <a href="#sidebar" class="nav-link">8 · Vista semanal sidebar</a>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 1. ESTADO ACTUAL -->
+  <!-- ============================================================ -->
+  <section id="actual" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#1 · Problema</span>
+      <span class="text-xs text-muted">Lo que ve hoy un CEO mirando este chart sin contexto</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Cómo se ve hoy</h2>
+    <p class="text-sm text-muted mb-5">Tres series configuradas (spend, conversions, ROAS) pero ROAS y conversions están en cero <strong>porque las campañas no están optimizadas para conversiones</strong>. El chart no lo dice.</p>
+
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mb-1">
+        <h3 class="text-base font-semibold">Inversión y Retorno</h3>
+        <span class="text-muted text-xs">ⓘ</span>
+      </div>
+      <p class="narrative mb-4">Invertiste <span class="text-text font-semibold">PEN 854.54</span> en 30 días</p>
+      <div class="h-[260px]"><canvas id="chart-actual"></canvas></div>
+      <div class="flex gap-4 mt-3 text-xs text-muted">
+        <div><span class="legend-bullet bg-gray-500"></span> Inversión</div>
+        <div><span class="legend-line bg-yellow-500"></span> ROAS (siempre 0)</div>
+        <div><span class="legend-line border-t border-dashed border-emerald-500"></span> Resultados (siempre 0)</div>
+      </div>
+    </div>
+
+    <div class="mt-4 p-4 rounded-lg bg-bad/10 border border-bad/30">
+      <p class="text-sm font-semibold text-bad mb-1">❌ Lectura que hace el CEO</p>
+      <p class="text-xs text-muted">"Mi ROAS es 0 → estoy perdiendo plata → mis anuncios no funcionan → Meta no sirve."</p>
+      <p class="text-xs text-muted mt-2"><strong class="text-text">La realidad:</strong> Visionarias tiene 2 campañas activas, ambas con <code class="text-amber-400">OUTCOME_TRAFFIC</code>. Meta NO está intentando conseguir conversiones — está intentando conseguir clicks. ROAS y conversions son ceros porque <strong>nadie le pidió a Meta que mida eso</strong>. El chart no lo explica.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 2. HEALTH CHECK -->
+  <!-- ============================================================ -->
+  <section id="health" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#2 · Propuesta nueva ★</span>
+      <span class="text-xs text-muted">Diagnóstico continuo de tus campañas Meta — la pieza que faltaba</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Health Check — ¿están bien configuradas mis campañas?</h2>
+    <p class="text-sm text-muted mb-5">Lee el <code class="text-amber-400 text-xs">campaign.objective</code> de Meta (siempre disponible, sin pixel) y traduce a lenguaje plano qué esperar y qué falta.</p>
+
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🔍</span>
+          <h3 class="text-sm font-semibold">Diagnóstico de tus campañas Meta</h3>
+        </div>
+        <div class="text-xs text-muted">Última sync: hoy 10:24</div>
+      </div>
+
+      <p class="text-xs text-muted mb-3">Tenés <strong class="text-text">2 campañas activas</strong> y 18 pausadas:</p>
+
+      <div class="space-y-2 mb-4">
+        <div class="health-row">
+          <div class="text-emerald-500 text-base mt-0.5">✓</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-medium">"Tráfico a la web"</span>
+              <span class="badge badge-traffic">Tráfico</span>
+              <span class="badge badge-paused" style="background:rgba(34,197,94,0.1); border-color:rgba(34,197,94,0.4); color:#86efac;">Activa</span>
+            </div>
+            <p class="text-[11px] text-muted">→ Esperá: visitas a la landing, CTR alto, CPC bajo. <strong class="text-text">NO esperés:</strong> ventas atribuidas ni mensajes — Meta no las está buscando.</p>
+          </div>
+        </div>
+        <div class="health-row">
+          <div class="text-emerald-500 text-base mt-0.5">✓</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-medium">"Tráfico al Feed"</span>
+              <span class="badge badge-traffic">Tráfico</span>
+              <span class="badge badge-paused" style="background:rgba(34,197,94,0.1); border-color:rgba(34,197,94,0.4); color:#86efac;">Activa</span>
+            </div>
+            <p class="text-[11px] text-muted">→ Mismo objetivo. <strong class="text-text">Trabaja en sintonía con la otra</strong> — ambas llevan al mismo lugar.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="banner-warn mb-3">
+        <div class="text-amber-400 text-lg leading-none">⚠️</div>
+        <div class="flex-1">
+          <p class="font-semibold text-text mb-1">Faltan campañas que conviertan</p>
+          <p class="text-muted mb-2">Tus campañas activas solo buscan clicks. Para que el dashboard pueda mostrarte ventas, leads o mensajes, necesitás al menos una campaña con objetivo de conversión.</p>
+          <div class="space-y-1 text-[11px]">
+            <p>• Si querés <strong class="text-text">MENSAJES por DM</strong> → creá una campaña con objetivo "Mensajes" <span class="badge badge-messages ml-1">Messages</span></p>
+            <p>• Si querés <strong class="text-text">VENTAS atribuidas</strong> → objetivo "Ventas" + pixel configurado <span class="badge badge-sales ml-1">Sales</span></p>
+            <p>• Si querés <strong class="text-text">LEADS por formulario</strong> → Lead Forms de Meta + objetivo "Leads" <span class="badge badge-leads ml-1">Leads</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="banner-info">
+        <div class="text-blue-400 text-lg leading-none">💡</div>
+        <div class="flex-1">
+          <p class="font-semibold text-text mb-1">Recomendación basada en tu Offer Ladder</p>
+          <p class="text-muted mb-2">Tu offer <strong class="text-text">"Asesoría 1:1"</strong> tiene onboarding por <span class="text-blue-300">llamada agendada</span>, pero ninguna campaña la está promocionando con objetivo de conversión. Meta tiene un objective específico para esto.</p>
+          <button class="px-3 py-1.5 rounded bg-blue-500/20 border border-blue-500/40 text-xs text-blue-300 hover:bg-blue-500/30">
+            Crear campaña "Mensajes" para Asesoría 1:1 →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+      <p class="text-sm font-semibold text-emerald-400 mb-1">✓ Por qué este panel cambia todo</p>
+      <p class="text-xs text-muted">El CEO ya no necesita preguntarse "¿están bien mis anuncios?". El sistema se lo dice, en su idioma, con la causa real (no "ROAS=0" críptico) y la acción concreta (botón directo). El dashboard pasa de <strong class="text-text">métricas frías</strong> a <strong class="text-text">diagnóstico continuo</strong>.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 3. SEGMENTADOR POR OFFER -->
+  <!-- ============================================================ -->
+  <section id="segmentador" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#3 · Propuesta nueva ★</span>
+      <span class="text-xs text-muted">El offer ladder se respeta — no es "modo servicios vs producto"</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Segmentador por Offer (multi-offer)</h2>
+    <p class="text-sm text-muted mb-5">Cada offer del ladder ya sabe cuál es su <code class="text-amber-400 text-xs">onboarding_action</code>. El chart se adapta a la offer seleccionada.</p>
+
+    <div class="card p-5">
+      <p class="text-xs text-muted mb-3">Tu offer ladder activo (leído desde Offer Studio):</p>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-5">
+        <div class="ladder-step info-trigger">
+          <div class="text-2xl">🧲</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] text-muted uppercase tracking-wide">Lead Magnet</p>
+            <p class="text-xs font-medium truncate">"Diagnóstico Brand"</p>
+          </div>
+          <span class="badge badge-leads text-[9px]">Email</span>
+          <div class="info-tooltip">
+            <p class="font-semibold text-text mb-1">"Diagnóstico Brand"</p>
+            <p>Archetype: <strong>PRODUCTO</strong> (lead magnet)</p>
+            <p>Onboarding: <strong>Email captado</strong></p>
+            <p class="mt-2">Métrica primaria → <strong class="text-emerald-300">Costo por Lead</strong></p>
+          </div>
+        </div>
+        <div class="ladder-step info-trigger">
+          <div class="text-2xl">📚</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] text-muted uppercase tracking-wide">Activación</p>
+            <p class="text-xs font-medium truncate">"MasterClass S/29"</p>
+          </div>
+          <span class="badge badge-sales text-[9px]">Compra</span>
+          <div class="info-tooltip">
+            <p class="font-semibold text-text mb-1">"MasterClass S/29"</p>
+            <p>Archetype: <strong>PROGRAMA</strong></p>
+            <p>Onboarding: <strong>Compra directa</strong> (checkout_page_url presente)</p>
+            <p class="mt-2">Métrica primaria → <strong class="text-pink-300">ROAS</strong></p>
+          </div>
+        </div>
+        <div class="ladder-step info-trigger">
+          <div class="text-2xl">👥</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] text-muted uppercase tracking-wide">Transformación</p>
+            <p class="text-xs font-medium truncate">"Comunidad +"</p>
+          </div>
+          <span class="badge badge-leads text-[9px]">Suscrip</span>
+          <div class="info-tooltip">
+            <p class="font-semibold text-text mb-1">"Comunidad +"</p>
+            <p>Archetype: <strong>MEMBRESIA</strong></p>
+            <p>Onboarding: <strong>Suscripción mensual</strong></p>
+            <p class="mt-2">Métrica primaria → <strong class="text-emerald-300">Costo por Suscriptor</strong></p>
+          </div>
+        </div>
+        <div class="ladder-step info-trigger">
+          <div class="text-2xl">⭐</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] text-muted uppercase tracking-wide">Maximización</p>
+            <p class="text-xs font-medium truncate">"Asesoría 1:1"</p>
+          </div>
+          <span class="badge badge-messages text-[9px]">Llamada</span>
+          <div class="info-tooltip">
+            <p class="font-semibold text-text mb-1">"Asesoría 1:1"</p>
+            <p>Archetype: <strong>SERVICIO</strong></p>
+            <p>Onboarding: <strong>BOOK_KICKOFF_CALL</strong> (calendar_type_id presente)</p>
+            <p class="mt-2">Métrica primaria → <strong class="text-teal-300">Costo por Llamada Agendada</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-border pt-4">
+        <p class="text-xs text-muted mb-2">Segmentador del chart (filtra por la offer que querés analizar):</p>
+        <div class="flex flex-wrap gap-2">
+          <div class="seg-chip active">📊 Todas las offers <span class="text-[10px] text-muted">(default)</span></div>
+          <div class="seg-chip">🧲 Diagnóstico Brand</div>
+          <div class="seg-chip">📚 MasterClass S/29</div>
+          <div class="seg-chip">👥 Comunidad +</div>
+          <div class="seg-chip">⭐ Asesoría 1:1</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+      <p class="text-sm font-semibold text-blue-400 mb-1">💡 Cómo se vincula offer ↔ campaña Meta</p>
+      <p class="text-xs text-muted mb-2">Tres opciones, en orden de preferencia:</p>
+      <ol class="text-xs text-muted list-decimal list-inside space-y-1">
+        <li><strong class="text-text">Auto-detección por landing URL:</strong> si la campaña Meta lleva a la landing de una offer → match automático</li>
+        <li><strong class="text-text">Selector manual:</strong> cuando aparece una campaña nueva, popup en Nicolify "¿qué offer está promocionando?"</li>
+        <li><strong class="text-text">Convención de naming opcional:</strong> si la campaña empieza con <code class="text-amber-300">[OFFER:slug]</code> → match automático</li>
+      </ol>
+      <p class="text-xs text-muted mt-2">Los 3 son aditivos. Mientras no haya match, las campañas viven en el bucket "Sin offer asignada" y el segmentador las muestra en gris.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 4. CHART REAL DE VISIONARIAS (todas las offers, datos reales) -->
+  <!-- ============================================================ -->
+  <section id="chart-real" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#4 · Aplicado a Visionarias</span>
+      <span class="text-xs text-muted">Datos reales · 2 campañas TRAFFIC activas</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Chart adaptado a la realidad de Visionarias</h2>
+    <p class="text-sm text-muted mb-5">Como ambas campañas son <code class="text-amber-400 text-xs">OUTCOME_TRAFFIC</code>, el chart muestra <strong>tráfico</strong> (no ROAS ni conversiones). Los KPI cards se reordenan para destacar lo que sí tiene sentido medir.</p>
+
+    <!-- KPIs reordenados -->
+    <div class="grid grid-cols-6 gap-2.5 mb-4">
+      <div class="card p-3 info-trigger">
+        <p class="label-tiny">Inversión</p>
+        <p class="kpi-num mt-1">PEN 854</p>
+        <p class="text-[10px] delta-pos mt-1">▲ 8% vs ant.</p>
+      </div>
+      <div class="card p-3 info-trigger" style="border-color:rgba(59,130,246,0.4);">
+        <p class="label-tiny" style="color:#93b8fc;">Visitas Landing ★</p>
+        <p class="kpi-num mt-1">1,247</p>
+        <p class="text-[10px] delta-pos mt-1">▲ 15% vs ant.</p>
+      </div>
+      <div class="card p-3 info-trigger" style="border-color:rgba(59,130,246,0.4);">
+        <p class="label-tiny" style="color:#93b8fc;">Costo por Visita ★</p>
+        <p class="kpi-num mt-1">PEN 0.69</p>
+        <p class="text-[10px] delta-pos mt-1">▼ 6%</p>
+      </div>
+      <div class="card p-3 info-trigger">
+        <p class="label-tiny">CTR</p>
+        <p class="kpi-num mt-1">2.34%</p>
+        <p class="text-[10px] delta-pos mt-1">▲ 0.4pp</p>
+      </div>
+      <div class="card p-3 info-trigger">
+        <p class="label-tiny">Alcance</p>
+        <p class="kpi-num mt-1">52.4k</p>
+        <p class="text-[10px] delta-pos mt-1">▲ 18%</p>
+      </div>
+      <div class="card p-3 info-trigger" style="opacity:0.55;">
+        <p class="label-tiny">ROAS</p>
+        <p class="kpi-num mt-1 text-muted">--</p>
+        <p class="text-[10px] text-muted mt-1 italic">Sin objetivo SALES</p>
+        <div class="info-tooltip" style="width:300px;">
+          <p class="font-semibold text-text mb-1">No medible con tu setup actual</p>
+          <p>Ninguna de tus campañas activas tiene <code class="text-amber-300">OUTCOME_SALES</code>. Para medir ROAS necesitás al menos una campaña con ese objetivo y el pixel configurado.</p>
+          <p class="mt-2 text-blue-300">→ Ver Health Check arriba</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <h3 class="text-base font-semibold">Inversión y Tráfico</h3>
+          <p class="narrative mt-1">
+            Invertiste <strong class="text-text">PEN 854</strong> y conseguiste
+            <strong class="text-blue-300">1,247 visitas a tu landing</strong> en 30 días ·
+            CPC promedio: <strong class="text-text">PEN 0.69</strong> ·
+            <span class="text-emerald-400">CTR 2.34% (promedio industria: 1.5%)</span>
+          </p>
+        </div>
+        <span class="badge badge-traffic">Modo: Tráfico (auto)</span>
+      </div>
+      <div class="h-[300px] mt-3"><canvas id="chart-traffic"></canvas></div>
+      <div class="flex gap-4 mt-3 text-xs text-muted flex-wrap">
+        <div><span class="legend-bullet bg-emerald-500"></span> CPC eficiente (≤ tu meta)</div>
+        <div><span class="legend-bullet bg-amber-500"></span> CPC en zona de alerta</div>
+        <div><span class="legend-bullet bg-red-500"></span> CPC caro</div>
+        <div><span class="legend-line bg-blue-400"></span> CPC real (eje derecho)</div>
+        <div><span class="legend-line border-t border-dashed border-amber-400"></span> Tu meta de CPC: PEN 0.80</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 5. FILTRADO POR OFFER -->
+  <!-- ============================================================ -->
+  <section id="filtered" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#5 · Drill por offer</span>
+      <span class="text-xs text-muted">El mismo chart, filtrado a "MasterClass S/29" — modo cambia automáticamente</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Filtrado por offer: el modo cambia solo</h2>
+    <p class="text-sm text-muted mb-5">Cuando filtrás por una offer con compra directa, el chart pasa de "Tráfico" a "Ventas" automáticamente. Cero configuración del usuario.</p>
+
+    <div class="card p-5">
+      <div class="flex flex-wrap gap-2 mb-4">
+        <div class="seg-chip">📊 Todas</div>
+        <div class="seg-chip">🧲 Diagnóstico</div>
+        <div class="seg-chip active">📚 MasterClass S/29</div>
+        <div class="seg-chip">👥 Comunidad</div>
+        <div class="seg-chip">⭐ Asesoría 1:1</div>
+      </div>
+
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <h3 class="text-base font-semibold">Inversión y Retorno · MasterClass S/29</h3>
+          <p class="narrative mt-1">
+            Invertiste <strong class="text-text">PEN 320</strong> y vendiste
+            <strong class="text-emerald-400">14 MasterClass</strong> ·
+            ROAS: <strong class="text-text">1.27x</strong> ·
+            <span class="text-emerald-400">por cada S/1 recuperás S/1.27</span>
+          </p>
+        </div>
+        <span class="badge badge-sales">Modo: Ventas (auto · checkout_page_url presente)</span>
+      </div>
+      <div class="h-[280px] mt-3"><canvas id="chart-masterclass"></canvas></div>
+      <div class="flex gap-4 mt-3 text-xs text-muted flex-wrap">
+        <div><span class="legend-bullet bg-emerald-500"></span> ROAS ≥ 1 (rentable)</div>
+        <div><span class="legend-bullet bg-red-500"></span> ROAS &lt; 1 (perdés)</div>
+        <div><span class="legend-line bg-pink-400"></span> ROAS</div>
+        <div><span class="legend-line border-t border-dashed border-muted"></span> Break-even = 1.0x</div>
+      </div>
+    </div>
+
+    <div class="mt-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+      <p class="text-sm font-semibold text-blue-400 mb-1">💡 Mismo componente, otra métrica</p>
+      <p class="text-xs text-muted">Filtrar por <strong>"Asesoría 1:1"</strong> mostraría el modo "Reservas" (línea = Costo por Llamada Agendada). Filtrar por <strong>"Diagnóstico"</strong> mostraría modo "Leads" (línea = CPL). El usuario nunca elige el modo — la offer lo decide por su <code class="text-amber-300">onboarding_action</code>.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 6. TOOLTIPS CON ORIGEN -->
+  <!-- ============================================================ -->
+  <section id="tooltips" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#6 · Propuesta</span>
+      <span class="text-xs text-muted">Cada KPI dice de qué campaña viene y qué esperar</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Tooltips educativos con "origen + expectativa"</h2>
+    <p class="text-sm text-muted mb-5">Hover sobre las cards. La meta: el CEO entiende <strong>qué es</strong>, <strong>de dónde viene</strong>, <strong>qué esperar según el objetivo de la campaña</strong>, y <strong>qué hacer</strong>.</p>
+
+    <div class="grid grid-cols-3 gap-3">
+      <!-- Visitas Landing card -->
+      <div class="card p-4 info-trigger" style="border-color:rgba(59,130,246,0.4);">
+        <p class="label-tiny" style="color:#93b8fc;">Visitas Landing ★</p>
+        <p class="kpi-num mt-1">1,247</p>
+        <p class="text-[10px] delta-pos mt-1">▲ 15% vs ant.</p>
+        <div class="info-tooltip" style="width:340px;">
+          <p class="font-semibold text-text mb-1">📈 Visitas a tu Landing</p>
+          <p class="mb-2">Personas que vieron tu anuncio, hicieron clic, y cargaron tu landing page. Es <strong class="text-text">la métrica clave</strong> cuando tus campañas son de tráfico.</p>
+          <div class="border-t border-border pt-2 mb-2">
+            <p class="font-semibold text-text mb-1">Origen:</p>
+            <p>• "Tráfico a la web" → 723 visitas</p>
+            <p>• "Tráfico al Feed" → 524 visitas</p>
+          </div>
+          <div class="space-y-1 mb-2">
+            <p>🟢 <strong>Bueno</strong>: ratio visitas/clicks &gt; 70%</p>
+            <p>🟡 <strong>Medio</strong>: 50-70%</p>
+            <p>🔴 <strong>Bajo</strong>: &lt; 50% — la landing tarda en cargar o el ad miente</p>
+          </div>
+          <p class="border-t border-border pt-2"><strong class="text-text">Si está bajo:</strong> revisá velocidad de carga de la landing o si el creative promete algo distinto a lo que muestra la página.</p>
+        </div>
+      </div>
+
+      <!-- ROAS sin datos -->
+      <div class="card p-4 info-trigger" style="opacity:0.55;">
+        <p class="label-tiny">ROAS</p>
+        <p class="kpi-num mt-1 text-muted">--</p>
+        <p class="text-[10px] text-muted mt-1 italic">Sin objetivo SALES</p>
+        <div class="info-tooltip" style="width:340px;">
+          <p class="font-semibold text-text mb-1">💸 ROAS · Return on Ad Spend</p>
+          <p class="mb-2">Por cada peso invertido, cuánto recuperás en ventas atribuidas al ad.</p>
+          <div class="border-t border-border pt-2 mb-2">
+            <p class="font-semibold text-text mb-1">Por qué está vacío:</p>
+            <p class="text-amber-300">Tus 2 campañas activas tienen objetivo <code>OUTCOME_TRAFFIC</code> — Meta NO está intentando conseguir compras, está buscando clicks. Por eso no hay ROAS que medir.</p>
+          </div>
+          <p class="border-t border-border pt-2"><strong class="text-text">Para activar este KPI:</strong></p>
+          <ol class="list-decimal list-inside text-muted mt-1 space-y-0.5">
+            <li>Creá una campaña con objetivo "Ventas"</li>
+            <li>Configurá el evento "Purchase" en tu pixel</li>
+            <li>Esperá 3-5 días para que Meta acumule datos</li>
+          </ol>
+          <button class="mt-2 px-2 py-1 rounded bg-blue-500/20 border border-blue-500/40 text-[10px] text-blue-300">Cómo configurar →</button>
+        </div>
+      </div>
+
+      <!-- CTR -->
+      <div class="card p-4 info-trigger">
+        <p class="label-tiny">CTR</p>
+        <p class="kpi-num mt-1">2.34%</p>
+        <p class="text-[10px] delta-pos mt-1">▲ 0.4pp vs ant.</p>
+        <div class="info-tooltip" style="width:340px;">
+          <p class="font-semibold text-text mb-1">🎯 CTR · Click-Through Rate</p>
+          <p class="mb-2">Porcentaje de personas que vieron el anuncio y le hicieron clic. <strong class="text-text">Es el termómetro de tu creativo.</strong></p>
+          <div class="border-t border-border pt-2 mb-2">
+            <p class="font-semibold text-text mb-1">Tu industria: <span class="text-blue-300">Consultoría / Coaching</span></p>
+            <p>🟢 <strong>Bueno</strong>: &gt; 1.5%</p>
+            <p>🟡 <strong>Promedio</strong>: 0.9% – 1.5%</p>
+            <p>🔴 <strong>Bajo</strong>: &lt; 0.9%</p>
+            <p class="text-emerald-300 mt-1">↑ Tu CTR (2.34%) está por encima del promedio.</p>
+          </div>
+          <p class="border-t border-border pt-2"><strong class="text-text">Si está bajo:</strong> el problema NO es la audiencia, es el creativo. Cambiá la imagen o el primer renglón del copy.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="mt-4 text-xs text-muted">↑ Pasá el mouse sobre cada card. Notá que el tooltip de ROAS NO dice "está mal", dice <strong class="text-text">"Meta no está buscando esto y por eso no aparece"</strong>. Educa, no asusta.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 7. EXPECTATIVA ROTA -->
+  <!-- ============================================================ -->
+  <section id="expectativa-rota" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#7 · Edge case crítico</span>
+      <span class="text-xs text-muted">Cuando objective != lo que el pixel reporta</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Detección de "expectativa rota"</h2>
+    <p class="text-sm text-muted mb-5">Si una campaña tiene objetivo de conversión pero el pixel no reporta nada en 7+ días, el dashboard lo grita.</p>
+
+    <div class="card p-5 max-w-3xl">
+      <div class="banner-warn">
+        <div class="text-amber-400 text-lg leading-none">⚠️</div>
+        <div class="flex-1">
+          <p class="font-semibold text-text mb-1">Tu campaña "Lanzamiento Curso 2026" tiene objetivo VENTAS pero no hay ventas registradas</p>
+          <p class="text-muted mb-2">La campaña está activa hace 9 días con objetivo <code class="text-amber-300">OUTCOME_SALES</code>, gastó PEN 280, pero tu pixel no registró ninguna compra. Esto suele ser un problema de configuración, no del producto.</p>
+          <div class="text-[11px] text-muted space-y-1 mb-3">
+            <p><strong class="text-text">Causa más probable (1)</strong>: el pixel no está instalado en la página de checkout. Probá disparar manualmente el evento Purchase desde la consola del navegador.</p>
+            <p><strong class="text-text">Causa probable (2)</strong>: el pixel está pero el evento "Purchase" no se dispara. Revisá tu integración con Shopify/Mercado Pago/Stripe.</p>
+            <p><strong class="text-text">Causa probable (3)</strong>: nadie compró todavía (problema de mercado/oferta, no de setup).</p>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <button class="px-3 py-1.5 rounded bg-blue-500/20 border border-blue-500/40 text-xs text-blue-300 hover:bg-blue-500/30">
+              Diagnosticar pixel ahora →
+            </button>
+            <button class="px-3 py-1.5 rounded border border-border text-xs text-muted hover:bg-card">
+              Ver guía de eventos custom
+            </button>
+            <button class="px-3 py-1.5 rounded border border-border text-xs text-muted hover:bg-card">
+              Reportar como falso positivo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="mt-4 text-xs text-muted">Esta detección es <strong class="text-text">automática</strong>: el sistema cruza el `objective` de cada campaña activa con los eventos reportados en `official_metrics`. Si hay una incongruencia &gt; 7 días, levanta el warning. Sin acción del usuario.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 8. SIDEBAR WEEKLY -->
+  <!-- ============================================================ -->
+  <section id="sidebar" class="mb-16">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="section-tag">#8 · Reuso</span>
+      <span class="text-xs text-muted">Mismo componente con prop granularity="weekly"</span>
+    </div>
+    <h2 class="text-xl font-semibold mb-1">Vista de pájaro · agrupado por semana</h2>
+    <p class="text-sm text-muted mb-5">Para el listado de canales en el stage view. CEO ve 4-5 barras semanales, no 30 diarias.</p>
+
+    <div class="grid grid-cols-3 gap-4">
+      <div class="col-span-2 card p-5">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded bg-blue-500/15 flex items-center justify-center text-blue-400 text-sm">📘</div>
+            <h3 class="text-sm font-semibold">Meta Ads</h3>
+            <span class="badge badge-traffic">2 campañas Tráfico</span>
+          </div>
+          <button class="text-[10px] text-muted hover:text-text">Ver detalle →</button>
+        </div>
+        <p class="narrative mb-4">PEN 854 · 1,247 visitas a landing · CPC 0.69 (▼6%) · CTR 2.34%</p>
+        <div class="h-[140px]"><canvas id="chart-weekly"></canvas></div>
+      </div>
+      <div class="card p-5 flex flex-col justify-between">
+        <div>
+          <p class="label-tiny mb-2">Insight de la semana</p>
+          <p class="text-sm font-semibold mb-1">Tu CTR mejoró</p>
+          <p class="text-xs text-muted">CTR pasó de 1.94% a 2.34% — el creativo nuevo del 24-mar funciona mejor.</p>
+        </div>
+        <div class="mt-4">
+          <p class="text-[10px] text-muted mb-1">⚠️ Falta:</p>
+          <button class="text-[11px] text-blue-300 hover:underline text-left">
+            Crear campaña de conversión para tu offer "Asesoría 1:1" →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- Cierre -->
+  <!-- ============================================================ -->
+  <div class="mt-16 pt-8 border-t border-border">
+    <h2 class="text-lg font-semibold mb-4">Resumen del approach</h2>
+    <div class="grid grid-cols-2 gap-4 text-xs text-muted">
+      <div class="card p-4">
+        <p class="font-semibold text-text mb-2">✅ Lo que SÍ hace</p>
+        <ul class="space-y-1 list-disc list-inside">
+          <li>Lee el <code class="text-amber-300">campaign.objective</code> real (sin pixel)</li>
+          <li>Usa el Offer Ladder ya existente (sin duplicar config)</li>
+          <li>Cada KPI dice de dónde viene y qué esperar</li>
+          <li>Banner de Health Check siempre visible</li>
+          <li>Detección automática de "expectativa rota"</li>
+          <li>Mismo componente para todos los modos (cero deuda)</li>
+        </ul>
+      </div>
+      <div class="card p-4">
+        <p class="font-semibold text-text mb-2">❌ Lo que NO hace</p>
+        <ul class="space-y-1 list-disc list-inside">
+          <li>Forzar al usuario a elegir "modo servicios" o "modo producto"</li>
+          <li>Ocultar métricas importantes</li>
+          <li>Mostrar "ROAS = 0" sin explicar por qué</li>
+          <li>Asumir que todos los anuncios son iguales</li>
+          <li>Romper si algún tenant solo tiene 1 offer</li>
+          <li>Requerir migración de datos</li>
+        </ul>
+      </div>
+    </div>
+    <p class="mt-4 text-xs text-muted text-center">Mockup interactivo · Datos reales del tenant Visionarias · Para validación de diseño antes de implementar</p>
+  </div>
+
+</div>
+
+<script>
+  const dates = [
+    '12 mar','13 mar','14 mar','15 mar','16 mar','17 mar','18 mar','19 mar','20 mar','21 mar',
+    '22 mar','23 mar','24 mar','25 mar','26 mar','27 mar','28 mar','29 mar','30 mar','31 mar',
+    '1 abr','2 abr','3 abr','4 abr','5 abr','6 abr','7 abr','8 abr','9 abr',
+  ];
+  const spend = [14.04,24.24,24.56,32.28,29.09,27.54,32.16,30.02,31.06,27.70,
+                 29.77,31.01,36.03,26.67,26.80,28.67,30.44,34.16,30.45,26.66,
+                 32.98,31.46,26.16,27.94,28.76,28.35,31.14,31.07,28.95];
+  // CPC realista: ~PEN 0.50 a 0.85
+  const cpc = [0.78,0.62,0.74,0.58,0.71,0.69,0.72,0.65,0.68,0.81,
+               0.73,0.66,0.59,0.85,0.79,0.71,0.64,0.62,0.67,0.83,
+               0.69,0.66,0.74,0.81,0.71,0.74,0.66,0.69,0.73];
+  const cpcMeta = 0.80;
+
+  // Chart 1: estado actual (líneas en cero)
+  new Chart(document.getElementById('chart-actual'), {
+    type:'bar', data:{ labels: dates, datasets:[
+      { type:'bar', label:'Inversión', data:spend, backgroundColor:'rgba(100,116,139,0.7)', borderRadius:2, yAxisID:'y' },
+      { type:'line', label:'ROAS', data:spend.map(()=>0), borderColor:'rgba(234,179,8,0.6)', borderWidth:1.5, pointRadius:0, yAxisID:'y1' },
+      { type:'line', label:'Resultados', data:spend.map(()=>0), borderColor:'rgba(34,197,94,0.5)', borderWidth:1.5, borderDash:[4,4], pointRadius:0, yAxisID:'y1' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#1a1f33', borderColor:'#2a3148', borderWidth:1}},
+      scales:{
+        x:{ticks:{color:'#7e87a3',font:{size:10}},grid:{display:false}},
+        y:{position:'left',ticks:{color:'#7e87a3',font:{size:10},callback:(v)=>'PEN '+v},grid:{color:'#1e2438'}},
+        y1:{position:'right',ticks:{color:'#7e87a3',font:{size:10},callback:(v)=>v.toFixed(1)+'x'},grid:{display:false},min:0,max:4}
+      }}
+  });
+
+  // Chart 4: Modo Tráfico para Visionarias (datos reales)
+  new Chart(document.getElementById('chart-traffic'), {
+    type:'bar', data:{ labels: dates, datasets:[
+      { type:'bar', label:'Inversión', data:spend, yAxisID:'y', borderRadius:3, order:2,
+        backgroundColor: cpc.map(c => c <= cpcMeta * 0.85 ? 'rgba(34,197,94,0.85)' : (c <= cpcMeta * 1.1 ? 'rgba(245,158,11,0.85)' : 'rgba(239,68,68,0.85)'))
+      },
+      { type:'line', label:'CPC real', data:cpc, borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,0.1)', borderWidth:2.5, pointRadius:0, tension:0.3, yAxisID:'y1', order:1 },
+      { type:'line', label:'Meta CPC', data:spend.map(()=>cpcMeta), borderColor:'#f59e0b', borderWidth:1.5, borderDash:[4,4], pointRadius:0, yAxisID:'y1', order:0 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{
+        backgroundColor:'#1a1f33', borderColor:'#2a3148', borderWidth:1,
+        callbacks:{
+          title:(items)=>items[0].label,
+          label:(ctx)=>{
+            if (ctx.dataset.label==='Inversión') return `  Inversión: PEN ${ctx.parsed.y.toFixed(2)}`;
+            if (ctx.dataset.label==='CPC real') return `  CPC: PEN ${ctx.parsed.y.toFixed(2)}`;
+            if (ctx.dataset.label==='Meta CPC') return `  Tu meta: PEN ${ctx.parsed.y.toFixed(2)}`;
+          },
+          afterBody:(items)=>{
+            const idx = items[0].dataIndex;
+            const visits = Math.round(spend[idx] / cpc[idx]);
+            return [`  Visitas estimadas: ${visits}`];
+          }
+        }
+      }},
+      scales:{
+        x:{ticks:{color:'#7e87a3',font:{size:10}},grid:{display:false}},
+        y:{position:'left',ticks:{color:'#7e87a3',font:{size:10},callback:(v)=>'PEN '+v},grid:{color:'#1e2438'}},
+        y1:{position:'right',ticks:{color:'#7e87a3',font:{size:10},callback:(v)=>'PEN '+v.toFixed(2)},grid:{display:false},min:0,max:1.5}
+      }}
+  });
+
+  // Chart 5: Filtrado por MasterClass — modo Sales/ROAS
+  const masterclassSpend = spend.map(s => +(s*0.4).toFixed(2));
+  const roas = [1.2,1.5,1.4,1.6,1.3,1.4,1.5,1.7,1.6,1.0,1.3,1.4,1.8,1.2,1.1,1.3,1.5,1.6,1.4,0.9,1.5,1.4,1.2,1.3,1.5,1.4,1.7,1.5,1.6];
+  new Chart(document.getElementById('chart-masterclass'), {
+    type:'bar', data:{ labels:dates, datasets:[
+      { type:'bar', label:'Inversión', data:masterclassSpend, yAxisID:'y', borderRadius:3, order:2,
+        backgroundColor: roas.map(r => r >= 1 ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)') },
+      { type:'line', label:'ROAS', data:roas, borderColor:'#f9a8d4', borderWidth:2.5, pointRadius:0, tension:0.3, yAxisID:'y1', order:1 },
+      { type:'line', label:'Break-even', data:dates.map(()=>1), borderColor:'rgba(126,135,163,0.7)', borderWidth:1.5, borderDash:[4,4], pointRadius:0, yAxisID:'y1', order:0 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#1a1f33', borderColor:'#2a3148', borderWidth:1}},
+      scales:{
+        x:{ticks:{color:'#7e87a3',font:{size:10}},grid:{display:false}},
+        y:{position:'left',ticks:{color:'#7e87a3',font:{size:10},callback:(v)=>'PEN '+v},grid:{color:'#1e2438'}},
+        y1:{position:'right',ticks:{color:'#7e87a3',font:{size:10},callback:(v)=>v.toFixed(1)+'x'},grid:{display:false},min:0,max:3}
+      }}
+  });
+
+  // Sidebar weekly
+  const weekLabels = ['12-18 mar','19-25 mar','26 mar - 1 abr','2-8 abr','9 abr'];
+  const weeklySpend = [
+    spend.slice(0,7).reduce((a,b)=>a+b,0),
+    spend.slice(7,14).reduce((a,b)=>a+b,0),
+    spend.slice(14,21).reduce((a,b)=>a+b,0),
+    spend.slice(21,28).reduce((a,b)=>a+b,0),
+    spend.slice(28).reduce((a,b)=>a+b,0),
+  ];
+  const weeklyCpc = [
+    cpc.slice(0,7).reduce((a,b)=>a+b,0)/7,
+    cpc.slice(7,14).reduce((a,b)=>a+b,0)/7,
+    cpc.slice(14,21).reduce((a,b)=>a+b,0)/7,
+    cpc.slice(21,28).reduce((a,b)=>a+b,0)/7,
+    cpc.slice(28).reduce((a,b)=>a+b,0)/1,
+  ];
+  new Chart(document.getElementById('chart-weekly'), {
+    type:'bar', data:{ labels:weekLabels, datasets:[
+      { type:'bar', label:'Inversión', data:weeklySpend, yAxisID:'y', borderRadius:4, barThickness:32,
+        backgroundColor: weeklyCpc.map(c => c <= cpcMeta * 0.85 ? 'rgba(34,197,94,0.85)' : (c <= cpcMeta * 1.1 ? 'rgba(245,158,11,0.85)' : 'rgba(239,68,68,0.85)')) },
+      { type:'line', label:'CPC', data:weeklyCpc, borderColor:'#60a5fa', borderWidth:2, pointRadius:3, pointBackgroundColor:'#60a5fa', tension:0.3, yAxisID:'y1' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{backgroundColor:'#1a1f33', borderColor:'#2a3148', borderWidth:1}},
+      scales:{
+        x:{ticks:{color:'#7e87a3',font:{size:9}},grid:{display:false}},
+        y:{position:'left',ticks:{color:'#7e87a3',font:{size:9},callback:(v)=>'PEN '+Math.round(v)},grid:{color:'#1e2438'}},
+        y1:{position:'right',ticks:{color:'#7e87a3',font:{size:9},callback:(v)=>'PEN '+v.toFixed(2)},grid:{display:false},min:0,max:1.2}
+      }}
+  });
+</script>
+
+</body>
+</html>
