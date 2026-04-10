@@ -111,17 +111,41 @@ export interface EmailCampaignsData {
 // Automations Tab
 // ---------------------------------------------------------------------------
 
+export type AutomationStepType = 'email' | 'delay' | 'condition';
+
+export interface AutomationStep {
+  stepId: string;
+  stepNumber: number;
+  type: AutomationStepType;
+  subject: string | null;
+  fromName: string | null;
+  emailsSent: number;
+  uniqueOpens: number;
+  openRate: number;
+  uniqueClicks: number;
+  clickRate: number;
+  unsubscribes: number;
+  bounces: number;
+  screenshotUrl: string | null;
+  previewUrl: string | null;
+  delayValue: number | null;
+  delayUnit: string | null;
+}
+
 export interface EmailAutomation {
   automationId: string;
   name: string;
   automationType: string;
   status: string;
-  activeSubscribers: number;
+  activeSubscribers: number; // Semantic: "ingresados" = completed + in_queue
   completed: number;
   emailsSent: number;
   openRate: number;
   clickRate: number;
+  clickToOpenRate: number;
   completionRate: number;
+  unsubscribes: number;
+  steps: AutomationStep[];
 }
 
 export interface EmailAutomationsData {

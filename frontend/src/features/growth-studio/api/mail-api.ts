@@ -20,6 +20,7 @@ import type {
   EmailCampaign,
   EmailTypePerformance,
   EmailAutomation,
+  AutomationStep,
   EmailEngagementSegment,
   SegmentTypeMatrixCell,
   EmailSourcePerformance,
@@ -218,7 +219,29 @@ export async function fetchEmailCampaigns(
 // Automations Tab
 // ---------------------------------------------------------------------------
 
+function mapAutomationStep(raw: Record<string, unknown>): AutomationStep {
+  return {
+    stepId: raw.step_id as string,
+    stepNumber: raw.step_number as number,
+    type: raw.type as 'email' | 'delay' | 'condition',
+    subject: (raw.subject as string | null) ?? null,
+    fromName: (raw.from_name as string | null) ?? null,
+    emailsSent: (raw.emails_sent as number) ?? 0,
+    uniqueOpens: (raw.unique_opens as number) ?? 0,
+    openRate: (raw.open_rate as number) ?? 0,
+    uniqueClicks: (raw.unique_clicks as number) ?? 0,
+    clickRate: (raw.click_rate as number) ?? 0,
+    unsubscribes: (raw.unsubscribes as number) ?? 0,
+    bounces: (raw.bounces as number) ?? 0,
+    screenshotUrl: (raw.screenshot_url as string | null) ?? null,
+    previewUrl: (raw.preview_url as string | null) ?? null,
+    delayValue: (raw.delay_value as number | null) ?? null,
+    delayUnit: (raw.delay_unit as string | null) ?? null,
+  };
+}
+
 function mapEmailAutomation(raw: Record<string, unknown>): EmailAutomation {
+  const steps = (raw.steps as Array<Record<string, unknown>> | undefined) ?? [];
   return {
     automationId: raw.automation_id as string,
     name: raw.name as string,
@@ -229,7 +252,10 @@ function mapEmailAutomation(raw: Record<string, unknown>): EmailAutomation {
     emailsSent: raw.emails_sent as number,
     openRate: raw.open_rate as number,
     clickRate: raw.click_rate as number,
+    clickToOpenRate: (raw.click_to_open_rate as number) ?? 0,
     completionRate: raw.completion_rate as number,
+    unsubscribes: (raw.unsubscribes as number) ?? 0,
+    steps: steps.map(mapAutomationStep),
   };
 }
 
