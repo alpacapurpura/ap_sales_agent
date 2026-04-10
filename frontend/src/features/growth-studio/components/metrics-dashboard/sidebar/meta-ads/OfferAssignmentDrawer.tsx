@@ -254,10 +254,24 @@ function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
 
           {/* Targets list or empty state */}
           {effectiveTargets.length === 0 ? (
-            <div className="rounded-md border border-dashed p-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                No hay campañas sin asignar. Nada para asociar.
+            <div className="rounded-md border border-dashed p-6 text-center space-y-2">
+              <p className="text-sm font-medium">
+                No se detectaron campañas
               </p>
+              <p className="text-xs text-muted-foreground">
+                No estamos recibiendo la lista de campañas desde el backend.
+                Posibles causas:
+              </p>
+              <ul className="text-[11px] text-muted-foreground text-left inline-block space-y-0.5">
+                <li>• Tu conexión de Meta Ads no está sincronizando</li>
+                <li>• El periodo seleccionado no tiene campañas activas</li>
+                <li>• Necesitás hacer un hard refresh del navegador (Ctrl+Shift+R)</li>
+              </ul>
+              {offers.length === 0 && (
+                <p className="text-[11px] text-amber-500 pt-1">
+                  Además, no hay offers activas en tu Offer Studio.
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-2">

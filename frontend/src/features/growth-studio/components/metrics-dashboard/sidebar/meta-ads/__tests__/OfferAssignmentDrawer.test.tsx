@@ -110,7 +110,7 @@ describe('OfferAssignmentDrawer', () => {
         offers={OFFERS}
       />,
     );
-    expect(screen.getByText(/No hay campañas|nada para asociar/i)).toBeInTheDocument();
+    expect(screen.getByText(/No se detectaron campañas/i)).toBeInTheDocument();
   });
 
   it('renders a save button that starts disabled with 0 pending changes', () => {

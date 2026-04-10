@@ -26,10 +26,7 @@ import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context
 import { formatTenantDate, formatTenantDateTime } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { ChartSection } from '../../shared/ChartSection';
-import {
-  useAssociations,
-  useMetricsByOffer,
-} from '../../../../../api/offer-association-api';
+import { useAssociations } from '../../../../../api/offer-association-api';
 import { archetypeEmoji } from '../../../../../types/offer-association';
 import type {
   CampaignPerformanceData,
@@ -38,11 +35,7 @@ import type {
   MetaAdsPeriod,
 } from '../../../../../types/metrics';
 import type { Association } from '../../../../../types/offer-association';
-import { OfferAssignmentDrawer } from '../OfferAssignmentDrawer';
-import type {
-  AssignmentOffer,
-  AssignmentTarget,
-} from '../OfferAssignmentDrawer';
+import { OfferAssignmentDrawerConnected } from '../OfferAssignmentDrawerConnected';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -962,9 +955,10 @@ export function CampaignsTab({
   const { timezone, currency: tenantCurrency } = useTenantLocale();
   const searchParams = useSearchParams();
 
-  // Offer-association layer
+  // Offer-association layer — associations are used for row-level badges.
+  // Campaign list + offer list are fetched internally by the connected drawer,
+  // so this component only needs the association map for the badges.
   const { data: associations } = useAssociations();
-  const { data: metricsByOffer } = useMetricsByOffer(period);
 
   // Drawer state + auto-open from ?assign=true query param
   const shouldAutoOpen = searchParams?.get('assign') === 'true';
@@ -1008,26 +1002,6 @@ export function CampaignsTab({
   const sortedCampaigns = [...data.campaigns].sort(
     (a, b) => statusSortOrder(a) - statusSortOrder(b),
   );
-
-  // Build drawer props: offers list + ALL campaigns (active first, then the rest)
-  const drawerOffers: AssignmentOffer[] = (metricsByOffer?.offers ?? []).map(o => ({
-    id: o.offerId,
-    name: o.offerName,
-    archetype: o.archetype,
-    expectedMetricLabelEs: o.expectedMetricLabelEs,
-  }));
-  const drawerTargets: AssignmentTarget[] = sortedCampaigns.map(c => {
-    const existing = associationByCampaign.get(c.externalId);
-    return {
-      type: 'campaign' as const,
-      externalId: c.externalId,
-      name: c.name,
-      objective: c.objective,
-      currentOfferId: existing?.offerId ?? null,
-      suggestedOfferId: null,
-      suggestedConfidence: null,
-    };
-  });
 
   const unassignedActiveCount = sortedCampaigns.filter(c => {
     const isActive = (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE';
@@ -1126,12 +1100,11 @@ export function CampaignsTab({
         </div>
       </ChartSection>
 
-      {/* Offer assignment drawer */}
-      <OfferAssignmentDrawer
+      {/* Offer assignment drawer (self-fetching) */}
+      <OfferAssignmentDrawerConnected
         open={isDrawerOpen}
         onOpenChange={setIsDrawerOpen}
-        targets={drawerTargets}
-        offers={drawerOffers}
+        period={period}
       />
     </TooltipProvider>
   );
