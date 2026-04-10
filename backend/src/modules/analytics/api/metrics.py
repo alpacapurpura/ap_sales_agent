@@ -158,6 +158,8 @@ _SLUG_TO_PROVIDER: dict[str, str] = {
     "shopify": "shopify",
     "website-total": "google_analytics",
     "meta-pixel": "meta_pixel",
+    "email-capture": "mailerlite",
+    "email-nurture": "mailerlite",
 }
 
 
