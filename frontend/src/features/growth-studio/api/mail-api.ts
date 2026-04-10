@@ -174,6 +174,8 @@ function mapEmailCampaign(raw: Record<string, unknown>): EmailCampaign {
     unsubscribes: raw.unsubscribes as number,
     uniqueOpens: raw.unique_opens as number,
     uniqueClicks: raw.unique_clicks as number,
+    screenshotUrl: (raw.screenshot_url as string | null) ?? null,
+    previewUrl: (raw.preview_url as string | null) ?? null,
   };
 }
 

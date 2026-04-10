@@ -88,6 +88,8 @@ export interface EmailCampaign {
   unsubscribes: number;
   uniqueOpens: number;
   uniqueClicks: number;
+  screenshotUrl: string | null;
+  previewUrl: string | null;
 }
 
 export interface EmailTypePerformance {
