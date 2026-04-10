@@ -212,6 +212,7 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
               data={campaignData}
               isLoading={isCampaignLoading}
               currency={campaignData?.currency ?? dashboardData?.kpis.find(k => k.currency)?.currency}
+              period={period}
             />
           </TabsContent>
           <TabsContent value="creativos" className="m-0 p-6">

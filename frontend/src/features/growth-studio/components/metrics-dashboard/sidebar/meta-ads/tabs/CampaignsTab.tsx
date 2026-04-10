@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   AlertTriangle,
   ChevronDown,
@@ -8,9 +10,11 @@ import {
   Loader2,
   Pause,
   Play,
+  Sparkles,
   TrendingUp,
 } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -22,11 +26,23 @@ import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context
 import { formatTenantDate, formatTenantDateTime } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { ChartSection } from '../../shared/ChartSection';
+import {
+  useAssociations,
+  useMetricsByOffer,
+} from '../../../../../api/offer-association-api';
+import { archetypeEmoji } from '../../../../../types/offer-association';
 import type {
   CampaignPerformanceData,
   CampaignRecommendation,
   CampaignWithMetrics,
+  MetaAdsPeriod,
 } from '../../../../../types/metrics';
+import type { Association } from '../../../../../types/offer-association';
+import { OfferAssignmentDrawer } from '../OfferAssignmentDrawer';
+import type {
+  AssignmentOffer,
+  AssignmentTarget,
+} from '../OfferAssignmentDrawer';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -36,6 +52,7 @@ interface CampaignsTabProps {
   data: CampaignPerformanceData | undefined;
   isLoading: boolean;
   currency?: string;
+  period?: MetaAdsPeriod;
 }
 
 // ---------------------------------------------------------------------------
@@ -484,9 +501,11 @@ function RecommendationAlerts({ recommendations }: { recommendations: CampaignRe
 function CampaignRow({
   campaign,
   currency,
+  association,
 }: {
   campaign: CampaignWithMetrics;
   currency: string;
+  association: Association | null;
 }) {
   const { timezone } = useTenantLocale();
   const cat = campaignStatusCategory(campaign);
@@ -549,11 +568,37 @@ function CampaignRow({
               </span>
             )}
           </div>
-          <div className="mt-0.5 flex items-center gap-2">
+          <div className="mt-0.5 flex flex-wrap items-center gap-2">
             {campaign.objective && (
               <span className="inline-flex items-center rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400">
                 {objectiveLabel(campaign.objective)}
               </span>
+            )}
+            {/* Offer association badge */}
+            {association ? (
+              association.associationType === 'excluded_branding' ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-zinc-600/60 bg-zinc-700/10 px-2 py-0.5 text-[10px] text-zinc-400">
+                  <span aria-hidden="true">🎯</span>
+                  Branding
+                </span>
+              ) : (
+                <BadgeTooltip
+                  content={`Esta campaña está asociada a la offer "${association.offerName ?? 'sin nombre'}". Las métricas aparecerán agrupadas en el segmentador del Resumen.`}
+                >
+                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-400">
+                    <span aria-hidden="true">
+                      {archetypeEmoji(association.offerArchetype)}
+                    </span>
+                    {association.offerName ?? 'Offer asociada'}
+                  </span>
+                </BadgeTooltip>
+              )
+            ) : (
+              <BadgeTooltip content="Esta campaña no está asociada a ninguna offer. Asignala para ver sus métricas agrupadas por producto en el Resumen.">
+                <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400">
+                  Sin offer asignada
+                </span>
+              </BadgeTooltip>
             )}
             <span className="text-[10px] text-zinc-600">
               {campaign.adSetsCount} ad set{campaign.adSetsCount !== 1 ? 's' : ''} &middot;{' '}
@@ -891,8 +936,33 @@ function IndicatorGuide() {
 // Main Component
 // ---------------------------------------------------------------------------
 
-export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
+export function CampaignsTab({
+  data,
+  isLoading,
+  currency,
+  period = '30d',
+}: CampaignsTabProps) {
   const { timezone, currency: tenantCurrency } = useTenantLocale();
+  const searchParams = useSearchParams();
+
+  // Offer-association layer
+  const { data: associations } = useAssociations();
+  const { data: metricsByOffer } = useMetricsByOffer(period);
+
+  // Drawer state + auto-open from ?assign=true query param
+  const shouldAutoOpen = searchParams?.get('assign') === 'true';
+  const [isDrawerOpen, setIsDrawerOpen] = useState(shouldAutoOpen);
+
+  // Index associations by target for O(1) lookup from rows
+  const associationByCampaign = useMemo(() => {
+    const map = new Map<string, Association>();
+    for (const a of associations ?? []) {
+      if (a.targetType === 'campaign') {
+        map.set(a.targetExternalId, a);
+      }
+    }
+    return map;
+  }, [associations]);
 
   // Loading state
   if (isLoading) {
@@ -922,12 +992,38 @@ export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
     (a, b) => statusSortOrder(a) - statusSortOrder(b),
   );
 
+  // Build drawer props: offers list + targets (active campaigns without assoc)
+  const drawerOffers: AssignmentOffer[] = (metricsByOffer?.offers ?? []).map(o => ({
+    id: o.offerId,
+    name: o.offerName,
+    archetype: o.archetype,
+    expectedMetricLabelEs: o.expectedMetricLabelEs,
+  }));
+  const drawerTargets: AssignmentTarget[] = sortedCampaigns
+    .filter(c => (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE')
+    .map(c => {
+      const existing = associationByCampaign.get(c.externalId);
+      return {
+        type: 'campaign' as const,
+        externalId: c.externalId,
+        name: c.name,
+        objective: c.objective,
+        currentOfferId: existing?.offerId ?? null,
+        suggestedOfferId: null,
+        suggestedConfidence: null,
+      };
+    });
+
+  const unassignedActiveCount = drawerTargets.filter(
+    t => !t.currentOfferId,
+  ).length;
+
   return (
     <TooltipProvider delayDuration={200}>
       <ChartSection slug="campanas-tabla">
         <div className="space-y-6">
           {/* Section 0: Tab header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold">Campañas</h2>
               <p className="mt-0.5 text-xs text-zinc-500">
@@ -939,8 +1035,27 @@ export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
                     {formatTenantDateTime(data.lastSynced, timezone)}
                   </>
                 )}
+                {unassignedActiveCount > 0 && (
+                  <>
+                    {' '}
+                    &middot;{' '}
+                    <span className="text-amber-500">
+                      {unassignedActiveCount} sin offer asignada
+                    </span>
+                  </>
+                )}
               </p>
             </div>
+            <Button
+              type="button"
+              variant={unassignedActiveCount > 0 ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setIsDrawerOpen(true)}
+              className="gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Asociar offers
+            </Button>
           </div>
 
           {/* Section 1: Summary KPIs */}
@@ -984,6 +1099,7 @@ export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
                 key={campaign.externalId}
                 campaign={campaign}
                 currency={resolvedCurrency}
+                association={associationByCampaign.get(campaign.externalId) ?? null}
               />
             ))}
           </div>
@@ -992,6 +1108,14 @@ export function CampaignsTab({ data, isLoading, currency }: CampaignsTabProps) {
           <IndicatorGuide />
         </div>
       </ChartSection>
+
+      {/* Offer assignment drawer */}
+      <OfferAssignmentDrawer
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+        targets={drawerTargets}
+        offers={drawerOffers}
+      />
     </TooltipProvider>
   );
 }

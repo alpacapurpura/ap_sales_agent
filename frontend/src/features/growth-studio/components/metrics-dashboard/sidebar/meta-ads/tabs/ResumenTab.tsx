@@ -21,11 +21,13 @@ import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context
 import type {
   ChannelDashboardData,
   MetricKpiData,
+  MetricTimeSeries,
   CampaignPerformanceData,
   CampaignRecommendation,
   MetaAdsDashboardTab,
   MetaAdsPeriod,
 } from '../../../../../types/metrics';
+import type { OfferMetrics } from '../../../../../types/offer-association';
 
 interface ResumenTabProps {
   data: ChannelDashboardData | undefined;
@@ -51,6 +53,32 @@ function formatKpiValue(value: number, unit: string, currency?: string, fallback
   if (unit === 'ratio') return `${value.toFixed(2)}x`;
   if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
   return value.toLocaleString('en-US');
+}
+
+/**
+ * Build a MetricTimeSeries[] compatible with InversionChart from a filtered
+ * OfferMetrics object. The chart expects series named "spend", "conversions",
+ * and optionally "ROAS". For offers whose primary metric is lead/message/etc.,
+ * the primary result is mapped to the "conversions" series (the chart uses
+ * "Resultados" as the label which stays semantically correct).
+ */
+function offerMetricsToTimeSeries(offer: OfferMetrics): MetricTimeSeries[] {
+  const spendSeries: MetricTimeSeries = {
+    metricName: 'spend',
+    displayName: 'Inversión',
+    unit: 'currency',
+    dataPoints: offer.timeseries.map(p => ({ date: p.date, value: p.spend })),
+  };
+  const resultSeries: MetricTimeSeries = {
+    metricName: 'conversions',
+    displayName: offer.primaryMetricName,
+    unit: offer.primaryMetricUnit,
+    dataPoints: offer.timeseries.map(p => ({
+      date: p.date,
+      value: p.primaryResult,
+    })),
+  };
+  return [spendSeries, resultSeries];
 }
 
 const KPI_TOOLTIPS: Record<string, string> = {
@@ -155,6 +183,15 @@ export function ResumenTab({
     return metricsByOffer?.offers.find(o => o.offerId === selectedOfferId) ?? null;
   }, [metricsByOffer, selectedOfferId]);
 
+  // Time series fed to the InversionChart — swaps between tenant-wide and
+  // offer-filtered data based on the segmenter selection.
+  const chartTimeSeries = useMemo<MetricTimeSeries[]>(() => {
+    if (selectedOfferMetrics) {
+      return offerMetricsToTimeSeries(selectedOfferMetrics);
+    }
+    return data?.timeSeries ?? [];
+  }, [selectedOfferMetrics, data?.timeSeries]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -175,7 +212,7 @@ export function ResumenTab({
     .map(name => data.kpis.find(k => k.metricName === name))
     .filter((k): k is MetricKpiData => k != null);
 
-  const hasTimeSeries = data.timeSeries.some(
+  const hasTimeSeries = chartTimeSeries.some(
     ts => ts.metricName === 'spend' && ts.dataPoints.length > 0,
   );
 
@@ -303,7 +340,7 @@ export function ResumenTab({
       {/* Inversión y Retorno — full width */}
       {hasTimeSeries && (
         <ChartSection slug="inversion-vs-resultados">
-          <InversionChart timeSeries={data.timeSeries} />
+          <InversionChart timeSeries={chartTimeSeries} />
         </ChartSection>
       )}
 
