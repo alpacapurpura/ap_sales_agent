@@ -186,12 +186,27 @@ async def list_offers_for_assignment(
     Unlike /metrics-by-offer (which only returns offers that already have
     associations), this endpoint returns ALL active offers so users can pick
     any of them when associating a campaign.
+
+    NOTE ON LEAD MAGNETS — deliberately hidden in this stage:
+    Lead magnets sit at "nivel 0" of the Offer Ladder (the free hook that
+    captures leads). They are not a standalone product a user would
+    advertise; they are a gateway to another paid offer. A single lead
+    magnet can also be attached to multiple products, so selecting it from
+    a campaign dropdown creates semantic ambiguity. We exclude them for
+    now — when/if we support associating campaigns with lead magnets as
+    first-class promotion targets, remove the is_lead_magnet filter and
+    the value_level == "lead_magnet" guard.
     """
     tenant = _tenant_id(user)
     port = _get_offer_port(db)
     offers = await port.get_offers_by_tenant(tenant)
     active_offers = [
-        o for o in offers if (o.status or "active") not in {"archived", "draft"}
+        o
+        for o in offers
+        if (o.status or "active") not in {"archived", "draft"}
+        # Hide lead magnets (nivel 0 del offer ladder) — see docstring.
+        and not o.is_lead_magnet
+        and (o.value_level or "").lower() != "lead_magnet"
     ]
     out: list[OfferSummaryDTO] = []
     for o in active_offers:

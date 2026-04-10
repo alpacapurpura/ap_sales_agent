@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Loader2, Sparkles, Check } from 'lucide-react';
+import { CheckCircle2, Loader2, Sparkles, Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -27,7 +27,6 @@ import {
 import { archetypeEmoji } from '../../../../types/offer-association';
 import type {
   AssociationConfidence,
-  AssociationSuggestion,
   TargetType,
 } from '../../../../types/offer-association';
 import { BestPracticesBlock } from './BestPracticesBlock';
@@ -110,8 +109,14 @@ export function OfferAssignmentDrawer(props: OfferAssignmentDrawerProps) {
 interface DrawerBodyProps extends OfferAssignmentDrawerProps {}
 
 function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
-  // Pending changes: key = "type:externalId", value = choice
-  const [pending, setPending] = useState<Map<string, PendingChoice>>(new Map());
+  // Track which targets are currently being saved (for per-row spinners).
+  // A Set keyed by "type:externalId" so multiple saves can run in parallel
+  // without blocking the UI.
+  const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
+  // Targets that were just saved in this drawer session. We keep them out
+  // of the rendered list immediately (optimistic removal) until the next
+  // refetch of useAssociations propagates via the parent's targets prop.
+  const [savedKeys, setSavedKeys] = useState<Set<string>>(new Set());
 
   const autoDetect = useAutoDetectSuggestions();
   const applyMutation = useApplySuggestions();
@@ -122,34 +127,66 @@ function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
     Record<string, { offerId: string; confidence: AssociationConfidence }>
   >({});
 
-  const effectiveTargets = useMemo(() => {
-    return targets.map(t => {
-      const key = `${t.type}:${t.externalId}`;
-      const auto = autoSuggestions[key];
-      if (auto) {
-        return {
-          ...t,
-          suggestedOfferId: auto.offerId,
-          suggestedConfidence: auto.confidence,
-        };
-      }
-      return t;
-    });
-  }, [targets, autoSuggestions]);
-
-  const pendingCount = pending.size;
-
   function keyFor(t: AssignmentTarget) {
     return `${t.type}:${t.externalId}`;
   }
 
-  function handleSelect(target: AssignmentTarget, value: PendingChoice) {
+  // Effective list = incoming targets + auto-suggestions overlayed, MINUS
+  // anything that's already associated or was just saved in this session.
+  const effectiveTargets = useMemo(() => {
+    return targets
+      .filter(t => !t.currentOfferId && !savedKeys.has(keyFor(t)))
+      .map(t => {
+        const key = keyFor(t);
+        const auto = autoSuggestions[key];
+        if (auto) {
+          return {
+            ...t,
+            suggestedOfferId: auto.offerId,
+            suggestedConfidence: auto.confidence,
+          };
+        }
+        return t;
+      });
+  }, [targets, autoSuggestions, savedKeys]);
+
+  // Count of saved associations — used for the footer summary banner.
+  const savedCount = savedKeys.size;
+
+  async function handleSelect(target: AssignmentTarget, value: PendingChoice) {
+    // "No asignar todavía" is a no-op.
+    if (value === OPTION_NONE) return;
+
     const key = keyFor(target);
-    setPending(prev => {
-      const next = new Map(prev);
-      next.set(key, value);
-      return next;
-    });
+    setSavingKeys(prev => new Set(prev).add(key));
+
+    try {
+      if (value === OPTION_BRANDING) {
+        await createMutation.mutateAsync({
+          targetType: target.type,
+          targetExternalId: target.externalId,
+          offerId: null,
+          associationType: 'excluded_branding',
+        });
+      } else {
+        await createMutation.mutateAsync({
+          targetType: target.type,
+          targetExternalId: target.externalId,
+          offerId: value,
+          associationType: 'manual',
+        });
+      }
+      // Optimistic removal: hide this row immediately.
+      setSavedKeys(prev => new Set(prev).add(key));
+    } catch {
+      /* error surfaces via mutation.isError; row stays visible so user can retry */
+    } finally {
+      setSavingKeys(prev => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
   }
 
   async function handleAutoDetect() {
@@ -165,51 +202,6 @@ function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
       setAutoSuggestions(map);
     } catch {
       /* error surfaces via mutation.isError */
-    }
-  }
-
-  async function handleSave() {
-    // Convert pending map into API calls
-    const manualSuggestions: AssociationSuggestion[] = [];
-    const createPayloads: Array<{
-      targetType: TargetType;
-      targetExternalId: string;
-      offerId: string | null;
-      associationType: 'manual' | 'excluded_branding';
-    }> = [];
-
-    for (const [key, choice] of pending.entries()) {
-      const [type, externalId] = key.split(':') as [TargetType, string];
-      if (choice === OPTION_NONE) continue; // skip non-action
-      if (choice === OPTION_BRANDING) {
-        createPayloads.push({
-          targetType: type,
-          targetExternalId: externalId,
-          offerId: null,
-          associationType: 'excluded_branding',
-        });
-      } else {
-        createPayloads.push({
-          targetType: type,
-          targetExternalId: externalId,
-          offerId: choice,
-          associationType: 'manual',
-        });
-      }
-    }
-
-    try {
-      await Promise.all(
-        createPayloads.map(p => createMutation.mutateAsync(p)),
-      );
-      // Apply auto-detected suggestions that the user accepted as-is
-      if (manualSuggestions.length > 0) {
-        await applyMutation.mutateAsync(manualSuggestions);
-      }
-      setPending(new Map());
-      onOpenChange(false);
-    } catch {
-      /* surfaces via mutation.isError */
     }
   }
 
@@ -255,39 +247,53 @@ function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
           {/* Targets list or empty state */}
           {effectiveTargets.length === 0 ? (
             <div className="rounded-md border border-dashed p-6 text-center space-y-2">
-              <p className="text-sm font-medium">
-                No se detectaron campañas
-              </p>
-              <p className="text-xs text-muted-foreground">
-                No estamos recibiendo la lista de campañas desde el backend.
-                Posibles causas:
-              </p>
-              <ul className="text-[11px] text-muted-foreground text-left inline-block space-y-0.5">
-                <li>• Tu conexión de Meta Ads no está sincronizando</li>
-                <li>• El periodo seleccionado no tiene campañas activas</li>
-                <li>• Necesitás hacer un hard refresh del navegador (Ctrl+Shift+R)</li>
-              </ul>
-              {offers.length === 0 && (
-                <p className="text-[11px] text-amber-500 pt-1">
-                  Además, no hay offers activas en tu Offer Studio.
-                </p>
+              {savedCount > 0 ? (
+                <>
+                  <CheckCircle2
+                    className="mx-auto h-8 w-8 text-emerald-500"
+                    aria-hidden="true"
+                  />
+                  <p className="text-sm font-medium">
+                    ¡Listo! Todas las campañas ya están asociadas.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Asignaste {savedCount} campaña{savedCount === 1 ? '' : 's'} en
+                    esta sesión. Podés cerrar este panel.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium">
+                    No hay campañas sin asignar
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Todas tus campañas activas ya están asociadas a una offer o
+                    marcadas como branding. Si necesitás cambiar una, volvé a la
+                    tab Campañas y clickeá el badge de esa fila.
+                  </p>
+                  {offers.length === 0 && (
+                    <p className="text-[11px] text-amber-500 pt-1">
+                      Además, no hay offers activas en tu Offer Studio.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           ) : (
             <div className="space-y-2">
               {effectiveTargets.map(target => {
                 const key = keyFor(target);
-                const pendingChoice = pending.get(key);
+                const rowIsSaving = savingKeys.has(key);
                 const currentValue =
-                  pendingChoice ??
-                  target.currentOfferId ??
-                  target.suggestedOfferId ??
-                  OPTION_NONE;
+                  target.suggestedOfferId ?? OPTION_NONE;
 
                 return (
                   <div
                     key={key}
-                    className="rounded-lg border bg-card p-3 space-y-2"
+                    className={cn(
+                      'rounded-lg border bg-card p-3 space-y-2 transition-opacity',
+                      rowIsSaving && 'opacity-60',
+                    )}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -317,41 +323,52 @@ function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
                       )}
                     </div>
 
-                    <Select
-                      value={currentValue}
-                      onValueChange={v => handleSelect(target, v as PendingChoice)}
-                    >
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Elegir offer..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={OPTION_NONE}>
-                          No asignar todavía
-                        </SelectItem>
-                        <SelectItem value={OPTION_BRANDING}>
-                          Marcar como Branding (sin offer)
-                        </SelectItem>
-                        {offers.map(o => {
-                          const isSuggested = o.id === target.suggestedOfferId;
-                          return (
-                            <SelectItem key={o.id} value={o.id}>
-                              <span className="flex items-center gap-1.5">
-                                <span aria-hidden="true">
-                                  {archetypeEmoji(o.archetype)}
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={currentValue}
+                        onValueChange={v =>
+                          void handleSelect(target, v as PendingChoice)
+                        }
+                        disabled={rowIsSaving}
+                      >
+                        <SelectTrigger className="h-8 text-xs flex-1">
+                          <SelectValue placeholder="Elegir offer..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={OPTION_NONE}>
+                            No asignar todavía
+                          </SelectItem>
+                          <SelectItem value={OPTION_BRANDING}>
+                            Marcar como Branding (sin offer)
+                          </SelectItem>
+                          {offers.map(o => {
+                            const isSuggested = o.id === target.suggestedOfferId;
+                            return (
+                              <SelectItem key={o.id} value={o.id}>
+                                <span className="flex items-center gap-1.5">
+                                  <span aria-hidden="true">
+                                    {archetypeEmoji(o.archetype)}
+                                  </span>
+                                  <span>{o.name}</span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    · {o.expectedMetricLabelEs}
+                                  </span>
+                                  {isSuggested && (
+                                    <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />
+                                  )}
                                 </span>
-                                <span>{o.name}</span>
-                                <span className="text-[10px] text-muted-foreground">
-                                  · {o.expectedMetricLabelEs}
-                                </span>
-                                {isSuggested && (
-                                  <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />
-                                )}
-                              </span>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      {rowIsSaving && (
+                        <Loader2
+                          className="h-4 w-4 animate-spin text-muted-foreground"
+                          aria-label="Guardando..."
+                        />
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -359,34 +376,30 @@ function DrawerBody({ onOpenChange, targets, offers }: DrawerBodyProps) {
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer — simpler now that saves are instant */}
         <div className="border-t px-6 py-3 flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
-            {pendingCount === 0
-              ? 'Sin cambios pendientes'
-              : `${pendingCount} cambio${pendingCount === 1 ? '' : 's'} pendiente${pendingCount === 1 ? '' : 's'}`}
+            {savedCount > 0 ? (
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2
+                  className="h-3 w-3 text-emerald-500"
+                  aria-hidden="true"
+                />
+                {savedCount} asignada{savedCount === 1 ? '' : 's'} en esta sesión
+              </span>
+            ) : (
+              'Cada selección se guarda automáticamente'
+            )}
           </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              disabled={isSaving}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleSave}
-              disabled={pendingCount === 0 || isSaving}
-              className="gap-1.5"
-            >
-              {isSaving && <Loader2 className="h-3 w-3 animate-spin" />}
-              Guardar {pendingCount > 0 ? `${pendingCount} cambio${pendingCount === 1 ? '' : 's'}` : ''}
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+          >
+            Cerrar
+          </Button>
         </div>
     </SheetContent>
   );

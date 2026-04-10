@@ -110,10 +110,10 @@ describe('OfferAssignmentDrawer', () => {
         offers={OFFERS}
       />,
     );
-    expect(screen.getByText(/No se detectaron campañas/i)).toBeInTheDocument();
+    expect(screen.getByText(/No hay campañas sin asignar/i)).toBeInTheDocument();
   });
 
-  it('renders a save button that starts disabled with 0 pending changes', () => {
+  it('auto-save footer hint is visible (no manual save button)', () => {
     renderWithClient(
       <OfferAssignmentDrawer
         open={true}
@@ -122,8 +122,41 @@ describe('OfferAssignmentDrawer', () => {
         offers={OFFERS}
       />,
     );
-    const saveBtn = screen.getByRole('button', { name: /Guardar/i });
-    expect(saveBtn).toBeDisabled();
+    // Footer shows the auto-save hint
+    expect(
+      screen.getByText(/Cada selección se guarda automáticamente/i),
+    ).toBeInTheDocument();
+    // No "Guardar N cambios" button any more
+    expect(screen.queryByRole('button', { name: /Guardar/i })).toBeNull();
+  });
+
+  it('excludes targets that already have an association from the list', () => {
+    const mixedTargets: AssignmentTarget[] = [
+      {
+        type: 'campaign',
+        externalId: 'unassigned-1',
+        name: 'Sin asignar',
+        objective: 'OUTCOME_SALES',
+        currentOfferId: null,
+      },
+      {
+        type: 'campaign',
+        externalId: 'assigned-1',
+        name: 'Ya asignada',
+        objective: 'OUTCOME_TRAFFIC',
+        currentOfferId: 'off-1',
+      },
+    ];
+    renderWithClient(
+      <OfferAssignmentDrawer
+        open={true}
+        onOpenChange={vi.fn()}
+        targets={mixedTargets}
+        offers={OFFERS}
+      />,
+    );
+    expect(screen.getByText('Sin asignar')).toBeInTheDocument();
+    expect(screen.queryByText('Ya asignada')).toBeNull();
   });
 
   it('renders an Auto-detectar button', () => {

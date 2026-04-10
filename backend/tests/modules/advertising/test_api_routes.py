@@ -231,8 +231,8 @@ class TestCampaignTemplateEndpoint:
 
 
 class TestOffersForAssignmentEndpoint:
-    def test_returns_all_active_offers(self, db, tenant_id, make_offer):
-        """Endpoint must list EVERY active offer so the dropdown is populated."""
+    def test_returns_active_non_lead_magnet_offers(self, db, tenant_id, make_offer):
+        """Endpoint lists active offers. Archived, drafts and lead magnets are excluded."""
         make_offer(
             db,
             tenant_id=tenant_id,
@@ -247,6 +247,7 @@ class TestOffersForAssignmentEndpoint:
             archetype="SERVICIO",
             onboarding_action="BOOK_KICKOFF_CALL",
         )
+        # Lead magnet — MUST be hidden from the assignment dropdown
         make_offer(
             db,
             tenant_id=tenant_id,
@@ -267,15 +268,34 @@ class TestOffersForAssignmentEndpoint:
         resp = client.get("/api/v1/advertising/offers")
         assert resp.status_code == 200
         data = resp.json()
-        assert len(data) == 3  # archived excluded
         names = {o["name"] for o in data}
-        assert names == {"Curso Digital", "Asesoría 1:1", "Guía Lead Magnet"}
+        # Archived AND lead magnet excluded → only 2 offers
+        assert names == {"Curso Digital", "Asesoría 1:1"}
         # Each offer has an expected metric derived from its properties
         by_name = {o["name"]: o for o in data}
         assert by_name["Asesoría 1:1"]["expectedMetric"] == "call_booked"
         assert by_name["Curso Digital"]["expectedMetric"] == "purchase"
-        assert by_name["Guía Lead Magnet"]["expectedMetric"] == "lead"
-        assert by_name["Guía Lead Magnet"]["isLeadMagnet"] is True
+
+    def test_lead_magnets_explicitly_hidden(self, db, tenant_id, make_offer):
+        """Even when the only offers are lead magnets, the endpoint returns nothing."""
+        make_offer(
+            db,
+            tenant_id=tenant_id,
+            name="LM A",
+            archetype="PRODUCTO",
+            is_lead_magnet=True,
+        )
+        make_offer(
+            db,
+            tenant_id=tenant_id,
+            name="LM B",
+            archetype="PRODUCTO",
+            is_lead_magnet=True,
+        )
+        client = _build_client(db, tenant_id)
+        resp = client.get("/api/v1/advertising/offers")
+        assert resp.status_code == 200
+        assert resp.json() == []
 
     def test_empty_when_tenant_has_no_offers(self, db, tenant_id):
         client = _build_client(db, tenant_id)
