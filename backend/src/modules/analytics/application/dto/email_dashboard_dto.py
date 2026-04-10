@@ -119,6 +119,8 @@ class EmailCampaignDTO(BaseModel):
     unsubscribes: int = 0
     unique_opens: int = 0
     unique_clicks: int = 0
+    screenshot_url: str | None = None
+    preview_url: str | None = None
 
 
 class EmailTypePerformanceDTO(BaseModel):

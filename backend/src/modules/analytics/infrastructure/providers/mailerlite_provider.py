@@ -876,7 +876,7 @@ class MailerLiteProvider(BaseMetricsProvider):
         campaign_count = len(campaigns)
 
         # Build per-campaign metadata for the Campanas tab
-        campaigns_metadata: list[dict[str, str]] = []
+        campaigns_metadata: list[dict[str, str | None]] = []
         for campaign in campaigns:
             stats = campaign.get("stats", campaign.get("campaign_stats", {}))
             normalized = self._normalize_campaign_stats(stats)
@@ -889,13 +889,19 @@ class MailerLiteProvider(BaseMetricsProvider):
 
             # Extract campaign metadata
             campaign_name = campaign.get("name", "")
-            campaign_subject = campaign.get("emails", [{}])[0].get("subject", "")
+            emails_list = campaign.get("emails") or [{}]
+            first_email = emails_list[0] if emails_list else {}
+            campaign_subject = first_email.get("subject", "")
+            screenshot_url = first_email.get("screenshot_url")
+            preview_url = first_email.get("preview_url")
             campaign_type = classify_campaign_type(campaign_name, campaign_subject)
             campaigns_metadata.append(
                 {
                     "campaign_name": campaign_name,
                     "campaign_subject": campaign_subject,
                     "campaign_type": campaign_type,
+                    "screenshot_url": screenshot_url,
+                    "preview_url": preview_url,
                 }
             )
 
@@ -922,6 +928,8 @@ class MailerLiteProvider(BaseMetricsProvider):
                             "campaign_name": meta["campaign_name"],
                             "campaign_subject": meta["campaign_subject"],
                             "campaign_type": meta["campaign_type"],
+                            "screenshot_url": meta["screenshot_url"],
+                            "preview_url": meta["preview_url"],
                         },
                     )
                 )

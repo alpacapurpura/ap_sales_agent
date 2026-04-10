@@ -1005,6 +1005,8 @@ class EmailDashboardService:
                     "campaign_subject": extra.get("campaign_subject"),
                     "campaign_type": extra.get("campaign_type", "contenido"),
                     "sent_date": str(row.last_date) if row.last_date else None,
+                    "screenshot_url": extra.get("screenshot_url"),
+                    "preview_url": extra.get("preview_url"),
                     "metrics": {},
                 }
             metrics_dict = campaigns_map[cid]["metrics"]
@@ -1031,6 +1033,8 @@ class EmailDashboardService:
                     unsubscribes=int(m.get("unsubscribes", 0)),
                     unique_opens=int(m.get("unique_opens", 0)),
                     unique_clicks=int(m.get("unique_clicks", 0)),
+                    screenshot_url=cdata.get("screenshot_url"),  # type: ignore[arg-type]
+                    preview_url=cdata.get("preview_url"),  # type: ignore[arg-type]
                 )
             )
         return campaigns
