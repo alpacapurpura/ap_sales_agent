@@ -363,3 +363,22 @@ class TestAutomationBugFixes:
         assert auto.steps[1].type == "delay"
         assert auto.steps[1].delay_value == 2
         assert auto.steps[1].delay_unit == "days"
+
+    def test_completion_rate_zero_when_no_ingresados(self):
+        """Edge case: completion_rate returns 0.0 when no subscribers ingresaron."""
+        rows = _make_rows_with_steps(
+            completed_subs=0,
+            in_queue_subs=0,
+            emails_sent=0.0,
+            open_rate=0.0,
+            click_rate=0.0,
+            ctor=0.0,
+            unsubs=0.0,
+        )
+        service = _make_service_with_rows(rows)
+
+        response = self._run(service)
+
+        auto = response.automations[0]
+        assert auto.active_subscribers == 0
+        assert auto.completion_rate == 0.0

@@ -11,6 +11,7 @@ from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
 import structlog
+from pydantic import ValidationError
 from sqlalchemy import String, cast, func, select
 
 from src.modules.analytics.application.dto.channel_dashboard_dto import (
@@ -551,11 +552,19 @@ class EmailDashboardService:
             )
 
             steps_raw = adata.get("steps_raw", [])
-            steps = (
-                [AutomationStepDTO(**s) for s in steps_raw]
-                if isinstance(steps_raw, list)
-                else []
-            )
+            steps: list[AutomationStepDTO] = []
+            if isinstance(steps_raw, list):
+                for s in steps_raw:
+                    if not isinstance(s, dict):
+                        continue
+                    try:
+                        steps.append(AutomationStepDTO(**s))
+                    except ValidationError as exc:
+                        logger.warning(
+                            "automation.step.skipped_malformed",
+                            automation_id=str(adata.get("automation_id", "")),
+                            error=str(exc),
+                        )
 
             automations.append(
                 EmailAutomationDTO(
