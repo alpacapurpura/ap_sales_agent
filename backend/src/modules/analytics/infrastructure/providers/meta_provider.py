@@ -796,6 +796,22 @@ class MetaProvider(BaseMetricsProvider):
         ]
 
     @staticmethod
+    def _resolve_row_date(data: dict, fallback: date) -> date:
+        """Extract date_start from an Ads Insights row, with fallback.
+
+        The Graph API returns one bucket per day when ``time_increment=1`` is
+        used, tagged by ``date_start``. If the row lacks it or the value is
+        malformed, fall back to the caller-provided date.
+        """
+        date_start_str = data.get("date_start")
+        if not date_start_str:
+            return fallback
+        try:
+            return date.fromisoformat(date_start_str)
+        except (ValueError, TypeError):
+            return fallback
+
+    @staticmethod
     def _parse_ads_row(
         data: dict,
         currency: str,
@@ -804,7 +820,16 @@ class MetaProvider(BaseMetricsProvider):
         """Parse a single Ads Insights API row into ExtractedMetric list.
 
         Shared by _extract_meta_ads (aggregated) and _extract_meta_ads_daily (per-day).
+
+        The effective date is taken from the row's ``date_start`` when present
+        (this is what the Graph API returns for each bucket when using
+        ``time_increment=1``). The ``metric_date`` parameter is only used as a
+        fallback for single-bucket responses. Without this, multi-day backfills
+        would concentrate the whole period's total on the caller's end_date
+        (bug #3).
         """
+        metric_date = MetaProvider._resolve_row_date(data, metric_date)
+
         metrics: list[ExtractedMetric] = []
 
         # A) Simple numeric fields
@@ -1480,7 +1505,7 @@ class MetaProvider(BaseMetricsProvider):
             f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
             headers=_auth_headers(access_token),
             params={
-                "fields": f"ad_id,ad_name,{_ADS_EXPANDED_FIELDS}",
+                "fields": f"campaign_id,ad_id,ad_name,{_ADS_EXPANDED_FIELDS}",
                 "time_range": json.dumps(
                     {
                         "since": start_date.isoformat(),
@@ -1498,9 +1523,11 @@ class MetaProvider(BaseMetricsProvider):
         for row in rows:
             ad_id = row.get("ad_id")
             ad_name = row.get("ad_name", "")
+            campaign_id = row.get("campaign_id")
             parsed = self._parse_ads_row(row, currency, end_date)
             for m in parsed:
                 m.ad_id = ad_id
+                m.campaign_id = campaign_id
                 m.extra = {**m.extra, "ad_name": ad_name}
             metrics.extend(parsed)
         return metrics

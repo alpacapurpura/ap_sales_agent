@@ -303,9 +303,35 @@ class OfficialMetricsRepository:
         """Get daily metric values for a channel in a date range.
 
         Returns list of (metric_date, metric_name, value) tuples for time series charts.
-        Aggregates across campaigns (sums per day per metric) so we get channel-level totals.
+
+        Granularity handling: the same (tenant, channel, metric, day) tuple may have
+        rows at account-level (all dim IDs NULL), campaign-level (campaign_id set,
+        ad_set_id/ad_id NULL), ad-set level, or ad level. Summing blindly double- or
+        triple-counts values. Strategy per day+metric:
+
+        1. If an account-level row exists, use it.
+        2. Otherwise, sum campaign-level rows (campaign_id NOT NULL, ad_set_id NULL,
+           ad_id NULL).
+        3. Ignore ad-set and ad-level rows (they are breakdowns of campaign totals).
         """
-        stmt = (
+        # Account-level rows (all granularity IDs NULL)
+        account_stmt = select(
+            OfficialMetricModel.metric_date,
+            OfficialMetricModel.metric_name,
+            OfficialMetricModel.value,
+        ).where(
+            OfficialMetricModel.tenant_id == tenant_id,
+            OfficialMetricModel.channel_slug == channel_slug,
+            OfficialMetricModel.metric_name.in_(metric_names),
+            OfficialMetricModel.metric_date.between(start_date, end_date),
+            OfficialMetricModel.campaign_id.is_(None),
+            OfficialMetricModel.ad_set_id.is_(None),
+            OfficialMetricModel.ad_id.is_(None),
+        )
+        account_rows = self.db.execute(account_stmt).all()
+
+        # Campaign-level rows (campaign_id set, ad_set_id and ad_id NULL)
+        campaign_stmt = (
             select(
                 OfficialMetricModel.metric_date,
                 OfficialMetricModel.metric_name,
@@ -316,17 +342,33 @@ class OfficialMetricsRepository:
                 OfficialMetricModel.channel_slug == channel_slug,
                 OfficialMetricModel.metric_name.in_(metric_names),
                 OfficialMetricModel.metric_date.between(start_date, end_date),
+                OfficialMetricModel.campaign_id.is_not(None),
+                OfficialMetricModel.ad_set_id.is_(None),
+                OfficialMetricModel.ad_id.is_(None),
             )
             .group_by(
                 OfficialMetricModel.metric_date,
                 OfficialMetricModel.metric_name,
             )
-            .order_by(OfficialMetricModel.metric_date)
         )
-        rows = self.db.execute(stmt).all()
-        return [
-            (row.metric_date, row.metric_name, float(row.total_value)) for row in rows
-        ]
+        campaign_rows = self.db.execute(campaign_stmt).all()
+
+        # Merge: account wins; campaign only fills gaps
+        account_map: dict[tuple[date, str], float] = {
+            (row.metric_date, row.metric_name): float(row.value) for row in account_rows
+        }
+        campaign_map: dict[tuple[date, str], float] = {
+            (row.metric_date, row.metric_name): float(row.total_value)
+            for row in campaign_rows
+        }
+
+        merged: dict[tuple[date, str], float] = dict(campaign_map)
+        merged.update(account_map)  # account overrides
+
+        return sorted(
+            ((day, name, value) for (day, name), value in merged.items()),
+            key=lambda t: (t[0], t[1]),
+        )
 
     def get_channel_metrics_for_period(
         self,
@@ -339,29 +381,60 @@ class OfficialMetricsRepository:
 
         Uses catalog-aware aggregation: SUM for additive metrics,
         latest value for snapshots/non-aggregable.
+
+        Granularity handling (see get_channel_daily_metrics): for each
+        (metric, day), prefer the account-level row; fall back to the SUM
+        of campaign-level rows. Ignore ad-set and ad-level rows.
+
         Returns: {metric_name: aggregated_value}
         """
-        stmt = (
+        # Account-level rows
+        account_stmt = select(
+            OfficialMetricModel.metric_name,
+            OfficialMetricModel.metric_date,
+            OfficialMetricModel.value,
+        ).where(
+            OfficialMetricModel.tenant_id == tenant_id,
+            OfficialMetricModel.channel_slug == channel_slug,
+            OfficialMetricModel.metric_date.between(start_date, end_date),
+            OfficialMetricModel.campaign_id.is_(None),
+            OfficialMetricModel.ad_set_id.is_(None),
+            OfficialMetricModel.ad_id.is_(None),
+        )
+        account_rows = self.db.execute(account_stmt).all()
+
+        # Campaign-level rows, aggregated per (metric, day)
+        campaign_stmt = (
             select(
                 OfficialMetricModel.metric_name,
                 OfficialMetricModel.metric_date,
-                OfficialMetricModel.value,
+                func.sum(OfficialMetricModel.value).label("total_value"),
             )
             .where(
                 OfficialMetricModel.tenant_id == tenant_id,
                 OfficialMetricModel.channel_slug == channel_slug,
                 OfficialMetricModel.metric_date.between(start_date, end_date),
+                OfficialMetricModel.campaign_id.is_not(None),
+                OfficialMetricModel.ad_set_id.is_(None),
+                OfficialMetricModel.ad_id.is_(None),
             )
-            .order_by(
+            .group_by(
                 OfficialMetricModel.metric_name,
                 OfficialMetricModel.metric_date,
             )
         )
-        rows = self.db.execute(stmt).all()
+        campaign_rows = self.db.execute(campaign_stmt).all()
+
+        # Build (metric_name, day) -> value with account > campaign priority
+        per_day: dict[tuple[str, date], float] = {}
+        for row in campaign_rows:
+            per_day[(row.metric_name, row.metric_date)] = float(row.total_value)
+        for row in account_rows:
+            per_day[(row.metric_name, row.metric_date)] = float(row.value)
 
         grouped: dict[str, list[tuple[date, float]]] = defaultdict(list)
-        for row in rows:
-            grouped[row.metric_name].append((row.metric_date, float(row.value)))
+        for (metric_name, metric_date_), value in per_day.items():
+            grouped[metric_name].append((metric_date_, value))
 
         result: dict[str, float] = {}
         for metric_name, entries in grouped.items():
