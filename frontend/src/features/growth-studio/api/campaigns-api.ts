@@ -3,6 +3,7 @@ import { useAuth } from '@clerk/nextjs';
 
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
+import { camelizeKeys } from '@/lib/case-conversion';
 import type { CampaignOverview, AdSet, Ad } from '../types/campaigns';
 import type { CampaignPerformanceData, MetaAdsPeriod } from '../types/metrics';
 
@@ -60,7 +61,13 @@ export async function fetchCampaignPerformance(
   if (!res.ok) {
     throw new Error(`Failed to fetch campaign performance: ${res.status}`);
   }
-  return res.json();
+  // Backend returns snake_case (no alias_generator). The TypeScript type
+  // CampaignPerformanceData expects camelCase, so we camelize the response
+  // here. Skipping this caused campaign.externalId, effectiveStatus, etc.
+  // to silently be `undefined` at runtime — surfaced as 422s when the
+  // offer assignment drawer tried to POST target_external_id=undefined.
+  const json: unknown = await res.json();
+  return camelizeKeys<CampaignPerformanceData>(json);
 }
 
 export function useCampaignPerformance(
@@ -189,25 +196,7 @@ export function useCreativesOverview(
   });
 }
 
-// ── Utility: snake_case → camelCase ─────────────────────────────────
-
-function snakeToCamel(s: string): string {
-  return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
-}
-
-function camelizeKeys<T>(obj: unknown): T {
-  if (Array.isArray(obj)) {
-    return obj.map(item => camelizeKeys<unknown>(item)) as T;
-  }
-  if (obj !== null && typeof obj === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      result[snakeToCamel(key)] = camelizeKeys(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
+// Shared camelizeKeys utility lives in @/lib/case-conversion.
 
 // ── Ad-Level Performance ────────────────────────────────────────────
 

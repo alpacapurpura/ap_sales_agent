@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { fetchClient } from '@/lib/http-client';
 import { config } from '@/lib/config';
+import { camelizeKeys, snakeifyKeys } from '@/lib/case-conversion';
 import type {
   AdCampaignTemplate,
   Association,
@@ -17,45 +18,7 @@ import type { MetaAdsPeriod } from '../types/metrics';
 
 const API_URL = config.api.baseUrl;
 
-// ---------------------------------------------------------------------------
-// snake_case <-> camelCase helpers
-// ---------------------------------------------------------------------------
-
-function snakeToCamel(s: string): string {
-  return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
-}
-
-function camelToSnake(s: string): string {
-  return s.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-}
-
-function camelizeKeys<T>(obj: unknown): T {
-  if (Array.isArray(obj)) {
-    return obj.map(item => camelizeKeys<unknown>(item)) as T;
-  }
-  if (obj !== null && typeof obj === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      result[snakeToCamel(key)] = camelizeKeys(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
-
-function snakeifyKeys<T>(obj: unknown): T {
-  if (Array.isArray(obj)) {
-    return obj.map(item => snakeifyKeys<unknown>(item)) as T;
-  }
-  if (obj !== null && typeof obj === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      result[camelToSnake(key)] = snakeifyKeys(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
+// Shared case-conversion helpers live in @/lib/case-conversion.
 
 function authHeaders(token: string): Record<string, string> {
   return {
