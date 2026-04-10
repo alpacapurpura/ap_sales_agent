@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type {
   ChannelDashboardData,
   CampaignPerformanceData,
@@ -10,6 +11,18 @@ import type {
 // --- Mocks ---
 vi.mock('@clerk/nextjs', () => ({
   useAuth: () => ({ getToken: vi.fn().mockResolvedValue('test-token') }),
+}));
+
+vi.mock('@/lib/config', () => ({
+  config: { api: { baseUrl: 'https://api.test.com' } },
+}));
+
+vi.mock('@/lib/http-client', () => ({
+  fetchClient: vi.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({}),
+  }),
 }));
 
 // Mock recharts to render testable DOM (avoids canvas/SVG measurement issues)
@@ -25,6 +38,18 @@ vi.mock('recharts', async (importOriginal) => {
 
 // Must import AFTER mocks
 import { ResumenTab } from '../tabs/ResumenTab';
+
+// Helper to wrap ResumenTab with a QueryClientProvider (required by the new
+// offer-association hooks consumed inside the tab).
+function renderWithQuery(ui: React.ReactElement) {
+  const qc = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, refetchOnWindowFocus: false },
+      mutations: { retry: false },
+    },
+  });
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+}
 
 // ---------------------------------------------------------------------------
 // Helpers — test data factories
@@ -97,7 +122,7 @@ function makeDashboardData(kpiOverrides?: MetricKpiData[]): ChannelDashboardData
 
 describe('ResumenTab', () => {
   it('renders loading spinner when isLoading is true', () => {
-    const { container } = render(
+    const { container } = renderWithQuery(
       <ResumenTab data={undefined} isLoading={true} />,
     );
     const spinner = container.querySelector('.animate-spin');
@@ -105,12 +130,12 @@ describe('ResumenTab', () => {
   });
 
   it('renders "No hay datos disponibles" when data is undefined', () => {
-    render(<ResumenTab data={undefined} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={undefined} isLoading={false} />);
     expect(screen.getByText('No hay datos disponibles')).toBeInTheDocument();
   });
 
   it('renders KPI cards with data', () => {
-    render(<ResumenTab data={makeDashboardData()} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
     // Verify display names appear (Inversión and ROAS also appear in the chart legend,
     // so we assert that at least one instance exists)
     expect(screen.getAllByText('Inversión').length).toBeGreaterThan(0);
@@ -123,7 +148,7 @@ describe('ResumenTab', () => {
     const kpis = BASE_KPIS.map(k =>
       k.metricName === 'ROAS' ? { ...k, currentValue: 0 } : k,
     );
-    render(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
     const placeholder = screen.getByTitle('Requiere Meta Pixel configurado');
     expect(placeholder).toBeInTheDocument();
     expect(placeholder.textContent).toBe('--');
@@ -133,7 +158,7 @@ describe('ResumenTab', () => {
     const kpis = BASE_KPIS.map(k =>
       k.metricName === 'CPA' ? { ...k, currentValue: 0 } : k,
     );
-    render(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
     const placeholders = screen.getAllByTitle('Requiere Meta Pixel configurado');
     // CPA is pixel-dependent and has value 0, so it should produce a "--" placeholder
     // We also have ROAS=3.2 (non-zero, no placeholder) and conversions=45 (non-zero, no placeholder)
@@ -158,7 +183,7 @@ describe('ResumenTab', () => {
       }
       return k;
     });
-    render(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
     // Spend should still display correctly (non-pixel metric)
     expect(screen.getByText('Inversión')).toBeInTheDocument();
     expect(screen.getByText('CTR')).toBeInTheDocument();
@@ -169,7 +194,7 @@ describe('ResumenTab', () => {
     const kpis = BASE_KPIS.map(k =>
       k.metricName === 'spend' ? { ...k, currentValue: 0 } : k,
     );
-    render(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
     // Spend is not pixel-dependent, so 0 should render as a formatted value, not "--"
     const pixelPlaceholders = screen.queryAllByTitle('Requiere Meta Pixel configurado');
     const spendPlaceholder = pixelPlaceholders.find(el => {
@@ -180,7 +205,7 @@ describe('ResumenTab', () => {
   });
 
   it('renders conversion funnel with steps', () => {
-    render(<ResumenTab data={makeDashboardData()} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
     expect(screen.getByText('Impresiones')).toBeInTheDocument();
     expect(screen.getByText('Clics')).toBeInTheDocument();
     // "Resultados" appears in both KPI card and funnel, so check it exists
@@ -188,7 +213,7 @@ describe('ResumenTab', () => {
   });
 
   it('renders the "Inversión y Retorno" chart when timeSeries has data', () => {
-    render(<ResumenTab data={makeDashboardData()} isLoading={false} />);
+    renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
     // Title is rendered inside the ChartInfoTooltip button
     expect(screen.getByText('Inversión y Retorno')).toBeInTheDocument();
   });
@@ -214,7 +239,7 @@ describe('ResumenTab', () => {
       currency: 'USD',
       lastSynced: null,
     };
-    render(
+    renderWithQuery(
       <ResumenTab
         data={makeDashboardData()}
         isLoading={false}

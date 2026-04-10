@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { Loader2, TrendingDown, TrendingUp } from 'lucide-react';
 
 import { formatMoney } from '@/lib/format-money';
@@ -8,6 +9,14 @@ import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
 import { ChartSection } from '../../shared/ChartSection';
 import { MetaAdsMiniFunnel } from '../MetaAdsMiniFunnel';
 import { InversionChart } from '../InversionChart';
+import { MetaAdsHealthCheckPanel } from '../MetaAdsHealthCheckPanel';
+import { OfferSegmenter } from '../OfferSegmenter';
+import type { OfferSegmenterSelection } from '../OfferSegmenter';
+import { UnassignedBanner } from '../UnassignedBanner';
+import {
+  useMetaHealthCheck,
+  useMetricsByOffer,
+} from '../../../../../api/offer-association-api';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import type {
   ChannelDashboardData,
@@ -15,13 +24,16 @@ import type {
   CampaignPerformanceData,
   CampaignRecommendation,
   MetaAdsDashboardTab,
+  MetaAdsPeriod,
 } from '../../../../../types/metrics';
 
 interface ResumenTabProps {
   data: ChannelDashboardData | undefined;
   isLoading: boolean;
   campaignData?: CampaignPerformanceData;
+  period?: MetaAdsPeriod;
   onNavigateToTab?: (tab: MetaAdsDashboardTab) => void;
+  onAssignCampaigns?: () => void;
 }
 
 const RESUMEN_KPIS = ['spend', 'ROAS', 'conversions', 'CPA', 'CTR', 'reach'];
@@ -108,8 +120,40 @@ function AlertCard({
   );
 }
 
-export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: ResumenTabProps) {
+export function ResumenTab({
+  data,
+  isLoading,
+  campaignData,
+  period = '30d',
+  onNavigateToTab,
+  onAssignCampaigns,
+}: ResumenTabProps) {
   const { currency: tenantCurrency } = useTenantLocale();
+  const [selectedOfferId, setSelectedOfferId] =
+    useState<OfferSegmenterSelection>('all');
+
+  const { data: healthCheck, isLoading: isHealthLoading } = useMetaHealthCheck();
+  const { data: metricsByOffer } = useMetricsByOffer(period);
+
+  const unassignedCount = healthCheck?.unassignedTargets.length ?? 0;
+  const hasUnassigned = unassignedCount > 0;
+  const hasBranding = (metricsByOffer?.brandingOnly.targetCount ?? 0) > 0;
+
+  const handleAssignClick = () => {
+    if (onAssignCampaigns) {
+      onAssignCampaigns();
+    } else {
+      onNavigateToTab?.('campanas');
+    }
+  };
+
+  // Choose the primary expected metric when filtering by a specific offer.
+  const selectedOfferMetrics = useMemo(() => {
+    if (selectedOfferId === 'all' || selectedOfferId === 'unassigned' || selectedOfferId === 'branding') {
+      return null;
+    }
+    return metricsByOffer?.offers.find(o => o.offerId === selectedOfferId) ?? null;
+  }, [metricsByOffer, selectedOfferId]);
 
   if (isLoading) {
     return (
@@ -137,6 +181,23 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
 
   return (
     <div className="space-y-6">
+      {/* Health Check panel (diagnóstico de cuenta Meta) */}
+      <ChartSection slug="health-check">
+        <MetaAdsHealthCheckPanel
+          data={healthCheck}
+          isLoading={isHealthLoading}
+          onAssignClick={handleAssignClick}
+        />
+      </ChartSection>
+
+      {/* Unassigned banner (persistent prompt to assign) */}
+      {hasUnassigned && (
+        <UnassignedBanner
+          count={unassignedCount}
+          onAssignClick={handleAssignClick}
+        />
+      )}
+
       {/* 6 KPI cards */}
       <ChartSection slug="kpis">
         <div className="grid grid-cols-6 gap-2.5">
@@ -199,6 +260,42 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
                 onAction={() => onNavigateToTab?.('campanas')}
               />
             ))}
+          </div>
+        </ChartSection>
+      )}
+
+      {/* Offer segmenter (multi-offer filter) */}
+      {metricsByOffer && metricsByOffer.offers.length > 0 && (
+        <ChartSection slug="segmentador-offers">
+          <div className="space-y-2">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              Filtrar por offer
+            </p>
+            <OfferSegmenter
+              offers={metricsByOffer.offers}
+              selectedOfferId={selectedOfferId}
+              onSelect={setSelectedOfferId}
+              hasUnassigned={hasUnassigned}
+              hasBranding={hasBranding}
+            />
+            {selectedOfferMetrics && (
+              <p className="text-[11px] text-muted-foreground">
+                <strong className="text-foreground">{selectedOfferMetrics.offerName}</strong>
+                {' '}· Métrica primaria: <strong className="text-foreground">{selectedOfferMetrics.primaryMetricName}</strong>
+                {selectedOfferMetrics.primaryCostPerResult != null && (
+                  <>
+                    {' '}·{' '}
+                    {formatMoney(
+                      selectedOfferMetrics.primaryCostPerResult,
+                      selectedOfferMetrics.currency || tenantCurrency,
+                    )}
+                  </>
+                )}
+                {selectedOfferMetrics.roas != null && (
+                  <> · ROAS {selectedOfferMetrics.roas.toFixed(2)}x</>
+                )}
+              </p>
+            )}
           </div>
         </ChartSection>
       )}

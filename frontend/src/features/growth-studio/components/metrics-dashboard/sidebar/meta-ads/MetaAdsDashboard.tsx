@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, BarChart3, RefreshCw } from 'lucide-react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
@@ -13,14 +13,18 @@ import { useHashScroll } from '../../../../hooks/useHashScroll';
 import { useConnectionHealth } from '../../../../hooks/useConnectionHealth';
 import { useSyncChannel } from '../../../../hooks/useSyncChannel';
 import { useCampaignPerformance } from '../../../../api/campaigns-api';
+import { useAssociations } from '../../../../api/offer-association-api';
 import type { MetaAdsPeriod, MetaAdsDashboardTab } from '../../../../types/metrics';
 import { ConnectionHealthBanner } from '../../../connection-health-banner';
 import { MetaAdsPeriodSelector } from './MetaAdsPeriodSelector';
+import { MetaAdsOnboardingModal } from './MetaAdsOnboardingModal';
 import { ResumenTab } from './tabs/ResumenTab';
 import { CampaignsTab } from './tabs/CampaignsTab';
 import { CreativosTab } from './tabs/CreativosTab';
 import { AudienciaTab } from './tabs/AudienciaTab';
 import { CostosTab } from './tabs/CostosTab';
+
+const ONBOARDING_DISMISSED_KEY = 'meta-ads-onboarding-dismissed';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import { formatTenantDateTime } from '@/lib/format-date';
 
@@ -50,8 +54,54 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const { data: dashboardData, isLoading: isDashboardLoading } = useChannelDashboard('meta-ads', period);
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
   const { data: health } = useConnectionHealth('meta-ads');
+  const { data: associations } = useAssociations();
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel('meta-ads');
   useHashScroll();
+
+  // Onboarding modal: first-connect trigger. Derived state — no useEffect needed.
+  const [hasUserDismissedOnboarding, setHasUserDismissedOnboarding] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem(ONBOARDING_DISMISSED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const isOnboardingOpen =
+    !hasUserDismissedOnboarding &&
+    (campaignData?.activeCampaigns ?? 0) > 0 &&
+    (associations?.length ?? 0) === 0;
+
+  const handleOnboardingOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      try {
+        localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+      } catch {
+        /* noop */
+      }
+      setHasUserDismissedOnboarding(true);
+    }
+  }, []);
+
+  const onboardingCampaigns = useMemo(
+    () =>
+      (campaignData?.campaigns ?? [])
+        .filter(c => (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE')
+        .map(c => ({
+          externalId: c.externalId,
+          name: c.name,
+          objective: c.objective,
+        })),
+    [campaignData?.campaigns],
+  );
+
+  const handleOpenAssignCampaigns = useCallback(() => {
+    setActiveTab('campanas');
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', 'campanas');
+    url.searchParams.set('assign', 'true');
+    window.history.replaceState(null, '', url.toString());
+  }, []);
 
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
     setPeriod(p);
@@ -152,7 +202,9 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
               data={dashboardData}
               isLoading={isDashboardLoading}
               campaignData={campaignData}
+              period={period}
               onNavigateToTab={setActiveTab}
+              onAssignCampaigns={handleOpenAssignCampaigns}
             />
           </TabsContent>
           <TabsContent value="campanas" className="m-0 p-6">
@@ -177,6 +229,14 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
           </TabsContent>
         </div>
       </Tabs>
+
+      {/* Onboarding modal (first-connect trigger) */}
+      <MetaAdsOnboardingModal
+        open={isOnboardingOpen}
+        onOpenChange={handleOnboardingOpenChange}
+        campaigns={onboardingCampaigns}
+        onAssignNow={handleOpenAssignCampaigns}
+      />
     </div>
   );
 
