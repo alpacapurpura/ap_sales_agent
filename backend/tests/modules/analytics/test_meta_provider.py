@@ -874,10 +874,12 @@ class TestExtractMetricsDaily:
             captured_params.append(kwargs.get("params", {}))
             if "/act_" in url:
                 params = kwargs.get("params", {})
-                # Campaign-level requests return empty
-                if params.get("level") == "campaign":
-                    return _ok_response({"data": []})
-                return mock_ads_response
+                # Only the account-level request returns the mock payload.
+                # Campaign and ad levels return empty to avoid double-counting,
+                # since extract_metrics_daily now calls all three extractors.
+                if params.get("level") == "account":
+                    return mock_ads_response
+                return _ok_response({"data": []})
             return _ok_response({"data": []})
 
         with patch("httpx.AsyncClient") as MockClient:

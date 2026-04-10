@@ -72,11 +72,17 @@ class PeriodExtractionPipeline:
                 "reason": "no_non_aggregable_metrics",
             }
 
-        # Create extraction run
-        run = self.run_repo.create(tenant_id, provider_name)
+        # Create extraction run with period metadata up-front
+        run = self.run_repo.create(
+            tenant_id,
+            provider_name,
+            period_start=period_start,
+            period_end=period_end,
+            extraction_type="period",
+        )
         run_id = run.id
 
-        # Update run with period metadata
+        # Transition status PENDING -> RUNNING (metadata already persisted)
         from sqlalchemy import update
 
         from src.modules.analytics.infrastructure.models.extraction_run_model import (
@@ -86,12 +92,7 @@ class PeriodExtractionPipeline:
         self.db.execute(
             update(ExtractionRunModel)
             .where(ExtractionRunModel.id == run_id)
-            .values(
-                extraction_type="period",
-                period_start=period_start,
-                period_end=period_end,
-                status=ExtractionStatus.RUNNING.value,
-            )
+            .values(status=ExtractionStatus.RUNNING.value)
         )
 
         try:

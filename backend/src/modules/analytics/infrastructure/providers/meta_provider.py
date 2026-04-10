@@ -28,6 +28,23 @@ logger = structlog.get_logger(__name__)
 
 GRAPH_API_BASE = "https://graph.facebook.com/v24.0"
 
+
+class PeriodAggregateError(ValueError):
+    """Raised when ``_parse_ads_row`` receives a Meta Insights row that
+    aggregates more than one day.
+
+    Per-day metrics tables only accept single-day rows. Period aggregates
+    (``date_start != date_stop``) must either come from an ``/insights``
+    call with ``time_increment=1`` (which Meta guarantees will return one
+    bucket per day) or be routed through ``extract_period_metrics`` and
+    landed on the ``period_metrics`` table.
+
+    Prevents a recurrence of the Visionarias contamination where a single
+    aggregated row polluted the last day of the period (PEN 856.61 instead
+    of PEN 31.07).
+    """
+
+
 _META_ACTION_MAP = {
     "offsite_conversion.fb_pixel_purchase": "conversions",
     "onsite_conversion.purchase": "conversions",
@@ -812,6 +829,26 @@ class MetaProvider(BaseMetricsProvider):
             return fallback
 
     @staticmethod
+    def _assert_single_day_row(data: dict) -> None:
+        """Raise ``PeriodAggregateError`` if a Meta Insights row spans >1 day.
+
+        Extracted from ``_parse_ads_row`` to keep its cyclomatic complexity
+        under the ruff C901 threshold. This is the last-line-of-defence that
+        the ``test_parse_ads_row_has_period_aggregate_guard`` fitness test
+        enforces — the raise statement MUST remain inside the parser call
+        chain.
+        """
+        date_start_str = data.get("date_start")
+        date_stop_str = data.get("date_stop")
+        if date_start_str and date_stop_str and date_start_str != date_stop_str:
+            raise PeriodAggregateError(
+                "Refusing to parse multi-day Meta Insights row "
+                f"(date_start={date_start_str}, date_stop={date_stop_str}). "
+                "Use time_increment=1 in the API request, or route this row "
+                "through extract_period_metrics() for NON_AGGREGABLE metrics."
+            )
+
+    @staticmethod
     def _parse_ads_row(
         data: dict,
         currency: str,
@@ -827,7 +864,15 @@ class MetaProvider(BaseMetricsProvider):
         fallback for single-bucket responses. Without this, multi-day backfills
         would concentrate the whole period's total on the caller's end_date
         (bug #3).
+
+        Raises:
+            PeriodAggregateError: if the row represents a multi-day aggregate
+                (``date_start != date_stop``). This is an architectural
+                invariant — per-day tables must never receive aggregated data.
         """
+        # Invariant: refuse period-aggregated rows outright.
+        MetaProvider._assert_single_day_row(data)
+
         metric_date = MetaProvider._resolve_row_date(data, metric_date)
 
         metrics: list[ExtractedMetric] = []
@@ -1002,42 +1047,6 @@ class MetaProvider(BaseMetricsProvider):
 
         return metrics
 
-    async def _extract_meta_ads(
-        self,
-        client: httpx.AsyncClient,
-        credentials: dict,
-        start_date: date,
-        end_date: date,
-    ) -> list[ExtractedMetric]:
-        """Extract Meta Ads account-level metrics."""
-        ad_account_id = credentials.get("ad_account_id")
-        access_token = credentials.get("access_token", "")
-        currency = credentials.get("currency", "USD")
-        if not ad_account_id:
-            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
-            return []
-
-        headers = _auth_headers(access_token)
-
-        response = await client.get(
-            f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
-            headers=headers,
-            params={
-                "fields": _ADS_EXPANDED_FIELDS,
-                "time_range": json.dumps(
-                    {
-                        "since": start_date.isoformat(),
-                        "until": end_date.isoformat(),
-                    }
-                ),
-                "level": "account",
-            },
-        )
-        _raise_for_meta_error(response, "meta_ads_insights")
-        data = response.json().get("data", [{}])[0]
-
-        return self._parse_ads_row(data, currency, end_date)
-
     # ── Daily extraction methods (for initial load / gap detection) ──
 
     async def extract_metrics_daily(
@@ -1048,10 +1057,12 @@ class MetaProvider(BaseMetricsProvider):
         end_date: date,
         stage: str = "attraction",
     ) -> ExtractionResult:
-        """Like extract_metrics() but returns per-day granularity.
+        """Like ``extract_metrics`` but uses organic-daily extractors.
 
-        Uses time_increment=1 (Ads) or parses values[] per-day (Organic)
-        to emit one ExtractedMetric per day instead of a single aggregated row.
+        Retained for the initial-load path where organic metrics must be
+        per-day (FB/IG organic). For Meta Ads, this now yields the same
+        result as ``extract_metrics`` because both paths use the unified
+        daily extractors that pass ``time_increment=1``.
         """
         access_token = credentials.get("access_token")
         if not access_token:
@@ -1099,26 +1110,38 @@ class MetaProvider(BaseMetricsProvider):
                     failures.append(fail)
 
                 ads, fail = await self._safe_extract(
-                    self._extract_meta_ads_daily,
+                    self._extract_meta_ads,
                     client,
                     credentials,
                     start_date,
                     end_date,
-                    extractor_name="meta_ads_daily",
+                    extractor_name="meta_ads",
                 )
                 metrics.extend(ads)
                 if fail:
                     failures.append(fail)
 
                 camps, fail = await self._safe_extract(
-                    self._extract_meta_ads_campaigns_daily,
+                    self._extract_meta_ads_campaigns,
                     client,
                     credentials,
                     start_date,
                     end_date,
-                    extractor_name="meta_ads_campaigns_daily",
+                    extractor_name="meta_ads_campaigns",
                 )
                 metrics.extend(camps)
+                if fail:
+                    failures.append(fail)
+
+                ads_by_ad, fail = await self._safe_extract(
+                    self._extract_meta_ads_by_ad,
+                    client,
+                    credentials,
+                    start_date,
+                    end_date,
+                    extractor_name="meta_ads_by_ad",
+                )
+                metrics.extend(ads_by_ad)
                 if fail:
                     failures.append(fail)
 
@@ -1342,14 +1365,21 @@ class MetaProvider(BaseMetricsProvider):
                     )
         return metrics
 
-    async def _extract_meta_ads_daily(
+    async def _extract_meta_ads(
         self,
         client: httpx.AsyncClient,
         credentials: dict,
         start_date: date,
         end_date: date,
     ) -> list[ExtractedMetric]:
-        """Use time_increment=1 to get per-day Ads breakdowns."""
+        """Extract Meta Ads account-level metrics with per-day granularity.
+
+        Uses ``time_increment=1`` so Meta returns one bucket per day. Each
+        bucket is stamped with its own ``date_start``. Any row that does not
+        decompose to single-day buckets will be refused by ``_parse_ads_row``
+        (``PeriodAggregateError``) — this is the architectural invariant that
+        prevents per-day table contamination.
+        """
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
@@ -1374,17 +1404,28 @@ class MetaProvider(BaseMetricsProvider):
                 "level": "account",
             },
         )
-        _raise_for_meta_error(response, "meta_ads_insights_daily")
+        _raise_for_meta_error(response, "meta_ads_insights")
         rows = response.json().get("data", [])
 
         metrics: list[ExtractedMetric] = []
         for row in rows:
-            date_str = row.get("date_start", "")
-            try:
-                metric_date = date.fromisoformat(date_str)
-            except (ValueError, AttributeError):
-                continue
-
+            date_str = row.get("date_start")
+            metric_date: date
+            if date_str:
+                try:
+                    metric_date = date.fromisoformat(date_str)
+                except (ValueError, TypeError):
+                    logger.warning(
+                        "meta_ads_row_invalid_date_start",
+                        date_start=date_str,
+                        level="account",
+                    )
+                    continue
+            else:
+                # No date metadata — only legitimate when Meta returns a
+                # single bucket (e.g. start_date == end_date). Fall back to
+                # end_date so the row is not silently dropped.
+                metric_date = end_date
             metrics.extend(self._parse_ads_row(row, currency, metric_date))
         return metrics
 
@@ -1397,51 +1438,10 @@ class MetaProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
     ) -> list[ExtractedMetric]:
-        """Extract Meta Ads metrics at campaign level."""
-        ad_account_id = credentials.get("ad_account_id")
-        access_token = credentials.get("access_token", "")
-        currency = credentials.get("currency", "USD")
-        if not ad_account_id:
-            logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
-            return []
+        """Extract Meta Ads metrics at campaign level with per-day granularity.
 
-        headers = _auth_headers(access_token)
-
-        response = await client.get(
-            f"{GRAPH_API_BASE}/act_{ad_account_id}/insights",
-            headers=headers,
-            params={
-                "fields": f"campaign_id,campaign_name,{_ADS_EXPANDED_FIELDS}",
-                "time_range": json.dumps(
-                    {
-                        "since": start_date.isoformat(),
-                        "until": end_date.isoformat(),
-                    }
-                ),
-                "level": "campaign",
-                "limit": "500",
-            },
-        )
-        _raise_for_meta_error(response, "meta_ads_campaigns")
-        rows = response.json().get("data", [])
-
-        metrics: list[ExtractedMetric] = []
-        for row in rows:
-            campaign_id = row.get("campaign_id")
-            parsed = self._parse_ads_row(row, currency, end_date)
-            for m in parsed:
-                m.campaign_id = campaign_id
-            metrics.extend(parsed)
-        return metrics
-
-    async def _extract_meta_ads_campaigns_daily(
-        self,
-        client: httpx.AsyncClient,
-        credentials: dict,
-        start_date: date,
-        end_date: date,
-    ) -> list[ExtractedMetric]:
-        """Extract Meta Ads campaign-level metrics with daily granularity."""
+        Always uses ``time_increment=1`` so every row is a single-day bucket.
+        """
         ad_account_id = credentials.get("ad_account_id")
         access_token = credentials.get("access_token", "")
         currency = credentials.get("currency", "USD")
@@ -1467,16 +1467,24 @@ class MetaProvider(BaseMetricsProvider):
                 "limit": "500",
             },
         )
-        _raise_for_meta_error(response, "meta_ads_campaigns_daily")
+        _raise_for_meta_error(response, "meta_ads_campaigns")
         rows = response.json().get("data", [])
 
         metrics: list[ExtractedMetric] = []
         for row in rows:
-            date_str = row.get("date_start", "")
-            try:
-                metric_date = date.fromisoformat(date_str)
-            except (ValueError, AttributeError):
-                continue
+            date_str = row.get("date_start")
+            if date_str:
+                try:
+                    metric_date = date.fromisoformat(date_str)
+                except (ValueError, TypeError):
+                    logger.warning(
+                        "meta_ads_row_invalid_date_start",
+                        date_start=date_str,
+                        level="campaign",
+                    )
+                    continue
+            else:
+                metric_date = end_date
             campaign_id = row.get("campaign_id")
             parsed = self._parse_ads_row(row, currency, metric_date)
             for m in parsed:
@@ -1493,7 +1501,10 @@ class MetaProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
     ) -> list[ExtractedMetric]:
-        """Extract Meta Ads metrics at individual ad level."""
+        """Extract Meta Ads metrics at individual ad level with per-day granularity.
+
+        Always uses ``time_increment=1`` so every row is a single-day bucket.
+        """
         ad_account_id = credentials.get("ad_account_id")
         if not ad_account_id:
             logger.warning("missing_ad_account_id", extractor=self.__class__.__name__)
@@ -1512,6 +1523,7 @@ class MetaProvider(BaseMetricsProvider):
                         "until": end_date.isoformat(),
                     }
                 ),
+                "time_increment": "1",
                 "level": "ad",
                 "limit": "500",
             },
@@ -1521,10 +1533,23 @@ class MetaProvider(BaseMetricsProvider):
 
         metrics: list[ExtractedMetric] = []
         for row in rows:
+            date_str = row.get("date_start")
+            if date_str:
+                try:
+                    metric_date = date.fromisoformat(date_str)
+                except (ValueError, TypeError):
+                    logger.warning(
+                        "meta_ads_row_invalid_date_start",
+                        date_start=date_str,
+                        level="ad",
+                    )
+                    continue
+            else:
+                metric_date = end_date
             ad_id = row.get("ad_id")
             ad_name = row.get("ad_name", "")
             campaign_id = row.get("campaign_id")
-            parsed = self._parse_ads_row(row, currency, end_date)
+            parsed = self._parse_ads_row(row, currency, metric_date)
             for m in parsed:
                 m.ad_id = ad_id
                 m.campaign_id = campaign_id

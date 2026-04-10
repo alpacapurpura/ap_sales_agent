@@ -506,7 +506,13 @@ class ETLService:
         staging_repo = StagingMetricsRepository(self.db)
         run_repo = ExtractionRunRepository(self.db)
 
-        run = run_repo.create(tenant_id, provider_name)
+        run = run_repo.create(
+            tenant_id,
+            provider_name,
+            period_start=min_missing,
+            period_end=max_missing,
+            extraction_type="initial_load",
+        )
         run_id = run.id
 
         staging_models = [

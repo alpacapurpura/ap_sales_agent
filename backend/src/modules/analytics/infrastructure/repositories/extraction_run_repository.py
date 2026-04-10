@@ -4,7 +4,7 @@ Each extraction run records status, timing, and error information
 for monitoring and retry logic.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -22,14 +22,40 @@ class ExtractionRunRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, tenant_id: UUID, provider: str) -> ExtractionRunModel:
-        """Create a new extraction run with PENDING status."""
-        run = ExtractionRunModel(
-            tenant_id=tenant_id,
-            provider=provider,
-            status=ExtractionStatus.PENDING.value,
-            started_at=datetime.now(UTC),
-        )
+    def create(
+        self,
+        tenant_id: UUID,
+        provider: str,
+        period_start: date | None = None,
+        period_end: date | None = None,
+        extraction_type: str | None = None,
+    ) -> ExtractionRunModel:
+        """Create a new extraction run with PENDING status.
+
+        Args:
+            tenant_id: Tenant owning the run (required for isolation).
+            provider: Provider identifier (``meta``, ``shopify``, etc.).
+            period_start: First calendar day covered by this extraction.
+                Populated so ops can audit what date range the run actually
+                loaded. Kept optional for backwards compatibility with
+                legacy callers that haven't been updated yet.
+            period_end: Last calendar day covered by this extraction.
+            extraction_type: ``scheduled`` (cron), ``initial_load`` (first
+                sync after a connect), or ``period`` (period_pipeline for
+                NON_AGGREGABLE metrics). Falls back to the model's server
+                default when omitted.
+        """
+        kwargs: dict = {
+            "tenant_id": tenant_id,
+            "provider": provider,
+            "status": ExtractionStatus.PENDING.value,
+            "started_at": datetime.now(UTC),
+            "period_start": period_start,
+            "period_end": period_end,
+        }
+        if extraction_type is not None:
+            kwargs["extraction_type"] = extraction_type
+        run = ExtractionRunModel(**kwargs)
         self.db.add(run)
         self.db.flush()
         return run

@@ -104,7 +104,13 @@ class ETLPipeline:
         start_time = time.monotonic()
 
         # Step 1: Create extraction run
-        run = self.run_repo.create(tenant_id, provider_name)
+        run = self.run_repo.create(
+            tenant_id,
+            provider_name,
+            period_start=start_date,
+            period_end=end_date,
+            extraction_type="scheduled",
+        )
         run_id = run.id
         self.run_repo.update_status(
             run_id=run_id,
