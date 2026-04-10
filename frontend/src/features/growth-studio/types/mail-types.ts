@@ -196,6 +196,7 @@ export interface BounceBreakdown {
 
 export interface EmailHealthData {
   period: string;
+  campaignsCount: number;
   healthScore: EmailHealthScore;
   kpis: MetricKpiData[];
   bounceBreakdown: BounceBreakdown;

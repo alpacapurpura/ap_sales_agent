@@ -1,8 +1,14 @@
 'use client';
 
-import { Loader2, Bot, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2, Bot, TrendingUp, TrendingDown, Info } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { MetricInfoPopover } from '@/components/shared/MetricInfoPopover';
 import { useMailAutomations } from '../../../../../hooks/useMailDashboard';
 import { formatMetricValue } from '../../../../../utils/format-metric-value';
@@ -49,6 +55,17 @@ const TYPE_LABELS: Record<string, string> = {
   reengagement: 'Re-engagement',
   post_compra: 'Post-compra',
 };
+
+const TABLE_COLUMNS: { label: string; description: string; align: 'left' | 'center' }[] = [
+  { label: 'Nombre', description: 'Nombre de la automatización configurada en tu proveedor de email.', align: 'left' },
+  { label: 'Tipo', description: 'Categoría de la automatización: bienvenida, nutrición, re-engagement o post-compra.', align: 'center' },
+  { label: 'Estado', description: 'Indica si la automatización está activa enviando emails o pausada.', align: 'center' },
+  { label: 'Suscriptores', description: 'Cantidad de suscriptores que han ingresado a esta automatización.', align: 'center' },
+  { label: 'Completados', description: 'Suscriptores que recibieron todos los emails de la secuencia.', align: 'center' },
+  { label: 'Open Rate', description: 'Porcentaje de emails abiertos sobre el total de emails entregados en esta automatización.', align: 'center' },
+  { label: 'Click Rate', description: 'Porcentaje de emails con al menos un clic sobre el total de emails entregados.', align: 'center' },
+  { label: 'Completación', description: 'Porcentaje de suscriptores que completaron toda la secuencia vs los que ingresaron.', align: 'center' },
+];
 
 export function MailAutomatizacionesTab({ period }: MailAutomatizacionesTabProps) {
   const { data, isLoading } = useMailAutomations(period);
@@ -186,14 +203,29 @@ function AutomationsTable({ automations }: { automations: EmailAutomation[] }) {
         <table className="w-full text-[11px]">
           <thead className="text-muted-foreground border-b">
             <tr>
-              <th className="py-2 px-2 text-left font-medium">Nombre</th>
-              <th className="py-2 px-2 text-center font-medium">Tipo</th>
-              <th className="py-2 px-2 text-center font-medium">Estado</th>
-              <th className="py-2 px-2 text-center font-medium">Suscriptores</th>
-              <th className="py-2 px-2 text-center font-medium">Completados</th>
-              <th className="py-2 px-2 text-center font-medium">Open Rate</th>
-              <th className="py-2 px-2 text-center font-medium">Click Rate</th>
-              <th className="py-2 px-2 text-center font-medium">Completación</th>
+              {TABLE_COLUMNS.map(col => (
+                <th
+                  key={col.label}
+                  className={cn(
+                    'py-2 px-2 font-medium',
+                    col.align === 'left' ? 'text-left' : 'text-center',
+                  )}
+                >
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex items-center gap-1 cursor-help">
+                          {col.label}
+                          <Info className="h-3 w-3 text-muted-foreground/50" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[220px] text-xs">
+                        {col.description}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>

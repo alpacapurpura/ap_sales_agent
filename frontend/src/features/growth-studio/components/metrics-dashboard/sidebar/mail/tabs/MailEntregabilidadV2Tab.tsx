@@ -127,9 +127,9 @@ export function MailEntregabilidadV2Tab({ period }: MailEntregabilidadV2TabProps
 
   return (
     <div className="space-y-8 max-w-[1200px] mx-auto">
-      {/* Section 1: Health Score */}
+      {/* Section 1: Emails Sent + Health Score */}
       <ChartSection slug="salud-email">
-        <MailHealthScore healthScore={data.healthScore} />
+        <EmailsSentWithHealth data={data} />
       </ChartSection>
 
       {/* Section 2: KPI Cards */}
@@ -161,6 +161,30 @@ export function MailEntregabilidadV2Tab({ period }: MailEntregabilidadV2TabProps
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+function EmailsSentWithHealth({ data }: { data: EmailHealthData }) {
+  return (
+    <div className="flex gap-4 items-stretch">
+      {/* Campaigns Count */}
+      <div className="rounded-lg border bg-card p-4 flex flex-col items-center justify-center min-w-[120px]">
+        <span className="text-[11px] text-muted-foreground uppercase tracking-wider text-center">
+          Envíos
+        </span>
+        <span className="text-3xl font-bold tabular-nums mt-1">
+          {data.campaignsCount}
+        </span>
+        <span className="text-[10px] text-muted-foreground mt-0.5">
+          campañas enviadas
+        </span>
+      </div>
+
+      {/* Health Score */}
+      <div className="flex-1">
+        <MailHealthScore healthScore={data.healthScore} />
+      </div>
+    </div>
+  );
+}
 
 function HealthKpiCards({ data }: { data: EmailHealthData }) {
   return (

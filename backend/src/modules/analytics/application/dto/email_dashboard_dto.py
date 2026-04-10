@@ -237,6 +237,7 @@ class BounceBreakdownDTO(BaseModel):
 class EmailHealthResponseDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     period: str
+    campaigns_count: int = 0
     health_score: EmailHealthScoreDTO
     kpis: list[MetricKpiDTO]
     bounce_breakdown: BounceBreakdownDTO

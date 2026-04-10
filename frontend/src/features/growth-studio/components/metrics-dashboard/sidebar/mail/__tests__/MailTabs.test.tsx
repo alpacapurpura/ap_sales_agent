@@ -224,6 +224,7 @@ const AUDIENCE_DATA: EmailAudienceData = {
 
 const HEALTH_DATA: EmailHealthData = {
   period: '30d',
+  campaignsCount: 12,
   healthScore: HEALTH_SCORE,
   kpis: BASE_KPIS,
   bounceBreakdown: {
@@ -298,6 +299,7 @@ vi.mock('recharts', () => ({
   Legend: () => null,
   ReferenceArea: () => null,
   ReferenceLine: () => null,
+  LabelList: () => null,
 }));
 
 // Mock ChartContainer since it wraps recharts

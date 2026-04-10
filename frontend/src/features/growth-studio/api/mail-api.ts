@@ -363,6 +363,7 @@ function mapEmailHealthResponse(raw: Record<string, unknown>): EmailHealthData {
 
   return {
     period: raw.period as string,
+    campaignsCount: (raw.campaigns_count as number) ?? 0,
     healthScore: mapHealthScore(health),
     kpis: kpis.map(mapKpi),
     bounceBreakdown: mapBounceBreakdown(bounce),

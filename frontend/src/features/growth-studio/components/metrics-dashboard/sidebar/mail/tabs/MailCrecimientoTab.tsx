@@ -6,6 +6,7 @@ import {
   ComposedChart,
   BarChart,
   CartesianGrid,
+  LabelList,
   Line,
   XAxis,
   YAxis,
@@ -192,6 +193,88 @@ function KpiCard({
   );
 }
 
+// #8: Spanish month names for date formatting
+const MONTHS_ES = [
+  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+];
+
+function formatDateEs(isoDate: string): string {
+  const [, month, day] = isoDate.split('-');
+  return `${parseInt(day, 10)} ${MONTHS_ES[parseInt(month, 10) - 1]}`;
+}
+
+function formatDateEsLong(isoDate: string): string {
+  const [, month, day] = isoDate.split('-');
+  const monthNames = [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+  ];
+  return `${parseInt(day, 10)} de ${monthNames[parseInt(month, 10) - 1]}`;
+}
+
+// #1-5: Custom tooltip with Spanish labels, formatted numbers, date header
+interface TooltipEntry {
+  dataKey: string;
+  value: number;
+  color: string;
+  payload?: Record<string, unknown>;
+}
+
+function GrowthTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+
+  const LABELS: Record<string, string> = {
+    new_subscribers: 'Nuevos suscriptores',
+    unsubscribes: 'Bajas',
+    active_subscribers: 'Total activos',
+  };
+
+  const COLORS: Record<string, string> = {
+    new_subscribers: 'rgb(34, 197, 94)',
+    unsubscribes: 'rgb(239, 68, 68)',
+    active_subscribers: 'rgb(59, 130, 246)',
+  };
+
+  const originalDate = payload[0]?.payload?.isoDate as string | undefined;
+  const dateLabel = originalDate ? formatDateEsLong(originalDate) : (label ?? '');
+
+  return (
+    <div className="rounded-lg border bg-card px-3 py-2.5 shadow-lg">
+      {/* #3: Date header */}
+      <p className="mb-1.5 text-xs font-medium capitalize">{dateLabel}</p>
+      <div className="space-y-1">
+        {payload.map(entry => {
+          const absValue = Math.abs(entry.value);
+          // #5: Hide metrics with value 0
+          if (absValue === 0) return null;
+          const key = entry.dataKey;
+          return (
+            <div key={key} className="flex items-center justify-between gap-4 text-xs">
+              {/* #4: Color bullet + black text */}
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="h-2 w-2 shrink-0 rounded-sm"
+                  style={{ backgroundColor: COLORS[key] ?? entry.color }}
+                />
+                <span className="text-muted-foreground">{LABELS[key] ?? key}</span>
+              </div>
+              {/* #2: Formatted number */}
+              <span className="font-medium tabular-nums">
+                {absValue.toLocaleString('es-PE')}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function GrowthChart({ data }: { data: EmailGrowthData }) {
   const newSubsSeries = data.timeSeries.find(
     ts => ts.metricName === 'new_subscribers',
@@ -205,44 +288,38 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
 
   const dateMap = new Map<
     string,
-    { date: string; new_subscribers: number; unsubscribes: number; active_subscribers: number }
+    { date: string; isoDate: string; new_subscribers: number; unsubscribes: number; active_subscribers: number }
   >();
 
-  for (const dp of newSubsSeries?.dataPoints ?? []) {
-    const entry = dateMap.get(dp.date) ?? {
-      date: dp.date,
+  const getEntry = (isoDate: string) =>
+    dateMap.get(isoDate) ?? {
+      date: formatDateEs(isoDate),
+      isoDate,
       new_subscribers: 0,
       unsubscribes: 0,
       active_subscribers: 0,
     };
+
+  for (const dp of newSubsSeries?.dataPoints ?? []) {
+    const entry = getEntry(dp.date);
     entry.new_subscribers = dp.value;
     dateMap.set(dp.date, entry);
   }
   for (const dp of unsubsSeries?.dataPoints ?? []) {
-    const entry = dateMap.get(dp.date) ?? {
-      date: dp.date,
-      new_subscribers: 0,
-      unsubscribes: 0,
-      active_subscribers: 0,
-    };
-    // Negative for visual display
+    const entry = getEntry(dp.date);
     entry.unsubscribes = -Math.abs(dp.value);
     dateMap.set(dp.date, entry);
   }
   for (const dp of activeSeries?.dataPoints ?? []) {
-    const entry = dateMap.get(dp.date) ?? {
-      date: dp.date,
-      new_subscribers: 0,
-      unsubscribes: 0,
-      active_subscribers: 0,
-    };
+    const entry = getEntry(dp.date);
     entry.active_subscribers = dp.value;
     dateMap.set(dp.date, entry);
   }
 
+  // #13: Only days with activity (new_subscribers > 0 or unsubscribes != 0)
   const compositeData = Array.from(dateMap.values())
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map(d => ({ ...d, date: d.date.slice(5) }));
+    .filter(d => d.new_subscribers > 0 || d.unsubscribes < 0)
+    .sort((a, b) => a.isoDate.localeCompare(b.isoDate));
 
   if (compositeData.length === 0) {
     return (
@@ -254,16 +331,47 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
     );
   }
 
+  // Attach active_subscribers from the full dateMap for filtered days
+  for (const d of compositeData) {
+    const full = dateMap.get(d.isoDate);
+    if (full) d.active_subscribers = full.active_subscribers;
+  }
+
+  // #6: Right Y-axis domain — tight range so the line variation is visible
+  const activeValues = compositeData.map(d => d.active_subscribers).filter(v => v > 0);
+  const activeMin = Math.min(...activeValues);
+  const activeMax = Math.max(...activeValues);
+  const activeMargin = Math.max(Math.ceil((activeMax - activeMin) * 0.3), 5);
+  const rightDomain: [number, number] = [
+    Math.max(0, activeMin - activeMargin),
+    activeMax + activeMargin,
+  ];
+
+  // #12: Narrative summary
+  const totalNew = compositeData.reduce((s, d) => s + d.new_subscribers, 0);
+  const totalUnsubs = compositeData.reduce((s, d) => s + Math.abs(d.unsubscribes), 0);
+  const net = totalNew - totalUnsubs;
+  const narrativeClass = net >= 0 ? 'text-emerald-500' : 'text-red-500';
+  const narrativeSign = net >= 0 ? '+' : '';
+
   return (
     <div className="rounded-lg border bg-card p-5 space-y-3">
       <ChartInfoTooltip
         title="Evolución de la Lista"
         description="Barras verdes = nuevos suscriptores, barras rojas = bajas. La línea muestra el total activo."
       />
+      {/* #12: Narrative line */}
+      <p className="text-xs text-muted-foreground">
+        Tu lista creció{' '}
+        <span className={cn('font-semibold', narrativeClass)}>
+          {narrativeSign}{net}
+        </span>
+        {' '}neto: +{totalNew} nuevos, -{totalUnsubs} bajas
+      </p>
       <ChartContainer
         config={{
           new_subscribers: {
-            label: 'Nuevos',
+            label: 'Nuevos suscriptores',
             color: 'hsl(142, 71%, 45%)',
           },
           unsubscribes: {
@@ -271,43 +379,73 @@ function GrowthChart({ data }: { data: EmailGrowthData }) {
             color: 'hsl(0, 84%, 60%)',
           },
           active_subscribers: {
-            label: 'Activos',
+            label: 'Total activos',
             color: 'hsl(217, 91%, 60%)',
           },
         }}
-        className="h-[260px] w-full"
+        className="h-[280px] w-full"
       >
-        <ComposedChart data={compositeData}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-          <XAxis dataKey="date" className="text-xs" />
-          <YAxis yAxisId="left" className="text-xs" />
+        <ComposedChart data={compositeData} barSize={24}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted/40" />
+          {/* #8: Date format "16 mar" */}
+          <XAxis
+            dataKey="date"
+            className="text-xs"
+            tick={{ fontSize: 11 }}
+          />
+          {/* #7: Left Y-axis with absolute values */}
+          <YAxis
+            yAxisId="left"
+            className="text-xs"
+            tick={{ fontSize: 11 }}
+            tickFormatter={(v: number) => `${Math.abs(v)}`}
+          />
+          {/* #6: Right Y-axis with tight domain */}
           <YAxis
             yAxisId="right"
             orientation="right"
             className="text-xs"
+            tick={{ fontSize: 11 }}
+            domain={rightDomain}
+            tickFormatter={(v: number) => v.toLocaleString('es-PE')}
           />
-          <RechartsTooltip />
+          {/* #1-5: Custom tooltip */}
+          <RechartsTooltip content={<GrowthTooltip />} />
+          {/* Green bars UP from 0, red bars DOWN from 0 — no stacking */}
           <Bar
             yAxisId="left"
             dataKey="new_subscribers"
             fill="var(--color-new_subscribers)"
             radius={[3, 3, 0, 0]}
-            stackId="growth"
-          />
+          >
+            <LabelList
+              dataKey="new_subscribers"
+              position="top"
+              className="fill-emerald-400 text-[10px] font-medium"
+              formatter={(v: number) => (v > 0 ? v : '')}
+            />
+          </Bar>
           <Bar
             yAxisId="left"
             dataKey="unsubscribes"
             fill="var(--color-unsubscribes)"
             radius={[0, 0, 3, 3]}
-            stackId="growth"
-          />
+          >
+            <LabelList
+              dataKey="unsubscribes"
+              position="bottom"
+              className="fill-red-400 text-[10px] font-medium"
+              formatter={(v: number) => (v < 0 ? Math.abs(v) : '')}
+            />
+          </Bar>
+          {/* #9: Line without dots */}
           <Line
             yAxisId="right"
             type="monotone"
             dataKey="active_subscribers"
             stroke="var(--color-active_subscribers)"
             strokeWidth={2.5}
-            dot={{ r: 3.5, fill: 'var(--color-active_subscribers)' }}
+            dot={false}
           />
         </ComposedChart>
       </ChartContainer>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, Mail, RefreshCw } from 'lucide-react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,6 +18,7 @@ import { PeriodSelector } from '../shared/PeriodSelector';
 import { MailPanoramaTab } from './tabs/MailPanoramaTab';
 import { MailCampanasTab } from './tabs/MailCampanasTab';
 import { MailAutomatizacionesTab } from './tabs/MailAutomatizacionesTab';
+
 import { MailAudienciaTab } from './tabs/MailAudienciaTab';
 import { MailEntregabilidadV2Tab } from './tabs/MailEntregabilidadV2Tab';
 import { MailCrecimientoTab } from './tabs/MailCrecimientoTab';
@@ -53,8 +55,16 @@ export function MailDashboard({ onClose, initialTab, isRouteBased }: MailDashboa
   const [period, setPeriod] = useState<MetaAdsPeriod>(periodFromUrl);
 
   const { data: health } = useConnectionHealth('email-nurture');
-  const { sync, isSyncing, cooldownMinutes } = useSyncChannel('email-nurture');
+  const { sync, isSyncing, cooldownMinutes, result, error } = useSyncChannel('email-nurture');
   useHashScroll();
+
+  useEffect(() => {
+    if (result) toast.success('Sincronización completada');
+  }, [result]);
+
+  useEffect(() => {
+    if (error) toast.error(error.detail ?? 'Error al sincronizar');
+  }, [error]);
 
   const handlePeriodChange = useCallback((p: MetaAdsPeriod) => {
     setPeriod(p);
