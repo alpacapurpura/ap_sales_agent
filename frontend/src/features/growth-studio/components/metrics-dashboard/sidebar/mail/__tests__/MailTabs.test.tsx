@@ -3,8 +3,8 @@
  * Each tab uses its own hook internally, so we mock the hooks.
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   EmailDashboardData,
   EmailCampaignsData,
@@ -170,7 +170,10 @@ const AUTOMATIONS_DATA: EmailAutomationsData = {
       emailsSent: 450,
       openRate: 42.0,
       clickRate: 8.5,
+      clickToOpenRate: 20.2,
       completionRate: 80.0,
+      unsubscribes: 0,
+      steps: [],
     },
   ],
 };
@@ -432,6 +435,86 @@ describe('MailAutomatizacionesTab', () => {
     mockUseMailAutomations.mockReturnValue({ data: AUTOMATIONS_DATA, isLoading: false });
     render(<MailAutomatizacionesTab period="30d" />);
     expect(screen.getByText('Emails Automatizados')).toBeInTheDocument();
+  });
+});
+
+describe('MailAutomatizacionesTab — redesigned', () => {
+  const REDESIGNED_DATA: EmailAutomationsData = {
+    period: '30d',
+    kpis: [
+      makeKpi({
+        metricName: 'automation_emails_sent',
+        displayName: 'Emails Automatizados',
+        currentValue: 18,
+      }),
+    ],
+    automations: [
+      {
+        automationId: 'a1',
+        name: 'BIENVENIDA',
+        automationType: 'welcome',
+        status: 'active',
+        activeSubscribers: 9,
+        completed: 4,
+        emailsSent: 18,
+        openRate: 100,
+        clickRate: 50,
+        clickToOpenRate: 50,
+        completionRate: 44.4,
+        unsubscribes: 0,
+        steps: [
+          {
+            stepId: 's1',
+            stepNumber: 1,
+            type: 'email',
+            subject: 'Bienvenida hola',
+            fromName: 'Team',
+            emailsSent: 9,
+            uniqueOpens: 9,
+            openRate: 100,
+            uniqueClicks: 4,
+            clickRate: 44.4,
+            unsubscribes: 0,
+            bounces: 0,
+            screenshotUrl: null,
+            previewUrl: null,
+            delayValue: null,
+            delayUnit: null,
+          },
+        ],
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    mockUseMailAutomations.mockReturnValue({
+      data: REDESIGNED_DATA,
+      isLoading: false,
+    });
+  });
+
+  it('renders new table columns: Ingresados, CTOR, Unsubs, Salud', () => {
+    render(<MailAutomatizacionesTab period="30d" />);
+    expect(screen.getByText(/Ingresados/i)).toBeInTheDocument();
+    expect(screen.getByText(/CTOR/i)).toBeInTheDocument();
+    expect(screen.getByText(/Unsubs/i)).toBeInTheDocument();
+    expect(screen.getByText(/Salud/i)).toBeInTheDocument();
+  });
+
+  it('renders automation row with activeSubscribers = 9 (ingresados)', () => {
+    render(<MailAutomatizacionesTab period="30d" />);
+    // Some element should show '9' as the ingresados count
+    const nines = screen.getAllByText('9');
+    expect(nines.length).toBeGreaterThan(0);
+  });
+
+  it('opens accordion when clicking on automation row', async () => {
+    render(<MailAutomatizacionesTab period="30d" />);
+    const row = screen.getByText('BIENVENIDA').closest('tr');
+    expect(row).not.toBeNull();
+    fireEvent.click(row!);
+    // Email subject from the pipeline becomes visible
+    expect(await screen.findByText('Bienvenida hola')).toBeInTheDocument();
   });
 });
 
