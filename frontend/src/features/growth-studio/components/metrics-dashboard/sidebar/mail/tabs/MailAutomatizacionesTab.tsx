@@ -1,74 +1,69 @@
 'use client';
 
-import { Loader2, Bot, TrendingUp, TrendingDown, Info } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Bot, ChevronRight, Loader2 } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { MetricInfoPopover } from '@/components/shared/MetricInfoPopover';
+
 import { useMailAutomations } from '../../../../../hooks/useMailDashboard';
-import { formatMetricValue } from '../../../../../utils/format-metric-value';
-import { ChartSection } from '../../shared/ChartSection';
-import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
-import type { MetaAdsPeriod, MetricKpiData } from '../../../../../types/metrics';
 import type {
+  AutomationStep,
   EmailAutomation,
   EmailAutomationsData,
 } from '../../../../../types/mail-types';
+import type { MetaAdsPeriod } from '../../../../../types/metrics';
+import { computeHealthScore } from '../../../../../utils/automation-health';
+import {
+  AUTOMATION_METRIC_INFO,
+  type MetricInfo,
+} from '../../../../../utils/automation-metric-info';
+import { ChartSection } from '../../shared/ChartSection';
+import { AutomationPipeline } from '../components/AutomationPipeline';
+import { AutomationStepSidebar } from '../components/AutomationStepSidebar';
+import { MetricInfoTooltip } from '../components/MetricInfoTooltip';
 
 interface MailAutomatizacionesTabProps {
   period: MetaAdsPeriod;
 }
 
-// KPI definitions
-const AUTOMATION_KPIS = [
-  {
-    metricName: 'automation_emails_sent',
-    description: 'Total de emails enviados a través de automatizaciones en el periodo.',
+const TYPE_LABELS: Record<string, { label: string; className: string }> = {
+  welcome: { label: 'Bienvenida', className: 'bg-blue-500/10 text-blue-500' },
+  nurture: { label: 'Nutrición', className: 'bg-purple-500/10 text-purple-500' },
+  reengagement: {
+    label: 'Re-engagement',
+    className: 'bg-amber-500/10 text-amber-500',
   },
-  {
-    metricName: 'automation_completion_rate',
-    description:
-      'Porcentaje de suscriptores que completaron la secuencia completa de automatización.',
-    formula: 'Completados / Ingresados x 100',
+  post_compra: {
+    label: 'Post-compra',
+    className: 'bg-emerald-500/10 text-emerald-500',
   },
-  {
-    metricName: 'automation_avg_open_rate',
-    description:
-      'Tasa de apertura promedio de los emails de automatización. Usualmente mayor que campañas.',
-    formula: 'Promedio ponderado de Open Rate de todas las automatizaciones',
+  workflow: {
+    label: 'Workflow',
+    className: 'bg-slate-500/10 text-muted-foreground',
   },
-];
-
-const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
-  active: { bg: 'bg-emerald-500/10', text: 'text-emerald-500' },
-  paused: { bg: 'bg-zinc-500/10', text: 'text-zinc-400' },
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  welcome: 'Bienvenida',
-  nurture: 'Nutrición',
-  reengagement: 'Re-engagement',
-  post_compra: 'Post-compra',
-};
-
-const TABLE_COLUMNS: { label: string; description: string; align: 'left' | 'center' }[] = [
-  { label: 'Nombre', description: 'Nombre de la automatización configurada en tu proveedor de email.', align: 'left' },
-  { label: 'Tipo', description: 'Categoría de la automatización: bienvenida, nutrición, re-engagement o post-compra.', align: 'center' },
-  { label: 'Estado', description: 'Indica si la automatización está activa enviando emails o pausada.', align: 'center' },
-  { label: 'Suscriptores', description: 'Cantidad de suscriptores que han ingresado a esta automatización.', align: 'center' },
-  { label: 'Completados', description: 'Suscriptores que recibieron todos los emails de la secuencia.', align: 'center' },
-  { label: 'Open Rate', description: 'Porcentaje de emails abiertos sobre el total de emails entregados en esta automatización.', align: 'center' },
-  { label: 'Click Rate', description: 'Porcentaje de emails con al menos un clic sobre el total de emails entregados.', align: 'center' },
-  { label: 'Completación', description: 'Porcentaje de suscriptores que completaron toda la secuencia vs los que ingresaron.', align: 'center' },
+const FILTER_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'all', label: 'Todas' },
+  { value: 'welcome', label: 'Bienvenida' },
+  { value: 'nurture', label: 'Nutrición' },
+  { value: 'workflow', label: 'Workflow' },
 ];
 
 export function MailAutomatizacionesTab({ period }: MailAutomatizacionesTabProps) {
   const { data, isLoading } = useMailAutomations(period);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [selectedStep, setSelectedStep] = useState<AutomationStep | null>(null);
+  const [selectedAutomation, setSelectedAutomation] =
+    useState<EmailAutomation | null>(null);
+
+  const filteredAutomations = useMemo(() => {
+    if (!data) return [];
+    if (activeFilter === 'all') return data.automations;
+    return data.automations.filter((a) => a.automationType === activeFilter);
+  }, [data, activeFilter]);
 
   if (isLoading) {
     return (
@@ -94,285 +89,411 @@ export function MailAutomatizacionesTab({ period }: MailAutomatizacionesTabProps
     );
   }
 
+  const handleRowToggle = (automationId: string) => {
+    setExpandedId(expandedId === automationId ? null : automationId);
+  };
+
+  const handleStepClick = (step: AutomationStep, automation: EmailAutomation) => {
+    setSelectedStep(step);
+    setSelectedAutomation(automation);
+  };
+
+  const handleStepSidebarClose = () => {
+    setSelectedStep(null);
+    setSelectedAutomation(null);
+  };
+
+  const previousStepForSelected =
+    selectedStep && selectedAutomation
+      ? findPreviousEmailStep(selectedAutomation.steps, selectedStep.stepId)
+      : null;
+
   return (
-    <div className="space-y-8 max-w-[1200px] mx-auto">
-      {/* Section 1: KPI Cards */}
-      <ChartSection slug="kpis-automatizaciones">
-        <KpiRow data={data} />
-      </ChartSection>
+    <>
+      <div className="space-y-6 max-w-[1280px] mx-auto">
+        {/* KPI row */}
+        <ChartSection slug="kpis-automatizaciones">
+          <KpiRow data={data} />
+        </ChartSection>
 
-      {/* Section 2: Automations Table */}
-      <ChartSection slug="tabla-automatizaciones">
-        <AutomationsTable automations={data.automations} />
-      </ChartSection>
+        {/* Table with accordion */}
+        <ChartSection slug="tabla-automatizaciones">
+          <div className="rounded-lg border bg-card overflow-hidden">
+            {/* Header bar */}
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <h3 className="text-sm font-semibold">Detalle por Automatización</h3>
+              <div className="flex gap-1.5">
+                {FILTER_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt.value}
+                    size="sm"
+                    variant={activeFilter === opt.value ? 'default' : 'outline'}
+                    onClick={() => setActiveFilter(opt.value)}
+                    className="h-7 rounded-full px-3 text-[11px]"
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
 
-      {/* Section 3: Campaigns vs Automations comparison */}
-      <ChartSection slug="comparacion-campanas-auto">
-        <CampaignsVsAutoComparison data={data} />
-      </ChartSection>
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="border-b">
+                  <tr className="text-muted-foreground">
+                    <th className="w-7 py-3 px-3" />
+                    <TableHeader label="Automatización" info={null} />
+                    <TableHeader
+                      label="Ingresados"
+                      info={AUTOMATION_METRIC_INFO.ingresados}
+                      center
+                    />
+                    <TableHeader
+                      label="Completaron"
+                      info={AUTOMATION_METRIC_INFO.completaron}
+                      center
+                    />
+                    <TableHeader
+                      label="Open Rate"
+                      info={AUTOMATION_METRIC_INFO.openRate}
+                      center
+                    />
+                    <TableHeader
+                      label="Click Rate"
+                      info={AUTOMATION_METRIC_INFO.clickRate}
+                      center
+                    />
+                    <TableHeader
+                      label="CTOR"
+                      info={AUTOMATION_METRIC_INFO.ctor}
+                      center
+                    />
+                    <TableHeader
+                      label="Unsubs"
+                      info={AUTOMATION_METRIC_INFO.unsubs}
+                      center
+                    />
+                    <TableHeader
+                      label="Salud"
+                      info={AUTOMATION_METRIC_INFO.salud}
+                      center
+                    />
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAutomations.map((auto) => {
+                    const isExpanded = expandedId === auto.automationId;
+                    const healthScore = computeHealthScore(auto);
+                    const typeInfo =
+                      TYPE_LABELS[auto.automationType] ?? TYPE_LABELS.workflow;
+                    const completionPct = auto.completionRate.toFixed(0);
+
+                    return (
+                      <React.Fragment key={auto.automationId}>
+                        <tr
+                          onClick={() => handleRowToggle(auto.automationId)}
+                          className={cn(
+                            'border-b border-border/40 cursor-pointer transition-colors hover:bg-primary/[0.03]',
+                            isExpanded && 'bg-primary/[0.05]',
+                          )}
+                        >
+                          <td className="py-3 px-3">
+                            <ChevronRight
+                              className={cn(
+                                'h-3.5 w-3.5 text-muted-foreground transition-transform',
+                                isExpanded && 'rotate-90',
+                              )}
+                            />
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="text-xs font-medium max-w-[260px] truncate">
+                              {auto.name}
+                            </div>
+                            <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                              <span
+                                className={cn(
+                                  'rounded-full px-2 py-0.5 font-semibold',
+                                  typeInfo.className,
+                                )}
+                              >
+                                {typeInfo.label}
+                              </span>
+                              <span>·</span>
+                              <span>
+                                {auto.steps.filter((s) => s.type === 'email').length}{' '}
+                                emails
+                              </span>
+                              <span>·</span>
+                              <span
+                                className={cn(
+                                  'inline-flex items-center gap-1',
+                                  auto.status === 'active'
+                                    ? 'text-emerald-500'
+                                    : 'text-muted-foreground',
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    'h-1.5 w-1.5 rounded-full',
+                                    auto.status === 'active'
+                                      ? 'bg-emerald-500'
+                                      : 'bg-muted-foreground',
+                                  )}
+                                />
+                                {auto.status === 'active' ? 'Activa' : 'Pausada'}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 text-center tabular-nums">
+                            {auto.activeSubscribers}
+                          </td>
+                          <td className="py-3 px-3 text-center tabular-nums">
+                            {auto.completed}{' '}
+                            <span className="text-[10px] text-muted-foreground">
+                              ({completionPct}%)
+                            </span>
+                          </td>
+                          <td
+                            className={cn(
+                              'py-3 px-3 text-center font-semibold tabular-nums',
+                              rateClass(auto.openRate, 50, 30),
+                            )}
+                          >
+                            {auto.openRate.toFixed(1)}%
+                          </td>
+                          <td
+                            className={cn(
+                              'py-3 px-3 text-center font-semibold tabular-nums',
+                              rateClass(auto.clickRate, 5, 2),
+                            )}
+                          >
+                            {auto.clickRate.toFixed(1)}%
+                          </td>
+                          <td
+                            className={cn(
+                              'py-3 px-3 text-center tabular-nums',
+                              rateClass(auto.clickToOpenRate, 15, 8),
+                            )}
+                          >
+                            {auto.clickToOpenRate.toFixed(1)}%
+                          </td>
+                          <td
+                            className={cn(
+                              'py-3 px-3 text-center tabular-nums',
+                              auto.unsubscribes === 0
+                                ? 'text-emerald-500'
+                                : auto.unsubscribes <= 3
+                                  ? 'text-amber-500'
+                                  : 'text-red-500',
+                            )}
+                          >
+                            {auto.unsubscribes}
+                          </td>
+                          <td className="py-3 px-3">
+                            <HealthBar score={healthScore} />
+                          </td>
+                        </tr>
+
+                        {isExpanded && (
+                          <tr className="bg-muted/10">
+                            <td colSpan={9} className="px-5 py-5">
+                              <AutomationPipeline
+                                steps={auto.steps}
+                                onStepClick={(step) => handleStepClick(step, auto)}
+                              />
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </ChartSection>
+      </div>
+
+      {/* Sidebar */}
+      <AutomationStepSidebar
+        step={selectedStep}
+        automationName={selectedAutomation?.name ?? ''}
+        totalSteps={
+          selectedAutomation?.steps.filter((s) => s.type === 'email').length ?? 0
+        }
+        previousStep={previousStepForSelected}
+        onClose={handleStepSidebarClose}
+      />
+    </>
+  );
+}
+
+// ─── Sub-components ─────────────────────────────────────────────────
+
+function TableHeader({
+  label,
+  info,
+  center = false,
+}: {
+  label: string;
+  info: MetricInfo | null;
+  center?: boolean;
+}) {
+  return (
+    <th
+      className={cn(
+        'py-3 px-3 font-medium text-[10px] uppercase tracking-wide whitespace-nowrap',
+        center ? 'text-center' : 'text-left',
+      )}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {info && <MetricInfoTooltip info={info} side="bottom" />}
+      </span>
+    </th>
+  );
+}
+
+function HealthBar({ score }: { score: number }) {
+  const color =
+    score >= 70
+      ? 'bg-emerald-500'
+      : score >= 40
+        ? 'bg-amber-500'
+        : score > 0
+          ? 'bg-red-500'
+          : 'bg-muted-foreground';
+
+  const textColor =
+    score >= 70
+      ? 'text-emerald-500'
+      : score >= 40
+        ? 'text-amber-500'
+        : score > 0
+          ? 'text-red-500'
+          : 'text-muted-foreground';
+
+  return (
+    <div className="flex items-center gap-2 justify-center">
+      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-muted/30">
+        <div
+          className={cn('h-full rounded-full transition-all', color)}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+      <span className={cn('text-xs font-bold tabular-nums', textColor)}>
+        {score || '—'}
+      </span>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
 function KpiRow({ data }: { data: EmailAutomationsData }) {
-  return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {AUTOMATION_KPIS.map(config => {
-        const kpi = data.kpis.find(k => k.metricName === config.metricName);
-        if (!kpi) return null;
+  const totalIngresados = data.automations.reduce(
+    (sum, a) => sum + a.activeSubscribers,
+    0,
+  );
+  const totalSent = data.automations.reduce((sum, a) => sum + a.emailsSent, 0);
+  const avgOpen =
+    totalSent > 0
+      ? data.automations.reduce((sum, a) => sum + a.openRate * a.emailsSent, 0) /
+        totalSent
+      : 0;
+  const avgClick =
+    totalSent > 0
+      ? data.automations.reduce((sum, a) => sum + a.clickRate * a.emailsSent, 0) /
+        totalSent
+      : 0;
+  const avgHealth =
+    data.automations.length > 0
+      ? data.automations.reduce((sum, a) => sum + computeHealthScore(a), 0) /
+        data.automations.length
+      : 0;
 
-        return (
-          <KpiCard key={kpi.metricName} kpi={kpi} description={config.description} formula={config.formula} />
-        );
-      })}
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <KpiCard
+        label="Ingresados Totales"
+        value={String(totalIngresados)}
+        info={AUTOMATION_METRIC_INFO.ingresados}
+      />
+      <KpiCard
+        label="Open Rate Promedio"
+        value={`${avgOpen.toFixed(1)}%`}
+        info={AUTOMATION_METRIC_INFO.openRate}
+        valueColor={rateClass(avgOpen, 50, 30)}
+      />
+      <KpiCard
+        label="Click Rate Promedio"
+        value={`${avgClick.toFixed(1)}%`}
+        info={AUTOMATION_METRIC_INFO.clickRate}
+        valueColor={rateClass(avgClick, 5, 2)}
+      />
+      <KpiCard
+        label="Salud General"
+        value={`${Math.round(avgHealth)}`}
+        suffix="/100"
+        info={AUTOMATION_METRIC_INFO.salud}
+        valueColor={
+          avgHealth >= 70
+            ? 'text-emerald-500'
+            : avgHealth >= 40
+              ? 'text-amber-500'
+              : 'text-red-500'
+        }
+      />
     </div>
   );
 }
 
 function KpiCard({
-  kpi,
-  description,
-  formula,
+  label,
+  value,
+  suffix,
+  info,
+  valueColor,
 }: {
-  kpi: MetricKpiData;
-  description: string;
-  formula?: string;
+  label: string;
+  value: string;
+  suffix?: string;
+  info: MetricInfo;
+  valueColor?: string;
 }) {
-  const formattedValue = formatMetricValue(kpi.currentValue, kpi.unit, {
-    currency: kpi.currency,
-    percentDecimals: 1,
-  });
-
-  const isPositive =
-    kpi.deltaPct != null &&
-    (kpi.higherIsBetter ? kpi.deltaPct >= 0 : kpi.deltaPct <= 0);
-
   return (
-    <div className="rounded-lg border bg-card p-3.5 space-y-1">
-      <MetricInfoPopover
-        displayName={kpi.displayName}
-        description={description}
-        formula={formula}
-        benchmark={
-          kpi.benchmark ? { value: kpi.benchmark.median } : undefined
-        }
-      >
-        <span className="text-[11px] text-muted-foreground">
-          {kpi.displayName}
-        </span>
-      </MetricInfoPopover>
-
-      <p className="text-xl font-semibold tabular-nums">{formattedValue}</p>
-
-      {kpi.deltaPct != null && (
-        <div className="flex items-center gap-1">
-          <span
-            className={cn(
-              'inline-flex items-center gap-0.5 text-[11px] font-medium',
-              isPositive ? 'text-emerald-600' : 'text-red-600',
-            )}
-          >
-            {isPositive ? (
-              <TrendingUp className="h-3 w-3" />
-            ) : (
-              <TrendingDown className="h-3 w-3" />
-            )}
-            {kpi.unit === 'percentage'
-              ? `${Math.abs(kpi.deltaAbsolute ?? 0).toFixed(1)}pp`
-              : `${Math.abs(kpi.deltaPct).toFixed(0)}%`}
-            <span className="text-muted-foreground font-normal"> vs anterior</span>
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function AutomationsTable({ automations }: { automations: EmailAutomation[] }) {
-  return (
-    <div className="rounded-lg border bg-card p-5 space-y-3">
-      <ChartInfoTooltip
-        title="Automatizaciones Activas"
-        description="Listado de secuencias automatizadas con métricas de rendimiento individual."
-      />
-      <div className="overflow-x-auto">
-        <table className="w-full text-[11px]">
-          <thead className="text-muted-foreground border-b">
-            <tr>
-              {TABLE_COLUMNS.map(col => (
-                <th
-                  key={col.label}
-                  className={cn(
-                    'py-2 px-2 font-medium',
-                    col.align === 'left' ? 'text-left' : 'text-center',
-                  )}
-                >
-                  <TooltipProvider delayDuration={200}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="inline-flex items-center gap-1 cursor-help">
-                          {col.label}
-                          <Info className="h-3 w-3 text-muted-foreground/50" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-[220px] text-xs">
-                        {col.description}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {automations.map(auto => {
-              const statusStyle = STATUS_STYLES[auto.status] ?? STATUS_STYLES.paused;
-              const typeLabel = TYPE_LABELS[auto.automationType] ?? auto.automationType;
-
-              return (
-                <tr
-                  key={auto.automationId}
-                  className="border-b border-border/20 hover:bg-muted/20 transition-colors"
-                >
-                  <td className="py-2.5 px-2 font-medium text-xs max-w-[200px] truncate">
-                    {auto.name}
-                  </td>
-                  <td className="py-2.5 px-2 text-center">
-                    <span className="inline-block rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {typeLabel}
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-2 text-center">
-                    <span
-                      className={cn(
-                        'inline-block rounded-full px-2 py-0.5 text-[10px] font-medium',
-                        statusStyle.bg,
-                        statusStyle.text,
-                      )}
-                    >
-                      {auto.status === 'active' ? 'Activa' : 'Pausada'}
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-2 text-center tabular-nums">
-                    {auto.activeSubscribers.toLocaleString('en-US')}
-                  </td>
-                  <td className="py-2.5 px-2 text-center tabular-nums">
-                    {auto.completed.toLocaleString('en-US')}
-                  </td>
-                  <td
-                    className={cn(
-                      'py-2.5 px-2 text-center font-semibold tabular-nums',
-                      auto.openRate > 21.5 ? 'text-emerald-600' : 'text-foreground',
-                    )}
-                  >
-                    {auto.openRate.toFixed(1)}%
-                  </td>
-                  <td
-                    className={cn(
-                      'py-2.5 px-2 text-center tabular-nums',
-                      auto.clickRate > 2.3 && 'text-emerald-600',
-                    )}
-                  >
-                    {auto.clickRate.toFixed(1)}%
-                  </td>
-                  <td
-                    className={cn(
-                      'py-2.5 px-2 text-center font-semibold tabular-nums',
-                      auto.completionRate > 50
-                        ? 'text-emerald-600'
-                        : auto.completionRate < 20
-                          ? 'text-red-500'
-                          : 'text-amber-600',
-                    )}
-                  >
-                    {auto.completionRate.toFixed(1)}%
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+    <div className="rounded-lg border bg-card px-4 py-3">
+      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+        {label}
+        <MetricInfoTooltip info={info} iconSize="xs" />
       </div>
+      <p className={cn('mt-1 text-xl font-bold tabular-nums', valueColor)}>
+        {value}
+        {suffix && (
+          <span className="text-sm font-normal text-muted-foreground">
+            {suffix}
+          </span>
+        )}
+      </p>
     </div>
   );
 }
 
-function CampaignsVsAutoComparison({ data }: { data: EmailAutomationsData }) {
-  // Compute aggregate automation metrics
-  const activeAutomations = data.automations.filter(a => a.status === 'active');
-  if (activeAutomations.length === 0) return null;
+// ─── Helpers ────────────────────────────────────────────────────────
 
-  const totalSent = activeAutomations.reduce((sum, a) => sum + a.emailsSent, 0);
-  const avgOpenRate =
-    totalSent > 0
-      ? activeAutomations.reduce((sum, a) => sum + a.openRate * a.emailsSent, 0) / totalSent
-      : 0;
-  const avgClickRate =
-    totalSent > 0
-      ? activeAutomations.reduce((sum, a) => sum + a.clickRate * a.emailsSent, 0) / totalSent
-      : 0;
+function rateClass(value: number, goodThreshold: number, midThreshold: number) {
+  if (value >= goodThreshold) return 'text-emerald-500';
+  if (value >= midThreshold) return 'text-amber-500';
+  return 'text-red-500';
+}
 
-  // We only show this section if we have meaningful data
-  if (totalSent === 0) return null;
-
-  const rows = [
-    {
-      label: 'Open Rate',
-      automations: `${avgOpenRate.toFixed(1)}%`,
-    },
-    {
-      label: 'Click Rate',
-      automations: `${avgClickRate.toFixed(1)}%`,
-    },
-    {
-      label: 'Emails Enviados',
-      automations: totalSent.toLocaleString('en-US'),
-    },
-    {
-      label: 'Automatizaciones Activas',
-      automations: activeAutomations.length.toString(),
-    },
-  ];
-
-  return (
-    <div className="rounded-lg border bg-card p-5 space-y-3">
-      <ChartInfoTooltip
-        title="Resumen de Automatizaciones"
-        description="Métricas agregadas de todas las automatizaciones activas."
-      />
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-[11px] text-muted-foreground border-b">
-            <th className="text-left py-2 font-medium">Métrica</th>
-            <th className="text-center py-2 font-medium">Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(row => (
-            <tr key={row.label} className="border-b border-border/30">
-              <td className="py-2.5 text-xs text-muted-foreground">{row.label}</td>
-              <td className="py-2.5 text-center font-semibold text-xs">
-                {row.automations}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Insight */}
-      {avgOpenRate > 21.5 && (
-        <div className="rounded-md border-l-[3px] border-emerald-500 bg-muted/30 px-3 py-2">
-          <p className="text-xs text-muted-foreground">
-            <span className="font-semibold text-emerald-600">Insight:</span>{' '}
-            Las automatizaciones tienen +{(avgOpenRate - 21.5).toFixed(0)}% más engagement
-            que el promedio de la industria para campañas manuales.
-          </p>
-        </div>
-      )}
-    </div>
-  );
+function findPreviousEmailStep(
+  steps: AutomationStep[],
+  currentStepId: string,
+): AutomationStep | null {
+  const idx = steps.findIndex((s) => s.stepId === currentStepId);
+  if (idx <= 0) return null;
+  for (let i = idx - 1; i >= 0; i--) {
+    if (steps[i].type === 'email') return steps[i];
+  }
+  return null;
 }

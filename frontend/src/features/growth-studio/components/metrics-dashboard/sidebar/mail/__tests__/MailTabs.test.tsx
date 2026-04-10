@@ -434,7 +434,8 @@ describe('MailAutomatizacionesTab', () => {
   it('renders KPI cards for automations', () => {
     mockUseMailAutomations.mockReturnValue({ data: AUTOMATIONS_DATA, isLoading: false });
     render(<MailAutomatizacionesTab period="30d" />);
-    expect(screen.getByText('Emails Automatizados')).toBeInTheDocument();
+    expect(screen.getByText('Ingresados Totales')).toBeInTheDocument();
+    expect(screen.getByText('Salud General')).toBeInTheDocument();
   });
 });
 
@@ -495,10 +496,11 @@ describe('MailAutomatizacionesTab — redesigned', () => {
 
   it('renders new table columns: Ingresados, CTOR, Unsubs, Salud', () => {
     render(<MailAutomatizacionesTab period="30d" />);
-    expect(screen.getByText(/Ingresados/i)).toBeInTheDocument();
+    // "Ingresados" also appears in KPI row label, allow multiple matches
+    expect(screen.getAllByText(/Ingresados/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/CTOR/i)).toBeInTheDocument();
     expect(screen.getByText(/Unsubs/i)).toBeInTheDocument();
-    expect(screen.getByText(/Salud/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Salud/i).length).toBeGreaterThan(0);
   });
 
   it('renders automation row with activeSubscribers = 9 (ingresados)', () => {
