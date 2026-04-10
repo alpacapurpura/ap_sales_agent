@@ -78,7 +78,198 @@ MAILERLITE_METRIC_MAP: dict[str, tuple] = {
     "unsubscribes_count": ("unsubscribes", "count"),
     "spam_count": ("spam_reports", "count"),
     "forwards_count": ("forwards", "count"),
+    "opens_count": ("opens_count", "count"),
+    "clicks_count": ("clicks_count", "count"),
 }
+
+# Campaign type classification keywords (Spanish + English)
+_CAMPAIGN_TYPE_KEYWORDS: dict[str, list[str]] = {
+    "newsletter": [
+        "newsletter",
+        "semanal",
+        "quincenal",
+        "mensual",
+        "edición",
+        "digest",
+        "novedades",
+    ],
+    "lanzamiento": [
+        "lanzamiento",
+        "launch",
+        "nuevo",
+        "exclusivo",
+        "estreno",
+        "preventa",
+        "acceso",
+    ],
+    "promocion": [
+        "promo",
+        "descuento",
+        "oferta",
+        "%",
+        "black friday",
+        "cyber",
+        "sale",
+        "gratis",
+        "free",
+    ],
+    "reengagement": [
+        "extrañamos",
+        "miss you",
+        "vuelve",
+        "reactivar",
+        "inactivo",
+        "última oportunidad",
+    ],
+}
+
+
+_AUTOMATION_TYPE_KEYWORDS: dict[str, list[str]] = {
+    "welcome": ["bienvenida", "welcome", "onboarding"],
+    "nurture": ["nutrición", "nutricion", "nurtur", "secuencia", "drip"],
+    "reengagement": [
+        "re-engagement",
+        "reengagement",
+        "reactivación",
+        "reactivacion",
+        "win-back",
+    ],
+    "post_compra": [
+        "post-compra",
+        "post compra",
+        "post_compra",
+        "thank you",
+        "gracias por tu compra",
+    ],
+}
+
+
+def _parse_rate(raw: dict[str, float | str] | float | int | None) -> float:
+    """Normalize a MailerLite rate value to a 0-100 percentage.
+
+    MailerLite returns one of:
+      - dict with 'float' key: {"float": 0.625, "string": "62.5%"}
+      - bare float / int: 0.625
+      - None or missing
+
+    Returns 0.0 on any unexpected shape (strings, nested dicts without 'float',
+    malformed values) rather than crashing the ETL.
+    """
+    if raw is None:
+        return 0.0
+    if isinstance(raw, dict):
+        try:
+            return float(raw.get("float", 0.0)) * 100
+        except (TypeError, ValueError):
+            return 0.0
+    try:
+        return float(raw) * 100
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _extract_step_data(steps: list[dict]) -> list[dict]:
+    """Extract per-step data from MailerLite automation steps array.
+
+    Returns list of step dicts with normalized fields for storage in extra.
+    Email steps include full stats (subject, opens, clicks, etc.).
+    Delay steps include value+unit.
+    Other step types get the same base shape with zero/None values.
+    """
+    result = []
+    for idx, step in enumerate(steps):
+        step_type = step.get("type", "email")
+        base = {
+            "step_id": str(step.get("id", f"step-{idx}")),
+            "step_number": idx + 1,
+            "type": step_type,
+        }
+        if step_type == "email":
+            email_obj = step.get("email", {}) or {}
+            stats = email_obj.get("stats", {}) or {}
+            base.update(
+                {
+                    "subject": step.get("subject", "") or "",
+                    "from_name": step.get("from_name", "") or "",
+                    "emails_sent": int(stats.get("sent", 0) or 0),
+                    "unique_opens": int(stats.get("unique_opens_count", 0) or 0),
+                    "open_rate": _parse_rate(stats.get("open_rate", 0)),
+                    "unique_clicks": int(stats.get("unique_clicks_count", 0) or 0),
+                    "click_rate": _parse_rate(stats.get("click_rate", 0)),
+                    "unsubscribes": int(stats.get("unsubscribes_count", 0) or 0),
+                    "bounces": int(stats.get("hard_bounces_count", 0) or 0)
+                    + int(stats.get("soft_bounces_count", 0) or 0),
+                    "screenshot_url": email_obj.get("screenshot_url"),
+                    "preview_url": email_obj.get("preview_url"),
+                    "delay_value": None,
+                    "delay_unit": None,
+                }
+            )
+        elif step_type == "delay":
+            base.update(
+                {
+                    "subject": None,
+                    "from_name": None,
+                    "emails_sent": 0,
+                    "unique_opens": 0,
+                    "open_rate": 0.0,
+                    "unique_clicks": 0,
+                    "click_rate": 0.0,
+                    "unsubscribes": 0,
+                    "bounces": 0,
+                    "screenshot_url": None,
+                    "preview_url": None,
+                    "delay_value": int(step.get("value", 0) or 0),
+                    "delay_unit": step.get("unit"),
+                }
+            )
+        else:
+            base.update(
+                {
+                    "subject": None,
+                    "from_name": None,
+                    "emails_sent": 0,
+                    "unique_opens": 0,
+                    "open_rate": 0.0,
+                    "unique_clicks": 0,
+                    "click_rate": 0.0,
+                    "unsubscribes": 0,
+                    "bounces": 0,
+                    "screenshot_url": None,
+                    "preview_url": None,
+                    "delay_value": None,
+                    "delay_unit": None,
+                }
+            )
+        result.append(base)
+    return result
+
+
+def classify_automation_type(name: str) -> str:
+    """Classify an automation into a type based on keywords in its name.
+
+    Returns one of: welcome, nurture, reengagement, post_compra, workflow.
+    Falls back to 'workflow' when no keyword matches.
+    """
+    text = name.lower()
+    for auto_type, keywords in _AUTOMATION_TYPE_KEYWORDS.items():
+        if any(kw in text for kw in keywords):
+            return auto_type
+    return "workflow"
+
+
+def classify_campaign_type(name: str, subject: str) -> str:
+    """Classify a campaign into a type based on keywords in name and subject.
+
+    Returns one of: newsletter, lanzamiento, promocion, reengagement, contenido.
+    Falls back to 'contenido' when no keyword matches.
+    """
+    text = f"{name} {subject}".lower()
+    for campaign_type, keywords in _CAMPAIGN_TYPE_KEYWORDS.items():
+        if any(kw in text for kw in keywords):
+            return campaign_type
+    return "contenido"
+
 
 # Rate-limit budget: 100 requests/min of 120 allowed  →  0.6s between paginated calls
 _RATE_LIMIT_SLEEP = 0.6
@@ -169,6 +360,33 @@ class MailerLiteProvider(BaseMetricsProvider):
         return {"requests_per_minute": 100, "burst_size": 20}
 
     # ------------------------------------------------------------------
+    # Optimized daily extraction (overrides base day-by-day loop)
+    # ------------------------------------------------------------------
+
+    async def extract_metrics_daily(
+        self,
+        tenant_id: UUID,
+        credentials: dict,
+        start_date: date,
+        end_date: date,
+        stage: str = "nurture",
+    ) -> ExtractionResult:
+        """Optimized: single batch call for the full date range.
+
+        extract_metrics() already fetches all campaigns/subscribers in the
+        range and groups by date internally. The base class default would
+        call it once per day (N API calls × N days). This override calls
+        it once with the full range.
+        """
+        return await self.extract_metrics(
+            tenant_id=tenant_id,
+            credentials=credentials,
+            start_date=start_date,
+            end_date=end_date,
+            stage=stage,
+        )
+
+    # ------------------------------------------------------------------
     # Main entry point
     # ------------------------------------------------------------------
 
@@ -229,6 +447,22 @@ class MailerLiteProvider(BaseMetricsProvider):
                 metrics.extend(m)
                 if fail:
                     failures.append(fail)
+
+                # Nurture also extracts automations into the same slug
+                if stage == "nurture":
+                    auto_m, auto_fail = await self._safe_extract(
+                        self._extract_automations,
+                        client,
+                        headers,
+                        credentials,
+                        start_date,
+                        end_date,
+                        slug,
+                        extractor_name="mailerlite_automations",
+                    )
+                    metrics.extend(auto_m)
+                    if auto_fail:
+                        failures.append(auto_fail)
             elif stage in AUTOMATION_STAGES:
                 m, fail = await self._safe_extract(
                     self._extract_automations,
@@ -314,51 +548,74 @@ class MailerLiteProvider(BaseMetricsProvider):
                 )
             )
 
-        # 2. Active subscribers (total)
+        # 2. Active subscribers (current total)
+        #    With limit=0, MailerLite returns {"total": N} at root (no "meta" wrapper)
         subs_url = f"{BASE_URL}/subscribers?filter[status]=active&limit=0"
         subs_resp = await _api_get(client, subs_url, headers)
-        subs_meta = subs_resp.json().get("meta", {})
-        active_total = subs_meta.get("total", 0)
-        metrics.append(
-            ExtractedMetric(
-                provider="mailerlite",
-                channel_slug=slug,
-                metric_name="active_subscribers",
-                value=float(active_total),
-                unit="count",
-                date=metric_date,
-            )
-        )
+        subs_body = subs_resp.json()
+        active_total = subs_body.get("total", 0)
 
-        # 3. New subscribers in date range (paginated)
-        new_subs = await self._count_new_subscribers(
+        # 3. New subscribers in date range (paginated, grouped by day)
+        daily_new_subs = await self._count_new_subscribers_daily(
             client,
             headers,
             start_date,
             end_date,
         )
-        metrics.append(
-            ExtractedMetric(
-                provider="mailerlite",
-                channel_slug=slug,
-                metric_name="new_subscribers",
-                value=float(new_subs),
-                unit="count",
-                date=metric_date,
+        for day, count in sorted(daily_new_subs.items()):
+            metrics.append(
+                ExtractedMetric(
+                    provider="mailerlite",
+                    channel_slug=slug,
+                    metric_name="new_subscribers",
+                    value=float(count),
+                    unit="count",
+                    date=day,
+                )
             )
-        )
+
+        # 4. Reconstruct daily active_subscribers curve backwards from today's total.
+        #    MailerLite only gives the current snapshot, so we estimate:
+        #    active(day) = active(today) - new_subs_after(day)
+        #    Emit for EVERY day in the range so the chart line is continuous.
+        from datetime import timedelta as _td
+
+        all_days = [
+            start_date + _td(days=i) for i in range((end_date - start_date).days + 1)
+        ]
+
+        # Cumulative new subs after each day (sum of new_subs from day+1 to end)
+        cumulative_after = 0
+        daily_active: dict[date, float] = {}
+        for day in reversed(all_days):
+            daily_active[day] = max(0, active_total - cumulative_after)
+            cumulative_after += daily_new_subs.get(day, 0)
+
+        for day in all_days:
+            metrics.append(
+                ExtractedMetric(
+                    provider="mailerlite",
+                    channel_slug=slug,
+                    metric_name="active_subscribers",
+                    value=daily_active[day],
+                    unit="count",
+                    date=day,
+                )
+            )
 
         return metrics
 
-    async def _count_new_subscribers(
+    async def _count_new_subscribers_daily(
         self,
         client: httpx.AsyncClient,
         headers: dict,
         start_date: date,
         end_date: date,
-    ) -> int:
-        """Paginate through subscribers and count those subscribed within range."""
-        count = 0
+    ) -> dict[date, int]:
+        """Paginate through subscribers and count per day within range."""
+        from collections import defaultdict
+
+        daily: dict[date, int] = defaultdict(int)
         cursor: str | None = None
         page_limit = 100
 
@@ -381,23 +638,21 @@ class MailerLiteProvider(BaseMetricsProvider):
                     continue
                 sub_date = subscribed_dt.date()
                 if sub_date < start_date:
-                    # Sorted desc — no more subscribers in range
                     stop_pagination = True
                     break
                 if start_date <= sub_date <= end_date:
-                    count += 1
+                    daily[sub_date] += 1
 
             if stop_pagination:
                 break
 
-            # Next page cursor
             next_cursor = body.get("meta", {}).get("next_cursor")
             if not next_cursor or next_cursor == cursor:
                 break
             cursor = next_cursor
             await asyncio.sleep(_RATE_LIMIT_SLEEP)
 
-        return count
+        return dict(daily)
 
     # ------------------------------------------------------------------
     # CAMPAIGN-BASED stages (nurture, opportunity, expansion, etc.)
@@ -471,13 +726,23 @@ class MailerLiteProvider(BaseMetricsProvider):
             )
             return []
 
-        # 4. Aggregate stats
-        metrics = self._aggregate_campaign_metrics(
-            matched_campaigns,
-            slug,
-            end_date,
-            known_groups_set,
-        )
+        # 4. Group campaigns by day and aggregate per day
+        from collections import defaultdict
+
+        daily_campaigns: dict[date, list[dict]] = defaultdict(list)
+        for campaign in matched_campaigns:
+            campaign_date = self._get_campaign_date(campaign) or end_date
+            daily_campaigns[campaign_date].append(campaign)
+
+        metrics: list[ExtractedMetric] = []
+        for day, day_campaigns in sorted(daily_campaigns.items()):
+            day_metrics = self._aggregate_campaign_metrics(
+                day_campaigns,
+                slug,
+                day,
+                known_groups_set,
+            )
+            metrics.extend(day_metrics)
 
         return metrics
 
@@ -488,40 +753,68 @@ class MailerLiteProvider(BaseMetricsProvider):
         start_date: date,
         end_date: date,
     ) -> list[dict]:
-        """Fetch sent campaigns within the date range, paginated."""
+        """Fetch sent campaigns within the date range, paginated.
+
+        Uses fallback date chain: finished_at -> sent_at -> created_at
+        because finished_at can be null for some campaign types.
+        Does NOT rely on server-side sort (not documented in MailerLite API).
+        """
         campaigns: list[dict] = []
         page = 1
+        total_api_count = 0
 
         while True:
-            url = (
-                f"{BASE_URL}/campaigns"
-                f"?filter[status]=sent&limit=50&sort=-finished_at&page={page}"
-            )
+            url = f"{BASE_URL}/campaigns?filter[status]=sent&limit=50&page={page}"
             resp = await _api_get(client, url, headers)
-            data = resp.json().get("data", [])
+            body = resp.json()
+            data = body.get("data", [])
 
             if not data:
                 break
 
-            stop = False
+            total_api_count += len(data)
+
             for campaign in data:
-                finished_dt = _parse_iso_date(campaign.get("finished_at"))
-                if finished_dt is None:
+                campaign_date = self._get_campaign_date(campaign)
+                if campaign_date is None:
+                    logger.warning(
+                        "mailerlite_campaign_no_date",
+                        campaign_id=campaign.get("id"),
+                        name=campaign.get("name", ""),
+                    )
                     continue
-                finished_date = finished_dt.date()
-                if finished_date < start_date:
-                    stop = True
-                    break
-                if finished_date <= end_date:
+                if start_date <= campaign_date <= end_date:
                     campaigns.append(campaign)
 
-            if stop:
+            # Check if there are more pages
+            total_from_meta = body.get("meta", {}).get("total", 0)
+            if page * 50 >= total_from_meta:
                 break
 
             page += 1
             await asyncio.sleep(_RATE_LIMIT_SLEEP)
 
+        logger.info(
+            "mailerlite_campaigns_fetched",
+            total_from_api=total_api_count,
+            matched_date_range=len(campaigns),
+            start_date=str(start_date),
+            end_date=str(end_date),
+        )
+
         return campaigns
+
+    @staticmethod
+    def _get_campaign_date(campaign: dict) -> date | None:
+        """Extract the best available date from a campaign.
+
+        Fallback chain: finished_at -> sent_at -> started_at -> created_at.
+        """
+        for field in ("finished_at", "sent_at", "started_at", "created_at"):
+            dt = _parse_iso_date(campaign.get(field))
+            if dt is not None:
+                return dt.date()
+        return None
 
     def _classify_campaign_stage(
         self,
@@ -561,12 +854,8 @@ class MailerLiteProvider(BaseMetricsProvider):
             if raw is None:
                 continue
             if isinstance(raw, dict):
-                logger.warning(
-                    "mailerlite_unexpected_stat_type",
-                    field=api_field,
-                    type_name=type(raw).__name__,
-                )
-                continue
+                # MailerLite returns rates as {"float": 0.31, "string": "31.35%"}
+                raw = raw.get("float", 0.0)
             value = float(raw)
             # MailerLite percentages come as 0.0-1.0 — convert to 0-100
             if unit == "percentage":
@@ -586,6 +875,8 @@ class MailerLiteProvider(BaseMetricsProvider):
         rate_sums: dict[str, float] = {}
         campaign_count = len(campaigns)
 
+        # Build per-campaign metadata for the Campanas tab
+        campaigns_metadata: list[dict[str, str | None]] = []
         for campaign in campaigns:
             stats = campaign.get("stats", campaign.get("campaign_stats", {}))
             normalized = self._normalize_campaign_stats(stats)
@@ -596,7 +887,54 @@ class MailerLiteProvider(BaseMetricsProvider):
                 else:
                     totals[name] = totals.get(name, 0.0) + value
 
+            # Extract campaign metadata
+            campaign_name = campaign.get("name", "")
+            emails_list = campaign.get("emails") or [{}]
+            first_email = emails_list[0] if emails_list else {}
+            campaign_subject = first_email.get("subject", "")
+            screenshot_url = first_email.get("screenshot_url")
+            preview_url = first_email.get("preview_url")
+            campaign_type = classify_campaign_type(campaign_name, campaign_subject)
+            campaigns_metadata.append(
+                {
+                    "campaign_name": campaign_name,
+                    "campaign_subject": campaign_subject,
+                    "campaign_type": campaign_type,
+                    "screenshot_url": screenshot_url,
+                    "preview_url": preview_url,
+                }
+            )
+
         metrics: list[ExtractedMetric] = []
+
+        # --- Per-campaign rows (for the Campañas tab) ---
+        for campaign, meta in zip(campaigns, campaigns_metadata, strict=True):
+            cid = str(campaign.get("id", ""))
+            if not cid:
+                continue
+            stats = campaign.get("stats", campaign.get("campaign_stats", {}))
+            normalized = self._normalize_campaign_stats(stats)
+            for name, (value, unit) in normalized.items():
+                metrics.append(
+                    ExtractedMetric(
+                        provider="mailerlite",
+                        channel_slug=slug,
+                        metric_name=name,
+                        value=value,
+                        unit=unit,
+                        date=metric_date,
+                        campaign_id=cid,
+                        extra={
+                            "campaign_name": meta["campaign_name"],
+                            "campaign_subject": meta["campaign_subject"],
+                            "campaign_type": meta["campaign_type"],
+                            "screenshot_url": meta["screenshot_url"],
+                            "preview_url": meta["preview_url"],
+                        },
+                    )
+                )
+
+        # --- Daily aggregate rows (for trend charts) ---
 
         # Emit summed count metrics
         for name, value in totals.items():
@@ -669,6 +1007,11 @@ class MailerLiteProvider(BaseMetricsProvider):
                 )
             )
 
+        # Attach campaign metadata to all metrics for the Campanas tab
+        if metrics and campaigns_metadata:
+            for metric in metrics:
+                metric.extra["campaigns"] = campaigns_metadata
+
         # Attach updated config info for traceability (new group auto-mapping)
         if metrics and known_groups_set:
             metrics[0].extra["updated_known_groups"] = sorted(known_groups_set)
@@ -676,7 +1019,7 @@ class MailerLiteProvider(BaseMetricsProvider):
         return metrics
 
     # ------------------------------------------------------------------
-    # AUTOMATION-BASED stages (delivery, adoption)
+    # AUTOMATION extraction (per-automation detail rows)
     # ------------------------------------------------------------------
 
     async def _extract_automations(
@@ -688,7 +1031,12 @@ class MailerLiteProvider(BaseMetricsProvider):
         end_date: date,
         slug: str,
     ) -> list[ExtractedMetric]:
-        # 1. Fetch enabled automations
+        """Extract per-automation metric rows from Mailerlite.
+
+        Each automation gets multiple ExtractedMetric rows with
+        campaign_id = automation_id and metadata in extra (source=automation).
+        Stats come directly from GET /automations (no per-automation API calls).
+        """
         url = f"{BASE_URL}/automations?filter[enabled]=true&limit=100"
         resp = await _api_get(client, url, headers)
         automations = resp.json().get("data", [])
@@ -698,64 +1046,75 @@ class MailerLiteProvider(BaseMetricsProvider):
             logger.info("mailerlite_no_automations", slug=slug)
             return []
 
-        total_triggered = 0
-        total_completed = 0
-        total_sent = 0
-        rate_open_sum = 0.0
-        rate_click_sum = 0.0
-        auto_count = 0
-
-        for auto in automations:
-            auto_id = auto.get("id")
-            if not auto_id:
-                continue
-
-            # 2. Fetch automation activity/stats
-            activity_url = f"{BASE_URL}/automations/{auto_id}/activity"
-            activity_resp = await _api_get(client, activity_url, headers)
-            await asyncio.sleep(_RATE_LIMIT_SLEEP)
-
-            activity = activity_resp.json()
-            # Activity may be nested under "data" or at root
-            stats = activity.get("data", activity)
-
-            triggered = int(stats.get("triggered", stats.get("emails_sent", 0)))
-            completed = int(stats.get("completed", 0))
-            sent = int(stats.get("sent", stats.get("emails_sent", 0)))
-            open_rate = float(stats.get("open_rate", 0.0))
-            click_rate = float(stats.get("click_rate", 0.0))
-
-            total_triggered += triggered
-            total_completed += completed
-            total_sent += sent
-            rate_open_sum += open_rate
-            rate_click_sum += click_rate
-            auto_count += 1
-
         metrics: list[ExtractedMetric] = []
         metric_date = end_date
 
-        metrics.append(
-            ExtractedMetric(
-                provider="mailerlite",
-                channel_slug=slug,
-                metric_name="emails_sent",
-                value=float(total_sent),
-                unit="count",
-                date=metric_date,
-            )
-        )
+        for auto in automations:
+            auto_id = str(auto.get("id", ""))
+            if not auto_id:
+                continue
 
-        if auto_count > 0:
-            # MailerLite percentages are 0.0-1.0
+            name = auto.get("name", "")
+            stats = auto.get("stats", {})
+            steps = auto.get("steps", [])
+
+            sent = int(stats.get("sent", 0))
+            completed = int(stats.get("completed_subscribers_count", 0))
+            in_queue = int(stats.get("subscribers_in_queue_count", 0))
+
+            # Parse rates (MailerLite returns {"float": 0.625, "string": "62.5%"})
+            raw_open = stats.get("open_rate", 0.0)
+            raw_click = stats.get("click_rate", 0.0)
+            raw_ctor = stats.get("click_to_open_rate", 0.0)
+            open_rate = float(
+                raw_open.get("float", 0.0) if isinstance(raw_open, dict) else raw_open
+            )
+            click_rate = float(
+                raw_click.get("float", 0.0)
+                if isinstance(raw_click, dict)
+                else raw_click
+            )
+            ctor = float(
+                raw_ctor.get("float", 0.0) if isinstance(raw_ctor, dict) else raw_ctor
+            )
+            unsubs = int(stats.get("unsubscribes_count", 0))
+
+            extra = {
+                "source": "automation",
+                "automation_name": name,
+                "automation_status": "active"
+                if auto.get("enabled", True)
+                else "paused",
+                "automation_type": classify_automation_type(name),
+                "completed_subscribers": completed,
+                "subscribers_in_queue": in_queue,
+                "steps_count": len(steps),
+                "steps": _extract_step_data(steps),
+            }
+
+            # Per-automation metric rows
+            metrics.append(
+                ExtractedMetric(
+                    provider="mailerlite",
+                    channel_slug=slug,
+                    metric_name="emails_sent",
+                    value=float(sent),
+                    unit="count",
+                    date=metric_date,
+                    campaign_id=auto_id,
+                    extra=dict(extra),
+                )
+            )
             metrics.append(
                 ExtractedMetric(
                     provider="mailerlite",
                     channel_slug=slug,
                     metric_name="open_rate",
-                    value=(rate_open_sum / auto_count) * 100,
+                    value=open_rate * 100,
                     unit="percentage",
                     date=metric_date,
+                    campaign_id=auto_id,
+                    extra=dict(extra),
                 )
             )
             metrics.append(
@@ -763,34 +1122,43 @@ class MailerLiteProvider(BaseMetricsProvider):
                     provider="mailerlite",
                     channel_slug=slug,
                     metric_name="click_rate",
-                    value=(rate_click_sum / auto_count) * 100,
+                    value=click_rate * 100,
                     unit="percentage",
                     date=metric_date,
+                    campaign_id=auto_id,
+                    extra=dict(extra),
                 )
             )
-
-        # Completion rate = completed / triggered * 100
-        if total_triggered > 0:
             metrics.append(
                 ExtractedMetric(
                     provider="mailerlite",
                     channel_slug=slug,
-                    metric_name="completion_rate",
-                    value=total_completed / total_triggered * 100,
+                    metric_name="click_to_open_rate",
+                    value=ctor * 100,
                     unit="percentage",
                     date=metric_date,
+                    campaign_id=auto_id,
+                    extra=dict(extra),
+                )
+            )
+            metrics.append(
+                ExtractedMetric(
+                    provider="mailerlite",
+                    channel_slug=slug,
+                    metric_name="unsubscribes",
+                    value=float(unsubs),
+                    unit="count",
+                    date=metric_date,
+                    campaign_id=auto_id,
+                    extra=dict(extra),
                 )
             )
 
-        metrics.append(
-            ExtractedMetric(
-                provider="mailerlite",
-                channel_slug=slug,
-                metric_name="automation_completed",
-                value=float(total_completed),
-                unit="count",
-                date=metric_date,
-            )
+        logger.info(
+            "mailerlite_automations_extracted",
+            slug=slug,
+            automation_count=len([a for a in automations if a.get("id")]),
+            metric_count=len(metrics),
         )
 
         return metrics

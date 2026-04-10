@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db, redis_client
+from src.modules.analytics.api.email_metrics import router as email_router
 from src.modules.analytics.application.config import ETLConfig
 from src.modules.analytics.application.dto.adoption_dto import AdoptionDetailDTO
 from src.modules.analytics.application.dto.attraction_dto import AttractionDetailDTO
@@ -52,6 +53,7 @@ from src.modules.offer.application.services.offer_read_port_impl import (
 )
 
 router = APIRouter(prefix="/metrics", tags=["Marketing Metrics"])
+router.include_router(email_router)
 
 # Refresh cooldown: derived from centralized config
 _REFRESH_COOLDOWN = timedelta(seconds=ETLConfig.PER_PROVIDER_REFRESH_COOLDOWN)
@@ -156,6 +158,8 @@ _SLUG_TO_PROVIDER: dict[str, str] = {
     "shopify": "shopify",
     "website-total": "google_analytics",
     "meta-pixel": "meta_pixel",
+    "email-capture": "mailerlite",
+    "email-nurture": "mailerlite",
 }
 
 

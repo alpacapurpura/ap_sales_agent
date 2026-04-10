@@ -13,17 +13,19 @@ import { formatMoney } from '@/lib/format-money';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import { formatTenantTime } from '@/lib/format-date';
 import { ChannelChip } from '../channel-widgets/ChannelChip';
+import { ChannelRow } from '../channel-widgets/ChannelRow';
 import { classifyChannel } from '../../../lib/classifyChannel';
 import type { ChannelMetric } from '../../../types/metrics';
 
 interface NurtureOpportunityDetailProps {
   onMetricClick?: (metric: MetricClickData) => void;
+  onChannelClick?: (channel: ChannelMetric) => void;
   onConfigure?: (slug: string, name: string) => void;
   onDisconnectedClick?: (channel: ChannelMetric) => void;
   onNoDataClick?: (channel: ChannelMetric) => void;
 }
 
-export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDetail({ onMetricClick, onConfigure, onDisconnectedClick, onNoDataClick }: NurtureOpportunityDetailProps) {
+export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDetail({ onMetricClick, onChannelClick, onConfigure, onDisconnectedClick, onNoDataClick }: NurtureOpportunityDetailProps) {
   const { timezone } = useTenantLocale();
   const { data: nurtureData, isLoading: nurtureLoading, error: nurtureError, refetch: refetchNurture } = useNurtureDetail();
   const { data: oppData, isLoading: oppLoading, error: oppError, refetch: refetchOpp } = useOpportunityDetail();
@@ -342,10 +344,21 @@ export const NurtureOpportunityDetail = React.memo(function NurtureOpportunityDe
             <div className="p-4 space-y-2">
               <div className="grid grid-cols-1 gap-2">
                 {splitChannels(nurtureChannels).rows.map((c) => {
-                  const isEmail = c.slug.includes('mail');
+                  // email-nurture gets the full ChannelRow (4 metrics + sidebar)
+                  if (c.slug === 'email-nurture') {
+                    return (
+                      <ChannelRow
+                        key={c.slug}
+                        channel={{ ...c, name: 'Email Marketing' }}
+                        stageId="NUTRICION"
+                        onMetricClick={onMetricClick}
+                        onChannelClick={onChannelClick}
+                      />
+                    );
+                  }
                   const isAgent = c.slug.includes('agent');
-                  const metricName = isEmail ? 'clicks' : isAgent ? 'responses' : 'leads';
-                  const metricLabel = isEmail ? 'Tasa de interacción' : isAgent ? 'Leads Interactuando' : 'leads interactuaron';
+                  const metricName = isAgent ? 'responses' : 'leads';
+                  const metricLabel = isAgent ? 'Leads Interactuando' : 'leads interactuaron';
                   return (
                     <NurtureChannelRow key={c.slug} channel={c} stageId="NUTRICION" defaultMetricName={metricName} defaultMetricLabel={metricLabel} baseColor="amber" />
                   );

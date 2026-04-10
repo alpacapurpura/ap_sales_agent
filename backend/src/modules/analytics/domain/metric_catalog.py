@@ -262,6 +262,32 @@ _ADDITIVE: list[MetricDefinition] = [
         providers=("mailerlite",),
     ),
     MetricDefinition(
+        name="opens_count",
+        display_name="Aperturas Totales",
+        description="Total de aperturas de email incluyendo re-aperturas por la misma persona",
+        interpretation=(
+            "Incluye re-opens. opens_count > unique_opens indica alto interés de "
+            "relectura. Útil para medir engagement repetido con el contenido."
+        ),
+        unit=MetricUnit.COUNT,
+        aggregation=AggregationType.ADDITIVE,
+        higher_is_better=True,
+        providers=("mailerlite", "mailchimp", "activecampaign"),
+    ),
+    MetricDefinition(
+        name="clicks_count",
+        display_name="Clics Totales",
+        description="Total de clics en links de email incluyendo re-clics por la misma persona",
+        interpretation=(
+            "Incluye re-clicks. clicks_count > unique_clicks indica contenido que "
+            "se revisita. Útil para medir engagement repetido con CTAs."
+        ),
+        unit=MetricUnit.COUNT,
+        aggregation=AggregationType.ADDITIVE,
+        higher_is_better=True,
+        providers=("mailerlite", "mailchimp", "activecampaign"),
+    ),
+    MetricDefinition(
         name="form_conversions",
         display_name="Conversiones de Formulario",
         description="Formularios de captación completados",
@@ -1211,6 +1237,80 @@ _DERIVED: list[MetricDefinition] = [
         higher_is_better=True,
         benchmarks="Referencia: 0.5-2% promedio, >5% excelente.",
         providers=("youtube",),
+    ),
+    # ── Email Marketing Derived (Email Intelligence Hub) ──
+    MetricDefinition(
+        name="deliverability_rate",
+        display_name="Tasa de Entregabilidad",
+        description=(
+            "Porcentaje de emails efectivamente entregados = "
+            "(emails_sent - hard_bounces - soft_bounces) / emails_sent × 100"
+        ),
+        interpretation=(
+            "Mide salud de la infraestructura de envío. <95% indica problemas de "
+            "reputación de dominio o lista sucia. >99% = excelente."
+        ),
+        unit=MetricUnit.PERCENTAGE,
+        aggregation=AggregationType.DERIVED,
+        formula="(emails_sent - hard_bounces - soft_bounces) / emails_sent * 100",
+        formula_components=("emails_sent", "hard_bounces", "soft_bounces"),
+        higher_is_better=True,
+        benchmarks="Referencia: 95% promedio global. >99% excelente. <90% = revisar reputación.",
+        providers=("mailerlite", "mailchimp", "activecampaign"),
+    ),
+    MetricDefinition(
+        name="list_growth_rate",
+        display_name="Tasa de Crecimiento de Lista",
+        description=(
+            "Crecimiento neto de la lista de email = "
+            "(new_subscribers - unsubscribes) / active_subscribers × 100"
+        ),
+        interpretation=(
+            "Velocidad de crecimiento de la audiencia. Negativo = lista encogiéndose. "
+            "3-8% mensual es saludable para creadores."
+        ),
+        unit=MetricUnit.PERCENTAGE,
+        aggregation=AggregationType.DERIVED,
+        formula="(new_subscribers - unsubscribes) / active_subscribers * 100",
+        formula_components=("new_subscribers", "unsubscribes", "active_subscribers"),
+        higher_is_better=True,
+        benchmarks="Referencia: 1-3% mensual promedio. 3-8% saludable para creadores.",
+        providers=("mailerlite", "mailchimp", "activecampaign"),
+    ),
+    MetricDefinition(
+        name="churn_rate",
+        display_name="Tasa de Churn",
+        description=(
+            "Porcentaje de suscriptores perdidos = "
+            "unsubscribes / active_subscribers × 100"
+        ),
+        interpretation=(
+            "Velocidad a la que pierdes suscriptores. >2% mensual = contenido o "
+            "frecuencia desalineados. Comparar con list_growth_rate para balance neto."
+        ),
+        unit=MetricUnit.PERCENTAGE,
+        aggregation=AggregationType.DERIVED,
+        formula="unsubscribes / active_subscribers * 100",
+        formula_components=("unsubscribes", "active_subscribers"),
+        higher_is_better=False,
+        benchmarks="Referencia: <0.5% mensual excelente. >2% = problema de retención.",
+        providers=("mailerlite", "mailchimp", "activecampaign"),
+    ),
+    MetricDefinition(
+        name="forward_rate",
+        display_name="Tasa de Reenvío",
+        description="Porcentaje de emails reenviados = forwards / emails_sent × 100",
+        interpretation=(
+            "Amplificación orgánica del contenido. Alto = contenido tan valioso que "
+            "los suscriptores lo comparten. Señal de viralidad de email."
+        ),
+        unit=MetricUnit.PERCENTAGE,
+        aggregation=AggregationType.DERIVED,
+        formula="forwards / emails_sent * 100",
+        formula_components=("forwards", "emails_sent"),
+        higher_is_better=True,
+        benchmarks="Referencia: 0.01-0.05% promedio. >0.15% = contenido viral.",
+        providers=("mailerlite", "mailchimp", "activecampaign"),
     ),
 ]
 

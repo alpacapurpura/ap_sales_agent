@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Automations — Rediseño UX Proposal</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card-border: #1e293b;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --green: #10b981;
+    --green-bg: rgba(16,185,129,0.1);
+    --amber: #f59e0b;
+    --amber-bg: rgba(245,158,11,0.1);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.1);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.1);
+    --purple: #8b5cf6;
+    --purple-bg: rgba(139,92,246,0.1);
+    --accent: #6366f1;
+    --sidebar-w: 520px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px 32px;
+    min-height: 100vh;
+  }
+
+  /* -- Design Notes Banner ------------------------------------------------- */
+  .design-notes {
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+  }
+  .design-notes h2 {
+    font-size: 14px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .design-notes p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .design-notes .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .tag-fix { background: var(--red-bg); color: var(--red); }
+  .tag-new { background: var(--green-bg); color: var(--green); }
+  .tag-ux { background: var(--purple-bg); color: var(--purple); }
+
+  /* -- Section Title ------------------------------------------------------- */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-title h2 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .section-title .badge {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 100px;
+    background: var(--blue-bg);
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+  /* -- KPI Cards ----------------------------------------------------------- */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .kpi-card .label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .kpi-card .value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-card .delta {
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .delta-up { color: var(--green); }
+  .delta-down { color: var(--red); }
+
+  /* -- Table --------------------------------------------------------------- */
+  .table-container {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .table-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .table-header-bar h3 {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .table-header-bar .filter-pills {
+    display: flex;
+    gap: 6px;
+  }
+  .filter-pill {
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    border: 1px solid var(--card-border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .filter-pill:hover:not(.active) {
+    border-color: var(--text-dim);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--card-border);
+    white-space: nowrap;
+  }
+  thead th.center { text-align: center; }
+  thead th .th-hint {
+    display: block;
+    font-size: 9px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-dim);
+    opacity: 0.6;
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,41,59,0.5);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: rgba(99,102,241,0.04); }
+  tbody tr.expanded { background: rgba(99,102,241,0.06); }
+  tbody td { padding: 12px 14px; }
+  tbody td.center { text-align: center; }
+
+  .auto-name {
+    font-weight: 500;
+    font-size: 12px;
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .auto-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .type-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .type-welcome { background: var(--blue-bg); color: var(--blue); }
+  .type-nurture { background: var(--purple-bg); color: var(--purple); }
+  .type-workflow { background: rgba(148,163,184,0.1); color: var(--text-muted); }
+
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+  }
+  .status-dot::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .metric-cell {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    font-size: 12px;
+  }
+  .metric-good { color: var(--green); }
+  .metric-warn { color: var(--amber); }
+  .metric-bad { color: var(--red); }
+  .metric-neutral { color: var(--text); }
+
+  /* Health score bar */
+  .health-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .health-track {
+    width: 48px;
+    height: 5px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .health-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .health-label {
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Expand chevron */
+  .expand-icon {
+    display: inline-block;
+    transition: transform 0.2s;
+    color: var(--text-dim);
+    font-size: 10px;
+  }
+  .expanded .expand-icon { transform: rotate(90deg); }
+
+  /* -- Accordion: Email Sequence Pipeline ---------------------------------- */
+  .sequence-row td {
+    padding: 0;
+    background: rgba(6,8,18,0.5);
+  }
+  .sequence-content {
+    padding: 20px 24px 24px;
+    overflow: hidden;
+  }
+  .sequence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .sequence-header h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .sequence-insight {
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sequence-insight .insight-icon {
+    font-size: 14px;
+  }
+
+  /* Pipeline visual */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+  }
+
+  .pipeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .email-node {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .email-node:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 20px rgba(99,102,241,0.15);
+  }
+  .email-node.best-performer {
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px rgba(16,185,129,0.3);
+  }
+  .email-node.needs-attention {
+    border-color: var(--red);
+    box-shadow: 0 0 0 1px rgba(239,68,68,0.2);
+  }
+
+  .email-node .step-number {
+    font-size: 9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .email-node .subject {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .email-node .node-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .node-metric {
+    text-align: center;
+    padding: 4px 0;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.02);
+  }
+  .node-metric .nm-value {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .node-metric .nm-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .node-badge {
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .badge-best { background: var(--green); color: #000; }
+  .badge-attention { background: var(--red); color: #fff; }
+
+  /* Connector between steps */
+  .pipeline-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    min-width: 72px;
+    position: relative;
+    padding-top: 8px;
+  }
+  .connector-line {
+    width: 100%;
+    height: 2px;
+    background: var(--card-border);
+    position: relative;
+  }
+  .connector-line::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: -3px;
+    width: 0; height: 0;
+    border-left: 6px solid var(--card-border);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+  .connector-info {
+    margin-top: 6px;
+    text-align: center;
+  }
+  .connector-delay {
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .connector-dropoff {
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+  .dropoff-high { color: var(--red); }
+  .dropoff-medium { color: var(--amber); }
+  .dropoff-low { color: var(--green); }
+
+  /* Funnel bar under pipeline */
+  .funnel-bar {
+    margin-top: 16px;
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+  }
+  .funnel-segment {
+    height: 100%;
+    transition: width 0.5s ease;
+  }
+
+  /* AI Insight box */
+  .ai-insight {
+    margin-top: 16px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.05));
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .ai-insight .ai-icon {
+    font-size: 16px;
+    margin-top: 1px;
+  }
+  .ai-insight .ai-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .ai-insight .ai-text strong {
+    color: var(--text);
+  }
+
+  /* -- Sidebar (Detail Panel) ---------------------------------------------- */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .sidebar-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .sidebar-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg);
+    border-left: 1px solid var(--card-border);
+    z-index: 101;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-panel.open { transform: translateX(0); }
+
+  .sidebar-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 1;
+  }
+  .sidebar-header .sh-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .sidebar-header .sh-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .close-btn {
+    background: none;
+    border: 1px solid var(--card-border);
+    color: var(--text-muted);
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .close-btn:hover {
+    background: var(--card);
+    color: var(--text);
+  }
+
+  .sidebar-body {
+    padding: 20px 24px;
+    flex: 1;
+  }
+
+  .sidebar-section {
+    margin-bottom: 24px;
+  }
+  .sidebar-section h4 {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .metric-box {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .metric-box .mb-value {
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-box .mb-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .metric-box .mb-benchmark {
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  .sidebar-preview {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .preview-frame {
+    width: 100%;
+    height: 320px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 13px;
+    position: relative;
+  }
+  .preview-frame .mock-email {
+    width: 85%;
+    height: 85%;
+    background: #f8f8f8;
+    border-radius: 6px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #333;
+    font-size: 11px;
+  }
+  .mock-email .mock-logo {
+    width: 100px;
+    height: 30px;
+    background: #e0e0e0;
+    border-radius: 4px;
+  }
+  .mock-email .mock-headline {
+    width: 80%;
+    height: 14px;
+    background: #d0d0d0;
+    border-radius: 2px;
+  }
+  .mock-email .mock-body {
+    width: 100%;
+    height: 60px;
+    background: #eee;
+    border-radius: 4px;
+  }
+  .mock-email .mock-cta {
+    width: 120px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 6px;
+    align-self: center;
+  }
+  .preview-actions {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--card-border);
+  }
+  .preview-link {
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .preview-link:hover { text-decoration: underline; }
+
+  /* Sidebar diagnosis */
+  .diagnosis-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .diagnosis-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(30,41,59,0.3);
+    font-size: 12px;
+  }
+  .diagnosis-row:last-child { border: none; }
+  .diag-label { color: var(--text-muted); }
+  .diag-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .diag-vs {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-left: 6px;
+  }
+
+  /* Comparison bar */
+  .compare-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .compare-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    position: relative;
+  }
+  .compare-fill {
+    height: 100%;
+    border-radius: 2px;
+    position: absolute;
+    left: 0; top: 0;
+  }
+  .compare-benchmark {
+    position: absolute;
+    top: -4px;
+    width: 2px;
+    height: 12px;
+    background: var(--text-dim);
+    border-radius: 1px;
+  }
+
+  /* Sidebar AI insight */
+  .sidebar-ai {
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.05));
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .sidebar-ai h5 {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sidebar-ai ul {
+    list-style: none;
+    padding: 0;
+  }
+  .sidebar-ai li {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .sidebar-ai li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  /* -- Responsive ---------------------------------------------------------- */
+  @media (max-width: 1200px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .pipeline { flex-wrap: wrap; gap: 12px; }
+    .pipeline-connector { width: 40px; min-width: 40px; }
+  }
+
+  /* Utility */
+  .text-green { color: var(--green); }
+  .text-amber { color: var(--amber); }
+  .text-red { color: var(--red); }
+  .text-muted { color: var(--text-muted); }
+  .text-dim { color: var(--text-dim); }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* Info tooltip system */
+  .info-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .info-i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    font-size: 8px;
+    color: var(--text-dim);
+    cursor: help;
+    margin-left: 4px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .info-i:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(99,102,241,0.1);
+  }
+  .info-pop {
+    display: none;
+    position: absolute;
+    z-index: 50;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    background: #1a2235;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+  .info-pop::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1a2235;
+  }
+  .info-i:hover + .info-pop,
+  .info-pop:hover {
+    display: block;
+  }
+  .info-pop .ip-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .info-pop .ip-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .info-pop .ip-formula {
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(99,102,241,0.08);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    margin-bottom: 6px;
+  }
+  .info-pop .ip-interpret {
+    font-size: 10px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--card-border);
+    padding-top: 6px;
+    line-height: 1.5;
+  }
+  .ip-interpret .good { color: var(--green); font-weight: 600; }
+  .ip-interpret .mid { color: var(--amber); font-weight: 600; }
+  .ip-interpret .bad { color: var(--red); font-weight: 600; }
+
+  /* For table headers — tooltip opens downward */
+  .info-pop-down {
+    bottom: auto;
+    top: calc(100% + 8px);
+  }
+  .info-pop-down::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: #1a2235;
+  }
+
+  .tooltip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    font-size: 8px;
+    color: var(--text-dim);
+    cursor: help;
+    margin-left: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================================================================== -->
+<!-- DESIGN NOTES                                                       -->
+<!-- ================================================================== -->
+<div class="design-notes">
+  <h2>Propuesta de Rediseño — Automatizaciones de Email</h2>
+  <p style="margin-bottom: 10px;">
+    <span class="tag tag-fix">BUG FIX</span> Suscriptores=0 → ahora "Ingresados" (completed+queue)
+    <span class="tag tag-fix">BUG FIX</span> Completación mostraba CTOR → ahora muestra completación real
+    <span class="tag tag-new">NUEVO</span> CTOR, Unsubs, Salud por automatización
+    <span class="tag tag-ux">UX</span> Accordion con pipeline visual de emails
+    <span class="tag tag-ux">UX</span> Sidebar con detalle de cada email + diagnóstico IA
+  </p>
+  <p>Objetivo: que un CEO vea en 5 segundos qué automatización funciona y cuál no.<br>
+     Que un analista pueda identificar en qué email exacto se pierde engagement y por qué.</p>
+</div>
+
+<!-- ================================================================== -->
+<!-- KPI SUMMARY                                                        -->
+<!-- ================================================================== -->
+<div class="section-title">
+  <h2>Automatizaciones de Email</h2>
+  <span class="badge">7 activas</span>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="label">Ingresados Totales
+      <span class="info-wrap">
+        <span class="info-i">i</span>
+        <span class="info-pop">
+          <div class="ip-title">Ingresados Totales</div>
+          <div class="ip-desc">Personas que entraron a cualquier automatización en el periodo seleccionado.</div>
+          <div class="ip-formula">completados + en cola</div>
+          <div class="ip-interpret">Mide el alcance de tus flujos automatizados. Más ingresados = más personas recibiendo tu contenido de forma automática.</div>
+        </span>
+      </span>
+    </div>
+    <div class="value">32</div>
+    <div class="delta delta-up">↑ 12 vs periodo anterior</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Tasa de Apertura Prom.
+      <span class="info-wrap">
+        <span class="info-i">i</span>
+        <span class="info-pop">
+          <div class="ip-title">Open Rate Promedio</div>
+          <div class="ip-desc">Porcentaje promedio de emails abiertos en todas las automatizaciones, ponderado por volumen de envío.</div>
+          <div class="ip-formula">Σ(open_rate × enviados) / Σ enviados</div>
+          <div class="ip-interpret"><span class="good">&gt;50%</span> excelente &nbsp; <span class="mid">30-50%</span> normal &nbsp; <span class="bad">&lt;30%</span> revisar subjects</div>
+        </span>
+      </span>
+    </div>
+    <div class="value text-green">74.2%</div>
+    <div class="delta delta-up">+8.5pp vs campañas manuales</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Tasa de Clicks Prom.
+      <span class="info-wrap">
+        <span class="info-i">i</span>
+        <span class="info-pop">
+          <div class="ip-title">Click Rate Promedio</div>
+          <div class="ip-desc">Porcentaje promedio de emails donde al menos un enlace fue clickeado, ponderado por volumen.</div>
+          <div class="ip-formula">Σ(click_rate × enviados) / Σ enviados</div>
+          <div class="ip-interpret"><span class="good">&gt;5%</span> excelente &nbsp; <span class="mid">2-5%</span> normal &nbsp; <span class="bad">&lt;2%</span> revisar CTAs y contenido</div>
+        </span>
+      </span>
+    </div>
+    <div class="value">12.1%</div>
+    <div class="delta delta-up">↑ 3.2pp vs anterior</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">Salud General
+      <span class="info-wrap">
+        <span class="info-i">i</span>
+        <span class="info-pop">
+          <div class="ip-title">Score de Salud General</div>
+          <div class="ip-desc">Índice compuesto 0-100 que combina apertura, clicks, CTOR, completación y desuscripciones de todas las automatizaciones.</div>
+          <div class="ip-formula">0.3×open + 0.25×click + 0.2×CTOR + 0.15×completion − 0.1×unsubs</div>
+          <div class="ip-interpret"><span class="good">&gt;70</span> saludable &nbsp; <span class="mid">40-70</span> necesita atención &nbsp; <span class="bad">&lt;40</span> acción urgente</div>
+        </span>
+      </span>
+    </div>
+    <div class="value text-green">78<span style="font-size:14px;color:var(--text-dim)">/100</span></div>
+    <div class="delta" style="color:var(--text-dim)">Promedio ponderado de todas las automatizaciones</div>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- TABLE                                                              -->
+<!-- ================================================================== -->
+<div class="table-container">
+  <div class="table-header-bar">
+    <h3>Detalle por Automatización</h3>
+    <div class="filter-pills">
+      <button class="filter-pill active">Todas</button>
+      <button class="filter-pill">Bienvenida</button>
+      <button class="filter-pill">Nutrición</button>
+      <button class="filter-pill">Workflow</button>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28px"></th>
+        <th>
+          Automatización
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down">
+              <div class="ip-title">Automatización</div>
+              <div class="ip-desc">Secuencia de emails que se envía automáticamente cuando un suscriptor cumple una condición (se registra, compra, etc.).</div>
+              <div class="ip-interpret">Haz click en cualquier fila para ver la secuencia completa de emails con métricas individuales.</div>
+            </span>
+          </span>
+        </th>
+        <th class="center">
+          Ingresados
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down">
+              <div class="ip-title">Ingresados</div>
+              <div class="ip-desc">Total de suscriptores que entraron a este flujo automatizado (completados + en cola actualmente).</div>
+              <div class="ip-formula">completados + en_cola</div>
+              <div class="ip-interpret">Indica cuántas personas están siendo nutridas por esta secuencia. Más ingresados = mayor alcance automatizado.</div>
+            </span>
+          </span>
+        </th>
+        <th class="center">
+          Completaron
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down">
+              <div class="ip-title">Completaron</div>
+              <div class="ip-desc">Suscriptores que recibieron TODOS los emails de la secuencia. El % muestra la tasa de completación.</div>
+              <div class="ip-formula">completados / ingresados × 100</div>
+              <div class="ip-interpret"><span class="good">&gt;60%</span> excelente retención &nbsp; <span class="mid">30-60%</span> revisar contenido medio &nbsp; <span class="bad">&lt;30%</span> la secuencia pierde gente — analizar en qué email se van</div>
+            </span>
+          </span>
+        </th>
+        <th class="center">
+          Open Rate
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down">
+              <div class="ip-title">Open Rate</div>
+              <div class="ip-desc">Porcentaje de emails abiertos sobre el total entregado en esta automatización. Refleja la calidad de tus subject lines.</div>
+              <div class="ip-formula">emails abiertos / emails entregados × 100</div>
+              <div class="ip-interpret"><span class="good">&gt;50%</span> excelente (automatizaciones suelen superar campañas) &nbsp; <span class="mid">30-50%</span> aceptable &nbsp; <span class="bad">&lt;30%</span> mejorar subjects</div>
+            </span>
+          </span>
+        </th>
+        <th class="center">
+          Click Rate
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down">
+              <div class="ip-title">Click Rate</div>
+              <div class="ip-desc">Porcentaje de emails donde al menos un enlace fue clickeado. Mide si tu contenido genera acción.</div>
+              <div class="ip-formula">emails con click / emails entregados × 100</div>
+              <div class="ip-interpret"><span class="good">&gt;5%</span> muy bueno &nbsp; <span class="mid">2-5%</span> promedio &nbsp; <span class="bad">&lt;2%</span> el contenido o CTA no conecta — abre el detalle para ver qué email falla</div>
+            </span>
+          </span>
+        </th>
+        <th class="center">
+          CTOR
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down">
+              <div class="ip-title">Click-to-Open Rate (CTOR)</div>
+              <div class="ip-desc">De los que abrieron, ¿cuántos hicieron click? Es la métrica más pura de engagement — elimina el efecto del subject line.</div>
+              <div class="ip-formula">clicks únicos / aperturas únicas × 100</div>
+              <div class="ip-interpret"><span class="good">&gt;15%</span> contenido muy relevante &nbsp; <span class="mid">8-15%</span> normal &nbsp; <span class="bad">&lt;8%</span> el email se abre pero el contenido/CTA no convence</div>
+            </span>
+          </span>
+        </th>
+        <th class="center">
+          Unsubs
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down">
+              <div class="ip-title">Desuscripciones</div>
+              <div class="ip-desc">Personas que se desuscribieron durante esta automatización. Un número alto indica que el contenido no cumple la expectativa del suscriptor.</div>
+              <div class="ip-interpret"><span class="good">0-1</span> normal &nbsp; <span class="mid">2-3</span> monitorear &nbsp; <span class="bad">&gt;3</span> revisar frecuencia, relevancia del contenido y si la promesa del opt-in coincide con lo enviado</div>
+            </span>
+          </span>
+        </th>
+        <th class="center">
+          Salud
+          <span class="info-wrap">
+            <span class="info-i">i</span>
+            <span class="info-pop info-pop-down" style="left:auto;right:0;transform:none;">
+              <div class="ip-title">Score de Salud</div>
+              <div class="ip-desc">Índice compuesto 0-100 que combina open rate, click rate, CTOR, completación y penaliza desuscripciones.</div>
+              <div class="ip-formula">0.3×open + 0.25×click + 0.2×CTOR + 0.15×completion − 0.1×unsub_rate</div>
+              <div class="ip-interpret"><span class="good">&gt;70</span> automatización saludable &nbsp; <span class="mid">40-70</span> oportunidad de mejora &nbsp; <span class="bad">&lt;40</span> requiere acción — expande la fila para ver dónde falla</div>
+            </span>
+          </span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- Row 1: BIENVENIDA (Best) -->
+      <tr class="expanded" onclick="toggleRow('row1')">
+        <td><span class="expand-icon" id="icon-row1" style="transform:rotate(90deg)">▶</span></td>
+        <td>
+          <div class="auto-name">BIENVENIDA: nuevas inscritas al Programa</div>
+          <div class="auto-meta"><span class="type-badge type-welcome">Bienvenida</span> &nbsp;·&nbsp; 2 emails &nbsp;·&nbsp; Activa</div>
+        </td>
+        <td class="center metric-cell metric-neutral">9</td>
+        <td class="center metric-cell metric-neutral">4 <span class="text-dim" style="font-size:10px">(44%)</span></td>
+        <td class="center metric-cell metric-good">100%</td>
+        <td class="center metric-cell metric-good">100%</td>
+        <td class="center metric-cell metric-good">100%</td>
+        <td class="center metric-cell metric-good">0</td>
+        <td class="center">
+          <div class="health-bar">
+            <div class="health-track"><div class="health-fill" style="width:95%;background:var(--green)"></div></div>
+            <span class="health-label text-green">95</span>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Accordion: BIENVENIDA Email Sequence -->
+      <tr class="sequence-row" id="row1">
+        <td colspan="9">
+          <div class="sequence-content">
+            <div class="sequence-header">
+              <h4>Secuencia de emails — 2 pasos</h4>
+              <div class="sequence-insight">
+                <span class="insight-icon">✨</span>
+                <span>100% engagement — secuencia perfecta, replica este formato</span>
+              </div>
+            </div>
+
+            <!-- Pipeline Visual -->
+            <div class="pipeline">
+              <!-- Email 1 -->
+              <div class="pipeline-step">
+                <div class="email-node best-performer" onclick="openSidebar(event)">
+                  <span class="node-badge badge-best">★ Mejor</span>
+                  <div class="step-number">
+                    <span>Email 1</span>
+                    <span style="font-size:8px;color:var(--text-dim)">📩 9 enviados</span>
+                  </div>
+                  <div class="subject">¡Bienvenida al Programa!</div>
+                  <div class="node-metrics">
+                    <div class="node-metric">
+                      <div class="nm-value text-green">100%</div>
+                      <div class="nm-label">Open <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">% que abrieron este email específico. Mide la efectividad del subject line.</div></span></span></div>
+                    </div>
+                    <div class="node-metric">
+                      <div class="nm-value text-green">100%</div>
+                      <div class="nm-label">Click <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">% que hicieron click en al menos un enlace de este email. Mide la calidad del contenido y CTA.</div></span></span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Connector -->
+              <div class="pipeline-connector">
+                <div class="connector-line"></div>
+                <div class="connector-info">
+                  <div class="connector-delay">⏱ 2 días</div>
+                  <div class="connector-dropoff dropoff-low">−0% drop <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">Porcentaje de suscriptores que dejaron de interactuar entre este email y el anterior. Un drop alto indica que el contenido o el timing no funciona.</div></span></span></div>
+                </div>
+              </div>
+
+              <!-- Email 2 -->
+              <div class="pipeline-step">
+                <div class="email-node" onclick="openSidebar(event)">
+                  <div class="step-number">
+                    <span>Email 2</span>
+                    <span style="font-size:8px;color:var(--text-dim)">📩 4 enviados</span>
+                  </div>
+                  <div class="subject">Tu acceso y próximos pasos</div>
+                  <div class="node-metrics">
+                    <div class="node-metric">
+                      <div class="nm-value text-green">80%</div>
+                      <div class="nm-label">Open <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">% que abrieron este email. Compara con el anterior para detectar fatiga de secuencia.</div></span></span></div>
+                    </div>
+                    <div class="node-metric">
+                      <div class="nm-value metric-warn">20%</div>
+                      <div class="nm-label">Click <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">% que clickearon. Click bajo con open alto = el CTA o contenido no convence.</div></span></span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Funnel bar -->
+            <div class="funnel-bar">
+              <div class="funnel-segment" style="width:100%;background:var(--green);opacity:0.8"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;">
+              <span style="font-size:10px;color:var(--text-dim)">9 ingresaron</span>
+              <span style="font-size:10px;color:var(--green)">4 completaron (44%)</span>
+            </div>
+
+            <!-- AI Insight -->
+            <div class="ai-insight">
+              <span class="ai-icon">🧠</span>
+              <div class="ai-text">
+                <strong>Diagnóstico:</strong> Secuencia de bienvenida con engagement excepcional.
+                El email 1 tiene 100% de apertura — el subject funciona perfectamente.
+                El email 2 baja a 20% click rate → <strong>revisa el CTA</strong>, el contenido se abre pero no genera acción.
+                Recomendación: replica la estructura del email 1 para futuras secuencias.
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Row 2: Linktree Workflow -->
+      <tr onclick="toggleRow('row2')">
+        <td><span class="expand-icon" id="icon-row2">▶</span></td>
+        <td>
+          <div class="auto-name">Visionaras Linktree Workflow</div>
+          <div class="auto-meta"><span class="type-badge type-workflow">Workflow</span> &nbsp;·&nbsp; 3 emails &nbsp;·&nbsp; Activa</div>
+        </td>
+        <td class="center metric-cell metric-neutral">8</td>
+        <td class="center metric-cell metric-neutral">0 <span class="text-dim" style="font-size:10px">(0%)</span></td>
+        <td class="center metric-cell metric-good">66.7%</td>
+        <td class="center metric-cell metric-warn">8.3%</td>
+        <td class="center metric-cell metric-warn">12.5%</td>
+        <td class="center metric-cell metric-good">0</td>
+        <td class="center">
+          <div class="health-bar">
+            <div class="health-track"><div class="health-fill" style="width:52%;background:var(--amber)"></div></div>
+            <span class="health-label text-amber">52</span>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Accordion: Linktree (hidden by default) -->
+      <tr class="sequence-row" id="row2" style="display:none">
+        <td colspan="9">
+          <div class="sequence-content">
+            <div class="sequence-header">
+              <h4>Secuencia de emails — 3 pasos</h4>
+              <div class="sequence-insight">
+                <span class="insight-icon">⚠️</span>
+                <span>Engagement cae 61% entre email 1 y 3 — optimizar contenido medio</span>
+              </div>
+            </div>
+
+            <div class="pipeline">
+              <!-- Email 1 -->
+              <div class="pipeline-step">
+                <div class="email-node best-performer" onclick="openSidebar(event)">
+                  <span class="node-badge badge-best">★ Mejor</span>
+                  <div class="step-number">
+                    <span>Email 1</span>
+                    <span style="font-size:8px;color:var(--text-dim)">📩 8 enviados</span>
+                  </div>
+                  <div class="subject">Descubre tu Linktree personalizado</div>
+                  <div class="node-metrics">
+                    <div class="node-metric">
+                      <div class="nm-value text-green">87.5%</div>
+                      <div class="nm-label">Open</div>
+                    </div>
+                    <div class="node-metric">
+                      <div class="nm-value metric-neutral">15.0%</div>
+                      <div class="nm-label">Click</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pipeline-connector">
+                <div class="connector-line"></div>
+                <div class="connector-info">
+                  <div class="connector-delay">⏱ 3 días</div>
+                  <div class="connector-dropoff dropoff-medium">−29% drop</div>
+                </div>
+              </div>
+
+              <!-- Email 2 -->
+              <div class="pipeline-step">
+                <div class="email-node" onclick="openSidebar(event)">
+                  <div class="step-number">
+                    <span>Email 2</span>
+                    <span style="font-size:8px;color:var(--text-dim)">📩 6 enviados</span>
+                  </div>
+                  <div class="subject">¿Ya actualizaste tu perfil?</div>
+                  <div class="node-metrics">
+                    <div class="node-metric">
+                      <div class="nm-value text-amber">58.3%</div>
+                      <div class="nm-label">Open</div>
+                    </div>
+                    <div class="node-metric">
+                      <div class="nm-value metric-warn">5.0%</div>
+                      <div class="nm-label">Click</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pipeline-connector">
+                <div class="connector-line"></div>
+                <div class="connector-info">
+                  <div class="connector-delay">⏱ 5 días</div>
+                  <div class="connector-dropoff dropoff-high">−45% drop</div>
+                </div>
+              </div>
+
+              <!-- Email 3 -->
+              <div class="pipeline-step">
+                <div class="email-node needs-attention" onclick="openSidebar(event)">
+                  <span class="node-badge badge-attention">⚡ Atención</span>
+                  <div class="step-number">
+                    <span>Email 3</span>
+                    <span style="font-size:8px;color:var(--text-dim)">📩 4 enviados</span>
+                  </div>
+                  <div class="subject">Última oportunidad: completa tu setup</div>
+                  <div class="node-metrics">
+                    <div class="node-metric">
+                      <div class="nm-value text-red">26.5%</div>
+                      <div class="nm-label">Open</div>
+                    </div>
+                    <div class="node-metric">
+                      <div class="nm-value text-red">0.0%</div>
+                      <div class="nm-label">Click</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Funnel bar -->
+            <div class="funnel-bar">
+              <div class="funnel-segment" style="width:60%;background:var(--green);opacity:0.7"></div>
+              <div class="funnel-segment" style="width:25%;background:var(--amber);opacity:0.7"></div>
+              <div class="funnel-segment" style="width:15%;background:var(--red);opacity:0.7"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;">
+              <span style="font-size:10px;color:var(--text-dim)">8 ingresaron</span>
+              <span style="font-size:10px;color:var(--red)">0 completaron (0%)</span>
+            </div>
+
+            <!-- AI Insight -->
+            <div class="ai-insight">
+              <span class="ai-icon">🧠</span>
+              <div class="ai-text">
+                <strong>Problema detectado:</strong> Caída severa de engagement.
+                El email 1 abre bien (87%) pero el email 3 cae a 26% apertura y 0% clicks.
+                <strong>Causa probable:</strong> el delay de 5 días entre email 2 y 3 es demasiado largo — el suscriptor pierde contexto.
+                <strong>Acción sugerida:</strong> (1) Reducir delay a 2 días, (2) cambiar subject del email 3 — "última oportunidad" genera fatiga, (3) revisar si el CTA del email 2 es claro.
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Row 3: Lista de Espera -->
+      <tr onclick="toggleRow('row3')">
+        <td><span class="expand-icon" id="icon-row3">▶</span></td>
+        <td>
+          <div class="auto-name">LISTA DE ESPERA WORKFLOW</div>
+          <div class="auto-meta"><span class="type-badge type-nurture">Nutrición</span> &nbsp;·&nbsp; 4 emails &nbsp;·&nbsp; Activa</div>
+        </td>
+        <td class="center metric-cell metric-neutral">9</td>
+        <td class="center metric-cell metric-neutral">0 <span class="text-dim" style="font-size:10px">(0%)</span></td>
+        <td class="center metric-cell metric-good">62.5%</td>
+        <td class="center metric-cell metric-good">25.0%</td>
+        <td class="center metric-cell metric-good">40.0%</td>
+        <td class="center metric-cell metric-good">0</td>
+        <td class="center">
+          <div class="health-bar">
+            <div class="health-track"><div class="health-fill" style="width:72%;background:var(--green)"></div></div>
+            <span class="health-label text-green">72</span>
+          </div>
+        </td>
+      </tr>
+      <tr class="sequence-row" id="row3" style="display:none"><td colspan="9"></td></tr>
+
+      <!-- Row 4: La Brújula -->
+      <tr onclick="toggleRow('row4')">
+        <td><span class="expand-icon" id="icon-row4">▶</span></td>
+        <td>
+          <div class="auto-name">LM – La Brújula de tu Propósito workflow</div>
+          <div class="auto-meta"><span class="type-badge type-nurture">Nutrición</span> &nbsp;·&nbsp; 3 emails &nbsp;·&nbsp; Activa</div>
+        </td>
+        <td class="center metric-cell metric-neutral">4</td>
+        <td class="center metric-cell metric-neutral">0 <span class="text-dim" style="font-size:10px">(0%)</span></td>
+        <td class="center metric-cell metric-good">85.7%</td>
+        <td class="center metric-cell metric-bad">0.0%</td>
+        <td class="center metric-cell metric-bad">0.0%</td>
+        <td class="center metric-cell metric-good">0</td>
+        <td class="center">
+          <div class="health-bar">
+            <div class="health-track"><div class="health-fill" style="width:38%;background:var(--red)"></div></div>
+            <span class="health-label text-red">38</span>
+          </div>
+        </td>
+      </tr>
+      <tr class="sequence-row" id="row4" style="display:none"><td colspan="9"></td></tr>
+
+      <!-- Row 5: Newsletter -->
+      <tr onclick="toggleRow('row5')">
+        <td><span class="expand-icon" id="icon-row5">▶</span></td>
+        <td>
+          <div class="auto-name">Visionaras NEWSLETTER Workflow</div>
+          <div class="auto-meta"><span class="type-badge type-workflow">Workflow</span> &nbsp;·&nbsp; 1 email &nbsp;·&nbsp; Activa</div>
+        </td>
+        <td class="center metric-cell metric-neutral">0</td>
+        <td class="center metric-cell metric-neutral">0 <span class="text-dim" style="font-size:10px">(—)</span></td>
+        <td class="center metric-cell text-dim">0.0%</td>
+        <td class="center metric-cell text-dim">0.0%</td>
+        <td class="center metric-cell text-dim">—</td>
+        <td class="center metric-cell metric-good">0</td>
+        <td class="center">
+          <div class="health-bar">
+            <div class="health-track"><div class="health-fill" style="width:0%;background:var(--text-dim)"></div></div>
+            <span class="health-label text-dim">—</span>
+          </div>
+        </td>
+      </tr>
+      <tr class="sequence-row" id="row5" style="display:none"><td colspan="9"></td></tr>
+
+      <!-- Row 6: Masterclass -->
+      <tr onclick="toggleRow('row6')">
+        <td><span class="expand-icon" id="icon-row6">▶</span></td>
+        <td>
+          <div class="auto-name">Mail automatizado 2da edición Masterclass 16...</div>
+          <div class="auto-meta"><span class="type-badge type-workflow">Workflow</span> &nbsp;·&nbsp; 5 emails &nbsp;·&nbsp; Activa</div>
+        </td>
+        <td class="center metric-cell metric-neutral">11</td>
+        <td class="center metric-cell metric-neutral">11 <span class="text-dim" style="font-size:10px">(100%)</span></td>
+        <td class="center metric-cell metric-good">100%</td>
+        <td class="center metric-cell metric-good">36.4%</td>
+        <td class="center metric-cell metric-good">36.4%</td>
+        <td class="center metric-cell metric-good">0</td>
+        <td class="center">
+          <div class="health-bar">
+            <div class="health-track"><div class="health-fill" style="width:88%;background:var(--green)"></div></div>
+            <span class="health-label text-green">88</span>
+          </div>
+        </td>
+      </tr>
+      <tr class="sequence-row" id="row6" style="display:none"><td colspan="9"></td></tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- ================================================================== -->
+<!-- SIDEBAR (Detail Panel for individual email)                        -->
+<!-- ================================================================== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sidebar-panel" id="sidebarPanel">
+  <div class="sidebar-header">
+    <div>
+      <div class="sh-title">¡Bienvenida al Programa!</div>
+      <div class="sh-subtitle">Email 1 de 2 &nbsp;·&nbsp; BIENVENIDA: nuevas inscritas</div>
+    </div>
+    <button class="close-btn" onclick="closeSidebar()">✕</button>
+  </div>
+
+  <div class="sidebar-body">
+
+    <!-- Metrics -->
+    <div class="sidebar-section">
+      <h4>Métricas de este email</h4>
+      <div class="metric-grid">
+        <div class="metric-box">
+          <div class="mb-value">9</div>
+          <div class="mb-label">Enviados <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px;left:0;transform:none;"><div class="ip-desc">Emails entregados exitosamente a la bandeja del suscriptor.</div></span></span></div>
+        </div>
+        <div class="metric-box">
+          <div class="mb-value text-green">9</div>
+          <div class="mb-label">Abiertos <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px;left:0;transform:none;"><div class="ip-desc">Aperturas únicas. Cada suscriptor cuenta una sola vez aunque abra múltiples veces.</div></span></span></div>
+        </div>
+        <div class="metric-box">
+          <div class="mb-value text-green">9</div>
+          <div class="mb-label">Clicks <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:220px;left:auto;right:0;transform:none;"><div class="ip-desc">Clicks únicos en cualquier enlace del email. Cada suscriptor cuenta una vez.</div></span></span></div>
+        </div>
+        <div class="metric-box">
+          <div class="mb-value text-green">100%</div>
+          <div class="mb-label">Open Rate <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:220px;left:0;transform:none;"><div class="ip-desc">% de entregados que abrieron. Refleja la efectividad del subject y del remitente.</div><div class="ip-interpret"><span class="good">&gt;50%</span> exc. <span class="mid">30-50%</span> ok <span class="bad">&lt;30%</span> revisar</div></span></span></div>
+        </div>
+        <div class="metric-box">
+          <div class="mb-value text-green">100%</div>
+          <div class="mb-label">Click Rate <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:220px"><div class="ip-desc">% de entregados que clickearon. Mide si el email genera acción concreta.</div><div class="ip-interpret"><span class="good">&gt;5%</span> exc. <span class="mid">2-5%</span> ok <span class="bad">&lt;2%</span> revisar CTA</div></span></span></div>
+        </div>
+        <div class="metric-box">
+          <div class="mb-value text-green">100%</div>
+          <div class="mb-label">CTOR <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:220px;left:auto;right:0;transform:none;"><div class="ip-desc">Click-to-Open Rate: de los que abrieron, cuántos clickearon. La métrica más pura de calidad de contenido.</div><div class="ip-interpret"><span class="good">&gt;15%</span> exc. <span class="mid">8-15%</span> ok <span class="bad">&lt;8%</span> contenido no convence</div></span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison vs benchmark -->
+    <div class="sidebar-section">
+      <h4>vs Benchmarks de la Industria <span class="info-wrap"><span class="info-i">i</span><span class="info-pop" style="width:240px"><div class="ip-desc">Comparación contra promedios globales de email marketing (fuente: Mailchimp/GetResponse 2025). Los benchmarks de automatizaciones suelen ser superiores a los de campañas manuales.</div></span></span></h4>
+      <div class="diagnosis-card">
+        <div class="diagnosis-row">
+          <span class="diag-label">Open Rate <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">Promedio industria para automatizaciones: 21.5%. Campañas manuales: ~18%.</div></span></span></span>
+          <span class="diag-value text-green">100% <span class="diag-vs">vs 21.5%</span></span>
+        </div>
+        <div class="diagnosis-row">
+          <span class="diag-label">Click Rate <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">Promedio industria: 2.3%. Un click rate alto indica CTAs claros y contenido relevante.</div></span></span></span>
+          <span class="diag-value text-green">100% <span class="diag-vs">vs 2.3%</span></span>
+        </div>
+        <div class="diagnosis-row">
+          <span class="diag-label">CTOR <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:200px"><div class="ip-desc">Promedio industria: 10.5%. CTOR alto = el contenido cumple la promesa del subject.</div></span></span></span>
+          <span class="diag-value text-green">100% <span class="diag-vs">vs 10.5%</span></span>
+        </div>
+        <div class="diagnosis-row">
+          <span class="diag-label">Desuscripciones <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:220px"><div class="ip-desc">Promedio industria: 0.26% por email. Alto unsub = contenido no alineado con expectativas del suscriptor o frecuencia excesiva.</div></span></span></span>
+          <span class="diag-value text-green">0 <span class="diag-vs">vs 0.26%</span></span>
+        </div>
+        <div class="diagnosis-row">
+          <span class="diag-label">Rebotes <span class="info-wrap"><span class="info-i" style="width:11px;height:11px;font-size:7px;margin-left:2px">i</span><span class="info-pop" style="width:220px;left:auto;right:0;transform:none;"><div class="ip-desc">Promedio industria: 0.58%. Rebotes altos = lista desactualizada o emails inválidos. Afecta la reputación del dominio.</div></span></span></span>
+          <span class="diag-value text-green">0 <span class="diag-vs">vs 0.58%</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="sidebar-section">
+      <h4>Vista previa del email</h4>
+      <div class="sidebar-preview">
+        <div class="preview-frame">
+          <div class="mock-email">
+            <div class="mock-logo"></div>
+            <div class="mock-headline"></div>
+            <div style="font-size:13px;font-weight:600;color:#222">¡Bienvenida al Programa!</div>
+            <div class="mock-body"></div>
+            <div class="mock-cta"></div>
+            <div style="font-size:9px;color:#999;text-align:center;margin-top:auto">
+              Vista previa simulada — click en el enlace para ver el email real
+            </div>
+          </div>
+        </div>
+        <div class="preview-actions">
+          <a href="#" class="preview-link">
+            🔗 Ver email completo en MailerLite
+          </a>
+          <span style="font-size:10px;color:var(--text-dim)">preview_url</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Diagnosis -->
+    <div class="sidebar-section">
+      <h4>Diagnóstico Inteligente</h4>
+      <div class="sidebar-ai">
+        <h5>🧠 Análisis de este email</h5>
+        <ul>
+          <li><strong>Performance excepcional</strong> — 100% open rate indica subject line muy efectivo y lista altamente comprometida</li>
+          <li><strong>CTOR de 100%</strong> — todos los que abrieron hicieron click, el contenido y CTA están perfectamente alineados</li>
+          <li><strong>Patrón replicable:</strong> el formato de bienvenida inmediata con CTA claro al recurso principal funciona. Usa esta estructura como template para otros flujos</li>
+          <li><strong>Precaución:</strong> muestra pequeña (9 emails) — monitorear cuando crezca la lista para ver si las tasas se mantienen</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Email details -->
+    <div class="sidebar-section">
+      <h4>Detalles del email</h4>
+      <div class="diagnosis-card">
+        <div class="diagnosis-row">
+          <span class="diag-label">Subject</span>
+          <span class="diag-value" style="font-size:11px">¡Bienvenida al Programa!</span>
+        </div>
+        <div class="diagnosis-row">
+          <span class="diag-label">De</span>
+          <span class="diag-value" style="font-size:11px">Visionarias &lt;hola@...&gt;</span>
+        </div>
+        <div class="diagnosis-row">
+          <span class="diag-label">Tipo de paso</span>
+          <span class="diag-value" style="font-size:11px">Email (trigger inmediato)</span>
+        </div>
+        <div class="diagnosis-row">
+          <span class="diag-label">Posición</span>
+          <span class="diag-value" style="font-size:11px">1 de 2 en la secuencia</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- JAVASCRIPT                                                         -->
+<!-- ================================================================== -->
+<script>
+function toggleRow(rowId) {
+  const row = document.getElementById(rowId);
+  const icon = document.getElementById('icon-' + rowId);
+  const parentTr = row.previousElementSibling;
+
+  if (row.style.display === 'none' || !row.style.display) {
+    row.style.display = 'table-row';
+    icon.style.transform = 'rotate(90deg)';
+    parentTr.classList.add('expanded');
+  } else {
+    row.style.display = 'none';
+    icon.style.transform = 'rotate(0deg)';
+    parentTr.classList.remove('expanded');
+  }
+}
+
+function openSidebar(event) {
+  event.stopPropagation();
+  document.getElementById('sidebarOverlay').classList.add('open');
+  document.getElementById('sidebarPanel').classList.add('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.getElementById('sidebarPanel').classList.remove('open');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeSidebar();
+});
+</script>
+
+</body>
+</html>

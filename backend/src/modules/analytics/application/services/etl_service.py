@@ -87,14 +87,18 @@ class ETLService:
     ):
         """Run ETL extraction for a single provider.
 
+        For multi-stage providers (e.g. mailerlite -> capture + nurture),
+        all stages defined in PROVIDER_STAGES are extracted sequentially.
+
         Args:
             tenant_id: The tenant to extract for.
             provider_name: Provider identifier (e.g. "meta", "google_analytics").
             start_date: Start of date range. Defaults to 30 days ago.
             end_date: End of date range. Defaults to yesterday.
+            stage: Default stage for providers not in PROVIDER_STAGES.
 
         Returns:
-            ExtractionRunModel with final status.
+            ExtractionRunModel with final status (last stage's run).
         """
         # Default date range: last 30 days
         if end_date is None:
@@ -106,38 +110,45 @@ class ETLService:
         earliest = date.today() - timedelta(days=_MAX_LOOKBACK_DAYS)
         start_date = max(start_date, earliest)
 
+        # Multi-stage providers: iterate all stages (same as run_initial_load)
+        stages = PROVIDER_STAGES.get(provider_name, [stage])
+
         # Resolve provider from registry
         provider = get_provider(provider_name)
 
         # Resolve tenant period config
         period_config = self._get_period_config(tenant_id)
 
-        # Instantiate repositories
+        # Instantiate repositories (shared across stages)
         staging_repo = StagingMetricsRepository(self.db)
         official_repo = OfficialMetricsRepository(self.db)
         run_repo = ExtractionRunRepository(self.db)
 
-        # Build and run pipeline
-        pipeline = ETLPipeline(
-            db=self.db,
-            provider=provider,
-            connection_port=self.connection_port,
-            staging_repo=staging_repo,
-            official_repo=official_repo,
-            run_repo=run_repo,
-            cache=self.cache,
-            period_config=period_config,
-        )
+        last_run = None
+        for stg in stages:
+            pipeline = ETLPipeline(
+                db=self.db,
+                provider=provider,
+                connection_port=self.connection_port,
+                staging_repo=staging_repo,
+                official_repo=official_repo,
+                run_repo=run_repo,
+                cache=self.cache,
+                period_config=period_config,
+            )
 
-        logger.info(
-            "Starting ETL extraction: tenant=%s provider=%s dates=%s to %s",
-            tenant_id,
-            provider_name,
-            start_date,
-            end_date,
-        )
+            logger.info(
+                "Starting ETL extraction: tenant=%s provider=%s stage=%s dates=%s to %s",
+                tenant_id,
+                provider_name,
+                stg,
+                start_date,
+                end_date,
+            )
 
-        return await pipeline.run(tenant_id, start_date, end_date, stage=stage)
+            last_run = await pipeline.run(tenant_id, start_date, end_date, stage=stg)
+
+        return last_run
 
     def _get_period_config(self, tenant_id: UUID):
         """Resolve TenantPeriodConfig from the tenant's DB columns."""
