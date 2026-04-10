@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.modules.analytics.application.dto.channel_dashboard_dto import (
     BenchmarkRangeDTO,
@@ -179,7 +179,7 @@ class EmailAutomationDTO(BaseModel):
     click_to_open_rate: float = 0.0
     completion_rate: float = 0.0
     unsubscribes: int = 0
-    steps: list[AutomationStepDTO] = []
+    steps: list[AutomationStepDTO] = Field(default_factory=list)
 
 
 class EmailAutomationsResponseDTO(BaseModel):
