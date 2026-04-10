@@ -52,7 +52,9 @@ describe('AutomationStepSidebar', () => {
         onClose={() => {}}
       />,
     );
-    expect(screen.getByText('Mi email')).toBeInTheDocument();
+    // Subject is shown in both the header title and the details row,
+    // so getAllByText returns multiple matches.
+    expect(screen.getAllByText('Mi email').length).toBeGreaterThan(0);
     expect(screen.getByText(/Email 2 de 4/i)).toBeInTheDocument();
     expect(screen.getByText(/BIENVENIDA/)).toBeInTheDocument();
   });
@@ -77,10 +79,11 @@ describe('AutomationStepSidebar', () => {
     expect(screen.getByText('100')).toBeInTheDocument(); // enviados
     expect(screen.getByText('80')).toBeInTheDocument(); // abiertos
     expect(screen.getByText('20')).toBeInTheDocument(); // clicks
-    expect(screen.getByText('80.0%')).toBeInTheDocument(); // open rate
-    expect(screen.getByText('20.0%')).toBeInTheDocument(); // click rate
+    // Rates appear in both the metric box and the benchmarks row — use getAllByText.
+    expect(screen.getAllByText('80.0%').length).toBeGreaterThan(0); // open rate
+    expect(screen.getAllByText('20.0%').length).toBeGreaterThan(0); // click rate
     // CTOR = clicks/opens = 20/80 = 25%
-    expect(screen.getByText('25.0%')).toBeInTheDocument();
+    expect(screen.getAllByText('25.0%').length).toBeGreaterThan(0);
   });
 
   it('renders "ver email completo" link when previewUrl exists', () => {
