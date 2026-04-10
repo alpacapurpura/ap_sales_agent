@@ -24,7 +24,10 @@ export const offerApi = {
     }
 
     try {
-        const url = `${API_URL}/api/v1/offer/products/`;
+        // No trailing slash: Next.js rewrites strip it anyway and a "/"-anchored
+        // backend route would cause a 307 redirect loop. Backend route is now
+        // mounted at "" (not "/") so this path matches directly.
+        const url = `${API_URL}/api/v1/offer/products`;
         
         // Extended timeout to 20s for Docker/Slow environments
         const controller = new AbortController();
@@ -93,7 +96,8 @@ export const offerApi = {
        }
 
        const payload = frontendToBackend(data);
-       const res = await fetchClient(`${API_URL}/api/v1/offer/products/`, {
+       // Same trailing-slash fix as listOffers — see comment there.
+       const res = await fetchClient(`${API_URL}/api/v1/offer/products`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",

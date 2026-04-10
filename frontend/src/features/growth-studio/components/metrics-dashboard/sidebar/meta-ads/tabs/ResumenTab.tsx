@@ -292,7 +292,7 @@ export function ResumenTab({
           <div className="space-y-2">
             {campaignData.recommendations.slice(0, 3).map((rec, i) => (
               <AlertCard
-                key={rec.title ?? i}
+                key={`${rec.recommendationType}-${i}`}
                 recommendation={rec}
                 onAction={() => onNavigateToTab?.('campanas')}
               />

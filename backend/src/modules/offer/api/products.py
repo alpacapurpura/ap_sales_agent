@@ -33,7 +33,13 @@ async def get_offer_metadata():
     return {}
 
 
-@router.get("/", response_model=list[Offer])
+# NOTE: empty-string route (no trailing slash) instead of "/" — avoids a
+# 307 redirect-loop when called through Next.js rewrites. Next.js strips
+# trailing slashes from relative fetches before forwarding, so a "/"-anchored
+# route would redirect to "/x/" which the browser then tries to fetch via
+# the same rewrite, which strips the slash again, causing "TypeError: Failed
+# to fetch". Mounting the route at "" lets it match the stripped path directly.
+@router.get("", response_model=list[Offer])
 async def list_products(
     limit: int = 20,
     skip: int = 0,
@@ -45,7 +51,7 @@ async def list_products(
     return service.list_offers(user.tenant_id)
 
 
-@router.post("/", response_model=Offer)
+@router.post("", response_model=Offer)
 async def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
