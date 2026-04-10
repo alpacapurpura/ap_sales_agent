@@ -144,6 +144,93 @@ _AUTOMATION_TYPE_KEYWORDS: dict[str, list[str]] = {
 }
 
 
+def _parse_rate(raw) -> float:
+    """MailerLite returns {'float': 0.625, 'string': '62.5%'} or bare float.
+
+    Returns the rate as a percentage (0-100). Handles None and missing keys.
+    """
+    if isinstance(raw, dict):
+        return float(raw.get("float", 0.0)) * 100
+    return float(raw) * 100 if raw else 0.0
+
+
+def _extract_step_data(steps: list[dict]) -> list[dict]:
+    """Extract per-step data from MailerLite automation steps array.
+
+    Returns list of step dicts with normalized fields for storage in extra.
+    Email steps include full stats (subject, opens, clicks, etc.).
+    Delay steps include value+unit.
+    Other step types get the same base shape with zero/None values.
+    """
+    result = []
+    for idx, step in enumerate(steps):
+        step_type = step.get("type", "email")
+        base = {
+            "step_id": str(step.get("id", f"step-{idx}")),
+            "step_number": idx + 1,
+            "type": step_type,
+        }
+        if step_type == "email":
+            email_obj = step.get("email", {}) or {}
+            stats = email_obj.get("stats", {}) or {}
+            base.update(
+                {
+                    "subject": step.get("subject", "") or "",
+                    "from_name": step.get("from_name", "") or "",
+                    "emails_sent": int(stats.get("sent", 0) or 0),
+                    "unique_opens": int(stats.get("unique_opens_count", 0) or 0),
+                    "open_rate": _parse_rate(stats.get("open_rate", 0)),
+                    "unique_clicks": int(stats.get("unique_clicks_count", 0) or 0),
+                    "click_rate": _parse_rate(stats.get("click_rate", 0)),
+                    "unsubscribes": int(stats.get("unsubscribes_count", 0) or 0),
+                    "bounces": int(stats.get("hard_bounces_count", 0) or 0)
+                    + int(stats.get("soft_bounces_count", 0) or 0),
+                    "screenshot_url": email_obj.get("screenshot_url"),
+                    "preview_url": email_obj.get("preview_url"),
+                    "delay_value": None,
+                    "delay_unit": None,
+                }
+            )
+        elif step_type == "delay":
+            base.update(
+                {
+                    "subject": None,
+                    "from_name": None,
+                    "emails_sent": 0,
+                    "unique_opens": 0,
+                    "open_rate": 0.0,
+                    "unique_clicks": 0,
+                    "click_rate": 0.0,
+                    "unsubscribes": 0,
+                    "bounces": 0,
+                    "screenshot_url": None,
+                    "preview_url": None,
+                    "delay_value": int(step.get("value", 0) or 0),
+                    "delay_unit": step.get("unit"),
+                }
+            )
+        else:
+            base.update(
+                {
+                    "subject": None,
+                    "from_name": None,
+                    "emails_sent": 0,
+                    "unique_opens": 0,
+                    "open_rate": 0.0,
+                    "unique_clicks": 0,
+                    "click_rate": 0.0,
+                    "unsubscribes": 0,
+                    "bounces": 0,
+                    "screenshot_url": None,
+                    "preview_url": None,
+                    "delay_value": None,
+                    "delay_unit": None,
+                }
+            )
+        result.append(base)
+    return result
+
+
 def classify_automation_type(name: str) -> str:
     """Classify an automation into a type based on keywords in its name.
 
@@ -973,11 +1060,14 @@ class MailerLiteProvider(BaseMetricsProvider):
             extra = {
                 "source": "automation",
                 "automation_name": name,
-                "automation_status": "active",
+                "automation_status": "active"
+                if auto.get("enabled", True)
+                else "paused",
                 "automation_type": classify_automation_type(name),
                 "completed_subscribers": completed,
                 "subscribers_in_queue": in_queue,
                 "steps_count": len(steps),
+                "steps": _extract_step_data(steps),
             }
 
             # Per-automation metric rows
