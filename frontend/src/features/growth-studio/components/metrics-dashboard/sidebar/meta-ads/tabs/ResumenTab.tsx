@@ -1,14 +1,13 @@
 'use client';
 
 import { Loader2, TrendingDown, TrendingUp } from 'lucide-react';
-import { Bar, ComposedChart, CartesianGrid, Line, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
 
-import { ChartContainer } from '@/components/ui/chart';
 import { formatMoney } from '@/lib/format-money';
 import { cn } from '@/lib/utils';
 import { BenchmarkBadge } from '../../../channel-widgets/BenchmarkBadge';
 import { ChartSection } from '../../shared/ChartSection';
 import { MetaAdsMiniFunnel } from '../MetaAdsMiniFunnel';
+import { InversionChart } from '../InversionChart';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import type {
   ChannelDashboardData,
@@ -132,20 +131,9 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
     .map(name => data.kpis.find(k => k.metricName === name))
     .filter((k): k is MetricKpiData => k != null);
 
-  const spendSeries = data.timeSeries.find(ts => ts.metricName === 'spend');
-  const convSeries = data.timeSeries.find(ts => ts.metricName === 'conversions');
-  const roasSeries = data.timeSeries.find(ts => ts.metricName === 'ROAS');
-
-  const compositeData = spendSeries?.dataPoints.map(sp => {
-    const conv = convSeries?.dataPoints.find(c => c.date === sp.date);
-    const roas = roasSeries?.dataPoints.find(r => r.date === sp.date);
-    return {
-      date: sp.date.slice(5),
-      spend: sp.value,
-      conversions: conv?.value ?? 0,
-      roas: roas?.value ?? null,
-    };
-  }) ?? [];
+  const hasTimeSeries = data.timeSeries.some(
+    ts => ts.metricName === 'spend' && ts.dataPoints.length > 0,
+  );
 
   return (
     <div className="space-y-6">
@@ -215,48 +203,20 @@ export function ResumenTab({ data, isLoading, campaignData, onNavigateToTab }: R
         </ChartSection>
       )}
 
-      {/* 2-column: Chart + Funnel */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Spend vs Conversions chart */}
-        {compositeData.length > 0 && (
-          <ChartSection slug="inversion-vs-resultados">
-            <div className="space-y-2">
-              <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                Inversión vs Resultados
-              </h3>
-              <ChartContainer
-                config={{
-                  spend: { label: 'Inversión', color: 'hsl(var(--chart-1))' },
-                  conversions: { label: 'Resultados', color: 'hsl(var(--chart-2))' },
-                  roas: { label: 'ROAS', color: 'hsl(45 93% 47%)' },
-                }}
-                className="h-[250px] w-full"
-              >
-                <ComposedChart data={compositeData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" className="text-xs" />
-                  <YAxis yAxisId="left" className="text-xs" />
-                  <YAxis yAxisId="right" orientation="right" className="text-xs" />
-                  <RechartsTooltip />
-                  <Bar yAxisId="left" dataKey="spend" fill="var(--color-spend)" radius={[2, 2, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="conversions" stroke="var(--color-conversions)" strokeWidth={2} dot={false} />
-                  <Line yAxisId="right" type="monotone" dataKey="roas" stroke="var(--color-roas)" strokeWidth={1.5} strokeDasharray="6 4" dot={false} />
-                </ComposedChart>
-              </ChartContainer>
-            </div>
-          </ChartSection>
-        )}
-
-        {/* Full Funnel */}
-        <ChartSection slug="embudo">
-          <div className="space-y-2">
-            <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Embudo de conversión
-            </h3>
-            <MetaAdsMiniFunnel steps={data.funnel.steps} />
-          </div>
+      {/* Inversión y Retorno — full width */}
+      {hasTimeSeries && (
+        <ChartSection slug="inversion-vs-resultados">
+          <InversionChart timeSeries={data.timeSeries} />
         </ChartSection>
-      </div>
+      )}
+
+      {/* Embudo de conversión — separate section */}
+      <ChartSection slug="embudo">
+        <div className="rounded-lg border bg-card p-5 space-y-3">
+          <h3 className="text-sm font-medium">Embudo de conversión</h3>
+          <MetaAdsMiniFunnel steps={data.funnel.steps} />
+        </div>
+      </ChartSection>
     </div>
   );
 }

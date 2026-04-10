@@ -111,9 +111,10 @@ describe('ResumenTab', () => {
 
   it('renders KPI cards with data', () => {
     render(<ResumenTab data={makeDashboardData()} isLoading={false} />);
-    // Verify display names appear
-    expect(screen.getByText('Inversión')).toBeInTheDocument();
-    expect(screen.getByText('ROAS')).toBeInTheDocument();
+    // Verify display names appear (Inversión and ROAS also appear in the chart legend,
+    // so we assert that at least one instance exists)
+    expect(screen.getAllByText('Inversión').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('ROAS').length).toBeGreaterThan(0);
     expect(screen.getByText('CTR')).toBeInTheDocument();
     expect(screen.getByText('Alcance')).toBeInTheDocument();
   });
@@ -186,9 +187,10 @@ describe('ResumenTab', () => {
     expect(screen.getAllByText('Resultados').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders spend vs conversions chart when timeSeries has data', () => {
+  it('renders the "Inversión y Retorno" chart when timeSeries has data', () => {
     render(<ResumenTab data={makeDashboardData()} isLoading={false} />);
-    expect(screen.getByText('Inversión vs Resultados')).toBeInTheDocument();
+    // Title is rendered inside the ChartInfoTooltip button
+    expect(screen.getByText('Inversión y Retorno')).toBeInTheDocument();
   });
 
   it('renders alert cards when campaignData has recommendations', () => {
