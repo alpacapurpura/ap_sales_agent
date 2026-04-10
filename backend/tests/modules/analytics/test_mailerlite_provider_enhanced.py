@@ -1,9 +1,27 @@
 """Tests for enhanced Mailerlite provider extraction."""
 
+import asyncio
+import uuid
+from datetime import date
+from unittest.mock import AsyncMock
+
+from src.modules.analytics.domain.extraction_result import ExtractionResult
+from src.modules.analytics.infrastructure.providers.base import ExtractedMetric
 from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
     MAILERLITE_METRIC_MAP,
+    MailerLiteProvider,
     classify_campaign_type,
 )
+
+TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
+
+
+def _run(coro):
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
 
 
 class TestMailerliteMetricMap:
@@ -140,6 +158,87 @@ class TestCampaignMetadataInExtra:
         assert second["campaign_subject"] == "Nuevo curso disponible"
         assert second["campaign_type"] == "lanzamiento"
 
+    def test_aggregate_emits_per_campaign_rows_with_campaign_id(self):
+        """BUG REGRESSION: _aggregate_campaign_metrics must emit per-campaign
+        metric rows with campaign_id set, so the Campañas tab can query them.
+
+        Root cause: the function only emitted daily aggregates (campaign_id=None),
+        but _get_campaign_list() filters WHERE campaign_id IS NOT NULL.
+        """
+        from datetime import date
+
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            MailerLiteProvider,
+        )
+
+        provider = MailerLiteProvider()
+
+        campaigns = [
+            {
+                "id": "camp_001",
+                "name": "Newsletter Semanal #5",
+                "emails": [{"subject": "Novedades de abril"}],
+                "stats": {
+                    "sent": 100,
+                    "unique_opens_count": 40,
+                    "open_rate": 0.4,
+                    "click_rate": 0.1,
+                },
+            },
+            {
+                "id": "camp_002",
+                "name": "Lanzamiento Curso AI",
+                "emails": [{"subject": "Nuevo curso disponible"}],
+                "stats": {
+                    "sent": 200,
+                    "unique_opens_count": 80,
+                    "open_rate": 0.4,
+                    "click_rate": 0.2,
+                },
+            },
+        ]
+
+        metrics = provider._aggregate_campaign_metrics(
+            campaigns,
+            slug="email-nurture",
+            metric_date=date(2026, 4, 1),
+            known_groups_set=set(),
+        )
+
+        # Per-campaign rows must exist with campaign_id set
+        per_campaign = [m for m in metrics if m.campaign_id is not None]
+        assert len(per_campaign) > 0, (
+            "No per-campaign metrics emitted — Campañas tab will be empty"
+        )
+
+        # Check campaign_001 has emails_sent metric
+        camp1_sent = [
+            m
+            for m in per_campaign
+            if m.campaign_id == "camp_001" and m.metric_name == "emails_sent"
+        ]
+        assert len(camp1_sent) == 1
+        assert camp1_sent[0].value == 100
+
+        # Check campaign_002 has emails_sent metric
+        camp2_sent = [
+            m
+            for m in per_campaign
+            if m.campaign_id == "camp_002" and m.metric_name == "emails_sent"
+        ]
+        assert len(camp2_sent) == 1
+        assert camp2_sent[0].value == 200
+
+        # Per-campaign rows must include metadata in extra
+        camp1_metric = camp1_sent[0]
+        assert camp1_metric.extra.get("campaign_name") == "Newsletter Semanal #5"
+        assert camp1_metric.extra.get("campaign_subject") == "Novedades de abril"
+        assert camp1_metric.extra.get("campaign_type") == "newsletter"
+
+        # Daily aggregates (campaign_id=None) should still exist
+        daily_agg = [m for m in metrics if m.campaign_id is None]
+        assert len(daily_agg) > 0, "Daily aggregate metrics must still be emitted"
+
     def test_campaign_without_emails_field(self):
         """Campaign without emails field should default to empty subject."""
         from datetime import date
@@ -170,3 +269,289 @@ class TestCampaignMetadataInExtra:
         assert campaign_meta["campaign_name"] == "Simple campaign"
         assert campaign_meta["campaign_subject"] == ""
         assert campaign_meta["campaign_type"] == "contenido"
+
+
+class TestExtractMetricsDailyOptimized:
+    """extract_metrics_daily must batch the full range, not loop day-by-day."""
+
+    def test_calls_extract_metrics_once_for_multiday_range(self):
+        """For a 7-day range, extract_metrics should be called ONCE with the
+        full range, not 7 times with single-day ranges.
+
+        The base class default loops day-by-day (7 calls). The override
+        should call extract_metrics once with (start_date, end_date).
+        """
+        provider = MailerLiteProvider()
+
+        mock_result = ExtractionResult(
+            metrics=[
+                ExtractedMetric(
+                    provider="mailerlite",
+                    channel_slug="email-nurture",
+                    metric_name="emails_sent",
+                    value=100,
+                    unit="count",
+                    date=date(2026, 4, 1),
+                ),
+            ]
+        )
+        provider.extract_metrics = AsyncMock(return_value=mock_result)
+
+        result = _run(
+            provider.extract_metrics_daily(
+                tenant_id=TENANT_ID,
+                credentials={"api_key": "test"},
+                start_date=date(2026, 4, 1),
+                end_date=date(2026, 4, 7),
+                stage="nurture",
+            )
+        )
+
+        # Must be called ONCE with the full range, not 7 times
+        assert provider.extract_metrics.call_count == 1, (
+            f"Expected 1 call (batched), got {provider.extract_metrics.call_count} "
+            f"(day-by-day). Override extract_metrics_daily to batch."
+        )
+        call_kwargs = provider.extract_metrics.call_args.kwargs
+        assert call_kwargs["start_date"] == date(2026, 4, 1)
+        assert call_kwargs["end_date"] == date(2026, 4, 7)
+
+        # Metrics from the single call must be returned
+        assert len(result.metrics) == 1
+        assert result.metrics[0].metric_name == "emails_sent"
+
+    def test_passes_all_parameters_through(self):
+        """The override must forward tenant_id, credentials, and stage."""
+        provider = MailerLiteProvider()
+        provider.extract_metrics = AsyncMock(return_value=ExtractionResult())
+
+        creds = {"api_key": "key123", "stage_group_mapping": {"nurture": ["g1"]}}
+
+        _run(
+            provider.extract_metrics_daily(
+                tenant_id=TENANT_ID,
+                credentials=creds,
+                start_date=date(2026, 4, 1),
+                end_date=date(2026, 4, 3),
+                stage="capture",
+            )
+        )
+
+        call_kwargs = provider.extract_metrics.call_args.kwargs
+        assert call_kwargs["tenant_id"] == TENANT_ID
+        assert call_kwargs["credentials"] == creds
+        assert call_kwargs["stage"] == "capture"
+
+    def test_propagates_failures(self):
+        """Failures from extract_metrics must propagate through."""
+        from src.modules.analytics.domain.extraction_result import SubExtractorFailure
+
+        provider = MailerLiteProvider()
+        failure = SubExtractorFailure(
+            extractor_name="mailerlite_campaigns",
+            error="API timeout",
+            error_type="timeout",
+        )
+        provider.extract_metrics = AsyncMock(
+            return_value=ExtractionResult(failures=[failure])
+        )
+
+        result = _run(
+            provider.extract_metrics_daily(
+                tenant_id=TENANT_ID,
+                credentials={"api_key": "test"},
+                start_date=date(2026, 4, 1),
+                end_date=date(2026, 4, 7),
+                stage="nurture",
+            )
+        )
+
+        assert len(result.failures) == 1
+        assert result.failures[0].extractor_name == "mailerlite_campaigns"
+
+
+# ---------------------------------------------------------------------------
+# Automation type classification
+# ---------------------------------------------------------------------------
+
+
+class TestAutomationTypeClassification:
+    def test_welcome_from_bienvenida(self):
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            classify_automation_type,
+        )
+
+        assert classify_automation_type("BIENVENIDA: nuevas inscritas") == "welcome"
+
+    def test_welcome_from_english(self):
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            classify_automation_type,
+        )
+
+        assert classify_automation_type("Welcome new subscribers") == "welcome"
+
+    def test_nurture_from_nutricion(self):
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            classify_automation_type,
+        )
+
+        assert classify_automation_type("Nutrición de leads") == "nurture"
+
+    def test_reengagement(self):
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            classify_automation_type,
+        )
+
+        assert classify_automation_type("Re-engagement campaña") == "reengagement"
+
+    def test_post_compra(self):
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            classify_automation_type,
+        )
+
+        assert classify_automation_type("Post-compra seguimiento") == "post_compra"
+
+    def test_default_is_workflow(self):
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            classify_automation_type,
+        )
+
+        assert classify_automation_type("Visionaras Linktree Workflow") == "workflow"
+
+    def test_case_insensitive(self):
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            classify_automation_type,
+        )
+
+        assert classify_automation_type("bienvenida suscriptores") == "welcome"
+
+
+# ---------------------------------------------------------------------------
+# Automation extraction — per-automation rows
+# ---------------------------------------------------------------------------
+
+
+class TestExtractAutomationsPerRow:
+    """_extract_automations must emit per-automation rows like campaigns do."""
+
+    MOCK_AUTOMATIONS_RESPONSE = {
+        "data": [
+            {
+                "id": "auto_001",
+                "name": "BIENVENIDA: nuevas inscritas",
+                "enabled": True,
+                "steps_count": 2,
+                "stats": {
+                    "sent": 11,
+                    "completed_subscribers_count": 11,
+                    "subscribers_in_queue_count": 0,
+                    "open_rate": {"float": 1.0, "string": "100%"},
+                    "click_rate": {"float": 0.3636, "string": "36.36%"},
+                    "click_to_open_rate": {"float": 0.3636, "string": "36.36%"},
+                    "unsubscribes_count": 0,
+                },
+                "triggers": [{}],
+                "steps": [{}, {}],
+            },
+            {
+                "id": "auto_002",
+                "name": "LISTA DE ESPERA WORKFLOW",
+                "enabled": True,
+                "steps_count": 11,
+                "stats": {
+                    "sent": 16,
+                    "completed_subscribers_count": 0,
+                    "subscribers_in_queue_count": 9,
+                    "open_rate": {"float": 0.625, "string": "62.5%"},
+                    "click_rate": {"float": 0.25, "string": "25%"},
+                    "click_to_open_rate": {"float": 0.4, "string": "40%"},
+                    "unsubscribes_count": 1,
+                },
+                "triggers": [{}],
+                "steps": [{} for _ in range(11)],
+            },
+        ]
+    }
+
+    def _run_extract(self, automations_response=None):
+        """Run _extract_automations with mocked _api_get."""
+        from unittest.mock import MagicMock, patch
+
+        if automations_response is None:
+            automations_response = self.MOCK_AUTOMATIONS_RESPONSE
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = automations_response
+        mock_response.status_code = 200
+
+        async def fake_api_get(*args, **kwargs):
+            return mock_response
+
+        provider = MailerLiteProvider()
+        client = AsyncMock()  # not used directly — _api_get is patched
+
+        with patch(
+            "src.modules.analytics.infrastructure.providers.mailerlite_provider._api_get",
+            side_effect=fake_api_get,
+        ):
+            return _run(
+                provider._extract_automations(
+                    client, {}, {}, date(2026, 4, 1), date(2026, 4, 10), "email-nurture"
+                )
+            )
+
+    def test_emits_per_automation_rows_with_campaign_id(self):
+        metrics = self._run_extract()
+
+        per_auto = [m for m in metrics if m.campaign_id is not None]
+        assert len(per_auto) > 0, "Must emit per-automation rows with campaign_id"
+
+        auto_001_metrics = [m for m in per_auto if m.campaign_id == "auto_001"]
+        assert len(auto_001_metrics) > 0
+
+        sent = next(
+            (m for m in auto_001_metrics if m.metric_name == "emails_sent"), None
+        )
+        assert sent is not None
+        assert sent.value == 11
+
+    def test_per_automation_rows_have_source_in_extra(self):
+        metrics = self._run_extract()
+        per_auto = [m for m in metrics if m.campaign_id is not None]
+        for m in per_auto:
+            assert m.extra.get("source") == "automation", (
+                f"Metric {m.metric_name} for {m.campaign_id} missing source=automation"
+            )
+
+    def test_per_automation_rows_have_metadata(self):
+        metrics = self._run_extract()
+        auto_001 = [m for m in metrics if m.campaign_id == "auto_001"]
+        first = auto_001[0]
+        assert first.extra["automation_name"] == "BIENVENIDA: nuevas inscritas"
+        assert first.extra["automation_status"] == "active"
+        assert first.extra["automation_type"] == "welcome"
+        assert first.extra["completed_subscribers"] == 11
+        assert first.extra["subscribers_in_queue"] == 0
+
+    def test_rates_converted_to_percentage(self):
+        metrics = self._run_extract()
+        auto_001_open = next(
+            (
+                m
+                for m in metrics
+                if m.campaign_id == "auto_001" and m.metric_name == "open_rate"
+            ),
+            None,
+        )
+        assert auto_001_open is not None
+        assert auto_001_open.value == 100.0  # 1.0 * 100
+        assert auto_001_open.unit == "percentage"
+
+    def test_channel_slug_is_email_nurture(self):
+        metrics = self._run_extract()
+        for m in metrics:
+            assert m.channel_slug == "email-nurture"
+
+    def test_empty_automations_returns_empty(self):
+        metrics = self._run_extract(automations_response={"data": []})
+        assert metrics == []

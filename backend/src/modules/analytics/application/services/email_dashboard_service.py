@@ -6,11 +6,12 @@ Never imports provider-specific code.
 
 from __future__ import annotations
 
+import json
 from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import func, select
+from sqlalchemy import String, cast, func, select
 
 from src.modules.analytics.application.dto.channel_dashboard_dto import (
     BenchmarkRangeDTO,
@@ -23,6 +24,7 @@ from src.modules.analytics.application.dto.email_dashboard_dto import (
     ActivityHeatmapCellDTO,
     BounceBreakdownDTO,
     EmailAudienceResponseDTO,
+    EmailAutomationDTO,
     EmailAutomationsResponseDTO,
     EmailCampaignDTO,
     EmailCampaignsResponseDTO,
@@ -415,46 +417,139 @@ class EmailDashboardService:
         tenant_id: UUID,
         period: str = "30d",
     ) -> EmailAutomationsResponseDTO:
-        """Return automation performance data.
+        """Return per-automation performance data from official_metrics.
 
-        Currently returns aggregate metrics from official_metrics.
-        Per-automation detail requires future ETL enhancement.
+        Reads rows where extra->>'source' = 'automation' and groups by
+        campaign_id (= automation_id from Mailerlite).
         """
         days = PERIOD_DAYS.get(period, 30)
         end = date.today()
         start = end - timedelta(days=days)
 
-        # Get automation stage metrics (email-delivery + email-onboarding)
-        delivery = self._repo.get_channel_metrics_for_period(
-            tenant_id, "email-delivery", start, end
-        )
-        onboarding = self._repo.get_channel_metrics_for_period(
-            tenant_id, "email-onboarding", start, end
+        automations = await self._get_automation_list(tenant_id, start, end)
+
+        # Build KPIs from automation data
+        total_sent = sum(a.emails_sent for a in automations)
+        total_completed = sum(a.completed for a in automations)
+        auto_count = len(automations)
+
+        avg_open = (
+            sum(a.open_rate for a in automations) / auto_count if auto_count else 0
         )
 
-        # Merge all automation metrics
-        auto_metrics: dict[str, float] = {}
-        for source in [delivery, onboarding]:
-            for k, v in source.items():
-                if k in ("emails_sent", "automation_completed"):
-                    auto_metrics[k] = auto_metrics.get(k, 0) + v
-                elif k in ("open_rate", "click_rate", "completion_rate"):
-                    # Average rates (simplified)
-                    auto_metrics[k] = (
-                        (auto_metrics.get(k, 0) + v) / 2 if k in auto_metrics else v
-                    )
-
-        kpis = self._build_kpis(
-            auto_metrics,
-            {},
-            ["emails_sent", "open_rate", "click_rate", "completion_rate"],
-        )
+        kpis = [
+            MetricKpiDTO(
+                metric_name="automation_emails_sent",
+                display_name="Emails Automatizados",
+                current_value=total_sent,
+                previous_value=None,
+                delta_pct=None,
+                delta_absolute=None,
+                unit="count",
+                higher_is_better=True,
+            ),
+            MetricKpiDTO(
+                metric_name="automation_avg_open_rate",
+                display_name="Open Rate Promedio",
+                current_value=round(avg_open, 1),
+                previous_value=None,
+                delta_pct=None,
+                delta_absolute=None,
+                unit="percentage",
+                higher_is_better=True,
+            ),
+            MetricKpiDTO(
+                metric_name="automation_completion_rate",
+                display_name="Completación",
+                current_value=total_completed,
+                previous_value=None,
+                delta_pct=None,
+                delta_absolute=None,
+                unit="count",
+                higher_is_better=True,
+            ),
+        ]
 
         return EmailAutomationsResponseDTO(
             period=period,
             kpis=kpis,
-            automations=[],  # Per-automation detail in future ETL
+            automations=automations,
         )
+
+    async def _get_automation_list(
+        self,
+        tenant_id: UUID,
+        start: date,
+        end: date,
+    ) -> list[EmailAutomationDTO]:
+        """Build automation list from official_metrics with campaign_id grouping.
+
+        Filters by extra->>'source' = 'automation' to distinguish from campaigns.
+        """
+        stmt = (
+            select(
+                OfficialMetricModel.campaign_id,
+                OfficialMetricModel.metric_name,
+                func.sum(OfficialMetricModel.value).label("total_value"),
+                func.max(cast(OfficialMetricModel.extra, String)).label("extra"),
+                func.max(OfficialMetricModel.metric_date).label("last_date"),
+            )
+            .where(
+                OfficialMetricModel.tenant_id == tenant_id,
+                OfficialMetricModel.channel_slug == CHANNEL_SLUG,
+                OfficialMetricModel.metric_date >= start,
+                OfficialMetricModel.metric_date <= end,
+                OfficialMetricModel.campaign_id.isnot(None),
+                OfficialMetricModel.campaign_id != "",
+                OfficialMetricModel.extra.op("->>")("source") == "automation",
+            )
+            .group_by(
+                OfficialMetricModel.campaign_id,
+                OfficialMetricModel.metric_name,
+            )
+        )
+        result = self._db.execute(stmt)
+        rows = result.all()
+
+        # Group by campaign_id (= automation_id)
+        autos_map: dict[str, dict] = {}
+        for row in rows:
+            aid = row.campaign_id
+            if aid not in autos_map:
+                extra = json.loads(row.extra) if row.extra else {}
+                autos_map[aid] = {
+                    "automation_id": aid,
+                    "name": extra.get("automation_name", aid),
+                    "automation_type": extra.get("automation_type", "workflow"),
+                    "status": extra.get("automation_status", "active"),
+                    "completed": int(extra.get("completed_subscribers", 0)),
+                    "active_subscribers": int(extra.get("subscribers_in_queue", 0)),
+                    "metrics": {},
+                }
+            metrics_dict = autos_map[aid]["metrics"]
+            if isinstance(metrics_dict, dict):
+                metrics_dict[row.metric_name] = row.total_value
+
+        automations: list[EmailAutomationDTO] = []
+        for adata in autos_map.values():
+            m = adata.get("metrics", {})
+            if not isinstance(m, dict):
+                m = {}
+            automations.append(
+                EmailAutomationDTO(
+                    automation_id=str(adata["automation_id"]),
+                    name=str(adata["name"]),
+                    automation_type=str(adata["automation_type"]),
+                    status=str(adata["status"]),
+                    emails_sent=int(m.get("emails_sent", 0)),
+                    open_rate=round(float(m.get("open_rate", 0)), 1),
+                    click_rate=round(float(m.get("click_rate", 0)), 1),
+                    completion_rate=round(float(m.get("click_to_open_rate", 0)), 1),
+                    completed=int(adata.get("completed", 0)),
+                    active_subscribers=int(adata.get("active_subscribers", 0)),
+                )
+            )
+        return automations
 
     # -- Audience tab ----------------------------------------------------------
 
@@ -625,8 +720,11 @@ class EmailDashboardService:
 
         alerts = self._generate_health_alerts(current)
 
+        campaigns_count = self._count_campaigns_from_extra(tenant_id, start, end)
+
         return EmailHealthResponseDTO(
             period=period,
+            campaigns_count=campaigns_count,
             health_score=health,
             kpis=kpis,
             bounce_breakdown=bounce_breakdown,
@@ -697,6 +795,32 @@ class EmailDashboardService:
         )
 
     # -- Private helpers -------------------------------------------------------
+
+    def _count_campaigns_from_extra(
+        self,
+        tenant_id: UUID,
+        start: date,
+        end: date,
+    ) -> int:
+        """Count campaigns stored in the extra JSON of emails_sent rows."""
+        stmt = select(OfficialMetricModel.extra).where(
+            OfficialMetricModel.tenant_id == tenant_id,
+            OfficialMetricModel.channel_slug == CHANNEL_SLUG,
+            OfficialMetricModel.metric_name == "emails_sent",
+            OfficialMetricModel.metric_date >= start,
+            OfficialMetricModel.metric_date <= end,
+        )
+        result = self._db.execute(stmt)
+        total = 0
+        for (extra,) in result.all():
+            if extra and isinstance(extra, dict):
+                campaigns = extra.get("campaigns", [])
+                total += len(campaigns)
+            elif extra and isinstance(extra, str):
+                parsed = json.loads(extra)
+                campaigns = parsed.get("campaigns", [])
+                total += len(campaigns)
+        return total
 
     def _build_kpis(
         self,
@@ -816,7 +940,7 @@ class EmailDashboardService:
                 OfficialMetricModel.campaign_id,
                 OfficialMetricModel.metric_name,
                 func.sum(OfficialMetricModel.value).label("total_value"),
-                func.max(OfficialMetricModel.extra).label("extra"),
+                func.max(cast(OfficialMetricModel.extra, String)).label("extra"),
                 func.max(OfficialMetricModel.metric_date).label("last_date"),
             )
             .where(
@@ -840,7 +964,7 @@ class EmailDashboardService:
         for row in rows:
             cid = row.campaign_id
             if cid not in campaigns_map:
-                extra = row.extra or {}
+                extra = json.loads(row.extra) if row.extra else {}
                 campaigns_map[cid] = {
                     "campaign_id": cid,
                     "campaign_name": extra.get("campaign_name", cid),
