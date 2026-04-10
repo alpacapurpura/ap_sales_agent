@@ -22,6 +22,7 @@ from src.modules.analytics.application.dto.channel_dashboard_dto import (
 )
 from src.modules.analytics.application.dto.email_dashboard_dto import (
     ActivityHeatmapCellDTO,
+    AutomationStepDTO,
     BounceBreakdownDTO,
     EmailAudienceResponseDTO,
     EmailAutomationDTO,
@@ -485,6 +486,11 @@ class EmailDashboardService:
         """Build automation list from official_metrics with campaign_id grouping.
 
         Filters by extra->>'source' = 'automation' to distinguish from campaigns.
+        Bug fixes applied:
+        - active_subscribers = completed + in_queue (was just in_queue)
+        - completion_rate = actual (was CTOR)
+        - status reads from extra (was hardcoded 'active')
+        Populates new fields: click_to_open_rate, unsubscribes, steps.
         """
         stmt = (
             select(
@@ -517,13 +523,16 @@ class EmailDashboardService:
             aid = row.campaign_id
             if aid not in autos_map:
                 extra = json.loads(row.extra) if row.extra else {}
+                completed = int(extra.get("completed_subscribers", 0))
+                in_queue = int(extra.get("subscribers_in_queue", 0))
                 autos_map[aid] = {
                     "automation_id": aid,
                     "name": extra.get("automation_name", aid),
                     "automation_type": extra.get("automation_type", "workflow"),
                     "status": extra.get("automation_status", "active"),
-                    "completed": int(extra.get("completed_subscribers", 0)),
-                    "active_subscribers": int(extra.get("subscribers_in_queue", 0)),
+                    "completed": completed,
+                    "ingresados": completed + in_queue,  # FIX: was just in_queue
+                    "steps_raw": extra.get("steps", []),
                     "metrics": {},
                 }
             metrics_dict = autos_map[aid]["metrics"]
@@ -535,6 +544,19 @@ class EmailDashboardService:
             m = adata.get("metrics", {})
             if not isinstance(m, dict):
                 m = {}
+            completed = int(adata.get("completed", 0))
+            ingresados = int(adata.get("ingresados", 0))
+            completion_rate = (
+                round(completed / ingresados * 100, 1) if ingresados > 0 else 0.0
+            )
+
+            steps_raw = adata.get("steps_raw", [])
+            steps = (
+                [AutomationStepDTO(**s) for s in steps_raw]
+                if isinstance(steps_raw, list)
+                else []
+            )
+
             automations.append(
                 EmailAutomationDTO(
                     automation_id=str(adata["automation_id"]),
@@ -544,9 +566,12 @@ class EmailDashboardService:
                     emails_sent=int(m.get("emails_sent", 0)),
                     open_rate=round(float(m.get("open_rate", 0)), 1),
                     click_rate=round(float(m.get("click_rate", 0)), 1),
-                    completion_rate=round(float(m.get("click_to_open_rate", 0)), 1),
-                    completed=int(adata.get("completed", 0)),
-                    active_subscribers=int(adata.get("active_subscribers", 0)),
+                    click_to_open_rate=round(float(m.get("click_to_open_rate", 0)), 1),
+                    completion_rate=completion_rate,
+                    completed=completed,
+                    active_subscribers=ingresados,
+                    unsubscribes=int(m.get("unsubscribes", 0)),
+                    steps=steps,
                 )
             )
         return automations

@@ -192,7 +192,8 @@ class TestGetAutomations:
         assert auto.open_rate == 100.0
         assert auto.click_rate == 36.4  # rounded to 1 decimal
         assert auto.completed == 11
-        assert auto.active_subscribers == 0
+        # After bug fix: active_subscribers = completed + in_queue (was just in_queue)
+        assert auto.active_subscribers == 11
 
     def test_kpis_computed(self):
         service = _make_service_with_rows(_make_auto_rows())
