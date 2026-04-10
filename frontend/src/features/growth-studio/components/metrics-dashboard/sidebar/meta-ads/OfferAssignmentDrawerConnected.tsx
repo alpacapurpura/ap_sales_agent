@@ -13,7 +13,7 @@ import { useMemo } from 'react';
 
 import {
   useAssociations,
-  useMetricsByOffer,
+  useOffersForAssignment,
 } from '../../../../api/offer-association-api';
 import { useCampaignPerformance } from '../../../../api/campaigns-api';
 import type { MetaAdsPeriod } from '../../../../types/metrics';
@@ -35,10 +35,12 @@ export function OfferAssignmentDrawerConnected({
   onOpenChange,
   period = '30d',
 }: OfferAssignmentDrawerConnectedProps) {
-  // Always subscribe so data is already cached when the drawer opens
+  // Always subscribe so data is already cached when the drawer opens.
+  // IMPORTANT: offers come from /api/v1/advertising/offers (ALL active offers),
+  // NOT from /metrics-by-offer (which only returns offers with associations).
   const { data: campaignData } = useCampaignPerformance(period);
   const { data: associations } = useAssociations();
-  const { data: metricsByOffer } = useMetricsByOffer(period);
+  const { data: availableOffers } = useOffersForAssignment();
 
   const associationByCampaign = useMemo(() => {
     const map = new Map<string, Association>();
@@ -76,13 +78,13 @@ export function OfferAssignmentDrawerConnected({
 
   const offers = useMemo<AssignmentOffer[]>(
     () =>
-      (metricsByOffer?.offers ?? []).map(o => ({
-        id: o.offerId,
-        name: o.offerName,
+      (availableOffers ?? []).map(o => ({
+        id: o.id,
+        name: o.name,
         archetype: o.archetype,
         expectedMetricLabelEs: o.expectedMetricLabelEs,
       })),
-    [metricsByOffer?.offers],
+    [availableOffers],
   );
 
   return (

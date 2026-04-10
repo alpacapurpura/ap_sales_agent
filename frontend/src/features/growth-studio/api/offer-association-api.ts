@@ -11,6 +11,7 @@ import type {
   AssociationsFilters,
   MetaHealthCheck,
   MetricsByOffer,
+  OfferSummary,
 } from '../types/offer-association';
 import type { MetaAdsPeriod } from '../types/metrics';
 
@@ -166,6 +167,16 @@ export async function fetchMetricsByOffer(
   return camelizeKeys<MetricsByOffer>(json);
 }
 
+export async function fetchOffersForAssignment(
+  token: string,
+): Promise<OfferSummary[]> {
+  const url = `${API_URL}/api/v1/advertising/offers`;
+  const res = await fetchClient(url, { headers: authHeaders(token) });
+  if (!res.ok) throw new Error(`fetchOffersForAssignment failed: ${res.status}`);
+  const json: unknown = await res.json();
+  return camelizeKeys<OfferSummary[]>(json);
+}
+
 export async function fetchCampaignTemplateForOffer(
   token: string,
   offerId: string,
@@ -283,6 +294,20 @@ export function useMetricsByOffer(
       const token = await getToken();
       if (!token) throw new Error('No auth token');
       return fetchMetricsByOffer(token, period);
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useOffersForAssignment(enabled = true) {
+  const { getToken } = useAuth();
+  return useQuery({
+    queryKey: ['advertising', 'offers-for-assignment'],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error('No auth token');
+      return fetchOffersForAssignment(token);
     },
     enabled,
     staleTime: 5 * 60 * 1000,

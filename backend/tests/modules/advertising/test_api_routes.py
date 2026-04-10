@@ -228,3 +228,57 @@ class TestCampaignTemplateEndpoint:
                 params={"offer_id": str(uuid4())},
             )
         assert resp.status_code == 404
+
+
+class TestOffersForAssignmentEndpoint:
+    def test_returns_all_active_offers(self, db, tenant_id, make_offer):
+        """Endpoint must list EVERY active offer so the dropdown is populated."""
+        make_offer(
+            db,
+            tenant_id=tenant_id,
+            name="Curso Digital",
+            archetype="PROGRAMA",
+            checkout_page_url="https://buy/curso",
+        )
+        make_offer(
+            db,
+            tenant_id=tenant_id,
+            name="Asesoría 1:1",
+            archetype="SERVICIO",
+            onboarding_action="BOOK_KICKOFF_CALL",
+        )
+        make_offer(
+            db,
+            tenant_id=tenant_id,
+            name="Guía Lead Magnet",
+            archetype="PRODUCTO",
+            is_lead_magnet=True,
+        )
+        # Archived offers should NOT appear
+        make_offer(
+            db,
+            tenant_id=tenant_id,
+            name="Vieja Archivada",
+            archetype="PRODUCTO",
+            status="archived",
+        )
+
+        client = _build_client(db, tenant_id)
+        resp = client.get("/api/v1/advertising/offers")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data) == 3  # archived excluded
+        names = {o["name"] for o in data}
+        assert names == {"Curso Digital", "Asesoría 1:1", "Guía Lead Magnet"}
+        # Each offer has an expected metric derived from its properties
+        by_name = {o["name"]: o for o in data}
+        assert by_name["Asesoría 1:1"]["expectedMetric"] == "call_booked"
+        assert by_name["Curso Digital"]["expectedMetric"] == "purchase"
+        assert by_name["Guía Lead Magnet"]["expectedMetric"] == "lead"
+        assert by_name["Guía Lead Magnet"]["isLeadMagnet"] is True
+
+    def test_empty_when_tenant_has_no_offers(self, db, tenant_id):
+        client = _build_client(db, tenant_id)
+        resp = client.get("/api/v1/advertising/offers")
+        assert resp.status_code == 200
+        assert resp.json() == []

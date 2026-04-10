@@ -13,6 +13,7 @@ from src.modules.advertising.application.dto.association_dto import (
     AssociationCreateDTO,
     AssociationDTO,
     AssociationSuggestionDTO,
+    OfferSummaryDTO,
 )
 from src.modules.advertising.application.dto.campaign_template_dto import (
     AdCampaignTemplateDTO,
@@ -32,6 +33,8 @@ from src.modules.advertising.application.services import (
 from src.modules.advertising.domain.enums import (
     AssociationTargetType,
     AssociationType,
+    expected_metric_label_es,
+    resolve_expected_metric,
 )
 from src.modules.advertising.infrastructure.repositories.association_repository import (
     AssociationRepository,
@@ -171,6 +174,44 @@ async def list_associations(
     rows = repo.list_active(tenant, target_type=ttype, offer_id=offer_id)
     port = _get_offer_port(db)
     return [await _association_to_dto(r, port, tenant) for r in rows]
+
+
+@router.get("/offers", response_model=list[OfferSummaryDTO])
+async def list_offers_for_assignment(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[OfferSummaryDTO]:
+    """List every active offer from the Offer Studio for the assignment drawer.
+
+    Unlike /metrics-by-offer (which only returns offers that already have
+    associations), this endpoint returns ALL active offers so users can pick
+    any of them when associating a campaign.
+    """
+    tenant = _tenant_id(user)
+    port = _get_offer_port(db)
+    offers = await port.get_offers_by_tenant(tenant)
+    active_offers = [
+        o for o in offers if (o.status or "active") not in {"archived", "draft"}
+    ]
+    out: list[OfferSummaryDTO] = []
+    for o in active_offers:
+        expected = resolve_expected_metric(
+            archetype=o.offer_type,
+            onboarding_action=o.onboarding_action,
+            is_lead_magnet=o.is_lead_magnet,
+            has_checkout_url=bool(o.checkout_page_url),
+        )
+        out.append(
+            OfferSummaryDTO(
+                id=o.id,
+                name=o.public_name,
+                archetype=o.offer_type,
+                expected_metric=expected.value,
+                expected_metric_label_es=expected_metric_label_es(expected.value),
+                is_lead_magnet=o.is_lead_magnet,
+            )
+        )
+    return out
 
 
 @router.post("/associations/auto-detect", response_model=list[AssociationSuggestionDTO])

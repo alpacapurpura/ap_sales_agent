@@ -36,6 +36,19 @@ export type RecommendationType =
   | 'assign_offer';
 
 // ---------------------------------------------------------------------------
+// Offer summary (for the assignment drawer dropdown)
+// ---------------------------------------------------------------------------
+
+export interface OfferSummary {
+  id: string;
+  name: string;
+  archetype: string;
+  expectedMetric: ExpectedMetric;
+  expectedMetricLabelEs: string;
+  isLeadMagnet: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Associations
 // ---------------------------------------------------------------------------
 
