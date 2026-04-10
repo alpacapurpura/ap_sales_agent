@@ -555,3 +555,163 @@ class TestExtractAutomationsPerRow:
     def test_empty_automations_returns_empty(self):
         metrics = self._run_extract(automations_response={"data": []})
         assert metrics == []
+
+
+class TestAutomationStepExtraction:
+    """Tests for per-step email data extraction in _extract_automations."""
+
+    def _build_mock_automation(self) -> dict:
+        """Build a mock MailerLite /automations response object with steps."""
+        return {
+            "id": "auto-123",
+            "name": "BIENVENIDA: nuevas inscritas",
+            "enabled": True,
+            "stats": {
+                "sent": 18,
+                "completed_subscribers_count": 4,
+                "subscribers_in_queue_count": 5,
+                "open_rate": {"float": 0.85, "string": "85.0%"},
+                "click_rate": {"float": 0.42, "string": "42.0%"},
+                "click_to_open_rate": {"float": 0.49, "string": "49.0%"},
+                "unsubscribes_count": 1,
+            },
+            "steps": [
+                {
+                    "id": "step-1",
+                    "type": "email",
+                    "subject": "¡Bienvenida!",
+                    "from_name": "Visionarias",
+                    "email": {
+                        "screenshot_url": "https://img.example/1.png",
+                        "preview_url": "https://preview.example/1",
+                        "stats": {
+                            "sent": 9,
+                            "unique_opens_count": 9,
+                            "open_rate": {"float": 1.0, "string": "100%"},
+                            "unique_clicks_count": 9,
+                            "click_rate": {"float": 1.0, "string": "100%"},
+                            "unsubscribes_count": 0,
+                            "hard_bounces_count": 0,
+                            "soft_bounces_count": 0,
+                        },
+                    },
+                },
+                {
+                    "id": "step-2",
+                    "type": "delay",
+                    "unit": "days",
+                    "value": 2,
+                },
+                {
+                    "id": "step-3",
+                    "type": "email",
+                    "subject": "Próximos pasos",
+                    "from_name": "Visionarias",
+                    "email": {
+                        "screenshot_url": None,
+                        "preview_url": "https://preview.example/3",
+                        "stats": {
+                            "sent": 4,
+                            "unique_opens_count": 3,
+                            "open_rate": {"float": 0.75, "string": "75%"},
+                            "unique_clicks_count": 1,
+                            "click_rate": {"float": 0.25, "string": "25%"},
+                            "unsubscribes_count": 1,
+                            "hard_bounces_count": 0,
+                            "soft_bounces_count": 0,
+                        },
+                    },
+                },
+            ],
+        }
+
+    def test_extracts_steps_into_extra(self):
+        """Provider extra must contain steps array with per-email data."""
+        from unittest.mock import MagicMock, patch
+
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            MailerLiteProvider,
+        )
+
+        provider = MailerLiteProvider()
+        mock_auto = self._build_mock_automation()
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"data": [mock_auto]}
+        mock_response.status_code = 200
+
+        async def fake_api_get(*args, **kwargs):
+            return mock_response
+
+        mock_client = AsyncMock()
+
+        with patch(
+            "src.modules.analytics.infrastructure.providers.mailerlite_provider._api_get",
+            side_effect=fake_api_get,
+        ):
+            metrics = _run(
+                provider._extract_automations(
+                    mock_client,
+                    {},
+                    {},
+                    date(2026, 4, 1),
+                    date(2026, 4, 10),
+                    "email-nurture",
+                )
+            )
+
+        assert len(metrics) > 0
+        first = metrics[0]
+        assert first.extra["source"] == "automation"
+        assert "steps" in first.extra
+        steps = first.extra["steps"]
+        assert len(steps) == 3
+        assert steps[0]["type"] == "email"
+        assert steps[0]["subject"] == "¡Bienvenida!"
+        assert steps[0]["emails_sent"] == 9
+        assert steps[0]["open_rate"] == 100.0
+        assert steps[0]["click_rate"] == 100.0
+        assert steps[0]["screenshot_url"] == "https://img.example/1.png"
+        assert steps[0]["preview_url"] == "https://preview.example/1"
+        assert steps[1]["type"] == "delay"
+        assert steps[1]["delay_value"] == 2
+        assert steps[1]["delay_unit"] == "days"
+        assert steps[2]["unsubscribes"] == 1
+
+    def test_reads_enabled_flag_for_status(self):
+        """automation_status must read the enabled flag, not hardcoded."""
+        from unittest.mock import MagicMock, patch
+
+        from src.modules.analytics.infrastructure.providers.mailerlite_provider import (
+            MailerLiteProvider,
+        )
+
+        provider = MailerLiteProvider()
+        paused_auto = self._build_mock_automation()
+        paused_auto["enabled"] = False
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"data": [paused_auto]}
+        mock_response.status_code = 200
+
+        async def fake_api_get(*args, **kwargs):
+            return mock_response
+
+        mock_client = AsyncMock()
+
+        with patch(
+            "src.modules.analytics.infrastructure.providers.mailerlite_provider._api_get",
+            side_effect=fake_api_get,
+        ):
+            metrics = _run(
+                provider._extract_automations(
+                    mock_client,
+                    {},
+                    {},
+                    date(2026, 4, 1),
+                    date(2026, 4, 10),
+                    "email-nurture",
+                )
+            )
+
+        assert metrics[0].extra["automation_status"] == "paused"
