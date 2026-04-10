@@ -502,10 +502,12 @@ function CampaignRow({
   campaign,
   currency,
   association,
+  onAssignClick,
 }: {
   campaign: CampaignWithMetrics;
   currency: string;
   association: Association | null;
+  onAssignClick: () => void;
 }) {
   const { timezone } = useTenantLocale();
   const cat = campaignStatusCategory(campaign);
@@ -574,30 +576,45 @@ function CampaignRow({
                 {objectiveLabel(campaign.objective)}
               </span>
             )}
-            {/* Offer association badge */}
+            {/* Offer association badge — clickable to open the assignment drawer */}
             {association ? (
               association.associationType === 'excluded_branding' ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-zinc-600/60 bg-zinc-700/10 px-2 py-0.5 text-[10px] text-zinc-400">
-                  <span aria-hidden="true">🎯</span>
-                  Branding
-                </span>
+                <BadgeTooltip content="Esta campaña está marcada como branding (sin offer). Click para cambiar.">
+                  <button
+                    type="button"
+                    onClick={onAssignClick}
+                    className="inline-flex items-center gap-1 rounded-full border border-zinc-600/60 bg-zinc-700/10 px-2 py-0.5 text-[10px] text-zinc-400 transition-colors hover:border-zinc-500 hover:bg-zinc-700/20 hover:text-zinc-300"
+                  >
+                    <span aria-hidden="true">🎯</span>
+                    Branding
+                  </button>
+                </BadgeTooltip>
               ) : (
                 <BadgeTooltip
-                  content={`Esta campaña está asociada a la offer "${association.offerName ?? 'sin nombre'}". Las métricas aparecerán agrupadas en el segmentador del Resumen.`}
+                  content={`Esta campaña está asociada a la offer "${association.offerName ?? 'sin nombre'}". Click para cambiar o desasignar.`}
                 >
-                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-400">
+                  <button
+                    type="button"
+                    onClick={onAssignClick}
+                    className="inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-400 transition-colors hover:border-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
+                  >
                     <span aria-hidden="true">
                       {archetypeEmoji(association.offerArchetype)}
                     </span>
                     {association.offerName ?? 'Offer asociada'}
-                  </span>
+                  </button>
                 </BadgeTooltip>
               )
             ) : (
-              <BadgeTooltip content="Esta campaña no está asociada a ninguna offer. Asignala para ver sus métricas agrupadas por producto en el Resumen.">
-                <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400">
+              <BadgeTooltip content="Click para asignar esta campaña a una offer del Offer Ladder.">
+                <button
+                  type="button"
+                  onClick={onAssignClick}
+                  className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400 transition-colors hover:border-amber-400 hover:bg-amber-500/20 hover:text-amber-300"
+                >
                   Sin offer asignada
-                </span>
+                  <span aria-hidden="true">→</span>
+                </button>
               </BadgeTooltip>
             )}
             <span className="text-[10px] text-zinc-600">
@@ -992,31 +1009,30 @@ export function CampaignsTab({
     (a, b) => statusSortOrder(a) - statusSortOrder(b),
   );
 
-  // Build drawer props: offers list + targets (active campaigns without assoc)
+  // Build drawer props: offers list + ALL campaigns (active first, then the rest)
   const drawerOffers: AssignmentOffer[] = (metricsByOffer?.offers ?? []).map(o => ({
     id: o.offerId,
     name: o.offerName,
     archetype: o.archetype,
     expectedMetricLabelEs: o.expectedMetricLabelEs,
   }));
-  const drawerTargets: AssignmentTarget[] = sortedCampaigns
-    .filter(c => (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE')
-    .map(c => {
-      const existing = associationByCampaign.get(c.externalId);
-      return {
-        type: 'campaign' as const,
-        externalId: c.externalId,
-        name: c.name,
-        objective: c.objective,
-        currentOfferId: existing?.offerId ?? null,
-        suggestedOfferId: null,
-        suggestedConfidence: null,
-      };
-    });
+  const drawerTargets: AssignmentTarget[] = sortedCampaigns.map(c => {
+    const existing = associationByCampaign.get(c.externalId);
+    return {
+      type: 'campaign' as const,
+      externalId: c.externalId,
+      name: c.name,
+      objective: c.objective,
+      currentOfferId: existing?.offerId ?? null,
+      suggestedOfferId: null,
+      suggestedConfidence: null,
+    };
+  });
 
-  const unassignedActiveCount = drawerTargets.filter(
-    t => !t.currentOfferId,
-  ).length;
+  const unassignedActiveCount = sortedCampaigns.filter(c => {
+    const isActive = (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE';
+    return isActive && !associationByCampaign.has(c.externalId);
+  }).length;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -1100,6 +1116,7 @@ export function CampaignsTab({
                 campaign={campaign}
                 currency={resolvedCurrency}
                 association={associationByCampaign.get(campaign.externalId) ?? null}
+                onAssignClick={() => setIsDrawerOpen(true)}
               />
             ))}
           </div>
