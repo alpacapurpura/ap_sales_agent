@@ -127,4 +127,26 @@ export const AUTOMATION_METRIC_INFO: Record<string, MetricInfo> = {
     description:
       'Clicks únicos en cualquier enlace del email. Cada suscriptor cuenta una vez.',
   },
+  bounces: {
+    title: 'Bounce Rate',
+    description:
+      'Porcentaje de emails que no pudieron ser entregados (direcciones inválidas o buzones llenos). Un bounce alto daña la reputación del dominio.',
+    formula: 'emails rebotados / emails enviados × 100',
+    interpret: {
+      good: '<2% lista saludable',
+      mid: '2-5% limpiar lista',
+      bad: '>5% lista desactualizada — pausar envíos',
+    },
+  },
+  campaignHealth: {
+    title: 'Score de Salud de Campaña',
+    description:
+      'Índice compuesto 0-100 que combina apertura, clicks, CTOR y penaliza rebotes y desuscripciones. Ideal para priorizar qué campañas replicar y cuáles evitar.',
+    formula: '0.35×open + 0.30×click + 0.25×CTOR − 0.10×unsub_rate − 0.10×bounce_rate',
+    interpret: {
+      good: '>70 campaña saludable',
+      mid: '40-70 oportunidad de mejora',
+      bad: '<40 revisar segmentación y contenido',
+    },
+  },
 };
