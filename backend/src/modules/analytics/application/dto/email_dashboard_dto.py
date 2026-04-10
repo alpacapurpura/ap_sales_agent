@@ -14,6 +14,7 @@ from src.modules.analytics.application.dto.channel_dashboard_dto import (
 # Re-export so callers can import everything from this module
 __all__ = [
     "ActivityHeatmapCellDTO",
+    "AutomationStepDTO",
     "BenchmarkRangeDTO",
     "BounceBreakdownDTO",
     "CampaignsVsAutomationsDTO",
@@ -144,18 +145,41 @@ class EmailCampaignsResponseDTO(BaseModel):
 # -- Automatizaciones Tab -----------------------------------------------------
 
 
+class AutomationStepDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    step_id: str
+    step_number: int
+    type: str  # "email" | "delay" | "condition"
+    subject: str | None = None
+    from_name: str | None = None
+    emails_sent: int = 0
+    unique_opens: int = 0
+    open_rate: float = 0.0
+    unique_clicks: int = 0
+    click_rate: float = 0.0
+    unsubscribes: int = 0
+    bounces: int = 0
+    screenshot_url: str | None = None
+    preview_url: str | None = None
+    delay_value: int | None = None
+    delay_unit: str | None = None
+
+
 class EmailAutomationDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     automation_id: str
     name: str
     automation_type: str  # welcome | nurture | reengagement | post_compra | other
     status: str  # active | paused
-    active_subscribers: int = 0
+    active_subscribers: int = 0  # Now: completed + in_queue (ingresados)
     completed: int = 0
     emails_sent: int = 0
     open_rate: float = 0.0
     click_rate: float = 0.0
+    click_to_open_rate: float = 0.0
     completion_rate: float = 0.0
+    unsubscribes: int = 0
+    steps: list[AutomationStepDTO] = []
 
 
 class EmailAutomationsResponseDTO(BaseModel):
