@@ -151,6 +151,8 @@ const CAMPAIGNS_DATA: EmailCampaignsData = {
       unsubscribes: 3,
       uniqueOpens: 555,
       uniqueClicks: 69,
+      screenshotUrl: null,
+      previewUrl: null,
     },
   ],
   topSubjects: [],

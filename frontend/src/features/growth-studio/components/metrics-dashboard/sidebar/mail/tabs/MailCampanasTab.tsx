@@ -7,6 +7,13 @@ import { cn } from '@/lib/utils';
 import { useMailCampaigns } from '../../../../../hooks/useMailDashboard';
 import { ChartSection } from '../../shared/ChartSection';
 import { ChartInfoTooltip } from '../../shared/ChartInfoTooltip';
+import { computeCampaignHealthScore } from '../../../../../utils/campaign-health';
+import {
+  AUTOMATION_METRIC_INFO,
+  type MetricInfo,
+} from '../../../../../utils/automation-metric-info';
+import { MetricInfoTooltip } from '../components/MetricInfoTooltip';
+import { CampaignDetailSidebar } from '../components/CampaignDetailSidebar';
 import type { MetaAdsPeriod } from '../../../../../types/metrics';
 import type {
   EmailCampaign,
@@ -82,7 +89,8 @@ type SortColumn =
   | 'clickRate'
   | 'clickToOpenRate'
   | 'bounceRate'
-  | 'unsubscribes';
+  | 'unsubscribes'
+  | 'healthScore';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -94,6 +102,9 @@ export function MailCampanasTab({ period }: MailCampanasTabProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>('openRate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<EmailCampaign | null>(
+    null,
+  );
 
   const filteredCampaigns = useMemo(() => {
     if (!data) return [];
@@ -102,6 +113,12 @@ export function MailCampanasTab({ period }: MailCampanasTabProps) {
       campaigns = campaigns.filter(c => c.campaignType === activeTypeFilter);
     }
     campaigns.sort((a, b) => {
+      // Health score is computed, not a direct field
+      if (sortColumn === 'healthScore') {
+        const aScore = computeCampaignHealthScore(a);
+        const bScore = computeCampaignHealthScore(b);
+        return sortDirection === 'asc' ? aScore - bScore : bScore - aScore;
+      }
       const aVal = a[sortColumn];
       const bVal = b[sortColumn];
       if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -125,6 +142,10 @@ export function MailCampanasTab({ period }: MailCampanasTabProps) {
     }
   };
 
+  const handleRowClick = (campaign: EmailCampaign) => {
+    setSelectedCampaign(campaign);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -142,6 +163,7 @@ export function MailCampanasTab({ period }: MailCampanasTabProps) {
   }
 
   return (
+    <>
     <div className="space-y-8 max-w-[1200px] mx-auto">
       {/* Section 1: Type Performance Cards */}
       {data.typePerformance.length > 0 && (
@@ -213,6 +235,7 @@ export function MailCampanasTab({ period }: MailCampanasTabProps) {
               sortColumn={sortColumn}
               sortDirection={sortDirection}
               onSort={handleSort}
+              onRowClick={handleRowClick}
             />
           </div>
         </div>
@@ -234,6 +257,11 @@ export function MailCampanasTab({ period }: MailCampanasTabProps) {
         </ChartSection>
       </div>
     </div>
+    <CampaignDetailSidebar
+      campaign={selectedCampaign}
+      onClose={() => setSelectedCampaign(null)}
+    />
+    </>
   );
 }
 
@@ -438,6 +466,7 @@ function SortHeader({
   sortDirection,
   onSort,
   align = 'center',
+  info,
 }: {
   label: string;
   column: SortColumn;
@@ -445,6 +474,7 @@ function SortHeader({
   sortDirection: SortDirection;
   onSort: (column: SortColumn) => void;
   align?: 'left' | 'center' | 'right';
+  info?: MetricInfo;
 }) {
   const isActive = sortColumn === column;
   return (
@@ -457,6 +487,7 @@ function SortHeader({
     >
       <span className="inline-flex items-center gap-0.5">
         {label}
+        {info && <MetricInfoTooltip info={info} side="bottom" iconSize="xs" />}
         {isActive ? (
           sortDirection === 'desc' ? (
             <ArrowDown className="h-3 w-3 text-amber-500" />
@@ -471,16 +502,52 @@ function SortHeader({
   );
 }
 
+function HealthBar({ score }: { score: number }) {
+  const barColor =
+    score >= 70
+      ? 'bg-emerald-500'
+      : score >= 40
+        ? 'bg-amber-500'
+        : score > 0
+          ? 'bg-red-500'
+          : 'bg-muted-foreground';
+
+  const textColor =
+    score >= 70
+      ? 'text-emerald-500'
+      : score >= 40
+        ? 'text-amber-500'
+        : score > 0
+          ? 'text-red-500'
+          : 'text-muted-foreground';
+
+  return (
+    <div className="flex items-center gap-2 justify-center">
+      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-muted/30">
+        <div
+          className={cn('h-full rounded-full transition-all', barColor)}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+      <span className={cn('text-xs font-bold tabular-nums', textColor)}>
+        {score || '\u2014'}
+      </span>
+    </div>
+  );
+}
+
 function CampaignTable({
   campaigns,
   sortColumn,
   sortDirection,
   onSort,
+  onRowClick,
 }: {
   campaigns: EmailCampaign[];
   sortColumn: SortColumn;
   sortDirection: SortDirection;
   onSort: (column: SortColumn) => void;
+  onRowClick: (campaign: EmailCampaign) => void;
 }) {
   return (
     <table className="w-full text-[11px]">
@@ -509,6 +576,7 @@ function CampaignTable({
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={onSort}
+            info={AUTOMATION_METRIC_INFO.enviados}
           />
           <SortHeader
             label="Open Rate"
@@ -516,6 +584,7 @@ function CampaignTable({
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={onSort}
+            info={AUTOMATION_METRIC_INFO.openRate}
           />
           <SortHeader
             label="Click Rate"
@@ -523,6 +592,7 @@ function CampaignTable({
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={onSort}
+            info={AUTOMATION_METRIC_INFO.clickRate}
           />
           <SortHeader
             label="CTOR"
@@ -530,6 +600,7 @@ function CampaignTable({
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={onSort}
+            info={AUTOMATION_METRIC_INFO.ctor}
           />
           <SortHeader
             label="Bounces"
@@ -537,6 +608,7 @@ function CampaignTable({
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={onSort}
+            info={AUTOMATION_METRIC_INFO.bounces}
           />
           <SortHeader
             label="Bajas"
@@ -544,6 +616,15 @@ function CampaignTable({
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={onSort}
+            info={AUTOMATION_METRIC_INFO.unsubs}
+          />
+          <SortHeader
+            label="Salud"
+            column="healthScore"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={onSort}
+            info={AUTOMATION_METRIC_INFO.campaignHealth}
           />
           <th className="py-2 px-2 w-[5%]" />
         </tr>
@@ -561,7 +642,8 @@ function CampaignTable({
           return (
             <tr
               key={campaign.campaignId}
-              className="border-b border-border/20 hover:bg-muted/20 transition-colors"
+              className="border-b border-border/20 hover:bg-muted/20 transition-colors cursor-pointer"
+              onClick={() => onRowClick(campaign)}
             >
               <td className="py-2.5 px-2 text-muted-foreground/60">{idx + 1}</td>
               <td className="py-2.5 px-2 font-medium text-xs max-w-[200px] truncate">
@@ -641,6 +723,9 @@ function CampaignTable({
               <td className="py-2.5 px-2 text-center tabular-nums">
                 {campaign.unsubscribes}
               </td>
+              <td className="py-2.5 px-2">
+                <HealthBar score={computeCampaignHealthScore(campaign)} />
+              </td>
               <td className="py-2.5 px-2 text-center">
                 {idx === 0 && sortColumn === 'openRate' && sortDirection === 'desc' && (
                   <Star className="h-3 w-3 text-emerald-500 inline" />
@@ -658,7 +743,7 @@ function CampaignTable({
         {campaigns.length === 0 && (
           <tr>
             <td
-              colSpan={11}
+              colSpan={12}
               className="py-8 text-center text-sm text-muted-foreground"
             >
               No hay campañas para este filtro.
