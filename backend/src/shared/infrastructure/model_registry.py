@@ -15,6 +15,14 @@ the first DB session triggers ``configure_mappers()``.
   - Worker ``on_startup`` callbacks (ARQ workers / schedulers)
 """
 
+# --- Advertising ---
+from src.modules.advertising.infrastructure.models.ad_campaign_template_model import (
+    AdCampaignTemplateModel,  # noqa: F401
+)
+from src.modules.advertising.infrastructure.models.ad_offer_association_model import (
+    AdOfferAssociationModel,  # noqa: F401
+)
+
 # --- IAM ---
 # --- Brand ---
 from src.modules.brand.infrastructure.models.extraction_trace_model import (

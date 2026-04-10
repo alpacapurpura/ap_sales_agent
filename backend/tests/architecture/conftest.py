@@ -7,8 +7,12 @@ import pytest
 
 MODULES_DIR = Path(__file__).resolve().parents[2] / "src" / "modules"
 
-# Modules allowed to import from other modules
-CROSS_IMPORT_ALLOWED_SOURCES = {"copilot"}
+# Modules allowed to import from other modules.
+# - copilot: AI orchestrator that needs access to all module data for tools.
+# - advertising: cross-cuts analytics (campaigns, ad_sets, ads, official_metrics models)
+#   and offer (OfferReadPort) to associate campaigns with offers and aggregate
+#   per-offer metrics. Documented exception from the offer-campaign-association feature.
+CROSS_IMPORT_ALLOWED_SOURCES = {"copilot", "advertising"}
 
 # Modules that any module may import from
 CROSS_IMPORT_ALLOWED_TARGETS = {"shared", "core", "iam"}

@@ -56,6 +56,15 @@ class OfferReadDTO(BaseModel):
     pricing_type: str = "one_time"  # "one_time" | "subscription" | "payment_plan"
     currency: str
 
+    # Extended fields (optional, used by advertising module for auto-detection
+    # and expected-metric resolution). Defaults keep backward compatibility.
+    is_lead_magnet: bool = False
+    onboarding_action: str | None = None
+    checkout_page_url: str | None = None
+    landing_page_url: str | None = None  # Extracted from landing_page_config
+    internal_sku: str | None = None
+    status: str | None = None
+
 
 class ProductMappingPort(ABC):
     """Port for resolving external product IDs to internal offer IDs."""

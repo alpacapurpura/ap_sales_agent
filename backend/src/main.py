@@ -18,10 +18,11 @@ from src.core.logger import configure_logging
 
 # --- Sentry must init before app creation to capture startup errors ---
 from src.core.sentry import init_sentry
+from src.modules.advertising.api import routes as advertising_routes
 from src.modules.analytics.api import campaigns as analytics_campaigns
 from src.modules.analytics.api import etl_admin as analytics_etl_admin
 
-# 9. Advertising (No API Router exposed yet)
+# 9. Advertising (offer-campaign association, health check, metrics by offer)
 # 10. Social Media (No API Router exposed yet)
 # 11. Analytics
 from src.modules.analytics.api import metrics as analytics_metrics
@@ -554,6 +555,14 @@ app.include_router(
     analytics_campaigns.router,
     prefix="/api/v1/analytics",
     tags=["Analytics - Campaigns"],
+    dependencies=[Depends(get_tenant_context)],
+)
+
+# 11b. Advertising (offer↔campaign associations, health check, metrics by offer)
+app.include_router(
+    advertising_routes.router,
+    prefix="/api/v1",
+    tags=["Advertising"],
     dependencies=[Depends(get_tenant_context)],
 )
 

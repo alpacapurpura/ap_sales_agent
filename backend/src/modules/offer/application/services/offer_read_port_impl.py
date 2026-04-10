@@ -54,6 +54,14 @@ class OfferReadPortImpl(OfferReadPort):
                 ):
                     pricing_type = p["plan_type"]
                     break
+
+        # Extract landing URL from landing_page_config JSONB if present.
+        landing_url: str | None = None
+        if isinstance(m.landing_page_config, dict):
+            raw_url = m.landing_page_config.get("url")
+            if isinstance(raw_url, str) and raw_url.strip():
+                landing_url = raw_url.strip()
+
         return OfferReadDTO(
             id=m.id,
             tenant_id=m.tenant_id,
@@ -62,4 +70,10 @@ class OfferReadPortImpl(OfferReadPort):
             value_level=m.value_level,
             pricing_type=pricing_type,
             currency=m.currency or "USD",
+            is_lead_magnet=bool(m.is_lead_magnet),
+            onboarding_action=m.onboarding_action,
+            checkout_page_url=m.checkout_page_url,
+            landing_page_url=landing_url,
+            internal_sku=m.internal_sku,
+            status=m.status,
         )
