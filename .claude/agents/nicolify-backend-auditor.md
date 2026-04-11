@@ -23,6 +23,17 @@ Before auditing:
 2. Read the `CONTRACT.md` to understand what was specified
 3. Read `.claude/skills/backend-expert/references/standards.md` for coding standards
 4. Read `.claude/skills/backend-expert/references/database.md` for DB conventions
+
+**If the audit covers any file in `backend/src/modules/analytics/` (providers, ETL pipeline, scheduler, workers, metric_catalog), you MUST also:**
+
+5. Read `.claude/rules/etl-extraction-contract.md` — the workflow rules.
+6. Cross-reference the implementation against `backend/src/modules/analytics/domain/extraction_contract.py`. Look for:
+   - Provider methods that emit metrics not declared in the contract's `ChannelOutput`.
+   - Catalog metrics whose `providers` tuple lists a provider that does NOT emit them in its contract entry (catches drift between catalog and providers).
+   - `known_issues` in the contract that the implementation actually fixed but were never cleared.
+   - `last_verified` dates more than 30 days old → flag as stale.
+7. Run `cd backend && .venv/bin/pytest tests/architecture/test_extraction_contract.py -x -q`. If it fails, the diff is incomplete and the audit verdict is automatic FAIL until the contract is updated and the Markdown regenerated.
+8. If `make extraction-contract` produces a non-empty diff against the committed `docs/etl/extraction-contract.md`, the commit is missing the regenerated Markdown — flag it.
 </project_context>
 
 <audit_flow>

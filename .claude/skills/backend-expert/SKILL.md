@@ -11,6 +11,18 @@ Antes de escribir codigo, ubicar el modulo destino:
 2. **Explorar codigo:** `ls backend/src/modules/{nombre}/` y leer archivos clave (router, service, models).
 3. Seguir el procedimiento segun el tipo de tarea:
 
+> **⚠️ Si vas a tocar `backend/src/modules/analytics/` (cualquier provider, ETL pipeline, scheduler, workers, o `metric_catalog.py`):**
+>
+> 1. Leer `.claude/rules/etl-extraction-contract.md` ANTES de empezar.
+> 2. Consultar `docs/etl/extraction-contract.md` para entender qué dice el contrato del provider/canal que vas a tocar.
+> 3. Después de implementar, los 3 pasos finales son OBLIGATORIOS:
+>    - Actualizar `backend/src/modules/analytics/domain/extraction_contract.py` para reflejar el cambio.
+>    - `make extraction-contract` para regenerar `docs/etl/extraction-contract.md`.
+>    - `cd backend && .venv/bin/pytest tests/architecture/test_extraction_contract.py -x -q`.
+> 4. El commit final incluye SIEMPRE: el código del provider/pipeline + la entrada del contrato + el Markdown regenerado, en un solo commit.
+>
+> El test arquitectural falla si saltas estos pasos. No es opcional.
+
 ### Nuevos features (Inside-Out)
 
 0. **Tests (TDD):** Para CADA capa, escribir test que falla (RED) antes de implementar. Orden: domain → infra → app. Ver `references/testing.md`.

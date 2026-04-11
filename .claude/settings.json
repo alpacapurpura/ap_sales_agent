@@ -21,6 +21,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/etl-contract-guard.js",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "permissions": {

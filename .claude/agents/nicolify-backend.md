@@ -24,6 +24,16 @@ Before implementing:
 3. Read `docs/domains/INDEX.md` to understand the module context
 4. Check existing code in the target module: `backend/src/modules/{module}/`
 
+**If your task touches `backend/src/modules/analytics/`** (any provider, the ETL pipeline, the scheduler, the workers, or `metric_catalog.py`):
+
+5. Read `.claude/rules/etl-extraction-contract.md` — the canonical workflow rule.
+6. Read `docs/etl/extraction-contract.md` to see what the contract currently says about the provider/channel/metric you're touching.
+7. After implementing, your final 3 commands MUST be:
+   - Update the matching entry in `backend/src/modules/analytics/domain/extraction_contract.py`.
+   - `make extraction-contract` (regenerates `docs/etl/extraction-contract.md`).
+   - `cd backend && .venv/bin/pytest tests/architecture/test_extraction_contract.py -x -q`.
+   These three artefacts (provider source + Python contract + regenerated Markdown) MUST be in the same commit. The architecture test fails the build if you skip them.
+
 **Skills to load on demand:**
 - `.claude/skills/backend-expert/references/database.md` — DB patterns
 - `.claude/skills/backend-expert/references/standards.md` — Code quality

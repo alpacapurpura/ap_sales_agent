@@ -5,6 +5,27 @@ description: "Growth Studio metrics pipeline expert. Use when: adding channels, 
 
 # Growth Studio Metrics Pipeline
 
+## ⚠️ Read this first
+
+Two files together describe the analytics system. **Both must stay in sync**:
+
+| File | Role |
+|---|---|
+| `backend/src/modules/analytics/domain/metric_catalog.py` | Semantic catalog: what each metric means, its aggregation type, unit, providers that *can* emit it. **Used at runtime.** |
+| `backend/src/modules/analytics/domain/extraction_contract.py` | Extraction contract: which provider actually emits which metric, from which API endpoint, into which channel slug, when, and where it lands. **Documentation + tests.** |
+| `docs/etl/extraction-contract.md` | Auto-generated human-readable rendering of the contract. **Read this FIRST when answering "where does X come from".** |
+
+**Workflow rules** for any change to the analytics module live in `.claude/rules/etl-extraction-contract.md`. Read it before you start.
+
+**Mandatory final step of any change** that touches a provider, the pipeline, the scheduler, the workers, or the catalog:
+
+```bash
+make extraction-contract                                                # regenerate the markdown
+cd backend && .venv/bin/pytest tests/architecture/test_extraction_contract.py -x -q  # verify no drift
+```
+
+Both must pass. The provider/pipeline change, the contract update, AND the regenerated Markdown go in the same commit.
+
 ## Architecture Overview
 
 ```

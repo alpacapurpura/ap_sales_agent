@@ -1,5 +1,17 @@
 # Analytics Metrics Architecture
 
+> **Before reading this file**, if your question is about *what the ETL extracts,
+> from where, when, or where it lands*, the answer lives in
+> `docs/etl/extraction-contract.md` (auto-generated from
+> `backend/src/modules/analytics/domain/extraction_contract.py`).
+> See `.claude/rules/etl-extraction-contract.md` for the workflow rules
+> that govern reading and updating that contract.
+>
+> **This file** covers the runtime metrics pipeline: stage services, group
+> mappings, channel registry, progressive loading. It is about how the
+> metrics flow from `official_metrics` to the dashboard, not about how
+> they got into `official_metrics` in the first place.
+
 Rules for the Growth Studio metrics pipeline. Prevents the duplication bug
 that made `website-total` invisible (two divergent `_GROUP_MAP` copies).
 

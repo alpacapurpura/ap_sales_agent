@@ -137,6 +137,17 @@ pytest-cov:
 arch-test:
 	cd backend && .venv/bin/pytest tests/architecture/ -v
 
+# Regenerate the user-facing ETL extraction contract markdown from
+# backend/src/modules/analytics/domain/extraction_contract.py.
+# This is the FINAL STEP of any change that touches a provider, the ETL
+# pipeline, the scheduler, the workers, or metric_catalog.py. The
+# architectural test will fail in CI if you skip it. See:
+#   .claude/rules/etl-extraction-contract.md
+extraction-contract:
+	cd backend && .venv/bin/python scripts/generate_extraction_contract_doc.py
+	@echo "✓ Regenerated docs/etl/extraction-contract.md"
+	@echo "  Now run: cd backend && .venv/bin/pytest tests/architecture/test_extraction_contract.py -x -q"
+
 vitest-cov:
 	cd frontend && npx vitest run --coverage $(args)
 
