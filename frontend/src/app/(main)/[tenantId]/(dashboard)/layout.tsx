@@ -1,12 +1,23 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 import { SidebarProvider, useSidebar } from "@/components/shared/layout/sidebar-context";
 import { CopilotPanel } from "@/features/copilot/components/CopilotPanel";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
 import { cn } from "@/lib/utils";
+
+// Routes that should render in workspace-style full-width mode. Add new
+// entries here when a new studio/editor needs the same treatment.
+const FULL_WIDTH_PATTERNS = [
+  "/sales/studio",
+  "/offer-studio/offer/",
+] as const;
+
+function matchesFullWidth(pathname: string): boolean {
+  return FULL_WIDTH_PATTERNS.some((pattern) => pathname.includes(pattern));
+}
 
 const MemoizedChildren = memo(function MemoizedChildren({
   children,
@@ -28,12 +39,17 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
   const isCopilotOpen = useCopilotStore((s) => s.isOpen);
   const pathname = usePathname() ?? "";
-  // Full-width routes: workspace-style screens that need every pixel
-  // between the sidebar and the copilot panel. Add new entries here when
-  // a new studio/editor needs the same treatment.
-  const isFullWidth =
-    pathname.includes("/sales/studio") ||
-    pathname.includes("/offer-studio/offer/");
+
+  // Defer the full-width decision to post-mount to avoid hydration
+  // mismatches. Next.js Turbopack dev can serve a stale SSR bundle after
+  // the list of patterns changes, which causes server/client className
+  // diffs on first load. By starting with `false` (matching the default
+  // centered wrapper) and flipping inside useEffect, both renders agree
+  // on the initial DOM and React cleanly swaps wrappers after hydration.
+  const [isFullWidth, setIsFullWidth] = useState(false);
+  useEffect(() => {
+    setIsFullWidth(matchesFullWidth(pathname));
+  }, [pathname]);
 
   return (
     <div className="min-h-screen">
