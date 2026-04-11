@@ -28,9 +28,56 @@ class OfferDeliveryModel(str, Enum):
 class OfferStatus(str, Enum):
     DRAFT = "draft"
     ACTIVE = "active"
+    PAUSED = "paused"
     ARCHIVED = "archived"
     WAITLIST = "waitlist"
     SOLD_OUT = "sold_out"
+
+
+class AssetType(str, Enum):
+    FLYER = "flyer"
+    VIDEO = "video"
+    CAROUSEL = "carousel"
+    DOCUMENT = "document"
+    IMAGE = "image"
+
+
+class AssetSource(str, Enum):
+    AI = "ai"
+    EXTERNAL = "external"
+
+
+class AssetStatus(str, Enum):
+    DRAFT = "draft"
+    PROCESSING = "processing"
+    READY = "ready"
+    ERROR = "error"
+
+
+class KnowledgeSourceType(str, Enum):
+    PDF = "pdf"
+    DOCX = "docx"
+    TXT = "txt"
+    MARKDOWN = "markdown"
+    VIDEO = "video"
+    URL_YOUTUBE = "url_youtube"
+    URL_ARTICLE = "url_article"
+    URL_GOOGLE_DOC = "url_google_doc"
+
+
+class KnowledgeSourceStatus(str, Enum):
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    INDEXED = "indexed"
+    ERROR = "error"
+
+
+class LandingJobStatus(str, Enum):
+    IDLE = "idle"
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCESS = "success"
+    ERROR = "error"
 
 
 class GuaranteeType(str, Enum):
