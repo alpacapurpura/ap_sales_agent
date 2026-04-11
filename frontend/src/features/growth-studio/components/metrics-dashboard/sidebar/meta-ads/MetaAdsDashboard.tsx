@@ -28,6 +28,7 @@ import { AudienciaTab } from './tabs/AudienciaTab';
 import { CostosTab } from './tabs/CostosTab';
 import { useMetaAdsNotices } from './notices/useMetaAdsNotices';
 import { TabBadge } from './notices/TabBadge';
+import { computeMetaAdsOnboardingTrigger } from './hooks/useMetaAdsOnboardingTrigger';
 
 const ONBOARDING_DISMISSED_KEY = 'meta-ads-onboarding-dismissed';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
@@ -73,6 +74,10 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   });
 
   // Onboarding modal: first-connect trigger. Derived state — no useEffect needed.
+  // Gating (isOpen) and the projected campaign list are both computed by a
+  // pure helper so the trigger logic can be unit-tested in isolation and so
+  // the modal does not flicker while `campaignData`/`associations` resolve at
+  // different times. See `hooks/useMetaAdsOnboardingTrigger.ts`.
   const [hasUserDismissedOnboarding, setHasUserDismissedOnboarding] = useState(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -81,10 +86,16 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
       return false;
     }
   });
-  const isOnboardingOpen =
-    !hasUserDismissedOnboarding &&
-    (campaignData?.activeCampaigns ?? 0) > 0 &&
-    (associations?.length ?? 0) === 0;
+
+  const { isOpen: isOnboardingOpen, campaigns: onboardingCampaigns } = useMemo(
+    () =>
+      computeMetaAdsOnboardingTrigger({
+        campaignData,
+        associations,
+        hasUserDismissed: hasUserDismissedOnboarding,
+      }),
+    [campaignData, associations, hasUserDismissedOnboarding],
+  );
 
   const handleOnboardingOpenChange = useCallback((open: boolean) => {
     if (!open) {
@@ -96,18 +107,6 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
       setHasUserDismissedOnboarding(true);
     }
   }, []);
-
-  const onboardingCampaigns = useMemo(
-    () =>
-      (campaignData?.campaigns ?? [])
-        .filter(c => (c.effectiveStatus ?? '').toUpperCase() === 'ACTIVE')
-        .map(c => ({
-          externalId: c.externalId,
-          name: c.name,
-          objective: c.objective,
-        })),
-    [campaignData?.campaigns],
-  );
 
   const handleOpenAssignCampaigns = useCallback(() => {
     setActiveTab('campanas');
