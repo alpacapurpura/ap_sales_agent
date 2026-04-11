@@ -17,7 +17,7 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`
 
 ## Safety
 - Always review `git status` before staging
-- Never `git add .` without reviewing what will be staged
+- **Stagear por nombre siempre** (`git add path/to/file`). Nunca `git add .`, `git add -A` ni `git add -u` — otras sesiones paralelas pueden tener WIP en el working tree. Ver `parallel-safety.md` → "Scope de commits".
 - Never commit `.env`, `.env.prod`, credentials, or secrets
 - Never force push to `main`
 - Never amend published commits without explicit approval

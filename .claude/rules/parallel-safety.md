@@ -50,14 +50,24 @@ NUNCA al revés (development → main) excepto durante pase a producción.
 - Si dos agentes tocan el mismo archivo → responsabilidad de Chris coordinar
 - Agentes de solo lectura (Explore, Plan) no necesitan precauciones especiales
 
+### Scope de commits (CRÍTICO en paralelo)
+
+Commitear **ÚNICAMENTE los archivos que esta sesión modificó**. Otras sesiones pueden tener WIP sin commitear en el mismo working tree.
+
+- **Stagear por nombre:** `git add path/to/file1 path/to/file2`
+- **PROHIBIDO:** `git add .`, `git add -A`, `git add -u`
+- Si `git status` muestra archivos que no tocaste → **dejarlos intactos** y reportarlos al final
+- Excepción única: Chris dice explícitamente "commitea todo"
+
 ## Al CERRAR cualquier conversación
 
 Cuando Chris dice "eso es todo", "gracias", "ya", "cierra", o indica que terminó:
 
 1. `git status --short`
-2. Si hay cambios → commitear con mensaje convencional, reportar hash
-3. Si hay stashes creados en esta sesión → reportar
-4. Mensaje final obligatorio: "Working tree LIMPIO en rama `development`. Seguro cerrar."
+2. Si hay cambios propios → stagear por nombre (ver "Scope de commits") y commitear con mensaje convencional, reportar hash
+3. Si hay archivos ajenos en el working tree → dejarlos intactos y reportarlos
+4. Si hay stashes creados en esta sesión → reportar
+5. Mensaje final obligatorio: "Archivos propios commiteados en `development`. Seguro cerrar."
 
 Si hay trabajo WIP que no compila: crear stash con mensaje descriptivo (`git stash push -m "WIP: descripción"`)
 
