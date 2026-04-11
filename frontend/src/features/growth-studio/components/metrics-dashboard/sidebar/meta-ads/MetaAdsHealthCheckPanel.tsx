@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -20,11 +20,34 @@ import type {
   Recommendation,
   RecommendationSeverity,
 } from '../../../../types/offer-association';
+import type { CampaignRecommendation } from '../../../../types/metrics';
 
 interface MetaAdsHealthCheckPanelProps {
   data: MetaHealthCheck | undefined;
   isLoading: boolean;
   onAssignClick: () => void;
+  /**
+   * Performance recommendations coming from the campaigns performance endpoint.
+   * These are merged into the unified "Recomendaciones" section alongside
+   * structural health check recommendations.
+   */
+  campaignRecommendations?: CampaignRecommendation[];
+  /** Map of campaign externalId → display name, used to render context labels. */
+  campaignNameById?: Record<string, string>;
+  /** Called when the user clicks the action button on a campaign recommendation. */
+  onRecommendationAction?: (rec: CampaignRecommendation) => void;
+}
+
+/** Unified shape rendered inside the Recomendaciones section. */
+interface MergedRecommendation {
+  key: string;
+  severity: RecommendationSeverity;
+  title: string;
+  body: string | null;
+  /** Short label describing what the recommendation is about (campaign or offer). */
+  contextLabel: string | null;
+  /** Optional action button (only for campaign perf recs today). */
+  action?: { label: string; onClick: () => void };
 }
 
 function statusIcon(status: HealthStatus) {
@@ -57,6 +80,20 @@ function severityClass(severity: RecommendationSeverity): string {
     case 'critical':
       return 'border-l-red-500 bg-red-500/5';
   }
+}
+
+const SEVERITY_ORDER: Record<RecommendationSeverity, number> = {
+  critical: 0,
+  warning: 1,
+  info: 2,
+};
+
+/** Normalize Meta's importance string to our severity vocabulary. */
+function importanceToSeverity(importance: string | null): RecommendationSeverity {
+  const upper = (importance ?? '').toUpperCase();
+  if (upper === 'CRITICAL') return 'critical';
+  if (upper === 'HIGH') return 'warning';
+  return 'info';
 }
 
 function CampaignHealthRow({ campaign }: { campaign: CampaignHealth }) {
@@ -117,7 +154,7 @@ function OfferCoverageRow({ offer }: { offer: OfferCoverage }) {
   );
 }
 
-function RecommendationCard({ rec }: { rec: Recommendation }) {
+function MergedRecommendationCard({ rec }: { rec: MergedRecommendation }) {
   return (
     <div
       className={cn(
@@ -125,21 +162,126 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
         severityClass(rec.severity),
       )}
     >
-      <p className="text-xs font-medium text-foreground">{rec.title}</p>
-      {rec.body && <p className="mt-0.5 text-[11px] text-muted-foreground">{rec.body}</p>}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="text-xs font-medium text-foreground">{rec.title}</p>
+            {rec.contextLabel && (
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                {rec.contextLabel}
+              </span>
+            )}
+          </div>
+          {rec.body && (
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{rec.body}</p>
+          )}
+        </div>
+        {rec.action && (
+          <button
+            type="button"
+            onClick={rec.action.onClick}
+            className="shrink-0 rounded-md border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+          >
+            {rec.action.label}
+          </button>
+        )}
+      </div>
     </div>
   );
+}
+
+/** Resolve a structural recommendation's context label using the health-check data. */
+function resolveStructuralContext(
+  rec: Recommendation,
+  data: MetaHealthCheck,
+): string | null {
+  if (rec.relatedOfferId) {
+    const offer = data.offersCoverage.find(o => o.offerId === rec.relatedOfferId);
+    if (offer) return `Offer: ${offer.offerName}`;
+  }
+  if (rec.relatedTargetId) {
+    const campaign = data.activeCampaigns.find(
+      c => c.externalId === rec.relatedTargetId,
+    );
+    if (campaign) return `Campaña: ${campaign.name}`;
+    const unassigned = data.unassignedTargets.find(
+      t => t.externalId === rec.relatedTargetId,
+    );
+    if (unassigned) return `Campaña: ${unassigned.name}`;
+  }
+  return null;
+}
+
+/** Build the "Campaña: X" (or "N campañas") context label for a campaign rec. */
+function resolveCampaignContext(
+  rec: CampaignRecommendation,
+  campaignNameById: Record<string, string>,
+): string | null {
+  const ids = rec.objectIds ?? [];
+  if (ids.length === 0) return null;
+  if (ids.length === 1) {
+    const name = campaignNameById[ids[0]];
+    return name ? `Campaña: ${name}` : `Campaña: ${ids[0]}`;
+  }
+  return `${ids.length} campañas`;
 }
 
 export function MetaAdsHealthCheckPanel({
   data,
   isLoading,
   onAssignClick,
+  campaignRecommendations,
+  campaignNameById,
+  onRecommendationAction,
 }: MetaAdsHealthCheckPanelProps) {
-  const defaultExpanded = data?.overallStatus !== 'healthy';
+  // Merge structural + campaign recommendations into a single sorted list.
+  const mergedRecs = useMemo<MergedRecommendation[]>(() => {
+    const items: MergedRecommendation[] = [];
+    const campaignRecs = campaignRecommendations ?? [];
+    const nameById = campaignNameById ?? {};
+
+    if (data) {
+      data.recommendations.forEach((rec, idx) => {
+        items.push({
+          key: `structural-${rec.type}-${idx}`,
+          severity: rec.severity,
+          title: rec.title,
+          body: rec.body,
+          contextLabel: resolveStructuralContext(rec, data),
+        });
+      });
+    }
+
+    campaignRecs.forEach((rec, idx) => {
+      items.push({
+        key: `campaign-${rec.recommendationType}-${idx}`,
+        severity: importanceToSeverity(rec.importance),
+        title: rec.title ?? 'Recomendación',
+        body: rec.body,
+        contextLabel: resolveCampaignContext(rec, nameById),
+        action: onRecommendationAction
+          ? {
+              label: 'Ver en Campañas',
+              onClick: () => onRecommendationAction(rec),
+            }
+          : undefined,
+      });
+    });
+
+    return items.sort(
+      (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity],
+    );
+  }, [data, campaignRecommendations, campaignNameById, onRecommendationAction]);
+
+  const hasStructural = !!data;
+  const hasContent = hasStructural || mergedRecs.length > 0;
+
+  // Default expanded: anything non-healthy OR any recommendation to show.
+  const defaultExpanded =
+    (data && data.overallStatus !== 'healthy') || mergedRecs.length > 0;
   const [expanded, setExpanded] = useState(defaultExpanded);
 
-  if (isLoading) {
+  if (isLoading && !hasContent) {
     return (
       <div
         data-testid="health-panel-loading"
@@ -151,18 +293,26 @@ export function MetaAdsHealthCheckPanel({
     );
   }
 
-  if (!data) return null;
+  if (!hasContent) return null;
 
-  const hasUnassigned = data.unassignedTargets.length > 0;
+  const overallStatus: HealthStatus = data?.overallStatus ?? 'healthy';
+  const summaryText =
+    data?.summaryText ??
+    (mergedRecs.length > 0
+      ? `${mergedRecs.length} recomendación${mergedRecs.length === 1 ? '' : 'es'} para revisar.`
+      : '');
+  const hasUnassigned = (data?.unassignedTargets.length ?? 0) > 0;
 
   return (
-    <div className={cn('rounded-lg border p-4', statusBorderClass(data.overallStatus))}>
+    <div className={cn('rounded-lg border p-4', statusBorderClass(overallStatus))}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          {statusIcon(data.overallStatus)}
+          {statusIcon(overallStatus)}
           <div className="min-w-0">
             <h3 className="text-sm font-semibold">Diagnóstico Meta Ads</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{data.summaryText}</p>
+            {summaryText && (
+              <p className="mt-0.5 text-xs text-muted-foreground">{summaryText}</p>
+            )}
           </div>
         </div>
         <button
@@ -182,7 +332,7 @@ export function MetaAdsHealthCheckPanel({
       {expanded && (
         <div className="mt-4 space-y-4">
           {/* Active campaigns */}
-          {data.activeCampaigns.length > 0 && (
+          {data && data.activeCampaigns.length > 0 && (
             <section>
               <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 Campañas activas
@@ -196,7 +346,7 @@ export function MetaAdsHealthCheckPanel({
           )}
 
           {/* Offers coverage */}
-          {data.offersCoverage.length > 0 && (
+          {data && data.offersCoverage.length > 0 && (
             <section>
               <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 Cobertura por offer
@@ -209,15 +359,15 @@ export function MetaAdsHealthCheckPanel({
             </section>
           )}
 
-          {/* Recommendations */}
-          {data.recommendations.length > 0 && (
+          {/* Merged recommendations (structural + campaign performance) */}
+          {mergedRecs.length > 0 && (
             <section>
               <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 Recomendaciones
               </p>
               <div className="space-y-1.5">
-                {data.recommendations.map((rec, idx) => (
-                  <RecommendationCard key={`${rec.type}-${idx}`} rec={rec} />
+                {mergedRecs.map(rec => (
+                  <MergedRecommendationCard key={rec.key} rec={rec} />
                 ))}
               </div>
             </section>
