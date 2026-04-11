@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 
@@ -20,6 +20,16 @@ class LandingPageModel(Base):
     config = Column(JSONB, default={})
 
     is_published = Column(Boolean, default=False)
+
+    # Generation snapshot (offer header refactor — see CONTRACT 2026-04-11).
+    # `is_outdated` is NOT stored — it's computed at read time as
+    # `landing.generated_at < offer.updated_at` by the offer service.
+    generated_at = Column(DateTime(timezone=True), nullable=True)
+    offer_snapshot_version = Column(String, nullable=True)
+    generation_job_id = Column(UUID(as_uuid=True), nullable=True)
+    generation_job_status = Column(String, nullable=True)
+    generation_error = Column(Text, nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)

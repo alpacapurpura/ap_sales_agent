@@ -64,3 +64,26 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 ### 11. Confianza en la data: un 0 no siempre es un 0
 - **Principio:** Para metrics de negocio críticas (el usuario toma decisiones con esta data), un valor de 0 puede significar: (a) cero real, (b) no había data todavía, (c) error silencioso de parseo, (d) permiso insuficiente en el API, (e) metric deprecated. Deberíamos distinguir entre estos casos a nivel de DB.
 - [ ] Agregar columna `data_quality` o `status` a `official_metrics` (enum: `ok`, `missing`, `partial`, `deprecated`, `auth_error`). Esto permite que el frontend muestre "sin datos" en vez de "0" cuando corresponde.
+
+## Lecciones del Offer Header Refactor — 2026-04-11
+
+### 12. `/nicolify-feature` pipeline no corre `alembic upgrade head` automáticamente
+- **Problema:** El pipeline ejecuta Phase 4 (test suite native) que corre pytest, ruff, tsc, etc. Pero NO corre `docker exec ... alembic upgrade head` después de que el backend agent commitee la migración. La migración queda escrita y committeada pero las tablas no existen en la dev DB. El usuario hace click en una tab y obtiene 500 "relation does not exist".
+- [ ] Agregar step explícito al pipeline `/nicolify-feature` después de la fase de implementación: si el backend agent creó una alembic migration, correr `docker exec -t visionarias_brain_dev bash -c 'cd /app && alembic upgrade head'` y verificar con `alembic current`.
+- [ ] Idealmente: el orchestrator debería detectar nuevos archivos en `backend/alembic/versions/` durante el commit y ejecutar el upgrade como parte del Phase 4 nativo.
+
+### 13. CONTRACT.md y URL paths reales del backend pueden divergir
+- **Problema:** El architect agent escribió CONTRACT.md con paths `/api/v1/offer/offers/{id}/...`. Frontend Chunk 1 los copió tal cual. Backend Chunk 4a, al implementar, descubrió que el módulo `offer` históricamente monta su router bajo el prefix legacy `/api/v1/offer/products` (porque la tabla DB se llama `products`). BE eligió respetar el legacy. FE quedó apuntando a paths inexistentes. 14 URLs rotas en 6 adapters, descubierto solo cuando el usuario clickeó por primera vez.
+- [ ] Regla: el architect agent debe verificar los mounts existentes en `backend/src/main.py` ANTES de escribir CONTRACT.md, y usar los prefijos legacy si existen. Documentar la divergencia entre nombre del módulo y prefix HTTP.
+- [ ] Backend audit: el `nicolify-backend-auditor` debería comparar las paths declaradas en CONTRACT.md con las paths reales mounteadas en `main.py` y reportar discrepancias como WARN.
+- [ ] Frontend agent debería leer `backend/src/main.py` (solo los `app.include_router` calls) ANTES de escribir API adapters, y usar los prefijos reales en lugar de los del CONTRACT cuando difieran.
+
+### 14. Tooltip sin TooltipProvider no rompe en tests, sí en runtime
+- **Problema:** `OfferStatusSwitcher` usaba `<Tooltip>` sin envolver en `<TooltipProvider>`. Los unit tests pasaban porque happy-dom tolera el contexto faltante. En runtime real, Radix Tooltip crashea la página entera.
+- [ ] Crear arch fitness frontend: AST scan que detecte `import { Tooltip }` sin un `TooltipProvider` correspondiente en el mismo archivo o en algún ancestor. Mismo patrón aplica a otros Radix primitives.
+- [ ] Considerar smoke tests E2E que mountee la pantalla completa para detectar este tipo de errores de contexto faltante.
+
+### 15. `usePathname()` en client layouts puede hidratar inconsistente con Turbopack
+- **Problema:** Después de cambiar la lista de full-width patterns en el dashboard layout, Turbopack dev sirvió un bundle SSR stale mientras el cliente fast-refreshed con código nuevo. Hydration mismatch sin posibilidad de reconciliación.
+- **Fix aplicado:** Diferir la decisión a `useEffect` (initial render = false, flip post-mount).
+- [ ] Patrón general: cuando un client layout decide rendering basado en `usePathname()`, usar useState+useEffect para evitar cache staleness en dev. El "single-frame flash" es preferible al crash.

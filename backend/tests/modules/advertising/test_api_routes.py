@@ -257,7 +257,14 @@ class TestCampaignTemplateEndpoint:
 
 class TestOffersForAssignmentEndpoint:
     def test_returns_active_non_lead_magnet_offers(self, db, tenant_id, make_offer):
-        """Endpoint lists active offers. Archived, drafts and lead magnets are excluded."""
+        """Endpoint lists non-archived offers. Archived and lead magnets are excluded.
+
+        Drafts ARE returned — in practice every offer sits in ``status='draft'``
+        until a future UI promotes it, so filtering drafts here would leave the
+        assignment dropdown empty.
+        """
+        from datetime import UTC, datetime
+
         make_offer(
             db,
             tenant_id=tenant_id,
@@ -272,6 +279,15 @@ class TestOffersForAssignmentEndpoint:
             archetype="SERVICIO",
             onboarding_action="BOOK_KICKOFF_CALL",
         )
+        # Draft offers MUST appear — users create offers as drafts and expect
+        # to be able to associate campaigns to them before "publishing".
+        make_offer(
+            db,
+            tenant_id=tenant_id,
+            name="Diseña tu 2026",
+            archetype="PRODUCTO",
+            status="draft",
+        )
         # Lead magnet — MUST be hidden from the assignment dropdown
         make_offer(
             db,
@@ -280,22 +296,24 @@ class TestOffersForAssignmentEndpoint:
             archetype="PRODUCTO",
             is_lead_magnet=True,
         )
-        # Archived offers should NOT appear
-        make_offer(
+        # Archived offers should NOT appear — archival lives on ``archived_at``
+        # after migration 040, not on ``status``.
+        archived = make_offer(
             db,
             tenant_id=tenant_id,
             name="Vieja Archivada",
             archetype="PRODUCTO",
-            status="archived",
         )
+        archived.archived_at = datetime.now(UTC)
+        db.flush()
 
         client = _build_client(db, tenant_id)
         resp = client.get("/api/v1/advertising/offers")
         assert resp.status_code == 200
         data = resp.json()
         names = {o["name"] for o in data}
-        # Archived AND lead magnet excluded → only 2 offers
-        assert names == {"Curso Digital", "Asesoría 1:1"}
+        # Archived AND lead magnet excluded; drafts included → 3 offers
+        assert names == {"Curso Digital", "Asesoría 1:1", "Diseña tu 2026"}
         # Each offer has an expected metric derived from its properties
         by_name = {o["name"]: o for o in data}
         assert by_name["Asesoría 1:1"]["expectedMetric"] == "call_booked"

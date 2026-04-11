@@ -7,7 +7,7 @@ Centralizes magic numbers previously scattered across services, workers, and API
 class ETLConfig:
     """ETL pipeline configuration."""
 
-    MAX_LOOKBACK_DAYS: int = 60
+    MAX_LOOKBACK_DAYS: int = 90
     EXTRACTION_TIMEOUT_SECONDS: int = 600
     MAX_CONCURRENT_JOBS: int = 10
     MAX_RETRIES: int = 5

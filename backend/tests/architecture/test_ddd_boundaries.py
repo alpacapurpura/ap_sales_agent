@@ -64,6 +64,12 @@ KNOWN_CROSS_MODULE_IMPORTS: set[str] = {
     # --- offer ---
     "offer -> copilot | offer/api/offer_ai.py",
     "offer -> crm | offer/api/product_mappings.py",
+    # AdvertisingReadPort DI at the FastAPI route (same pattern as BrandReadPort):
+    # offer declares the shared port, advertising ships the concrete adapter,
+    # and the router wires it via Depends() at request time. No runtime
+    # coupling — only the adapter import.
+    "offer -> advertising | offer/api/campaigns.py",
+    "offer -> advertising | offer/api/counts.py",
     # --- sales_agent ---
     "sales_agent -> brand | sales_agent/application/services/knowledge_builder.py",
     "sales_agent -> connections | sales_agent/application/orchestrator/chat.py",
