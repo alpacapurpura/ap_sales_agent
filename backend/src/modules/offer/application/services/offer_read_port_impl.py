@@ -22,10 +22,16 @@ class OfferReadPortImpl(OfferReadPort):
         self.db = db
 
     async def get_offers_by_tenant(self, tenant_id: UUID) -> list[OfferReadDTO]:
-        """All active offers for a tenant (excludes archived)."""
+        """All active offers for a tenant (excludes archived and soft-deleted).
+
+        Post-migration 040 the archive lifecycle lives on ``archived_at`` /
+        ``deleted_at`` — ``status`` is purely operational (draft/active/paused/…)
+        and must not be used as an archival marker.
+        """
         stmt = select(ProductModel).where(
             ProductModel.tenant_id == tenant_id,
-            ProductModel.status != "archived",
+            ProductModel.archived_at.is_(None),
+            ProductModel.deleted_at.is_(None),
         )
         result = await asyncio.to_thread(self.db.execute, stmt)
         models = result.scalars().all()

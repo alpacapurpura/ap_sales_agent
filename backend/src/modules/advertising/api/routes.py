@@ -197,6 +197,12 @@ async def list_offers_for_assignment(
     now — when/if we support associating campaigns with lead magnets as
     first-class promotion targets, remove the is_lead_magnet filter and
     the value_level == "lead_magnet" guard.
+
+    NOTE ON STATUS: the OfferReadPort already excludes archived and
+    soft-deleted offers (via ``archived_at`` / ``deleted_at``). We do NOT
+    filter drafts here — every new offer starts as ``status='draft'`` and
+    there is no promotion UI yet, so hiding drafts would leave the dropdown
+    empty for most tenants.
     """
     tenant = _tenant_id(user)
     port = _get_offer_port(db)
@@ -204,10 +210,8 @@ async def list_offers_for_assignment(
     active_offers = [
         o
         for o in offers
-        if (o.status or "active") not in {"archived", "draft"}
         # Hide lead magnets (nivel 0 del offer ladder) — see docstring.
-        and not o.is_lead_magnet
-        and (o.value_level or "").lower() != "lead_magnet"
+        if not o.is_lead_magnet and (o.value_level or "").lower() != "lead_magnet"
     ]
     out: list[OfferSummaryDTO] = []
     for o in active_offers:
