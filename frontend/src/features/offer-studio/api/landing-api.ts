@@ -26,7 +26,7 @@ export const landingApi = {
     token: string,
   ): Promise<LandingStatusResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/landing/status`,
+      `${API_URL}/api/v1/offer/products/${offerId}/landing/status`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -44,7 +44,7 @@ export const landingApi = {
     token: string,
   ): Promise<LandingGenerateResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/landing/generate`,
+      `${API_URL}/api/v1/offer/products/${offerId}/landing/generate`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -63,7 +63,7 @@ export const landingApi = {
     token: string,
   ): Promise<LandingGenerateResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/landing/regenerate`,
+      `${API_URL}/api/v1/offer/products/${offerId}/landing/regenerate`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -82,7 +82,7 @@ export const landingApi = {
     token: string,
   ): Promise<LandingPublishResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/landing/publish`,
+      `${API_URL}/api/v1/offer/products/${offerId}/landing/publish`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -101,7 +101,7 @@ export const landingApi = {
     token: string,
   ): Promise<LandingUnpublishResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/landing/unpublish`,
+      `${API_URL}/api/v1/offer/products/${offerId}/landing/unpublish`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },

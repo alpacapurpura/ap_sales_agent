@@ -26,7 +26,7 @@ export const campaignsApi = {
     token: string,
   ): Promise<OfferCampaignsResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/campaigns${buildQueryString(query)}`,
+      `${API_URL}/api/v1/offer/products/${offerId}/campaigns${buildQueryString(query)}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },

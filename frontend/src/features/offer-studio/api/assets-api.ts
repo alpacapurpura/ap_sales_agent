@@ -42,7 +42,7 @@ export const assetsApi = {
     token: string,
   ): Promise<AssetListResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/assets${buildQueryString(query)}`,
+      `${API_URL}/api/v1/offer/products/${offerId}/assets${buildQueryString(query)}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -61,7 +61,7 @@ export const assetsApi = {
     token: string,
   ): Promise<AssetResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/assets/${assetId}`,
+      `${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -80,7 +80,7 @@ export const assetsApi = {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/assets/upload`,
+      `${API_URL}/api/v1/offer/products/${offerId}/assets/upload`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -99,7 +99,7 @@ export const assetsApi = {
     token: string,
   ): Promise<AssetResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/assets/generate`,
+      `${API_URL}/api/v1/offer/products/${offerId}/assets/generate`,
       {
         method: "POST",
         headers: {
@@ -124,7 +124,7 @@ export const assetsApi = {
     token: string,
   ): Promise<AssetResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/assets/${assetId}`,
+      `${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`,
       {
         method: "PATCH",
         headers: {
@@ -148,7 +148,7 @@ export const assetsApi = {
     token: string,
   ): Promise<void> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/assets/${assetId}`,
+      `${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}`,
       {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -162,5 +162,5 @@ export const assetsApi = {
   },
 
   getDownloadUrl: (offerId: string, assetId: string): string =>
-    `${API_URL}/api/v1/offer/offers/${offerId}/assets/${assetId}/download`,
+    `${API_URL}/api/v1/offer/products/${offerId}/assets/${assetId}/download`,
 };

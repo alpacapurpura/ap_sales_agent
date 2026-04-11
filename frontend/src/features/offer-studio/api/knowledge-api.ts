@@ -36,7 +36,7 @@ export const knowledgeApi = {
     token: string,
   ): Promise<KnowledgeListResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/knowledge${buildQueryString(query)}`,
+      `${API_URL}/api/v1/offer/products/${offerId}/knowledge${buildQueryString(query)}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -57,7 +57,7 @@ export const knowledgeApi = {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/knowledge/upload`,
+      `${API_URL}/api/v1/offer/products/${offerId}/knowledge/upload`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -78,7 +78,7 @@ export const knowledgeApi = {
     token: string,
   ): Promise<KnowledgeSourceResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/knowledge/url`,
+      `${API_URL}/api/v1/offer/products/${offerId}/knowledge/url`,
       {
         method: "POST",
         headers: {
@@ -102,7 +102,7 @@ export const knowledgeApi = {
     token: string,
   ): Promise<void> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/knowledge/${sourceId}`,
+      `${API_URL}/api/v1/offer/products/${offerId}/knowledge/${sourceId}`,
       {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -121,7 +121,7 @@ export const knowledgeApi = {
     token: string,
   ): Promise<KnowledgeSourceResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/knowledge/${sourceId}/reindex`,
+      `${API_URL}/api/v1/offer/products/${offerId}/knowledge/${sourceId}/reindex`,
       {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },

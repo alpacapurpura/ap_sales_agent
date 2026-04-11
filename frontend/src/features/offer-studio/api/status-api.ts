@@ -14,7 +14,7 @@ export const statusApi = {
     token: string,
   ): Promise<OfferStatusResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/status`,
+      `${API_URL}/api/v1/offer/products/${offerId}/status`,
       {
         method: "POST",
         headers: {

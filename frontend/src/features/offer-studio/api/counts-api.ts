@@ -10,7 +10,7 @@ export const countsApi = {
     token: string,
   ): Promise<OfferCountsResponse> => {
     const res = await fetchClient(
-      `${API_URL}/api/v1/offer/offers/${offerId}/counts`,
+      `${API_URL}/api/v1/offer/products/${offerId}/counts`,
       {
         headers: { Authorization: `Bearer ${token}` },
       },
