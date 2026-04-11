@@ -88,6 +88,8 @@ export const METRIC_LABELS: Record<string, string> = {
   ig_reposts: 'Reposts',
   ig_accounts_engaged: 'Cuentas Engaged',
   ig_follows_and_unfollows: 'Seguidores Netos',
+  ig_follows_gained: 'Seguidores Ganados',
+  ig_follows_lost: 'Seguidores Perdidos',
   ig_profile_links_taps: 'Taps Perfil',
   ig_followers_count: 'Seguidores',
   ig_media_count: 'Publicaciones',

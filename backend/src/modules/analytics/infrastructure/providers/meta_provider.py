@@ -93,6 +93,37 @@ def _auth_headers(access_token: str) -> dict:
     return {"Authorization": f"Bearer {access_token}"}
 
 
+def _parse_follow_type_breakdown(item: dict) -> tuple[float, float]:
+    """Parse Meta's follows_and_unfollows response into (gained, lost).
+
+    The API returns (when called with breakdown=follow_type):
+
+        total_value.breakdowns[0].results: [
+            {dimension_values: ["FOLLOWER"],     value: N},  # new followers
+            {dimension_values: ["NON_FOLLOWER"], value: M},  # unfollows
+        ]
+
+    Missing dimensions default to 0. Returns (gained, lost) as floats.
+    """
+    total_value = item.get("total_value") or {}
+    breakdowns = total_value.get("breakdowns") or []
+    if not breakdowns:
+        return 0.0, 0.0
+
+    results = breakdowns[0].get("results") or []
+    gained = 0.0
+    lost = 0.0
+    for entry in results:
+        dims = entry.get("dimension_values") or []
+        dim = dims[0] if dims else ""
+        value = float(entry.get("value", 0) or 0)
+        if dim == "FOLLOWER":
+            gained = value
+        elif dim == "NON_FOLLOWER":
+            lost = value
+    return gained, lost
+
+
 def _raise_for_meta_error(response: httpx.Response, context: str) -> None:
     """Raise on HTTP errors with Meta-specific context in the log message."""
     if response.status_code >= 400:
@@ -438,7 +469,6 @@ class MetaProvider(BaseMetricsProvider):
         "replies": "ig_replies",
         "reposts": "ig_reposts",
         "accounts_engaged": "ig_accounts_engaged",
-        "follows_and_unfollows": "ig_follows_and_unfollows",
         "profile_links_taps": "ig_profile_links_taps",
     }
 
@@ -458,9 +488,11 @@ class MetaProvider(BaseMetricsProvider):
     }
 
     # Metrics that do NOT support breakdown (queried without it, kept as-is)
+    # NOTE: `follows_and_unfollows` is intentionally NOT here — Meta returns
+    # no total_value for it unless breakdown=follow_type is specified. It is
+    # handled by _extract_ig_follow_type_breakdown() in a dedicated call.
     _IG_NO_BREAKDOWN = {
         "accounts_engaged",
-        "follows_and_unfollows",
         "profile_links_taps",
         "replies",
         "reposts",
@@ -490,12 +522,17 @@ class MetaProvider(BaseMetricsProvider):
         metrics: list[ExtractedMetric] = []
 
         # ── Call 1: Account Insights (total_value format, ≤30-day chunks) ──
-        # Two separate API calls per chunk:
+        # Three separate API calls per chunk:
         #   A) Breakdownable metrics with breakdown=media_product_type → exclude AD
         #   B) Non-breakdownable metrics without breakdown → kept as-is
-        # Meta errors if you mix breakdownable and non-breakdownable in one call.
+        #   C) follows_and_unfollows with breakdown=follow_type → gained/lost/net
+        # Meta errors if you mix metrics that require different breakdowns in
+        # one call, and returns no total_value for follows_and_unfollows
+        # unless breakdown=follow_type is explicitly passed.
         totals: dict[str, float] = defaultdict(float)
         last_values: dict[str, float] = {}
+        follows_gained_total = 0.0
+        follows_lost_total = 0.0
 
         for chunk_start, chunk_end in _ig_day_chunks(start_date, end_date):
             since_ts = int(
@@ -556,6 +593,28 @@ class MetaProvider(BaseMetricsProvider):
                 else:
                     totals[metric_name] += val
 
+            # ── Call 1C: follows_and_unfollows (requires breakdown=follow_type) ──
+            ft_resp = await client.get(
+                f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                headers=headers,
+                params={
+                    "metric": "follows_and_unfollows",
+                    "metric_type": "total_value",
+                    "breakdown": "follow_type",
+                    "period": "day",
+                    "since": since_ts,
+                    "until": until_ts,
+                },
+            )
+            _raise_for_meta_error(ft_resp, "ig_organic_insights_follow_type")
+
+            for item in ft_resp.json().get("data", []):
+                if item.get("name") != "follows_and_unfollows":
+                    continue
+                gained_chunk, lost_chunk = _parse_follow_type_breakdown(item)
+                follows_gained_total += gained_chunk
+                follows_lost_total += lost_chunk
+
         for metric_name, total in totals.items():
             metrics.append(
                 ExtractedMetric(
@@ -568,6 +627,24 @@ class MetaProvider(BaseMetricsProvider):
                 )
             )
         for metric_name, val in last_values.items():
+            metrics.append(
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="ig-organic",
+                    metric_name=metric_name,
+                    value=val,
+                    unit="count",
+                    date=end_date,
+                )
+            )
+
+        # Emit follows metrics: gained, lost, and net (gained - lost).
+        # All three are surfaced so the UI can break down audience growth.
+        for metric_name, val in (
+            ("ig_follows_gained", follows_gained_total),
+            ("ig_follows_lost", follows_lost_total),
+            ("ig_follows_and_unfollows", follows_gained_total - follows_lost_total),
+        ):
             metrics.append(
                 ExtractedMetric(
                     provider="meta",
@@ -1169,8 +1246,11 @@ class MetaProvider(BaseMetricsProvider):
 
         # ── Call 1: Account Insights per day (total_value format) ──
         # Two calls per day: breakdownable (exclude AD) + non-breakdownable.
+        # Loop is CLOSED on both ends: covers [start_date, end_date] inclusive.
+        # Callers (run_initial_load) pass min_missing/max_missing where start
+        # may equal end — skipping that day would silently drop metrics.
         current = start_date
-        while current < end_date:
+        while current <= end_date:
             next_day = current + timedelta(days=1)
             since_ts = int(datetime.combine(current, datetime.min.time()).timestamp())
             until_ts = int(datetime.combine(next_day, datetime.min.time()).timestamp())
@@ -1239,9 +1319,57 @@ class MetaProvider(BaseMetricsProvider):
                         date=current,
                     )
                 )
+
+            # Call C: follows_and_unfollows (requires breakdown=follow_type).
+            # Meta omits total_value for this metric unless the follow_type
+            # breakdown is explicitly requested — otherwise the value is 0.
+            ft_resp = await client.get(
+                f"{GRAPH_API_BASE}/{ig_account_id}/insights",
+                headers=headers,
+                params={
+                    "metric": "follows_and_unfollows",
+                    "metric_type": "total_value",
+                    "breakdown": "follow_type",
+                    "period": "day",
+                    "since": since_ts,
+                    "until": until_ts,
+                },
+            )
+            _raise_for_meta_error(ft_resp, "ig_organic_insights_daily_follow_type")
+
+            gained_day = 0.0
+            lost_day = 0.0
+            for item in ft_resp.json().get("data", []):
+                if item.get("name") != "follows_and_unfollows":
+                    continue
+                gained_day, lost_day = _parse_follow_type_breakdown(item)
+
+            for metric_name, val in (
+                ("ig_follows_gained", gained_day),
+                ("ig_follows_lost", lost_day),
+                ("ig_follows_and_unfollows", gained_day - lost_day),
+            ):
+                metrics.append(
+                    ExtractedMetric(
+                        provider="meta",
+                        channel_slug="ig-organic",
+                        metric_name=metric_name,
+                        value=val,
+                        unit="count",
+                        date=current,
+                    )
+                )
+
             current = next_day
 
-        # ── Call 2: User Node snapshots (only emit on end_date) ──
+        # ── Call 2: User Node snapshots ──
+        # - media_count: single snapshot at end_date (it's a current count, not time series)
+        # - followers_count: reconstructed per-day using the daily net delta from
+        #   the loop above + Meta's current snapshot as the anchor.
+        #   Meta's user node only returns the CURRENT followers count; there is
+        #   no historical endpoint. We walk backward from the anchor using the
+        #   just-extracted daily net deltas so the UI can show a real growth
+        #   curve instead of a single data point.
         user_resp = await client.get(
             f"{GRAPH_API_BASE}/{ig_account_id}",
             headers=headers,
@@ -1250,22 +1378,47 @@ class MetaProvider(BaseMetricsProvider):
         _raise_for_meta_error(user_resp, "ig_organic_user_node_daily")
         user_data = user_resp.json()
 
-        for field_name, metric_name in [
-            ("followers_count", "ig_followers_count"),
-            ("media_count", "ig_media_count"),
-        ]:
-            val = user_data.get(field_name)
-            if val is not None:
+        media_count_val = user_data.get("media_count")
+        if media_count_val is not None:
+            metrics.append(
+                ExtractedMetric(
+                    provider="meta",
+                    channel_slug="ig-organic",
+                    metric_name="ig_media_count",
+                    value=float(media_count_val),
+                    unit="count",
+                    date=end_date,
+                )
+            )
+
+        followers_now = user_data.get("followers_count")
+        if followers_now is not None:
+            # Build a lookup of net delta per day from the metrics we just emitted
+            net_by_date: dict[date, float] = {}
+            for m in metrics:
+                if m.metric_name == "ig_follows_and_unfollows":
+                    net_by_date[m.date] = m.value
+
+            # Walk backward: followers(end_date) = snapshot; for each earlier day,
+            # followers(D-1) = followers(D) - net(D). Values are rounded to whole
+            # followers since fractional followers don't exist.
+            cursor_value = float(followers_now)
+            cursor_day = end_date
+            while cursor_day >= start_date:
                 metrics.append(
                     ExtractedMetric(
                         provider="meta",
                         channel_slug="ig-organic",
-                        metric_name=metric_name,
-                        value=float(val),
+                        metric_name="ig_followers_count",
+                        value=round(cursor_value),
                         unit="count",
-                        date=end_date,
+                        date=cursor_day,
                     )
                 )
+                # Subtract the net delta AT cursor_day to get the count at the
+                # end of the previous day. Missing dates → 0 (no change).
+                cursor_value -= net_by_date.get(cursor_day, 0.0)
+                cursor_day -= timedelta(days=1)
 
         # ── Call 3-4: Demographics (lifetime, only on end_date) ──
         for demo_metric, metric_name in [

@@ -104,6 +104,8 @@ _CHANNEL_CONFIGS: dict[str, ChannelDashboardConfig] = {
             "total_interactions",
             "ig_views",
             "ig_follows_and_unfollows",
+            "ig_follows_gained",
+            "ig_follows_lost",
             "ig_engagement_rate",
         ],
         timeseries_metrics=[
@@ -114,6 +116,8 @@ _CHANNEL_CONFIGS: dict[str, ChannelDashboardConfig] = {
             "ig_shares",
             "ig_saves",
             "ig_follows_and_unfollows",
+            "ig_follows_gained",
+            "ig_follows_lost",
             "ig_profile_links_taps",
         ],
         funnel_steps=[

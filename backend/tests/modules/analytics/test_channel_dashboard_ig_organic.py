@@ -29,6 +29,8 @@ class TestIgOrganicConfig:
             "total_interactions",
             "ig_views",
             "ig_follows_and_unfollows",
+            "ig_follows_gained",
+            "ig_follows_lost",
             "ig_engagement_rate",
         ]
 
@@ -95,23 +97,41 @@ class TestIgOrganicKpisAndFunnel:
             "total_interactions": 2450.0,
             "ig_views": 485000.0,
             "ig_follows_and_unfollows": 127.0,
+            "ig_follows_gained": 150.0,
+            "ig_follows_lost": 23.0,
             "ig_engagement_rate": 0.51,
         }
         previous = {
             "total_interactions": 2000.0,
             "ig_views": 400000.0,
             "ig_follows_and_unfollows": 100.0,
+            "ig_follows_gained": 118.0,
+            "ig_follows_lost": 18.0,
             "ig_engagement_rate": 0.50,
         }
         kpis = service._build_kpis(current, previous, IndustryCategory.GENERAL, config)
-        assert len(kpis) == 4
+        assert len(kpis) == 6
         names = [k.metric_name for k in kpis]
         assert names == [
             "total_interactions",
             "ig_views",
             "ig_follows_and_unfollows",
+            "ig_follows_gained",
+            "ig_follows_lost",
             "ig_engagement_rate",
         ]
+        gained = next(k for k in kpis if k.metric_name == "ig_follows_gained")
+        assert gained.current_value == 150.0
+        assert gained.display_name == "Seguidores Ganados"
+        lost = next(k for k in kpis if k.metric_name == "ig_follows_lost")
+        assert lost.current_value == 23.0
+        assert lost.display_name == "Seguidores Perdidos"
+        assert lost.higher_is_better is False
+        net = next(k for k in kpis if k.metric_name == "ig_follows_and_unfollows")
+        # Sanity: the net metric must equal gained - lost in the same period
+        assert net.current_value == pytest.approx(
+            gained.current_value - lost.current_value
+        )
 
     def test_ig_organic_funnel_built_correctly(self, mock_db):
         service = ChannelDashboardService(mock_db)

@@ -66,6 +66,8 @@ STAGE_CHANNEL_MAP: dict[str, list[dict]] = {
                 # Visibilidad
                 "ig_views",
                 "ig_follows_and_unfollows",
+                "ig_follows_gained",
+                "ig_follows_lost",
                 "ig_media_count",
                 # Engagement detalle
                 "ig_likes",

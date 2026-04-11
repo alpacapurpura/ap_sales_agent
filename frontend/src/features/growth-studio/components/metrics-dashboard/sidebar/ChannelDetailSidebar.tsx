@@ -45,7 +45,8 @@ import { WebsiteOverviewPanel } from './website/WebsiteOverviewPanel';
 /** Section groupings for channels with many metrics. */
 const CHANNEL_METRIC_SECTIONS: Record<string, Array<{ title: string; metrics: string[] }>> = {
   'ig-organic': [
-    { title: 'Visibilidad', metrics: ['reach', 'ig_views', 'ig_followers_count', 'ig_follows_and_unfollows', 'ig_media_count'] },
+    { title: 'Visibilidad', metrics: ['reach', 'ig_views', 'ig_followers_count', 'ig_media_count'] },
+    { title: 'Audiencia', metrics: ['ig_follows_and_unfollows', 'ig_follows_gained', 'ig_follows_lost'] },
     { title: 'Engagement', metrics: ['total_interactions', 'ig_likes', 'ig_comments', 'ig_shares', 'ig_saves', 'ig_replies', 'ig_reposts'] },
     { title: 'Perfil', metrics: ['ig_accounts_engaged', 'ig_profile_links_taps'] },
     { title: 'Demografía', metrics: ['ig_follower_demographics', 'ig_engaged_audience_demographics'] },

@@ -796,9 +796,9 @@ class TestExtractMetricsDaily:
             MockClient.return_value = instance
 
             provider = MetaProvider()
-            # Half-open range [Mar 1, Mar 4) → 3 days
+            # Closed range [Mar 1, Mar 3] inclusive → 3 days
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 4)
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
             )
         metrics = result.metrics
 
@@ -824,10 +824,26 @@ class TestExtractMetricsDaily:
         ]
         assert len(interactions) == 3
 
-        # Snapshots: only on end_date
-        followers = [m for m in metrics if m.metric_name == "ig_followers_count"]
-        assert len(followers) == 1
-        assert followers[0].date == date(2026, 3, 4)
+        # followers_count: one reconstructed row per day in the window.
+        # Since this mock returns no follows_and_unfollows data, net deltas
+        # are all zero and every day shows the same anchor snapshot.
+        followers = sorted(
+            (m for m in metrics if m.metric_name == "ig_followers_count"),
+            key=lambda m: m.date,
+        )
+        assert len(followers) == 3
+        assert [m.date for m in followers] == [
+            date(2026, 3, 1),
+            date(2026, 3, 2),
+            date(2026, 3, 3),
+        ]
+        assert all(m.value == 28400.0 for m in followers)
+
+        # media_count stays a single snapshot at end_date (not reconstructable)
+        media = [m for m in metrics if m.metric_name == "ig_media_count"]
+        assert len(media) == 1
+        assert media[0].date == date(2026, 3, 3)
+        assert media[0].value == 342.0
 
     @pytest.mark.asyncio
     async def test_meta_ads_daily_uses_time_increment(self):
@@ -1453,3 +1469,551 @@ class TestMetaProviderErrorHandling:
             )
         # Must be empty — the old code would have returned metrics with 0 values
         assert len(result.metrics) == 0
+
+
+class TestInstagramFollowTypeBreakdown:
+    """Tests for the follows_and_unfollows metric which requires breakdown=follow_type.
+
+    Meta's Graph API returns NO data for `follows_and_unfollows` unless the
+    request includes `breakdown=follow_type`. The response is nested:
+        total_value.breakdowns[0].results:
+            [{dimension_values: ["FOLLOWER"],      value: N},
+             {dimension_values: ["NON_FOLLOWER"],  value: M}]
+
+    We emit three separate metrics so the UI can show gained, lost, and net
+    independently without losing granularity:
+        - ig_follows_gained       = FOLLOWER value      (new followers)
+        - ig_follows_lost         = NON_FOLLOWER value  (unfollows)
+        - ig_follows_and_unfollows = gained - lost      (net delta)
+    """
+
+    @pytest.mark.asyncio
+    async def test_daily_emits_gained_lost_and_net_per_day(self):
+        """extract_metrics_daily emits 3 metrics per day from the follow_type breakdown."""
+        from datetime import datetime as dt
+
+        # Per-day values: (gained, lost). Includes a negative-net day.
+        day_values: dict[int, tuple[int, int]] = {
+            int(dt.combine(date(2026, 3, 1), dt.min.time()).timestamp()): (42, 3),
+            int(dt.combine(date(2026, 3, 2), dt.min.time()).timestamp()): (8, 11),
+            int(dt.combine(date(2026, 3, 3), dt.min.time()).timestamp()): (20, 0),
+        }
+
+        # Track that the extractor actually passed breakdown=follow_type
+        follow_type_call_count = 0
+
+        async def mock_get(url, **kwargs):
+            nonlocal follow_type_call_count
+            params = kwargs.get("params", {})
+            metric = params.get("metric", "")
+
+            if "/insights" in url and params.get("period") == "lifetime":
+                return _ok_response({"data": []})
+
+            if "/insights" in url and metric == "follows_and_unfollows":
+                # Must be called with breakdown=follow_type
+                assert params.get("breakdown") == "follow_type", (
+                    "follows_and_unfollows must be requested with breakdown=follow_type"
+                )
+                follow_type_call_count += 1
+                since = params.get("since")
+                gained, lost = day_values.get(since, (0, 0))
+                return _ok_response(
+                    {
+                        "data": [
+                            {
+                                "name": "follows_and_unfollows",
+                                "period": "day",
+                                "total_value": {
+                                    "breakdowns": [
+                                        {
+                                            "dimension_keys": ["follow_type"],
+                                            "results": [
+                                                {
+                                                    "dimension_values": ["FOLLOWER"],
+                                                    "value": gained,
+                                                },
+                                                {
+                                                    "dimension_values": [
+                                                        "NON_FOLLOWER"
+                                                    ],
+                                                    "value": lost,
+                                                },
+                                            ],
+                                        }
+                                    ]
+                                },
+                            }
+                        ]
+                    }
+                )
+
+            if "/insights" in url:
+                # Other IG insights calls — empty
+                return _ok_response({"data": []})
+
+            if url.endswith("/12345") and "fields" in params:
+                return _ok_response(
+                    {"id": "12345", "followers_count": 1000, "media_count": 50}
+                )
+
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            # Closed [Mar 1, Mar 3] inclusive → 3 days
+            result = await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+            )
+
+        # One dedicated follow_type call per day
+        assert follow_type_call_count == 3
+
+        metrics = result.metrics
+
+        gained = sorted(
+            (m for m in metrics if m.metric_name == "ig_follows_gained"),
+            key=lambda m: m.date,
+        )
+        lost = sorted(
+            (m for m in metrics if m.metric_name == "ig_follows_lost"),
+            key=lambda m: m.date,
+        )
+        net = sorted(
+            (m for m in metrics if m.metric_name == "ig_follows_and_unfollows"),
+            key=lambda m: m.date,
+        )
+
+        assert len(gained) == 3, f"expected 3 gained rows, got {len(gained)}"
+        assert len(lost) == 3
+        assert len(net) == 3
+
+        # Day 1: gained 42, lost 3, net +39
+        assert gained[0].date == date(2026, 3, 1)
+        assert gained[0].value == 42.0
+        assert lost[0].value == 3.0
+        assert net[0].value == 39.0
+
+        # Day 2: gained 8, lost 11, net -3 (negative is valid)
+        assert gained[1].value == 8.0
+        assert lost[1].value == 11.0
+        assert net[1].value == -3.0
+
+        # Day 3: gained 20, lost 0, net +20
+        assert gained[2].value == 20.0
+        assert lost[2].value == 0.0
+        assert net[2].value == 20.0
+
+        # All three metrics must be scoped to ig-organic and tagged with source
+        for m in gained + lost + net:
+            assert m.channel_slug == "ig-organic"
+            assert m.provider == "meta"
+            assert m.unit == "count"
+
+    @pytest.mark.asyncio
+    async def test_legacy_window_extractor_emits_gained_lost_and_net(self):
+        """extract_metrics (window-aggregated) emits the same 3 metrics once per window."""
+        follow_type_call_count = 0
+
+        async def mock_get(url, **kwargs):
+            nonlocal follow_type_call_count
+            params = kwargs.get("params", {})
+            metric = params.get("metric", "")
+
+            if "/insights" in url and params.get("period") == "lifetime":
+                return _ok_response({"data": []})
+
+            if "/insights" in url and metric == "follows_and_unfollows":
+                assert params.get("breakdown") == "follow_type", (
+                    "follows_and_unfollows must be requested with breakdown=follow_type"
+                )
+                follow_type_call_count += 1
+                return _ok_response(
+                    {
+                        "data": [
+                            {
+                                "name": "follows_and_unfollows",
+                                "period": "day",
+                                "total_value": {
+                                    "breakdowns": [
+                                        {
+                                            "dimension_keys": ["follow_type"],
+                                            "results": [
+                                                {
+                                                    "dimension_values": ["FOLLOWER"],
+                                                    "value": 120,
+                                                },
+                                                {
+                                                    "dimension_values": [
+                                                        "NON_FOLLOWER"
+                                                    ],
+                                                    "value": 45,
+                                                },
+                                            ],
+                                        }
+                                    ]
+                                },
+                            }
+                        ]
+                    }
+                )
+
+            if "/insights" in url:
+                return _ok_response({"data": []})
+
+            if url.endswith("/12345") and "fields" in params:
+                return _ok_response(
+                    {"id": "12345", "followers_count": 5000, "media_count": 200}
+                )
+
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+            )
+
+        assert follow_type_call_count >= 1
+        metrics = result.metrics
+
+        ig = [m for m in metrics if m.channel_slug == "ig-organic"]
+
+        gained = [m for m in ig if m.metric_name == "ig_follows_gained"]
+        lost = [m for m in ig if m.metric_name == "ig_follows_lost"]
+        net = [m for m in ig if m.metric_name == "ig_follows_and_unfollows"]
+
+        assert len(gained) == 1
+        assert len(lost) == 1
+        assert len(net) == 1
+
+        assert gained[0].value == 120.0
+        assert lost[0].value == 45.0
+        assert net[0].value == 75.0  # 120 - 45
+        assert net[0].date == date(2026, 3, 15)
+
+    @pytest.mark.asyncio
+    async def test_missing_dimension_defaults_to_zero(self):
+        """If Meta omits a dimension (e.g. no unfollows), its value is treated as 0."""
+
+        async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
+            metric = params.get("metric", "")
+
+            if "/insights" in url and params.get("period") == "lifetime":
+                return _ok_response({"data": []})
+
+            if "/insights" in url and metric == "follows_and_unfollows":
+                # Only FOLLOWER present — NON_FOLLOWER missing entirely
+                return _ok_response(
+                    {
+                        "data": [
+                            {
+                                "name": "follows_and_unfollows",
+                                "period": "day",
+                                "total_value": {
+                                    "breakdowns": [
+                                        {
+                                            "dimension_keys": ["follow_type"],
+                                            "results": [
+                                                {
+                                                    "dimension_values": ["FOLLOWER"],
+                                                    "value": 17,
+                                                }
+                                            ],
+                                        }
+                                    ]
+                                },
+                            }
+                        ]
+                    }
+                )
+
+            if "/insights" in url:
+                return _ok_response({"data": []})
+
+            if url.endswith("/12345") and "fields" in params:
+                return _ok_response(
+                    {"id": "12345", "followers_count": 100, "media_count": 10}
+                )
+
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            # Closed interval [Mar 1, Mar 1] → single day.
+            # Also serves as a regression guard against the half-open loop
+            # bug where start == end would silently yield zero iterations.
+            result = await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1)
+            )
+
+        metrics = result.metrics
+        gained = [m for m in metrics if m.metric_name == "ig_follows_gained"]
+        lost = [m for m in metrics if m.metric_name == "ig_follows_lost"]
+        net = [m for m in metrics if m.metric_name == "ig_follows_and_unfollows"]
+
+        assert len(gained) == 1 and gained[0].value == 17.0
+        assert len(lost) == 1 and lost[0].value == 0.0
+        assert len(net) == 1 and net[0].value == 17.0
+
+    @pytest.mark.asyncio
+    async def test_daily_extractor_covers_single_day_window(self):
+        """Regression: when start_date == end_date, the daily loop must still run.
+
+        Before the closed-interval fix, `while current < end_date` skipped
+        the loop entirely when start == end. This is exactly what happened
+        during ETL backfill when only one day was missing — the extractor
+        silently emitted zero metrics.
+        """
+        calls_seen = 0
+
+        async def mock_get(url, **kwargs):
+            nonlocal calls_seen
+            params = kwargs.get("params", {})
+            metric = params.get("metric", "")
+
+            if "/insights" in url and params.get("period") == "lifetime":
+                return _ok_response({"data": []})
+
+            if "/insights" in url and metric == "follows_and_unfollows":
+                calls_seen += 1
+                return _ok_response(
+                    {
+                        "data": [
+                            {
+                                "name": "follows_and_unfollows",
+                                "period": "day",
+                                "total_value": {
+                                    "breakdowns": [
+                                        {
+                                            "dimension_keys": ["follow_type"],
+                                            "results": [
+                                                {
+                                                    "dimension_values": ["FOLLOWER"],
+                                                    "value": 5,
+                                                },
+                                                {
+                                                    "dimension_values": [
+                                                        "NON_FOLLOWER"
+                                                    ],
+                                                    "value": 1,
+                                                },
+                                            ],
+                                        }
+                                    ]
+                                },
+                            }
+                        ]
+                    }
+                )
+
+            if "/insights" in url:
+                return _ok_response({"data": []})
+
+            if url.endswith("/12345") and "fields" in params:
+                return _ok_response(
+                    {"id": "12345", "followers_count": 100, "media_count": 10}
+                )
+
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            # start_date == end_date — the exact scenario that triggered the bug
+            result = await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1)
+            )
+
+        # The follow_type call must have happened at least once
+        assert calls_seen >= 1, (
+            "Daily extractor skipped the single-day window — off-by-one bug"
+        )
+
+        gained = [m for m in result.metrics if m.metric_name == "ig_follows_gained"]
+        assert len(gained) == 1
+        assert gained[0].date == date(2026, 3, 1)
+        assert gained[0].value == 5.0
+
+    @pytest.mark.asyncio
+    async def test_followers_count_reconstructed_backwards_from_deltas(self):
+        """Daily ig_followers_count is rebuilt backwards from current snapshot + deltas.
+
+        Given Meta's user node returns the current followers count and the
+        follow_type breakdown gives us per-day gained/lost, we can recover
+        the historical follower count curve. Walk backward: the value at end
+        of day D-1 is the value at end of D minus the net change of day D.
+        """
+        from datetime import datetime as dt
+
+        # Per-day (gained, lost)
+        day_values: dict[int, tuple[int, int]] = {
+            int(dt.combine(date(2026, 3, 1), dt.min.time()).timestamp()): (10, 2),
+            int(dt.combine(date(2026, 3, 2), dt.min.time()).timestamp()): (5, 0),
+            int(dt.combine(date(2026, 3, 3), dt.min.time()).timestamp()): (3, 1),
+        }
+        current_followers = 1000  # snapshot "now"
+
+        async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
+            metric = params.get("metric", "")
+
+            if "/insights" in url and params.get("period") == "lifetime":
+                return _ok_response({"data": []})
+
+            if "/insights" in url and metric == "follows_and_unfollows":
+                since = params.get("since")
+                gained, lost = day_values.get(since, (0, 0))
+                return _ok_response(
+                    {
+                        "data": [
+                            {
+                                "name": "follows_and_unfollows",
+                                "period": "day",
+                                "total_value": {
+                                    "breakdowns": [
+                                        {
+                                            "dimension_keys": ["follow_type"],
+                                            "results": [
+                                                {
+                                                    "dimension_values": ["FOLLOWER"],
+                                                    "value": gained,
+                                                },
+                                                {
+                                                    "dimension_values": [
+                                                        "NON_FOLLOWER"
+                                                    ],
+                                                    "value": lost,
+                                                },
+                                            ],
+                                        }
+                                    ]
+                                },
+                            }
+                        ]
+                    }
+                )
+
+            if "/insights" in url:
+                return _ok_response({"data": []})
+
+            if url.endswith("/12345") and "fields" in params:
+                return _ok_response(
+                    {
+                        "id": "12345",
+                        "followers_count": current_followers,
+                        "media_count": 50,
+                    }
+                )
+
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            result = await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+            )
+
+        followers = sorted(
+            (m for m in result.metrics if m.metric_name == "ig_followers_count"),
+            key=lambda m: m.date,
+        )
+        assert len(followers) == 3
+
+        # Walk backward from anchor:
+        #   end of Mar 3 = 1000 (anchor)
+        #   end of Mar 2 = 1000 - net(Mar 3) = 1000 - (3 - 1) = 998
+        #   end of Mar 1 = 998  - net(Mar 2) = 998  - (5 - 0) = 993
+        assert followers[2].date == date(2026, 3, 3)
+        assert followers[2].value == 1000.0
+        assert followers[1].date == date(2026, 3, 2)
+        assert followers[1].value == 998.0
+        assert followers[0].date == date(2026, 3, 1)
+        assert followers[0].value == 993.0
+
+        # Cross-check consistency: end-of-D minus end-of-D-1 must equal net(D)
+        net_by_date = {
+            m.date: m.value
+            for m in result.metrics
+            if m.metric_name == "ig_follows_and_unfollows"
+        }
+        for i in range(1, len(followers)):
+            delta = followers[i].value - followers[i - 1].value
+            assert delta == net_by_date.get(followers[i].date, 0.0), (
+                f"Reconstruction drift on {followers[i].date}: "
+                f"delta={delta}, net={net_by_date.get(followers[i].date)}"
+            )
+
+    @pytest.mark.asyncio
+    async def test_follows_and_unfollows_not_in_generic_no_breakdown_call(self):
+        """follows_and_unfollows must NOT be mixed into the generic _IG_NO_BREAKDOWN call.
+
+        Meta returns no total_value for follows_and_unfollows without
+        breakdown=follow_type, which silently produced zero values pre-fix.
+        Regression guard: no IG insights call should include it without the breakdown.
+        """
+        calls_without_breakdown: list[str] = []
+
+        async def mock_get(url, **kwargs):
+            params = kwargs.get("params", {})
+            metric = params.get("metric", "")
+
+            if (
+                "/insights" in url
+                and params.get("period") != "lifetime"
+                and "follows_and_unfollows" in metric
+                and not params.get("breakdown")
+            ):
+                calls_without_breakdown.append(metric)
+
+            return _ok_response({"data": []})
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.get = AsyncMock(side_effect=mock_get)
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            provider = MetaProvider()
+            await provider.extract_metrics(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+            )
+            await provider.extract_metrics_daily(
+                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+            )
+
+        assert calls_without_breakdown == [], (
+            f"follows_and_unfollows was requested without breakdown=follow_type: "
+            f"{calls_without_breakdown}"
+        )

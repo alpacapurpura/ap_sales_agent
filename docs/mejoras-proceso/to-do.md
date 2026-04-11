@@ -36,3 +36,31 @@ Hallazgos detectados por Claude Code durante ejecución. Revisar y resolver.
 - **Fix aplicado:** `shm_size: 2gb` + `--disable-dev-shm-usage` + target `e2e-native-smoke` (sin container Docker).
 - [ ] A largo plazo: resolver el bug de `next build` para poder usar `next start` en E2E (3-5x menos memoria)
 - [ ] Documentar en CLAUDE.md que E2E preferir `make e2e-native-smoke` sobre `make e2e-smoke` en laptops con poca RAM
+
+## Lecciones del fix `ig_follows_and_unfollows` — 2026-04-11
+
+### 7. Metrics de Meta con breakdown mandatorio devuelven 0 silencioso
+- **Problema:** El ETL pedía `follows_and_unfollows` junto a otros metrics sin `breakdown=follow_type`. Meta responde con el metric listado pero SIN `total_value`, y el código hacía `item.get("total_value", {}).get("value", 0)` → 0 silencioso. Resultado: 34 filas diarias con value=0 en producción por ~30 días, dashboard mostrando "Seguidores Netos = 0".
+- **Fix aplicado:** Llamada dedicada con `breakdown=follow_type` + parseo de `total_value.breakdowns[0].results` (FOLLOWER/NON_FOLLOWER), emite tres metrics (`gained`, `lost`, `and_unfollows`).
+- [ ] Regla nueva: en cualquier provider ETL, cuando se fetcha un metric cuyo valor por default sea 0, emitir warning + sentry si `total_value` está ausente de la respuesta. Un 0 por "no data returned" debe loguearse distinto a un 0 real.
+- [ ] Crear arch fitness: los extractors que usan `.get("total_value", {}).get("value", 0)` deben estar explícitamente listados en un allowlist, porque ese patrón esconde data-loss.
+
+### 8. Gap detection en `run_initial_load` enmascaró el bug por semanas
+- **Problema:** `get_existing_dates()` devuelve cualquier día que tenga AL MENOS una fila del proveedor. Como los metrics buenos (`ig_views`, `reach`, etc.) sí se grababan, el gap detector consideraba "cargado" cada día y nunca re-extraía `ig_follows_and_unfollows`. El dato roto quedaba ahí indefinidamente sin que ningún mecanismo lo detectara.
+- [ ] Mejorar la gap detection: consultar por `(date, metric_name)` en lugar de `(date)`, o al menos tener un comando `alembic`-like para "re-extract metric X en el rango Y..Z sin importar lo ya cargado".
+- [ ] Agregar data-quality check que alerte si un metric ADDITIVE tiene >80% de filas en 0 durante un período largo. Es casi siempre un bug del extractor.
+
+### 9. Loop off-by-one en `_extract_instagram_organic_daily`
+- **Problema:** `while current < end_date` (half-open). Cuando `run_initial_load` encontraba exactamente un día faltante, llamaba con `start == end` y el loop no ejecutaba ninguna iteración → extraía cero metrics silenciosamente.
+- **Fix aplicado:** Cambiado a `while current <= end_date`. Test de regresión que llama con `start == end` y valida que al menos un día sea extraído.
+- [ ] Auditar otros extractors con loops `while X < end_date`: `_ig_day_chunks` (legacy), y verificar semántica de cada uno. Ya confirmé que `_extract_meta_retargeting_daily` usa `<=` (correcto).
+
+### 10. Snapshots absolutas (ig_followers_count) no tenían histórico
+- **Problema:** Meta's user-node endpoint solo devuelve el valor ACTUAL del contador. Cada ETL run escribía una fila con `date=end_date`. Para backfill de 30 días, se escribía UNA sola fila, imposibilitando mostrar una curva de crecimiento histórico.
+- **Fix aplicado:** Reconstrucción hacia atrás usando el snapshot actual como ancla + los deltas diarios recién extraídos. `followers(D-1) = followers(D) - net(D)`. Emite N filas (una por día) durante el backfill. Cuando el ETL diario corre, las filas reales sobreescriben la reconstrucción via upsert.
+- [ ] Aplicar el mismo patrón a otros providers con snapshots absolutos: YouTube `subscribers_count`, TikTok, etc., donde exista delta diario correlacionado.
+- [ ] Potencial trampa: si el delta feed tiene lag (Meta tarda ~2 días en reportar `follows_and_unfollows`), la reconstrucción será imprecisa en los días recientes. El ETL programado corrigirá esto con el tiempo, pero vale la pena marcar filas reconstruidas vs reales (por ejemplo, en `extra: {"source": "reconstructed"}`).
+
+### 11. Confianza en la data: un 0 no siempre es un 0
+- **Principio:** Para metrics de negocio críticas (el usuario toma decisiones con esta data), un valor de 0 puede significar: (a) cero real, (b) no había data todavía, (c) error silencioso de parseo, (d) permiso insuficiente en el API, (e) metric deprecated. Deberíamos distinguir entre estos casos a nivel de DB.
+- [ ] Agregar columna `data_quality` o `status` a `official_metrics` (enum: `ok`, `missing`, `partial`, `deprecated`, `auth_error`). Esto permite que el frontend muestre "sin datos" en vez de "0" cuando corresponde.
