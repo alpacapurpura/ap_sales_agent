@@ -149,6 +149,21 @@ export interface MetaHealthCheck {
 // Metrics by Offer
 // ---------------------------------------------------------------------------
 
+/**
+ * Shared funnel step, mirror of backend `FunnelStepDTO`.
+ *
+ * Note: this is intentionally distinct from the `FunnelStep` defined in
+ * `./metrics.ts` (which uses `conversionRate`). The advertising endpoint
+ * returns `conversionRateFromPrevious` as a percentage (0-100), or `null`
+ * for the first step or when the previous value is zero.
+ */
+export interface FunnelStep {
+  label: string;
+  metricName: string;
+  value: number;
+  conversionRateFromPrevious: number | null;
+}
+
 export interface OfferTimeSeriesPoint {
   date: string;
   spend: number;
@@ -168,7 +183,20 @@ export interface OfferMetrics {
   primaryMetricName: string;
   primaryMetricUnit: 'currency' | 'count' | 'ratio';
   roas: number | null;
-  secondaryMetrics: Record<string, number>;
+
+  // Individual typed secondary metrics (was `secondaryMetrics: Record<string, number>`).
+  // Each field is individually typed and nullable when semantically unreliable.
+  impressions: number;
+  clicks: number;
+  ctr: number; // percentage 0-100
+  cpm: number;
+  cpc: number;
+  reach: number | null;
+  frequency: number | null;
+
+  // Funnel filtered to this offer's associated campaigns.
+  funnel: FunnelStep[];
+
   timeseries: OfferTimeSeriesPoint[];
   metricUnavailableReason: string | null;
 }
@@ -178,13 +206,24 @@ export interface UnassignedAggregate {
   totalSpend: number;
   impressions: number;
   clicks: number;
+  ctr: number;
+  cpm: number;
+  cpc: number;
+  reach: number | null;
+  funnel: FunnelStep[];
 }
 
 export interface BrandingAggregate {
   targetCount: number;
   totalSpend: number;
-  reach: number;
   impressions: number;
+  clicks: number;
+  ctr: number;
+  cpm: number;
+  cpc: number;
+  reach: number | null;
+  frequency: number | null;
+  funnel: FunnelStep[];
 }
 
 export interface MetricsByOffer {
@@ -195,6 +234,10 @@ export interface MetricsByOffer {
   offers: OfferMetrics[];
   unassigned: UnassignedAggregate;
   brandingOnly: BrandingAggregate;
+
+  // Aggregate context for the "Todas" segmenter state.
+  funnelAll: FunnelStep[];
+  reachAll: number | null;
 }
 
 // ---------------------------------------------------------------------------

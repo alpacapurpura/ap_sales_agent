@@ -22,7 +22,12 @@ from src.modules.advertising.application.dto.metrics_by_offer_dto import (
     MetricsByOfferDTO,
     UnassignedAggregateDTO,
 )
-from src.modules.iam.api.dependencies import get_current_user, get_tenant_context
+from src.modules.iam.api.dependencies import (
+    get_current_user,
+    get_tenant_context,
+    get_tenant_locale,
+)
+from src.shared.domain.locale import TenantLocale
 
 
 def _build_client(db, tenant_id: UUID):
@@ -30,6 +35,7 @@ def _build_client(db, tenant_id: UUID):
     app.include_router(router, prefix="/api/v1")
     app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_tenant_context] = lambda: tenant_id
+    app.dependency_overrides[get_tenant_locale] = TenantLocale.default
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
         id=uuid4(),
         tenant_id=tenant_id,
@@ -190,11 +196,30 @@ class TestMetricsByOfferEndpoint:
             currency="USD",
             offers=[],
             unassigned=UnassignedAggregateDTO(
-                target_count=0, total_spend=0.0, impressions=0.0, clicks=0.0
+                target_count=0,
+                total_spend=0.0,
+                impressions=0.0,
+                clicks=0.0,
+                ctr=0.0,
+                cpm=0.0,
+                cpc=0.0,
+                reach=None,
+                funnel=[],
             ),
             branding_only=BrandingAggregateDTO(
-                target_count=0, total_spend=0.0, reach=0.0, impressions=0.0
+                target_count=0,
+                total_spend=0.0,
+                impressions=0.0,
+                clicks=0.0,
+                ctr=0.0,
+                cpm=0.0,
+                cpc=0.0,
+                reach=None,
+                frequency=None,
+                funnel=[],
             ),
+            funnel_all=[],
+            reach_all=None,
         )
         with patch(
             "src.modules.advertising.api.routes.MetricsByOfferService"

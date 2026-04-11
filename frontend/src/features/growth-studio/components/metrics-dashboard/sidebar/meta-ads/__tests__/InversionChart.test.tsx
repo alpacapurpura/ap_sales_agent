@@ -180,12 +180,13 @@ describe('InversionChart', () => {
     expect(fills[3]).toContain('0 84%');
   });
 
-  it('renders the narrative subtitle with total investment and average ROAS', () => {
+  it('renders the narrative subtitle with total investment and ROAS', () => {
     render(<InversionChart timeSeries={BASE_TIME_SERIES} />);
-    // Total spend: 944.86 PEN (formatted), 4 days, avg ROAS = (2.1+1.8+2.3+0.4)/4 = 1.65
-    // Match "4 días" (singular/plural handled), "ROAS promedio", and "1.6" or "1.65"
+    // Total spend: 944.86 PEN, 4 days, avg ROAS = (2.1+1.8+2.3+0.4)/4 = 1.65
+    // The new subtitle reads "En los últimos 4 días invertiste ... en Meta Ads
+    // y generaste ... en ventas — ROAS 1.65x"
     expect(screen.getByText(/4 días/i)).toBeInTheDocument();
-    expect(screen.getByText(/ROAS promedio/i)).toBeInTheDocument();
+    expect(screen.getByText(/ROAS 1\.6[5]?x/i)).toBeInTheDocument();
   });
 
   it('renders both left and right Y axes', () => {
@@ -345,5 +346,232 @@ describe('InversionTooltip', () => {
     expect(screen.getByText('ROAS')).toBeInTheDocument();
     // "Resultados" was 0 → omitted
     expect(screen.queryByText('Resultados')).toBeNull();
+  });
+
+  it('renders a "Rentable" status chip when ROAS >= 1', () => {
+    const payload = [
+      { dataKey: 'spend', value: 100, color: '', payload: { isoDate: '2026-04-08' } },
+      { dataKey: 'conversions', value: 4, color: '', payload: { isoDate: '2026-04-08' } },
+      { dataKey: 'roas', value: 2.5, color: '', payload: { isoDate: '2026-04-08' } },
+    ];
+    render(<InversionTooltip active={true} payload={payload} currency="PEN" />);
+    expect(screen.getByText('Rentable')).toBeInTheDocument();
+    expect(screen.queryByText('Bajo break-even')).toBeNull();
+    expect(screen.queryByText('Sin pixel')).toBeNull();
+  });
+
+  it('renders a "Bajo break-even" chip when ROAS < 1', () => {
+    const payload = [
+      { dataKey: 'spend', value: 100, color: '', payload: { isoDate: '2026-04-08' } },
+      { dataKey: 'conversions', value: 1, color: '', payload: { isoDate: '2026-04-08' } },
+      { dataKey: 'roas', value: 0.4, color: '', payload: { isoDate: '2026-04-08' } },
+    ];
+    render(<InversionTooltip active={true} payload={payload} currency="PEN" />);
+    expect(screen.getByText('Bajo break-even')).toBeInTheDocument();
+  });
+
+  it('renders a "Sin pixel" chip when ROAS is missing and conversions are zero', () => {
+    const payload = [
+      { dataKey: 'spend', value: 100, color: '', payload: { isoDate: '2026-04-08' } },
+      { dataKey: 'conversions', value: 0, color: '', payload: { isoDate: '2026-04-08' } },
+      // no ROAS entry in payload
+    ];
+    render(<InversionTooltip active={true} payload={payload} currency="PEN" />);
+    expect(screen.getByText('Sin pixel')).toBeInTheDocument();
+  });
+
+  it('hides the status chip entirely when hideStatusChip is true (branding)', () => {
+    const payload = [
+      { dataKey: 'spend', value: 100, color: '', payload: { isoDate: '2026-04-08' } },
+    ];
+    render(
+      <InversionTooltip
+        active={true}
+        payload={payload}
+        currency="PEN"
+        hideStatusChip={true}
+        expectsRoas={false}
+      />,
+    );
+    expect(screen.queryByText('Rentable')).toBeNull();
+    expect(screen.queryByText('Bajo break-even')).toBeNull();
+    expect(screen.queryByText('Sin pixel')).toBeNull();
+  });
+
+  it('renders the resultsLabel prop instead of generic "Resultados"', () => {
+    const payload = [
+      { dataKey: 'spend', value: 100, color: '', payload: { isoDate: '2026-04-08' } },
+      { dataKey: 'conversions', value: 3, color: '', payload: { isoDate: '2026-04-08' } },
+    ];
+    render(
+      <InversionTooltip
+        active={true}
+        payload={payload}
+        currency="PEN"
+        resultsLabel="Leads"
+      />,
+    );
+    expect(screen.getByText('Leads')).toBeInTheDocument();
+    expect(screen.queryByText('Resultados')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Contextual subtitle + adaptive legend
+// ---------------------------------------------------------------------------
+
+describe('InversionChart — narrative subtitle', () => {
+  it('uses the "Meta Ads" subject in the "all" filter', () => {
+    render(<InversionChart timeSeries={BASE_TIME_SERIES} filter="all" />);
+    // Matches "invertiste ... en Meta Ads"
+    expect(
+      screen.getByText(/en los últimos 4 días invertiste .* en meta ads/i),
+    ).toBeInTheDocument();
+  });
+
+  it('uses the offer name in the "offer" filter', () => {
+    render(
+      <InversionChart
+        timeSeries={BASE_TIME_SERIES}
+        filter="offer"
+        offerName="Pack Verano 2026"
+      />,
+    );
+    expect(
+      screen.getByText(/en pack verano 2026/i),
+    ).toBeInTheDocument();
+  });
+
+  it('uses branding-specific copy in the "branding" filter', () => {
+    render(
+      <InversionChart timeSeries={BASE_TIME_SERIES} filter="branding" />,
+    );
+    expect(
+      screen.getByText(/campañas de branding/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/ROAS/)).toBeNull();
+  });
+
+  it('uses unassigned-specific copy in the "unassigned" filter', () => {
+    render(
+      <InversionChart timeSeries={BASE_TIME_SERIES} filter="unassigned" />,
+    );
+    expect(
+      screen.getByText(/campañas sin vincular/i),
+    ).toBeInTheDocument();
+  });
+
+  it('falls back to the "no investment" message when total spend is zero', () => {
+    const zeroSpend: MetricTimeSeries[] = [
+      {
+        metricName: 'spend',
+        displayName: 'Inversión',
+        unit: 'currency',
+        dataPoints: [
+          { date: '2026-04-05', value: 0 },
+          { date: '2026-04-06', value: 0 },
+        ],
+      },
+      {
+        metricName: 'conversions',
+        displayName: 'Resultados',
+        unit: 'count',
+        dataPoints: [
+          { date: '2026-04-05', value: 0 },
+          { date: '2026-04-06', value: 0 },
+        ],
+      },
+    ];
+    render(<InversionChart timeSeries={zeroSpend} filter="all" />);
+    // No composite data → renders the filter-specific empty state.
+    expect(
+      screen.getByText(/no hay inversión registrada en este período/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('InversionChart — adaptive legend', () => {
+  it('hides the ROAS and Resultados legend items in branding mode', () => {
+    render(<InversionChart timeSeries={BASE_TIME_SERIES} filter="branding" />);
+    const legend = screen.getByRole('list', { name: /leyenda/i });
+    expect(legend.textContent).toContain('Inversión');
+    expect(legend.textContent).not.toContain('ROAS');
+    expect(legend.textContent).not.toContain('Bajo break-even');
+  });
+
+  it('shows Rentable / Bajo break-even in all/offer mode', () => {
+    render(<InversionChart timeSeries={BASE_TIME_SERIES} filter="all" />);
+    const legend = screen.getByRole('list', { name: /leyenda/i });
+    expect(legend.textContent).toContain('Rentable');
+    expect(legend.textContent).toContain('Bajo break-even');
+    expect(legend.textContent).toContain('ROAS');
+  });
+});
+
+describe('InversionChart — pixel-off banner', () => {
+  it('shows the pixel-off banner when there is spend but zero conversions (all filter)', () => {
+    const spendOnly: MetricTimeSeries[] = [
+      {
+        metricName: 'spend',
+        displayName: 'Inversión',
+        unit: 'currency',
+        dataPoints: [
+          { date: '2026-04-05', value: 100 },
+          { date: '2026-04-06', value: 120 },
+        ],
+      },
+      {
+        metricName: 'conversions',
+        displayName: 'Resultados',
+        unit: 'count',
+        dataPoints: [
+          { date: '2026-04-05', value: 0 },
+          { date: '2026-04-06', value: 0 },
+        ],
+      },
+    ];
+    render(<InversionChart timeSeries={spendOnly} filter="all" />);
+    expect(
+      screen.getByText(/verificá que el meta pixel esté configurado/i),
+    ).toBeInTheDocument();
+  });
+
+  it('does NOT show the pixel-off banner in branding mode', () => {
+    const spendOnly: MetricTimeSeries[] = [
+      {
+        metricName: 'spend',
+        displayName: 'Inversión',
+        unit: 'currency',
+        dataPoints: [
+          { date: '2026-04-05', value: 100 },
+        ],
+      },
+      {
+        metricName: 'conversions',
+        displayName: 'Resultados',
+        unit: 'count',
+        dataPoints: [
+          { date: '2026-04-05', value: 0 },
+        ],
+      },
+    ];
+    render(<InversionChart timeSeries={spendOnly} filter="branding" />);
+    expect(
+      screen.queryByText(/verificá que el meta pixel/i),
+    ).toBeNull();
+  });
+});
+
+describe('InversionChart — accessibility', () => {
+  it('exposes a descriptive aria-label summarising the totals', () => {
+    const { container } = render(
+      <InversionChart timeSeries={BASE_TIME_SERIES} filter="all" />,
+    );
+    const img = container.querySelector('[role="img"]');
+    expect(img).not.toBeNull();
+    const aria = img?.getAttribute('aria-label') ?? '';
+    expect(aria).toMatch(/gráfico de inversión/i);
+    expect(aria).toMatch(/total invertido/i);
+    expect(aria).toMatch(/total resultados/i);
   });
 });

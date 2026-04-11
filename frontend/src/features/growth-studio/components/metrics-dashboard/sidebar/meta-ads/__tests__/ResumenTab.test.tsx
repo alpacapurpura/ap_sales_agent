@@ -1,14 +1,23 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type {
   ChannelDashboardData,
   CampaignPerformanceData,
-  MetricKpiData,
 } from '../../../../../types/metrics';
+import type {
+  BrandingAggregate,
+  MetaHealthCheck,
+  MetricsByOffer,
+  OfferMetrics,
+  UnassignedAggregate,
+} from '../../../../../types/offer-association';
 
-// --- Mocks ---
+// ---------------------------------------------------------------------------
+// Mocks — must be declared before component import
+// ---------------------------------------------------------------------------
+
 vi.mock('@clerk/nextjs', () => ({
   useAuth: () => ({ getToken: vi.fn().mockResolvedValue('test-token') }),
 }));
@@ -25,8 +34,24 @@ vi.mock('@/lib/http-client', () => ({
   }),
 }));
 
-// Mock recharts to render testable DOM (avoids canvas/SVG measurement issues)
-vi.mock('recharts', async (importOriginal) => {
+// Mock the tenant locale hook — it talks to Clerk internally.
+vi.mock('@/features/tenant/context/tenant-locale-context', () => ({
+  useTenantLocale: () => ({ currency: 'PEN', timezone: 'America/Lima' }),
+}));
+
+// Mock the data hooks so we can drive the tab directly from fixtures instead
+// of wiring the full fetchClient pipeline. The underlying API is already
+// covered by offer-association-api.test.ts.
+const mockHealthCheck = vi.fn<() => { data: MetaHealthCheck | undefined; isLoading: boolean }>();
+const mockMetricsByOffer = vi.fn<() => { data: MetricsByOffer | undefined; isLoading: boolean }>();
+
+vi.mock('../../../../../api/offer-association-api', () => ({
+  useMetaHealthCheck: () => mockHealthCheck(),
+  useMetricsByOffer: () => mockMetricsByOffer(),
+}));
+
+// Mock recharts so the chart renders without SVG measurement issues.
+vi.mock('recharts', async importOriginal => {
   const actual = await importOriginal<typeof import('recharts')>();
   return {
     ...actual,
@@ -39,8 +64,10 @@ vi.mock('recharts', async (importOriginal) => {
 // Must import AFTER mocks
 import { ResumenTab } from '../tabs/ResumenTab';
 
-// Helper to wrap ResumenTab with a QueryClientProvider (required by the new
-// offer-association hooks consumed inside the tab).
+// ---------------------------------------------------------------------------
+// Test helpers
+// ---------------------------------------------------------------------------
+
 function renderWithQuery(ui: React.ReactElement) {
   const qc = new QueryClient({
     defaultOptions: {
@@ -51,48 +78,122 @@ function renderWithQuery(ui: React.ReactElement) {
   return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
 }
 
-// ---------------------------------------------------------------------------
-// Helpers — test data factories
-// ---------------------------------------------------------------------------
-
-function makeKpi(overrides: Partial<MetricKpiData> & { metricName: string }): MetricKpiData {
+function makeOffer(overrides: Partial<OfferMetrics> = {}): OfferMetrics {
   return {
-    displayName: overrides.metricName,
-    currentValue: 100,
-    previousValue: 80,
-    deltaPct: 25,
-    deltaAbsolute: 20,
-    unit: 'count',
-    higherIsBetter: true,
-    benchmark: null,
+    offerId: 'off-1',
+    offerName: 'Curso Core',
+    archetype: 'PROGRAMA',
+    expectedMetric: 'lead',
+    expectedMetricLabelEs: 'Leads',
+    totalSpend: 500,
+    currency: 'PEN',
+    primaryResultCount: 47,
+    primaryCostPerResult: 10.64,
+    primaryMetricName: 'Leads',
+    primaryMetricUnit: 'count',
+    roas: 2.4,
+    impressions: 12_340,
+    clicks: 518,
+    ctr: 4.2,
+    cpm: 5.5,
+    cpc: 0.96,
+    reach: null,
+    frequency: null,
+    funnel: [
+      { label: 'Impresiones', metricName: 'impressions', value: 12_340, conversionRateFromPrevious: null },
+      { label: 'Clics', metricName: 'clicks', value: 518, conversionRateFromPrevious: 4.2 },
+    ],
+    timeseries: [
+      { date: '2026-04-01', spend: 50, primaryResult: 5 },
+      { date: '2026-04-02', spend: 60, primaryResult: 7 },
+    ],
+    metricUnavailableReason: null,
     ...overrides,
   };
 }
 
-const BASE_KPIS: MetricKpiData[] = [
-  makeKpi({ metricName: 'spend', displayName: 'Inversión', currentValue: 1500, unit: 'currency', currency: 'USD' }),
-  makeKpi({ metricName: 'ROAS', displayName: 'ROAS', currentValue: 3.2, unit: 'ratio', higherIsBetter: true }),
-  makeKpi({ metricName: 'conversions', displayName: 'Resultados', currentValue: 45, unit: 'count' }),
-  makeKpi({ metricName: 'CPA', displayName: 'CPA', currentValue: 33.3, unit: 'currency', currency: 'USD', higherIsBetter: false }),
-  makeKpi({ metricName: 'CTR', displayName: 'CTR', currentValue: 2.15, unit: 'percentage', higherIsBetter: true }),
-  makeKpi({ metricName: 'reach', displayName: 'Alcance', currentValue: 89200, unit: 'count' }),
-];
+function makeBranding(overrides: Partial<BrandingAggregate> = {}): BrandingAggregate {
+  return {
+    targetCount: 2,
+    totalSpend: 200,
+    impressions: 30_000,
+    clicks: 60,
+    ctr: 0.2,
+    cpm: 6.7,
+    cpc: 3.3,
+    reach: null,
+    frequency: null,
+    funnel: [
+      { label: 'Impresiones', metricName: 'impressions', value: 30_000, conversionRateFromPrevious: null },
+    ],
+    ...overrides,
+  };
+}
 
-function makeDashboardData(kpiOverrides?: MetricKpiData[]): ChannelDashboardData {
+function makeUnassigned(overrides: Partial<UnassignedAggregate> = {}): UnassignedAggregate {
+  return {
+    targetCount: 1,
+    totalSpend: 80,
+    impressions: 5_000,
+    clicks: 40,
+    ctr: 0.8,
+    cpm: 16,
+    cpc: 2,
+    reach: null,
+    funnel: [
+      { label: 'Impresiones', metricName: 'impressions', value: 5_000, conversionRateFromPrevious: null },
+    ],
+    ...overrides,
+  };
+}
+
+function makeMetricsByOffer(overrides: Partial<MetricsByOffer> = {}): MetricsByOffer {
+  return {
+    period: '30d',
+    startDate: '2026-03-11',
+    endDate: '2026-04-10',
+    currency: 'PEN',
+    offers: [makeOffer()],
+    unassigned: makeUnassigned(),
+    brandingOnly: makeBranding(),
+    funnelAll: [
+      { label: 'Impresiones', metricName: 'impressions', value: 47_340, conversionRateFromPrevious: null },
+      { label: 'Clics', metricName: 'clicks', value: 618, conversionRateFromPrevious: 1.31 },
+    ],
+    reachAll: 14_200,
+    ...overrides,
+  };
+}
+
+function makeHealthCheck(
+  overrides: Partial<MetaHealthCheck> = {},
+): MetaHealthCheck {
+  return {
+    overallStatus: 'healthy',
+    activeCampaigns: [],
+    offersCoverage: [],
+    unassignedTargets: [],
+    recommendations: [],
+    summaryText: 'Todo OK',
+    ...overrides,
+  };
+}
+
+function makeDashboardData(): ChannelDashboardData {
   return {
     channelSlug: 'meta-ads',
     channelName: 'Meta Ads',
     industryCategory: 'education',
     period: '30d',
-    kpis: kpiOverrides ?? BASE_KPIS,
+    kpis: [],
     timeSeries: [
       {
         metricName: 'spend',
         displayName: 'Inversión',
         unit: 'currency',
         dataPoints: [
-          { date: '2026-03-01', value: 50 },
-          { date: '2026-03-02', value: 60 },
+          { date: '2026-04-01', value: 50 },
+          { date: '2026-04-02', value: 60 },
         ],
       },
       {
@@ -100,18 +201,12 @@ function makeDashboardData(kpiOverrides?: MetricKpiData[]): ChannelDashboardData
         displayName: 'Resultados',
         unit: 'count',
         dataPoints: [
-          { date: '2026-03-01', value: 3 },
-          { date: '2026-03-02', value: 5 },
+          { date: '2026-04-01', value: 3 },
+          { date: '2026-04-02', value: 5 },
         ],
       },
     ],
-    funnel: {
-      steps: [
-        { label: 'Impresiones', metricName: 'impressions', value: 120000, conversionRate: null },
-        { label: 'Clics', metricName: 'clicks', value: 2580, conversionRate: 2.15 },
-        { label: 'Resultados', metricName: 'conversions', value: 45, conversionRate: 1.74 },
-      ],
-    },
+    funnel: { steps: [] },
     frequencyAlert: null,
   };
 }
@@ -121,6 +216,11 @@ function makeDashboardData(kpiOverrides?: MetricKpiData[]): ChannelDashboardData
 // ---------------------------------------------------------------------------
 
 describe('ResumenTab', () => {
+  beforeEach(() => {
+    mockHealthCheck.mockReturnValue({ data: makeHealthCheck(), isLoading: false });
+    mockMetricsByOffer.mockReturnValue({ data: makeMetricsByOffer(), isLoading: false });
+  });
+
   it('renders loading spinner when isLoading is true', () => {
     const { container } = renderWithQuery(
       <ResumenTab data={undefined} isLoading={true} />,
@@ -134,88 +234,88 @@ describe('ResumenTab', () => {
     expect(screen.getByText('No hay datos disponibles')).toBeInTheDocument();
   });
 
-  it('renders KPI cards with data', () => {
+  it('renders 6 KPI cards with the default "all" filter', () => {
     renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
-    // Verify display names appear (Inversión and ROAS also appear in the chart legend,
-    // so we assert that at least one instance exists)
-    expect(screen.getAllByText('Inversión').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('ROAS').length).toBeGreaterThan(0);
-    expect(screen.getByText('CTR')).toBeInTheDocument();
-    expect(screen.getByText('Alcance')).toBeInTheDocument();
+    const grid = screen.getByRole('group', { name: 'Resumen de métricas' });
+    const cards = within(grid).getAllByRole('group');
+    expect(cards).toHaveLength(6);
+    // Inversión card shows the Spanish label
+    expect(within(grid).getByText('Inversión')).toBeInTheDocument();
+    expect(within(grid).getByText('ROAS')).toBeInTheDocument();
+    expect(within(grid).getByText('Resultados')).toBeInTheDocument();
+    expect(within(grid).getByText('CPA')).toBeInTheDocument();
+    expect(within(grid).getByText('CTR')).toBeInTheDocument();
+    expect(within(grid).getByText('Alcance')).toBeInTheDocument();
   });
 
-  it('shows "--" for ROAS when currentValue is 0', () => {
-    const kpis = BASE_KPIS.map(k =>
-      k.metricName === 'ROAS' ? { ...k, currentValue: 0 } : k,
-    );
-    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
-    const placeholder = screen.getByTitle('Requiere Meta Pixel configurado');
-    expect(placeholder).toBeInTheDocument();
-    expect(placeholder.textContent).toBe('--');
-  });
-
-  it('shows "--" for CPA when currentValue is 0', () => {
-    const kpis = BASE_KPIS.map(k =>
-      k.metricName === 'CPA' ? { ...k, currentValue: 0 } : k,
-    );
-    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
-    const placeholders = screen.getAllByTitle('Requiere Meta Pixel configurado');
-    // CPA is pixel-dependent and has value 0, so it should produce a "--" placeholder
-    // We also have ROAS=3.2 (non-zero, no placeholder) and conversions=45 (non-zero, no placeholder)
-    // Only CPA should produce a placeholder in this test
-    expect(placeholders.length).toBeGreaterThanOrEqual(1);
-    // Find the one inside the CPA card by checking the parent card's tooltip
-    const cpaPlaceholder = placeholders.find(el => {
-      // The span has title="Requiere Meta Pixel configurado", so closest('[title]')
-      // returns itself. We need the parent div with the KPI tooltip.
-      const card = el.closest('.rounded-lg.border');
-      return card?.getAttribute('title')?.includes('CPA');
-    });
-    expect(cpaPlaceholder).toBeDefined();
-    expect(cpaPlaceholder?.textContent).toBe('--');
-  });
-
-  it('renders spend/clicks/impressions even without pixel data', () => {
-    // Only additive metrics, pixel-dependent ones at 0
-    const kpis = BASE_KPIS.map(k => {
-      if (['ROAS', 'CPA', 'conversions'].includes(k.metricName)) {
-        return { ...k, currentValue: 0 };
-      }
-      return k;
-    });
-    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
-    // Spend should still display correctly (non-pixel metric)
-    expect(screen.getByText('Inversión')).toBeInTheDocument();
-    expect(screen.getByText('CTR')).toBeInTheDocument();
-    expect(screen.getByText('Alcance')).toBeInTheDocument();
-  });
-
-  it('does NOT show "--" for spend when currentValue is 0', () => {
-    const kpis = BASE_KPIS.map(k =>
-      k.metricName === 'spend' ? { ...k, currentValue: 0 } : k,
-    );
-    renderWithQuery(<ResumenTab data={makeDashboardData(kpis)} isLoading={false} />);
-    // Spend is not pixel-dependent, so 0 should render as a formatted value, not "--"
-    const pixelPlaceholders = screen.queryAllByTitle('Requiere Meta Pixel configurado');
-    const spendPlaceholder = pixelPlaceholders.find(el => {
-      const card = el.closest('[title]');
-      return card?.getAttribute('title')?.includes('invertido');
-    });
-    expect(spendPlaceholder).toBeUndefined();
-  });
-
-  it('renders conversion funnel with steps', () => {
+  it('switches to offer-specific KPIs when an offer chip is clicked', () => {
     renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
-    expect(screen.getByText('Impresiones')).toBeInTheDocument();
-    expect(screen.getByText('Clics')).toBeInTheDocument();
-    // "Resultados" appears in both KPI card and funnel, so check it exists
-    expect(screen.getAllByText('Resultados').length).toBeGreaterThanOrEqual(1);
+    const chip = screen.getByRole('button', { name: /Curso Core/i });
+    fireEvent.click(chip);
+    const grid = screen.getByRole('group', { name: 'Resumen de métricas' });
+    // Offer with lead primary metric → card #4 is CPL, card #3 is Leads
+    expect(within(grid).getByText('CPL')).toBeInTheDocument();
+    expect(within(grid).getByText('Leads')).toBeInTheDocument();
   });
 
-  it('renders the "Inversión y Retorno" chart when timeSeries has data', () => {
+  it('switches to branding KPIs when Branding chip is clicked', () => {
     renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
-    // Title is rendered inside the ChartInfoTooltip button
-    expect(screen.getByText('Inversión y Retorno')).toBeInTheDocument();
+    const chip = screen.getByRole('button', { name: /Branding/i });
+    fireEvent.click(chip);
+    const grid = screen.getByRole('group', { name: 'Resumen de métricas' });
+    // Branding exposes CPM and Frecuencia, not ROAS/CPA
+    expect(within(grid).getByText('CPM')).toBeInTheDocument();
+    expect(within(grid).getByText('Frecuencia')).toBeInTheDocument();
+    expect(within(grid).getByText('Campañas activas')).toBeInTheDocument();
+    expect(within(grid).queryByText('ROAS')).toBeNull();
+  });
+
+  it('shows the unassigned filter CTA when unassigned chip is clicked', () => {
+    mockHealthCheck.mockReturnValue({
+      data: makeHealthCheck({
+        unassignedTargets: [
+          { targetType: 'campaign', externalId: 'c-1', name: 'Camp 1', objective: null, status: null },
+        ],
+      }),
+      isLoading: false,
+    });
+    renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
+    const chip = screen.getByRole('button', { name: /Sin asignar/i });
+    fireEvent.click(chip);
+    const grid = screen.getByRole('group', { name: 'Resumen de métricas' });
+    expect(within(grid).getByText('Acción requerida')).toBeInTheDocument();
+    expect(within(grid).getByRole('button', { name: /Asignar ahora/i })).toBeInTheDocument();
+  });
+
+  it('renders "—" for reach in the default view when reachAll is null', () => {
+    mockMetricsByOffer.mockReturnValue({
+      data: makeMetricsByOffer({ reachAll: null }),
+      isLoading: false,
+    });
+    renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
+    const grid = screen.getByRole('group', { name: 'Resumen de métricas' });
+    // Find the Alcance card by its aria-label
+    const alcanceCard = within(grid)
+      .getAllByRole('group')
+      .find(el => el.getAttribute('aria-label')?.startsWith('Alcance'));
+    expect(alcanceCard).toBeDefined();
+    expect(alcanceCard?.textContent).toContain('—');
+  });
+
+  it('renders the UnassignedBanner when there are unassigned targets', () => {
+    mockHealthCheck.mockReturnValue({
+      data: makeHealthCheck({
+        unassignedTargets: [
+          { targetType: 'campaign', externalId: 'c-1', name: 'Camp 1', objective: null, status: null },
+          { targetType: 'campaign', externalId: 'c-2', name: 'Camp 2', objective: null, status: null },
+        ],
+      }),
+      isLoading: false,
+    });
+    renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
+    // The banner renders an "Asignar ahora" CTA — use that as a stable anchor.
+    const buttons = screen.getAllByRole('button', { name: /Asignar ahora/i });
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
   it('renders alert cards when campaignData has recommendations', () => {

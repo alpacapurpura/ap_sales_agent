@@ -238,7 +238,10 @@ class TestMetricsByOfferService:
         svc = MetricsByOfferService(db, port)
         result = await svc.run(tenant_id)
         assert result.branding_only.total_spend == 200.0
-        assert result.branding_only.reach == 15000.0
+        # Reach now comes from period_metrics, not daily sums. With no
+        # period_metrics row present, reach is None.
+        assert result.branding_only.reach is None
+        assert result.branding_only.frequency is None
         assert result.unassigned.total_spend == 0.0
 
     @pytest.mark.asyncio

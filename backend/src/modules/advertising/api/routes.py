@@ -39,7 +39,7 @@ from src.modules.advertising.domain.enums import (
 from src.modules.advertising.infrastructure.repositories.association_repository import (
     AssociationRepository,
 )
-from src.modules.iam.api.dependencies import get_current_user
+from src.modules.iam.api.dependencies import get_current_user, get_tenant_locale
 from src.modules.offer.application.services.offer_read_port_impl import (
     OfferReadPortImpl,
 )
@@ -51,6 +51,7 @@ if TYPE_CHECKING:
         AdOfferAssociationModel,
     )
     from src.modules.iam.domain.user import User
+    from src.shared.domain.locale import TenantLocale
     from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 router = APIRouter(prefix="/advertising", tags=["Advertising"])
@@ -292,6 +293,7 @@ async def get_health_check(
 async def get_metrics_by_offer(
     period: str = Query(default="30d"),
     user: User = Depends(get_current_user),
+    tenant_locale: TenantLocale = Depends(get_tenant_locale),
     db: Session = Depends(get_db),
 ) -> MetricsByOfferDTO:
     """Return Meta ads metrics aggregated per offer."""
@@ -303,7 +305,7 @@ async def get_metrics_by_offer(
     tenant = _tenant_id(user)
     port = _get_offer_port(db)
     svc = MetricsByOfferService(db, port)
-    return await svc.run(tenant, period=period)
+    return await svc.run(tenant, period=period, tenant_locale=tenant_locale)
 
 
 # ── Campaign templates ─────────────────────────────────────────────────────

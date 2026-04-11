@@ -110,7 +110,13 @@ describe('ChannelOverviewPanel', () => {
         heroMetrics={IG_HERO_METRICS}
       />,
     );
-    expect(screen.getByText('Funnel de Conversión')).toBeInTheDocument();
+    // The funnel component identifies itself via aria-label ("Embudo de
+    // conversión") rather than an internal header — the header was removed
+    // when the Meta Ads funnel polish pass consolidated titles with the parent
+    // (ResumenTab already renders "Embudo de conversión" as its section title).
+    expect(
+      screen.getByRole('list', { name: /embudo de conversión/i }),
+    ).toBeInTheDocument();
   });
 
   it('renders the "Dashboard completo" button when onExpand is provided', () => {

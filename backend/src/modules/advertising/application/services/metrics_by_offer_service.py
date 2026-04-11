@@ -6,9 +6,22 @@ For each active association, this service computes:
 - primary cost per result (spend / primary_result_count)
 - ROAS (only for PURCHASE/SUBSCRIPTION)
 - daily timeseries of spend + primary_result
+- a 5-step Meta Ads funnel filtered to the offer's campaigns
 
 It also aggregates unassigned-campaign spend and branding-only spend into
-separate buckets so the frontend can render the segmenter UI.
+separate buckets so the frontend can render the segmenter UI, plus a
+"Todas" (`funnel_all` / `reach_all`) context for the default segmenter state.
+
+Design source of truth:
+`docs/superpowers/artifacts/2026-04-10-meta-ads-resumen/CONTRACT.md`
+
+Reach rules (non-negotiable):
+- len(campaign_ids) == 0 → reach = None
+- len(campaign_ids) == 1 → reach from period_metrics matching that campaign,
+  or None if no row exists
+- len(campaign_ids) >= 2 → reach = None (audience overlap is not additive)
+- Channel-level `reach_all` comes from the period_metrics row with
+  `campaign_id IS NULL`.
 """
 
 from __future__ import annotations
@@ -18,6 +31,7 @@ from typing import TYPE_CHECKING
 
 from src.modules.advertising.application.dto.metrics_by_offer_dto import (
     BrandingAggregateDTO,
+    FunnelStepDTO,
     MetricsByOfferDTO,
     OfferMetricsDTO,
     OfferTimeSeriesPointDTO,
@@ -37,6 +51,7 @@ from src.modules.advertising.infrastructure.repositories.metrics_repository impo
     MetricsRepository,
     resolve_period_window,
 )
+from src.shared.domain.locale import TenantLocale
 
 if TYPE_CHECKING:
     from datetime import date
@@ -44,6 +59,9 @@ if TYPE_CHECKING:
 
     from sqlalchemy.orm import Session
 
+    from src.modules.analytics.infrastructure.models.period_metrics_model import (
+        PeriodMetricModel,
+    )
     from src.shared.domain.ports import OfferReadDTO, OfferReadPort
 
 _PRIMARY_METRIC_CONFIG: dict[OfferExpectedMetric, dict] = {
@@ -80,22 +98,36 @@ _PRIMARY_METRIC_CONFIG: dict[OfferExpectedMetric, dict] = {
 }
 
 _ROAS_METRICS = {OfferExpectedMetric.PURCHASE, OfferExpectedMetric.SUBSCRIPTION}
+
+# Canonical Meta Ads funnel (5 steps). Semantics mirror
+# `channel_dashboard_service._build_funnel` for consistency — the only
+# reason this is duplicated is the DDD cross-module import prohibition
+# (see CONTRACT §1c).
+_FUNNEL_STEPS: list[tuple[str, str]] = [
+    ("Impresiones", "impressions"),
+    ("Clics", "clicks"),
+    ("Visitas a Landing", "meta_landing_page_views"),
+    ("Leads", "meta_leads"),
+    ("Compras", "conversions"),
+]
+_FUNNEL_METRIC_NAMES = {metric for _, metric in _FUNNEL_STEPS}
+
+# Metrics to load in a single DB roundtrip. Includes funnel metrics so
+# `_build_funnel_for_campaigns` can filter in-memory.
 _SECONDARY_METRIC_NAMES = {
     "spend",
     "impressions",
     "clicks",
-    "reach",
-    "ctr",
-    "cpc",
-    "cpm",
 }
-_RELEVANT_METRIC_NAMES = _SECONDARY_METRIC_NAMES | {
-    "meta_leads",
-    "meta_registrations",
-    "meta_conversations_started",
-    "conversions",
-    "meta_conversion_value",
-}
+_RELEVANT_METRIC_NAMES = (
+    _SECONDARY_METRIC_NAMES
+    | _FUNNEL_METRIC_NAMES
+    | {
+        "meta_registrations",
+        "meta_conversations_started",
+        "meta_conversion_value",
+    }
+)
 
 
 class MetricsByOfferService:
@@ -107,14 +139,29 @@ class MetricsByOfferService:
         self._association_repo = AssociationRepository(db)
         self._metrics_repo = MetricsRepository(db)
 
-    async def run(self, tenant_id: UUID, period: str = "30d") -> MetricsByOfferDTO:
-        start_date, end_date = resolve_period_window(period)
+    async def run(
+        self,
+        tenant_id: UUID,
+        period: str = "30d",
+        tenant_locale: TenantLocale | None = None,
+    ) -> MetricsByOfferDTO:
+        locale = tenant_locale or TenantLocale.default()
+        start_date, end_date = resolve_period_window(period, tz=locale.timezone)
         currency = self._metrics_repo.detect_currency(tenant_id)
         rows = self._metrics_repo.load_rows(
             tenant_id,
             start_date=start_date,
             end_date=end_date,
             metric_names=list(_RELEVANT_METRIC_NAMES),
+        )
+
+        # Single roundtrip: load every reach row for the window. The
+        # result contains both the channel-level row (campaign_id IS NULL)
+        # used for `reach_all`, and per-campaign rows used by offers.
+        period_reach_rows = self._metrics_repo.list_period_metrics_for_reach(
+            tenant_id,
+            start_date=start_date,
+            end_date=end_date,
         )
 
         associations = self._association_repo.list_active(tenant_id)
@@ -138,16 +185,14 @@ class MetricsByOfferService:
             elif a.target_type == "ad_set":
                 adset_ids_by_offer[a.offer_id].add(a.target_external_id)
 
-        offers_out: list[OfferMetricsDTO] = []
         assigned_campaign_ids: set[str] = set()
         assigned_adset_ids: set[str] = set()
-
         for campaign_ids in campaign_ids_by_offer.values():
             assigned_campaign_ids.update(campaign_ids)
         for adset_ids in adset_ids_by_offer.values():
             assigned_adset_ids.update(adset_ids)
 
-        # Compute metrics per offer
+        offers_out: list[OfferMetricsDTO] = []
         offer_ids_with_associations = set(campaign_ids_by_offer.keys()) | set(
             adset_ids_by_offer.keys()
         )
@@ -173,22 +218,34 @@ class MetricsByOfferService:
                     offer=offer,
                     expected=expected,
                     rows=filtered,
+                    all_rows=rows,
+                    campaign_ids=campaign_ids,
+                    adset_ids=adset_ids,
                     currency=currency,
+                    period_reach_rows=period_reach_rows,
                 )
             )
 
-        # Unassigned aggregate: campaigns with effective metrics but no association,
-        # NOT branded
         unassigned = self._aggregate_unassigned(
             rows=rows,
             assigned_campaign_ids=assigned_campaign_ids,
             assigned_adset_ids=assigned_adset_ids,
             branded_campaign_ids=branded_campaign_ids,
+            period_reach_rows=period_reach_rows,
         )
 
         branding_only = self._aggregate_branding(
-            rows=rows, branded_campaign_ids=branded_campaign_ids
+            rows=rows,
+            branded_campaign_ids=branded_campaign_ids,
+            period_reach_rows=period_reach_rows,
         )
+
+        funnel_all = self._build_funnel_for_campaigns(
+            rows=rows,
+            campaign_ids=None,  # no filter → global
+            ad_set_ids=None,
+        )
+        reach_all = self._compute_reach_all(period_reach_rows)
 
         return MetricsByOfferDTO(
             period=period,
@@ -198,7 +255,11 @@ class MetricsByOfferService:
             offers=offers_out,
             unassigned=unassigned,
             branding_only=branding_only,
+            funnel_all=funnel_all,
+            reach_all=reach_all,
         )
+
+    # ── Offer aggregation ─────────────────────────────────────────────────
 
     def _build_offer_metrics(
         self,
@@ -206,7 +267,11 @@ class MetricsByOfferService:
         offer: OfferReadDTO,
         expected: OfferExpectedMetric,
         rows: list[MetricRow],
+        all_rows: list[MetricRow],
+        campaign_ids: set[str],
+        adset_ids: set[str],
         currency: str | None,
+        period_reach_rows: list[PeriodMetricModel],
     ) -> OfferMetricsDTO:
         config = _PRIMARY_METRIC_CONFIG.get(expected)
         primary_metric_names: set[str] = (
@@ -218,7 +283,6 @@ class MetricsByOfferService:
         total_spend = sum(r.value for r in rows if r.metric_name == "spend")
         impressions = sum(r.value for r in rows if r.metric_name == "impressions")
         clicks = sum(r.value for r in rows if r.metric_name == "clicks")
-        reach = sum(r.value for r in rows if r.metric_name == "reach")
 
         primary_count = sum(
             r.value for r in rows if r.metric_name in primary_metric_names
@@ -227,6 +291,9 @@ class MetricsByOfferService:
         ctr = (clicks / impressions * 100.0) if impressions else 0.0
         cpc = (total_spend / clicks) if clicks else 0.0
         cpm = (total_spend / impressions * 1000.0) if impressions else 0.0
+
+        reach = self._compute_reach_for_campaigns(period_reach_rows, campaign_ids)
+        frequency = self._compute_frequency(impressions, reach)
 
         primary_cost_per_result: float | None
         metric_unavailable_reason: str | None = None
@@ -245,11 +312,20 @@ class MetricsByOfferService:
             conversion_value = sum(
                 r.value for r in rows if r.metric_name == "meta_conversion_value"
             )
-            if total_spend > 0:
+            if total_spend > 0 and primary_count > 0:
                 roas = round(conversion_value / total_spend, 2)
 
         timeseries = self._build_timeseries(
             rows=rows, primary_metric_names=primary_metric_names
+        )
+
+        # Pass sets directly (never collapse to None) so a degenerate offer
+        # with zero associations returns an all-zero funnel, NOT the global
+        # aggregate. Sentinel `None` is reserved for funnel_all.
+        funnel = self._build_funnel_for_campaigns(
+            rows=all_rows,
+            campaign_ids=campaign_ids,
+            ad_set_ids=adset_ids,
         )
 
         return OfferMetricsDTO(
@@ -265,14 +341,14 @@ class MetricsByOfferService:
             primary_metric_name=primary_label,
             primary_metric_unit=primary_unit,
             roas=roas,
-            secondary_metrics={
-                "impressions": round(impressions, 2),
-                "clicks": round(clicks, 2),
-                "reach": round(reach, 2),
-                "ctr": round(ctr, 2),
-                "cpc": round(cpc, 2),
-                "cpm": round(cpm, 2),
-            },
+            impressions=round(impressions, 2),
+            clicks=round(clicks, 2),
+            ctr=round(ctr, 2),
+            cpm=round(cpm, 2),
+            cpc=round(cpc, 2),
+            reach=reach,
+            frequency=frequency,
+            funnel=funnel,
             timeseries=timeseries,
             metric_unavailable_reason=metric_unavailable_reason,
         )
@@ -299,6 +375,8 @@ class MetricsByOfferService:
             for day, values in sorted(by_day.items())
         ]
 
+    # ── Unassigned / Branding aggregates ──────────────────────────────────
+
     def _aggregate_unassigned(
         self,
         *,
@@ -306,12 +384,22 @@ class MetricsByOfferService:
         assigned_campaign_ids: set[str],
         assigned_adset_ids: set[str],
         branded_campaign_ids: set[str],
+        period_reach_rows: list[PeriodMetricModel],
     ) -> UnassignedAggregateDTO:
         unassigned_targets: set[str] = set()
+        unassigned_campaign_ids: set[str] = set()
         total_spend = 0.0
         impressions = 0.0
         clicks = 0.0
+        funnel_row_filter: list[MetricRow] = []
         for r in rows:
+            # Skip pure account-level rows (no campaign_id AND no ad_set_id).
+            # Meta's Insights API emits ad-account-level aggregates that are
+            # neither assignable nor branded — they would show as phantom
+            # "unassigned spend" with zero actionable targets. Exclude them
+            # so "Sin asignar" only reflects assignable campaigns/ad_sets.
+            if not r.campaign_id and not r.ad_set_id:
+                continue
             if r.campaign_id and r.campaign_id in branded_campaign_ids:
                 continue
             if r.campaign_id and r.campaign_id in assigned_campaign_ids:
@@ -320,44 +408,228 @@ class MetricsByOfferService:
                 continue
             if r.campaign_id:
                 unassigned_targets.add(f"campaign:{r.campaign_id}")
+                unassigned_campaign_ids.add(r.campaign_id)
             if r.ad_set_id:
                 unassigned_targets.add(f"ad_set:{r.ad_set_id}")
+            funnel_row_filter.append(r)
             if r.metric_name == "spend":
                 total_spend += r.value
             elif r.metric_name == "impressions":
                 impressions += r.value
             elif r.metric_name == "clicks":
                 clicks += r.value
+
+        ctr = (clicks / impressions * 100.0) if impressions else 0.0
+        cpc = (total_spend / clicks) if clicks else 0.0
+        cpm = (total_spend / impressions * 1000.0) if impressions else 0.0
+
+        reach = self._compute_reach_for_campaigns(
+            period_reach_rows, unassigned_campaign_ids
+        )
+
+        funnel = self._build_funnel_from_rows(funnel_row_filter)
+
         return UnassignedAggregateDTO(
             target_count=len(unassigned_targets),
             total_spend=round(total_spend, 2),
             impressions=round(impressions, 2),
             clicks=round(clicks, 2),
+            ctr=round(ctr, 2),
+            cpm=round(cpm, 2),
+            cpc=round(cpc, 2),
+            reach=reach,
+            funnel=funnel,
         )
 
     def _aggregate_branding(
-        self, *, rows: list[MetricRow], branded_campaign_ids: set[str]
+        self,
+        *,
+        rows: list[MetricRow],
+        branded_campaign_ids: set[str],
+        period_reach_rows: list[PeriodMetricModel],
     ) -> BrandingAggregateDTO:
         total_spend = 0.0
-        reach = 0.0
         impressions = 0.0
+        clicks = 0.0
         seen: set[str] = set()
+        funnel_row_filter: list[MetricRow] = []
         for r in rows:
             if r.campaign_id not in branded_campaign_ids:
                 continue
             seen.add(r.campaign_id)
+            funnel_row_filter.append(r)
             if r.metric_name == "spend":
                 total_spend += r.value
-            elif r.metric_name == "reach":
-                reach += r.value
             elif r.metric_name == "impressions":
                 impressions += r.value
+            elif r.metric_name == "clicks":
+                clicks += r.value
+
+        ctr = (clicks / impressions * 100.0) if impressions else 0.0
+        cpc = (total_spend / clicks) if clicks else 0.0
+        cpm = (total_spend / impressions * 1000.0) if impressions else 0.0
+
+        reach = self._compute_reach_for_campaigns(period_reach_rows, seen)
+        frequency = self._compute_frequency(impressions, reach)
+
+        funnel = self._build_funnel_from_rows(funnel_row_filter)
+
         return BrandingAggregateDTO(
             target_count=len(seen),
             total_spend=round(total_spend, 2),
-            reach=round(reach, 2),
             impressions=round(impressions, 2),
+            clicks=round(clicks, 2),
+            ctr=round(ctr, 2),
+            cpm=round(cpm, 2),
+            cpc=round(cpc, 2),
+            reach=reach,
+            frequency=frequency,
+            funnel=funnel,
         )
+
+    # ── Funnel helpers ────────────────────────────────────────────────────
+
+    def _build_funnel_for_campaigns(
+        self,
+        *,
+        rows: list[MetricRow],
+        campaign_ids: set[str] | None,
+        ad_set_ids: set[str] | None = None,
+    ) -> list[FunnelStepDTO]:
+        """Build a 5-step Meta Ads funnel from rows.
+
+        **Sentinel semantics (explicit, not overloaded):**
+        - `campaign_ids=None` AND `ad_set_ids=None` → global funnel over ALL
+          rows (used by `funnel_all`). Callers MUST pass None (not empty
+          sets) to opt into this behaviour.
+        - Either argument is a set (even empty) → filter mode. Rows pass if
+          their `campaign_id` is in `campaign_ids` OR their `ad_set_id` is in
+          `ad_set_ids`. An empty set on both arguments legitimately returns
+          an all-zero funnel (no rows match) — useful for offers with no
+          associations, so we never silently leak the global aggregate under
+          an offer's label.
+
+        Semantics (identical to
+        `channel_dashboard_service._build_funnel`):
+        - value = sum of each metric across matching rows
+        - conversion_rate_from_previous = round(value/prev*100, 2)
+        - None for the first step or when prev == 0
+        """
+        if campaign_ids is None and ad_set_ids is None:
+            # Explicit global mode — used by funnel_all only.
+            filtered = rows
+        else:
+            cids: set[str] = campaign_ids if campaign_ids is not None else set()
+            asids: set[str] = ad_set_ids if ad_set_ids is not None else set()
+            filtered = [
+                r for r in rows if (r.campaign_id in cids or r.ad_set_id in asids)
+            ]
+        return self._build_funnel_from_rows(filtered)
+
+    @staticmethod
+    def _build_funnel_from_rows(rows: list[MetricRow]) -> list[FunnelStepDTO]:
+        totals: dict[str, float] = {name: 0.0 for _, name in _FUNNEL_STEPS}
+        for r in rows:
+            if r.metric_name in totals:
+                totals[r.metric_name] += r.value
+
+        steps: list[FunnelStepDTO] = []
+        prev_value: float | None = None
+        for label, metric_name in _FUNNEL_STEPS:
+            value = totals[metric_name]
+            conv_rate: float | None
+            if prev_value is not None and prev_value > 0:
+                conv_rate = round((value / prev_value) * 100, 2)
+            else:
+                conv_rate = None
+            steps.append(
+                FunnelStepDTO(
+                    label=label,
+                    metric_name=metric_name,
+                    value=round(value, 2),
+                    conversion_rate_from_previous=conv_rate,
+                )
+            )
+            prev_value = value
+        return steps
+
+    # ── Reach helpers ─────────────────────────────────────────────────────
+
+    @staticmethod
+    def _compute_reach_for_campaigns(
+        period_reach_rows: list[PeriodMetricModel],
+        campaign_ids: set[str],
+    ) -> float | None:
+        """Return a reliable reach value for the given campaigns.
+
+        Rules (non-negotiable — see CONTRACT §1b):
+          - len(campaign_ids) == 0 → None
+          - len(campaign_ids) == 1 → value from the matching period_metrics
+            row, or None if no row exists for that campaign_id
+          - len(campaign_ids) >= 2 → None (audience overlap makes sum invalid)
+
+        **Signature deviation from CONTRACT §4:** the CONTRACT originally
+        defined this as `(self, tenant_id, start_date, end_date, campaign_ids)`
+        with a DB roundtrip inside. The implementation receives pre-loaded
+        rows instead so the service loads period_metrics once in `run()` and
+        partitions in-memory for both `reach_all` and per-offer/per-bucket
+        reach. This is intentional — fewer DB roundtrips, same guarantees,
+        easier to test (no DB mock needed). See CONTRACT §5a "single
+        roundtrip" goal and REVIEW.md M1.
+
+        **Ad-set associations:** offers associated only via `ad_set` (no
+        campaign association) get `campaign_ids = set()` → reach = None.
+        Pre-existing limitation — the ETL today only emits campaign-level
+        reach rows, so even if ad-set ids were threaded through here there
+        would be no rows to look up. Documented in REVIEW.md M4.
+        """
+        if not campaign_ids:
+            return None
+        if len(campaign_ids) > 1:
+            return None
+
+        target_id = next(iter(campaign_ids))
+        matching = [r for r in period_reach_rows if r.campaign_id == target_id]
+        if not matching:
+            return None
+        # Take the most recent period_start row (already ordered desc
+        # by the repository, but be defensive).
+        best = max(matching, key=lambda r: r.period_start)
+        try:
+            return float(best.value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _compute_reach_all(
+        period_reach_rows: list[PeriodMetricModel],
+    ) -> float | None:
+        """Channel-level reach (campaign_id IS NULL), or None if absent.
+
+        Takes pre-loaded rows to share the single DB roundtrip with
+        `_compute_reach_for_campaigns`. See the docstring of that method for
+        rationale and the CONTRACT §4 deviation note.
+        """
+        channel_rows = [r for r in period_reach_rows if r.campaign_id is None]
+        if not channel_rows:
+            return None
+        best = max(channel_rows, key=lambda r: r.period_start)
+        try:
+            return float(best.value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _compute_frequency(impressions: float, reach: float | None) -> float | None:
+        """Frequency = impressions / reach, null when reach is null or zero.
+
+        Kept in the service (not a DTO field derivation) because reach
+        null-ness is the authoritative signal. If reach is unreliable,
+        frequency is unreliable too.
+        """
+        if reach is None or reach <= 0:
+            return None
+        return round(impressions / reach, 2)
 
 
 __all__ = ["MetricsByOfferService"]
