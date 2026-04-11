@@ -16,6 +16,7 @@ from src.modules.analytics.workers.tasks import (
     run_inactivity_detection,
     run_initial_load,
     run_mailerlite_etl_sync,
+    run_period_extraction,
     run_tenant_extraction,
 )
 from src.modules.brand.workers.tasks import run_brand_extraction
@@ -31,6 +32,7 @@ class WorkerSettings:
     functions = [
         run_tenant_extraction,
         run_initial_load,
+        run_period_extraction,
         run_inactivity_detection,
         run_mailerlite_etl_sync,
         run_campaign_sync,
@@ -73,6 +75,7 @@ class SchedulerSettings:
     functions = [
         run_tenant_extraction,
         run_initial_load,
+        run_period_extraction,
         run_inactivity_detection,
         run_mailerlite_etl_sync,
         run_campaign_sync,
