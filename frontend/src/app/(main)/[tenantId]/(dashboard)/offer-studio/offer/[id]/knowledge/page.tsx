@@ -1,20 +1,14 @@
 "use client";
 
-import { use } from "react";
-import { OfferEditorLayout } from "@/features/offer-studio/components/editor/layout/offer-editor-layout";
-import { AssetUploader } from "@/features/offer-studio/components/editor/components/asset-uploader";
+import { useOfferShell } from "@/features/offer-studio/components/container/offer-shell";
+import { KnowledgeView } from "@/features/offer-studio/components/knowledge/knowledge-view";
 
-export default function KnowledgePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  return (
-    <OfferEditorLayout offerId={id}>
-       <div className="space-y-6 max-w-4xl">
-          <h1 className="text-2xl font-bold">Base de Conocimiento</h1>
-          <p className="text-muted-foreground">
-            Sube webinars, VSLs o documentos PDF que expliquen esta oferta.
-          </p>
-          <AssetUploader />
-       </div>
-    </OfferEditorLayout>
-  );
+/**
+ * Knowledge tab — rendered inside the persistent Offer Studio shell. The old
+ * mock uploader + `OfferEditorLayout` wrapper has been retired; the shell
+ * (`layout.tsx`) already owns the header, tab bar and chrome.
+ */
+export default function KnowledgePage() {
+  const { offer } = useOfferShell();
+  return <KnowledgeView offerId={offer.id} />;
 }
