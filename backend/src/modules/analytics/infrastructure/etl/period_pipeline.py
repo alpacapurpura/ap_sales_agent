@@ -95,6 +95,14 @@ class PeriodExtractionPipeline:
             .values(status=ExtractionStatus.RUNNING.value)
         )
 
+        # Commit the run row + RUNNING status NOW so it survives any later
+        # rollback in the except handlers below. Without this commit, a
+        # failure inside the try block triggers `db.rollback()` which wipes
+        # the still-uncommitted run row, and the subsequent update_status
+        # call raises "ExtractionRun not found" instead of recording the
+        # real failure reason.
+        self.db.commit()
+
         try:
             # Get credentials
             creds = await self.connection_port.get_credentials(tenant_id, provider_name)
