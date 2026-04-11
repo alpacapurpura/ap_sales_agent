@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   ChevronDown,
   Copy,
-  Eye,
   Loader2,
   Pause,
   Play,
@@ -30,12 +29,17 @@ import { useAssociations } from '../../../../../api/offer-association-api';
 import { archetypeEmoji } from '../../../../../types/offer-association';
 import type {
   CampaignPerformanceData,
-  CampaignRecommendation,
   CampaignWithMetrics,
   MetaAdsPeriod,
 } from '../../../../../types/metrics';
 import type { Association } from '../../../../../types/offer-association';
 import { OfferAssignmentDrawerConnected } from '../OfferAssignmentDrawerConnected';
+import { ImprovementNotesPanel } from '../notices/ImprovementNotesPanel';
+import { useIgnoredNotices } from '../notices/useIgnoredNotices';
+import type {
+  ImprovementNotice,
+  SeverityBreakdown,
+} from '../notices/types';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -46,6 +50,9 @@ interface CampaignsTabProps {
   isLoading: boolean;
   currency?: string;
   period?: MetaAdsPeriod;
+  /** Notices bucketed for this tab by the dashboard-level useMetaAdsNotices hook. */
+  notices?: ImprovementNotice[];
+  noticesSeverity?: SeverityBreakdown;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,60 +171,6 @@ function healthBadgeClasses(health: 'good' | 'warning' | 'critical'): string {
       return 'bg-amber-500/10 text-amber-400';
     case 'critical':
       return 'bg-red-500/10 text-red-400';
-  }
-}
-
-/** Map recommendation importance to a visual level. */
-function recLevel(importance: string | null): 'critical' | 'high' | 'medium' {
-  const imp = (importance ?? '').toUpperCase();
-  if (imp === 'CRITICAL') return 'critical';
-  if (imp === 'HIGH') return 'high';
-  return 'medium';
-}
-
-/** Recommendation card border class. */
-function recBorderClass(level: ReturnType<typeof recLevel>): string {
-  switch (level) {
-    case 'critical':
-      return 'border-l-red-500';
-    case 'high':
-      return 'border-l-amber-500';
-    case 'medium':
-      return 'border-l-blue-500';
-  }
-}
-
-/** Recommendation icon color class. */
-function recIconBg(level: ReturnType<typeof recLevel>): string {
-  switch (level) {
-    case 'critical':
-      return 'bg-red-500/10';
-    case 'high':
-      return 'bg-amber-500/10';
-    case 'medium':
-      return 'bg-blue-500/10';
-  }
-}
-
-function recIconColor(level: ReturnType<typeof recLevel>): string {
-  switch (level) {
-    case 'critical':
-      return 'text-red-400';
-    case 'high':
-      return 'text-amber-400';
-    case 'medium':
-      return 'text-blue-400';
-  }
-}
-
-function recTitleColor(level: ReturnType<typeof recLevel>): string {
-  switch (level) {
-    case 'critical':
-      return 'text-red-300';
-    case 'high':
-      return 'text-amber-300';
-    case 'medium':
-      return 'text-blue-300';
   }
 }
 
@@ -402,92 +355,6 @@ function CampaignSummaryKpis({
 }
 
 // ---------------------------------------------------------------------------
-// Section 2: Alert cards
-// ---------------------------------------------------------------------------
-
-function AlertCard({ rec }: { rec: CampaignRecommendation }) {
-  const level = recLevel(rec.importance);
-
-  return (
-    <div
-      className={cn(
-        'flex items-start justify-between gap-3 rounded-lg border border-l-[3px] border-zinc-800 bg-zinc-900/60 p-3',
-        recBorderClass(level),
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <div className={cn('mt-0.5 rounded-full p-1.5', recIconBg(level))}>
-          {level === 'critical' ? (
-            <AlertTriangle className={cn('h-4 w-4', recIconColor(level))} />
-          ) : level === 'high' ? (
-            <Eye className={cn('h-4 w-4', recIconColor(level))} />
-          ) : (
-            <TrendingUp className={cn('h-4 w-4', recIconColor(level))} />
-          )}
-        </div>
-        <div>
-          <p className={cn('text-sm font-medium', recTitleColor(level))}>
-            {rec.title ?? rec.recommendationType}
-          </p>
-          {rec.body && <p className="mt-0.5 text-xs text-zinc-500">{rec.body}</p>}
-        </div>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-1.5">
-        {level === 'critical' && (
-          <button
-            type="button"
-            className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20"
-          >
-            Pausar
-          </button>
-        )}
-        {level === 'medium' && (
-          <button
-            type="button"
-            className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/20"
-          >
-            +20% Budget
-          </button>
-        )}
-        {level === 'high' && (
-          <button
-            type="button"
-            className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 transition-colors hover:bg-amber-500/20"
-          >
-            Renovar Audiencia
-          </button>
-        )}
-        <button
-          type="button"
-          className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-700"
-        >
-          Ver
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function RecommendationAlerts({ recommendations }: { recommendations: CampaignRecommendation[] }) {
-  if (recommendations.length === 0) return null;
-
-  // Sort: critical first, then high, then others
-  const sorted = [...recommendations].sort((a, b) => {
-    const order: Record<string, number> = { critical: 0, high: 1, medium: 2 };
-    return (order[recLevel(a.importance)] ?? 3) - (order[recLevel(b.importance)] ?? 3);
-  });
-
-  return (
-    <div className="space-y-2">
-      {sorted.map((rec, idx) => (
-        <AlertCard key={`${rec.recommendationType}-${idx}`} rec={rec} />
-      ))}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Section 3: Campaign Row
 // ---------------------------------------------------------------------------
 
@@ -519,8 +386,9 @@ function CampaignRow({
 
   return (
     <div
+      id={`campaign-row-${campaign.externalId}`}
       className={cn(
-        'border-b border-zinc-800/60 transition-colors hover:bg-zinc-800/30',
+        'scroll-mt-24 border-b border-zinc-800/60 transition-colors hover:bg-zinc-800/30',
         isError && 'bg-red-500/[0.02]',
         isInactive && 'opacity-60',
       )}
@@ -946,14 +814,24 @@ function IndicatorGuide() {
 // Main Component
 // ---------------------------------------------------------------------------
 
+const EMPTY_SEVERITY: SeverityBreakdown = { critical: 0, warning: 0, info: 0 };
+
 export function CampaignsTab({
   data,
   isLoading,
   currency,
   period = '30d',
+  notices = [],
+  noticesSeverity = EMPTY_SEVERITY,
 }: CampaignsTabProps) {
   const { timezone, currency: tenantCurrency } = useTenantLocale();
   const searchParams = useSearchParams();
+  const { ignore } = useIgnoredNotices();
+
+  // The Resumen overview can deep-link to this tab and request that the
+  // notices panel starts expanded. Read it once on mount; subsequent tab
+  // visits (regular click) do not force the panel open.
+  const forceOpenNotices = searchParams?.get('notices') === 'open';
 
   // Offer-association layer — associations are used for row-level badges.
   // Campaign list + offer list are fetched internally by the connected drawer,
@@ -1051,8 +929,23 @@ export function CampaignsTab({
           {/* Section 1: Summary KPIs */}
           <CampaignSummaryKpis data={data} currency={resolvedCurrency} />
 
-          {/* Section 2: Alerts */}
-          <RecommendationAlerts recommendations={data.recommendations} />
+          {/* Section 2: Improvement notices (only for ACTIVE campaigns,
+              categorized to this tab by the dashboard-level notices hook).
+              Collapsed by default; force-open if user navigated from Resumen. */}
+          <ImprovementNotesPanel
+            notices={notices}
+            severity={noticesSeverity}
+            forceOpen={forceOpenNotices}
+            onIgnore={ignore}
+            onNoticeClick={notice => {
+              if (notice.targetExternalId && typeof window !== 'undefined') {
+                const el = document.getElementById(
+                  `campaign-row-${notice.targetExternalId}`,
+                );
+                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }}
+          />
 
           {/* Section 3: Campaign Table */}
           <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/30">

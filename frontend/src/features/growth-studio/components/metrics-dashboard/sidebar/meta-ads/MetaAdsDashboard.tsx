@@ -13,7 +13,10 @@ import { useHashScroll } from '../../../../hooks/useHashScroll';
 import { useConnectionHealth } from '../../../../hooks/useConnectionHealth';
 import { useSyncChannel } from '../../../../hooks/useSyncChannel';
 import { useCampaignPerformance } from '../../../../api/campaigns-api';
-import { useAssociations } from '../../../../api/offer-association-api';
+import {
+  useAssociations,
+  useMetaHealthCheck,
+} from '../../../../api/offer-association-api';
 import type { MetaAdsPeriod, MetaAdsDashboardTab } from '../../../../types/metrics';
 import { ConnectionHealthBanner } from '../../../connection-health-banner';
 import { MetaAdsPeriodSelector } from './MetaAdsPeriodSelector';
@@ -23,6 +26,8 @@ import { CampaignsTab } from './tabs/CampaignsTab';
 import { CreativosTab } from './tabs/CreativosTab';
 import { AudienciaTab } from './tabs/AudienciaTab';
 import { CostosTab } from './tabs/CostosTab';
+import { useMetaAdsNotices } from './notices/useMetaAdsNotices';
+import { TabBadge } from './notices/TabBadge';
 
 const ONBOARDING_DISMISSED_KEY = 'meta-ads-onboarding-dismissed';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
@@ -55,8 +60,17 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const { data: campaignData, isLoading: isCampaignLoading } = useCampaignPerformance(period);
   const { data: health } = useConnectionHealth('meta-ads');
   const { data: associations } = useAssociations();
+  const { data: metaHealthCheck } = useMetaHealthCheck();
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel('meta-ads');
   useHashScroll();
+
+  // Unified improvement notices (active campaigns only, deduped, ignorable
+  // for 24h via localStorage). Computed once at the dashboard level so both
+  // the tab badges and the Resumen overview see the same data.
+  const noticesSummary = useMetaAdsNotices({
+    campaignData,
+    healthCheck: metaHealthCheck,
+  });
 
   // Onboarding modal: first-connect trigger. Derived state — no useEffect needed.
   const [hasUserDismissedOnboarding, setHasUserDismissedOnboarding] = useState(() => {
@@ -120,6 +134,26 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
       } else {
         url.searchParams.set('tab', tab);
       }
+      // Regular tab clicks should not force the notices panel open.
+      url.searchParams.delete('notices');
+      window.history.replaceState(null, '', url.toString());
+    },
+    [],
+  );
+
+  // Deep-link navigation from the Resumen overview: change tab + auto-open
+  // that tab's ImprovementNotesPanel by writing `?notices=open` into the URL.
+  // The target tab reads it via useSearchParams and resets it after mount.
+  const handleNavigateFromOverview = useCallback(
+    (tab: MetaAdsDashboardTab) => {
+      setActiveTab(tab);
+      const url = new URL(window.location.href);
+      if (tab === 'resumen') {
+        url.searchParams.delete('tab');
+      } else {
+        url.searchParams.set('tab', tab);
+      }
+      url.searchParams.set('notices', 'open');
       window.history.replaceState(null, '', url.toString());
     },
     [],
@@ -189,10 +223,34 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
         <div className="border-b px-6">
           <TabsList className="h-10">
             <TabsTrigger value="resumen">Resumen</TabsTrigger>
-            <TabsTrigger value="campanas">Campañas</TabsTrigger>
-            <TabsTrigger value="creativos">Creativos</TabsTrigger>
-            <TabsTrigger value="audiencia">Audiencia</TabsTrigger>
-            <TabsTrigger value="costos">Costos</TabsTrigger>
+            <TabsTrigger value="campanas">
+              Campañas
+              <TabBadge
+                count={noticesSummary.perTabCounts.campanas}
+                severity={noticesSummary.maxSeverityPerTab.campanas}
+              />
+            </TabsTrigger>
+            <TabsTrigger value="creativos">
+              Creativos
+              <TabBadge
+                count={noticesSummary.perTabCounts.creativos}
+                severity={noticesSummary.maxSeverityPerTab.creativos}
+              />
+            </TabsTrigger>
+            <TabsTrigger value="audiencia">
+              Audiencia
+              <TabBadge
+                count={noticesSummary.perTabCounts.audiencia}
+                severity={noticesSummary.maxSeverityPerTab.audiencia}
+              />
+            </TabsTrigger>
+            <TabsTrigger value="costos">
+              Costos
+              <TabBadge
+                count={noticesSummary.perTabCounts.costos}
+                severity={noticesSummary.maxSeverityPerTab.costos}
+              />
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -203,8 +261,9 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
               isLoading={isDashboardLoading}
               campaignData={campaignData}
               period={period}
-              onNavigateToTab={setActiveTab}
+              onNavigateToTab={handleNavigateFromOverview}
               onAssignCampaigns={handleOpenAssignCampaigns}
+              noticesSummary={noticesSummary}
             />
           </TabsContent>
           <TabsContent value="campanas" className="m-0 p-6">
@@ -213,6 +272,8 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
               isLoading={isCampaignLoading}
               currency={campaignData?.currency ?? dashboardData?.kpis.find(k => k.currency)?.currency}
               period={period}
+              notices={noticesSummary.byTab.campanas}
+              noticesSeverity={noticesSummary.severityPerTab.campanas}
             />
           </TabsContent>
           <TabsContent value="creativos" className="m-0 p-6">

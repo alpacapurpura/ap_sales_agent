@@ -1,20 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ChartSection } from '../../shared/ChartSection';
 import { MetaAdsMiniFunnel } from '../MetaAdsMiniFunnel';
 import { InversionChart } from '../InversionChart';
-import { MetaAdsHealthCheckPanel } from '../MetaAdsHealthCheckPanel';
+import { ResumenHealthOverview } from '../notices/ResumenHealthOverview';
+import type { NoticesSummary } from '../notices/types';
 import { OfferSegmenter } from '../OfferSegmenter';
 import type { OfferSegmenterSelection } from '../OfferSegmenter';
-import { UnassignedBanner } from '../UnassignedBanner';
-import {
-  useMetaHealthCheck,
-  useMetricsByOffer,
-} from '../../../../../api/offer-association-api';
+import { useMetricsByOffer } from '../../../../../api/offer-association-api';
 import { useTenantLocale } from '@/features/tenant/context/tenant-locale-context';
 import type {
   ChannelDashboardData,
@@ -32,7 +29,32 @@ interface ResumenTabProps {
   period?: MetaAdsPeriod;
   onNavigateToTab?: (tab: MetaAdsDashboardTab) => void;
   onAssignCampaigns?: () => void;
+  /**
+   * Unified improvement notices computed at the dashboard level. Drives the
+   * ResumenHealthOverview. Optional for test ergonomics — the empty-summary
+   * default renders a "todo en orden" state.
+   */
+  noticesSummary?: NoticesSummary;
 }
+
+const EMPTY_NOTICES_SUMMARY: NoticesSummary = {
+  byTab: { campanas: [], creativos: [], audiencia: [], costos: [] },
+  total: 0,
+  perTabCounts: { campanas: 0, creativos: 0, audiencia: 0, costos: 0 },
+  severity: { critical: 0, warning: 0, info: 0 },
+  severityPerTab: {
+    campanas: { critical: 0, warning: 0, info: 0 },
+    creativos: { critical: 0, warning: 0, info: 0 },
+    audiencia: { critical: 0, warning: 0, info: 0 },
+    costos: { critical: 0, warning: 0, info: 0 },
+  },
+  maxSeverityPerTab: {
+    campanas: null,
+    creativos: null,
+    audiencia: null,
+    costos: null,
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -45,27 +67,18 @@ export function ResumenTab({
   period = '30d',
   onNavigateToTab,
   onAssignCampaigns,
+  noticesSummary,
 }: ResumenTabProps) {
   const { currency: tenantCurrency } = useTenantLocale();
   const [selectedOfferId, setSelectedOfferId] =
     useState<OfferSegmenterSelection>('all');
 
-  const { data: healthCheck, isLoading: isHealthLoading } = useMetaHealthCheck();
   const { data: metricsByOffer } = useMetricsByOffer(period);
 
-  const unassignedCount = healthCheck?.unassignedTargets.length ?? 0;
-  const hasUnassigned = unassignedCount > 0;
-  const hasBranding = (metricsByOffer?.brandingOnly.targetCount ?? 0) > 0;
+  const summary = noticesSummary ?? EMPTY_NOTICES_SUMMARY;
 
-  // Lookup map externalId → campaign name so each performance recommendation
-  // can render a "Campaña: X" context badge inside the health panel.
-  const campaignNameById = useMemo<Record<string, string>>(() => {
-    const map: Record<string, string> = {};
-    campaignData?.campaigns.forEach(c => {
-      map[c.externalId] = c.name;
-    });
-    return map;
-  }, [campaignData?.campaigns]);
+  const hasUnassigned = (metricsByOffer?.unassigned?.targetCount ?? 0) > 0;
+  const hasBranding = (metricsByOffer?.brandingOnly.targetCount ?? 0) > 0;
 
   const handleAssignClick = () => {
     if (onAssignCampaigns) {
@@ -73,6 +86,12 @@ export function ResumenTab({
     } else {
       onNavigateToTab?.('campanas');
     }
+  };
+
+  const handleNavigateTab = (
+    tab: 'campanas' | 'creativos' | 'audiencia' | 'costos' | 'resumen',
+  ) => {
+    onNavigateToTab?.(tab as MetaAdsDashboardTab);
   };
 
   const viewData = useResumenViewData({
@@ -112,22 +131,14 @@ export function ResumenTab({
             : ''}
         </span>
 
-        {/* Health Check panel — structural diagnostic + campaign recommendations */}
+        {/* Health overview — "Todo en orden" or "Tienes N cosas por mejorar"
+            with per-tab drilldown. Collapsed by default. */}
         <ChartSection slug="health-check">
-          <MetaAdsHealthCheckPanel
-            data={healthCheck}
-            isLoading={isHealthLoading}
-            onAssignClick={handleAssignClick}
-            campaignRecommendations={campaignData?.recommendations}
-            campaignNameById={campaignNameById}
-            onRecommendationAction={() => onNavigateToTab?.('campanas')}
+          <ResumenHealthOverview
+            summary={summary}
+            onNavigateToTab={handleNavigateTab}
           />
         </ChartSection>
-
-        {/* Unassigned banner (persistent prompt to assign) */}
-        {hasUnassigned && (
-          <UnassignedBanner count={unassignedCount} onAssignClick={handleAssignClick} />
-        )}
 
         {/* Segmenter + KPI grid — conceptually one block, tighter spacing */}
         {metricsByOffer && metricsByOffer.offers.length > 0 && (

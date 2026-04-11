@@ -302,50 +302,51 @@ describe('ResumenTab', () => {
     expect(alcanceCard?.textContent).toContain('—');
   });
 
-  it('renders the UnassignedBanner when there are unassigned targets', () => {
-    mockHealthCheck.mockReturnValue({
-      data: makeHealthCheck({
-        unassignedTargets: [
-          { targetType: 'campaign', externalId: 'c-1', name: 'Camp 1', objective: null, status: null },
-          { targetType: 'campaign', externalId: 'c-2', name: 'Camp 2', objective: null, status: null },
-        ],
-      }),
-      isLoading: false,
-    });
+  it('renders the celebratory "Todo en orden" state when there are no notices', () => {
     renderWithQuery(<ResumenTab data={makeDashboardData()} isLoading={false} />);
-    // The banner renders an "Asignar ahora" CTA — use that as a stable anchor.
-    const buttons = screen.getAllByRole('button', { name: /Asignar ahora/i });
-    expect(buttons.length).toBeGreaterThan(0);
+    expect(screen.getByText(/Todo en orden/i)).toBeInTheDocument();
   });
 
-  it('renders alert cards when campaignData has recommendations', () => {
-    const campaignData: CampaignPerformanceData = {
-      campaigns: [],
-      recommendations: [
-        {
-          recommendationType: 'budget',
-          source: 'system',
-          title: 'Aumenta presupuesto',
-          body: 'Tu CPA es bueno, invierte más.',
-          importance: 'HIGH',
-          liftEstimate: null,
-          opportunityScore: null,
-          url: null,
-          objectIds: [],
-        },
-      ],
-      totalCampaigns: 5,
-      activeCampaigns: 3,
-      currency: 'USD',
-      lastSynced: null,
-    };
+  it('renders the "Tienes N cosas por mejorar" header when a notices summary is passed', () => {
     renderWithQuery(
       <ResumenTab
         data={makeDashboardData()}
         isLoading={false}
-        campaignData={campaignData}
+        noticesSummary={{
+          byTab: {
+            campanas: [
+              {
+                id: 'x',
+                category: 'campaign',
+                severity: 'warning',
+                title: 'Aumenta presupuesto',
+                body: 'Tu CPA es bueno, invertí más.',
+                contextLabel: 'Campaña: Test',
+                targetExternalId: 'c1',
+              },
+            ],
+            creativos: [],
+            audiencia: [],
+            costos: [],
+          },
+          total: 1,
+          perTabCounts: { campanas: 1, creativos: 0, audiencia: 0, costos: 0 },
+          severity: { critical: 0, warning: 1, info: 0 },
+          severityPerTab: {
+            campanas: { critical: 0, warning: 1, info: 0 },
+            creativos: { critical: 0, warning: 0, info: 0 },
+            audiencia: { critical: 0, warning: 0, info: 0 },
+            costos: { critical: 0, warning: 0, info: 0 },
+          },
+          maxSeverityPerTab: {
+            campanas: 'warning',
+            creativos: null,
+            audiencia: null,
+            costos: null,
+          },
+        }}
       />,
     );
-    expect(screen.getByText('Aumenta presupuesto')).toBeInTheDocument();
+    expect(screen.getByText(/Tienes 1 cosa por mejorar/i)).toBeInTheDocument();
   });
 });
