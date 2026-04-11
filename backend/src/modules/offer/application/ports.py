@@ -119,7 +119,37 @@ class IFileStoragePort(ABC):
     def get_download_stream(self, file_url: str) -> BinaryIO: ...
 
     @abstractmethod
+    def get_signed_url(self, file_url: str, *, expires_in: int = 900) -> str: ...
+
+    @abstractmethod
     def delete(self, file_url: str) -> None: ...
+
+
+class ILandingGenerationRepository(ABC):
+    """Narrow cross-module port for the landing generation flow.
+
+    Exposes just the subset of landing-module persistence that the offer
+    module needs to drive landing generation/publish/unpublish from the
+    offer header. Implemented by the landing module and wired via FastAPI
+    ``Depends`` at the API layer.
+    """
+
+    @abstractmethod
+    def get_by_offer_id(self, tenant_id: UUID, offer_id: UUID) -> object | None: ...
+
+    @abstractmethod
+    def upsert_for_generation(
+        self,
+        *,
+        tenant_id: UUID,
+        offer_id: UUID,
+        snapshot_version: str,
+        job_id: UUID,
+        job_status: str,
+    ) -> object: ...
+
+    @abstractmethod
+    def save(self, landing: object) -> object: ...
 
 
 class IRAGIndexerPort(ABC):
@@ -151,6 +181,7 @@ class IOfferCompletionService(ABC):
 __all__ = [
     "IFileStoragePort",
     "IKnowledgeSourceRepository",
+    "ILandingGenerationRepository",
     "IOfferAssetRepository",
     "IOfferCompletionService",
     "IRAGIndexerPort",
