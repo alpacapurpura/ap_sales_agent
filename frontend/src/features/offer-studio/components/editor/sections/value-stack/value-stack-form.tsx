@@ -17,6 +17,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 const ValueStackSchema = OfferSchema.pick({
   deliverables: true,
@@ -37,7 +38,9 @@ function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
     control: form.control,
     name: "deliverables",
   });
-  
+
+  const { currency: tenantCurrency } = useTenantLocale();
+  const displayCurrency = form.watch("currency") || tenantCurrency;
   const currentOfferId = form.getValues().id;
   const formatOptions = getEnumOptions(DELIVERABLE_FORMAT_METADATA);
 
@@ -195,20 +198,20 @@ function ValueStackContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                         name={`deliverables.${index}.value_stack_price`}
                         render={({ field }) => (
                           <FormItem className="space-y-1.5 w-full">
-                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Valor ($)</FormLabel>
+                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Valor ({displayCurrency})</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                  <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">$</span>
-                                  <Input 
-                                    type="number" 
+                                  <span className="absolute left-3 top-2.5 text-[10px] font-medium text-muted-foreground">{displayCurrency}</span>
+                                  <Input
+                                    type="number"
                                     placeholder="0"
-                                    {...field} 
+                                    {...field}
                                     value={field.value ?? ""}
                                     onChange={e => {
                                       const val = parseFloat(e.target.value);
                                       field.onChange(isNaN(val) ? 0 : val);
                                     }}
-                                    className="pl-6 text-right font-mono bg-background"
+                                    className="pl-11 text-right font-mono bg-background"
                                   />
                               </div>
                             </FormControl>

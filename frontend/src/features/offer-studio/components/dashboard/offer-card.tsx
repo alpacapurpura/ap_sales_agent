@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatMoney } from "@/lib/format-money";
 
 interface OfferCardProps {
   offer: Offer;
@@ -96,9 +97,14 @@ export const OfferCard = memo(function OfferCard({ offer, searchQuery = "", comp
     ? (offer.format_hint ? `${archetypeMeta.label} - ${offer.format_hint}` : archetypeMeta.label)
     : "Oferta";
 
-  // Calculate Price Display
+  // Calculate Price Display — resolves currency via fallback chain:
+  // pricing[0].currency → offer.currency → tenantCurrency
   const priceDisplay = offer.pricing && offer.pricing.length > 0
-    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: offer.currency || tenantCurrency }).format(offer.pricing[0].total_amount)
+    ? formatMoney(
+        offer.pricing[0].total_amount,
+        offer.pricing[0].currency ?? offer.currency ?? tenantCurrency,
+        { fractionDigits: 0 },
+      )
     : "Free";
 
   const handleClick = (e: React.MouseEvent) => {

@@ -142,6 +142,9 @@ export const PricingStructureSchema = z.object({
   label: z.string(),
   plan_type: z.nativeEnum(PaymentPlanType).optional().nullable(),
   total_amount: z.number(),
+  // Optional per-option currency override. Omitted = inherit from the
+  // offer-level currency / tenant default.
+  currency: z.string().optional(),
   deposit_required: z.number().default(0.0),
   number_of_installments: z.number().int().default(1),
   installment_amount: z.number().default(0.0),
@@ -212,7 +215,8 @@ export const OfferSchema = z.object({
   
   pricing_options: z.array(PricingStructureSchema).default([]),
   price_pay_in_full: z.number().optional().nullable(),
-  currency: z.string().default("USD"),
+  // Optional — resolved at render time via useTenantLocale() fallback chain.
+  currency: z.string().optional(),
   
   guarantee_type: z.nativeEnum(GuaranteeType).default(GuaranteeType.NONE),
   guarantee_terms: z.string().optional().nullable(),

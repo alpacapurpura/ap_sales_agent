@@ -104,7 +104,9 @@ class Offer(BaseEntity):
 
     pricing_options: list[PricingStructure]
     price_pay_in_full: float | None = None
-    currency: str
+    # Optional: resolved to TenantLocale.currency at the application layer
+    # when absent. Do not default to a hardcoded ISO code here.
+    currency: str | None = None
 
     guarantee_type: GuaranteeType
     guarantee_terms: str

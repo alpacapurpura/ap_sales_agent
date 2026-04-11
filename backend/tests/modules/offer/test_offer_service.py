@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from src.modules.offer.application.offer_service import OfferService
+from src.modules.offer.domain.enums import OfferArchetype
 from src.shared.domain.datetime_utils import utc_now
 from tests.modules.offer.conftest import create_product_model
 
@@ -151,3 +152,39 @@ class TestListArchivedOffers:
 
         names = {o.public_name for o in service.list_archived_offers(tenant_a)}
         assert names == {"Archived1", "Archived2"}
+
+
+class TestCreateOfferCurrency:
+    """Regression: new offers must inherit the tenant's default currency
+    when the caller does not provide one, instead of a hardcoded 'USD'.
+    """
+
+    def test_create_offer_with_explicit_currency_preserves_it(
+        self, db: Session, tenant_a
+    ):
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="Soles Offer",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+            currency="PEN",
+        )
+        assert offer.currency == "PEN"
+        # Reload from DB to confirm persistence
+        reloaded = service.get_offer(offer.id, tenant_a)
+        assert reloaded is not None
+        assert reloaded.currency == "PEN"
+
+    def test_create_offer_without_currency_leaves_it_null(self, db: Session, tenant_a):
+        """Without an explicit currency, the service must persist NULL
+        (the API layer is responsible for resolving TenantLocale; the
+        service itself is locale-agnostic). This is the contract the
+        endpoint relies on via get_tenant_locale.
+        """
+        service = OfferService(db)
+        offer = service.create_offer(
+            name="No Currency",
+            tenant_id=tenant_a,
+            archetype=OfferArchetype.PRODUCTO,
+        )
+        assert offer.currency is None

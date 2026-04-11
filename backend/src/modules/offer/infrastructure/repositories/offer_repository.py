@@ -68,7 +68,8 @@ class OfferRepository:
             "objections": model.objections or [],
             "metadata_info": model.metadata_info or {},
             "price_pay_in_full": None,
-            "currency": model.currency or "USD",
+            # Pass-through: nulls stay null. Callers/UI resolve via TenantLocale.
+            "currency": model.currency,
             "pricing_options": normalize_pricing_options(model.pricing or []),
             "deliverables": normalize_deliverables(model.deliverables or []),
             "archived_at": model.archived_at,

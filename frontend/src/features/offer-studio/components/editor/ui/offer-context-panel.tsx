@@ -33,6 +33,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigation } from "@/components/shared/navigation";
 import { toast } from "sonner";
 import { InstructorsPreview } from "../sections/instructors/instructors-preview";
+import { formatMoney } from "@/lib/format-money";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 export type OfferPhase = 'context' | 'solution' | 'deal';
 
@@ -441,13 +443,15 @@ function ContextPhaseContent({
 
 // PHASE 2: SOLUTION CONTENT
 function SolutionPhaseContent({ values, archetypeMeta }: { values: OfferFormValues, archetypeMeta: ArchetypeMetadata | null }) {
+    const { currency: tenantCurrency } = useTenantLocale();
+    const displayCurrency = values.currency ?? tenantCurrency;
     const hasPromise = values.headline_promise && values.headline_promise.length > 10;
-    
+
     // Resources Logic
     const assets = values.assets || [];
     const salesAssets = assets.filter(a => !a.is_knowledge_base);
     const knowledgeDocs = assets.filter(a => a.is_knowledge_base);
-    
+
     const hasAssets = assets.length > 0;
     const isEquipped = salesAssets.length > 0 && knowledgeDocs.length > 0;
 
@@ -548,7 +552,7 @@ function SolutionPhaseContent({ values, archetypeMeta }: { values: OfferFormValu
                                 {values.deliverables.slice(0, 3).map((d, i) => (
                                     <li key={i} className="text-xs flex justify-between">
                                         <span className="truncate max-w-[150px]">• {d.name || "Item sin nombre"}</span>
-                                        <span className="text-muted-foreground">${d.value_stack_price}</span>
+                                        <span className="text-muted-foreground">{formatMoney(d.value_stack_price || 0, displayCurrency, { fractionDigits: 0 })}</span>
                                     </li>
                                 ))}
                                 {values.deliverables.length > 3 && (
@@ -574,7 +578,9 @@ function SolutionPhaseContent({ values, archetypeMeta }: { values: OfferFormValu
 
 // PHASE 3: DEAL CONTENT
 function DealPhaseContent({ values }: { values: OfferFormValues }) {
+    const { currency: tenantCurrency } = useTenantLocale();
     const mainPrice = values.pricing_options?.[0];
+    const displayCurrency = mainPrice?.currency ?? values.currency ?? tenantCurrency;
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 pb-10">
@@ -603,11 +609,11 @@ function DealPhaseContent({ values }: { values: OfferFormValues }) {
                             <span className="text-sm font-medium">Total a pagar</span>
                             <div className="text-right">
                                  <span className="text-2xl font-bold block">
-                                     {values.currency} {mainPrice.total_amount || "0.00"}
+                                     {formatMoney(mainPrice.total_amount || 0, displayCurrency, { fractionDigits: 0 })}
                                  </span>
                                  {mainPrice.number_of_installments > 1 && (
                                      <span className="text-[10px] text-muted-foreground">
-                                         o {mainPrice.number_of_installments} pagos de {mainPrice.installment_amount}
+                                         o {mainPrice.number_of_installments} pagos de {formatMoney(mainPrice.installment_amount || 0, displayCurrency, { fractionDigits: 0 })}
                                      </span>
                                  )}
                             </div>

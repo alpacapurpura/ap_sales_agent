@@ -39,6 +39,7 @@ class OfferService:
         headline_promise: str = "",
         avatar_id: UUID | None = None,
         value_level: OfferValueLevel | None = None,
+        currency: str | None = None,
     ) -> Offer:
         new_offer = Offer(
             tenant_id=tenant_id,
@@ -55,6 +56,9 @@ class OfferService:
             requires_application=False,
             min_financial_capacity=FinancialCapacity.LOW_INCOME,
             pricing_options=[],
+            # Resolved from TenantLocale at the API layer. Persisted as-is so
+            # the offer always carries an explicit currency after creation.
+            currency=currency,
             guarantee_type=GuaranteeType.NONE,
             guarantee_terms="",
             status=OfferStatus.DRAFT,

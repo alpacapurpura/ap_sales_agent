@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.core.database import get_db
-from src.modules.iam.api.dependencies import get_current_user
+from src.modules.iam.api.dependencies import get_current_user, get_tenant_locale
 from src.modules.iam.domain.user import User
 from src.modules.offer.api.dto.products import ProductCreate, ProductUpdate
 from src.modules.offer.application.offer_service import OfferService
@@ -23,6 +23,7 @@ from src.modules.offer.domain.offer import (
     OfferValueStackUpdate,
     OfferVisualsUpdate,
 )
+from src.shared.domain.locale import TenantLocale
 
 router = APIRouter()
 
@@ -56,6 +57,7 @@ async def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    locale: TenantLocale = Depends(get_tenant_locale),
 ):
     service = OfferService(db)
     return service.create_offer(
@@ -67,6 +69,9 @@ async def create_product(
         headline_promise=product.headline_promise or "",
         avatar_id=product.avatar_id,
         value_level=product.value_level,
+        # Fall back to tenant default so new offers inherit the tenant's
+        # configured currency (e.g. PEN) instead of a hardcoded USD.
+        currency=product.currency or locale.currency,
     )
 
 

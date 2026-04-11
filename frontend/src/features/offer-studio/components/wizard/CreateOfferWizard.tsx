@@ -25,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, Loader2, SkipForward } from "lucide-react";
+import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
 
 interface CreateOfferWizardProps {
   open: boolean;
@@ -54,6 +55,7 @@ const ARCHETYPE_ORDER: OfferArchetype[] = [
 ];
 
 export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating = false }: CreateOfferWizardProps) {
+  const { currency: tenantCurrency } = useTenantLocale();
   const [step, setStep] = useState(1);
   const [selectedArchetype, setSelectedArchetype] = useState<OfferArchetype | null>(null);
   const [formatHint, setFormatHint] = useState<string>("");
@@ -306,9 +308,9 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="wizard-price">Precio (USD)</Label>
+                <Label htmlFor="wizard-price">Precio ({tenantCurrency})</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">{tenantCurrency}</span>
                   <Input
                     id="wizard-price"
                     type="number"
@@ -319,7 +321,7 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
                       if (parseFloat(e.target.value) === 0) setIsLeadMagnet(true);
                     }}
                     placeholder="0"
-                    className="h-11 pl-8"
+                    className="h-11 pl-12"
                   />
                 </div>
                 {priceNum === 0 && (

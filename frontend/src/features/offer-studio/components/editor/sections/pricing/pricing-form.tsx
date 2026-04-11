@@ -16,6 +16,7 @@ import { PaymentPlanType, OfferArchetype } from "../../../../types";
 import { TierComparisonBuilder } from "./tier-comparison-builder";
 import { cn } from "@/lib/utils";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import { formatMoney } from "@/lib/format-money";
 
 const PricingSchema = OfferSchema.pick({
   pricing_options: true,
@@ -66,9 +67,9 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                     <FormField control={form.control} name="currency" render={({ field }) => (
                     <FormItem className="space-y-0">
                         <FormControl>
-                            <CurrencySelector 
-                                value={field.value} 
-                                onValueChange={field.onChange} 
+                            <CurrencySelector
+                                value={field.value ?? tenantCurrency}
+                                onValueChange={field.onChange}
                                 currencies={LATAM_CURRENCIES}
                                 className="w-[140px] h-8 text-xs"
                             />
@@ -143,7 +144,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                                                         planType === PaymentPlanType.PAYMENT_PLAN ? "Financiado" : "Suscripción"}
                                                 </Badge>
                                                 {planType === PaymentPlanType.PAYMENT_PLAN && (
-                                                    <span>• {installments} cuotas de {currency} {calculatedInstallment.toFixed(2)}</span>
+                                                    <span>• {installments} cuotas de {formatMoney(calculatedInstallment, currency)}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -153,7 +154,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                                     <div className="flex items-start gap-4">
                                         <div className="text-right mr-2 hidden md:block">
                                             <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                                                {currency} {totalAmount.toLocaleString()}
+                                                {formatMoney(totalAmount, currency, { fractionDigits: 0 })}
                                             </div>
                                             <div className="text-xs text-muted-foreground">
                                                 Total a Pagar
@@ -297,7 +298,7 @@ function PricingContent({ form }: { form: UseFormReturn<OfferFormValues> }) {
                                             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-center justify-between text-sm text-blue-700 dark:text-blue-300">
                                                 <span className="font-medium">Resumen para el Cliente:</span>
                                                 <span>
-                                                    Hoy paga <strong>${deposit}</strong> + {installments} cuotas de <strong>${calculatedInstallment.toFixed(2)}</strong>
+                                                    Hoy paga <strong>{formatMoney(deposit, currency)}</strong> + {installments} cuotas de <strong>{formatMoney(calculatedInstallment, currency)}</strong>
                                                 </span>
                                             </div>
                                         </TabsContent>

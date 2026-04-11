@@ -80,6 +80,9 @@ class ProductCreate(BaseModel):
     value_level: OfferValueLevel | None = None
     headline_promise: str | None = None
     avatar_id: uuid.UUID | None = None
+    # Optional ISO 4217 code. If omitted, the API resolves it from
+    # TenantLocale so the offer inherits the tenant's default currency.
+    currency: str | None = None
 
     @field_validator("archetype", mode="before")
     @classmethod

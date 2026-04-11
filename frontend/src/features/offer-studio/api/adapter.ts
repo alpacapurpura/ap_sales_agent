@@ -183,12 +183,14 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
         label: p.label || "Standard",
         total_amount: Number(p.total_amount) || 0,
         plan_type: p.plan_type,
-        currency: p.currency || data.currency || "USD",
+        // Pass-through: let UI resolve fallback via useTenantLocale()
+        currency: p.currency || data.currency || undefined,
         deposit_required: Number(p.deposit_required) || 0,
         number_of_installments: Number(p.number_of_installments) || 1,
         installment_amount: Number(p.installment_amount) || 0
     })) as PricingStructure[],
-    currency: data.currency || "USD",
+    // Pass-through: let UI resolve fallback via useTenantLocale()
+    currency: data.currency || undefined,
     
     specific_details: data.specific_details || {},
     metadata_info: metadata,
