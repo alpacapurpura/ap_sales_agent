@@ -9,12 +9,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
 if TYPE_CHECKING:
     from datetime import date
-    from uuid import UUID
 
 
 class CampaignRowDTO(BaseModel):

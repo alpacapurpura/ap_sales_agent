@@ -8,21 +8,17 @@ without refactoring the producers.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from datetime import datetime
 from uuid import UUID, uuid4
 
 from pydantic import Field
 
+from src.modules.offer.domain.enums import (
+    AssetType,
+    KnowledgeSourceStatus,
+)
+from src.modules.offer.domain.lifecycle import OfferLifecycleStatus
 from src.shared.domain.base_entity import BaseEntity
-
-if TYPE_CHECKING:
-    from datetime import datetime
-
-    from src.modules.offer.domain.enums import (
-        AssetType,
-        KnowledgeSourceStatus,
-    )
-    from src.modules.offer.domain.lifecycle import OfferLifecycleStatus
 
 
 class DomainEvent(BaseEntity):

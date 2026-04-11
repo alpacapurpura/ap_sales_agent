@@ -121,8 +121,14 @@ def db_engine():
         from src.modules.landing.infrastructure.models.landing_model import (
             LandingPageModel as _LPM,  # noqa: F401
         )
+        from src.modules.offer.infrastructure.models.knowledge_source_model import (
+            KnowledgeSourceModel as _KSM,  # noqa: F401
+        )
         from src.modules.offer.infrastructure.models.launch_edition_model import (
             LaunchEditionModel as _LEM,  # noqa: F401
+        )
+        from src.modules.offer.infrastructure.models.offer_asset_model import (
+            OfferAssetModel as _OAM,  # noqa: F401
         )
         from src.modules.offer.infrastructure.models.product_model import (
             ProductModel as _PM,  # noqa: F401

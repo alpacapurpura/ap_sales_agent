@@ -182,6 +182,20 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [tool.ruff.lint.mccabe]
 max-complexity = 20  # Start permissive, lower to 15 gradually
 
+[tool.ruff.lint.flake8-type-checking]
+# Classes whose annotations are evaluated at runtime (Pydantic, SA 2.0).
+# Imports used by their fields MUST stay at module level, not in TYPE_CHECKING.
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "src.shared.domain.base_entity.BaseEntity",
+    "src.shared.domain.base_entity.Base",
+    "sqlalchemy.orm.DeclarativeBase",
+]
+runtime-evaluated-decorators = [
+    "pydantic.validate_call",
+    "dataclasses.dataclass",
+]
+
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"

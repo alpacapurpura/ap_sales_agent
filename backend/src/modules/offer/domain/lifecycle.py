@@ -7,12 +7,9 @@ the Draft/Active/Paused/Archived flow exposed by the header switcher.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from datetime import datetime
-    from uuid import UUID
+from uuid import UUID
 
 
 class OfferLifecycleStatus(str, Enum):

@@ -6,7 +6,8 @@ specific offer. Pure Pydantic.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from datetime import datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import Field
@@ -16,9 +17,6 @@ from src.modules.offer.domain.enums import (
     KnowledgeSourceType,
 )
 from src.shared.domain.base_entity import BaseEntity
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class KnowledgeSource(BaseEntity):
