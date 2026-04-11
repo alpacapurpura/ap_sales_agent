@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -127,6 +128,10 @@ class Offer(BaseEntity):
 
     status: OfferStatus
 
+    # Lifecycle (SaaS archive + soft-delete)
+    archived_at: datetime | None = None
+    deleted_at: datetime | None = None
+
     specific_details: (
         ProductDetails
         | ServiceDetails
@@ -143,6 +148,14 @@ class Offer(BaseEntity):
     def shows_as_lead_magnet(self) -> bool:
         """Only True when the user explicitly marks the offer as lead magnet."""
         return self.is_lead_magnet
+
+    @property
+    def is_archived(self) -> bool:
+        return self.archived_at is not None
+
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
 
     @model_validator(mode="after")
     def validate_consistency(self):

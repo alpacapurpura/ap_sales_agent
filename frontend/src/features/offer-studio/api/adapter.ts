@@ -102,6 +102,8 @@ export interface BackendOffer {
 
   landing_page_config?: Record<string, unknown>;
 
+  archived_at?: string | null;
+
   // Campos aplanados que a veces vienen directos
   onboarding_action?: string;
   onboarding_url?: string;
@@ -237,7 +239,9 @@ export const backendToFrontend = (data: BackendOffer): Offer => {
     checkout_page_url: (metadata.checkout_page_url as string | undefined) || data.checkout_page_url,
     vsl_link: (metadata.vsl_link as string | undefined) || data.vsl_link,
 
-    landing_page_config: data.landing_page_config as Offer["landing_page_config"]
+    landing_page_config: data.landing_page_config as Offer["landing_page_config"],
+
+    archived_at: data.archived_at ?? null,
   };
 };
 

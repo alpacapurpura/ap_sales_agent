@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from "react";
 import { Offer, OfferArchetype, OfferStatus } from "@/features/offer-studio/types";
 import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
 import { Card } from "@/components/ui/card";
@@ -16,6 +17,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
@@ -24,6 +35,7 @@ import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context
 interface LeadMagnetStreamCardProps {
   offer: Offer;
   onClick?: () => void;
+  onArchive?: (offerId: string) => void;
 }
 
 const ARCHETYPE_COLORS: Record<string, string> = {
@@ -35,11 +47,12 @@ const ARCHETYPE_COLORS: Record<string, string> = {
   default: "bg-slate-100 text-slate-700 border-r border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
 };
 
-export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardProps) {
+export function LeadMagnetStreamCard({ offer, onClick, onArchive }: LeadMagnetStreamCardProps) {
   const { navigate, isNavigating } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
   const { currency: tenantCurrency } = useTenantLocale();
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
 
   const archetypeMeta = offer.archetype ? ARCHETYPE_METADATA[offer.archetype as OfferArchetype] : null;
   const Icon = archetypeMeta?.icon || Magnet;
@@ -121,9 +134,42 @@ export function LeadMagnetStreamCard({ offer, onClick }: LeadMagnetStreamCardPro
                     </DropdownMenuItem>
               )}
               <DropdownMenuItem>Duplicar</DropdownMenuItem>
+              {onArchive && (
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setShowArchiveDialog(true);
+                  }}
+                >
+                  Archivar
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
       </div>
+
+      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Archivar este lead magnet?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La oferta se ocultará de la lista principal y su landing page
+              quedará despublicada. Podrás restaurarla desde la vista de
+              archivados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => onArchive?.(offer.id)}
+            >
+              Archivar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

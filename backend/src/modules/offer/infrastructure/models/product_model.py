@@ -85,5 +85,12 @@ class ProductModel(Base):
     # For now, we'll assume it might be extracted from pricing list or added if critical.
     # currency -> stored in pricing objects usually, or add column.
 
+    # Lifecycle (SaaS archive + soft-delete)
+    # archived_at NULL, deleted_at NULL -> active (visible in normal list)
+    # archived_at NOT NULL, deleted_at NULL -> archived (visible in /archived)
+    # deleted_at NOT NULL -> soft-deleted (hidden everywhere)
+    archived_at = Column(DateTime(timezone=True), nullable=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -296,6 +296,9 @@ export interface Offer {
       slug: string;
       [key: string]: any;
   };
+
+  // Lifecycle (SaaS archive + soft-delete)
+  archived_at?: string | null;
 }
 
 export interface DeliverableItem {

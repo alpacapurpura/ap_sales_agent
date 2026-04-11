@@ -8,6 +8,78 @@ import { OfferFormValues } from "../types/schema";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
+/** Invalidate both active and archived offer lists after a lifecycle change. */
+const invalidateOfferLists = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ['offers'] });
+  queryClient.invalidateQueries({ queryKey: ['offers', 'archived'] });
+};
+
+/** Archive an offer (reversible). Unpublishes the embedded landing page. */
+export function useArchiveOffer() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (offerId: string) => {
+      const token = await getToken();
+      if (!token) throw new Error("No autenticado");
+      await offerApi.archiveOffer(offerId, token);
+    },
+    onSuccess: () => {
+      invalidateOfferLists(queryClient);
+      toast.success("Oferta archivada");
+    },
+    onError: (err) => {
+      console.error("Error archiving offer:", err);
+      toast.error(err instanceof Error ? err.message : "Error al archivar");
+    }
+  });
+}
+
+/** Restore a previously archived offer. */
+export function useRestoreOffer() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (offerId: string) => {
+      const token = await getToken();
+      if (!token) throw new Error("No autenticado");
+      await offerApi.restoreOffer(offerId, token);
+    },
+    onSuccess: () => {
+      invalidateOfferLists(queryClient);
+      toast.success("Oferta restaurada");
+    },
+    onError: (err) => {
+      console.error("Error restoring offer:", err);
+      toast.error(err instanceof Error ? err.message : "Error al restaurar");
+    }
+  });
+}
+
+/** Soft-delete an archived offer. Requires the offer to be archived first. */
+export function useDeleteOffer() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (offerId: string) => {
+      const token = await getToken();
+      if (!token) throw new Error("No autenticado");
+      await offerApi.deleteOffer(offerId, token);
+    },
+    onSuccess: () => {
+      invalidateOfferLists(queryClient);
+      toast.success("Oferta eliminada");
+    },
+    onError: (err) => {
+      console.error("Error deleting offer:", err);
+      toast.error(err instanceof Error ? err.message : "Error al eliminar");
+    }
+  });
+}
+
 export function useOffer(offerId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();

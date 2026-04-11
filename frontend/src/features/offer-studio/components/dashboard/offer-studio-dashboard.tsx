@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import { useNavigation } from "@/components/shared/navigation";
 import { offerApi } from "@/features/offer-studio/api";
+import { useArchiveOffer } from "@/features/offer-studio/hooks/use-offer";
 import { Offer, OfferValueLevel } from "@/features/offer-studio/types";
 import { LeadMagnetStreamCard } from "./lead-magnet-stream-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Plus, Lightbulb, Rocket, TrendingUp, Gem, Building2, SearchX } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { OfferLegend } from "./offer-legend";
 import { OfferLadderLayout } from "./offer-ladder-layout";
@@ -65,7 +66,6 @@ export function OfferStudioDashboard({
   const { navigate } = useNavigation();
   const params = useParams();
   const tenantId = params?.tenantId as string;
-  const queryClient = useQueryClient();
 
   const { data: offers = [], isLoading: loading, error: queryError, refetch: fetchOffers } = useQuery({
     queryKey: ['offers'],
@@ -139,16 +139,11 @@ export function OfferStudioDashboard({
     }
   }, [ladderCompleteness, onLadderComputed]);
 
-  const handleArchiveOffer = useCallback(async (offerId: string) => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-      await offerApi.saveOffer(offerId, { status: "archived" } as any, token);
-      await queryClient.invalidateQueries({ queryKey: ['offers'] });
-    } catch (err) {
-      console.error("Error archiving offer:", err);
-    }
-  }, [getToken, queryClient]);
+  const archiveOfferMutation = useArchiveOffer();
+
+  const handleArchiveOffer = useCallback((offerId: string) => {
+    archiveOfferMutation.mutate(offerId);
+  }, [archiveOfferMutation]);
 
   const handleOpenCreate = (_level?: OfferValueLevel) => {
     setIsWizardOpen(true);
@@ -274,7 +269,12 @@ export function OfferStudioDashboard({
 
              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 px-2 py-1">
                  {levelOffers.map((offer) => (
-                     <LeadMagnetStreamCard key={offer.id} offer={offer} onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)} />
+                     <LeadMagnetStreamCard
+                       key={offer.id}
+                       offer={offer}
+                       onClick={() => navigate(`/${tenantId}/offer-studio/offer/${offer.id}`)}
+                       onArchive={handleArchiveOffer}
+                     />
                  ))}
 
                  {/* Add Button Slot in the Grid */}

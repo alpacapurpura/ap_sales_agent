@@ -109,6 +109,54 @@ export const offerApi = {
         return res.json();
   },
   
+  listArchivedOffers: async (token: string): Promise<Offer[]> => {
+      if (USE_MOCK_DATA) {
+          return [];
+      }
+      const res = await fetchClient(`${API_URL}/api/v1/offer/products/archived`, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Failed to list archived offers");
+      const data: BackendOffer[] = await res.json();
+      return data.map(backendToFrontend);
+  },
+
+  archiveOffer: async (id: string, token: string): Promise<void> => {
+      if (USE_MOCK_DATA) return;
+      const res = await fetchClient(`${API_URL}/api/v1/offer/products/${id}/archive`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new Error(err.detail || "Error al archivar la oferta");
+      }
+  },
+
+  restoreOffer: async (id: string, token: string): Promise<void> => {
+      if (USE_MOCK_DATA) return;
+      const res = await fetchClient(`${API_URL}/api/v1/offer/products/${id}/restore`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new Error(err.detail || "Error al restaurar la oferta");
+      }
+  },
+
+  deleteOffer: async (id: string, token: string): Promise<void> => {
+      if (USE_MOCK_DATA) return;
+      const res = await fetchClient(`${API_URL}/api/v1/offer/products/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new Error(err.detail || "Error al eliminar la oferta");
+      }
+  },
+
   saveOffer: async (id: string, data: Partial<OfferFormValues>, token: string) => {
       if (USE_MOCK_DATA) {
           console.log(`🔸 Using Mock Data for saveOffer: ${id}`, data);

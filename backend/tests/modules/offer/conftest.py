@@ -71,6 +71,8 @@ def create_product_model(
         "vsl_link": None,
         "landing_page_config": {},
         "metadata_info": {},
+        "archived_at": None,
+        "deleted_at": None,
     }
     defaults.update(overrides)
     return ProductModel(**defaults)

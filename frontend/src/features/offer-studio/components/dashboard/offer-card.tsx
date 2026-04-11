@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Offer, OfferArchetype, OfferDeliveryModel, OfferStatus, OfferValueLevel } from "@/features/offer-studio/types";
 import { ARCHETYPE_METADATA } from "@/features/offer-studio/config/archetype-metadata";
 import { HighlightedText } from "@/components/ui/highlighted-text";
@@ -24,6 +24,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
@@ -74,6 +84,7 @@ export const OfferCard = memo(function OfferCard({ offer, searchQuery = "", comp
   const params = useParams();
   const tenantId = params?.tenantId as string;
   const { currency: tenantCurrency } = useTenantLocale();
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
 
   const borderColor = DELIVERY_COLORS[offer.delivery_model] || "border-gray-200";
   const badgeConfig = DELIVERY_BADGES[offer.delivery_model] || DELIVERY_BADGES[OfferDeliveryModel.DIY];
@@ -139,7 +150,17 @@ export const OfferCard = memo(function OfferCard({ offer, searchQuery = "", comp
                     </DropdownMenuItem>
                 )}
                 <DropdownMenuItem>Duplicar</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive" onClick={() => onArchive?.(offer.id)}>Archivar</DropdownMenuItem>
+                {onArchive && (
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setShowArchiveDialog(true);
+                    }}
+                  >
+                    Archivar
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -181,6 +202,28 @@ export const OfferCard = memo(function OfferCard({ offer, searchQuery = "", comp
           )}
         </div>
       </div>
+
+      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Archivar esta oferta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La oferta se ocultará de la lista principal y su landing page
+              quedará despublicada. Podrás restaurarla desde la vista de
+              archivados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => onArchive?.(offer.id)}
+            >
+              Archivar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 });

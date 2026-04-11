@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select
@@ -16,6 +17,7 @@ from src.modules.offer.infrastructure.repositories.enum_normalizer import (
     normalize_status,
     normalize_value_level,
 )
+from src.shared.domain.datetime_utils import utc_now
 
 
 class OfferRepository:
@@ -69,6 +71,8 @@ class OfferRepository:
             "currency": model.currency or "USD",
             "pricing_options": normalize_pricing_options(model.pricing or []),
             "deliverables": normalize_deliverables(model.deliverables or []),
+            "archived_at": model.archived_at,
+            "deleted_at": model.deleted_at,
         }
 
         # Polymorphic Details
@@ -94,11 +98,15 @@ class OfferRepository:
             if offer.specific_details
             else {}
         )
-        landing_config_data = (
-            offer.landing_page_config.model_dump(mode="json")
-            if offer.landing_page_config
-            else {}
-        )
+        # landing_page_config is typed as dict in the domain. Legacy callers
+        # may still hand a Pydantic model — handle both for safety.
+        raw_landing = offer.landing_page_config
+        if raw_landing is None:
+            landing_config_data: dict[str, Any] = {}
+        elif hasattr(raw_landing, "model_dump"):
+            landing_config_data = raw_landing.model_dump(mode="json")
+        else:
+            landing_config_data = dict(raw_landing)
 
         return ProductModel(
             id=offer.id,
@@ -143,23 +151,111 @@ class OfferRepository:
             metadata_info=offer.metadata_info,
         )
 
-    def get_by_id(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
-        stmt = select(ProductModel).where(
+    def get_by_id(
+        self,
+        offer_id: UUID,
+        tenant_id: UUID,
+        *,
+        include_archived: bool = False,
+        include_deleted: bool = False,
+    ) -> Offer | None:
+        """Fetch an offer by id within tenant scope.
+
+        By default hides archived and soft-deleted rows. Pass
+        ``include_archived=True`` to access the /archived view flow and
+        ``include_deleted=True`` to see soft-deleted rows (admin only).
+        """
+        conditions = [
             ProductModel.id == offer_id,
             ProductModel.tenant_id == tenant_id,
-        )
+        ]
+        if not include_archived:
+            conditions.append(ProductModel.archived_at.is_(None))
+        if not include_deleted:
+            conditions.append(ProductModel.deleted_at.is_(None))
+
+        stmt = select(ProductModel).where(*conditions)
         model = self.db.execute(stmt).scalar_one_or_none()
         if model:
             return self._to_domain(model)
         return None
 
-    def get_all_by_tenant(self, tenant_id: UUID) -> list[Offer]:
+    def list_active(self, tenant_id: UUID) -> list[Offer]:
+        """Return offers that are neither archived nor soft-deleted."""
         stmt = select(ProductModel).where(
             ProductModel.tenant_id == tenant_id,
-            ProductModel.status != "archived",
+            ProductModel.archived_at.is_(None),
+            ProductModel.deleted_at.is_(None),
         )
         models = self.db.execute(stmt).scalars().all()
         return [self._to_domain(m) for m in models]
+
+    def list_archived(self, tenant_id: UUID) -> list[Offer]:
+        """Return offers archived but not soft-deleted, newest first."""
+        stmt = (
+            select(ProductModel)
+            .where(
+                ProductModel.tenant_id == tenant_id,
+                ProductModel.archived_at.is_not(None),
+                ProductModel.deleted_at.is_(None),
+            )
+            .order_by(ProductModel.archived_at.desc())
+        )
+        models = self.db.execute(stmt).scalars().all()
+        return [self._to_domain(m) for m in models]
+
+    def get_all_by_tenant(self, tenant_id: UUID) -> list[Offer]:
+        """Backward-compat wrapper — returns only active offers.
+
+        Kept so legacy callers do not break. Prefer ``list_active`` in new code.
+        """
+        return self.list_active(tenant_id)
+
+    def archive(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
+        """Set ``archived_at`` if not already set. Idempotent."""
+        stmt = select(ProductModel).where(
+            ProductModel.id == offer_id,
+            ProductModel.tenant_id == tenant_id,
+            ProductModel.deleted_at.is_(None),
+        )
+        model = self.db.execute(stmt).scalar_one_or_none()
+        if model is None:
+            return None
+        if model.archived_at is None:
+            model.archived_at = utc_now()
+            self.db.commit()
+            self.db.refresh(model)
+        return self._to_domain(model)
+
+    def restore(self, offer_id: UUID, tenant_id: UUID) -> Offer | None:
+        """Clear ``archived_at``. No-op if already active."""
+        stmt = select(ProductModel).where(
+            ProductModel.id == offer_id,
+            ProductModel.tenant_id == tenant_id,
+            ProductModel.deleted_at.is_(None),
+        )
+        model = self.db.execute(stmt).scalar_one_or_none()
+        if model is None:
+            return None
+        if model.archived_at is not None:
+            model.archived_at = None
+            self.db.commit()
+            self.db.refresh(model)
+        return self._to_domain(model)
+
+    def soft_delete(self, offer_id: UUID, tenant_id: UUID) -> bool:
+        """Mark the offer as soft-deleted. Returns True on success."""
+        stmt = select(ProductModel).where(
+            ProductModel.id == offer_id,
+            ProductModel.tenant_id == tenant_id,
+        )
+        model = self.db.execute(stmt).scalar_one_or_none()
+        if model is None:
+            return False
+        if model.deleted_at is None:
+            model.deleted_at = utc_now()
+            self.db.commit()
+        return True
 
     def create(self, offer: Offer) -> Offer:
         model = self._to_model(offer)
@@ -185,6 +281,10 @@ class OfferRepository:
             "updated_at",
             "id",
             "tenant_id",
+            # Lifecycle columns are managed exclusively by archive/restore/
+            # soft_delete methods — generic update() must never touch them.
+            "archived_at",
+            "deleted_at",
         }
 
         for key, value in new_model_data.__dict__.items():

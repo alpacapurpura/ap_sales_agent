@@ -70,6 +70,18 @@ async def create_product(
     )
 
 
+# NOTE: /archived must be registered BEFORE /{product_id} so FastAPI does
+# not interpret "archived" as a UUID path parameter.
+@router.get("/archived", response_model=list[Offer])
+async def list_archived_products(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Return offers that have been archived (reversible) but not deleted."""
+    service = OfferService(db)
+    return service.list_archived_offers(user.tenant_id)
+
+
 @router.get("/{product_id}", response_model=Offer)
 async def get_product(
     product_id: str,
@@ -81,6 +93,50 @@ async def get_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+
+@router.post("/{product_id}/archive", response_model=Offer)
+async def archive_product(
+    product_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Archive an offer. Reversible via /restore.
+
+    Also unpublishes the embedded landing page config as a side-effect.
+    """
+    service = OfferService(db)
+    return service.archive_offer(UUID(product_id), user.tenant_id)
+
+
+@router.post("/{product_id}/restore", response_model=Offer)
+async def restore_product(
+    product_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Restore a previously archived offer (clears archived_at).
+
+    Landing pages are not auto-republished — user must republish manually.
+    """
+    service = OfferService(db)
+    return service.restore_offer(UUID(product_id), user.tenant_id)
+
+
+@router.delete("/{product_id}", status_code=204)
+async def delete_product(
+    product_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Soft-delete an offer. Requires the offer to be archived first (409 otherwise).
+
+    The offer is hidden from both the active and archived lists. Data is
+    preserved in the DB (deleted_at timestamp) to keep foreign-key
+    references intact (journey_events, sales, ads).
+    """
+    service = OfferService(db)
+    service.delete_offer(UUID(product_id), user.tenant_id)
 
 
 @router.patch("/{product_id}", response_model=Offer)
