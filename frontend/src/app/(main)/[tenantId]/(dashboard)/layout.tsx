@@ -28,7 +28,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
   const isCopilotOpen = useCopilotStore((s) => s.isOpen);
   const pathname = usePathname() ?? "";
-  const isFullWidth = pathname.includes("/sales/studio");
+  // Full-width routes: workspace-style screens that need every pixel
+  // between the sidebar and the copilot panel. Add new entries here when
+  // a new studio/editor needs the same treatment.
+  const isFullWidth =
+    pathname.includes("/sales/studio") ||
+    pathname.includes("/offer-studio/offer/");
 
   return (
     <div className="min-h-screen">
