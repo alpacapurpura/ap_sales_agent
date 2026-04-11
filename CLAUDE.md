@@ -99,6 +99,20 @@ Key: `fetchClient` (in `lib/`) auto-injects `X-Tenant-ID` from Clerk session —
 
 Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) → push images to GHCR (`ghcr.io/alpacapurpura/visionarias-{backend,frontend}:latest`).
 
+### ETL Extraction Contract
+
+**Single source of truth for what the analytics ETL extracts.** Before answering any question about ETL providers, where data comes from, when extractions run, or where data lands, consult these files:
+
+| File | What it contains |
+|---|---|
+| `backend/src/modules/analytics/domain/extraction_contract.py` | Python dataclasses with the canonical contract: provider name, code location, auth, API endpoints, channels emitted, metrics per channel, schedule, storage tables, known issues. Editable. |
+| `docs/etl/extraction-contract.md` | Auto-generated Markdown rendering of the same contract. **Do not edit by hand.** Regenerate with `cd backend && .venv/bin/python scripts/generate_extraction_contract_doc.py`. |
+| `backend/tests/architecture/test_extraction_contract.py` | Architecture test (48 cases) that fails if the contract drifts from reality: provider classes don't match, registered providers without contract entries, catalog metrics not in contract, generated doc out of date, etc. |
+
+**When you change a provider:** update the contract entry, regenerate the doc, run the test. The test runs as part of `make arch-test` and `/test-all`.
+
+**When you ask "what does the ETL extract for X?":** read `docs/etl/extraction-contract.md` first — it has the answer without needing to read provider source code.
+
 ## Native Dev Tools (WSL) — MANDATORY
 
 > **Why:** Docker volume mounts (`/app`) always point to the main repo clone. When running
