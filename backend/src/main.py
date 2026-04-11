@@ -88,9 +88,11 @@ from src.modules.iam.api.tracking import router as iam_tracking
 # 4. Landing
 from src.modules.landing.api import landing as landing_ai
 from src.modules.landing.api import public_landing as landing_public
+from src.modules.offer.api import assets as offer_assets
 from src.modules.offer.api import campaigns as offer_campaigns
 from src.modules.offer.api import counts as offer_counts
 from src.modules.offer.api import definitions as offer_definitions
+from src.modules.offer.api import knowledge as offer_knowledge
 from src.modules.offer.api import landing as offer_landing
 from src.modules.offer.api import launch_editions as offer_launch_editions
 from src.modules.offer.api import lifecycle as offer_lifecycle
@@ -443,6 +445,18 @@ app.include_router(
     offer_landing.router,
     prefix="/api/v1/offer/products",
     tags=["Offer - Landing"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    offer_assets.router,
+    prefix="/api/v1/offer/products",
+    tags=["Offer - Assets"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    offer_knowledge.router,
+    prefix="/api/v1/offer/products",
+    tags=["Offer - Knowledge"],
     dependencies=[Depends(get_tenant_context)],
 )
 

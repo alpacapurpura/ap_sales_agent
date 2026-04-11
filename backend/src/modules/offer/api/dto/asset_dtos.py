@@ -1,0 +1,72 @@
+"""DTOs for ``/offers/{id}/assets`` endpoints.
+
+Mirrors ``OfferAsset`` domain entity; PII-free (no emails/addresses). The
+``file_url``/``thumbnail_url`` fields are storage locations, not user PII.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from src.modules.offer.domain.enums import (
+    AssetSource,
+    AssetStatus,
+    AssetType,
+)
+
+
+class OfferAssetResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    offer_id: UUID
+    name: str
+    type: AssetType
+    source: AssetSource
+    status: AssetStatus
+    file_url: str | None = None
+    thumbnail_url: str | None = None
+    mime_type: str | None = None
+    size_bytes: int | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    editable_in_puck: bool = False
+    error_message: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class AssetListResponse(BaseModel):
+    items: list[OfferAssetResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+class AssetGenerateRequest(BaseModel):
+    type: AssetType
+    name: str | None = None
+    prompt_params: dict[str, Any] = Field(default_factory=dict)
+
+
+class AssetUpdateRequest(BaseModel):
+    name: str | None = None
+    metadata: dict[str, Any] | None = None
+    thumbnail_url: str | None = None
+
+
+class AssetDownloadUrlResponse(BaseModel):
+    url: str
+    expires_at: datetime
+
+
+__all__ = [
+    "AssetDownloadUrlResponse",
+    "AssetGenerateRequest",
+    "AssetListResponse",
+    "AssetUpdateRequest",
+    "OfferAssetResponse",
+]
