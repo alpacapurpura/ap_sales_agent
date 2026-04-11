@@ -241,6 +241,8 @@ export interface Offer {
   format_hint?: string;
   is_lead_magnet?: boolean;
   shows_as_lead_magnet?: boolean;
+  // Wizard-driven: will this offer run in editions/cohorts/batches?
+  has_editions?: boolean;
 
   value_level: OfferValueLevel;
   delivery_model: OfferDeliveryModel;

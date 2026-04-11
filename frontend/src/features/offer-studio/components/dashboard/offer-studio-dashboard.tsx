@@ -160,6 +160,7 @@ export function OfferStudioDashboard({
         archetype: wizardData.archetype,
         format_hint: wizardData.format_hint,
         is_lead_magnet: wizardData.is_lead_magnet,
+        has_editions: wizardData.has_editions,
         headline_promise: wizardData.headline_promise,
         status: wizardData.status,
         delivery_model: wizardData.delivery_model,

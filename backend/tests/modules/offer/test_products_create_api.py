@@ -92,3 +92,66 @@ class TestCreateProductCurrency:
 
         assert response.status_code == 200, response.text
         assert response.json()["currency"] == "USD"
+
+
+class TestCreateProductHasEditions:
+    """Wizard-driven has_editions must be honored on create."""
+
+    def _client(self, db, tenant):
+        return _build_client(db, tenant, TenantLocale(currency="USD", timezone="UTC"))
+
+    def test_programa_default_true(self, db: Session, tenant_a):
+        response = self._client(db, tenant_a).post(
+            "/api/v1/offer/products",
+            json={"name": "Default Programa", "archetype": "programa"},
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["has_editions"] is True
+
+    def test_programa_explicit_false(self, db: Session, tenant_a):
+        response = self._client(db, tenant_a).post(
+            "/api/v1/offer/products",
+            json={
+                "name": "Evergreen Programa",
+                "archetype": "programa",
+                "has_editions": False,
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["has_editions"] is False
+
+    def test_experiencia_explicit_true(self, db: Session, tenant_a):
+        response = self._client(db, tenant_a).post(
+            "/api/v1/offer/products",
+            json={
+                "name": "Retiro",
+                "archetype": "experiencia",
+                "has_editions": True,
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["has_editions"] is True
+
+    def test_producto_is_always_false(self, db: Session, tenant_a):
+        """Even if wizard sends True for a PRODUCTO, domain forces False."""
+        response = self._client(db, tenant_a).post(
+            "/api/v1/offer/products",
+            json={
+                "name": "Ebook",
+                "archetype": "producto",
+                "has_editions": True,
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["has_editions"] is False
+
+    def test_membresia_is_always_false(self, db: Session, tenant_a):
+        response = self._client(db, tenant_a).post(
+            "/api/v1/offer/products",
+            json={
+                "name": "Club VIP",
+                "archetype": "membresia",
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["has_editions"] is False

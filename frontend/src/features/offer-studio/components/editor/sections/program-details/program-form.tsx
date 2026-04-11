@@ -2,8 +2,9 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
+import { EditionsOptIn } from "../common/editions-opt-in";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { ProgramStructure, LiveInteractionType, CommunityPlatform } from "../../../../types";
+import { OfferArchetype, ProgramStructure, LiveInteractionType, CommunityPlatform } from "../../../../types";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -473,14 +474,21 @@ export function ProgramDetailsForm({ defaultValues: propValues, onSave }: Progra
   };
 
   return (
-    <SectionFormWrapper<ProgramDetailsFormValues>
-      schema={ProgramDetailsSchema}
-      defaultValues={defaultValues}
-      onSubmit={handleSave}
-    >
-      {(form) => (
-        <ProgramDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />
-      )}
-    </SectionFormWrapper>
+    <>
+      <SectionFormWrapper<ProgramDetailsFormValues>
+        schema={ProgramDetailsSchema}
+        defaultValues={defaultValues}
+        onSubmit={handleSave}
+      >
+        {(form) => (
+          <ProgramDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />
+        )}
+      </SectionFormWrapper>
+      <EditionsOptIn
+        archetype={OfferArchetype.PROGRAMA}
+        currentValue={propValues?.has_editions}
+        onSave={onSave}
+      />
+    </>
   );
 }

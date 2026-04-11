@@ -191,6 +191,9 @@ export const OfferSchema = z.object({
   archetype: z.nativeEnum(OfferArchetype),
   format_hint: z.string().optional().nullable(),
   is_lead_magnet: z.boolean().default(false),
+  // Wizard-driven: will this offer run in editions/cohorts/batches?
+  // Backend applies archetype-aware default when omitted.
+  has_editions: z.boolean().optional(),
   offer_value_level: z.nativeEnum(OfferValueLevel).optional().nullable(),
   delivery_model: z.nativeEnum(OfferDeliveryModel).optional().nullable(),
   

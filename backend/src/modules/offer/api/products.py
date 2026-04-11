@@ -66,6 +66,7 @@ async def create_product(
         archetype=product.archetype,
         format_hint=product.format_hint,
         is_lead_magnet=product.is_lead_magnet,
+        has_editions=product.has_editions,
         headline_promise=product.headline_promise or "",
         avatar_id=product.avatar_id,
         value_level=product.value_level,

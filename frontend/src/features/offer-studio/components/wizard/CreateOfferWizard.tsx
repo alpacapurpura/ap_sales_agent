@@ -24,8 +24,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, Loader2, SkipForward } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, SkipForward, Rocket } from "lucide-react";
 import { useTenantLocale } from "@/features/tenant/context/tenant-locale-context";
+import {
+  archetypeSupportsEditions,
+  getEditionsCopy,
+} from "@/features/offer-studio/utils/editions-copy";
 
 interface CreateOfferWizardProps {
   open: boolean;
@@ -39,6 +43,11 @@ export interface WizardResult {
   format_hint?: string;
   name: string;
   is_lead_magnet: boolean;
+  /**
+   * Wizard answer to "will this offer run in editions/cohorts/batches?".
+   * `undefined` = let the backend apply the archetype-aware default.
+   */
+  has_editions?: boolean;
   headline_promise?: string;
   status: OfferStatus;
   delivery_model?: OfferDeliveryModel;
@@ -68,6 +77,9 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
   const [selectedDeliveryModel, setSelectedDeliveryModel] = useState<OfferDeliveryModel | undefined>(undefined);
   const [selectedValueLevel, setSelectedValueLevel] = useState<OfferValueLevel | undefined>(undefined);
   const [selectedSpecificDetails, setSelectedSpecificDetails] = useState<Record<string, unknown> | undefined>(undefined);
+  // Wizard answer for "will this offer run in editions?". Defaults to true for
+  // archetypes that support editions; ignored otherwise.
+  const [hasEditions, setHasEditions] = useState<boolean>(true);
 
   const resetWizard = () => {
     setStep(1);
@@ -82,7 +94,16 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
     setSelectedDeliveryModel(undefined);
     setSelectedValueLevel(undefined);
     setSelectedSpecificDetails(undefined);
+    setHasEditions(true);
   };
+
+  const showsEditionsStep =
+    selectedArchetype !== null && archetypeSupportsEditions(selectedArchetype);
+  const editionsCopy = selectedArchetype
+    ? getEditionsCopy(selectedArchetype)
+    : null;
+  const totalSteps = showsEditionsStep ? 5 : 4;
+  const finalStep = totalSteps;
 
   const handleOpenChange = (open: boolean) => {
     if (!open) resetWizard();
@@ -139,6 +160,9 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
       format_hint: formatHint || undefined,
       name: offerName.trim(),
       is_lead_magnet: effectiveLeadMagnet,
+      // Only send the wizard answer when the user actually got to the question.
+      // Otherwise let the backend apply the archetype-aware default.
+      has_editions: showsEditionsStep ? hasEditions : undefined,
       headline_promise: headlinePromise || undefined,
       status: OfferStatus.DRAFT,
       delivery_model: selectedDeliveryModel,
@@ -159,18 +183,20 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
             {step === 2 && `${meta?.label}: Elige un formato`}
             {step === 3 && "Datos basicos"}
             {step === 4 && "Promesa de resultado"}
+            {step === 5 && editionsCopy?.title}
           </DialogTitle>
           <DialogDescription>
             {step === 1 && "Elige el arquetipo que mejor describe tu oferta."}
             {step === 2 && "Selecciona un formato predefinido o crea uno personalizado."}
             {step === 3 && "Dale un nombre y precio inicial."}
             {step === 4 && "Opcional: define que resultado logra tu cliente."}
+            {step === 5 && editionsCopy?.description}
           </DialogDescription>
         </DialogHeader>
 
         {/* Step indicators */}
         <div className="flex items-center gap-1 px-1">
-          {[1, 2, 3, 4].map((s) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
             <div
               key={s}
               className={cn(
@@ -379,6 +405,68 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
               </p>
             </div>
           )}
+
+          {/* STEP 5: Has editions? (only for PROGRAMA/SERVICIO/EXPERIENCIA) */}
+          {step === 5 && editionsCopy && (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Rocket className="h-4 w-4 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground leading-snug">
+                  {editionsCopy.description}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => setHasEditions(true)}
+                  className={cn(
+                    "flex items-center gap-3 p-4 rounded-xl border text-left transition-all hover:border-primary/50 cursor-pointer",
+                    hasEditions
+                      ? "border-primary ring-1 ring-primary/20 bg-primary/5"
+                      : "border-border bg-background"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
+                      hasEditions ? "border-primary" : "border-muted-foreground/40"
+                    )}
+                  >
+                    {hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
+                  </div>
+                  <p className="text-sm font-medium">{editionsCopy.yesLabel}</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setHasEditions(false)}
+                  className={cn(
+                    "flex items-center gap-3 p-4 rounded-xl border text-left transition-all hover:border-primary/50 cursor-pointer",
+                    !hasEditions
+                      ? "border-primary ring-1 ring-primary/20 bg-primary/5"
+                      : "border-border bg-background"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0",
+                      !hasEditions ? "border-primary" : "border-muted-foreground/40"
+                    )}
+                  >
+                    {!hasEditions && <div className="h-2 w-2 rounded-full bg-primary" />}
+                  </div>
+                  <p className="text-sm font-medium">{editionsCopy.noLabel}</p>
+                </button>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                {editionsCopy.helper}
+              </p>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex items-center justify-between sm:justify-between gap-2">
@@ -400,7 +488,43 @@ export function CreateOfferWizard({ open, onOpenChange, onCreateOffer, creating 
                 <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             )}
-            {step === 4 && (
+            {step === 4 && showsEditionsStep && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCreate}
+                  disabled={creating || !offerName.trim()}
+                >
+                  Completar despues
+                </Button>
+                <Button
+                  onClick={() => setStep(5)}
+                  disabled={!offerName.trim()}
+                >
+                  Siguiente
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </Button>
+              </>
+            )}
+            {step === 4 && !showsEditionsStep && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCreate}
+                  disabled={creating || !offerName.trim()}
+                >
+                  Completar despues
+                </Button>
+                <Button
+                  onClick={handleCreate}
+                  disabled={creating || !offerName.trim()}
+                >
+                  {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Crear Oferta
+                </Button>
+              </>
+            )}
+            {step === finalStep && finalStep === 5 && (
               <>
                 <Button
                   variant="outline"

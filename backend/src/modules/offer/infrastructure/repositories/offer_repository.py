@@ -35,6 +35,9 @@ class OfferRepository:
             "archetype": archetype,
             "format_hint": model.format_hint,
             "is_lead_magnet": model.is_lead_magnet or False,
+            "has_editions": bool(model.has_editions)
+            if model.has_editions is not None
+            else None,
             "value_level": normalize_value_level(model.value_level),
             "status": normalize_status(model.status),
             "headline_promise": model.headline_promise or "",
@@ -116,6 +119,7 @@ class OfferRepository:
             archetype=offer.archetype.value,
             format_hint=offer.format_hint,
             is_lead_magnet=offer.is_lead_magnet,
+            has_editions=bool(offer.has_editions),
             status=offer.status.value,
             internal_sku=offer.internal_sku,
             pricing=pricing_data,

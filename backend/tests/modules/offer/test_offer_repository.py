@@ -269,3 +269,74 @@ class TestToDomainNormalization:
             repo.get_by_id(model.id, tenant_a).pricing_options[0].plan_type
             == "one_time"
         )
+
+
+class TestHasEditionsRoundtrip:
+    """The wizard-driven has_editions flag must survive persist/load."""
+
+    def test_programa_with_editions_true_roundtrips(self, db: Session, tenant_a):
+        repo = OfferRepository(db)
+        model = create_product_model(
+            tenant_a,
+            archetype="programa",
+            has_editions=True,
+        )
+        db.add(model)
+        db.flush()
+        result = repo.get_by_id(model.id, tenant_a)
+        assert result.has_editions is True
+
+    def test_programa_with_editions_false_roundtrips(self, db: Session, tenant_a):
+        repo = OfferRepository(db)
+        model = create_product_model(
+            tenant_a,
+            archetype="programa",
+            has_editions=False,
+        )
+        db.add(model)
+        db.flush()
+        result = repo.get_by_id(model.id, tenant_a)
+        assert result.has_editions is False
+
+    def test_producto_is_forced_false_even_if_column_true(self, db: Session, tenant_a):
+        """If legacy data has True for a PRODUCTO, domain validator normalizes to False."""
+        repo = OfferRepository(db)
+        model = create_product_model(
+            tenant_a,
+            archetype="producto",
+            has_editions=True,
+        )
+        db.add(model)
+        db.flush()
+        result = repo.get_by_id(model.id, tenant_a)
+        assert result.has_editions is False
+
+    def test_save_persists_has_editions_false(self, db: Session, tenant_a):
+        """Offer.save path — when the wizard creates with has_editions=False."""
+        from src.modules.offer.domain.enums import OfferArchetype
+        from src.modules.offer.domain.offer import Offer
+
+        repo = OfferRepository(db)
+        offer = Offer(
+            id=uuid.uuid4(),
+            tenant_id=tenant_a,
+            internal_sku="SKU-NO-ED",
+            public_name="Evergreen Program",
+            archetype=OfferArchetype.PROGRAMA,
+            headline_promise="Learn at your pace",
+            primary_outcome="Master the craft",
+            time_to_value="Variable",
+            target_avatar_match=[],
+            requires_application=False,
+            min_financial_capacity="LOW_INCOME",
+            pricing_options=[],
+            guarantee_type="none",
+            guarantee_terms="",
+            status="draft",
+            currency="USD",
+            has_editions=False,
+        )
+        saved = repo.create(offer)
+        db.flush()
+        reloaded = repo.get_by_id(saved.id, tenant_a)
+        assert reloaded.has_editions is False

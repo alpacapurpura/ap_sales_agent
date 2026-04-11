@@ -28,6 +28,7 @@ class ProductModel(Base):
     archetype = Column(String, nullable=False)
     format_hint = Column(String, nullable=True)
     is_lead_magnet = Column(Boolean, default=False, server_default="false")
+    has_editions = Column(Boolean, nullable=False, default=True, server_default="true")
 
     # Polymorphic Content Fields
     pricing = Column(JSONB, default=list)  # List of PricingStructure

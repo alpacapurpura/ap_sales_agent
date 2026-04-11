@@ -81,6 +81,10 @@ class Offer(BaseEntity):
     archetype: OfferArchetype
     format_hint: str | None = None
     is_lead_magnet: bool = False
+    # Wizard-driven: does this offer run in editions/cohorts/batches?
+    # Default resolves in validate_consistency based on archetype
+    # (True for PROGRAMA/SERVICIO/EXPERIENCIA, False for PRODUCTO/MEMBRESIA).
+    has_editions: bool | None = None
 
     value_level: OfferValueLevel | None = Field(
         None, serialization_alias="offer_value_level"
@@ -163,6 +167,14 @@ class Offer(BaseEntity):
     def validate_consistency(self):
         if self.delivery_model is None:
             self.delivery_model = ARCHETYPE_DEFAULT_DELIVERY.get(self.archetype)
+
+        # Archetype-aware default + enforcement for has_editions.
+        # PRODUCTO and MEMBRESIA never have editions (evergreen / one-time digital).
+        # PROGRAMA/SERVICIO/EXPERIENCIA default to True if not explicitly set.
+        if self.archetype in (OfferArchetype.PRODUCTO, OfferArchetype.MEMBRESIA):
+            self.has_editions = False
+        elif self.has_editions is None:
+            self.has_editions = True
 
         expected_detail_class = ARCHETYPE_TO_DETAILS_MAPPING.get(self.archetype)
         if (

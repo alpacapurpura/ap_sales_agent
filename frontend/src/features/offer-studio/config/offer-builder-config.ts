@@ -206,11 +206,26 @@ export const ARCHETYPE_BUILDER_CONFIG: Record<OfferArchetype, string[]> = {
 };
 
 /**
- * Get sections for an offer based on archetype.
+ * Get sections for an offer based on archetype and wizard-driven flags.
+ *
+ * Editions section visibility:
+ * - PRODUCTO / MEMBRESIA: never shown (archetype doesn't support editions).
+ * - PROGRAMA / SERVICIO / EXPERIENCIA: shown unless `has_editions === false`.
+ *   When the field is undefined (legacy offers), we default to showing the
+ *   section to preserve existing UX.
  */
-export function getSectionsForOffer(offer: { archetype?: OfferArchetype | string }): string[] {
-  if (offer.archetype && ARCHETYPE_BUILDER_CONFIG[offer.archetype as OfferArchetype]) {
-    return ARCHETYPE_BUILDER_CONFIG[offer.archetype as OfferArchetype];
+export function getSectionsForOffer(offer: {
+  archetype?: OfferArchetype | string;
+  has_editions?: boolean | null;
+}): string[] {
+  const archetype =
+    offer.archetype && ARCHETYPE_BUILDER_CONFIG[offer.archetype as OfferArchetype]
+      ? (offer.archetype as OfferArchetype)
+      : OfferArchetype.PRODUCTO;
+  const sections = ARCHETYPE_BUILDER_CONFIG[archetype];
+
+  if (offer.has_editions === false) {
+    return sections.filter((id) => id !== "editions");
   }
-  return ARCHETYPE_BUILDER_CONFIG[OfferArchetype.PRODUCTO];
+  return sections;
 }

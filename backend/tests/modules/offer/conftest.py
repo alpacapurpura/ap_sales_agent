@@ -40,6 +40,7 @@ def create_product_model(
         "value_level": value_level,
         "format_hint": None,
         "is_lead_magnet": False,
+        "has_editions": True,
         "pricing": [],
         "currency": "USD",
         "specific_details": {},

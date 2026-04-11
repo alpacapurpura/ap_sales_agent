@@ -2,8 +2,9 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
+import { EditionsOptIn } from "../common/editions-opt-in";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
-import { EventLocationType } from "../../../../types";
+import { EventLocationType, OfferArchetype } from "../../../../types";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -189,14 +190,21 @@ export function EventDetailsForm({ defaultValues: propValues, onSave }: EventDet
   };
 
   return (
-    <SectionFormWrapper<EventDetailsFormValues>
-      schema={EventDetailsSchema}
-      defaultValues={defaultValues}
-      onSubmit={handleSave}
-    >
-      {(form) => (
-        <EventDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />
-      )}
-    </SectionFormWrapper>
+    <>
+      <SectionFormWrapper<EventDetailsFormValues>
+        schema={EventDetailsSchema}
+        defaultValues={defaultValues}
+        onSubmit={handleSave}
+      >
+        {(form) => (
+          <EventDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />
+        )}
+      </SectionFormWrapper>
+      <EditionsOptIn
+        archetype={OfferArchetype.EXPERIENCIA}
+        currentValue={propValues?.has_editions}
+        onSave={onSave}
+      />
+    </>
   );
 }

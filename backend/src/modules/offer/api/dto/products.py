@@ -74,6 +74,9 @@ class ProductCreate(BaseModel):
     archetype: OfferArchetype
     format_hint: str | None = None
     is_lead_magnet: bool = False
+    # Wizard answer: will this offer run in editions/cohorts/batches?
+    # None = let the domain apply the archetype-aware default.
+    has_editions: bool | None = None
     status: OfferStatus = OfferStatus.DRAFT
 
     # Optional fields the wizard can set
@@ -107,6 +110,7 @@ class ProductUpdate(BaseModel):
     archetype: OfferArchetype | None = None
     format_hint: str | None = None
     is_lead_magnet: bool | None = None
+    has_editions: bool | None = None
     offer_value_level: str | None = None
     delivery_model: str | None = None
     status: str | None = None

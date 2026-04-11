@@ -2,10 +2,11 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { SectionFormWrapper } from "../common/section-form-wrapper";
+import { EditionsOptIn } from "../common/editions-opt-in";
 import { OfferSchema, OfferFormValues } from "../../../../types/schema";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ServiceCategory } from "../../../../types";
+import { OfferArchetype, ServiceCategory } from "../../../../types";
 import { RichSelect } from "@/components/ui/rich-select";
 import { 
   SERVICE_CATEGORY_METADATA, 
@@ -178,14 +179,21 @@ export function ServiceDetailsForm({ defaultValues: propValues, onSave }: Servic
   };
 
   return (
-    <SectionFormWrapper<ServiceDetailsFormValues>
-      schema={ServiceDetailsSchema}
-      defaultValues={defaultValues}
-      onSubmit={handleSave}
-    >
-      {(form) => (
-        <ServiceDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />
-      )}
-    </SectionFormWrapper>
+    <>
+      <SectionFormWrapper<ServiceDetailsFormValues>
+        schema={ServiceDetailsSchema}
+        defaultValues={defaultValues}
+        onSubmit={handleSave}
+      >
+        {(form) => (
+          <ServiceDetailsContent form={form as unknown as UseFormReturn<OfferFormValues>} />
+        )}
+      </SectionFormWrapper>
+      <EditionsOptIn
+        archetype={OfferArchetype.SERVICIO}
+        currentValue={propValues?.has_editions}
+        onSave={onSave}
+      />
+    </>
   );
 }
