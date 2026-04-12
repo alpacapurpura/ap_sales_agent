@@ -66,16 +66,17 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel('meta-ads');
   useHashScroll();
 
-  // Pending campaign count for the tab badge
-  const unassignedCount = useMemo(() => {
-    if (!campaignData?.campaigns || !associations) return 0;
-    const assocSet = new Set(
-      (associations ?? [])
-        .filter(a => a.targetType === 'campaign')
-        .map(a => a.targetExternalId),
-    );
-    return campaignData.campaigns.filter(c => !assocSet.has(c.externalId)).length;
-  }, [campaignData?.campaigns, associations]);
+  // Pending campaign count for the tab badge (cheap — no useMemo needed)
+  let unassignedCount = 0;
+  if (campaignData?.campaigns && associations) {
+    const assocIds = new Set<string>();
+    for (const a of associations) {
+      if (a.targetType === 'campaign') assocIds.add(a.targetExternalId);
+    }
+    for (const c of campaignData.campaigns) {
+      if (!assocIds.has(c.externalId)) unassignedCount++;
+    }
+  }
 
   // Unified improvement notices (active campaigns only, deduped, ignorable
   // for 24h via localStorage). Computed once at the dashboard level so both
