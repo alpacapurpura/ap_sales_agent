@@ -206,10 +206,10 @@ days ?= 7
 provider ?= meta
 
 verify-etl:
-	cd backend && .venv/bin/python scripts/verify/run_etl.py --provider $(provider) --days $(days) --env $(env)
+	docker exec -t visionarias_brain_dev bash -c "cd /app && python scripts/verify/run_etl.py --provider $(provider) --days $(days) --env $(env)"
 
 verify-probe-meta:
-	cd backend && .venv/bin/python scripts/verify/probes/meta_probe.py --days $(days) --env $(env) --output scripts/verify/snapshots/meta-latest.json
+	docker exec -t visionarias_brain_dev bash -c "cd /app && python scripts/verify/probes/meta_probe.py --days $(days) --env $(env) --output scripts/verify/snapshots/meta-latest.json"
 
 verify-pipeline:
 	cd backend && .venv/bin/pytest tests/verification/ -m verify -x -q --tb=short

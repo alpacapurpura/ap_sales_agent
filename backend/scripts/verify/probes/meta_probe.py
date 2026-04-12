@@ -112,37 +112,42 @@ def get_credentials_from_db(
 ) -> dict:
     """Read channel_connections credentials for Meta channels.
 
-    Returns a merged dict of credentials + config for all active Meta
-    connections belonging to *tenant_id*.  SQLAlchemy handles Fernet
-    decryption automatically via the EncryptedJSON column type.
+    Uses the ORM model so EncryptedJSON automatically decrypts the
+    credentials column via Fernet.  Raw SQL would return the encrypted
+    blob, which is why we import the model here.
     """
-    from sqlalchemy import create_engine, text
+    from sqlalchemy import create_engine, select
+    from sqlalchemy.orm import Session
+
+    from src.modules.connections.infrastructure.models.channel_connection_model import (
+        ChannelConnectionModel,
+    )
+    from src.shared.infrastructure import model_registry  # noqa: F401
 
     db_url = settings.DATABASE_URL
     engine = create_engine(db_url)
 
-    with engine.connect() as conn:
-        # We use raw SQL to avoid importing the model (keeps probe independent)
-        rows = conn.execute(
-            text(
-                "SELECT channel_type, credentials, config "
-                "FROM channel_connections "
-                "WHERE tenant_id = :tid "
-                "  AND channel_type IN ('meta', 'instagram', 'facebook') "
-                "  AND is_active = true "
-                "  AND deleted_at IS NULL"
-            ),
-            {"tid": str(tenant_id)},
-        ).fetchall()
+    with Session(engine) as session:
+        stmt = (
+            select(ChannelConnectionModel)
+            .where(
+                ChannelConnectionModel.tenant_id == tenant_id,
+                ChannelConnectionModel.channel_type == "meta",
+                ChannelConnectionModel.is_active.is_(True),
+                ChannelConnectionModel.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
+        conn = session.execute(stmt).scalar_one_or_none()
+        if conn is None:
+            return {}
+        merged = {}
+        if conn.credentials:
+            merged.update(conn.credentials)
+        if conn.config:
+            merged.update(conn.config)
 
     engine.dispose()
-
-    merged: dict = {}
-    for row in rows:
-        creds = row[1] if isinstance(row[1], dict) else {}
-        config = row[2] if isinstance(row[2], dict) else {}
-        merged.update(creds)
-        merged.update(config)
     return merged
 
 
