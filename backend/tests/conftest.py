@@ -106,6 +106,9 @@ def db_engine():
         from src.modules.connections.infrastructure.models.channel_connection_model import (
             ChannelConnectionModel as _CCM,  # noqa: F401
         )
+        from src.modules.copilot.infrastructure.models.interview_session_model import (
+            InterviewSessionModel as _ISM,  # noqa: F401
+        )
         from src.modules.crm.infrastructure.models.lead_model import (
             LeadModel as _LM,  # noqa: F401
         )
