@@ -64,6 +64,7 @@ from src.modules.connections.api import youtube_analytics as conn_youtube_analyt
 from src.modules.copilot.api import actions as copilot_actions
 from src.modules.copilot.api import chat as copilot_chat
 from src.modules.copilot.api import events as copilot_events
+from src.modules.copilot.api import interview as copilot_interview
 from src.modules.copilot.api import knowledge as copilot_knowledge
 from src.modules.copilot.api import nudge as copilot_nudge
 from src.modules.crm.api import cdp as crm_cdp
@@ -515,6 +516,12 @@ app.include_router(
     copilot_events.router,
     prefix="/api/v1/copilot/events",
     tags=["Copilot - Events"],
+    dependencies=[Depends(get_tenant_context)],
+)
+app.include_router(
+    copilot_interview.router,
+    prefix="/api/v1/copilot/interview",
+    tags=["Copilot - Interview"],
     dependencies=[Depends(get_tenant_context)],
 )
 
