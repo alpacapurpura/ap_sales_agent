@@ -597,7 +597,7 @@ export interface ChannelDashboardData {
   extraData?: Record<string, unknown> | null;
 }
 
-export type MetaAdsDashboardTab = 'resumen' | 'campanas' | 'creativos' | 'audiencia' | 'costos';
+export type MetaAdsDashboardTab = 'resumen' | 'campanas' | 'pendientes' | 'creativos' | 'audiencia' | 'costos';
 
 /** Generic alias -- usable by any channel dashboard */
 export type ChannelDashboardPeriod = MetaAdsPeriod;
