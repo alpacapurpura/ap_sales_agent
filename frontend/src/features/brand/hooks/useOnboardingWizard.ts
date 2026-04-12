@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { useRouter, useParams } from "next/navigation";
 
 export type OnboardingSource = "website" | "documents" | "interview";
 
@@ -11,6 +12,10 @@ export type WizardStep =
   | "interview-placeholder";
 
 export function useOnboardingWizard() {
+  const router = useRouter();
+  const params = useParams();
+  const tenantId = params.tenantId as string;
+
   const [currentStep, setCurrentStep] = useState<WizardStep>("source-picker");
   const [selectedSources, setSelectedSources] = useState<OnboardingSource[]>([]);
   const [url, setUrl] = useState("");
@@ -57,9 +62,14 @@ export function useOnboardingWizard() {
   const next = useCallback(() => {
     const idx = stepSequence.indexOf(currentStep);
     if (idx < stepSequence.length - 1) {
-      setCurrentStep(stepSequence[idx + 1]);
+      const nextStep = stepSequence[idx + 1];
+      if (nextStep === "interview-placeholder") {
+        router.push(`/${tenantId}/brand-studio/interview`);
+        return;
+      }
+      setCurrentStep(nextStep);
     }
-  }, [currentStep, stepSequence]);
+  }, [currentStep, stepSequence, router, tenantId]);
 
   const back = useCallback(() => {
     const idx = stepSequence.indexOf(currentStep);

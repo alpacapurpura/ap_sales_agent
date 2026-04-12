@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/shared/layout/app-sidebar";
 import { SidebarProvider, useSidebar } from "@/components/shared/layout/sidebar-context";
 import { CopilotPanel } from "@/features/copilot/components/CopilotPanel";
 import { useCopilotStore } from "@/features/copilot/store/copilot-store";
+import { InterviewBanner } from "@/components/shared/interview-banner";
 import { cn } from "@/lib/utils";
 
 // Routes that should render in workspace-style full-width mode. Add new
@@ -61,6 +62,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           isCopilotOpen ? "pr-[380px]" : "pr-[60px]"
         )}
       >
+        <InterviewBanner />
         <MemoizedChildren isFullWidth={isFullWidth}>
           {children}
         </MemoizedChildren>

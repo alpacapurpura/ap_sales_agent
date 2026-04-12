@@ -1,6 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useOnboardingWizard } from "../useOnboardingWizard";
+
+// Mock Next.js navigation
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+  useParams: () => ({ tenantId: "test-tenant" }),
+}));
 
 describe("useOnboardingWizard", () => {
   it("starts at source-picker step", () => {
@@ -81,10 +88,12 @@ describe("useOnboardingWizard", () => {
     expect(result.current.url).toBe("https://example.com");
   });
 
-  it("routes directly to interview-placeholder when only interview selected", () => {
+  it("navigates to interview page when only interview selected", () => {
     const { result } = renderHook(() => useOnboardingWizard());
     act(() => result.current.toggleSource("interview"));
     act(() => result.current.next());
-    expect(result.current.currentStep).toBe("interview-placeholder");
+    expect(mockPush).toHaveBeenCalledWith("/test-tenant/brand-studio/interview");
+    // currentStep stays at source-picker (router.push was called instead)
+    expect(result.current.currentStep).toBe("source-picker");
   });
 });

@@ -60,18 +60,16 @@ export function StepSourcePicker({
       <div className="grid gap-4">
         {SOURCE_OPTIONS.map(({ id, icon: Icon, title, description }) => {
           const isSelected = selectedSources.includes(id);
-          const isDisabled = id === "interview";
           return (
             <button
               key={id}
               type="button"
-              onClick={() => !isDisabled && onToggle(id)}
+              onClick={() => onToggle(id)}
               className={cn(
                 "group relative flex items-start gap-4 rounded-xl border-2 p-5 text-left transition-all",
-                isSelected && !isDisabled
+                isSelected
                   ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-muted/40",
-                isDisabled && "cursor-not-allowed opacity-50"
+                  : "border-border hover:border-primary/50 hover:bg-muted/40"
               )}
             >
               <div
@@ -83,17 +81,10 @@ export function StepSourcePicker({
                 <Icon className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground">
-                  {title}
-                  {isDisabled && (
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      Próximamente
-                    </span>
-                  )}
-                </h3>
+                <h3 className="font-semibold text-foreground">{title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{description}</p>
               </div>
-              {isSelected && !isDisabled && (
+              {isSelected && (
                 <div className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
                   ✓
                 </div>

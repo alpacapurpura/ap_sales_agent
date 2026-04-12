@@ -3,6 +3,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { OnboardingWizard } from "../onboarding-wizard";
 
+// Mock Next.js navigation (required by useOnboardingWizard)
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+  useParams: () => ({ tenantId: "test-tenant" }),
+}));
+
 // Mock useBrandSettings
 vi.mock("../../../hooks/useBrandSettings", () => ({
   useBrandSettings: () => ({
