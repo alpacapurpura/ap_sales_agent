@@ -293,6 +293,7 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
               period={period}
               notices={noticesSummary.byTab.campanas}
               noticesSeverity={noticesSummary.severityPerTab.campanas}
+              onNavigateToPendientes={() => handleTabChange('pendientes')}
             />
           </TabsContent>
           <TabsContent value="pendientes" className="m-0 flex-1">

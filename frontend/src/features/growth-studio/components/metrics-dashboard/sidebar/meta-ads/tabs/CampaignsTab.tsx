@@ -54,6 +54,8 @@ interface CampaignsTabProps {
   /** Notices bucketed for this tab by the dashboard-level useMetaAdsNotices hook. */
   notices?: ImprovementNotice[];
   noticesSeverity?: SeverityBreakdown;
+  /** Navigate to Pendientes tab */
+  onNavigateToPendientes?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -821,6 +823,7 @@ export function CampaignsTab({
   period = '30d',
   notices = [],
   noticesSeverity = EMPTY_SEVERITY,
+  onNavigateToPendientes,
 }: CampaignsTabProps) {
   const { timezone, currency: tenantCurrency } = useTenantLocale();
   const searchParams = useSearchParams();
@@ -901,27 +904,31 @@ export function CampaignsTab({
                     {formatTenantDateTime(data.lastSynced, timezone)}
                   </>
                 )}
-                {unassignedActiveCount > 0 && (
-                  <>
-                    {' '}
-                    &middot;{' '}
-                    <span className="text-amber-500">
-                      {unassignedActiveCount} sin offer asignada
-                    </span>
-                  </>
-                )}
               </p>
             </div>
-            <Button
-              type="button"
-              variant={unassignedActiveCount > 0 ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setIsDrawerOpen(true)}
-              className="gap-1.5"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Asociar offers
-            </Button>
+            <div className="flex items-center gap-2">
+              {unassignedActiveCount > 0 && onNavigateToPendientes && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onNavigateToPendientes}
+                  className="gap-1.5 text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+                >
+                  {unassignedActiveCount} pendientes →
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant={unassignedActiveCount > 0 ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setIsDrawerOpen(true)}
+                className="gap-1.5"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Asociar offers
+              </Button>
+            </div>
           </div>
 
           {/* Section 1: Summary KPIs */}
