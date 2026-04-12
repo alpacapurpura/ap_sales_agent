@@ -1,4 +1,36 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load env vars from the root .env BEFORE defineConfig runs.
+// Playwright's Node process does not read .env automatically (Next.js does,
+// but Playwright is a separate Node process). Without this, clerk.setup.ts
+// sees undefined E2E_CLERK_USER_EMAIL / NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+// and authentication fails with a misleading "invalid credentials" error.
+//
+// We load from the repo-root .env (frontend/.env is a symlink to it) and
+// allow .env.e2e to override specific values for E2E-only tweaks.
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '.env.e2e'), override: true });
+
+// Fail fast with a clear message if the essential Clerk E2E vars are missing.
+// This catches misconfiguration before the first test runs, instead of
+// producing cryptic "clerk.signIn() timed out" errors 60 seconds in.
+const requiredEnvVars = [
+  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+  'CLERK_SECRET_KEY',
+  'E2E_CLERK_USER_EMAIL',
+  'E2E_CLERK_USER_PASSWORD',
+  'E2E_TENANT_ID',
+] as const;
+const missing = requiredEnvVars.filter((k) => !process.env[k]);
+if (missing.length > 0) {
+  throw new Error(
+    `[playwright.config] Missing required env vars for Clerk E2E setup: ` +
+      `${missing.join(', ')}. ` +
+      `Check /home/chris/AISALESHT/.env and frontend/.env.e2e.example.`,
+  );
+}
 
 export default defineConfig({
   testDir: './e2e',
