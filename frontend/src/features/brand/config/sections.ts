@@ -137,7 +137,7 @@ export const BRAND_SECTIONS: Record<BrandSectionId, BrandSectionConfig> = {
 
   publico: {
     id: "publico",
-    label: "Publico",
+    label: "Público",
     subtitle: "Tus clientes ideales",
     icon: UserSearch,
     slug: "publico",
