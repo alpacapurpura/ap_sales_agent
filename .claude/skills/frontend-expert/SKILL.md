@@ -78,8 +78,8 @@ Estructura plana agrupada por dominio. Detalles completos en [fsd-cheatsheet.md]
 - Agregar smoke test en `frontend/e2e/specs/smoke/` si es ruta nueva o crítica (tag `@smoke`)
 - Agregar regression test en `frontend/e2e/specs/regression/{domain}/` para flujos completos
 - Usar POM de `frontend/e2e/pages/` o crear uno nuevo
-- Ejecutar `make e2e-smoke` para verificar
-- `/test-frontend` y `/test-all` ejecutan E2E smoke automáticamente — no hace falta correrlo aparte
+- Ejecutar nativamente: `cd frontend && npx playwright test --project=smoke` (NUNCA `make e2e-smoke`)
+- Requiere dev containers corriendo (`docker compose up -d`)
 - Para detalles completos: `.claude/rules/e2e-testing.md`
 
 ## Constraints (CRITICAL — read last)

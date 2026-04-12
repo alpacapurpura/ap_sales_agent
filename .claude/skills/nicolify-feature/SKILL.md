@@ -188,8 +188,8 @@ cd frontend && npx vitest run --coverage
 # Frontend security audit
 cd frontend && npm audit --audit-level=high
 
-# E2E Smoke (obligatorio si el feature tiene UI nueva)
-make e2e-smoke
+# E2E Smoke (obligatorio si el feature tiene UI nueva — nativo, NUNCA Docker)
+cd frontend && npx playwright test --project=smoke
 ```
 
 ### Final Output

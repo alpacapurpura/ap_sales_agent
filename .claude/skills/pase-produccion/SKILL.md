@@ -70,43 +70,36 @@ git log --oneline -20  # verificar que todos los commits están en main
 
 ---
 
-## Fase 2.5: E2E Regression en GitHub Actions
+## Fase 2.5: E2E Smoke (Nativo en WSL)
 
-**Objetivo:** Correr la suite de Playwright en GitHub antes de pushear a main.
-La laptop del usuario no soporta el contenedor Docker de Playwright — SIEMPRE
-usar GitHub Actions para E2E.
+**Objetivo:** Correr la suite smoke de Playwright localmente antes de pushear a main.
+Se ejecuta NATIVAMENTE en WSL (no Docker — Docker crashea la laptop).
 
-### 2.5.1 Pushear development para que GitHub tenga el código actual
+### 2.5.1 Requisitos
+- Dev containers corriendo: `docker compose up -d`
+- `.env` en la raíz del repo con credenciales Clerk E2E
+
+### 2.5.2 Ejecutar E2E Smoke
 ```bash
-git checkout development
-git push origin development
+cd frontend && npx playwright test --project=smoke
 ```
 
-### 2.5.2 Disparar el workflow de E2E
-```bash
-gh workflow run "e2e-tests.yml" --ref development -f suite=regression
-```
+Esto corre 32 smoke tests en ~2 minutos. `playwright.config.ts` carga `.env` automáticamente.
 
-### 2.5.3 Monitorear el resultado
-```bash
-# Esperar ~5s para que el run se registre, luego:
-sleep 5
-RUN_ID=$(gh run list --workflow=e2e-tests.yml --limit 1 --json databaseId --jq '.[0].databaseId')
-gh run watch $RUN_ID
-```
+### 2.5.3 Resultados posibles:
 
-### 2.5.4 Resultados posibles:
-
-**SUCCESS:** Continuar con Fase 3 (verificación local lint+tests).
+**SUCCESS (32 passed):** Continuar con Fase 3 (verificación local lint+tests).
 
 **FAILURE:**
-1. Obtener logs: `gh run view $RUN_ID --log-failed`
-2. Corregir en `development`, commitear, pushear
-3. Re-disparar: `gh workflow run "e2e-tests.yml" --ref development -f suite=regression`
-4. Máximo 3 intentos. Si falla 3 veces → reportar al usuario y pedir dirección.
+1. Leer los `error-context.md` en `frontend/test-results/*/`
+2. Si es "Password is incorrect": sincronizar password en Clerk Dashboard con `E2E_CLERK_USER_PASSWORD` del `.env`
+3. Si es "strict mode violation": agregar `.first()` al locator del POM
+4. Si es "element not found": verificar que el mock de la fixture devuelve los datos esperados
+5. Si `test-results/` tiene permisos root: `docker run --rm -v $PWD/frontend:/f alpine sh -c 'rm -rf /f/test-results/'`
+6. Máximo 3 intentos de fix. Si falla 3 veces → reportar al usuario.
 
-**NOTA:** Si el usuario pide "pase rápido" o indica urgencia, se puede usar `suite=smoke`
-en lugar de `regression` para acelerar.
+**NOTA:** Si el usuario pide "pase rápido" o indica urgencia, se puede saltar esta fase.
+E2E NO es parte del pase a producción real (push a main) — es validación extra.
 
 ---
 
@@ -118,7 +111,7 @@ Invocar el skill `/test-all` completo. Esto ejecuta:
 3. Frontend types (tsc)
 4. Frontend lint (ESLint)
 5. Frontend tests + coverage (vitest)
-6. ~~E2E Smoke (Playwright)~~ — handled by Fase 2.5 on GitHub Actions
+6. E2E Smoke (already handled natively in Fase 2.5)
 7. Migration verification (fresh DB)
 
 ### Protocolo de corrección de errores:

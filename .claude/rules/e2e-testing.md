@@ -2,29 +2,59 @@
 
 ## When to write E2E tests
 - Feature nueva con UI (page, form, widget)
-- Bug fix que afecta interaccion de usuario
-- Cambios en navegacion o flujo de auth
+- Bug fix que afecta interacción de usuario
+- Cambios en navegación o flujo de auth
 
 ## When NOT to write E2E tests
 - Cambios solo backend (usar pytest)
 - Solo styling (usar visual regression)
 - Funciones utilitarias (usar Vitest)
 
-## Execution — Docker always
-- `make e2e` — suite completa
-- `make e2e-smoke` — smoke tests rapidos
-- `make e2e args="--grep pattern"` — tests especificos
-- NUNCA ejecutar `npx playwright test` en el host
+## Execution — Native Playwright in WSL
+
+**NUNCA usar Docker para E2E localmente** (`make e2e`, `make e2e-smoke` crashean la laptop).
+**SIEMPRE ejecutar `npx playwright test` nativamente desde `frontend/`.**
+
+```bash
+# Smoke tests (rápido, ~2 min)
+cd frontend && npx playwright test --project=smoke
+
+# Regression suite (más lento)
+cd frontend && npx playwright test --project=regression
+
+# Test específico
+cd frontend && npx playwright test --project=smoke --grep "test-name"
+
+# Solo setup (verificar que Clerk autentica)
+cd frontend && npx playwright test --project=setup
+```
+
+**Requisitos para que funcione:**
+- Dev containers corriendo: `docker compose up -d`
+- `.env` en la raíz del repo con `E2E_CLERK_USER_EMAIL`, `E2E_CLERK_USER_PASSWORD`, `E2E_TENANT_ID`
+- `playwright.config.ts` carga `.env` automáticamente via `dotenv` — no hace falta exportar variables manualmente
+- Si `test-results/` tiene permisos root (de un Docker run viejo): `docker run --rm -v $PWD/frontend:/f alpine sh -c 'rm -rf /f/test-results/'`
+
+## Clerk Auth Setup
+
+- Usa `@clerk/testing/playwright` (paquete oficial)
+- Setup: `clerkSetup()` + `setupClerkTestingToken({ page })` — **AMBOS son requeridos**
+- `setupClerkTestingToken` bypasea bot detection de Cloudflare en Clerk FAPI
+- Si sign-in falla con "Password is incorrect": sincronizar password en Clerk Dashboard con el valor de `E2E_CLERK_USER_PASSWORD` en `.env`
+- Session persistida en `playwright/.clerk/user.json` — se regenera automáticamente al correr `--project=setup`
 
 ## Structure
-- Tests: `frontend/e2e/specs/`
+- Tests: `frontend/e2e/specs/` (smoke/, regression/, public/, visual/, perf/)
 - POMs: `frontend/e2e/pages/`
 - Fixtures: `frontend/e2e/fixtures/`
+- Auth: `frontend/e2e/fixtures/auth.fixture.ts`
+- Clerk setup: `frontend/e2e/setup/clerk.setup.ts`
 - Tag smoke: `test.describe('feature @smoke', ...)`
 
 ## Page Objects
-- Un POM por pagina de usuario
+- Un POM por página de usuario
 - Locators: `getByRole`, `getByText`, `getByLabel` — NUNCA selectores CSS
+- **Usar `.first()` en locators ambiguos** para evitar strict mode violations
 - Acciones: `clickSave()`, `fillField()` | Assertions: `expectLoaded()`, `expectError()`
 
 ## Multi-tenant
@@ -32,23 +62,34 @@
 - Nunca hardcodear tenant IDs
 - Verificar X-Tenant-ID en requests interceptados
 
-## Coverage integration
-- `/test-frontend` y `/test-all` ejecutan E2E smoke automaticamente
-- No hace falta correr `make e2e-smoke` por separado si ya corriste esos skills
-- La suite completa (`make e2e`) se corre antes de releases, no en cada commit
+## E2E en flujos de trabajo
+
+| Flujo | E2E? | Cómo |
+|---|---|---|
+| Simulación de pase a producción | SÍ | `cd frontend && npx playwright test --project=smoke` (native) |
+| Pase a producción real | NO | Solo quality-gates (lint+tests), NO E2E |
+| Feature con UI nueva | SÍ | Smoke test antes de commitear |
+| Pre-PR | SÍ | Smoke test local |
 
 ## Pre-PR checklist
 Antes de crear un PR con UI changes:
-1. `make e2e-smoke` debe pasar (o haber corrido via `/test-all`)
-2. Si agregaste una pagina nueva, debe tener al menos un smoke test
-3. Si modificaste un flujo critico (auth, checkout, onboarding), agregar regression test
+1. Smoke tests deben pasar: `cd frontend && npx playwright test --project=smoke`
+2. Si agregaste una página nueva, debe tener al menos un smoke test
+3. Si modificaste un flujo crítico (auth, checkout, onboarding), agregar regression test
 
 ## Smoke vs Regression
-- **Smoke (`@smoke`):** Verifica que las rutas criticas cargan y responden. Rapido (~30s). Corre en cada PR.
-- **Regression:** Verifica flujos completos end-to-end (multi-step forms, CRUD cycles). Mas lento. Corre antes de releases con `make e2e`.
-- Regla: cada pagina publica y cada flujo critico debe tener al menos un smoke test
+- **Smoke (`@smoke`):** Verifica que las rutas críticas cargan y responden. ~2 min native. Corre en cada PR.
+- **Regression:** Verifica flujos completos end-to-end (multi-step forms, CRUD cycles). Más lento. Corre antes de releases.
+- Regla: cada página pública y cada flujo crítico debe tener al menos un smoke test
 
-## Token optimization (para uso con Claude Code)
-- **Escribir tests:** Escribir specs `@playwright/test` directamente (0 tokens en CI)
-- **Debuggear tests:** Usar Playwright CLI si necesitas explorar UI (~27K tokens)
-- **NO usar MCP:** MCP cuesta ~114K tokens, no se justifica cuando tienes filesystem
+## Mocks para Growth Studio
+- Base: `growth-studio.fixture.ts` — mockea summary, detail, overview (vacío), timeseries, catalog, connections (healthy)
+- Canales: cada canal tiene su propio setup (ig-organic-setup.ts, etc.) que agrega overview con `channel_list` y dashboard
+- **El overview endpoint (`/metrics/{stage}/overview`) es OBLIGATORIO** — sin él, los channel cards no renderizan
+
+## PROHIBIDO
+```
+make e2e          # Docker, crashea la laptop
+make e2e-smoke    # Docker, crashea la laptop
+docker compose --profile e2e run ...  # Mismo problema
+```

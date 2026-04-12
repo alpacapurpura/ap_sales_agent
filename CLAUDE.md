@@ -43,8 +43,8 @@ Unsure about a domain? Read `docs/domains/INDEX.md` first (15 domain docs).
 | Review PR | `/review-pr` | — |
 | Install npm pkg | `make install-front p=pkg` | — |
 | Fix Docker perms | `make fix-permissions` | — |
-| E2E smoke | `make e2e-smoke` | `docker compose --profile e2e run --rm e2e_runner npx playwright test --grep @smoke` |
-| E2E full | `make e2e` | `docker compose --profile e2e run --rm e2e_runner npx playwright test` |
+| E2E smoke (native) | — | `cd frontend && npx playwright test --project=smoke` |
+| E2E regression (native) | — | `cd frontend && npx playwright test --project=regression` |
 
 ### Docker Containers
 
@@ -152,7 +152,6 @@ Push to `main` triggers: quality-gates (lint+test) → security-scan (Trivy) →
 - Runtime services: `docker compose up -d`
 - Migrations: `docker exec -t visionarias_brain_dev bash -c "cd /app && alembic upgrade head"`
 - Logs: `docker logs visionarias_brain_dev --tail 100`
-- E2E tests: `make e2e-smoke` (needs running services)
 - Migration verification on fresh DB
 
 ### PROHIBITED (never do this):

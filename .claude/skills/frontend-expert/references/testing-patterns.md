@@ -181,19 +181,22 @@ Para detalles completos, ver `.claude/rules/e2e-testing.md`.
 - Smoke tests: `frontend/e2e/specs/smoke/` — rutas críticas, taggeados `@smoke`
 - Regression tests: `frontend/e2e/specs/regression/{domain}/` — flujos completos por dominio
 
-### Ejecución
+### Ejecución (nativo en WSL, NUNCA Docker)
 ```bash
-# Smoke (rápido, incluido en /test-frontend y /test-all)
-make e2e-smoke
+# Smoke (~2 min)
+cd frontend && npx playwright test --project=smoke
 
-# Suite completa (antes de releases)
-make e2e
+# Regression (más lento)
+cd frontend && npx playwright test --project=regression
+
+# Test específico
+cd frontend && npx playwright test --project=smoke --grep "test-name"
 ```
 
 ### Page Object Model
 - Un POM por página en `frontend/e2e/pages/`
 - Locators: `getByRole`, `getByText`, `getByLabel` — NUNCA selectores CSS
-- `/test-frontend` y `/test-all` ejecutan E2E smoke automáticamente
+- Usar `.first()` en locators que puedan matchear >1 elemento (strict mode)
 
 ## Naming Convention
 
