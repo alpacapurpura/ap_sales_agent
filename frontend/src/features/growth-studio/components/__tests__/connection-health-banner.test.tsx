@@ -70,6 +70,28 @@ describe('ConnectionHealthBanner', () => {
     expect(link.textContent).toContain('Conectar');
   });
 
+  it('renders nothing for unknown/undefined status (defense-in-depth)', () => {
+    // E2E mocks or future backend changes may produce unexpected status values.
+    // The component must never crash — it should degrade to invisible.
+    const { container: c1 } = render(
+      <ConnectionHealthBanner
+        status={'unknown_value' as any}
+        channelSlug="meta-ads"
+        message="Unexpected status"
+      />,
+    );
+    expect(c1.innerHTML).toBe('');
+
+    const { container: c2 } = render(
+      <ConnectionHealthBanner
+        status={undefined as any}
+        channelSlug="meta-ads"
+        message="Undefined status"
+      />,
+    );
+    expect(c2.innerHTML).toBe('');
+  });
+
   it('links to /connections page in all non-healthy cases', () => {
     const { unmount } = render(
       <ConnectionHealthBanner

@@ -5,6 +5,23 @@ import { test as base, expect } from './auth.fixture';
  * Sets up base API mocks that Growth Studio needs to render without errors.
  * Channel-specific mocks (e.g. meta-ads dashboard) are NOT included here.
  */
+/**
+ * Minimal overview response for any stage — no channels, just valid structure.
+ * Channel-specific fixtures override this with their channel in channel_list.
+ */
+function emptyStageOverview(stage: string) {
+  return {
+    stage,
+    header_kpis: {},
+    mini_funnel: null,
+    groups: [],
+    channel_list: [],
+    bottlenecks: [],
+    period: 'last_30_days',
+    last_updated: null,
+  };
+}
+
 async function setupGrowthStudioBaseMocks(page: Page) {
   await page.route('**/api/v1/analytics/metrics/attraction**', async (route) => {
     // Minimal attraction data — individual channel fixtures provide richer data
@@ -20,6 +37,17 @@ async function setupGrowthStudioBaseMocks(page: Page) {
       },
       status: 200,
     });
+  });
+
+  // Stage overview (Tier 1 progressive loading) — must be registered AFTER
+  // the detail handlers above. Playwright uses LIFO ordering, so this handler
+  // runs first for /overview URLs. Channel setups add their own channels to
+  // the list via a more specific route registered even later.
+  await page.route('**/api/v1/analytics/metrics/*/overview**', async (route) => {
+    const url = route.request().url();
+    const stageMatch = url.match(/metrics\/([^/]+)\/overview/);
+    const stage = stageMatch?.[1] ?? 'attraction';
+    await route.fulfill({ json: emptyStageOverview(stage), status: 200 });
   });
 
   await page.route('**/api/v1/analytics/metrics/summary**', async (route) => {
@@ -63,11 +91,27 @@ async function setupGrowthStudioBaseMocks(page: Page) {
   });
 
   await page.route('**/api/v1/connections/**', async (route) => {
-    await route.fulfill({ json: {}, status: 200 });
+    const url = route.request().url();
+    if (url.includes('/health')) {
+      // Connection health check — return healthy so ConnectionHealthBanner
+      // doesn't render (and doesn't crash on empty mock data).
+      const slugMatch = url.match(/connections\/([^/]+)\/health/);
+      await route.fulfill({
+        json: {
+          status: 'healthy',
+          channel_slug: slugMatch?.[1] ?? 'unknown',
+          expires_at: null,
+          message: '',
+        },
+        status: 200,
+      });
+    } else {
+      await route.fulfill({ json: {}, status: 200 });
+    }
   });
 }
 
-export { setupGrowthStudioBaseMocks, expect };
+export { setupGrowthStudioBaseMocks, emptyStageOverview, expect };
 
 export const growthStudioTest = base.extend<{ growthStudioPage: Page }>({
   growthStudioPage: async ({ page, tenantId }, use) => {

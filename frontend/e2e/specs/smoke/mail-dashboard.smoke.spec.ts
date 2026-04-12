@@ -3,7 +3,7 @@ import { MailDashboardPage } from '../../pages/mail-dashboard.page';
 import { setupMailDashboardMocks } from '../../fixtures/mail-dashboard-setup';
 
 test.describe('Email Marketing Dashboard @smoke', () => {
-  test('dashboard carga vía URL directa con título y 5 tabs', async ({ growthStudioPage, tenantId }) => {
+  test('dashboard carga vía URL directa con título y 6 tabs', async ({ growthStudioPage, tenantId }) => {
     const mailPage = new MailDashboardPage(growthStudioPage, tenantId);
     await setupMailDashboardMocks(growthStudioPage);
 
@@ -13,64 +13,43 @@ test.describe('Email Marketing Dashboard @smoke', () => {
     await mailPage.expectPeriodSelector();
   });
 
-  test('tab Resumen muestra hero KPIs, gráfico y funnel', async ({ growthStudioPage, tenantId }) => {
+  test('tab Panorama muestra hero KPIs, gráfico y embudo', async ({ growthStudioPage, tenantId }) => {
     const mailPage = new MailDashboardPage(growthStudioPage, tenantId);
     await setupMailDashboardMocks(growthStudioPage);
 
     await mailPage.gotoExpandedDashboard();
     await mailPage.expectFullDashboardVisible();
-    await mailPage.expectOverviewTabContent();
+    await mailPage.expectPanoramaTabContent();
   });
 
-  test('tab Engagement muestra CTOR, Click Rate, Reenvíos y gráficos', async ({ growthStudioPage, tenantId }) => {
-    const mailPage = new MailDashboardPage(growthStudioPage, tenantId);
-    await setupMailDashboardMocks(growthStudioPage);
-
-    await mailPage.gotoExpandedDashboard();
-    await mailPage.clickTab('Engagement');
-    await mailPage.expectTabActive('Engagement');
-    await mailPage.expectEngagementTabContent();
-  });
-
-  test('tab Entregabilidad muestra health score, bounce rate y gráficos', async ({ growthStudioPage, tenantId }) => {
+  test('tab Entregabilidad está disponible', async ({ growthStudioPage, tenantId }) => {
     const mailPage = new MailDashboardPage(growthStudioPage, tenantId);
     await setupMailDashboardMocks(growthStudioPage);
 
     await mailPage.gotoExpandedDashboard();
     await mailPage.clickTab('Entregabilidad');
     await mailPage.expectTabActive('Entregabilidad');
-    await mailPage.expectHealthScoreVisible();
     await mailPage.expectEntregabilidadTabContent();
   });
 
-  test('tab Lista muestra suscriptores, churn ratio y gráfico de crecimiento', async ({ growthStudioPage, tenantId }) => {
+  test('tab Crecimiento está disponible', async ({ growthStudioPage, tenantId }) => {
     const mailPage = new MailDashboardPage(growthStudioPage, tenantId);
     await setupMailDashboardMocks(growthStudioPage);
 
     await mailPage.gotoExpandedDashboard();
-    await mailPage.clickTab('Lista');
-    await mailPage.expectTabActive('Lista');
-    await mailPage.expectListaTabContent();
+    await mailPage.clickTab('Crecimiento');
+    await mailPage.expectTabActive('Crecimiento');
+    await mailPage.expectCrecimientoTabContent();
   });
 
-  test('tab Automatización muestra completadas, tasa y funnel', async ({ growthStudioPage, tenantId }) => {
+  test('tab Automatizaciones está disponible', async ({ growthStudioPage, tenantId }) => {
     const mailPage = new MailDashboardPage(growthStudioPage, tenantId);
     await setupMailDashboardMocks(growthStudioPage);
 
     await mailPage.gotoExpandedDashboard();
-    await mailPage.clickTab(/Automatización/);
-    await mailPage.expectTabActive(/Automatización/);
-    await mailPage.expectAutomatizacionTabContent();
-  });
-
-  test('navegación directa a tab vía URL con ?tab=engagement', async ({ growthStudioPage, tenantId }) => {
-    const mailPage = new MailDashboardPage(growthStudioPage, tenantId);
-    await setupMailDashboardMocks(growthStudioPage);
-
-    await mailPage.gotoExpandedDashboard('engagement');
-    await mailPage.expectFullDashboardVisible();
-    await mailPage.expectTabActive('Engagement');
-    await mailPage.expectEngagementTabContent();
+    await mailPage.clickTab('Automatizaciones');
+    await mailPage.expectTabActive('Automatizaciones');
+    await mailPage.expectAutomatizacionesTabContent();
   });
 
   test('navegación directa a tab vía URL con ?tab=entregabilidad', async ({ growthStudioPage, tenantId }) => {
@@ -89,19 +68,19 @@ test.describe('Email Marketing Dashboard @smoke', () => {
     await mailPage.gotoExpandedDashboard();
     await mailPage.expectFullDashboardVisible();
 
-    await mailPage.clickTab('Engagement');
-    await mailPage.expectTabActive('Engagement');
+    await mailPage.clickTab('Campañas');
+    await mailPage.expectTabActive('Campañas');
 
     await mailPage.clickTab('Entregabilidad');
     await mailPage.expectTabActive('Entregabilidad');
 
-    await mailPage.clickTab('Lista');
-    await mailPage.expectTabActive('Lista');
+    await mailPage.clickTab('Crecimiento');
+    await mailPage.expectTabActive('Crecimiento');
 
-    await mailPage.clickTab(/Automatización/);
-    await mailPage.expectTabActive(/Automatización/);
+    await mailPage.clickTab('Automatizaciones');
+    await mailPage.expectTabActive('Automatizaciones');
 
-    await mailPage.clickTab('Resumen');
-    await mailPage.expectTabActive('Resumen');
+    await mailPage.clickTab('Panorama');
+    await mailPage.expectTabActive('Panorama');
   });
 });

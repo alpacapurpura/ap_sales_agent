@@ -1,5 +1,6 @@
 import { type Page, type Route } from '@playwright/test';
 import { META_ADS_DASHBOARD_MOCK, ATTRACTION_DETAIL_MOCK } from './meta-ads-mock-data';
+import { emptyStageOverview } from './growth-studio.fixture';
 
 /**
  * Override options for Meta Ads mocks.
@@ -50,6 +51,28 @@ export async function setupMetaAdsMocks(page: Page, overrides?: MockOverrides) {
       await route.fulfill({ json: { ...META_ADS_DASHBOARD_MOCK, period }, status: 200 });
     });
   }
+
+  // Stage overview with Meta Ads in channel_list (Tier 1).
+  await page.route('**/api/v1/analytics/metrics/attraction/overview**', async (route) => {
+    await route.fulfill({
+      json: {
+        ...emptyStageOverview('attraction'),
+        groups: [{ group_key: 'paid', group_label: 'Pagado', channel_count: 1 }],
+        channel_list: [{
+          slug: 'meta-ads',
+          name: 'Meta Ads',
+          channel_type: 'paid',
+          group_key: 'paid',
+          connected: true,
+          headline_kpi: { name: 'spend', value: 2500, unit: 'currency', currency: 'USD' },
+          last_updated: new Date().toISOString(),
+          stale: false,
+          provider_name: 'meta',
+        }],
+      },
+      status: 200,
+    });
+  });
 
   // Campaign performance (Campañas tab)
   await page.route('**/api/v1/analytics/campaigns/performance**', async (route) => {

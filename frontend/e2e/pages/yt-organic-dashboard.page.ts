@@ -46,8 +46,8 @@ export class YtOrganicDashboardPage {
   }
 
   async expectHeroKpis() {
-    await expect(this.page.getByText('Vistas')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Minutos Vistos')).toBeVisible({ timeout: 5_000 });
+    await expect(this.page.getByText('Vistas').first()).toBeVisible({ timeout: 5_000 });
+    await expect(this.page.getByText('Minutos Vistos').first()).toBeVisible({ timeout: 5_000 });
   }
 
   async expectSubscriberGrowth() {

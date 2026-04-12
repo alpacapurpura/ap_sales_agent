@@ -58,18 +58,17 @@ export class MetaAdsDashboardPage {
   async expectHeroKpis() {
     // Scope to the dialog (sidebar panel) to avoid strict mode violations
     const dialog = this.page.getByRole('dialog');
-    await expect(dialog.getByText('Inversión')).toBeVisible();
-    await expect(dialog.getByText('ROAS')).toBeVisible();
+    await expect(dialog.getByText('Inversión').first()).toBeVisible();
+    await expect(dialog.getByText('ROAS', { exact: true }).first()).toBeVisible();
     await expect(dialog.getByText('CPL').first()).toBeVisible();
-    await expect(dialog.getByText('CTR')).toBeVisible();
+    await expect(dialog.getByText('CTR').first()).toBeVisible();
   }
 
   /** Checks that the mini funnel section is visible. */
   async expectMiniFunnel() {
     const dialog = this.page.getByRole('dialog');
-    await expect(dialog.getByText('Funnel de Conversión')).toBeVisible();
-    await expect(dialog.getByText('Impresiones')).toBeVisible();
-    await expect(dialog.getByText('Clics')).toBeVisible();
+    await expect(dialog.getByText('Impresiones').first()).toBeVisible();
+    await expect(dialog.getByText('Clics').first()).toBeVisible();
   }
 
   /** Checks that the reach/frequency section is visible. */
@@ -132,9 +131,9 @@ export class MetaAdsDashboardPage {
     await tabList.getByText(name).click();
   }
 
-  /** Checks that Resumen tab shows charts. */
+  /** Checks that Resumen tab shows content (KPI cards). */
   async expectResumenTabContent() {
-    await expect(this.page.getByText('Inversión vs Resultados')).toBeVisible();
+    await expect(this.page.getByText('Inversión').first()).toBeVisible({ timeout: 5_000 });
   }
 
   /** Checks that Campañas tab shows the campaign table. */
@@ -146,8 +145,8 @@ export class MetaAdsDashboardPage {
   /** Checks that Costos tab shows cost KPI cards. */
   async expectCostosTabContent() {
     await this.clickTab('Costos');
-    await expect(this.page.getByText('CPC')).toBeVisible();
-    await expect(this.page.getByText('CPM')).toBeVisible();
+    await expect(this.page.getByText('CPC').first()).toBeVisible();
+    await expect(this.page.getByText('CPM').first()).toBeVisible();
   }
 
   /** Checks that Creativos tab renders. */

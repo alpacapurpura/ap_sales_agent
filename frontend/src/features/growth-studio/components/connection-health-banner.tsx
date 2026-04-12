@@ -56,7 +56,10 @@ export function ConnectionHealthBanner({
 
   if (status === 'healthy') return null;
 
-  const cfg = STATUS_CONFIG[status];
+  const cfg = STATUS_CONFIG[status as Exclude<HealthStatus, 'healthy'>];
+  // Defense-in-depth: if the backend returns an unknown status (or mocks
+  // provide undefined), degrade gracefully instead of crashing.
+  if (!cfg) return null;
   const Icon = cfg.icon;
 
   return (

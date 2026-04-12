@@ -1,5 +1,6 @@
 import { type Page, type Route } from '@playwright/test';
 import { IG_ORGANIC_DASHBOARD_MOCK, ATTRACTION_WITH_IG_MOCK } from './ig-organic-mock-data';
+import { emptyStageOverview } from './growth-studio.fixture';
 
 /**
  * Override options for IG Organic mocks.
@@ -39,6 +40,29 @@ export async function setupIgOrganicMocks(page: Page, overrides?: IgOrganicMockO
       await route.fulfill({ json: ATTRACTION_WITH_IG_MOCK, status: 200 });
     });
   }
+
+  // Stage overview with IG Organic in channel_list (Tier 1).
+  // Registered AFTER detail handler → LIFO gives it priority for /overview URLs.
+  await page.route('**/api/v1/analytics/metrics/attraction/overview**', async (route) => {
+    await route.fulfill({
+      json: {
+        ...emptyStageOverview('attraction'),
+        groups: [{ group_key: 'organic_social', group_label: 'Redes Orgánicas', channel_count: 1 }],
+        channel_list: [{
+          slug: 'ig-organic',
+          name: 'Instagram Orgánico',
+          channel_type: 'organic_social',
+          group_key: 'organic_social',
+          connected: true,
+          headline_kpi: { name: 'total_interactions', value: 2450, unit: 'count' },
+          last_updated: new Date().toISOString(),
+          stale: false,
+          provider_name: 'meta',
+        }],
+      },
+      status: 200,
+    });
+  });
 
   // Channel dashboard
   if (overrides?.channelDashboard) {

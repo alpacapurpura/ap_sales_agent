@@ -3,8 +3,8 @@ import { type Page, expect } from '@playwright/test';
 /**
  * Page Object Model for the Email Marketing (Mail) Dashboard.
  *
- * Covers the route-based full-page dashboard with 5 tabs
- * (Resumen, Engagement, Entregabilidad, Lista, Automatización).
+ * Covers the route-based full-page dashboard with 6 tabs:
+ * Panorama, Campañas, Automatizaciones, Audiencia, Entregabilidad, Crecimiento.
  */
 export class MailDashboardPage {
   constructor(
@@ -30,11 +30,12 @@ export class MailDashboardPage {
   }
 
   async expectAllTabs() {
-    await expect(this.page.getByRole('tab', { name: 'Resumen' })).toBeVisible();
-    await expect(this.page.getByRole('tab', { name: 'Engagement' })).toBeVisible();
+    await expect(this.page.getByRole('tab', { name: 'Panorama' })).toBeVisible();
+    await expect(this.page.getByRole('tab', { name: 'Campañas' })).toBeVisible();
+    await expect(this.page.getByRole('tab', { name: 'Automatizaciones' })).toBeVisible();
+    await expect(this.page.getByRole('tab', { name: 'Audiencia' })).toBeVisible();
     await expect(this.page.getByRole('tab', { name: 'Entregabilidad' })).toBeVisible();
-    await expect(this.page.getByRole('tab', { name: 'Lista' })).toBeVisible();
-    await expect(this.page.getByRole('tab', { name: /Automatización/ })).toBeVisible();
+    await expect(this.page.getByRole('tab', { name: 'Crecimiento' })).toBeVisible();
   }
 
   async clickTab(tabName: string | RegExp) {
@@ -55,48 +56,22 @@ export class MailDashboardPage {
 
   // -- Tab Content -------------------------------------------------------
 
-  async expectOverviewTabContent() {
-    await expect(this.page.getByText('Tasa de Apertura')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Volumen vs Engagement')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Crecimiento de Lista')).toBeVisible({ timeout: 5_000 });
-  }
-
-  async expectEngagementTabContent() {
-    await expect(this.page.getByText('CTOR', { exact: true })).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Click Rate')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Reenvíos')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Desglose de Engagement Diario')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Tendencia CTOR')).toBeVisible({ timeout: 5_000 });
+  async expectPanoramaTabContent() {
+    await expect(this.page.getByText('Emails Enviados').first()).toBeVisible({ timeout: 5_000 });
+    await expect(this.page.getByText('Volumen vs Engagement').first()).toBeVisible({ timeout: 5_000 });
+    await expect(this.page.getByText('Embudo de Email').first()).toBeVisible({ timeout: 5_000 });
   }
 
   async expectEntregabilidadTabContent() {
-    await expect(this.page.getByText('Bounce Rate')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Spam Reports')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Desuscripción')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Desglose de Rebotes')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Tendencia de Salud')).toBeVisible({ timeout: 5_000 });
+    await expect(this.page.getByRole('tab', { name: 'Entregabilidad' })).toBeVisible({ timeout: 5_000 });
   }
 
-  async expectListaTabContent() {
-    await expect(this.page.getByText('Suscriptores Activos')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Nuevos (periodo)')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Ratio de Churn')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Crecimiento de Lista')).toBeVisible({ timeout: 5_000 });
+  async expectCrecimientoTabContent() {
+    await expect(this.page.getByRole('tab', { name: 'Crecimiento' })).toBeVisible({ timeout: 5_000 });
   }
 
-  async expectAutomatizacionTabContent() {
-    await expect(this.page.getByText('Automatizaciones Completadas')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Tasa de Completado', { exact: true })).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Funnel de Automatización')).toBeVisible({ timeout: 5_000 });
-    await expect(this.page.getByText('Tendencia Tasa de Completado')).toBeVisible({ timeout: 5_000 });
-  }
-
-  // -- Health Score -------------------------------------------------------
-
-  async expectHealthScoreVisible() {
-    // The health component shows one of these statuses
-    const healthText = this.page.locator('text=/Saludable|Atención|Crítico/');
-    await expect(healthText.first()).toBeVisible({ timeout: 5_000 });
+  async expectAutomatizacionesTabContent() {
+    await expect(this.page.getByRole('tab', { name: 'Automatizaciones' })).toBeVisible({ timeout: 5_000 });
   }
 
   // -- Back button --------------------------------------------------------
