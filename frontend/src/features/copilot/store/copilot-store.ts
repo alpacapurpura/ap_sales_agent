@@ -111,6 +111,14 @@ interface CopilotState {
   removeSelectedField: (fieldId: string) => void;
   updateFieldValue: (fieldId: string, value: string) => void;
   clearSelectedFields: () => void;
+
+  // Interview mode
+  interviewMode: boolean;
+  interviewSessionId: string | null;
+  interviewPreviewData: Record<string, unknown> | null;
+  setInterviewMode: (active: boolean, sessionId?: string) => void;
+  updateInterviewPreview: (delta: Record<string, unknown>) => void;
+  clearInterview: () => void;
 }
 
 // ── Store ───────────────────────────────────────────────────────────
@@ -199,4 +207,20 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
       ),
     })),
   clearSelectedFields: () => set({ selectedFields: [] }),
+
+  // Interview mode
+  interviewMode: false,
+  interviewSessionId: null,
+  interviewPreviewData: null,
+
+  setInterviewMode: (active, sessionId) =>
+    set({ interviewMode: active, interviewSessionId: sessionId ?? null }),
+
+  updateInterviewPreview: (delta) =>
+    set((state) => ({
+      interviewPreviewData: { ...(state.interviewPreviewData ?? {}), ...delta },
+    })),
+
+  clearInterview: () =>
+    set({ interviewMode: false, interviewSessionId: null, interviewPreviewData: null }),
 }));
