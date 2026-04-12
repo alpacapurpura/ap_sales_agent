@@ -9,6 +9,7 @@ from src.core.database import get_db
 from src.modules.copilot.api.interview_dto import (
     ActiveInterviewResponse,
     InterviewStateResponse,
+    InterviewStatusResponse,
     StartInterviewRequest,
     StartInterviewResponse,
 )
@@ -72,7 +73,7 @@ def get_interview_state(
     return result
 
 
-@router.post("/{session_id}/pause")
+@router.post("/{session_id}/pause", response_model=InterviewStatusResponse)
 def pause_interview(
     session_id: UUID,
     tenant_id: UUID | None = Depends(get_tenant_context),
@@ -88,7 +89,7 @@ def pause_interview(
     return {"status": "paused"}
 
 
-@router.post("/{session_id}/abandon")
+@router.post("/{session_id}/abandon", response_model=InterviewStatusResponse)
 def abandon_interview(
     session_id: UUID,
     tenant_id: UUID | None = Depends(get_tenant_context),

@@ -39,3 +39,9 @@ class InterviewStateResponse(BaseModel):
     bloques_completados: list[str]
     config: dict
     messages_count: int
+
+
+class InterviewStatusResponse(BaseModel):
+    """Generic status response for pause/abandon operations."""
+
+    status: str
