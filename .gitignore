@@ -117,5 +117,7 @@ frontend/blob-report/
 
 # --- Documentation artifacts (temp only) ---
 docs/temp/
+# Verification snapshots (contain real metric values, never commit)
+backend/scripts/verify/snapshots/
 .worktrees/
 REVIEW.md

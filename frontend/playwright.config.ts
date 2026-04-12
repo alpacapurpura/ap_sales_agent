@@ -88,6 +88,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
     },
+    {
+      name: 'verify',
+      testMatch: /.*\.verify\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.clerk/user.json',
+      },
+      dependencies: ['setup'],
+    },
   ],
 
   ...(process.env.E2E_BASE_URL ? {} : {

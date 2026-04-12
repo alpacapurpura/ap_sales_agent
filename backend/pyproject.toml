@@ -4,6 +4,7 @@ testpaths = ["tests", "src/tests"]
 asyncio_mode = "auto"
 markers = [
     "integration: live integration tests requiring external credentials",
+    "verify: data reliability verification tests requiring real DB data",
 ]
 
 [tool.coverage.run]
