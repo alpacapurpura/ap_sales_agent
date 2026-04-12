@@ -26,6 +26,7 @@ import { CampaignsTab } from './tabs/CampaignsTab';
 import { CreativosTab } from './tabs/CreativosTab';
 import { AudienciaTab } from './tabs/AudienciaTab';
 import { CostosTab } from './tabs/CostosTab';
+import { PendientesTab } from './tabs/PendientesTab';
 import { useMetaAdsNotices } from './notices/useMetaAdsNotices';
 import { TabBadge } from './notices/TabBadge';
 import { computeMetaAdsOnboardingTrigger } from './hooks/useMetaAdsOnboardingTrigger';
@@ -40,7 +41,7 @@ interface MetaAdsDashboardProps {
   isRouteBased?: boolean;
 }
 
-const VALID_TABS: MetaAdsDashboardTab[] = ['resumen', 'campanas', 'creativos', 'audiencia', 'costos'];
+const VALID_TABS: MetaAdsDashboardTab[] = ['resumen', 'campanas', 'pendientes', 'creativos', 'audiencia', 'costos'];
 
 export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsDashboardProps) {
   const { timezone } = useTenantLocale();
@@ -64,6 +65,17 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
   const { data: metaHealthCheck } = useMetaHealthCheck();
   const { sync, isSyncing, cooldownMinutes } = useSyncChannel('meta-ads');
   useHashScroll();
+
+  // Pending campaign count for the tab badge
+  const unassignedCount = useMemo(() => {
+    if (!campaignData?.campaigns || !associations) return 0;
+    const assocSet = new Set(
+      (associations ?? [])
+        .filter(a => a.targetType === 'campaign')
+        .map(a => a.targetExternalId),
+    );
+    return campaignData.campaigns.filter(c => !assocSet.has(c.externalId)).length;
+  }, [campaignData?.campaigns, associations]);
 
   // Unified improvement notices (active campaigns only, deduped, ignorable
   // for 24h via localStorage). Computed once at the dashboard level so both
@@ -229,6 +241,14 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
                 severity={noticesSummary.maxSeverityPerTab.campanas}
               />
             </TabsTrigger>
+            <TabsTrigger value="pendientes">
+              Pendientes
+              {unassignedCount > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-amber-500/15 px-1 text-[10px] font-bold text-amber-400">
+                  {unassignedCount}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="creativos">
               Creativos
               <TabBadge
@@ -273,6 +293,13 @@ export function MetaAdsDashboard({ onClose, initialTab, isRouteBased }: MetaAdsD
               period={period}
               notices={noticesSummary.byTab.campanas}
               noticesSeverity={noticesSummary.severityPerTab.campanas}
+            />
+          </TabsContent>
+          <TabsContent value="pendientes" className="m-0 flex-1">
+            <PendientesTab
+              period={period}
+              onPeriodChange={handlePeriodChange}
+              onBackToCampaigns={() => handleTabChange('campanas')}
             />
           </TabsContent>
           <TabsContent value="creativos" className="m-0 p-6">
