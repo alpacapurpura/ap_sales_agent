@@ -1,4 +1,4 @@
-.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test
+.PHONY: all dev dev-core dev-extended build-core build-extended stats-core prod stop stop-dev stop-prod logs logs-dev logs-prod setup fix-permissions install-front fix-front tooling-up tooling-down npm vitest pytest lint ruff pytest-cov vitest-cov e2e e2e-smoke e2e-ui e2e-report perf-baseline shopify-config-dev shopify-config-prod shopify-config-status test-mode dev-mode audit audit-backend audit-frontend arch-test verify-etl verify-probe-meta verify-pipeline verify-ui verify-meta verify-all
 
 # Variables
 DOCKER_COMPOSE = docker compose
@@ -196,3 +196,28 @@ audit-backend:
 
 audit-frontend:
 	cd frontend && npm audit --audit-level=high
+
+# --- Data Reliability Verification (4-Layer Protocol) ---
+# See: docs/superpowers/specs/2026-04-12-data-reliability-verification-design.md
+# Rule: .claude/rules/data-reliability.md
+
+env ?= local
+days ?= 7
+provider ?= meta
+
+verify-etl:
+	cd backend && .venv/bin/python scripts/verify/run_etl.py --provider $(provider) --days $(days) --env $(env)
+
+verify-probe-meta:
+	cd backend && .venv/bin/python scripts/verify/probes/meta_probe.py --days $(days) --env $(env) --output scripts/verify/snapshots/meta-latest.json
+
+verify-pipeline:
+	cd backend && .venv/bin/pytest tests/verification/ -m verify -x -q --tb=short
+
+verify-ui:
+	cd frontend && npx playwright test --project=verify
+
+verify-meta: verify-etl verify-probe-meta verify-pipeline verify-ui
+	@echo "=== Meta 4-layer verification complete ==="
+
+verify-all: verify-meta

@@ -180,6 +180,7 @@ docker run --rm ... ruff|pytest|tsc|vitest ...
 12. **Mejora continua:** Cualquier problema de proceso, test frágil, patrón incorrecto, o aprendizaje detectado durante ejecución → agregarlo como `[] descripción corta` en `docs/mejoras-proceso/to-do.md` (crear si no existe). Sin verbosidad, solo el hallazgo concreto.
 13. **TDD Obligatorio:** Tests PRIMERO, implementación DESPUÉS. Sin excepciones. Features: test por capa antes de implementar. Bugs: test de regresión antes del fix. Existente sin tests: cubrir primero, luego modificar. See `.claude/rules/tdd-mandatory.md`.
 14. **ETL Extraction Contract:** Antes de responder cualquier pregunta sobre el ETL/analytics, leer `docs/etl/extraction-contract.md` PRIMERO. Antes de modificar cualquier cosa en `backend/src/modules/analytics/`, leer la regla completa. Después de cualquier cambio que toque providers, pipeline, scheduler, workers o catálogo: actualizar `extraction_contract.py`, regenerar el markdown con `make extraction-contract`, correr `pytest tests/architecture/test_extraction_contract.py`. Sin excepciones. See `.claude/rules/etl-extraction-contract.md`.
+15. **Data Reliability:** After modifying any Growth Studio file (provider, service, DTO, frontend component), run the corresponding verification layer. See `.claude/rules/data-reliability.md`.
 
 ## Product Vision
 
