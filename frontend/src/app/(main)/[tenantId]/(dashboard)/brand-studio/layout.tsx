@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { BrandStudioProvider, useBrandStudio } from "@/features/brand/context/brand-studio-context";
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
@@ -8,6 +10,8 @@ import { BrandVisualsWizard } from "@/features/brand/sections/visuals/brand-visu
 import { ThemeInjector } from "@/features/brand/sections/visuals/theme-injector";
 import { SmartFillDialog } from "@/features/brand/components/smart-fill/smart-fill-dialog";
 import { BrandEmptyState } from "@/features/brand/components/empty-state/brand-empty-state";
+import { BrandStudioTabs } from "@/features/brand/components/tabs/brand-studio-tabs";
+import { BRAND_SECTIONS, type BrandSectionId } from "@/features/brand/config/sections";
 import type { BrandIdentity, ContactData, KeyFigure, TestimonialItem, BrandVisuals } from "@/features/brand/types";
 
 /**
@@ -40,10 +44,33 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
     isSmartFillOpen,
     smartFillMode,
     closeSmartFill,
-    openSmartFill,
     hasDismissedEmptyState,
     dismissEmptyState,
   } = useBrandStudio();
+
+  const pathname = usePathname();
+  const router = useRouter();
+  const params = useParams();
+  const tenantId = params.tenantId as string;
+
+  const activeTab = useMemo<BrandSectionId>(() => {
+    const segment = pathname.split("/brand-studio/")[1]?.split("/")[0];
+    if (segment && segment in BRAND_SECTIONS) return segment as BrandSectionId;
+    return "esencia";
+  }, [pathname]);
+
+  const handleTabChange = useCallback(
+    (tab: BrandSectionId) => {
+      router.push(`/${tenantId}/brand-studio/${BRAND_SECTIONS[tab].slug}`);
+    },
+    [tenantId, router]
+  );
+
+  // When the wizard completes extraction, refetch settings and dismiss empty state.
+  const handleWizardComplete = useCallback(() => {
+    refetch();
+    dismissEmptyState();
+  }, [refetch, dismissEmptyState]);
 
   // --- Loading ---
   if (loading) {
@@ -59,8 +86,8 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
         <div className="bg-destructive/10 text-destructive p-6 rounded-lg max-w-md text-center">
-          <h3 className="font-semibold text-lg mb-2">Error al cargar configuracion</h3>
-          <p className="text-sm mb-4 opacity-90">{error.message || "Ocurrio un error inesperado."}</p>
+          <h3 className="font-semibold text-lg mb-2">Error al cargar configuración</h3>
+          <p className="text-sm mb-4 opacity-90">{error.message || "Ocurrió un error inesperado."}</p>
           <button
             onClick={() => refetch()}
             className="px-4 py-2 bg-background border border-destructive/20 rounded hover:bg-background/80 text-sm font-medium transition-colors"
@@ -73,7 +100,7 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
   }
 
   if (!settings) {
-    return <div className="p-8 text-center text-muted-foreground">No se encontro la configuracion.</div>;
+    return <div className="p-8 text-center text-muted-foreground">No se encontró la configuración.</div>;
   }
 
   // --- Empty state (first-time user) ---
@@ -84,17 +111,8 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
     return (
       <div className="relative w-full h-[calc(100vh-4rem)] bg-background flex flex-col overflow-hidden">
         <BrandEmptyState
-          onStartAI={() => openSmartFill("initial")}
+          onStartAI={handleWizardComplete}
           onStartManual={dismissEmptyState}
-        />
-        <SmartFillDialog
-          open={isSmartFillOpen}
-          onOpenChange={(open) => !open && closeSmartFill()}
-          mode={smartFillMode}
-          onSuccess={() => {
-            window.location.reload();
-          }}
-          currentUrl={settings.identity?.website}
         />
       </div>
     );
@@ -125,6 +143,13 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative w-full h-full">
       <ThemeInjector visuals={settings.visuals ?? {}} />
+
+      {/* Tab navigation between Brand Studio sections */}
+      <BrandStudioTabs
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        settings={settings}
+      />
 
       {/* Page content (section view) */}
       {children}
@@ -158,6 +183,7 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
         onSave={handleUpdateVisuals}
       />
 
+      {/* SmartFillDialog remains in overlay — used for "Refinar con IA" (update mode) */}
       <SmartFillDialog
         open={isSmartFillOpen}
         onOpenChange={(open) => !open && closeSmartFill()}
@@ -179,6 +205,7 @@ function BrandStudioInner({ children }: { children: React.ReactNode }) {
  * - Brand settings data loading
  * - Shared overlays (edit sheets, wizards, dialogs)
  * - Theme injection
+ * - BrandStudioTabs for section navigation
  *
  * This ensures navigating between sections doesn't re-mount
  * the overlay layer or re-fetch settings.
