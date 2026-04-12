@@ -212,7 +212,7 @@ verify-probe-meta:
 	docker exec -t visionarias_brain_dev bash -c "cd /app && python scripts/verify/probes/meta_probe.py --days $(days) --env $(env) --output scripts/verify/snapshots/meta-latest.json"
 
 verify-pipeline:
-	cd backend && .venv/bin/pytest tests/verification/ -m verify -x -q --tb=short
+	cd backend && DATABASE_URL=postgresql://postgres:password@localhost:5432/visionarias_logs .venv/bin/pytest tests/verification/ -m verify -x -q --tb=short
 
 verify-ui:
 	cd frontend && npx playwright test --project=verify
