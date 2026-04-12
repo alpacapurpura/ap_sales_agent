@@ -9,6 +9,7 @@ from src.modules.copilot.application.tools.analytics_tools import ANALYTICS_TOOL
 from src.modules.copilot.application.tools.awareness import AWARENESS_TOOLS
 from src.modules.copilot.application.tools.connections_tools import CONNECTIONS_TOOLS
 from src.modules.copilot.application.tools.crm_tools import CRM_TOOLS
+from src.modules.copilot.application.tools.interview import INTERVIEW_TOOLS
 from src.modules.copilot.application.tools.knowledge_tools import KNOWLEDGE_TOOLS
 from src.modules.copilot.application.tools.landing_tools import LANDING_TOOLS
 from src.modules.copilot.application.tools.module_tools import MODULE_TOOLS
@@ -32,12 +33,14 @@ TOOL_GROUPS: dict[str, list] = {
     "procedure": PROCEDURE_TOOLS,
     "knowledge": KNOWLEDGE_TOOLS,
     "offer_ladder": OFFER_LADDER_TOOLS,
+    "interview": INTERVIEW_TOOLS,
 }
 
 # Route prefix -> which tool groups are available.
 # More specific routes should be listed before generic ones.
 # "*" is the fallback for any unmatched route.
 ROUTE_TOOL_MAP: dict[str, list[str]] = {
+    "brand-studio/interview": ["interview", "knowledge"],
     "brand-studio": [
         "navigation",
         "awareness",
