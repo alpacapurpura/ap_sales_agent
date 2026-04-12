@@ -34,6 +34,7 @@ import type {
 } from '../../../../../types/metrics';
 import type { Association } from '../../../../../types/offer-association';
 import { OfferAssignmentDrawerConnected } from '../OfferAssignmentDrawerConnected';
+import { OfferReassignPopover } from '../OfferReassignPopover';
 import { ImprovementNotesPanel } from '../notices/ImprovementNotesPanel';
 import { useIgnoredNotices } from '../notices/useIgnoredNotices';
 import type {
@@ -437,26 +438,23 @@ function CampaignRow({
                 {objectiveLabel(campaign.objective)}
               </span>
             )}
-            {/* Offer association badge — clickable to open the assignment drawer */}
+            {/* Offer association badge */}
             {association ? (
-              association.associationType === 'excluded_branding' ? (
-                <BadgeTooltip content="Esta campaña está marcada como branding (sin offer). Click para cambiar.">
+              <OfferReassignPopover
+                campaign={{ externalId: campaign.externalId, name: campaign.name }}
+                association={association}
+              >
+                {association.associationType === 'excluded_branding' ? (
                   <button
                     type="button"
-                    onClick={onAssignClick}
                     className="inline-flex items-center gap-1 rounded-full border border-zinc-600/60 bg-zinc-700/10 px-2 py-0.5 text-[10px] text-zinc-400 transition-colors hover:border-zinc-500 hover:bg-zinc-700/20 hover:text-zinc-300"
                   >
                     <span aria-hidden="true">🎯</span>
                     Branding
                   </button>
-                </BadgeTooltip>
-              ) : (
-                <BadgeTooltip
-                  content={`Esta campaña está asociada a la offer "${association.offerName ?? 'sin nombre'}". Click para cambiar o desasignar.`}
-                >
+                ) : (
                   <button
                     type="button"
-                    onClick={onAssignClick}
                     className="inline-flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-400 transition-colors hover:border-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
                   >
                     <span aria-hidden="true">
@@ -464,8 +462,8 @@ function CampaignRow({
                     </span>
                     {association.offerName ?? 'Offer asociada'}
                   </button>
-                </BadgeTooltip>
-              )
+                )}
+              </OfferReassignPopover>
             ) : (
               <BadgeTooltip content="Click para asignar esta campaña a una offer del Offer Ladder.">
                 <button
