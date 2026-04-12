@@ -75,7 +75,7 @@ export default defineConfig({
     {
       name: 'regression',
       testMatch: /.*\.spec\.ts/,
-      testIgnore: [/.*\.smoke\.spec\.ts/, /.*\.public\.spec\.ts/, /.*\.visual\.spec\.ts/],
+      testIgnore: [/.*\.smoke\.spec\.ts/, /.*\.public\.spec\.ts/, /.*\.visual\.spec\.ts/, /.*\.verify\.spec\.ts/],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.clerk/user.json',
