@@ -25,6 +25,9 @@ from src.modules.advertising.infrastructure.models.ad_offer_association_model im
 
 # --- IAM ---
 # --- Brand ---
+from src.modules.brand.infrastructure.models.buyer_persona_model import (
+    BuyerPersonaModel,  # noqa: F401
+)
 from src.modules.brand.infrastructure.models.extraction_trace_model import (
     BrandExtractionTrace,  # noqa: F401
 )
