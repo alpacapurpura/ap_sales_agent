@@ -190,6 +190,61 @@ def _get_behavior_summary(tenant_id: UUID, user_id: UUID) -> str:
         db.close()
 
 
+_DOMAIN_LABELS: dict[str, str] = {
+    "offer": "oferta",
+    "brand": "marca",
+    "buyer_persona": "buyer persona",
+}
+
+
+def _build_focus_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-arg]
+    """Render the focus context layer if conditions are met, else return empty string."""
+    if not (ctx.get("focus") and state.get("focus_entity_data")):
+        return ""
+    focus_ctx = ctx["focus"]
+    entity_data = state["focus_entity_data"]
+    domain = focus_ctx.get("domain", "")
+    empty_fields = [k for k, v in entity_data.items() if not v] if isinstance(entity_data, dict) else []
+    try:
+        return prompt_loader.render(
+            "copilot_focus",
+            domain=domain,
+            entity_id=focus_ctx.get("entity_id", ""),
+            entity_snapshot=entity_data,
+            empty_fields=empty_fields,
+            domain_label=_DOMAIN_LABELS.get(domain, domain),
+        )
+    except Exception:
+        logger.exception("Error rendering focus prompt layer")
+        return ""
+
+
+def _build_interview_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-arg]
+    """Render the interview session layer if conditions are met, else return empty string."""
+    if not (ctx.get("interview_session_id") and state.get("interview_session")):
+        return ""
+    session = state["interview_session"]
+    config = session.config_snapshot
+    bloques = config.get("bloques", [])
+    current_block = next((b for b in bloques if b["id"] == session.bloque_actual), None)
+    coverage = session.coverage_for_block(session.bloque_actual) if current_block else 0.0
+    block_coverage = {b["id"]: round(session.coverage_for_block(b["id"]) * 100) for b in bloques}
+    try:
+        return prompt_loader.render(
+            "copilot_interview",
+            current_block_id=session.bloque_actual,
+            current_block_label=current_block["label"] if current_block else session.bloque_actual,
+            blocks_completed_count=len(session.bloques_completados),
+            total_blocks=len(bloques),
+            coverage_pct=round(coverage * 100),
+            mapa_global=session.mapa_global,
+            block_coverage_status=block_coverage,
+        )
+    except Exception:
+        logger.exception("Error rendering interview prompt layer")
+        return ""
+
+
 def build_system_prompt(state: CopilotState) -> str:
     """Render the system prompt with current context, completion snapshot, and module list."""
     ctx = state.get("client_context", {})
@@ -244,7 +299,7 @@ def build_system_prompt(state: CopilotState) -> str:
                 }
 
     try:
-        return prompt_loader.render(
+        base_prompt = prompt_loader.render(
             "copilot_system",
             current_route=ctx.get("current_route"),
             selected_fields=ctx.get("selected_fields", []),
@@ -256,10 +311,13 @@ def build_system_prompt(state: CopilotState) -> str:
         )
     except Exception as e:  # noqa: BLE001 — orchestrator resilience
         logger.warning("copilot_system_prompt_fallback", error=str(e))
-        return (
+        base_prompt = (
             "Eres el Copilot de Nicolify, un asistente experto en marketing y ventas. "
             "Habla siempre en español, de forma profesional pero cercana."
         )
+
+    # Compose all layers
+    return base_prompt + _build_focus_layer(ctx, state) + _build_interview_layer(ctx, state)
 
 
 def agent_node(state: CopilotState) -> dict:

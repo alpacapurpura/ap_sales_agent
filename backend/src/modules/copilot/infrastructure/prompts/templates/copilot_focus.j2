@@ -1,0 +1,22 @@
+--- FOCUS MODE ACTIVE ---
+Domain: {{ domain }}
+{% if entity_id %}Entity ID: {{ entity_id }}{% endif %}
+
+Current entity state:
+{{ entity_snapshot | tojson(indent=2) }}
+
+{% if empty_fields %}
+Empty fields that need completion:
+{% for field in empty_fields %}- {{ field }}
+{% endfor %}
+{% endif %}
+
+CONSTRAINT: Every response must relate to this entity. If the user asks about
+something unrelated, acknowledge briefly and redirect: "Eso es interesante,
+pero ahora estamos enfocados en tu {{ domain_label }}. Cuando terminemos,
+puedo ayudarte con eso."
+
+When the user provides information, use entity_write to save it immediately.
+When the user uploads files, use extract_from_document to process them against
+ALL sections simultaneously.
+--- END FOCUS MODE ---
