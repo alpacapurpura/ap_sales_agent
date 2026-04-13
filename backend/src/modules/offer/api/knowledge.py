@@ -80,7 +80,9 @@ class _StubRAGIndexer(IRAGIndexerPort):
     """
 
     def index_source(
-        self, source: KnowledgeSource, raw_bytes: bytes | None = None
+        self,
+        source: KnowledgeSource,
+        raw_bytes: bytes | None = None,
     ) -> tuple[list[str], int]:
         return [], 0
 
@@ -117,7 +119,7 @@ def _to_response(source: KnowledgeSource) -> KnowledgeSourceResponse:
             "error_message": source.error_message,
             "created_at": source.created_at,
             "updated_at": source.updated_at,
-        }
+        },
     )
 
 

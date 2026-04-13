@@ -71,7 +71,9 @@ class AssetRepository:
         return None
 
     def list_by_tenant(
-        self, tenant_id: UUID, asset_type: str | None = None
+        self,
+        tenant_id: UUID,
+        asset_type: str | None = None,
     ) -> list[Asset]:
         stmt = select(AssetModel).where(
             AssetModel.tenant_id == tenant_id,

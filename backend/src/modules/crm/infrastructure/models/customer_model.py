@@ -46,10 +46,14 @@ class CustomerProfileModel(Base):
 
     # Relationships
     identities = relationship(
-        "CustomerIdentityModel", back_populates="profile", cascade="all, delete-orphan"
+        "CustomerIdentityModel",
+        back_populates="profile",
+        cascade="all, delete-orphan",
     )
     journey_events = relationship(
-        "JourneyEventModel", back_populates="profile", cascade="all, delete-orphan"
+        "JourneyEventModel",
+        back_populates="profile",
+        cascade="all, delete-orphan",
     )
 
 
@@ -58,7 +62,9 @@ class CustomerIdentityModel(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     profile_id = Column(
-        UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("customer_profiles.id"),
+        nullable=False,
     )
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
 
@@ -81,12 +87,15 @@ class JourneyEventModel(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     profile_id = Column(
-        UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("customer_profiles.id"),
+        nullable=False,
     )
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
 
     event_name = Column(
-        String, nullable=False
+        String,
+        nullable=False,
     )  # "page_view", "email_opened", "checkout_completed"
     event_type = Column(String, nullable=False)  # "track", "page", "screen"
 

@@ -106,7 +106,7 @@ class AdoptionMetricsRepository:
                         first_event.c.first_event_at
                         - CustomerProfileModel.first_conversion_at,
                     )
-                    / 86400
+                    / 86400,
                 ).label("avg_ttv"),
             )
             .join(

@@ -45,7 +45,7 @@ def _build_expansion_offers(
                 revenue=revenue,
                 currency=currency,
                 usd_revenue=usd_rev,
-            )
+            ),
         )
     return result_offers
 
@@ -128,18 +128,26 @@ class ExpansionStageService:
         # 2. Query expansion data
         exp_repo = ExpansionMetricsRepository(self.db)
         sales_grouped = exp_repo.get_expansion_sales_grouped(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         churn_by_offer = exp_repo.get_churn_data_by_offer(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         total_churn_count = exp_repo.get_total_churn_count(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         active_customer_count = exp_repo.get_active_customer_count(tenant_id)
         avg_ltv, ltv_currency = exp_repo.get_avg_ltv(tenant_id)
         upsell_customer_count = exp_repo.get_expansion_customer_count(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
 
         # 3. Get offers for enrichment
@@ -194,7 +202,9 @@ class ExpansionStageService:
         )
 
         churn_offers = _build_expansion_offers(
-            churn_by_offer, offer_map, display_currency
+            churn_by_offer,
+            offer_map,
+            display_currency,
         )
         churn_rate_pct = (
             round(total_churn_count / active_customer_count * 100, 1)
@@ -257,7 +267,7 @@ class ExpansionStageService:
                     severity="critical",
                     threshold=5.0,
                     tip="Revisa la calidad y satisfaccion de tu producto o servicio",
-                )
+                ),
             )
         elif churn_rate_pct > 3.0:
             bottlenecks.append(
@@ -268,7 +278,7 @@ class ExpansionStageService:
                     severity="warning",
                     threshold=3.0,
                     tip="Revisa la calidad y satisfaccion de tu producto o servicio",
-                )
+                ),
             )
 
         now = dt_cls.now(UTC)

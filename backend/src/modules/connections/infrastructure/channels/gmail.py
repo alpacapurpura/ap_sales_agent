@@ -44,7 +44,7 @@ class GmailAdapter:
                 "client_secret": settings.GOOGLE_CLIENT_SECRET,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
-            }
+            },
         }
 
     @staticmethod
@@ -54,7 +54,9 @@ class GmailAdapter:
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
 
         authorization_url, state = flow.authorization_url(
-            access_type="offline", include_granted_scopes="true", prompt="consent"
+            access_type="offline",
+            include_granted_scopes="true",
+            prompt="consent",
         )
         return authorization_url, state
 

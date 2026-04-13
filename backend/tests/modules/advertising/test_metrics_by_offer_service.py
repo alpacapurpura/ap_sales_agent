@@ -28,7 +28,9 @@ class _StubOfferReadPort(OfferReadPort):
         return list(self._offers)
 
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: UUID | None = None
+        self,
+        offer_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> OfferReadDTO | None:
         for o in self._offers:
             if o.id == offer_id:
@@ -65,7 +67,13 @@ def _offer(
 class TestMetricsByOfferService:
     @pytest.mark.asyncio
     async def test_purchase_offer_computes_roas_and_cost_per_purchase(
-        self, db, tenant_id, offer_id, make_offer, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_offer,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -77,7 +85,10 @@ class TestMetricsByOfferService:
         port = _StubOfferReadPort([offer])
 
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Sales"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Sales",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -127,7 +138,12 @@ class TestMetricsByOfferService:
 
     @pytest.mark.asyncio
     async def test_message_offer_uses_conversations_metric(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -138,7 +154,10 @@ class TestMetricsByOfferService:
         )
         port = _StubOfferReadPort([offer])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Messages"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Messages",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -178,11 +197,18 @@ class TestMetricsByOfferService:
 
     @pytest.mark.asyncio
     async def test_unassigned_spend_goes_into_unassigned_bucket(
-        self, db, tenant_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         port = _StubOfferReadPort([])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Sin asignar"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Sin asignar",
         )
         make_metric(
             db,
@@ -202,11 +228,18 @@ class TestMetricsByOfferService:
 
     @pytest.mark.asyncio
     async def test_branding_exclusion_routes_spend_to_branding_bucket(
-        self, db, tenant_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         port = _StubOfferReadPort([])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="br1", name="Brand awareness"
+            db,
+            tenant_id=tenant_id,
+            external_id="br1",
+            name="Brand awareness",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -246,7 +279,12 @@ class TestMetricsByOfferService:
 
     @pytest.mark.asyncio
     async def test_no_events_reported_sets_unavailable_reason(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -257,7 +295,10 @@ class TestMetricsByOfferService:
         )
         port = _StubOfferReadPort([offer])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Sales curso"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Sales curso",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,

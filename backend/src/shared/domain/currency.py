@@ -20,7 +20,7 @@ SUPPORTED_CURRENCIES: frozenset[str] = frozenset(
         "AUD",
         "JPY",
         "CNY",
-    }
+    },
 )
 
 # Approximate static rates TO USD (multiply amount * rate = USD value)
@@ -55,7 +55,9 @@ def is_valid_currency(code: str) -> bool:
 
 
 def convert_currency(
-    amount: float, from_currency: str, to_currency: str
+    amount: float,
+    from_currency: str,
+    to_currency: str,
 ) -> float | None:
     """Convert between any two supported currencies via USD as pivot.
 
@@ -83,7 +85,9 @@ class MoneyDisplay:
 
 
 def build_money_display(
-    amount: float, source_currency: str, tenant_currency: str
+    amount: float,
+    source_currency: str,
+    tenant_currency: str,
 ) -> MoneyDisplay:
     """Build display amounts for a single-source monetary value.
 

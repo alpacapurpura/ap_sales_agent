@@ -46,7 +46,7 @@ class LeadRepository(BaseRepository):
                 select(func.count(LeadModel.id)).where(
                     LeadModel.tenant_id == tenant_id,
                     LeadModel.is_blacklisted.is_(False),
-                )
+                ),
             ).scalar()
             or 0
         )
@@ -61,7 +61,7 @@ class LeadRepository(BaseRepository):
                     LeadModel.tenant_id == tenant_id,
                     LeadModel.is_blacklisted.is_(False),
                     or_(LeadModel.fit_score >= 50, LeadModel.temperature != "COLD"),
-                )
+                ),
             ).scalar()
             or 0
         )
@@ -158,7 +158,7 @@ class LeadRepository(BaseRepository):
                 if customer_id and str(existing.customer_id) != str(customer_id):
                     lead_orm = (
                         self.db.execute(
-                            select(LeadModel).where(LeadModel.id == existing.id)
+                            select(LeadModel).where(LeadModel.id == existing.id),
                         )
                         .scalars()
                         .first()
@@ -207,7 +207,9 @@ class LeadRepository(BaseRepository):
         return Lead.model_validate(lead_orm)
 
     def update_profile(
-        self, lead_id: str | uuid.UUID, psychographics_update: dict
+        self,
+        lead_id: str | uuid.UUID,
+        psychographics_update: dict,
     ) -> Lead | None:
         # Fetch ORM object to update
         if isinstance(lead_id, str):
@@ -220,7 +222,7 @@ class LeadRepository(BaseRepository):
             self.db.execute(
                 select(LeadModel)
                 .options(joinedload(LeadModel.customer))
-                .where(LeadModel.id == lead_id)
+                .where(LeadModel.id == lead_id),
             )
             .scalars()
             .first()

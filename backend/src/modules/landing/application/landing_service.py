@@ -54,7 +54,9 @@ class LandingService:
         return self.repository.get_by_id(landing_id)
 
     def get_landing_by_offer(
-        self, tenant_id: UUID, offer_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
     ) -> LandingPage | None:
         return self.repository.get_by_offer(tenant_id, offer_id)
 
@@ -82,7 +84,9 @@ class LandingService:
         return self.repository.update(landing)
 
     def generate_landing_for_offer(
-        self, tenant_id: UUID, offer_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
     ) -> LandingPage:
         # Check if landing already exists
         existing = self.repository.get_by_offer(tenant_id, offer_id)
@@ -93,7 +97,7 @@ class LandingService:
             self.db.execute(
                 sa_text(
                     "SELECT name, headline_promise, primary_outcome, marketing_pain_points"
-                    " FROM products WHERE id = :oid AND tenant_id = :tid"
+                    " FROM products WHERE id = :oid AND tenant_id = :tid",
                 ),
                 {"oid": str(offer_id), "tid": str(tenant_id)},
             )
@@ -139,7 +143,10 @@ class LandingService:
         return self.create_landing(tenant_id, slug, offer_id, config)
 
     def update_landing_for_offer(
-        self, tenant_id: UUID, offer_id: UUID, config_updates: dict
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
+        config_updates: dict,
     ) -> LandingPage:
         landing = self.repository.get_by_offer(tenant_id, offer_id)
         if not landing:
@@ -167,7 +174,10 @@ class LandingService:
         return landing
 
     def regenerate_block(
-        self, current_content: str, block_type: str, context: dict | None = None
+        self,
+        current_content: str,
+        block_type: str,
+        context: dict | None = None,
     ) -> str:
         # Mock AI generation logic
         # Returns modified content to simulate AI improvement

@@ -132,7 +132,7 @@ class TestETLPipelineHappyPath:
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
         mock_provider.extract_metrics.return_value = _make_extraction_result(
-            _make_extracted_metric()
+            _make_extracted_metric(),
         )
 
         mock_connection_port = AsyncMock()
@@ -236,7 +236,8 @@ class TestETLPipelineFailure:
 
         mock_connection_port = AsyncMock()
         mock_connection_port.get_credentials.side_effect = ConnectionRevokedError(
-            "Connection revoked", channel_type="meta"
+            "Connection revoked",
+            channel_type="meta",
         )
 
         run_model = _make_run_model()

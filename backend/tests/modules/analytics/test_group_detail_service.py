@@ -64,7 +64,9 @@ class TestGroupDetailExtraction:
 
     def test_extracts_single_group_from_cached_data(self):
         result = self.service._extract_group(
-            "attraction", SAMPLE_ATTRACTION_DATA, "paid"
+            "attraction",
+            SAMPLE_ATTRACTION_DATA,
+            "paid",
         )
         assert result is not None
         assert result["group_key"] == "paid"
@@ -74,7 +76,9 @@ class TestGroupDetailExtraction:
 
     def test_extracts_organic_social_group(self):
         result = self.service._extract_group(
-            "attraction", SAMPLE_ATTRACTION_DATA, "organic_social"
+            "attraction",
+            SAMPLE_ATTRACTION_DATA,
+            "organic_social",
         )
         assert result is not None
         assert result["group_key"] == "organic_social"
@@ -83,7 +87,9 @@ class TestGroupDetailExtraction:
 
     def test_returns_none_for_unknown_group(self):
         result = self.service._extract_group(
-            "attraction", SAMPLE_ATTRACTION_DATA, "nonexistent"
+            "attraction",
+            SAMPLE_ATTRACTION_DATA,
+            "nonexistent",
         )
         assert result is None
 
@@ -93,7 +99,9 @@ class TestGroupDetailExtraction:
 
     def test_empty_group_returns_empty_channels(self):
         result = self.service._extract_group(
-            "attraction", SAMPLE_ATTRACTION_DATA, "outbound"
+            "attraction",
+            SAMPLE_ATTRACTION_DATA,
+            "outbound",
         )
         assert result is not None
         assert result["channels"] == []
@@ -112,7 +120,10 @@ class TestGroupDetailCaching:
         service = GroupDetailService(cache=mock_cache)
 
         result = await service.get_group_detail(
-            "tenant-1", "attraction", "paid", "last_30_days"
+            "tenant-1",
+            "attraction",
+            "paid",
+            "last_30_days",
         )
         assert result.group_key == "paid"
         assert len(result.channels) == 1
@@ -136,7 +147,7 @@ class TestGroupDetailCaching:
                     "metrics": [{"name": "spend", "value": 1500}],
                     "source_label": "Meta",
                     "connected": True,
-                }
+                },
             ],
             "totals": {"spend": 1500},
             "period": "last_30_days",
@@ -146,7 +157,10 @@ class TestGroupDetailCaching:
         service = GroupDetailService(cache=mock_cache)
 
         result = await service.get_group_detail(
-            "tenant-1", "attraction", "paid", "last_30_days"
+            "tenant-1",
+            "attraction",
+            "paid",
+            "last_30_days",
         )
         assert result.group_key == "paid"
         # Should NOT call set (no re-caching needed)
@@ -163,7 +177,10 @@ class TestGroupDetailCaching:
         service = GroupDetailService(cache=mock_cache)
 
         result = await service.get_group_detail(
-            "tenant-1", "attraction", "paid", "last_30_days"
+            "tenant-1",
+            "attraction",
+            "paid",
+            "last_30_days",
         )
         assert result.channels == []
         assert result.totals == {}
@@ -172,7 +189,10 @@ class TestGroupDetailCaching:
     async def test_works_without_cache(self):
         service = GroupDetailService(cache=None)
         result = await service.get_group_detail(
-            "tenant-1", "attraction", "paid", "last_30_days"
+            "tenant-1",
+            "attraction",
+            "paid",
+            "last_30_days",
         )
         assert result.group_key == "paid"
         assert result.channels == []

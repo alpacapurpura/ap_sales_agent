@@ -40,7 +40,8 @@ class TelegramService:
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(
-                    f"https://api.telegram.org/bot{token}/getMe", timeout=10.0
+                    f"https://api.telegram.org/bot{token}/getMe",
+                    timeout=10.0,
                 )
                 if resp.status_code != 200:
                     logger.warning(
@@ -138,7 +139,8 @@ class TelegramService:
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(
-                    f"https://api.telegram.org/bot{token}/getMe", timeout=5.0
+                    f"https://api.telegram.org/bot{token}/getMe",
+                    timeout=5.0,
                 )
                 if resp.status_code == 200:
                     return {
@@ -165,7 +167,7 @@ class TelegramService:
             async with httpx.AsyncClient() as client:
                 try:
                     await client.get(
-                        f"https://api.telegram.org/bot{token}/deleteWebhook"
+                        f"https://api.telegram.org/bot{token}/deleteWebhook",
                     )
                 except Exception as e:
                     logger.warning(f"Failed to delete webhook during disconnect: {e}")

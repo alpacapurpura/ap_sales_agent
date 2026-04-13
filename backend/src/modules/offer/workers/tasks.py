@@ -65,7 +65,7 @@ async def run_offer_extraction(
                         "progress": progress_pct,
                         "stage": stage,
                         "started_at": started_at,
-                    }
+                    },
                 ),
             )
 
@@ -95,12 +95,14 @@ async def run_offer_extraction(
                         "status": "completed",
                         "progress": 100,
                         "stage": "¡Análisis de oferta completado!",
-                    }
+                    },
                 ),
             )
 
         logger.info(
-            "Offer extraction completed for tenant=%s job=%s", tenant_id, job_id
+            "Offer extraction completed for tenant=%s job=%s",
+            tenant_id,
+            job_id,
         )
         return {"status": "success", "tenant_id": tenant_id, "job_id": job_id}
 

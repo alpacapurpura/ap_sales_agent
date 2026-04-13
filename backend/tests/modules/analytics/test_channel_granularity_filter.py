@@ -65,7 +65,9 @@ class TestGetChannelDailyMetrics:
     """Tests for get_channel_daily_metrics granularity handling."""
 
     def test_case_a_account_plus_campaign_plus_ad_uses_account_only(
-        self, db, tenant_id
+        self,
+        db,
+        tenant_id,
     ):
         """When account, campaign and ad rows coexist: use only account ($100)."""
         day = date(2026, 4, 8)

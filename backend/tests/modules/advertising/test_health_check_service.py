@@ -28,7 +28,9 @@ class _StubOfferReadPort(OfferReadPort):
         return list(self._offers)
 
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: UUID | None = None
+        self,
+        offer_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> OfferReadDTO | None:
         for o in self._offers:
             if o.id == offer_id:
@@ -75,7 +77,10 @@ class TestHealthCheckService:
 
     @pytest.mark.asyncio
     async def test_offer_without_campaign_yields_warning(
-        self, db, tenant_id, make_offer
+        self,
+        db,
+        tenant_id,
+        make_offer,
     ) -> None:
         offer = _offer(tenant_id, name="Curso Estrella", checkout="https://x/y")
         port = _StubOfferReadPort([offer])
@@ -87,7 +92,10 @@ class TestHealthCheckService:
 
     @pytest.mark.asyncio
     async def test_unassigned_active_campaign_adds_info_recommendation(
-        self, db, tenant_id, make_campaign
+        self,
+        db,
+        tenant_id,
+        make_campaign,
     ) -> None:
         port = _StubOfferReadPort([])
         make_campaign(
@@ -106,7 +114,12 @@ class TestHealthCheckService:
 
     @pytest.mark.asyncio
     async def test_broken_expectation_sales_without_purchases(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -151,7 +164,10 @@ class TestHealthCheckService:
 
     @pytest.mark.asyncio
     async def test_excluded_branding_campaign_does_not_appear_as_unassigned(
-        self, db, tenant_id, make_campaign
+        self,
+        db,
+        tenant_id,
+        make_campaign,
     ) -> None:
         port = _StubOfferReadPort([])
         campaign = make_campaign(

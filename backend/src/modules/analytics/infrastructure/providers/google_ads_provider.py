@@ -106,7 +106,9 @@ class GoogleAdsProvider(BaseMetricsProvider):
 
         # Resolve account currency (fallback to credentials, then USD)
         account_currency = await adapter.get_account_currency(
-            customer_id, developer_token, credentials
+            customer_id,
+            developer_token,
+            credentials,
         )
         if not account_currency:
             account_currency = credentials.get("currency", "USD")
@@ -219,11 +221,14 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 unit="json",
                 date=end_date,
                 extra={"terms": terms_list},
-            )
+            ),
         ]
 
     def _aggregate_retargeting(
-        self, rows: list[dict], metric_date: date, account_currency: str = "USD"
+        self,
+        rows: list[dict],
+        metric_date: date,
+        account_currency: str = "USD",
     ) -> list[ExtractedMetric]:
         """Aggregate remarketing campaign rows into google-retargeting slug.
 
@@ -269,7 +274,10 @@ class GoogleAdsProvider(BaseMetricsProvider):
         ]
 
     def _aggregate_by_channel(
-        self, rows: list[dict], metric_date: date, account_currency: str = "USD"
+        self,
+        rows: list[dict],
+        metric_date: date,
+        account_currency: str = "USD",
     ) -> list[ExtractedMetric]:
         """Aggregate campaign rows into google-ads and yt-ads slugs."""
         channel_data: dict[str, dict[str, float]] = {
@@ -299,7 +307,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
             # CRITICAL: divide cost_micros by 1_000_000
             channel_data[slug]["spend"] += float(row.get("cost_micros", 0)) / 1_000_000
             channel_data[slug]["conversion_value"] += float(
-                row.get("conversions_value", 0)
+                row.get("conversions_value", 0),
             )
 
         metrics: list[ExtractedMetric] = []
@@ -339,7 +347,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
                         unit=unit,
                         currency=currency,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         return metrics
@@ -366,7 +374,9 @@ class GoogleAdsProvider(BaseMetricsProvider):
 
         # Resolve account currency
         account_currency = await adapter.get_account_currency(
-            customer_id, developer_token, credentials
+            customer_id,
+            developer_token,
+            credentials,
         )
         if not account_currency:
             account_currency = credentials.get("currency", "USD")
@@ -436,11 +446,15 @@ class GoogleAdsProvider(BaseMetricsProvider):
 
             if stage == "nurturing":
                 metrics.extend(
-                    self._aggregate_retargeting(day_rows, metric_date, account_currency)
+                    self._aggregate_retargeting(
+                        day_rows,
+                        metric_date,
+                        account_currency,
+                    ),
                 )
             else:
                 metrics.extend(
-                    self._aggregate_by_channel(day_rows, metric_date, account_currency)
+                    self._aggregate_by_channel(day_rows, metric_date, account_currency),
                 )
 
         return metrics

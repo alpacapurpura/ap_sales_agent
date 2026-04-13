@@ -42,7 +42,7 @@ def migrate(dry_run: bool = False):
     print()
 
     if not settings.R2_ACCESS_KEY_ID or settings.R2_ACCESS_KEY_ID.startswith(
-        "PENDIENTE"
+        "PENDIENTE",
     ):
         print("❌ R2_ACCESS_KEY_ID not configured. Set it in .env first.")
         sys.exit(1)
@@ -104,7 +104,7 @@ def migrate(dry_run: bool = False):
                         "storage_provider": "R2",
                         "storage_path": r2_key,
                         "public_url": r2_public_url,
-                    }
+                    },
                 )
                 db.commit()
 
@@ -129,10 +129,12 @@ def migrate(dry_run: bool = False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Migrate local assets to Cloudflare R2"
+        description="Migrate local assets to Cloudflare R2",
     )
     parser.add_argument(
-        "--dry-run", action="store_true", help="Preview only, no changes"
+        "--dry-run",
+        action="store_true",
+        help="Preview only, no changes",
     )
     args = parser.parse_args()
     migrate(dry_run=args.dry_run)

@@ -16,7 +16,11 @@ class ClerkService:
             logger.error("CLERK_SECRET_KEY not set. Clerk integration will fail.")
 
     def create_user(
-        self, email: str, password: str, first_name: str, last_name: str | None = None
+        self,
+        email: str,
+        password: str,
+        first_name: str,
+        last_name: str | None = None,
     ) -> dict[str, Any]:
         """
         Creates a user in Clerk via Backend API.
@@ -56,7 +60,8 @@ class ClerkService:
                 # Often means user already exists or password too weak
                 error_detail = response.json().get("errors", [])
                 logger.warning(
-                    "clerk_create_user_failed_validation", errors=error_detail
+                    "clerk_create_user_failed_validation",
+                    errors=error_detail,
                 )
                 # Check if it's "form_identifier_exists"
                 if any(e.get("code") == "form_identifier_exists" for e in error_detail):
@@ -107,7 +112,9 @@ class ClerkService:
             return None
 
     def update_user_metadata(
-        self, user_id: str, public_metadata: dict[str, Any]
+        self,
+        user_id: str,
+        public_metadata: dict[str, Any],
     ) -> bool:
         """
         Updates the user's public metadata (e.g., tenant_id, role).
@@ -128,7 +135,9 @@ class ClerkService:
             response = httpx.patch(url, headers=headers, json=payload, timeout=5.0)
             if response.status_code == 200:
                 logger.info(
-                    "clerk_metadata_updated", user_id=user_id, metadata=public_metadata
+                    "clerk_metadata_updated",
+                    user_id=user_id,
+                    metadata=public_metadata,
                 )
                 return True
             logger.error(
@@ -190,7 +199,9 @@ class ClerkService:
                 logger.info("clerk_user_banned", user_id=user_id)
                 return True
             logger.error(
-                "clerk_user_ban_failed", status=response.status_code, body=response.text
+                "clerk_user_ban_failed",
+                status=response.status_code,
+                body=response.text,
             )
             return False
         except Exception as e:

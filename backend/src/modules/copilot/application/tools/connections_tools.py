@@ -31,7 +31,7 @@ def get_connections_detail() -> str:
                 text(
                     "SELECT channel_type, is_active, config, created_at, updated_at "
                     "FROM channel_connections WHERE tenant_id = :tid "
-                    "ORDER BY channel_type"
+                    "ORDER BY channel_type",
                 ),
                 {"tid": str(tenant_id)},
             )
@@ -51,7 +51,7 @@ def get_connections_detail() -> str:
         inactive = [r for r in rows if not r["is_active"]]
 
         lines = [
-            f"## Conexiones ({len(active)} activa(s), {len(inactive)} inactiva(s))\n"
+            f"## Conexiones ({len(active)} activa(s), {len(inactive)} inactiva(s))\n",
         ]
 
         for r in rows:

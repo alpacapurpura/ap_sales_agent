@@ -36,7 +36,9 @@ class ConversationRepository:
         return conv
 
     def get_by_id(
-        self, conversation_id: UUID, tenant_id: UUID
+        self,
+        conversation_id: UUID,
+        tenant_id: UUID,
     ) -> CopilotConversationModel | None:
         stmt = select(CopilotConversationModel).where(
             CopilotConversationModel.id == conversation_id,
@@ -144,7 +146,7 @@ class ConversationRepository:
             self.db.execute(
                 select(func.count())
                 .select_from(CopilotConversationModel)
-                .where(CopilotConversationModel.created_at >= cutoff)
+                .where(CopilotConversationModel.created_at >= cutoff),
             ).scalar()
             or 0
         )
@@ -152,8 +154,8 @@ class ConversationRepository:
         tenants_with_convs = (
             self.db.execute(
                 select(
-                    func.count(func.distinct(CopilotConversationModel.tenant_id))
-                ).where(CopilotConversationModel.created_at >= cutoff)
+                    func.count(func.distinct(CopilotConversationModel.tenant_id)),
+                ).where(CopilotConversationModel.created_at >= cutoff),
             ).scalar()
             or 0
         )

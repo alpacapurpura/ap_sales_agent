@@ -15,7 +15,9 @@ class ChannelService:
         self.repository = ChannelRepository(db)
 
     def get_active_channel(
-        self, tenant_id: UUID, channel_type: ChannelType
+        self,
+        tenant_id: UUID,
+        channel_type: ChannelType,
     ) -> ChannelConnection | None:
         return self.repository.get_active_connection(tenant_id, channel_type)
 

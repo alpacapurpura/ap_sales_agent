@@ -105,7 +105,11 @@ class TestBackfillBatchCreatesOnlyNew:
         # 3 checkout events with distinct order_ids
         events = [
             _make_checkout_event(
-                TENANT_A, profile.id, source, f"ORD-{i}", ext_product_id
+                TENANT_A,
+                profile.id,
+                source,
+                f"ORD-{i}",
+                ext_product_id,
             )
             for i in range(3)
         ]
@@ -126,7 +130,7 @@ class TestBackfillBatchCreatesOnlyNew:
             ).where(
                 JourneyEventModel.tenant_id == TENANT_A,
                 JourneyEventModel.event_name == "checkout_completed",
-            )
+            ),
         ).all()
 
         candidates: list[dict] = []
@@ -153,7 +157,7 @@ class TestBackfillBatchCreatesOnlyNew:
                         "currency": props.get("currency", "USD"),
                         "amount": float(item.get("price", 0)),
                         "order_id": order_id,
-                    }
+                    },
                 )
 
         # Should find 3 candidates
@@ -166,7 +170,7 @@ class TestBackfillBatchCreatesOnlyNew:
                 select(SaleModel.transaction_id).where(
                     SaleModel.tenant_id == TENANT_A,
                     SaleModel.transaction_id.in_(candidate_txn_ids),
-                )
+                ),
             ).all()
         }
         assert existing_txn in existing_txn_ids
@@ -188,7 +192,7 @@ class TestBackfillBatchCreatesOnlyNew:
 
         # Verify: 1 pre-existing + 2 new = 3 total
         total = db.execute(
-            select(SaleModel.id).where(SaleModel.tenant_id == TENANT_A)
+            select(SaleModel.id).where(SaleModel.tenant_id == TENANT_A),
         ).all()
         assert len(total) == 3
         assert len(new_sales) == 2
@@ -206,7 +210,11 @@ class TestBackfillBatchCreatesOnlyNew:
         # Same order_id twice (simulates duplicate events)
         events = [
             _make_checkout_event(
-                TENANT_A, profile.id, source, "ORD-SAME", ext_product_id
+                TENANT_A,
+                profile.id,
+                source,
+                "ORD-SAME",
+                ext_product_id,
             )
             for _ in range(2)
         ]
@@ -221,7 +229,7 @@ class TestBackfillBatchCreatesOnlyNew:
             ).where(
                 JourneyEventModel.tenant_id == TENANT_A,
                 JourneyEventModel.event_name == "checkout_completed",
-            )
+            ),
         ).all()
 
         candidate_txn_ids: set[str] = set()
@@ -253,7 +261,7 @@ class TestBackfillBatchCreatesOnlyNew:
             select(JourneyEventModel.properties).where(
                 JourneyEventModel.tenant_id == TENANT_A,
                 JourneyEventModel.event_name == "checkout_completed",
-            )
+            ),
         ).all()
 
         assert len(all_events) == 0
@@ -289,10 +297,10 @@ class TestDetailEndpointReturnsData:
             select(
                 sa_func.count(SaleModel.id).label("sales_count"),
                 sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label(
-                    "total_revenue"
+                    "total_revenue",
                 ),
                 sa_func.count(sa_func.distinct(SaleModel.customer_id)).label(
-                    "unique_customers"
+                    "unique_customers",
                 ),
                 sa_func.min(SaleModel.occurred_at).label("first_sale"),
                 sa_func.max(SaleModel.occurred_at).label("last_sale"),
@@ -301,7 +309,7 @@ class TestDetailEndpointReturnsData:
                 SaleModel.offer_id == offer.id,
                 SaleModel.tenant_id == TENANT_A,
                 SaleModel.status == "COMPLETED",
-            )
+            ),
         ).first()
 
         assert agg_row is not None
@@ -324,10 +332,10 @@ class TestDetailEndpointReturnsData:
             select(
                 sa_func.count(SaleModel.id).label("sales_count"),
                 sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label(
-                    "total_revenue"
+                    "total_revenue",
                 ),
                 sa_func.count(sa_func.distinct(SaleModel.customer_id)).label(
-                    "unique_customers"
+                    "unique_customers",
                 ),
                 sa_func.min(SaleModel.occurred_at).label("first_sale"),
                 sa_func.max(SaleModel.occurred_at).label("last_sale"),
@@ -336,7 +344,7 @@ class TestDetailEndpointReturnsData:
                 SaleModel.offer_id == offer.id,
                 SaleModel.tenant_id == TENANT_A,
                 SaleModel.status == "COMPLETED",
-            )
+            ),
         ).first()
 
         assert agg_row is not None
@@ -377,7 +385,7 @@ class TestDetailEndpointReturnsData:
                 SaleModel.tenant_id == TENANT_A,
                 SaleModel.status == "COMPLETED",
             )
-            .group_by(SaleModel.source)
+            .group_by(SaleModel.source),
         ).all()
         breakdown = dict(source_rows)
 

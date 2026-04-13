@@ -34,7 +34,9 @@ class CampaignTemplateService:
         self._template_repo = CampaignTemplateRepository(db)
 
     async def get_template_for_offer(
-        self, tenant_id: UUID, offer_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
     ) -> AdCampaignTemplateDTO | None:
         """Return the best matching template for an offer, or None."""
         offer = await self._offer_read_port.get_offer_by_id(offer_id, tenant_id)
@@ -58,7 +60,7 @@ class CampaignTemplateService:
             description=template.description or "",
             recommended_objective=template.recommended_objective,
             recommended_objective_label_es=objective_label_es(
-                template.recommended_objective
+                template.recommended_objective,
             ),
             recommended_optimization_goal=template.recommended_optimization_goal,
             recommended_destination_type=template.recommended_destination_type,

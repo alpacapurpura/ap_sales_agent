@@ -39,7 +39,10 @@ class AppointmentRepository:
         )
 
     def get_appointments_by_date_range(
-        self, start: datetime, end: datetime, tenant_id: UUID
+        self,
+        start: datetime,
+        end: datetime,
+        tenant_id: UUID,
     ) -> list[Appointment]:
         stmt = (
             select(AppointmentModel)

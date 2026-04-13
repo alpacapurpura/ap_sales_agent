@@ -31,7 +31,8 @@ class GeminiService(BaseLLMService):
 
         # Initialize Embeddings Model
         self.embeddings = GoogleGenerativeAIEmbeddings(
-            model=self.embedding_model_name, api_key=self.api_key
+            model=self.embedding_model_name,
+            api_key=self.api_key,
         )
 
     def generate_response(

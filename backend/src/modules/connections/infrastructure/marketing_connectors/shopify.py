@@ -63,14 +63,17 @@ class ShopifyConnector(BaseConnector):
 
         secret = settings.SHOPIFY_API_SECRET.encode("utf-8")
         signature = hmac.new(
-            secret, message.encode("utf-8"), hashlib.sha256
+            secret,
+            message.encode("utf-8"),
+            hashlib.sha256,
         ).hexdigest()
 
         return hmac.compare_digest(hmac_param, signature)
 
     @staticmethod
     async def exchange_token(
-        shop_domain: str, code: str
+        shop_domain: str,
+        code: str,
     ) -> tuple[str | None, str | None]:
         """
         Exchanges the authorization code for a permanent access token.
@@ -163,7 +166,8 @@ class ShopifyConnector(BaseConnector):
 
     @staticmethod
     async def verify_connection(
-        shop_url: str, access_token: str
+        shop_url: str,
+        access_token: str,
     ) -> tuple[bool, dict[str, Any]]:
         """
         Verifies Shopify connection by fetching shop details.
@@ -211,7 +215,9 @@ class ShopifyConnector(BaseConnector):
                     return False, {"error": "Invalid access token"}
                 if response.status_code == 404:
                     logger.warning(
-                        "shopify_shop_not_found", shop=shop_domain, status=404
+                        "shopify_shop_not_found",
+                        shop=shop_domain,
+                        status=404,
                     )
                     return False, {"error": "Shop not found"}
                 logger.error(

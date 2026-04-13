@@ -152,7 +152,10 @@ class TestStageOverviewService:
     """Tests for StageOverviewService._extract_overview."""
 
     async def test_get_attraction_overview_returns_dto(
-        self, mock_cache, sample_attraction_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_attraction_cache,
+        test_tenant_id,
     ):
         """Service returns a StageOverviewDTO from cached attraction data."""
 
@@ -168,13 +171,18 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "attraction", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "last_30_days",
         )
         assert isinstance(result, StageOverviewDTO)
         assert result.stage == "attraction"
 
     async def test_overview_includes_channel_list(
-        self, mock_cache, sample_attraction_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_attraction_cache,
+        test_tenant_id,
     ):
         """Overview channel_list includes all channels from all groups."""
 
@@ -187,7 +195,9 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "attraction", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "last_30_days",
         )
         assert len(result.channel_list) == 3  # ig-organic, google-organic, meta-ads
         slugs = {ch.slug for ch in result.channel_list}
@@ -196,7 +206,10 @@ class TestStageOverviewService:
         assert "meta-ads" in slugs
 
     async def test_overview_includes_groups(
-        self, mock_cache, sample_attraction_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_attraction_cache,
+        test_tenant_id,
     ):
         """Overview groups includes summary for each non-empty group."""
 
@@ -209,7 +222,9 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "attraction", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "last_30_days",
         )
         group_keys = {g.group_key for g in result.groups}
         assert "organic_social" in group_keys
@@ -217,7 +232,10 @@ class TestStageOverviewService:
         assert "paid" in group_keys
 
     async def test_overview_includes_header_kpis(
-        self, mock_cache, sample_attraction_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_attraction_cache,
+        test_tenant_id,
     ):
         """Attraction overview header_kpis include reach and sessions totals."""
 
@@ -230,14 +248,19 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "attraction", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "last_30_days",
         )
         assert "total_reach" in result.header_kpis
         assert result.header_kpis["total_reach"] == 5000.0
         assert result.header_kpis["total_sessions"] == 3000.0
 
     async def test_overview_channel_has_headline_kpi(
-        self, mock_cache, sample_attraction_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_attraction_cache,
+        test_tenant_id,
     ):
         """Each channel in the overview has a headline_kpi extracted."""
 
@@ -250,7 +273,9 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "attraction", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "last_30_days",
         )
         ig = next(ch for ch in result.channel_list if ch.slug == "ig-organic")
         assert ig.headline_kpi is not None
@@ -258,14 +283,18 @@ class TestStageOverviewService:
         assert ig.headline_kpi.value == 5000.0
 
     async def test_empty_stage_data_returns_empty_overview(
-        self, mock_cache, test_tenant_id
+        self,
+        mock_cache,
+        test_tenant_id,
     ):
         """When no cache data exists, returns an empty overview."""
         mock_cache.get = AsyncMock(return_value=None)
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "attraction", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "last_30_days",
         )
         assert result.stage == "attraction"
         assert result.header_kpis == {}
@@ -273,7 +302,10 @@ class TestStageOverviewService:
         assert result.groups == []
 
     async def test_capture_overview_includes_mini_funnel(
-        self, mock_cache, sample_capture_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_capture_cache,
+        test_tenant_id,
     ):
         """Capture overview includes mini_funnel from cached data."""
 
@@ -286,14 +318,19 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "capture", "last_30_days"
+            test_tenant_id,
+            "capture",
+            "last_30_days",
         )
         assert result.mini_funnel is not None
         assert result.mini_funnel.source_label == "Visitantes"
         assert result.mini_funnel.conversion_rate == 5.0
 
     async def test_capture_overview_header_kpis(
-        self, mock_cache, sample_capture_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_capture_cache,
+        test_tenant_id,
     ):
         """Capture overview header_kpis include total_leads and conversion_rate."""
 
@@ -306,13 +343,18 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "capture", "last_30_days"
+            test_tenant_id,
+            "capture",
+            "last_30_days",
         )
         assert result.header_kpis["total_leads"] == 500.0
         assert result.header_kpis["conversion_rate"] == 5.0
 
     async def test_overview_caches_result(
-        self, mock_cache, sample_attraction_cache, test_tenant_id
+        self,
+        mock_cache,
+        sample_attraction_cache,
+        test_tenant_id,
     ):
         """Service caches the computed overview."""
 
@@ -331,7 +373,9 @@ class TestStageOverviewService:
         assert call_args[0][1] == "overview_attraction"
 
     async def test_overview_returns_cached_if_available(
-        self, mock_cache, test_tenant_id
+        self,
+        mock_cache,
+        test_tenant_id,
     ):
         """Service returns cached non-empty overview without recomputing."""
         cached_overview = {
@@ -365,7 +409,9 @@ class TestStageOverviewService:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            test_tenant_id, "attraction", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "last_30_days",
         )
         assert result.header_kpis["total_reach"] == 9999.0
         assert len(result.channel_list) == 1

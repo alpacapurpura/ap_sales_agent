@@ -217,7 +217,10 @@ class ETLService:
         return results
 
     async def _run_provider_isolated(
-        self, tenant_id: UUID, provider_name: str, days: int
+        self,
+        tenant_id: UUID,
+        provider_name: str,
+        days: int,
     ) -> dict:
         """Run run_initial_load with an isolated DB session (safe for asyncio.gather).
 
@@ -288,7 +291,7 @@ class ETLService:
                             "provider": provider_name,
                             "status": "skipped_cooldown",
                             "remaining_minutes": remaining_min,
-                        }
+                        },
                     )
                     skipped_cooldown += 1
                     continue
@@ -325,7 +328,7 @@ class ETLService:
                         "provider": provider_name,
                         "status": "failed",
                         "error": str(result),
-                    }
+                    },
                 )
                 failed += 1
             else:
@@ -336,7 +339,7 @@ class ETLService:
                         "loaded": result["loaded"],
                         "skipped": result["skipped"],
                         "total": result["total"],
-                    }
+                    },
                 )
                 total_loaded += result["loaded"]
                 total_skipped += result["skipped"]
@@ -403,7 +406,7 @@ class ETLService:
                         "provider": provider_name,
                         "status": "skipped",
                         "reason": "already_extracted",
-                    }
+                    },
                 )
                 continue
 
@@ -436,7 +439,8 @@ class ETLService:
         )
 
         sync_service = InstagramDMSyncService(
-            self.db, connection_port=self.connection_port
+            self.db,
+            connection_port=self.connection_port,
         )
         return await sync_service.sync(tenant_id)
 
@@ -470,7 +474,10 @@ class ETLService:
         # Gap detection: find days already loaded
         official_repo = OfficialMetricsRepository(self.db)
         existing = official_repo.get_existing_dates(
-            tenant_id, provider_name, start_date, end_date
+            tenant_id,
+            provider_name,
+            start_date,
+            end_date,
         )
         all_days = {
             start_date + timedelta(days=i)
@@ -560,7 +567,11 @@ class ETLService:
 
         # Step: Period extraction for NON_AGGREGABLE metrics (reach, frequency, etc.)
         await self._try_period_extraction(
-            tenant_id, provider_name, start_date, end_date, run_repo
+            tenant_id,
+            provider_name,
+            start_date,
+            end_date,
+            run_repo,
         )
 
         if progress_callback:
@@ -731,7 +742,8 @@ class ETLService:
                     JourneyEventModel.tenant_id == tenant_id,
                     JourneyEventModel.event_name == "checkout_completed",
                     sa_func.jsonb_extract_path_text(
-                        JourneyEventModel.properties, "order_id"
+                        JourneyEventModel.properties,
+                        "order_id",
                     )
                     == order_id,
                 )
@@ -763,7 +775,7 @@ class ETLService:
             total_price = float(order.get("total_price", 0))
             currency = order.get("currency", "USD")
             occurred_at = self._parse_shopify_datetime(
-                order.get("processed_at") or order.get("created_at", "")
+                order.get("processed_at") or order.get("created_at", ""),
             )
 
             # Create journey_event
@@ -841,7 +853,7 @@ class ETLService:
                     SaleModel.tenant_id == tenant_id,
                     SaleModel.transaction_id == txn_id,
                 )
-                .limit(1)
+                .limit(1),
             ).scalar_one_or_none()
             if existing_sale:
                 continue
@@ -902,7 +914,8 @@ class ETLService:
                         JourneyEventModel.tenant_id == tenant_id,
                         JourneyEventModel.event_name == "checkout_initiated",
                         sa_func.jsonb_extract_path_text(
-                            JourneyEventModel.properties, "checkout_token"
+                            JourneyEventModel.properties,
+                            "checkout_token",
                         )
                         == token,
                     )

@@ -57,7 +57,8 @@ class TestNoHardcodedCurrencyInProviders:
         return sorted(PROVIDERS_DIR.glob("*.py"))
 
     def test_no_hardcoded_currency_in_providers(
-        self, provider_files: list[Path]
+        self,
+        provider_files: list[Path],
     ) -> None:
         violations: list[str] = []
         for filepath in provider_files:
@@ -66,7 +67,7 @@ class TestNoHardcodedCurrencyInProviders:
             content = filepath.read_text(encoding="utf-8")
             for i, line in enumerate(content.splitlines(), 1):
                 if self.HARDCODED_CURRENCY_PATTERN.search(
-                    line
+                    line,
                 ) and not self.FALLBACK_PATTERN.search(line):
                     violations.append(f"  {filepath.name}:{i}: {line.strip()}")
 

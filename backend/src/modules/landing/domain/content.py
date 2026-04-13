@@ -25,7 +25,8 @@ class Testimonial(BaseEntity):
 class LandingPageTheme(BaseEntity):
     primary_color: str = Field("#000000", description="Hex code for primary actions")
     secondary_color: str = Field(
-        "#ffffff", description="Hex code for backgrounds/accents"
+        "#ffffff",
+        description="Hex code for backgrounds/accents",
     )
     font_pair: LandingPageFont = LandingPageFont.SANS_SERIF
     dark_mode: bool = False
@@ -42,7 +43,8 @@ class SqueezeContent(BaseEntity):
     bullets: list[str] = Field(..., description="3 puntos de fascinación")
     cta_text: str = Field("Envíamelo ahora", description="Texto del botón")
     privacy_text: str = Field(
-        "Tu información está segura.", description="Texto bajo el botón"
+        "Tu información está segura.",
+        description="Texto bajo el botón",
     )
 
 
@@ -74,7 +76,8 @@ class FlashOfferContent(BaseEntity):
 # 4. THE TRANSFORMER (Cursos/Mentorías - Estructura A-G)
 class TransformerContent(BaseEntity):
     headline: str = Field(
-        ..., description="Gancho principal: Transformación de Identidad en X tiempo"
+        ...,
+        description="Gancho principal: Transformación de Identidad en X tiempo",
     )
     subheadline: str = Field(..., description="Promesa secundaria o bajada")
     problem_text: str = Field(..., description="El dolor actual del avatar")
@@ -101,7 +104,9 @@ class VelvetRopeContent(BaseEntity):
     manifesto_text: str = Field(..., description="Valores y visión del grupo")
     who_is_this_for: list[str] = Field(..., description="Filtro positivo")
     who_is_not_for: list[str] = Field(
-        ..., alias="who_is_NOT_for", description="Filtro negativo"
+        ...,
+        alias="who_is_NOT_for",
+        description="Filtro negativo",
     )
     experience_image_urls: list[str] = Field([], description="Fotos de eventos pasados")
     scarcity_text: str = Field(..., description="Ej: 'Solo 10 cupos anuales'")
@@ -113,12 +118,14 @@ class BrochureContent(BaseEntity):
     headline: str = Field(..., description="Beneficio Claro + ROI")
     authority_logos: list[str] = Field([], description="Logos de clientes o prensa")
     process_steps: list[FeatureBullet] = Field(
-        ..., description="Cómo trabajamos (Paso 1, 2, 3)"
+        ...,
+        description="Cómo trabajamos (Paso 1, 2, 3)",
     )
     deliverables: list[str] = Field(..., description="Lista técnica de lo que incluye")
     case_studies: list[Testimonial] = Field([], description="Casos de éxito")
     cta_text: str = Field(
-        "Agendar llamada de descubrimiento", description="Texto del botón"
+        "Agendar llamada de descubrimiento",
+        description="Texto del botón",
     )
 
 

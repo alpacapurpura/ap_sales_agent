@@ -84,7 +84,7 @@ class CampaignRepository:
                     "budget_remaining": c.get("budget_remaining"),
                     "buying_type": c.get("buying_type", "AUCTION"),
                     "special_ad_categories": json.dumps(
-                        c.get("special_ad_categories", [])
+                        c.get("special_ad_categories", []),
                     ),
                     "start_time": c.get("start_time"),
                     "stop_time": c.get("stop_time"),
@@ -386,7 +386,7 @@ class CampaignRepository:
                   AND provider = :provider
                   AND deleted_at IS NULL
                   AND external_id NOT IN ({placeholders})
-            """  # noqa: S608 — table is a trusted internal constant, not user input
+            """,  # noqa: S608 — table is a trusted internal constant, not user input
             ),
             params,
         )

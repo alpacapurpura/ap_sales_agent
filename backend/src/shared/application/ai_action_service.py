@@ -79,10 +79,12 @@ class AIActionService:
                     tenant_id=str(tenant_id) if tenant_id else None,
                     attempt=attempt,
                     duration_ms=round(
-                        (time.perf_counter() - attempt_started_at) * 1000, 2
+                        (time.perf_counter() - attempt_started_at) * 1000,
+                        2,
                     ),
                     total_duration_ms=round(
-                        (time.perf_counter() - started_at) * 1000, 2
+                        (time.perf_counter() - started_at) * 1000,
+                        2,
                     ),
                     model_type=resolved_policy.model.model_type,
                 )
@@ -101,7 +103,8 @@ class AIActionService:
                     error=str(error),
                     raw_response_preview=raw_preview,
                     duration_ms=round(
-                        (time.perf_counter() - attempt_started_at) * 1000, 2
+                        (time.perf_counter() - attempt_started_at) * 1000,
+                        2,
                     ),
                     model_type=resolved_policy.model.model_type,
                 )

@@ -102,7 +102,8 @@ class TestUserRepositoryCreate:
 
         repo = UserRepository(db)
         duplicate = User(
-            id=uuid.uuid4(), email="alice@example.com"
+            id=uuid.uuid4(),
+            email="alice@example.com",
         )  # same as seed_user
         with pytest.raises(IntegrityError):
             repo.create(duplicate)

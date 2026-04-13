@@ -137,7 +137,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                         unit="count",
                         date=period_start,
                         extra={"period_type": period_type, "period_exact": True},
-                    )
+                    ),
                 )
 
         return ExtractionResult(metrics=extracted)
@@ -286,7 +286,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                         value=float(mets[i]),
                         unit=unit,
                         date=end_date,
-                    )
+                    ),
                 )
         return metrics
 
@@ -315,7 +315,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                     {
                         "path": dims[0],
                         "views": int(float(mets[0])),
-                    }
+                    },
                 )
 
         # Sort descending by views, take top 10
@@ -334,7 +334,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 unit="json",
                 date=end_date,
                 extra={"pages": pages},
-            )
+            ),
         ]
 
     async def _extract_traffic_sources(
@@ -362,7 +362,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                     {
                         "channel": dims[0],
                         "sessions": int(float(mets[0])),
-                    }
+                    },
                 )
 
         # Sort descending by sessions
@@ -380,7 +380,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 unit="json",
                 date=end_date,
                 extra={"sources": sources},
-            )
+            ),
         ]
 
     async def _extract_device_split(
@@ -427,7 +427,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 unit="json",
                 date=end_date,
                 extra=split,
-            )
+            ),
         ]
 
     def _segment_report(self, report: dict, metric_date: date) -> list[ExtractedMetric]:
@@ -521,7 +521,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                         value=value,
                         unit=unit,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         return metrics
@@ -632,7 +632,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                         value=float(mets[i]),
                         unit=unit,
                         date=metric_date,
-                    )
+                    ),
                 )
         return metrics
 
@@ -747,7 +747,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                         value=value,
                         unit=unit,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         return metrics

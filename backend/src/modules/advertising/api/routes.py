@@ -82,7 +82,8 @@ async def _association_to_dto(
     offer_archetype: str | None = None
     if row.offer_id is not None:
         offer: OfferReadDTO | None = await offer_port.get_offer_by_id(
-            row.offer_id, tenant_id
+            row.offer_id,
+            tenant_id,
         )
         if offer is not None:
             offer_name = offer.public_name
@@ -229,7 +230,7 @@ async def list_offers_for_assignment(
                 expected_metric=expected.value,
                 expected_metric_label_es=expected_metric_label_es(expected.value),
                 is_lead_magnet=o.is_lead_magnet,
-            )
+            ),
         )
     return out
 

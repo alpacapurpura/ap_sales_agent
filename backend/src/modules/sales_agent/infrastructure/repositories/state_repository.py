@@ -21,7 +21,9 @@ class StateRepository:
         self.db = db
 
     def get_active_checkpoint(
-        self, tenant_id: UUID, lead_id: UUID
+        self,
+        tenant_id: UUID,
+        lead_id: UUID,
     ) -> AgentStateCheckpointModel | None:
         """Return the most-recently-updated active checkpoint for a tenant + lead."""
         stmt = (
@@ -37,7 +39,10 @@ class StateRepository:
         return self.db.execute(stmt).scalar_one_or_none()
 
     def save_checkpoint(
-        self, tenant_id: UUID, lead_id: UUID, **fields
+        self,
+        tenant_id: UUID,
+        lead_id: UUID,
+        **fields,
     ) -> AgentStateCheckpointModel:
         """Create or update the active checkpoint for a tenant + lead."""
         existing = self.get_active_checkpoint(tenant_id, lead_id)

@@ -63,7 +63,7 @@ class TestConnectionPortImplGetCredentials:
 
         with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta")
+                port.get_credentials(TENANT_ID, "meta"),
             )
 
         assert isinstance(result, ConnectionCredentials)
@@ -87,7 +87,7 @@ class TestConnectionPortImplGetCredentials:
             pytest.raises(ConnectionRevokedError),
         ):
             asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta")
+                port.get_credentials(TENANT_ID, "meta"),
             )
 
     def test_detects_expired_token_and_refreshes(self):
@@ -127,7 +127,7 @@ class TestConnectionPortImplGetCredentials:
 
         with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta")
+                port.get_credentials(TENANT_ID, "meta"),
             )
 
         assert isinstance(result, ConnectionCredentials)
@@ -166,7 +166,7 @@ class TestConnectionPortImplGetCredentials:
             pytest.raises(TokenRefreshError),
         ):
             asyncio.get_event_loop().run_until_complete(
-                port.get_credentials(TENANT_ID, "meta")
+                port.get_credentials(TENANT_ID, "meta"),
             )
 
 
@@ -189,7 +189,7 @@ class TestConnectionPortImplListActive:
 
         with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
-                port.list_active_connections(TENANT_ID)
+                port.list_active_connections(TENANT_ID),
             )
 
         assert len(result) == 2
@@ -211,7 +211,7 @@ class TestConnectionPortImplListActive:
 
         with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
-                port.list_active_connections(TENANT_ID)
+                port.list_active_connections(TENANT_ID),
             )
 
         assert result == []
@@ -227,14 +227,15 @@ class TestConnectionPortImplListActive:
 
         active = _make_connection_model(channel_type="meta", is_active=True)
         inactive = _make_connection_model(
-            channel_type="google_analytics", is_active=False
+            channel_type="google_analytics",
+            is_active=False,
         )
         port.repo = MagicMock()
         port.repo.get_all_by_tenant = MagicMock(return_value=[active, inactive])
 
         with patch("asyncio.to_thread", _sync_to_thread):
             result = asyncio.get_event_loop().run_until_complete(
-                port.list_active_connections(TENANT_ID)
+                port.list_active_connections(TENANT_ID),
             )
 
         assert len(result) == 1

@@ -18,7 +18,8 @@ def _build_client(tenant_id):
     app.dependency_overrides[get_db] = lambda: mock_db
     app.dependency_overrides[get_tenant_context] = lambda: tenant_id
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
-        id=uuid4(), tenant_id=tenant_id
+        id=uuid4(),
+        tenant_id=tenant_id,
     )
     return TestClient(app)
 
@@ -28,14 +29,14 @@ def test_copilot_offer_psychology_endpoint_keeps_contract():
     client = _build_client(tenant_id)
 
     with patch(
-        "src.modules.copilot.api.actions.CopilotOfferPsychologyService"
+        "src.modules.copilot.api.actions.CopilotOfferPsychologyService",
     ) as service_cls:
         service_instance = MagicMock()
         service_instance.generate_psychology = AsyncMock(
             return_value=PsychologyGenerationResponse(
                 pains=["p1", "p2", "p3", "p4", "p5"],
                 desires=["d1", "d2", "d3", "d4", "d5"],
-            )
+            ),
         )
         service_cls.return_value = service_instance
 
@@ -61,11 +62,11 @@ def test_copilot_brand_extract_delegates_to_service():
     client = _build_client(tenant_id)
 
     with patch(
-        "src.modules.copilot.api.actions.CopilotBrandAIActionsService"
+        "src.modules.copilot.api.actions.CopilotBrandAIActionsService",
     ) as service_cls:
         service_instance = MagicMock()
         service_instance.extract_brand_identity = AsyncMock(
-            return_value={"primary_color": "#FF5733", "secondary_color": "#333333"}
+            return_value={"primary_color": "#FF5733", "secondary_color": "#333333"},
         )
         service_cls.return_value = service_instance
 

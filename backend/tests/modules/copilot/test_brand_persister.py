@@ -33,7 +33,7 @@ class TestBrandPersister:
             mock_repo.get_settings.return_value = mock_settings
 
             with patch(
-                "src.modules.brand.domain.aggregates.BrandSettings"
+                "src.modules.brand.domain.aggregates.BrandSettings",
             ) as mock_brand:
                 mock_brand.model_validate.return_value = mock_settings
                 persister.persist(tenant_id, mapa_global, fields_to_persist)
@@ -56,7 +56,7 @@ class TestBrandPersister:
             mock_repo.get_settings.return_value = mock_settings
 
             with patch(
-                "src.modules.brand.domain.aggregates.BrandSettings"
+                "src.modules.brand.domain.aggregates.BrandSettings",
             ) as mock_brand:
                 mock_brand.model_validate.return_value = mock_settings
                 persister.persist(tenant_id, mapa_global, fields_to_persist)

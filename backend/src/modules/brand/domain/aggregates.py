@@ -80,35 +80,42 @@ class BrandSettings(BaseEntity):
         return data
 
     identity: BrandIdentity | None = Field(
-        None, description="Visual identity and design system"
+        None,
+        description="Visual identity and design system",
     )
     strategy: BrandStrategy | None = Field(None, description="Strategic positioning")
     story: BrandStory | None = Field(None, description="Brand narrative")
 
     # Updated to support List[KeyFigure] from frontend
     team: list[KeyFigure] | None = Field(
-        default_factory=list, description="Team structure and leadership"
+        default_factory=list,
+        description="Team structure and leadership",
     )
 
     # New fields
     contact: BrandContact | None = Field(None, description="Contact information")
     testimonials: list[BrandTestimonial] = Field(
-        default_factory=list, description="Customer testimonials"
+        default_factory=list,
+        description="Customer testimonials",
     )
     authority_vault: list[BrandAuthorityItem] = Field(
-        default_factory=list, description="Authority resources and links"
+        default_factory=list,
+        description="Authority resources and links",
     )
     visuals: BrandVisuals | None = Field(None, description="Brand visual assets")
 
     # Strategic frameworks
     positioning: BrandPositioning | None = Field(
-        None, description="Brand Love Key positioning framework"
+        None,
+        description="Brand Love Key positioning framework",
     )
     narrative: BrandNarrative | None = Field(
-        None, description="StoryBrand narrative framework"
+        None,
+        description="StoryBrand narrative framework",
     )
     communication_assets: CommunicationAssets | None = Field(
-        None, description="Dynamic funnel-stage communication assets"
+        None,
+        description="Dynamic funnel-stage communication assets",
     )
 
     # Legacy field support

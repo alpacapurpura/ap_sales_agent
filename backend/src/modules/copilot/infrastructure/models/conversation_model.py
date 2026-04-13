@@ -18,7 +18,9 @@ class CopilotConversationModel(Base):
     client_context = Column(JSONB, nullable=True)
     summary = Column(Text, nullable=True)
     created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )
     updated_at = Column(
         DateTime(timezone=True),

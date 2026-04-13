@@ -20,13 +20,13 @@ def migrate():
             print("Renaming table 'offer_gallery_images' to 'assets'...")
             try:
                 connection.execute(
-                    text("ALTER TABLE offer_gallery_images RENAME TO assets;")
+                    text("ALTER TABLE offer_gallery_images RENAME TO assets;"),
                 )
                 print("✅ Table renamed.")
             except Exception as e:
                 if "does not exist" in str(e):
                     print(
-                        "⚠️ Table 'offer_gallery_images' not found. Checking if 'assets' exists..."
+                        "⚠️ Table 'offer_gallery_images' not found. Checking if 'assets' exists...",
                     )
                 elif "already exists" in str(e):
                     print("ℹ️ Table 'assets' already exists.")
@@ -36,7 +36,7 @@ def migrate():
             # 2. Alter offer_id to NULLABLE
             print("Altering 'offer_id' to be NULLABLE...")
             connection.execute(
-                text("ALTER TABLE assets ALTER COLUMN offer_id DROP NOT NULL;")
+                text("ALTER TABLE assets ALTER COLUMN offer_id DROP NOT NULL;"),
             )
             print("✅ offer_id is now nullable.")
 
@@ -54,8 +54,8 @@ def migrate():
                 try:
                     connection.execute(
                         text(
-                            f"ALTER TABLE assets ADD COLUMN {col_name} {col_type} DEFAULT {default};"
-                        )
+                            f"ALTER TABLE assets ADD COLUMN {col_name} {col_type} DEFAULT {default};",
+                        ),
                     )
                     print(f"✅ Column '{col_name}' added.")
                 except Exception as e:
@@ -70,14 +70,14 @@ def migrate():
             # Copy file_path to storage_path if empty
             connection.execute(
                 text(
-                    "UPDATE assets SET storage_path = file_path WHERE storage_path IS NULL;"
-                )
+                    "UPDATE assets SET storage_path = file_path WHERE storage_path IS NULL;",
+                ),
             )
             # Set mime_type default for existing images (assuming they are images)
             connection.execute(
                 text(
-                    "UPDATE assets SET mime_type = 'image/jpeg' WHERE mime_type IS NULL;"
-                )
+                    "UPDATE assets SET mime_type = 'image/jpeg' WHERE mime_type IS NULL;",
+                ),
             )  # Approximation
             print("✅ Data backfilled.")
 

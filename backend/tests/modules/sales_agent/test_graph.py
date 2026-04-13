@@ -311,7 +311,7 @@ class TestSignalAccumulator:
                 {
                     "role": "assistant",
                     "content": 'Genial! [QUALIFICATION_DATA: {"budget": "10k", "team_size": "5"}] Te cuento...',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -330,7 +330,7 @@ class TestSignalAccumulator:
                 {
                     "role": "assistant",
                     "content": '[SIGNALS: {"buying": ["asked_price"], "objections": ["too_expensive"]}] Ok!',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -401,7 +401,7 @@ class TestSignalAccumulator:
                 {
                     "role": "assistant",
                     "content": '[QUALIFICATION_DATA: {"budget": "5k"}] Genial!',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -421,7 +421,7 @@ class TestSignalAccumulator:
                 {
                     "role": "assistant",
                     "content": '[QUALIFICATION_DATA: {"budget": "5k", "team": "10"}] Ok!',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -445,7 +445,7 @@ class TestSignalAccumulator:
                         '[QUALIFICATION_DATA: {"a": "1", "b": "2"}] '
                         '[SIGNALS: {"buying": ["x", "y"], "objections": []}] Ok!'
                     ),
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -464,7 +464,7 @@ class TestSignalAccumulator:
                 {
                     "role": "assistant",
                     "content": '[TOOL_REQUEST: {"tool": "schedule", "args": {}}] Un momento...',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -527,7 +527,7 @@ class TestToolExecutor:
             active_product={
                 "name": "Curso Premium",
                 "checkout_page_url": "https://pay.example.com/curso",
-            }
+            },
         )
         state["_pending_tool"] = {"tool": "send_payment_link", "args": {}}
         result = nodes_mod.node_tool_executor(state)

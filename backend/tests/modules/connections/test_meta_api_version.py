@@ -121,7 +121,7 @@ class TestInitApiNotSingleton:
         mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
         ) as mock_api_class:
             mock_session = MagicMock()
             with patch(
@@ -144,7 +144,7 @@ class TestInitApiNotSingleton:
         mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
         ) as mock_api_class:
             mock_session = MagicMock()
             mock_api_instance = MagicMock()
@@ -163,7 +163,8 @@ class TestInitApiNotSingleton:
                 # FacebookSession should have been created with credentials
                 # FacebookAdsApi should have been instantiated (not .init())
                 mock_api_class.assert_called_once_with(
-                    mock_session, api_version="v24.0"
+                    mock_session,
+                    api_version="v24.0",
                 )
                 assert adapter._api_instance == mock_api_instance
 
@@ -174,7 +175,7 @@ class TestInitApiNotSingleton:
         mock_settings.META_APP_SECRET = "test_app_secret"  # noqa: S105
 
         with patch(
-            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+            "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
         ) as mock_api_class:
             mock_session = MagicMock()
             with patch(
@@ -204,13 +205,13 @@ class TestGetUserProfileExplicitApi:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User"
+                "src.modules.connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
             mock_api_class.return_value = mock_api_instance

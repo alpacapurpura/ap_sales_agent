@@ -65,7 +65,10 @@ class YouTubeProvider(BaseMetricsProvider):
         # Sub-extractor 1: Overview (core metrics)
         try:
             overview_metrics = await self._extract_overview(
-                adapter, end_date, start_date, end_date
+                adapter,
+                end_date,
+                start_date,
+                end_date,
             )
         except (RefreshError, TransportError) as exc:
             logger.warning(
@@ -125,7 +128,7 @@ class YouTubeProvider(BaseMetricsProvider):
                 unit="count",
                 date=metric_date,
                 extra={"likes": int(likes), "dislikes": int(dislikes)},
-            )
+            ),
         )
 
         # Direct-mapped metrics
@@ -140,7 +143,7 @@ class YouTubeProvider(BaseMetricsProvider):
                         value=value,
                         unit=unit,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         return metrics
@@ -184,7 +187,7 @@ class YouTubeProvider(BaseMetricsProvider):
                         value=value,
                         unit="count",
                         date=metric_date,
-                    )
+                    ),
                 )
 
         # Calculated rates (only if impressions > 0)
@@ -197,7 +200,7 @@ class YouTubeProvider(BaseMetricsProvider):
                     value=round((card_clicks / card_impressions) * 100, 2),
                     unit="percentage",
                     date=metric_date,
-                )
+                ),
             )
 
         if end_impressions > 0:
@@ -209,7 +212,7 @@ class YouTubeProvider(BaseMetricsProvider):
                     value=round((end_clicks / end_impressions) * 100, 2),
                     unit="percentage",
                     date=metric_date,
-                )
+                ),
             )
 
         return metrics

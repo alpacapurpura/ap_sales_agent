@@ -25,10 +25,14 @@ class OfferAssetModel(Base):
     __tablename__ = "offer_assets"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
     )
     tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, index=True
+        UUID(as_uuid=True),
+        nullable=False,
+        index=True,
     )
     offer_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -40,10 +44,14 @@ class OfferAssetModel(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     type: Mapped[str] = mapped_column(String, nullable=False)  # AssetType enum value
     source: Mapped[str] = mapped_column(
-        String, nullable=False
+        String,
+        nullable=False,
     )  # AssetSource enum value
     status: Mapped[str] = mapped_column(
-        String, nullable=False, default="draft", server_default="draft"
+        String,
+        nullable=False,
+        default="draft",
+        server_default="draft",
     )
 
     file_url: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -54,22 +62,34 @@ class OfferAssetModel(Base):
     # Column is named "metadata" in the DB; Python attribute is `metadata_json`
     # because `metadata` clashes with SQLAlchemy's declarative base attribute.
     metadata_json: Mapped[dict[str, Any]] = mapped_column(
-        "metadata", JSONB, nullable=False, default=dict, server_default="{}"
+        "metadata",
+        JSONB,
+        nullable=False,
+        default=dict,
+        server_default="{}",
     )
     prompt_params: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     editable_in_puck: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="false"
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
     updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, onupdate=func.now()
+        DateTime(timezone=True),
+        nullable=True,
+        onupdate=func.now(),
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     __table_args__ = (

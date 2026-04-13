@@ -30,7 +30,10 @@ class R2StorageStrategy(StorageStrategy):
         return response["Body"].read()
 
     def save(
-        self, file_obj: BinaryIO, filename: str, path_prefix: str = ""
+        self,
+        file_obj: BinaryIO,
+        filename: str,
+        path_prefix: str = "",
     ) -> tuple[str, str]:
         ext = os.path.splitext(filename)[1]
         unique_name = f"{uuid.uuid4()}{ext}"

@@ -48,7 +48,7 @@ def _build_date_map(rows: list) -> tuple[OrderedDict, set]:
         if d not in date_map:
             date_map[d] = {}
         date_map[d][row.channel_slug] = date_map[d].get(row.channel_slug, 0) + float(
-            row.total
+            row.total,
         )
     return date_map, channels_seen
 
@@ -215,7 +215,11 @@ class TimeseriesStageService:
 
         # 4. Query & build data points
         rows = self._query_current_period(
-            tenant_id, channel_slugs, db_metric_names, start_date, now
+            tenant_id,
+            channel_slugs,
+            db_metric_names,
+            start_date,
+            now,
         )
         date_map, channels_seen = _build_date_map(rows)
 

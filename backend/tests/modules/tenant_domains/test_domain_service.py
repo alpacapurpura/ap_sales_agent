@@ -132,13 +132,14 @@ class TestVerifyDomain:
     def test_verify_pending_ssl_sets_domain_verifying(self, db, tenant_id):
         service = _make_service(db)
         created = service.create_custom_domain(
-            tenant_id, hostname="pending.example.com"
+            tenant_id,
+            hostname="pending.example.com",
         )
         created.cloudflare_hostname_id = "cf-id-pending"
         service.repo.update(created)
 
         service.cf.get_hostname_status.return_value = {
-            "ssl": {"status": "pending_validation"}
+            "ssl": {"status": "pending_validation"},
         }
         updated = service.verify_domain(created.id, tenant_id)
 
@@ -181,7 +182,8 @@ class TestDeleteDomain:
             "ssl": {},
         }
         created = service.create_custom_domain(
-            tenant_id, hostname="cleanup.example.com"
+            tenant_id,
+            hostname="cleanup.example.com",
         )
 
         service.delete_domain(created.id, tenant_id)

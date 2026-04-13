@@ -24,7 +24,12 @@ def _make_message(tenant_id: uuid.UUID, lead_id: uuid.UUID = None) -> Message:
 
 class TestMessageRepository:
     def test_get_history_filters_by_tenant(
-        self, db, seed_tenant, tenant_id, seed_other_tenant, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
+        seed_other_tenant,
+        other_tenant_id,
     ):
         repo = MessageRepository(db)
         lead_id = uuid.uuid4()

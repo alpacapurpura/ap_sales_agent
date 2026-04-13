@@ -38,7 +38,9 @@ class OfferReadPortImpl(OfferReadPort):
         return [self._to_dto(m) for m in models]
 
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: UUID | None = None
+        self,
+        offer_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> OfferReadDTO | None:
         """Single offer by ID, scoped to tenant when provided."""
         conditions = [ProductModel.id == offer_id]

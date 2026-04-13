@@ -17,7 +17,8 @@ class SensitiveData(Base):
     detected_pattern = Column(String, nullable=False)  # "email", "credit_card", "ssn"
 
     original_text_hash = Column(
-        String, nullable=True
+        String,
+        nullable=True,
     )  # SHA256 of original (for audit without storing PII)
     redacted_text = Column(Text, nullable=True)
 

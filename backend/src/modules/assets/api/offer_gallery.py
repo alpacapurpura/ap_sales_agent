@@ -71,7 +71,9 @@ def delete_offer_image(
     service = AssetsService(db)
     # Pass offer_id to ensure ownership check
     success = service.delete_asset(
-        tenant_id=UUID(tenant_id), asset_id=UUID(image_id), offer_id=UUID(offer_id)
+        tenant_id=UUID(tenant_id),
+        asset_id=UUID(image_id),
+        offer_id=UUID(offer_id),
     )
 
     if not success:

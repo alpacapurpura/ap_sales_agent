@@ -41,7 +41,7 @@ class TestMetaAdsDataIntegrity:
                   AND ad_id IS NULL
                   AND metric_date >= CURRENT_DATE - INTERVAL '30 days'
                 ORDER BY metric_date, metric_name
-                """
+                """,
             ),
             {"tid": tenant_id},
         ).all()
@@ -99,7 +99,7 @@ class TestMetaAdsDataIntegrity:
                   AND campaign_id IS NULL
                   AND metric_date >= CURRENT_DATE - INTERVAL '14 days'
                 ORDER BY metric_date
-                """
+                """,
             ),
             {"tid": tenant_id},
         ).all()
@@ -127,7 +127,7 @@ class TestIgOrganicDataIntegrity:
                   AND provider = 'meta'
                   AND metric_date >= CURRENT_DATE - INTERVAL '30 days'
                 ORDER BY metric_date, metric_name
-                """
+                """,
             ),
             {"tid": tenant_id},
         ).all()
@@ -178,7 +178,7 @@ class TestFbOrganicDataIntegrity:
                   AND provider = 'meta'
                   AND metric_date >= CURRENT_DATE - INTERVAL '30 days'
                 GROUP BY metric_name
-                """
+                """,
             ),
             {"tid": tenant_id},
         ).all()

@@ -26,10 +26,14 @@ class KnowledgeSourceModel(Base):
     __tablename__ = "offer_knowledge_sources"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
     )
     tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, index=True
+        UUID(as_uuid=True),
+        nullable=False,
+        index=True,
     )
     offer_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -41,7 +45,10 @@ class KnowledgeSourceModel(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     type: Mapped[str] = mapped_column(String, nullable=False)  # KnowledgeSourceType
     status: Mapped[str] = mapped_column(
-        String, nullable=False, default="queued", server_default="queued"
+        String,
+        nullable=False,
+        default="queued",
+        server_default="queued",
     )
 
     source_url: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -50,31 +57,47 @@ class KnowledgeSourceModel(Base):
     size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     indexed_chunk_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0, server_default="0"
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
     )
     last_indexed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True),
+        nullable=True,
     )
     qdrant_collection: Mapped[str | None] = mapped_column(String, nullable=True)
     qdrant_point_ids: Mapped[list[str]] = mapped_column(
-        JSONB, nullable=False, default=list, server_default="[]"
+        JSONB,
+        nullable=False,
+        default=list,
+        server_default="[]",
     )
 
     # Column is named "metadata" in the DB; Python attribute is `metadata_json`
     # because `metadata` clashes with SQLAlchemy's declarative base attribute.
     metadata_json: Mapped[dict[str, Any]] = mapped_column(
-        "metadata", JSONB, nullable=False, default=dict, server_default="{}"
+        "metadata",
+        JSONB,
+        nullable=False,
+        default=dict,
+        server_default="{}",
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
     updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, onupdate=func.now()
+        DateTime(timezone=True),
+        nullable=True,
+        onupdate=func.now(),
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     __table_args__ = (

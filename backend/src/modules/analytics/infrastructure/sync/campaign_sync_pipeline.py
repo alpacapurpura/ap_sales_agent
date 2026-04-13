@@ -46,7 +46,8 @@ class CampaignSyncPipeline:
 
             # 2. Ad Sets + inline recommendations
             ad_sets, adset_recs = await self._provider.extract_ad_sets(
-                client, credentials
+                client,
+                credentials,
             )
             adsets_count = self._repo.upsert_ad_sets(tenant_id, ad_sets)
 

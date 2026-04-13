@@ -41,7 +41,7 @@ SPANISH_STOPWORDS: frozenset[str] = frozenset(
         "que",
         "como",
         "sin",
-    }
+    },
 )
 
 _PUNCT_RE = re.compile(r"[\W_]+", flags=re.UNICODE)

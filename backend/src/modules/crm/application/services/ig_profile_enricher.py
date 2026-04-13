@@ -53,7 +53,7 @@ class InstagramProfileEnricher:
                 select(CustomerProfileModel).where(
                     CustomerProfileModel.id == customer_profile_id,
                     CustomerProfileModel.tenant_id == tenant_id,
-                )
+                ),
             )
             .scalars()
             .first()
@@ -96,7 +96,10 @@ class InstagramProfileEnricher:
         return username
 
     def _merge_manychat_duplicate(
-        self, tenant_id: UUID, target_id: UUID, username: str
+        self,
+        tenant_id: UUID,
+        target_id: UUID,
+        username: str,
     ) -> None:
         """If a ManyChat-created profile exists with same username, merge it."""
         from src.modules.crm.infrastructure.repositories.customer_repository import (

@@ -203,7 +203,7 @@ def _extract_step_data(steps: list[dict]) -> list[dict]:
                     "preview_url": email_obj.get("preview_url"),
                     "delay_value": None,
                     "delay_unit": None,
-                }
+                },
             )
         elif step_type == "delay":
             base.update(
@@ -221,7 +221,7 @@ def _extract_step_data(steps: list[dict]) -> list[dict]:
                     "preview_url": None,
                     "delay_value": int(step.get("value", 0) or 0),
                     "delay_unit": step.get("unit"),
-                }
+                },
             )
         else:
             base.update(
@@ -239,7 +239,7 @@ def _extract_step_data(steps: list[dict]) -> list[dict]:
                     "preview_url": None,
                     "delay_value": None,
                     "delay_unit": None,
-                }
+                },
             )
         result.append(base)
     return result
@@ -535,7 +535,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                 value=float(total_conversions),
                 unit="count",
                 date=metric_date,
-            )
+            ),
         )
         if form_count > 0:
             metrics.append(
@@ -546,7 +546,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     value=(total_conversion_rate / form_count) * 100,
                     unit="percentage",
                     date=metric_date,
-                )
+                ),
             )
 
         # 2. Active subscribers (current total)
@@ -572,7 +572,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     value=float(count),
                     unit="count",
                     date=day,
-                )
+                ),
             )
 
         # 4. Reconstruct daily active_subscribers curve backwards from today's total.
@@ -670,7 +670,8 @@ class MailerLiteProvider(BaseMetricsProvider):
         slug: str,
     ) -> list[ExtractedMetric]:
         stage_group_mapping: dict[str, list[str]] = credentials.get(
-            "stage_group_mapping", {}
+            "stage_group_mapping",
+            {},
         )
         known_groups: list[str] = credentials.get("known_groups", [])
         known_groups_set: set[str] = set(known_groups)
@@ -950,7 +951,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     "campaign_type": campaign_type,
                     "screenshot_url": screenshot_url,
                     "preview_url": preview_url,
-                }
+                },
             )
         return campaigns_metadata
 
@@ -986,7 +987,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                             "screenshot_url": meta["screenshot_url"],
                             "preview_url": meta["preview_url"],
                         },
-                    )
+                    ),
                 )
 
     @staticmethod
@@ -1008,7 +1009,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     value=value,
                     unit="count",
                     date=metric_date,
-                )
+                ),
             )
 
         if campaign_count > 0:
@@ -1021,7 +1022,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                         value=total / campaign_count,
                         unit="percentage",
                         date=metric_date,
-                    )
+                    ),
                 )
 
     @staticmethod
@@ -1046,7 +1047,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                 value=(hard + soft) / sent * 100,
                 unit="percentage",
                 date=metric_date,
-            )
+            ),
         )
 
         unsubs = totals.get("unsubscribes", 0.0)
@@ -1058,7 +1059,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                 value=unsubs / sent * 100,
                 unit="percentage",
                 date=metric_date,
-            )
+            ),
         )
 
         # For retention stage: derive reactivation_rate
@@ -1072,7 +1073,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     value=opens / sent * 100,
                     unit="percentage",
                     date=metric_date,
-                )
+                ),
             )
 
     # ------------------------------------------------------------------
@@ -1124,15 +1125,15 @@ class MailerLiteProvider(BaseMetricsProvider):
             raw_click = stats.get("click_rate", 0.0)
             raw_ctor = stats.get("click_to_open_rate", 0.0)
             open_rate = float(
-                raw_open.get("float", 0.0) if isinstance(raw_open, dict) else raw_open
+                raw_open.get("float", 0.0) if isinstance(raw_open, dict) else raw_open,
             )
             click_rate = float(
                 raw_click.get("float", 0.0)
                 if isinstance(raw_click, dict)
-                else raw_click
+                else raw_click,
             )
             ctor = float(
-                raw_ctor.get("float", 0.0) if isinstance(raw_ctor, dict) else raw_ctor
+                raw_ctor.get("float", 0.0) if isinstance(raw_ctor, dict) else raw_ctor,
             )
             unsubs = int(stats.get("unsubscribes_count", 0))
 
@@ -1160,7 +1161,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     date=metric_date,
                     campaign_id=auto_id,
                     extra=dict(extra),
-                )
+                ),
             )
             metrics.append(
                 ExtractedMetric(
@@ -1172,7 +1173,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     date=metric_date,
                     campaign_id=auto_id,
                     extra=dict(extra),
-                )
+                ),
             )
             metrics.append(
                 ExtractedMetric(
@@ -1184,7 +1185,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     date=metric_date,
                     campaign_id=auto_id,
                     extra=dict(extra),
-                )
+                ),
             )
             metrics.append(
                 ExtractedMetric(
@@ -1196,7 +1197,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     date=metric_date,
                     campaign_id=auto_id,
                     extra=dict(extra),
-                )
+                ),
             )
             metrics.append(
                 ExtractedMetric(
@@ -1208,7 +1209,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                     date=metric_date,
                     campaign_id=auto_id,
                     extra=dict(extra),
-                )
+                ),
             )
 
         logger.info(

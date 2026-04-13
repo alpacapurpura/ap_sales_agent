@@ -31,7 +31,7 @@ def _make_pipeline_mock(result=None):
             "ads_synced": 5,
             "recommendations_synced": 1,
             "stale_deleted": 0,
-        }
+        },
     )
     return m
 
@@ -101,7 +101,7 @@ class TestRunCampaignSyncTask:
                 "ads_synced": 0,
                 "recommendations_synced": 0,
                 "stale_deleted": 0,
-            }
+            },
         )
 
         with (
@@ -143,7 +143,7 @@ class TestMaybeEnqueuePeriodExtraction:
         ctx = {"redis": mock_redis}
 
         with patch(
-            "src.modules.analytics.infrastructure.models.period_metrics_model.PeriodMetricModel"
+            "src.modules.analytics.infrastructure.models.period_metrics_model.PeriodMetricModel",
         ):
             from src.modules.analytics.workers.tasks import (
                 _maybe_enqueue_period_extraction,
@@ -167,7 +167,7 @@ class TestMaybeEnqueuePeriodExtraction:
         ctx = {"redis": mock_redis}
 
         with patch(
-            "src.modules.analytics.infrastructure.models.period_metrics_model.PeriodMetricModel"
+            "src.modules.analytics.infrastructure.models.period_metrics_model.PeriodMetricModel",
         ):
             from src.modules.analytics.workers.tasks import (
                 _maybe_enqueue_period_extraction,

@@ -245,7 +245,8 @@ class YouTubeAnalyticsAdapter:
             content = item.get("contentDetails", {})
             thumbnails = snippet.get("thumbnails", {})
             thumb_url = thumbnails.get("medium", {}).get("url") or thumbnails.get(
-                "default", {}
+                "default",
+                {},
             ).get("url", "")
             snippet_map[vid] = {
                 "title": snippet.get("title", ""),
@@ -269,7 +270,7 @@ class YouTubeAnalyticsAdapter:
                     "likes": v.get("likes", 0),
                     "watch_time_minutes": v.get("estimatedMinutesWatched", 0),
                     "avg_view_duration": v.get("averageViewDuration", 0),
-                }
+                },
             )
 
         return enriched

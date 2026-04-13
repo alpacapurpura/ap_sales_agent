@@ -37,7 +37,8 @@ class TestEvaluateConnectionHealth:
         future = datetime.now(timezone.utc) + timedelta(days=30)
         creds = {"access_token": "tok", "expires_at": future.isoformat()}
         result = evaluate_connection_health(
-            credentials=creds, channel_slug="google-analytics"
+            credentials=creds,
+            channel_slug="google-analytics",
         )
 
         assert result.status == "healthy"
@@ -86,7 +87,8 @@ class TestEvaluateConnectionHealth:
 
         # healthy
         r2 = evaluate_connection_health(
-            credentials={"access_token": "t"}, channel_slug="meta"
+            credentials={"access_token": "t"},
+            channel_slug="meta",
         )
         assert r2.message  # non-empty Spanish message
 

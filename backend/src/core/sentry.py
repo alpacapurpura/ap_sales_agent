@@ -17,12 +17,13 @@ _SENSITIVE_KEYS = frozenset(
         "page_access_token",
         "client_secret",
         "authorization",
-    }
+    },
 )
 
 
 def _redact_event(
-    event: dict[str, object], hint: dict[str, object]
+    event: dict[str, object],
+    hint: dict[str, object],
 ) -> dict[str, object]:
     """Strip sensitive keys from Sentry event extras/data."""
 

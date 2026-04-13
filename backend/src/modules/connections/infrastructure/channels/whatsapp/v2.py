@@ -49,7 +49,7 @@ class EvolutionApiV2(BaseEvolutionApi):
                 "url": webhook_url,
                 "webhookByEvents": True,
                 "events": ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
-            }
+            },
         }
         async with httpx.AsyncClient() as client:
             resp = await client.post(url, json=payload, headers=self.headers)

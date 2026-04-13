@@ -28,10 +28,10 @@ class QdrantVectorStore(SemanticMemoryStore):
         # Initialize Sparse Embeddings
         try:
             self.sparse_embedding_model = SparseTextEmbedding(
-                model_name=settings.QDRANT_SPARSE_MODEL
+                model_name=settings.QDRANT_SPARSE_MODEL,
             )
             logger.info(
-                f"Sparse embedding model loaded: {settings.QDRANT_SPARSE_MODEL}"
+                f"Sparse embedding model loaded: {settings.QDRANT_SPARSE_MODEL}",
             )
         except Exception as e:
             logger.error(f"Failed to load sparse embedding model: {e}")
@@ -40,7 +40,8 @@ class QdrantVectorStore(SemanticMemoryStore):
         # Initialize Reranker
         try:
             self.ranker = Ranker(
-                model_name="ms-marco-MiniLM-L-12-v2", cache_dir="/app/model_cache"
+                model_name="ms-marco-MiniLM-L-12-v2",
+                cache_dir="/app/model_cache",
             )
             logger.info("Reranker model loaded.")
         except Exception as e:
@@ -48,7 +49,8 @@ class QdrantVectorStore(SemanticMemoryStore):
             self.ranker = None
 
     def ensure_collection_exists(
-        self, collection_name: str = settings.QDRANT_COLLECTION_HYBRID
+        self,
+        collection_name: str = settings.QDRANT_COLLECTION_HYBRID,
     ):
         """
         Checks if collection exists, if not creates it with Hybrid config.
@@ -64,14 +66,14 @@ class QdrantVectorStore(SemanticMemoryStore):
                     "dense": models.VectorParams(
                         size=settings.QDRANT_VECTOR_SIZE,
                         distance=models.Distance.COSINE,
-                    )
+                    ),
                 },
                 sparse_vectors_config={
                     "sparse": models.SparseVectorParams(
                         index=models.SparseIndexParams(
                             on_disk=False,
-                        )
-                    )
+                        ),
+                    ),
                 },
             )
             logger.info(f"Collection {collection_name} created.")
@@ -101,14 +103,14 @@ class QdrantVectorStore(SemanticMemoryStore):
 
         points = []
         for _idx, (text, meta, dense, sparse) in enumerate(
-            zip(texts, metadatas, dense_embeddings, sparse_embeddings, strict=False)
+            zip(texts, metadatas, dense_embeddings, sparse_embeddings, strict=False),
         ):
             # Ensure metadata has content for reranking
             meta["content"] = text
 
             point = models.PointStruct(
                 id=str(
-                    uuid.uuid4()
+                    uuid.uuid4(),
                 ),  # Use UUIDs for points to avoid collision in updates
                 vector={
                     "dense": dense,
@@ -130,8 +132,9 @@ class QdrantVectorStore(SemanticMemoryStore):
         """Build Qdrant filter conditions for tenant isolation, scope, and standard filters."""
         conditions = [
             models.FieldCondition(
-                key="tenant_id", match=models.MatchValue(value=str(tenant_id))
-            )
+                key="tenant_id",
+                match=models.MatchValue(value=str(tenant_id)),
+            ),
         ]
 
         if scope_options:
@@ -141,13 +144,17 @@ class QdrantVectorStore(SemanticMemoryStore):
             for key, value in filters.items():
                 if isinstance(value, list):
                     conditions.append(
-                        models.FieldCondition(key=key, match=models.MatchAny(any=value))
+                        models.FieldCondition(
+                            key=key,
+                            match=models.MatchAny(any=value),
+                        ),
                     )
                 else:
                     conditions.append(
                         models.FieldCondition(
-                            key=key, match=models.MatchValue(value=value)
-                        )
+                            key=key,
+                            match=models.MatchValue(value=value),
+                        ),
                     )
 
         return conditions
@@ -156,7 +163,7 @@ class QdrantVectorStore(SemanticMemoryStore):
     def _build_scope_filter(scope_options: dict[str, Any]) -> models.Filter:
         """Build scope mixing filter (GLOBAL + optional OFFER/ASSET)."""
         scope_should = [
-            models.FieldCondition(key="scope", match=models.MatchValue(value="GLOBAL"))
+            models.FieldCondition(key="scope", match=models.MatchValue(value="GLOBAL")),
         ]
 
         scope_fields = {
@@ -169,22 +176,27 @@ class QdrantVectorStore(SemanticMemoryStore):
                     models.Filter(
                         must=[
                             models.FieldCondition(
-                                key="scope", match=models.MatchValue(value=scope_val)
+                                key="scope",
+                                match=models.MatchValue(value=scope_val),
                             ),
                             models.FieldCondition(
                                 key=field_key,
                                 match=models.MatchValue(
-                                    value=str(scope_options[option_key])
+                                    value=str(scope_options[option_key]),
                                 ),
                             ),
-                        ]
-                    )
+                        ],
+                    ),
                 )
 
         return models.Filter(should=scope_should)
 
     def _rerank_results(
-        self, query_text: str, passages: list[dict], limit: int, enable_rerank: bool
+        self,
+        query_text: str,
+        passages: list[dict],
+        limit: int,
+        enable_rerank: bool,
     ) -> list[dict]:
         """Apply reranking if enabled, otherwise return top passages by score."""
         if enable_rerank and self.ranker and passages:
@@ -224,7 +236,7 @@ class QdrantVectorStore(SemanticMemoryStore):
                 source_prefix = f"(Source: {source})"
 
             context_parts.append(
-                f"- [{category.upper()}] {content.strip()} {source_prefix}"
+                f"- [{category.upper()}] {content.strip()} {source_prefix}",
             )
 
         return "\n".join(context_parts)
@@ -246,7 +258,9 @@ class QdrantVectorStore(SemanticMemoryStore):
 
             dense_query = self.embeddings_model.embed_query(query_text)
             filter_conditions = self._build_filter_conditions(
-                tenant_id, scope_options, filters
+                tenant_id,
+                scope_options,
+                filters,
             )
             search_filter = (
                 models.Filter(must=filter_conditions) if filter_conditions else None
@@ -276,7 +290,10 @@ class QdrantVectorStore(SemanticMemoryStore):
             ]
 
             final_results = self._rerank_results(
-                query_text, passages, limit, enable_rerank
+                query_text,
+                passages,
+                limit,
+                enable_rerank,
             )
 
             if not final_results:
@@ -300,7 +317,9 @@ class QdrantVectorStore(SemanticMemoryStore):
             return False
 
     def delete_vectors_by_source(
-        self, collection_name: str, source_filename: str
+        self,
+        collection_name: str,
+        source_filename: str,
     ) -> bool:
         try:
             self.client.delete(
@@ -311,9 +330,9 @@ class QdrantVectorStore(SemanticMemoryStore):
                             models.FieldCondition(
                                 key="source",
                                 match=models.MatchValue(value=source_filename),
-                            )
-                        ]
-                    )
+                            ),
+                        ],
+                    ),
                 ),
             )
             return True

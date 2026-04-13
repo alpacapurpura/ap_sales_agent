@@ -26,7 +26,7 @@ class InterviewSessionRepository:
                 select(InterviewSessionModel).where(
                     InterviewSessionModel.id == session.id,
                     InterviewSessionModel.deleted_at.is_(None),
-                )
+                ),
             )
             .scalars()
             .first()
@@ -65,7 +65,7 @@ class InterviewSessionRepository:
                     InterviewSessionModel.id == session_id,
                     InterviewSessionModel.tenant_id == tenant_id,
                     InterviewSessionModel.deleted_at.is_(None),
-                )
+                ),
             )
             .scalars()
             .first()
@@ -73,7 +73,9 @@ class InterviewSessionRepository:
         return self._to_entity(model) if model else None
 
     def get_active_by_domain(
-        self, tenant_id: UUID, domain: str
+        self,
+        tenant_id: UUID,
+        domain: str,
     ) -> InterviewSession | None:
         model = (
             self.db.execute(
@@ -82,7 +84,7 @@ class InterviewSessionRepository:
                     InterviewSessionModel.domain == domain,
                     InterviewSessionModel.status == InterviewStatus.ACTIVE.value,
                     InterviewSessionModel.deleted_at.is_(None),
-                )
+                ),
             )
             .scalars()
             .first()
@@ -95,7 +97,7 @@ class InterviewSessionRepository:
                 select(InterviewSessionModel).where(
                     InterviewSessionModel.id == session_id,
                     InterviewSessionModel.tenant_id == tenant_id,
-                )
+                ),
             )
             .scalars()
             .first()

@@ -119,7 +119,10 @@ class TestMetricValueDTO:
     def test_with_currency(self):
         """Can specify unit and currency."""
         dto = MetricValueDTO(
-            name="spend", value=123.45, unit="currency", currency="USD"
+            name="spend",
+            value=123.45,
+            unit="currency",
+            currency="USD",
         )
         assert dto.unit == "currency"
         assert dto.currency == "USD"

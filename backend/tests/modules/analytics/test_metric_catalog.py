@@ -120,14 +120,20 @@ def test_compute_channel_totals_excludes_non_additive():
                 MetricValueDTO(name="impressions", value=10000),  # ADDITIVE → include
                 MetricValueDTO(name="clicks", value=500),  # ADDITIVE → include
                 MetricValueDTO(
-                    name="spend", value=750, unit="currency"
+                    name="spend",
+                    value=750,
+                    unit="currency",
                 ),  # ADDITIVE → include
                 MetricValueDTO(name="reach", value=8000),  # NON_AGGREGABLE → exclude
                 MetricValueDTO(
-                    name="ctr", value=0.05, unit="percentage"
+                    name="ctr",
+                    value=0.05,
+                    unit="percentage",
                 ),  # WEIGHTED_AVERAGE → exclude
                 MetricValueDTO(
-                    name="cpc", value=1.5, unit="currency"
+                    name="cpc",
+                    value=1.5,
+                    unit="currency",
                 ),  # DERIVED → exclude
             ],
         ),

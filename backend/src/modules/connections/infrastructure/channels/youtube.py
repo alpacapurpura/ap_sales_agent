@@ -36,7 +36,7 @@ class YoutubeAdapter:
             if "client_id" not in credentials_data and client_config.get("client_id"):
                 credentials_data["client_id"] = client_config["client_id"]
             if "client_secret" not in credentials_data and client_config.get(
-                "client_secret"
+                "client_secret",
             ):
                 credentials_data["client_secret"] = client_config["client_secret"]
 
@@ -49,7 +49,7 @@ class YoutubeAdapter:
                 "client_secret": self.client_config.get("client_secret"),
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
-            }
+            },
         }
 
     def get_authorization_url(self, redirect_uri: str) -> tuple[str, str]:
@@ -58,7 +58,9 @@ class YoutubeAdapter:
         flow.redirect_uri = redirect_uri
 
         authorization_url, state = flow.authorization_url(
-            access_type="offline", include_granted_scopes="true", prompt="consent"
+            access_type="offline",
+            include_granted_scopes="true",
+            prompt="consent",
         )
         return authorization_url, state
 

@@ -31,7 +31,7 @@ class MetricDefinition:
     weight_metric: str | None = None  # Para WEIGHTED_AVERAGE: denominador
     formula: str | None = None  # Para DERIVED: expresión legible
     formula_components: tuple[str, ...] = field(
-        default_factory=tuple
+        default_factory=tuple,
     )  # Para DERIVED: nombres de métricas componentes
     is_unique_metric: bool = False  # True = personas únicas (no summable cross-day)
     real_api_name: str | None = None  # Si metric_name difiere del nombre real en la API

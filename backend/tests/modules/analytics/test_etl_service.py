@@ -60,7 +60,8 @@ class TestETLServiceMultiStageExtraction:
         "src.modules.analytics.application.services.etl_service.get_provider",
     )
     def test_run_extraction_iterates_provider_stages_for_mailerlite(
-        self, mock_get_provider
+        self,
+        mock_get_provider,
     ):
         """Mailerlite extraction must call pipeline.run for BOTH capture and nurture."""
         from src.modules.analytics.application.services.etl_service import ETLService
@@ -68,7 +69,7 @@ class TestETLServiceMultiStageExtraction:
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "mailerlite"
         mock_provider.extract_metrics.return_value = _make_extraction_result(
-            _make_extracted_metric()
+            _make_extracted_metric(),
         )
         mock_get_provider.return_value = mock_provider
 
@@ -106,7 +107,8 @@ class TestETLServiceMultiStageExtraction:
         "src.modules.analytics.application.services.etl_service.get_provider",
     )
     def test_run_extraction_uses_default_stage_for_unlisted_provider(
-        self, mock_get_provider
+        self,
+        mock_get_provider,
     ):
         """Providers NOT in PROVIDER_STAGES use the default stage (attraction)."""
         from src.modules.analytics.application.services.etl_service import ETLService
@@ -114,7 +116,7 @@ class TestETLServiceMultiStageExtraction:
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
         mock_provider.extract_metrics.return_value = _make_extraction_result(
-            _make_extracted_metric(provider="meta", channel_slug="meta-ads")
+            _make_extracted_metric(provider="meta", channel_slug="meta-ads"),
         )
         mock_get_provider.return_value = mock_provider
 
@@ -144,7 +146,8 @@ class TestETLServiceMultiStageExtraction:
         "src.modules.analytics.application.services.etl_service.get_provider",
     )
     def test_run_all_providers_extracts_all_stages_for_mailerlite(
-        self, mock_get_provider
+        self,
+        mock_get_provider,
     ):
         """run_all_providers must extract all stages for multi-stage providers."""
         from src.modules.analytics.application.services.etl_service import ETLService
@@ -152,7 +155,7 @@ class TestETLServiceMultiStageExtraction:
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "mailerlite"
         mock_provider.extract_metrics.return_value = _make_extraction_result(
-            _make_extracted_metric()
+            _make_extracted_metric(),
         )
         mock_get_provider.return_value = mock_provider
 

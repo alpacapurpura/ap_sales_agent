@@ -130,7 +130,7 @@ def get_all_tenants_summary() -> list[dict]:
             WHERE t.is_active = true
             GROUP BY t.id, t.name, t.is_active
             ORDER BY last_event DESC NULLS LAST
-        """)
+        """),
         )
         return [dict(row._mapping) for row in result]
     finally:
@@ -152,7 +152,7 @@ def get_adoption_funnel() -> dict:
                 (SELECT COUNT(DISTINCT tenant_id) FROM channel_connections WHERE is_active = true) AS has_connection,
                 (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events WHERE event_type = 'message_sent' AND deleted_at IS NULL) AS has_copilot,
                 (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events WHERE event_type = 'procedure_completed' AND deleted_at IS NULL) AS has_procedure_completed
-        """)
+        """),
         )
         row = result.fetchone()
         return dict(row._mapping) if row else {}

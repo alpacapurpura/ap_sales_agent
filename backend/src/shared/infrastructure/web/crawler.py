@@ -40,7 +40,7 @@ SKIP_PATTERNS: frozenset[str] = frozenset(
         "account",
         "signup",
         "register",
-    }
+    },
 )
 SKIP_EXTENSIONS: frozenset[str] = frozenset(
     {
@@ -56,7 +56,7 @@ SKIP_EXTENSIONS: frozenset[str] = frozenset(
         ".doc",
         ".docx",
         ".xls",
-    }
+    },
 )
 HIGH_KEYWORDS: frozenset[str] = frozenset(
     {
@@ -75,7 +75,7 @@ HIGH_KEYWORDS: frozenset[str] = frozenset(
         "casos",
         "casos-de-exito",
         "reviews",
-    }
+    },
 )
 MEDIUM_KEYWORDS: frozenset[str] = frozenset(
     {
@@ -95,7 +95,7 @@ MEDIUM_KEYWORDS: frozenset[str] = frozenset(
         "clientes",
         "metodologia",
         "portafolio",
-    }
+    },
 )
 
 # Backward-compat aliases
@@ -179,7 +179,10 @@ def extract_css_relevant(css_text: str, max_chars: int = 8000) -> str:
     # Strip @font-face blocks (multi-line) — font names are captured from
     # font-family declarations and WebFont.load() instead
     css_text = re.sub(
-        r"@font-face\s*\{[^}]*\}", "", css_text, flags=re.DOTALL | re.IGNORECASE
+        r"@font-face\s*\{[^}]*\}",
+        "",
+        css_text,
+        flags=re.DOTALL | re.IGNORECASE,
     )
 
     # Patterns that indicate framework boilerplate to skip
@@ -264,7 +267,9 @@ def _extract_webfont_fonts(soup: BeautifulSoup) -> list[str]:
 
 
 def _build_css_section(
-    soup: BeautifulSoup, external_css: str, webfont_fonts: list[str]
+    soup: BeautifulSoup,
+    external_css: str,
+    webfont_fonts: list[str],
 ) -> str:
     """Build the [CSS_STYLES] section from style tags, meta, links, and webfonts."""
     css_parts: list[str] = []
@@ -419,7 +424,9 @@ class WebCrawler:
             headers = {"User-Agent": self._USER_AGENT}
 
             async with httpx.AsyncClient(
-                timeout=15.0, follow_redirects=True, headers=headers
+                timeout=15.0,
+                follow_redirects=True,
+                headers=headers,
             ) as client:
                 # Fetch main page
                 response = await client.get(url)
@@ -470,17 +477,17 @@ class WebCrawler:
                         return sub_url, ""
 
                 subpage_results = await asyncio.gather(
-                    *[_fetch_subpage(link) for link in top_links]
+                    *[_fetch_subpage(link) for link in top_links],
                 )
 
             # Build labeled content
             parts: list[str] = [
-                f"=== PAGINA PRINCIPAL: {url} ===\n{main_text}\n=== FIN PAGINA ==="
+                f"=== PAGINA PRINCIPAL: {url} ===\n{main_text}\n=== FIN PAGINA ===",
             ]
             for sub_url, sub_text in subpage_results:
                 if sub_text.strip():
                     parts.append(
-                        f"=== PAGINA: {sub_url} ===\n{sub_text}\n=== FIN PAGINA ==="
+                        f"=== PAGINA: {sub_url} ===\n{sub_text}\n=== FIN PAGINA ===",
                     )
 
             result = "\n\n".join(parts)[:100_000]
@@ -502,7 +509,9 @@ class WebCrawler:
         try:
             headers = {"User-Agent": self._USER_AGENT}
             async with httpx.AsyncClient(
-                timeout=15.0, follow_redirects=True, headers=headers
+                timeout=15.0,
+                follow_redirects=True,
+                headers=headers,
             ) as client:
                 response = await client.get(url)
                 response.raise_for_status()
@@ -541,7 +550,7 @@ class WebCrawler:
                             return ""
 
                     css_results = await asyncio.gather(
-                        *[_fetch_css(u) for u in css_links]
+                        *[_fetch_css(u) for u in css_links],
                     )
                     external_css = "\n".join(r for r in css_results if r.strip())
                     logger.info(

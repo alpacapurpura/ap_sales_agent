@@ -22,10 +22,12 @@ class NpsSurveyModel(Base):
         nullable=True,
     )
     delivery_channel = Column(
-        String, default="universal_link"
+        String,
+        default="universal_link",
     )  # "universal_link" | "whatsapp"
     status = Column(
-        String, default="pending"
+        String,
+        default="pending",
     )  # "pending" | "sent" | "responded" | "expired"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     sent_at = Column(DateTime(timezone=True), nullable=True)

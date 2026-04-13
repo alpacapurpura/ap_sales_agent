@@ -110,13 +110,15 @@ class MetricsService:
         # 4. Opportunities (Decision)
         sql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.SQL)
         opp_count = self.customer_repo.count_by_stage(
-            tenant_id, LifecycleStage.OPPORTUNITY
+            tenant_id,
+            LifecycleStage.OPPORTUNITY,
         )
         opportunities = sql_count + opp_count
 
         # 5. Customers (Conversion)
         customers = self.customer_repo.count_by_stage(
-            tenant_id, LifecycleStage.CUSTOMER
+            tenant_id,
+            LifecycleStage.CUSTOMER,
         )
 
         # 6. Loyal Customers (Retention)
@@ -125,7 +127,8 @@ class MetricsService:
 
         # 7. Evangelists (Advocacy)
         evangelists = self.customer_repo.count_by_stage(
-            tenant_id, LifecycleStage.EVANGELIST
+            tenant_id,
+            LifecycleStage.EVANGELIST,
         )
 
         nodes = [
@@ -210,25 +213,25 @@ class MetricsService:
             self._build_capture_kpi(
                 tenant_id,
                 await _get_stage_cache("capture"),
-            )
+            ),
         )
         stages.append(
             self._build_nurture_kpi(
                 tenant_id,
                 await _get_stage_cache("nurture"),
-            )
+            ),
         )
         stages.append(
             self._build_opportunity_kpi(
                 tenant_id,
                 await _get_stage_cache("opportunity"),
-            )
+            ),
         )
         stages.append(
             self._build_sales_kpi(
                 tenant_id,
                 await _get_stage_cache("sales"),
-            )
+            ),
         )
         stages.append(self._build_adoption_kpi(await _get_stage_cache("adoption")))
         stages.append(self._build_expansion_kpi(await _get_stage_cache("expansion")))
@@ -236,7 +239,7 @@ class MetricsService:
             self._build_evangelization_kpi(
                 tenant_id,
                 await _get_stage_cache("evangelization"),
-            )
+            ),
         )
 
         result = BowtiesSummaryDTO(
@@ -290,7 +293,7 @@ class MetricsService:
         )
 
         visitor_stmt = select(
-            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0),
         ).where(
             MetricAggregationModel.tenant_id == tenant_id,
             MetricAggregationModel.metric_name.in_(("reach", "sessions")),
@@ -373,7 +376,8 @@ class MetricsService:
             )
         sql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.SQL)
         opp_count = self.customer_repo.count_by_stage(
-            tenant_id, LifecycleStage.OPPORTUNITY
+            tenant_id,
+            LifecycleStage.OPPORTUNITY,
         )
         return StageSummaryKpiDTO(
             stage="opportunity",
@@ -499,7 +503,8 @@ class MetricsService:
                 secondary_unit="%" if conv_rate > 0 else None,
             )
         evangelists = self.customer_repo.count_by_stage(
-            tenant_id, LifecycleStage.EVANGELIST
+            tenant_id,
+            LifecycleStage.EVANGELIST,
         )
         return StageSummaryKpiDTO(
             stage="evangelization",

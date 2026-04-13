@@ -27,11 +27,15 @@ def render_capability_catalog():  # noqa: C901
 
         col1, col2, col3, col4, col5 = st.columns(5)
         col1.metric(
-            "Tools", len(all_tools), help="Herramientas disponibles para el copilot"
+            "Tools",
+            len(all_tools),
+            help="Herramientas disponibles para el copilot",
         )
         col2.metric("Grupos", len(TOOL_GROUPS), help="Categorias de herramientas")
         col3.metric(
-            "Procedimientos", len(procedures), help="Flujos guiados paso a paso"
+            "Procedimientos",
+            len(procedures),
+            help="Flujos guiados paso a paso",
         )
         col4.metric("Nudge Rules", 4, help="Reglas de sugerencias proactivas")
         col5.metric(
@@ -76,14 +80,14 @@ def render_capability_catalog():  # noqa: C901
             "💡 Nudges",
             "🎨 Componentes UI",
             "📊 Uso de Tools",
-        ]
+        ],
     )
 
     # ── Tab 1: Tools ──────────────────────────────────────────────────────
     with tab_tools:
         st.header("Herramientas del Copilot")
         st.caption(
-            "Agrupadas por categoria. Cada tool es una funcion que el LLM puede invocar."
+            "Agrupadas por categoria. Cada tool es una funcion que el LLM puede invocar.",
         )
 
         for group_name, tools in TOOL_GROUPS.items():
@@ -97,7 +101,7 @@ def render_capability_catalog():  # noqa: C901
     with tab_routes:
         st.header("Mapeo de Rutas")
         st.caption(
-            "Muestra que herramientas tiene disponibles el copilot segun la pagina donde este el usuario"
+            "Muestra que herramientas tiene disponibles el copilot segun la pagina donde este el usuario",
         )
 
         # Build matrix
@@ -144,7 +148,7 @@ def render_capability_catalog():  # noqa: C901
                         f"**{i}. `{step.step_id}`** — {step.instruction}\n\n"
                         f"📍 Ruta: `{step.route_hint}` | "
                         f"Validacion: `{step.validation}` | "
-                        f"Modulo: `{step.module_id}`"
+                        f"Modulo: `{step.module_id}`",
                     )
                     if step.tips:
                         tips_str = " | ".join(f'"{t}"' for t in step.tips)
@@ -282,7 +286,8 @@ def render_capability_catalog():  # noqa: C901
                         total_invocations = sum(tool_counts.values())
                         rows = []
                         for name, count in sorted(
-                            tool_counts.items(), key=lambda x: -x[1]
+                            tool_counts.items(),
+                            key=lambda x: -x[1],
                         ):
                             rows.append(
                                 {
@@ -290,9 +295,10 @@ def render_capability_catalog():  # noqa: C901
                                     "Invocaciones": count,
                                     "% del Total": f"{round(count / total_invocations * 100, 1)}%",
                                     "Avg/Conv": round(
-                                        count / max(total_convs_with_tools, 1), 1
+                                        count / max(total_convs_with_tools, 1),
+                                        1,
                                     ),
-                                }
+                                },
                             )
 
                         df = pd.DataFrame(rows)
@@ -303,7 +309,7 @@ def render_capability_catalog():  # noqa: C901
                         st.bar_chart(chart_df.set_index("Tool")["Invocaciones"])
                     else:
                         st.info(
-                            "No se encontraron invocaciones de tools en las conversaciones."
+                            "No se encontraron invocaciones de tools en las conversaciones.",
                         )
                 finally:
                     db.close()

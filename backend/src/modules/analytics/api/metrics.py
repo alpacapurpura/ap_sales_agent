@@ -178,14 +178,18 @@ async def get_summary_metrics(
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
     service = MetricsService(
-        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+        db,
+        cache=cache,
+        connection_port=connection_port,
+        offer_port=offer_port,
     )
     return await service.get_bowtie_summary(user.tenant_id)
 
 
 @router.get("/sankey", response_model=MarketingSankeyResponse)
 async def get_marketing_sankey(
-    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """
     Get Marketing Sankey Metrics (7 Nodes).
@@ -262,7 +266,9 @@ async def _warm_stage_cache(
         connection_port = ConnectionPortImpl(db)
         if stage == "attraction":
             svc = AttractionStageService(
-                db, cache=cache, connection_port=connection_port
+                db,
+                cache=cache,
+                connection_port=connection_port,
             )
             await svc.get_metrics(tenant_id, period=period)
         elif stage == "capture":
@@ -273,7 +279,9 @@ async def _warm_stage_cache(
             await svc.get_metrics(tenant_id, period=period)
         elif stage == "opportunity":
             svc = OpportunityStageService(
-                db, cache=cache, connection_port=connection_port
+                db,
+                cache=cache,
+                connection_port=connection_port,
             )
             now = datetime.now(UTC)
             await svc.get_metrics(tenant_id, now - timedelta(days=30), now)
@@ -286,7 +294,10 @@ async def _warm_stage_cache(
                 "evangelization": EvangelizationStageService,
             }[stage]
             svc = stage_cls(
-                db, cache=cache, connection_port=connection_port, offer_port=offer_port
+                db,
+                cache=cache,
+                connection_port=connection_port,
+                offer_port=offer_port,
             )
             now = datetime.now(UTC)
             await svc.get_metrics(tenant_id, now - timedelta(days=30), now)
@@ -294,7 +305,9 @@ async def _warm_stage_cache(
         import structlog
 
         structlog.get_logger().warning(
-            "stage_cache_warm_failed", stage=stage, tenant_id=str(tenant_id)
+            "stage_cache_warm_failed",
+            stage=stage,
+            tenant_id=str(tenant_id),
         )
 
 
@@ -354,7 +367,10 @@ async def get_group_detail(
     cache = MetricsCache(redis_client)
     service = GroupDetailService(cache=cache)
     return await service.get_group_detail(
-        str(user.tenant_id), stage.value, group_key, period
+        str(user.tenant_id),
+        stage.value,
+        group_key,
+        period,
     )
 
 
@@ -469,7 +485,10 @@ async def get_sales_metrics(
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
     service = SalesStageService(
-        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+        db,
+        cache=cache,
+        connection_port=connection_port,
+        offer_port=offer_port,
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
@@ -490,7 +509,10 @@ async def get_adoption_metrics(
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
     service = AdoptionStageService(
-        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+        db,
+        cache=cache,
+        connection_port=connection_port,
+        offer_port=offer_port,
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
@@ -512,7 +534,10 @@ async def get_expansion_metrics(
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
     service = ExpansionStageService(
-        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+        db,
+        cache=cache,
+        connection_port=connection_port,
+        offer_port=offer_port,
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
@@ -533,7 +558,10 @@ async def get_evangelization_metrics(
     connection_port = ConnectionPortImpl(db)
     offer_port = OfferReadPortImpl(db)
     service = EvangelizationStageService(
-        db, cache=cache, connection_port=connection_port, offer_port=offer_port
+        db,
+        cache=cache,
+        connection_port=connection_port,
+        offer_port=offer_port,
     )
     now = datetime.now(UTC)
     start_date = now - timedelta(days=30)
@@ -572,7 +600,8 @@ async def get_stage_timeseries(
         raise HTTPException(status_code=400, detail=f"Invalid stage: {stage}")
     if granularity not in _VALID_GRANULARITIES:
         raise HTTPException(
-            status_code=400, detail=f"Invalid granularity: {granularity}"
+            status_code=400,
+            detail=f"Invalid granularity: {granularity}",
         )
     if range_days not in _VALID_RANGES:
         raise HTTPException(
@@ -584,7 +613,11 @@ async def get_stage_timeseries(
     connection_port = ConnectionPortImpl(db)
     service = MetricsService(db, cache=cache, connection_port=connection_port)
     return await service.get_stage_timeseries(
-        user.tenant_id, stage, metric, range_days, granularity
+        user.tenant_id,
+        stage,
+        metric,
+        range_days,
+        granularity,
     )
 
 
@@ -732,7 +765,8 @@ async def sync_ig_dm(
 
 
 @router.post(
-    "/attraction/refresh/{channel_slug}", response_model=ChannelRefreshResponse
+    "/attraction/refresh/{channel_slug}",
+    response_model=ChannelRefreshResponse,
 )
 async def refresh_channel_metrics(
     channel_slug: str,
@@ -1009,12 +1043,14 @@ async def trigger_period_extraction(
     """
     if period_type not in {"weekly", "monthly", "quarterly"}:
         raise HTTPException(
-            status_code=400, detail=f"Invalid period_type: {period_type}"
+            status_code=400,
+            detail=f"Invalid period_type: {period_type}",
         )
 
     if period_end < period_start:
         raise HTTPException(
-            status_code=400, detail="period_end must be >= period_start"
+            status_code=400,
+            detail="period_end must be >= period_start",
         )
 
     from src.modules.analytics.application.services.etl_service import ETLService
@@ -1067,7 +1103,7 @@ async def get_period_config(
     from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
     tenant = db.execute(
-        sa_select(TenantModel).where(TenantModel.id == user.tenant_id)
+        sa_select(TenantModel).where(TenantModel.id == user.tenant_id),
     ).scalar_one_or_none()
 
     if not tenant:
@@ -1096,7 +1132,7 @@ async def update_period_config(
     from src.modules.iam.infrastructure.models.tenant_model import TenantModel
 
     tenant = db.execute(
-        sa_select(TenantModel).where(TenantModel.id == user.tenant_id)
+        sa_select(TenantModel).where(TenantModel.id == user.tenant_id),
     ).scalar_one_or_none()
 
     if not tenant:
@@ -1110,13 +1146,15 @@ async def update_period_config(
     if payload.fiscal_year_start_month is not None:
         if not 1 <= payload.fiscal_year_start_month <= 12:
             raise HTTPException(
-                status_code=400, detail="fiscal_year_start_month must be 1-12"
+                status_code=400,
+                detail="fiscal_year_start_month must be 1-12",
             )
         updates["fiscal_year_start_month"] = payload.fiscal_year_start_month
     if payload.fiscal_year_start_day is not None:
         if not 1 <= payload.fiscal_year_start_day <= 31:
             raise HTTPException(
-                status_code=400, detail="fiscal_year_start_day must be 1-31"
+                status_code=400,
+                detail="fiscal_year_start_day must be 1-31",
             )
         updates["fiscal_year_start_day"] = payload.fiscal_year_start_day
 
@@ -1124,7 +1162,7 @@ async def update_period_config(
         db.execute(
             sa_update(TenantModel)
             .where(TenantModel.id == user.tenant_id)
-            .values(**updates)
+            .values(**updates),
         )
         db.commit()
 
@@ -1135,7 +1173,7 @@ async def update_period_config(
     # Reload
     db.expire_all()
     tenant = db.execute(
-        sa_select(TenantModel).where(TenantModel.id == user.tenant_id)
+        sa_select(TenantModel).where(TenantModel.id == user.tenant_id),
     ).scalar_one()
 
     return TenantPeriodConfigDTO(

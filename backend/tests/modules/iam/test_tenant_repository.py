@@ -159,7 +159,12 @@ class TestTenantRepositoryGetAll:
 
 class TestTenantIsolation:
     def test_get_by_id_does_not_return_other_tenants_data(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         """tenant A's ID must not return tenant B's record."""
         repo = TenantRepository(db)
@@ -173,7 +178,10 @@ class TestTenantIsolation:
         assert result_b.slug == "other-tenant"
 
     def test_slug_lookup_is_scoped_to_exact_slug(
-        self, db, seed_tenant, seed_other_tenant
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
     ):
         repo = TenantRepository(db)
         a = repo.get_by_slug("test-tenant")

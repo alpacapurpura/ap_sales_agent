@@ -26,9 +26,9 @@ def test_normalize_payload(instagram_channel):
                         "recipient": {"id": "123456789"},
                         "timestamp": 1693333333333,
                         "message": {"mid": "mid_123", "text": "Hello Instagram"},
-                    }
+                    },
                 ],
-            }
+            },
         ],
     }
 

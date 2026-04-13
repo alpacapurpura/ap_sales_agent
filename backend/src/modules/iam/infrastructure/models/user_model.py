@@ -19,7 +19,9 @@ class UserModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     full_name = Column(String, nullable=True)
     email = Column(
-        String, nullable=False, unique=True
+        String,
+        nullable=False,
+        unique=True,
     )  # Email is mandatory for system users
     phone = Column(String, nullable=True)
 
@@ -34,5 +36,7 @@ class UserModel(Base):
     # Tenant Link
     # Note: 'UserTenantModel' is defined as a string to avoid circular imports if in same module but different file
     tenants = relationship(
-        "TenantModel", secondary="user_tenants", back_populates="users"
+        "TenantModel",
+        secondary="user_tenants",
+        back_populates="users",
     )

@@ -16,7 +16,10 @@ class IdentityResolutionEngine:
         self.repository = CustomerRepository(db)
 
     def resolve(
-        self, identity_type: IdentityType, value: str, traits: dict[str, Any] = None
+        self,
+        identity_type: IdentityType,
+        value: str,
+        traits: dict[str, Any] = None,
     ) -> CustomerProfile:
         """
         Resuelve una identidad a un perfil de cliente unificado.

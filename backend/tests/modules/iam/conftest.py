@@ -66,7 +66,11 @@ def seed_user(db, user_id: uuid.UUID):
 
 @pytest.fixture
 def seed_user_tenant_link(
-    db, seed_user, seed_tenant, user_id: uuid.UUID, tenant_id: uuid.UUID
+    db,
+    seed_user,
+    seed_tenant,
+    user_id: uuid.UUID,
+    tenant_id: uuid.UUID,
 ):
     """Link USER_A to TENANT_A via UserTenantModel."""
     from src.modules.iam.infrastructure.models.user_tenant_model import UserTenantModel

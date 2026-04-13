@@ -63,7 +63,7 @@ class TestCampaignSeparation:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -72,7 +72,10 @@ class TestCampaignSeparation:
 
             provider = GoogleAdsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -113,7 +116,7 @@ class TestCampaignSeparation:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -122,7 +125,10 @@ class TestCampaignSeparation:
 
             provider = GoogleAdsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -148,7 +154,7 @@ class TestCampaignSeparation:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -157,7 +163,10 @@ class TestCampaignSeparation:
 
             provider = GoogleAdsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -197,7 +206,7 @@ class TestRetargetingExtraction:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -257,7 +266,7 @@ class TestDailyExtraction:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -266,7 +275,10 @@ class TestDailyExtraction:
 
             provider = GoogleAdsProvider()
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 2),
             )
 
         metrics = result.metrics
@@ -300,7 +312,7 @@ class TestDailyExtraction:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=mock_rows)
@@ -336,7 +348,7 @@ class TestGoogleAdsErrorHandling:
     @pytest.mark.asyncio
     async def test_empty_results(self):
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_ads_provider.GoogleAdsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_gaql_query = AsyncMock(return_value=[])
@@ -345,6 +357,9 @@ class TestGoogleAdsErrorHandling:
 
             provider = GoogleAdsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         assert result.metrics == []

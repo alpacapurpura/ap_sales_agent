@@ -21,7 +21,7 @@ def _fail_progress(redis, progress_key: str, error_msg: str, log_detail: str):
                     "status": "failed",
                     "progress": 0,
                     "error": error_msg,
-                }
+                },
             ),
         )
 
@@ -83,7 +83,7 @@ async def run_brand_extraction(
                         "progress": progress_pct,
                         "stage": stage,
                         "started_at": started_at,
-                    }
+                    },
                 ),
             )
 
@@ -141,7 +141,7 @@ async def run_brand_extraction(
                         "status": "completed",
                         "progress": 100,
                         "stage": "¡Análisis completado!",
-                    }
+                    },
                 ),
             )
 

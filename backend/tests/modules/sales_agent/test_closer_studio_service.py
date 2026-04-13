@@ -23,7 +23,9 @@ TENANT_B = uuid.UUID("bbbb0000-0000-0000-0000-000000000002")
 
 
 def _create_customer(
-    db: Session, tenant_id: uuid.UUID, **overrides
+    db: Session,
+    tenant_id: uuid.UUID,
+    **overrides,
 ) -> CustomerProfileModel:
     defaults = {
         "id": uuid.uuid4(),
@@ -55,7 +57,10 @@ def _create_lead(db: Session, tenant_id: uuid.UUID, **overrides) -> LeadModel:
 
 
 def _create_checkpoint(
-    db: Session, tenant_id: uuid.UUID, lead_id: uuid.UUID, **overrides
+    db: Session,
+    tenant_id: uuid.UUID,
+    lead_id: uuid.UUID,
+    **overrides,
 ) -> AgentStateCheckpointModel:
     defaults = {
         "id": uuid.uuid4(),
@@ -84,7 +89,10 @@ def _create_checkpoint(
 
 
 def _create_message(
-    db: Session, tenant_id: uuid.UUID, lead_id: uuid.UUID, **overrides
+    db: Session,
+    tenant_id: uuid.UUID,
+    lead_id: uuid.UUID,
+    **overrides,
 ) -> MessageModel:
     defaults = {
         "id": uuid.uuid4(),
@@ -257,7 +265,8 @@ class TestGetConversationDetail:
         assert result["handler_mode"] == "ai"
 
     def test_detail_without_checkpoint_defaults_handler_mode_to_human(
-        self, db: Session
+        self,
+        db: Session,
     ):
         """BUG FIX: When no checkpoint exists, handler_mode should be 'human', not 'ai'.
 
@@ -371,7 +380,9 @@ class TestListConversations:
 
         svc = CloserStudioService(db)
         conversations, total = svc.list_conversations(
-            tenant_id=TENANT_A, limit=2, offset=0
+            tenant_id=TENANT_A,
+            limit=2,
+            offset=0,
         )
 
         assert total == 5
@@ -384,7 +395,8 @@ class TestListConversations:
 
         svc = CloserStudioService(db)
         conversations, total = svc.list_conversations(
-            tenant_id=TENANT_A, temperature="hot"
+            tenant_id=TENANT_A,
+            temperature="hot",
         )
 
         assert total == 1
@@ -424,7 +436,10 @@ class TestSendMessage:
 
         svc = CloserStudioService(db)
         result = svc.send_message(
-            TENANT_A, lead.id, "Push for the close", mode="instruction"
+            TENANT_A,
+            lead.id,
+            "Push for the close",
+            mode="instruction",
         )
 
         assert result is not None
@@ -490,7 +505,10 @@ class TestReactivate:
         """Reactivation can include a resume objective."""
         lead = _create_lead(db, TENANT_A)
         cp = _create_checkpoint(
-            db, TENANT_A, lead.id, frozen_at=datetime.now(timezone.utc)
+            db,
+            TENANT_A,
+            lead.id,
+            frozen_at=datetime.now(timezone.utc),
         )
 
         svc = CloserStudioService(db)

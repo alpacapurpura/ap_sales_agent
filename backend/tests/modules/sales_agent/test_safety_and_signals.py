@@ -36,10 +36,14 @@ def test_no_false_positive_short_number():
 
 def test_detect_and_accumulate_returns_tuple():
     with patch.object(
-        SemanticRouter, "detect_intent", return_value=("buying_signal", 0.85)
+        SemanticRouter,
+        "detect_intent",
+        return_value=("buying_signal", 0.85),
     ):
         result = SemanticRouter.detect_and_accumulate(
-            "quiero comprar", existing_signals=[], tenant_id=None
+            "quiero comprar",
+            existing_signals=[],
+            tenant_id=None,
         )
         assert isinstance(result, tuple)
         assert len(result) == 3
@@ -51,10 +55,14 @@ def test_detect_and_accumulate_returns_tuple():
 
 def test_signal_accumulation_buying():
     with patch.object(
-        SemanticRouter, "detect_intent", return_value=("buying_signal", 0.85)
+        SemanticRouter,
+        "detect_intent",
+        return_value=("buying_signal", 0.85),
     ):
         intent, _score, signals = SemanticRouter.detect_and_accumulate(
-            "quiero comprar", existing_signals=[], tenant_id=None
+            "quiero comprar",
+            existing_signals=[],
+            tenant_id=None,
         )
         assert intent == "buying_signal"
         assert len(signals) == 1
@@ -65,10 +73,14 @@ def test_signal_accumulation_buying():
 
 def test_signal_accumulation_schedule():
     with patch.object(
-        SemanticRouter, "detect_intent", return_value=("schedule_signal", 0.72)
+        SemanticRouter,
+        "detect_intent",
+        return_value=("schedule_signal", 0.72),
     ):
         intent, _score, signals = SemanticRouter.detect_and_accumulate(
-            "quiero agendar una cita", existing_signals=[], tenant_id=None
+            "quiero agendar una cita",
+            existing_signals=[],
+            tenant_id=None,
         )
         assert intent == "schedule_signal"
         assert len(signals) == 1
@@ -78,10 +90,14 @@ def test_signal_accumulation_schedule():
 def test_signal_accumulation_dedup():
     existing = [{"type": "buying_signal", "confidence": 0.80, "turn": 0}]
     with patch.object(
-        SemanticRouter, "detect_intent", return_value=("buying_signal", 0.90)
+        SemanticRouter,
+        "detect_intent",
+        return_value=("buying_signal", 0.90),
     ):
         _intent, _score, signals = SemanticRouter.detect_and_accumulate(
-            "quiero pagar ya", existing_signals=existing, tenant_id=None
+            "quiero pagar ya",
+            existing_signals=existing,
+            tenant_id=None,
         )
         # Should NOT add a duplicate buying_signal
         assert len(signals) == 1
@@ -90,10 +106,14 @@ def test_signal_accumulation_dedup():
 
 def test_signal_accumulation_below_threshold():
     with patch.object(
-        SemanticRouter, "detect_intent", return_value=("buying_signal", 0.40)
+        SemanticRouter,
+        "detect_intent",
+        return_value=("buying_signal", 0.40),
     ):
         intent, _score, signals = SemanticRouter.detect_and_accumulate(
-            "hmm no se", existing_signals=[], tenant_id=None
+            "hmm no se",
+            existing_signals=[],
+            tenant_id=None,
         )
         # Score below 0.50 threshold — no accumulation
         assert intent == "buying_signal"
@@ -102,10 +122,14 @@ def test_signal_accumulation_below_threshold():
 
 def test_signal_accumulation_non_buying_intent():
     with patch.object(
-        SemanticRouter, "detect_intent", return_value=("objection_money", 0.92)
+        SemanticRouter,
+        "detect_intent",
+        return_value=("objection_money", 0.92),
     ):
         intent, _score, signals = SemanticRouter.detect_and_accumulate(
-            "es muy caro", existing_signals=[], tenant_id=None
+            "es muy caro",
+            existing_signals=[],
+            tenant_id=None,
         )
         # objection_money is not in buying_intents — no accumulation
         assert intent == "objection_money"
@@ -116,10 +140,14 @@ def test_signal_accumulation_does_not_mutate_original():
     original = [{"type": "schedule_signal", "confidence": 0.75, "turn": 0}]
     original_copy = list(original)
     with patch.object(
-        SemanticRouter, "detect_intent", return_value=("buying_signal", 0.88)
+        SemanticRouter,
+        "detect_intent",
+        return_value=("buying_signal", 0.88),
     ):
         _, _, signals = SemanticRouter.detect_and_accumulate(
-            "quiero comprar", existing_signals=original, tenant_id=None
+            "quiero comprar",
+            existing_signals=original,
+            tenant_id=None,
         )
         # New list returned, original untouched
         assert len(signals) == 2

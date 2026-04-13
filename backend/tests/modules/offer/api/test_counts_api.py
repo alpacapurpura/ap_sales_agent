@@ -31,7 +31,9 @@ def _build_client(db: Session, tenant_id: uuid.UUID) -> TestClient:
 
 class TestGetCounts:
     def test_returns_zero_counts_for_fresh_offer(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(tenant_a, name="Fresh")
         db.add(model)
@@ -45,7 +47,9 @@ class TestGetCounts:
         assert body == {"assets": 0, "campaigns": 0, "knowledge": 0}
 
     def test_response_shape_contains_required_keys(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(tenant_a, name="Shape")
         db.add(model)

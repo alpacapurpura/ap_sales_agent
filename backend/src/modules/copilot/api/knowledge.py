@@ -78,7 +78,7 @@ async def search_knowledge(
                 "metadata": r.get("meta", {}),
             }
             for r in results
-        ]
+        ],
     }
 
 
@@ -96,7 +96,8 @@ async def delete_document(
 
     if not deleted:
         raise HTTPException(
-            status_code=404, detail="Document not found or error deleting"
+            status_code=404,
+            detail="Document not found or error deleting",
         )
 
     return {"deleted": True}

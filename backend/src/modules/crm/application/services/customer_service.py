@@ -20,7 +20,10 @@ class CustomerService:
         self.event_repo = JourneyEventRepository(db)
 
     def identify(
-        self, tenant_id: UUID, traits: dict[str, Any], identities: dict[str, str]
+        self,
+        tenant_id: UUID,
+        traits: dict[str, Any],
+        identities: dict[str, str],
     ) -> CustomerProfile:
         """
         Identity Resolution: Find existing profile by ANY identity, or create new.
@@ -31,17 +34,23 @@ class CustomerService:
         # Lookup priority order: UserID, then Email, then Phone
         if "user_id" in identities:
             profile = self.repository.find_by_identity(
-                IdentityType.USER_ID, identities["user_id"], tenant_id
+                IdentityType.USER_ID,
+                identities["user_id"],
+                tenant_id,
             )
 
         if not profile and "email" in traits:
             profile = self.repository.find_by_identity(
-                IdentityType.EMAIL, traits["email"], tenant_id
+                IdentityType.EMAIL,
+                traits["email"],
+                tenant_id,
             )
 
         if not profile and "phone" in traits:
             profile = self.repository.find_by_identity(
-                IdentityType.PHONE, traits["phone"], tenant_id
+                IdentityType.PHONE,
+                traits["phone"],
+                tenant_id,
             )
 
         # 2. If found, update traits (merge)
@@ -64,7 +73,7 @@ class CustomerService:
                         type=IdentityType.EMAIL,
                         value=traits["email"],
                         is_primary=True,
-                    )
+                    ),
                 )
 
             # Create profile object

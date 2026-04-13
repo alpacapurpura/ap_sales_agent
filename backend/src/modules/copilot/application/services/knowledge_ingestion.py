@@ -91,7 +91,8 @@ class KnowledgeIngestionService:
     def __init__(self):
         self.store = CopilotKnowledgeStore()
         self.splitter = RecursiveCharacterTextSplitter(
-            chunk_size=800, chunk_overlap=200
+            chunk_size=800,
+            chunk_overlap=200,
         )
 
     def ingest_document(

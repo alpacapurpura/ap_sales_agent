@@ -24,7 +24,9 @@ class TenantDomainModel(Base):
     verification_txt_value = Column(String, nullable=True)
     verified_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=True
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=True,
     )
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
     deleted_at = Column(DateTime(timezone=True), nullable=True)

@@ -54,7 +54,11 @@ def render_commercial_calendar_page():
         )
     with col_ano:
         year = st.number_input(
-            "Año", min_value=2024, max_value=2030, value=utc_today().year, step=1
+            "Año",
+            min_value=2024,
+            max_value=2030,
+            value=utc_today().year,
+            step=1,
         )
 
     service, db = _get_service()
@@ -75,7 +79,7 @@ def render_commercial_calendar_page():
             "✏️ Editar",
             "🗑️ Eliminar",
             "📊 Stats",
-        ]
+        ],
     )
 
     # ── TAB 1: CALENDARIO ───────────────────────────────────────────────────
@@ -92,7 +96,7 @@ def render_commercial_calendar_page():
 
         if not events:
             st.info(
-                f"No hay eventos para {COUNTRIES.get(country_code, country_code)} {int(year)}."
+                f"No hay eventos para {COUNTRIES.get(country_code, country_code)} {int(year)}.",
             )
         else:
             rows = [
@@ -101,7 +105,8 @@ def render_commercial_calendar_page():
                     "Sem.": e.week_number,
                     "Nombre": e.name,
                     "Categoría": CATEGORY_LABELS.get(
-                        e.category or "", e.category or "—"
+                        e.category or "",
+                        e.category or "—",
                     ),
                     "Fuente": "🔵 Sistema" if e.is_system else "🟢 Tenant",
                     "_week": e.week_number,
@@ -146,7 +151,7 @@ def render_commercial_calendar_page():
                 )
 
             st.caption(
-                f"Total: **{len(events)} filas** ({len({e.name for e in events})} eventos únicos)"
+                f"Total: **{len(events)} filas** ({len({e.name for e in events})} eventos únicos)",
             )
 
     # ── TAB 2: CREAR EVENTO ─────────────────────────────────────────────────
@@ -169,7 +174,8 @@ def render_commercial_calendar_page():
             with c2:
                 fecha_inicio = st.date_input("Fecha inicio", value=utc_today())
                 fecha_fin = st.date_input(
-                    "Fecha fin (opcional — para rangos)", value=None
+                    "Fecha fin (opcional — para rangos)",
+                    value=None,
                 )
             descripcion = st.text_area("Descripción (opcional)")
             submitted = st.form_submit_button("✅ Crear Evento(s)", type="primary")
@@ -203,7 +209,9 @@ def render_commercial_calendar_page():
             service, db = _get_service()
             try:
                 all_events = service.list_events(
-                    country_code=country_code, year=int(year), tenant_id=None
+                    country_code=country_code,
+                    year=int(year),
+                    tenant_id=None,
                 )
             finally:
                 db.close()
@@ -225,20 +233,22 @@ def render_commercial_calendar_page():
                             "Categoría",
                             [e.value for e in EventCategory],
                             index=[e.value for e in EventCategory].index(
-                                sel_event.category
+                                sel_event.category,
                             )
                             if sel_event.category in [e.value for e in EventCategory]
                             else 0,
                             format_func=lambda v: CATEGORY_LABELS.get(v, v),
                         )
                         nueva_desc = st.text_area(
-                            "Descripción", value=sel_event.description or ""
+                            "Descripción",
+                            value=sel_event.description or "",
                         )
                         st.caption(
-                            f"⚠️ Solo se editará la primera fila encontrada ({sel_event.date}). Para rangos, eliminar y recrear."
+                            f"⚠️ Solo se editará la primera fila encontrada ({sel_event.date}). Para rangos, eliminar y recrear.",
                         )
                         submitted_edit = st.form_submit_button(
-                            "💾 Guardar cambios", type="primary"
+                            "💾 Guardar cambios",
+                            type="primary",
                         )
 
                     if submitted_edit:
@@ -261,13 +271,16 @@ def render_commercial_calendar_page():
     with tab_eliminar:
         st.subheader("Eliminar Evento")
         buscar_del = st.text_input(
-            "Buscar por nombre (parcial):", key="buscar_eliminar"
+            "Buscar por nombre (parcial):",
+            key="buscar_eliminar",
         )
         if buscar_del:
             service, db = _get_service()
             try:
                 all_events = service.list_events(
-                    country_code=country_code, year=int(year), tenant_id=None
+                    country_code=country_code,
+                    year=int(year),
+                    tenant_id=None,
                 )
             finally:
                 db.close()
@@ -279,12 +292,13 @@ def render_commercial_calendar_page():
                 st.warning("No se encontraron eventos.")
             else:
                 sel_name_del = st.selectbox(
-                    "Seleccionar evento a eliminar:", unique_names
+                    "Seleccionar evento a eliminar:",
+                    unique_names,
                 )
                 sel_events_del = [e for e in matches if e.name == sel_name_del]
 
                 st.warning(
-                    f"Se eliminarán **{len(sel_events_del)} filas** para '{sel_name_del}'."
+                    f"Se eliminarán **{len(sel_events_del)} filas** para '{sel_name_del}'.",
                 )
                 confirmar = st.checkbox("Confirmo que quiero eliminar estos eventos")
                 if confirmar and st.button("🗑️ Eliminar", type="primary"):
@@ -303,7 +317,9 @@ def render_commercial_calendar_page():
         service, db = _get_service()
         try:
             events = service.list_events(
-                country_code=country_code, year=int(year), tenant_id=None
+                country_code=country_code,
+                year=int(year),
+                tenant_id=None,
             )
         finally:
             db.close()
@@ -339,7 +355,7 @@ def render_commercial_calendar_page():
                         "Oct",
                         "Nov",
                         "Dic",
-                    ][m - 1]
+                    ][m - 1],
                 )
                 st.bar_chart(mes_counts.set_index("mes")["count"])
 
@@ -352,7 +368,7 @@ def render_commercial_calendar_page():
                     .sort_values("count", ascending=False)
                 )
                 cat_counts["cat_label"] = cat_counts["category"].apply(
-                    lambda v: CATEGORY_LABELS.get(v, v)
+                    lambda v: CATEGORY_LABELS.get(v, v),
                 )
                 st.bar_chart(cat_counts.set_index("cat_label")["count"])
 

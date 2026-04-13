@@ -199,7 +199,7 @@ class MetricResolver:
 
                 # Get all dates where both components exist
                 common_dates = sorted(
-                    set(numerator_daily.keys()) & set(denominator_daily.keys())
+                    set(numerator_daily.keys()) & set(denominator_daily.keys()),
                 )
 
                 series: list[tuple[date, float]] = []

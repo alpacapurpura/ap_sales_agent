@@ -180,7 +180,7 @@ class MetaCampaignProvider:
                     else None,
                     "start_time": row.get("start_time"),
                     "end_time": row.get("end_time"),
-                }
+                },
             )
 
             inline_recs.extend(
@@ -238,7 +238,7 @@ class MetaCampaignProvider:
                     "creative_cta": creative.get("call_to_action_type"),
                     "creative_link_url": None,  # Extracted from object_story_spec if needed
                     "preview_shareable_link": row.get("preview_shareable_link"),
-                }
+                },
             )
 
             inline_recs.extend(
@@ -329,8 +329,8 @@ class MetaCampaignProvider:
                     "opportunity_score": content.get("opportunity_score_lift"),
                     "url": rec_data.get("url"),
                     "recommendation_signature": rec_data.get(
-                        "recommendation_signature"
+                        "recommendation_signature",
                     ),
-                }
+                },
             )
         return recs

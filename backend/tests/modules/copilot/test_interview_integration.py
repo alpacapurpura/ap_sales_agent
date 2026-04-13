@@ -26,7 +26,9 @@ class TestInterviewLifecycle:
             svc.conversation_repo = MagicMock()
 
             result = svc.start_interview(
-                tenant_id=tenant_id, user_id=user_id, domain="brand"
+                tenant_id=tenant_id,
+                user_id=user_id,
+                domain="brand",
             )
 
             assert "session_id" in result
@@ -62,7 +64,9 @@ class TestInterviewLifecycle:
             svc.conversation_repo = MagicMock()
 
             result = svc.start_interview(
-                tenant_id=tenant_id, user_id=user_id, domain="brand"
+                tenant_id=tenant_id,
+                user_id=user_id,
+                domain="brand",
             )
             state = svc.get_state(result["session_id"], tenant_id)
 
@@ -82,7 +86,9 @@ class TestInterviewLifecycle:
             svc.conversation_repo = MagicMock()
 
             result = svc.start_interview(
-                tenant_id=tenant_id, user_id=user_id, domain="brand"
+                tenant_id=tenant_id,
+                user_id=user_id,
+                domain="brand",
             )
             session_id = result["session_id"]
 
@@ -113,7 +119,9 @@ class TestInterviewLifecycle:
             svc.start_interview(tenant_id=tenant_id, user_id=user_id, domain="brand")
             with pytest.raises(ValueError, match="Active session exists"):
                 svc.start_interview(
-                    tenant_id=tenant_id, user_id=user_id, domain="brand"
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    domain="brand",
                 )
 
     def test_abandon_allows_new_start(self, db):
@@ -127,14 +135,18 @@ class TestInterviewLifecycle:
             svc.conversation_repo = MagicMock()
 
             result = svc.start_interview(
-                tenant_id=tenant_id, user_id=user_id, domain="brand"
+                tenant_id=tenant_id,
+                user_id=user_id,
+                domain="brand",
             )
             assert svc.abandon(result["session_id"], tenant_id) is True
             assert svc.get_active(tenant_id) is None
 
             # Can start a new one after abandoning
             new_result = svc.start_interview(
-                tenant_id=tenant_id, user_id=user_id, domain="brand"
+                tenant_id=tenant_id,
+                user_id=user_id,
+                domain="brand",
             )
             assert new_result["session_id"] != result["session_id"]
 

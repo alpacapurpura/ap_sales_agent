@@ -130,7 +130,7 @@ class TestIgOrganicKpisAndFunnel:
         net = next(k for k in kpis if k.metric_name == "ig_follows_and_unfollows")
         # Sanity: the net metric must equal gained - lost in the same period
         assert net.current_value == pytest.approx(
-            gained.current_value - lost.current_value
+            gained.current_value - lost.current_value,
         )
 
     def test_ig_organic_funnel_built_correctly(self, mock_db):
@@ -149,7 +149,8 @@ class TestIgOrganicKpisAndFunnel:
         assert funnel.steps[0].conversion_rate_from_previous is None
         # Interacciones / Vistas
         assert funnel.steps[1].conversion_rate_from_previous == pytest.approx(
-            0.51, abs=0.01
+            0.51,
+            abs=0.01,
         )
 
 

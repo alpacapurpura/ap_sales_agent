@@ -82,7 +82,7 @@ class TestSendPaymentLink:
                 "id": "abc-123",
                 "name": "Programa Premium",
                 "checkout_page_url": "https://pay.example.com/premium",
-            }
+            },
         )
         result = tool_send_payment_link(state)
         assert result["status"] == "success"
@@ -167,7 +167,7 @@ class TestRecommendProduct:
                 "main_pain": "no tengo tiempo",
                 "budget_range": "5000-10000",
                 "timeline": "este mes",
-            }
+            },
         )
         result = tool_recommend_product(state)
         assert result["status"] == "success"

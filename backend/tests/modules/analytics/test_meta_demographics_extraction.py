@@ -329,7 +329,10 @@ class TestMetaDemographicsExtraction:
         client = AsyncMock()
         provider = MetaProvider()
         metrics = await provider._extract_meta_ads_breakdowns(
-            client, {"access_token": "tok"}, START, END
+            client,
+            {"access_token": "tok"},
+            START,
+            END,
         )
         assert metrics == []
 
@@ -398,7 +401,7 @@ class TestExtractionToDemographicsCompatibility:
             m for m in metrics if m.metric_name == "meta_reach_by_gender"
         )
         segments = ChannelDashboardService._parse_breakdown_segments(
-            gender_metric.extra["breakdowns"]
+            gender_metric.extra["breakdowns"],
         )
 
         assert len(segments) == 3  # female, male, unknown
@@ -424,7 +427,7 @@ class TestExtractionToDemographicsCompatibility:
             m for m in metrics if m.metric_name == "meta_reach_by_placement"
         )
         segments = ChannelDashboardService._parse_breakdown_segments(
-            placement_metric.extra["breakdowns"]
+            placement_metric.extra["breakdowns"],
         )
 
         assert len(segments) == 3
@@ -445,7 +448,7 @@ class TestExtractionToDemographicsCompatibility:
         # Check spend_by_age values are accurately parsed
         spend_age = next(m for m in metrics if m.metric_name == "meta_spend_by_age")
         segments = ChannelDashboardService._parse_breakdown_segments(
-            spend_age.extra["breakdowns"]
+            spend_age.extra["breakdowns"],
         )
 
         values = {s.label: s.value for s in segments}

@@ -69,7 +69,8 @@ class TestLaunchEdition:
 
     def test_registration_end_before_start_raises(self):
         with pytest.raises(
-            ValueError, match=r"registration_end.*before.*registration_start"
+            ValueError,
+            match=r"registration_end.*before.*registration_start",
         ):
             LaunchEdition(
                 offer_id=uuid4(),

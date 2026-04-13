@@ -83,7 +83,8 @@ class TestBuildFunnel:
         assert funnel.steps[1].conversion_rate_from_previous == 2.0
         # conversions / leads
         assert funnel.steps[4].conversion_rate_from_previous == pytest.approx(
-            33.33, abs=0.01
+            33.33,
+            abs=0.01,
         )
 
     def test_zero_previous_gives_none(self, mock_db):

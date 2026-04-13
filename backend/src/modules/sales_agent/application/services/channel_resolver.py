@@ -38,7 +38,10 @@ class ChannelResolver:
         self.db = db
 
     def resolve(
-        self, tenant_id: UUID, lead: LeadModel, preferred_channel: str | None = None
+        self,
+        tenant_id: UUID,
+        lead: LeadModel,
+        preferred_channel: str | None = None,
     ) -> tuple[BaseChannel, str] | None:
         """
         Return (adapter, channel_user_id) for the lead's channel.
@@ -61,12 +64,17 @@ class ChannelResolver:
                 return result
 
         logger.warning(
-            "no_channel_resolved", lead_id=str(lead.id), tenant_id=str(tenant_id)
+            "no_channel_resolved",
+            lead_id=str(lead.id),
+            tenant_id=str(tenant_id),
         )
         return None
 
     def _try_channel(
-        self, tenant_id: UUID, lead: LeadModel, ch_type: str
+        self,
+        tenant_id: UUID,
+        lead: LeadModel,
+        ch_type: str,
     ) -> tuple[BaseChannel, str] | None:
         enum_type, id_field = _CHANNEL_MAP[ch_type]
         user_id = getattr(lead, id_field, None)
@@ -80,7 +88,7 @@ class ChannelResolver:
                     ChannelConnectionModel.tenant_id == tenant_id,
                     ChannelConnectionModel.channel_type == enum_type.value,
                     ChannelConnectionModel.is_active.is_(True),
-                )
+                ),
             )
             .scalars()
             .first()
@@ -94,7 +102,10 @@ class ChannelResolver:
         return None
 
     def _create_adapter(
-        self, ch_type: str, conn: ChannelConnectionModel, tenant_id: UUID
+        self,
+        ch_type: str,
+        conn: ChannelConnectionModel,
+        tenant_id: UUID,
     ) -> BaseChannel | None:
         try:
             if ch_type == "telegram":
@@ -123,7 +134,9 @@ class ChannelResolver:
                 )
         except Exception as e:
             logger.error(
-                "channel_adapter_creation_failed", ch_type=ch_type, error=str(e)
+                "channel_adapter_creation_failed",
+                ch_type=ch_type,
+                error=str(e),
             )
         return None
 

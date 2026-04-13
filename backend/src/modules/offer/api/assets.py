@@ -101,7 +101,7 @@ def _to_response(asset) -> OfferAssetResponse:  # type: ignore[no-untyped-def]
             "error_message": asset.error_message,
             "created_at": asset.created_at,
             "updated_at": asset.updated_at,
-        }
+        },
     )
 
 

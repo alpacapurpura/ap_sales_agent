@@ -42,7 +42,8 @@ async def oauth_callback(
     except Exception as e:
         logger.error("gmail_oauth_exchange_failed", error=str(e))
         raise HTTPException(
-            status_code=400, detail="Error de autenticacion con Google"
+            status_code=400,
+            detail="Error de autenticacion con Google",
         ) from e
 
     try:

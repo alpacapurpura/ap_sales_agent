@@ -87,7 +87,7 @@ class TestVerifyTokenPayload:
             patch(
                 "jwt.decode",
                 side_effect=pyjwt.exceptions.InvalidSignatureError(
-                    "Signature mismatch"
+                    "Signature mismatch",
                 ),
             ),
         ):
@@ -145,7 +145,8 @@ class TestVerifyTokenPayload:
                 "https://clerk.example.com",
             ),
             patch(
-                "jwt.decode", side_effect=pyjwt.exceptions.DecodeError("Cannot decode")
+                "jwt.decode",
+                side_effect=pyjwt.exceptions.DecodeError("Cannot decode"),
             ),
         ):
             from src.modules.iam.application.auth import verify_token_payload

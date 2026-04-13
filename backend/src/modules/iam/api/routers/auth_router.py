@@ -20,7 +20,8 @@ async def get_current_user_profile(user: User = Depends(get_user_from_token)):
 
 @router.get("/me/tenants", response_model=list[TenantSchema])
 async def get_my_tenants(
-    user: User = Depends(get_user_from_token), db: Session = Depends(get_db)
+    user: User = Depends(get_user_from_token),
+    db: Session = Depends(get_db),
 ):
     """
     List all tenants the current user belongs to.

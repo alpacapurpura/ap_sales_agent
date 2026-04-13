@@ -39,11 +39,11 @@ class TestGetDemographics:
                             "breakdowns": [
                                 {"dimension_values": ["18-24"], "value": 3000},
                                 {"dimension_values": ["25-34"], "value": 7000},
-                            ]
+                            ],
                         },
                     ),
-                ]
-            )
+                ],
+            ),
         )
 
         service = ChannelDashboardService(db)
@@ -70,11 +70,11 @@ class TestGetDemographics:
                             "breakdowns": [
                                 {"dimension_values": ["male"], "value": 4000},
                                 {"dimension_values": ["female"], "value": 6000},
-                            ]
+                            ],
                         },
                     ),
-                ]
-            )
+                ],
+            ),
         )
 
         service = ChannelDashboardService(db)
@@ -104,11 +104,11 @@ class TestGetDemographics:
                                     "dimension_values": ["audience_network"],
                                     "value": 2000,
                                 },
-                            ]
+                            ],
                         },
                     ),
-                ]
-            )
+                ],
+            ),
         )
 
         service = ChannelDashboardService(db)
@@ -131,7 +131,7 @@ class TestGetDemographics:
                             "breakdowns": [
                                 {"dimension_values": ["25-34"], "value": 8000},
                                 {"dimension_values": ["35-44"], "value": 2000},
-                            ]
+                            ],
                         },
                     ),
                     _make_metric_row(
@@ -140,7 +140,7 @@ class TestGetDemographics:
                             "breakdowns": [
                                 {"dimension_values": ["female"], "value": 6000},
                                 {"dimension_values": ["male"], "value": 4000},
-                            ]
+                            ],
                         },
                     ),
                     _make_metric_row(
@@ -148,11 +148,11 @@ class TestGetDemographics:
                         {
                             "breakdowns": [
                                 {"dimension_values": ["facebook_feed"], "value": 10000},
-                            ]
+                            ],
                         },
                     ),
-                ]
-            )
+                ],
+            ),
         )
 
         service = ChannelDashboardService(db)
@@ -199,8 +199,8 @@ class TestGetDemographics:
                 return_value=[
                     _make_metric_row("meta_reach_by_age", {}),
                     _make_metric_row("meta_reach_by_gender", {"breakdowns": []}),
-                ]
-            )
+                ],
+            ),
         )
 
         service = ChannelDashboardService(db)
@@ -219,7 +219,7 @@ class TestGetDemographics:
             "extra": {
                 "breakdowns": [
                     {"dimension_values": ["18-24"], "value": 5000},
-                ]
+                ],
             },
         }
         db.execute.return_value = MagicMock(fetchall=MagicMock(return_value=[row]))
@@ -242,11 +242,11 @@ class TestGetDemographics:
                             "breakdowns": [
                                 {"dimension_values": ["18-24"], "value": 0},
                                 {"dimension_values": ["25-34"], "value": 0},
-                            ]
+                            ],
                         },
                     ),
-                ]
-            )
+                ],
+            ),
         )
 
         service = ChannelDashboardService(db)

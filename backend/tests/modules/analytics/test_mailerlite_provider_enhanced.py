@@ -293,7 +293,7 @@ class TestExtractMetricsDailyOptimized:
                     unit="count",
                     date=date(2026, 4, 1),
                 ),
-            ]
+            ],
         )
         provider.extract_metrics = AsyncMock(return_value=mock_result)
 
@@ -304,7 +304,7 @@ class TestExtractMetricsDailyOptimized:
                 start_date=date(2026, 4, 1),
                 end_date=date(2026, 4, 7),
                 stage="nurture",
-            )
+            ),
         )
 
         # Must be called ONCE with the full range, not 7 times
@@ -334,7 +334,7 @@ class TestExtractMetricsDailyOptimized:
                 start_date=date(2026, 4, 1),
                 end_date=date(2026, 4, 3),
                 stage="capture",
-            )
+            ),
         )
 
         call_kwargs = provider.extract_metrics.call_args.kwargs
@@ -353,7 +353,7 @@ class TestExtractMetricsDailyOptimized:
             error_type="timeout",
         )
         provider.extract_metrics = AsyncMock(
-            return_value=ExtractionResult(failures=[failure])
+            return_value=ExtractionResult(failures=[failure]),
         )
 
         result = _run(
@@ -363,7 +363,7 @@ class TestExtractMetricsDailyOptimized:
                 start_date=date(2026, 4, 1),
                 end_date=date(2026, 4, 7),
                 stage="nurture",
-            )
+            ),
         )
 
         assert len(result.failures) == 1
@@ -470,7 +470,7 @@ class TestExtractAutomationsPerRow:
                 "triggers": [{}],
                 "steps": [{} for _ in range(11)],
             },
-        ]
+        ],
     }
 
     def _run_extract(self, automations_response=None):
@@ -496,8 +496,13 @@ class TestExtractAutomationsPerRow:
         ):
             return _run(
                 provider._extract_automations(
-                    client, {}, {}, date(2026, 4, 1), date(2026, 4, 10), "email-nurture"
-                )
+                    client,
+                    {},
+                    {},
+                    date(2026, 4, 1),
+                    date(2026, 4, 10),
+                    "email-nurture",
+                ),
             )
 
     def test_emits_per_automation_rows_with_campaign_id(self):
@@ -510,7 +515,8 @@ class TestExtractAutomationsPerRow:
         assert len(auto_001_metrics) > 0
 
         sent = next(
-            (m for m in auto_001_metrics if m.metric_name == "emails_sent"), None
+            (m for m in auto_001_metrics if m.metric_name == "emails_sent"),
+            None,
         )
         assert sent is not None
         assert sent.value == 11
@@ -657,7 +663,7 @@ class TestAutomationStepExtraction:
                     date(2026, 4, 1),
                     date(2026, 4, 10),
                     "email-nurture",
-                )
+                ),
             )
 
         assert len(metrics) > 0
@@ -711,7 +717,7 @@ class TestAutomationStepExtraction:
                     date(2026, 4, 1),
                     date(2026, 4, 10),
                     "email-nurture",
-                )
+                ),
             )
 
         assert metrics[0].extra["automation_status"] == "paused"

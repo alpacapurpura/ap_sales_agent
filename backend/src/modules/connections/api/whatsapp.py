@@ -86,7 +86,7 @@ async def get_whatsapp_status(
 
                 if not current_metadata and provider_instance:
                     owner_jid = provider_instance.get(
-                        "ownerJid"
+                        "ownerJid",
                     ) or provider_instance.get("number")
                     profile_name = (
                         provider_instance.get("profileName")
@@ -151,7 +151,8 @@ async def create_whatsapp_session(
                 body=resp.get("text"),
             )
             raise HTTPException(
-                status_code=500, detail=f"Failed to create instance: {resp.get('text')}"
+                status_code=500,
+                detail=f"Failed to create instance: {resp.get('text')}",
             )
 
         await asyncio.sleep(2)
@@ -208,10 +209,12 @@ async def get_whatsapp_qr(
             return data
         if resp.get("status") == 404:
             raise HTTPException(
-                status_code=404, detail="Instance not found. Create session first."
+                status_code=404,
+                detail="Instance not found. Create session first.",
             )
         raise HTTPException(
-            status_code=500, detail=f"Evolution Error: {resp.get('text')}"
+            status_code=500,
+            detail=f"Evolution Error: {resp.get('text')}",
         )
     except HTTPException:
         raise
@@ -229,7 +232,8 @@ async def delete_whatsapp_session(
 
     if provider == "meta":
         connection = repo.get_by_tenant_and_type(
-            tenant_uuid, ChannelType.WHATSAPP_CLOUD
+            tenant_uuid,
+            ChannelType.WHATSAPP_CLOUD,
         )
         if connection:
             repo.deactivate(connection)
@@ -263,11 +267,18 @@ async def handle_whatsapp_webhook(
 
     if background_tasks:
         background_tasks.add_task(
-            orch._handle_incoming_webhook, adapter, payload, None, tenant_id
+            orch._handle_incoming_webhook,
+            adapter,
+            payload,
+            None,
+            tenant_id,
         )
     else:
         await orch._handle_incoming_webhook(
-            adapter, payload, background_tasks, tenant_id
+            adapter,
+            payload,
+            background_tasks,
+            tenant_id,
         )
 
     return {"status": "ok"}

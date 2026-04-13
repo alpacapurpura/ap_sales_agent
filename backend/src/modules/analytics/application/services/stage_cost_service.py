@@ -81,7 +81,7 @@ class StageCostService:
             select(
                 MetricAggregationModel.channel_slug,
                 func.coalesce(func.sum(MetricAggregationModel.value), 0.0).label(
-                    "total"
+                    "total",
                 ),
             )
             .where(
@@ -127,7 +127,9 @@ class StageCostService:
 
         if group == "retargeting":
             retargeting_spend = self.get_retargeting_spend(
-                tenant_id, start_date, end_date
+                tenant_id,
+                start_date,
+                end_date,
             )
             group_cost = sum(retargeting_spend.values())
         elif group == "automation":
@@ -168,7 +170,7 @@ class StageCostService:
         # Stage 0: paid ad spend
         ad_slugs = {"meta-ads", "google-ads", "tiktok-ads"}
         stmt_ads = select(
-            func.coalesce(func.sum(MetricAggregationModel.value), 0.0)
+            func.coalesce(func.sum(MetricAggregationModel.value), 0.0),
         ).where(
             MetricAggregationModel.tenant_id == tenant_id,
             MetricAggregationModel.channel_slug.in_(ad_slugs),

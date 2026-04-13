@@ -65,8 +65,8 @@ class TestGetCreativesOverview:
                             campaign_name="Campaign Two",
                             effective_status="PAUSED",
                         ),
-                    ]
-                )
+                    ],
+                ),
             ),
             # 2nd call: video retention metrics
             MagicMock(fetchall=MagicMock(return_value=[])),
@@ -98,8 +98,8 @@ class TestGetCreativesOverview:
                         _make_video_metric_row("meta_video_p100", 1000.0),
                         _make_video_metric_row("meta_video_30sec", 6000.0),
                         _make_video_metric_row("meta_video_avg_watch_time", 15.5),
-                    ]
-                )
+                    ],
+                ),
             ),
         ]
 
@@ -150,8 +150,8 @@ class TestGetCreativesOverview:
                             name="Paused Ad",
                             effective_status="PAUSED",
                         ),
-                    ]
-                )
+                    ],
+                ),
             ),
             MagicMock(fetchall=MagicMock(return_value=[])),
         ]
@@ -193,8 +193,8 @@ class TestGetCreativesOverview:
                             creative_cta="LEARN_MORE",
                             preview_shareable_link="https://fb.com/preview/456",
                         ),
-                    ]
-                )
+                    ],
+                ),
             ),
             MagicMock(fetchall=MagicMock(return_value=[])),
         ]

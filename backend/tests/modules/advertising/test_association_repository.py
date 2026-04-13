@@ -33,7 +33,10 @@ class TestAssociationRepository:
         assert row.deleted_at is None
 
     def test_create_soft_deletes_previous_active(
-        self, db, tenant_id: UUID, offer_id: UUID
+        self,
+        db,
+        tenant_id: UUID,
+        offer_id: UUID,
     ):
         repo = AssociationRepository(db)
         first = repo.create(
@@ -56,13 +59,18 @@ class TestAssociationRepository:
         assert reloaded.deleted_at is not None
         # The newer row is the active one.
         active = repo.get_active_by_target(
-            tenant_id, AssociationTargetType.CAMPAIGN, "1111"
+            tenant_id,
+            AssociationTargetType.CAMPAIGN,
+            "1111",
         )
         assert active is not None
         assert active.id == second.id
 
     def test_list_active_excludes_soft_deleted(
-        self, db, tenant_id: UUID, offer_id: UUID
+        self,
+        db,
+        tenant_id: UUID,
+        offer_id: UUID,
     ):
         repo = AssociationRepository(db)
         a = repo.create(
@@ -76,7 +84,10 @@ class TestAssociationRepository:
         assert repo.list_active(tenant_id) == []
 
     def test_list_active_filters_by_target_type(
-        self, db, tenant_id: UUID, offer_id: UUID
+        self,
+        db,
+        tenant_id: UUID,
+        offer_id: UUID,
     ):
         repo = AssociationRepository(db)
         repo.create(
@@ -103,7 +114,11 @@ class TestAssociationRepository:
         )
 
     def test_tenant_isolation(
-        self, db, tenant_id: UUID, other_tenant_id: UUID, offer_id: UUID
+        self,
+        db,
+        tenant_id: UUID,
+        other_tenant_id: UUID,
+        offer_id: UUID,
     ):
         repo = AssociationRepository(db)
         repo.create(
@@ -136,7 +151,11 @@ class TestAssociationRepository:
         assert not repo.soft_delete(tenant_id, uuid.uuid4())
 
     def test_get_by_id_scoped_to_tenant(
-        self, db, tenant_id: UUID, other_tenant_id: UUID, offer_id: UUID
+        self,
+        db,
+        tenant_id: UUID,
+        other_tenant_id: UUID,
+        offer_id: UUID,
     ):
         repo = AssociationRepository(db)
         row = repo.create(

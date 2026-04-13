@@ -27,7 +27,9 @@ class _StubOfferReadPort(OfferReadPort):
         return list(self._offers)
 
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: UUID | None = None
+        self,
+        offer_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> OfferReadDTO | None:
         for o in self._offers:
             if o.id == offer_id:
@@ -73,7 +75,12 @@ class TestOfferDetectionService:
 
     @pytest.mark.asyncio
     async def test_landing_url_match_suggests_ad_set_with_high_confidence(
-        self, db, tenant_id, make_campaign, make_ad_set, make_ad
+        self,
+        db,
+        tenant_id,
+        make_campaign,
+        make_ad_set,
+        make_ad,
     ) -> None:
         offer = _make_offer(
             tenant_id=tenant_id,
@@ -83,7 +90,10 @@ class TestOfferDetectionService:
         port = _StubOfferReadPort([offer])
 
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Random Name"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Random Name",
         )
         ad_set = make_ad_set(
             db,
@@ -115,7 +125,10 @@ class TestOfferDetectionService:
 
     @pytest.mark.asyncio
     async def test_keyword_match_at_campaign_level_medium_confidence(
-        self, db, tenant_id, make_campaign
+        self,
+        db,
+        tenant_id,
+        make_campaign,
     ) -> None:
         offer = _make_offer(tenant_id=tenant_id, name="Curso Marketing Digital")
         port = _StubOfferReadPort([offer])
@@ -139,7 +152,11 @@ class TestOfferDetectionService:
 
     @pytest.mark.asyncio
     async def test_existing_association_is_skipped(
-        self, db, tenant_id, offer_id, make_campaign
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
     ) -> None:
         offer = _make_offer(
             tenant_id=tenant_id,
@@ -168,7 +185,10 @@ class TestOfferDetectionService:
 
     @pytest.mark.asyncio
     async def test_objective_heuristic_only_fires_with_unique_match(
-        self, db, tenant_id, make_campaign
+        self,
+        db,
+        tenant_id,
+        make_campaign,
     ) -> None:
         # One SERVICIO offer with no explicit onboarding → resolves to MESSAGE.
         # The campaign has OUTCOME_MESSAGES → expected=MESSAGE → single match.
@@ -197,10 +217,14 @@ class TestOfferDetectionService:
 
     @pytest.mark.asyncio
     async def test_archived_offers_are_excluded(
-        self, db, tenant_id, make_campaign
+        self,
+        db,
+        tenant_id,
+        make_campaign,
     ) -> None:
         offer = _make_offer(
-            tenant_id=tenant_id, name="Archivada Curso Marketing Digital"
+            tenant_id=tenant_id,
+            name="Archivada Curso Marketing Digital",
         )
         offer.status = "archived"  # type: ignore[misc]
         port = _StubOfferReadPort([offer])

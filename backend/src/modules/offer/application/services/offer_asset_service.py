@@ -80,7 +80,11 @@ class OfferAssetService:
 
     # --------------------------------------------------------------- get
     def get_asset(
-        self, *, tenant_id: UUID, offer_id: UUID, asset_id: UUID
+        self,
+        *,
+        tenant_id: UUID,
+        offer_id: UUID,
+        asset_id: UUID,
     ) -> OfferAsset:
         asset = self._repo.get_by_id(tenant_id, offer_id, asset_id)
         if asset is None:
@@ -202,7 +206,11 @@ class OfferAssetService:
 
     # ---------------------------------------------------------- download_url
     def get_download_url(
-        self, *, tenant_id: UUID, offer_id: UUID, asset_id: UUID
+        self,
+        *,
+        tenant_id: UUID,
+        offer_id: UUID,
+        asset_id: UUID,
     ) -> str:
         asset = self._repo.get_by_id(tenant_id, offer_id, asset_id)
         if asset is None:

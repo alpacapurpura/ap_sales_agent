@@ -44,5 +44,5 @@ def checkpoint(
                     "total": blocks_total,
                 },
             },
-        }
+        },
     )

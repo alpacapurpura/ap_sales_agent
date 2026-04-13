@@ -63,7 +63,7 @@ class BrandRepository:
             has_identity=bool((settings_dict.get("identity") or {}).get("brand_name")),
             has_story=bool((settings_dict.get("story") or {}).get("origin_story")),
             has_strategy=bool(
-                (settings_dict.get("strategy") or {}).get("methodology_name")
+                (settings_dict.get("strategy") or {}).get("methodology_name"),
             ),
         )
 
@@ -83,7 +83,7 @@ class BrandRepository:
             has_identity=bool(
                 (saved_config.get("identity") or {}).get("brand_name")
                 if saved_config
-                else False
+                else False,
             ),
         )
 

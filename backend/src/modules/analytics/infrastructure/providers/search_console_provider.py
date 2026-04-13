@@ -55,7 +55,11 @@ class SearchConsoleProvider(BaseMetricsProvider):
             )
             return ExtractionResult()
         return await super().extract_metrics_daily(
-            tenant_id, credentials, start_date, end_date, stage=stage
+            tenant_id,
+            credentials,
+            start_date,
+            end_date,
+            stage=stage,
         )
 
     async def extract_metrics(
@@ -120,7 +124,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
                             unit="count",
                             date=end_date,
                         ),
-                    ]
+                    ],
                 )
 
             # Top queries (dimension: query)
@@ -151,7 +155,7 @@ class SearchConsoleProvider(BaseMetricsProvider):
                         unit="json",
                         date=end_date,
                         extra={"queries": terms},
-                    )
+                    ),
                 )
         except (RefreshError, TransportError) as exc:
             logger.warning(

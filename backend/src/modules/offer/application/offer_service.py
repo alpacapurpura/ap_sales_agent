@@ -126,7 +126,10 @@ class OfferService:
             raise HTTPException(status_code=404, detail="Offer not found")
 
     def patch_offer(
-        self, offer_id: UUID, tenant_id: UUID, update_data: dict[str, Any]
+        self,
+        offer_id: UUID,
+        tenant_id: UUID,
+        update_data: dict[str, Any],
     ) -> Offer:
         offer = self.repository.get_by_id(offer_id, tenant_id)
         if not offer:
@@ -136,7 +139,8 @@ class OfferService:
         current_data = offer.model_dump()
 
         if "specific_details" in update_data and isinstance(
-            update_data["specific_details"], dict
+            update_data["specific_details"],
+            dict,
         ):
             detail_class = None
             archetype = offer.archetype
@@ -146,7 +150,7 @@ class OfferService:
             if detail_class:
                 try:
                     update_data["specific_details"] = detail_class(
-                        **update_data["specific_details"]
+                        **update_data["specific_details"],
                     )
                 except Exception as e:
                     msg = f"Invalid specific_details structure for archetype {archetype}: {e!s}"

@@ -84,13 +84,17 @@ class TestListEvents:
         repo = CalendarEventRepository(db)
         repo.create(
             _make_event(
-                country_code="PE", name="Peru Event", event_date=date(2026, 3, 1)
-            )
+                country_code="PE",
+                name="Peru Event",
+                event_date=date(2026, 3, 1),
+            ),
         )
         repo.create(
             _make_event(
-                country_code="CO", name="Colombia Event", event_date=date(2026, 3, 1)
-            )
+                country_code="CO",
+                name="Colombia Event",
+                event_date=date(2026, 3, 1),
+            ),
         )
 
         results = repo.list_events(country_code="PE", year=2026, tenant_id=TENANT_A)
@@ -119,7 +123,10 @@ class TestListEvents:
         repo.create(_make_event(event_date=week10_date, name="Week 10 Event"))
 
         results = repo.list_events(
-            country_code="PE", year=2026, tenant_id=TENANT_A, week=w1
+            country_code="PE",
+            year=2026,
+            tenant_id=TENANT_A,
+            week=w1,
         )
         names = [e.name for e in results]
         assert "Week 2 Event" in names
@@ -133,7 +140,7 @@ class TestListEvents:
                 category="campaña_comercial",
                 name="Campaign",
                 event_date=date(2026, 11, 27),
-            )
+            ),
         )
 
         results = repo.list_events(

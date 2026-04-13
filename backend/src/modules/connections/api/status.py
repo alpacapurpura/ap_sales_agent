@@ -90,7 +90,7 @@ async def get_all_connections_status(
                 if display_name
                 else None,
                 last_sync=str(last_sync) if last_sync else None,
-            )
+            ),
         )
 
     return BatchConnectionStatusResponse(connections=items)

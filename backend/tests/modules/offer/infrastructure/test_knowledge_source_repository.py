@@ -83,7 +83,10 @@ class TestCreate:
 
 class TestGetById:
     def test_tenant_isolation(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_id = _make_offer(db, tenant_a)
         repo = KnowledgeSourceRepository(db)
@@ -102,7 +105,10 @@ class TestGetById:
 
 class TestList:
     def test_list_filters_by_tenant_and_offer(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_a = _make_offer(db, tenant_a)
         offer_b = _make_offer(db, tenant_b)
@@ -123,7 +129,12 @@ class TestList:
         offer_id = _make_offer(db, tenant_a)
         repo = KnowledgeSourceRepository(db)
         repo.create(
-            _build_source(tenant_a, offer_id, name="PDF", type_=KnowledgeSourceType.PDF)
+            _build_source(
+                tenant_a,
+                offer_id,
+                name="PDF",
+                type_=KnowledgeSourceType.PDF,
+            ),
         )
         repo.create(
             _build_source(
@@ -131,7 +142,7 @@ class TestList:
                 offer_id,
                 name="Video",
                 type_=KnowledgeSourceType.VIDEO,
-            )
+            ),
         )
 
         items = repo.list(tenant_a, offer_id, type_=KnowledgeSourceType.VIDEO)
@@ -190,7 +201,10 @@ class TestCounts:
         assert repo.get_by_id(tenant_a, offer_id, queued.id) is not None
 
     def test_tenant_isolation_on_counts(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_a = _make_offer(db, tenant_a)
         offer_b = _make_offer(db, tenant_b)
@@ -204,7 +218,10 @@ class TestCounts:
 
 class TestSoftDelete:
     def test_soft_delete_wrong_tenant_returns_false(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_id = _make_offer(db, tenant_a)
         repo = KnowledgeSourceRepository(db)

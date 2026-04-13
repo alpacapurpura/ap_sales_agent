@@ -117,7 +117,11 @@ class TestOfferExtractionServiceExtractAll:
     @patch("src.modules.offer.application.offer_extraction_service.OfferService")
     @patch("src.modules.offer.application.offer_extraction_service.WebCrawler")
     async def test_extract_all_calls_crawler_with_url(
-        self, mock_crawler_cls, mock_offer_svc_cls, mock_db, mock_offer
+        self,
+        mock_crawler_cls,
+        mock_offer_svc_cls,
+        mock_db,
+        mock_offer,
     ):
         from src.modules.offer.application.offer_extraction_service import (
             OfferExtractionService,
@@ -143,7 +147,7 @@ class TestOfferExtractionServiceExtractAll:
             )
 
             mock_crawler_instance.crawl_content.assert_awaited_once_with(
-                "https://example.com/product"
+                "https://example.com/product",
             )
             assert mock_run.await_count == 6  # 6 sections
             assert len(progress_calls) > 0
@@ -151,7 +155,10 @@ class TestOfferExtractionServiceExtractAll:
     @pytest.mark.asyncio
     @patch("src.modules.offer.application.offer_extraction_service.OfferService")
     async def test_extract_all_uses_text_when_no_url(
-        self, mock_offer_svc_cls, mock_db, mock_offer
+        self,
+        mock_offer_svc_cls,
+        mock_db,
+        mock_offer,
     ):
         from src.modules.offer.application.offer_extraction_service import (
             OfferExtractionService,
@@ -171,7 +178,10 @@ class TestOfferExtractionServiceExtractAll:
     @pytest.mark.asyncio
     @patch("src.modules.offer.application.offer_extraction_service.OfferService")
     async def test_extract_all_persists_results_per_wave(
-        self, mock_offer_svc_cls, mock_db, mock_offer
+        self,
+        mock_offer_svc_cls,
+        mock_db,
+        mock_offer,
     ):
         from src.modules.offer.application.offer_extraction_service import (
             OfferExtractionService,
@@ -185,7 +195,7 @@ class TestOfferExtractionServiceExtractAll:
 
         with patch.object(service, "_run_section", new_callable=AsyncMock) as mock_run:
             mock_run.return_value = OfferPromiseUpdate(
-                headline_promise="AI extracted promise"
+                headline_promise="AI extracted promise",
             )
             await service.extract_all(text="some content")
 
@@ -195,7 +205,9 @@ class TestOfferExtractionServiceExtractAll:
     @pytest.mark.asyncio
     @patch("src.modules.offer.application.offer_extraction_service.OfferService")
     async def test_extract_all_uses_correct_archetype(
-        self, mock_offer_svc_cls, mock_db
+        self,
+        mock_offer_svc_cls,
+        mock_db,
     ):
         from src.modules.offer.application.offer_extraction_service import (
             OfferExtractionService,

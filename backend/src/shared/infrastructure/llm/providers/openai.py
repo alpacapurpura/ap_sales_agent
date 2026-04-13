@@ -59,7 +59,8 @@ class OpenAIService(BaseLLMService):
 
     @staticmethod
     def _convert_to_lc_messages(
-        messages: list[dict[str, str]], system_prompt: str | None
+        messages: list[dict[str, str]],
+        system_prompt: str | None,
     ) -> list:
         """Convert generic message dicts to LangChain message objects."""
         role_map = {

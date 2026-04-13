@@ -37,7 +37,10 @@ class EvangelizationRepository:
         self.db = db
 
     async def get_evangelization_data(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> dict:
         """Aggregate all evangelization data for the metrics endpoint.
 
@@ -53,7 +56,10 @@ class EvangelizationRepository:
         referidos = []
         for ev in evangelists:
             stats = self._get_referral_stats_for_code(
-                tenant_id, ev["code"], start_date, end_date
+                tenant_id,
+                ev["code"],
+                start_date,
+                end_date,
             )
             referidos.append(
                 {
@@ -65,7 +71,7 @@ class EvangelizationRepository:
                     "revenue_attributed": stats["revenue"],
                     "currency": stats["currency"],
                     "is_active": ev["is_active"],
-                }
+                },
             )
 
         # 3. K-Factor
@@ -161,7 +167,7 @@ class EvangelizationRepository:
                 .label("conversions"),
                 func.coalesce(
                     func.sum(SaleModel.amount).filter(
-                        SaleModel.status == SaleStatus.COMPLETED
+                        SaleModel.status == SaleStatus.COMPLETED,
                     ),
                     0.0,
                 ).label("revenue"),
@@ -198,7 +204,10 @@ class EvangelizationRepository:
         }
 
     def _compute_k_factor(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> dict:
         """Compute K-Factor for the period.
 
@@ -225,7 +234,8 @@ class EvangelizationRepository:
             SaleModel.occurred_at >= start_date,
             SaleModel.occurred_at <= end_date,
             func.jsonb_extract_path_text(
-                SaleModel.metadata_info, "referral_code"
+                SaleModel.metadata_info,
+                "referral_code",
             ).isnot(None),
         )
         result = self.db.execute(referral_sales_stmt).first()
@@ -257,7 +267,7 @@ class EvangelizationRepository:
             func.count(
                 case(
                     (NpsResponseModel.score >= 9, NpsResponseModel.id),
-                )
+                ),
             ).label("promoters"),
             func.count(
                 case(
@@ -268,12 +278,12 @@ class EvangelizationRepository:
                         ),
                         NpsResponseModel.id,
                     ),
-                )
+                ),
             ).label("passives"),
             func.count(
                 case(
                     (NpsResponseModel.score <= 6, NpsResponseModel.id),
-                )
+                ),
             ).label("detractors"),
             func.avg(NpsResponseModel.score).label("avg_score"),
         ).where(NpsResponseModel.tenant_id == tenant_id)
@@ -335,7 +345,8 @@ class EvangelizationRepository:
                 CustomerProfileModel.lifecycle_stage != LifecycleStage.EVANGELIST,
             )
             .order_by(
-                NpsResponseModel.score.desc(), NpsResponseModel.responded_at.desc()
+                NpsResponseModel.score.desc(),
+                NpsResponseModel.responded_at.desc(),
             )
         )
         results = self.db.execute(stmt).all()
@@ -384,7 +395,7 @@ class EvangelizationRepository:
                 [
                     LifecycleStage.CUSTOMER,
                     LifecycleStage.EVANGELIST,
-                ]
+                ],
             ),
             CustomerProfileModel.is_inactive == False,  # noqa: E712
         )
@@ -410,7 +421,10 @@ class EvangelizationRepository:
         }
 
     def _get_referral_revenue(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> dict:
         """Sum revenue from completed sales with referral_code in metadata_info."""
         stmt = (
@@ -424,7 +438,8 @@ class EvangelizationRepository:
                 SaleModel.occurred_at >= start_date,
                 SaleModel.occurred_at <= end_date,
                 func.jsonb_extract_path_text(
-                    SaleModel.metadata_info, "referral_code"
+                    SaleModel.metadata_info,
+                    "referral_code",
                 ).isnot(None),
             )
             .group_by(SaleModel.currency)

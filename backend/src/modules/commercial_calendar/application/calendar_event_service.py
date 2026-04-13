@@ -119,6 +119,8 @@ class CalendarEventService:
         return self.repo.delete(event_id)
 
     def get_by_id(
-        self, event_id: UUID, tenant_id: UUID | None = None
+        self,
+        event_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> CalendarEvent | None:
         return self.repo.get_by_id(event_id, tenant_id=tenant_id)

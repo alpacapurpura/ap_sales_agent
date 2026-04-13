@@ -33,7 +33,7 @@ class CopilotKnowledgeStore:
 
         try:
             self.sparse_model = SparseTextEmbedding(
-                model_name=settings.QDRANT_SPARSE_MODEL
+                model_name=settings.QDRANT_SPARSE_MODEL,
             )
         except Exception as e:
             logger.error("copilot_knowledge_sparse_init_error", error=str(e))
@@ -41,7 +41,8 @@ class CopilotKnowledgeStore:
 
         try:
             self.ranker = Ranker(
-                model_name="ms-marco-MiniLM-L-12-v2", cache_dir="/app/model_cache"
+                model_name="ms-marco-MiniLM-L-12-v2",
+                cache_dir="/app/model_cache",
             )
         except Exception as e:
             logger.error("copilot_knowledge_ranker_init_error", error=str(e))
@@ -60,12 +61,12 @@ class CopilotKnowledgeStore:
                 "dense": models.VectorParams(
                     size=settings.QDRANT_VECTOR_SIZE,
                     distance=models.Distance.COSINE,
-                )
+                ),
             },
             sparse_vectors_config={
                 "sparse": models.SparseVectorParams(
-                    index=models.SparseIndexParams(on_disk=False)
-                )
+                    index=models.SparseIndexParams(on_disk=False),
+                ),
             },
         )
 
@@ -84,12 +85,16 @@ class CopilotKnowledgeStore:
         # Build filter
         filter_conditions = [
             models.FieldCondition(
-                key="tenant_id", match=models.MatchValue(value=str(tenant_id))
-            )
+                key="tenant_id",
+                match=models.MatchValue(value=str(tenant_id)),
+            ),
         ]
         if scope != "all":
             filter_conditions.append(
-                models.FieldCondition(key="scope", match=models.MatchValue(value=scope))
+                models.FieldCondition(
+                    key="scope",
+                    match=models.MatchValue(value=scope),
+                ),
             )
 
         search_filter = models.Filter(must=filter_conditions)
@@ -148,7 +153,11 @@ class CopilotKnowledgeStore:
 
         points = []
         for text, meta, dense, sparse in zip(
-            texts, metadatas, dense_embeddings, sparse_embeddings, strict=False
+            texts,
+            metadatas,
+            dense_embeddings,
+            sparse_embeddings,
+            strict=False,
         ):
             meta["content"] = text
             meta["tenant_id"] = str(tenant_id)
@@ -160,7 +169,7 @@ class CopilotKnowledgeStore:
                         "sparse": sparse.as_object() if sparse else None,
                     },
                     payload=meta,
-                )
+                ),
             )
 
         self.client.upsert(collection_name=self.COLLECTION, points=points)
@@ -183,8 +192,8 @@ class CopilotKnowledgeStore:
                                 key="document_id",
                                 match=models.MatchValue(value=document_id),
                             ),
-                        ]
-                    )
+                        ],
+                    ),
                 ),
             )
             return True
@@ -222,14 +231,14 @@ class CopilotKnowledgeStore:
                     models.FieldCondition(
                         key="tenant_id",
                         match=models.MatchValue(value=str(tenant_id)),
-                    )
+                    ),
                 )
             if scope:
                 filter_conditions.append(
                     models.FieldCondition(
                         key="scope",
                         match=models.MatchValue(value=scope),
-                    )
+                    ),
                 )
 
             scroll_filter = (

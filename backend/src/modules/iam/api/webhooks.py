@@ -124,7 +124,9 @@ async def clerk_webhook_handler(request: Request, db=Depends(get_db)):
     user_repo = UserRepository(db)
 
     logger.info(
-        "clerk_webhook_received", event_type=event_type, clerk_id=data.get("id")
+        "clerk_webhook_received",
+        event_type=event_type,
+        clerk_id=data.get("id"),
     )
 
     try:
@@ -137,7 +139,9 @@ async def clerk_webhook_handler(request: Request, db=Depends(get_db)):
 
     except Exception as e:
         logger.error(
-            "clerk_webhook_processing_error", error=str(e), event_type=event_type
+            "clerk_webhook_processing_error",
+            error=str(e),
+            event_type=event_type,
         )
         # We catch internal errors to avoid retrying if it's a logic error,
         # but for now let's raise 500 to let Clerk retry network blips.

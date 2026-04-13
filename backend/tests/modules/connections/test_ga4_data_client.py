@@ -60,10 +60,10 @@ class TestRunReportHappyPath:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()
@@ -110,10 +110,10 @@ class TestRunReportHappyPath:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()
@@ -150,13 +150,13 @@ class TestRunReportHappyPath:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.RunReportRequest"
+                "src.modules.connections.infrastructure.channels.google_analytics.RunReportRequest",
             ) as MockRequest,
         ):
             mock_client_instance = MagicMock()
@@ -205,10 +205,10 @@ class TestRunReportAsyncSafety:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()
@@ -249,10 +249,10 @@ class TestRunReportEmptyResponse:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient"
+                "src.modules.connections.infrastructure.channels.google_analytics.BetaAnalyticsDataClient",
             ) as MockClient,
             patch(
-                "src.modules.connections.infrastructure.channels.google_analytics.asyncio"
+                "src.modules.connections.infrastructure.channels.google_analytics.asyncio",
             ) as mock_asyncio,
         ):
             mock_client_instance = MagicMock()
@@ -294,7 +294,7 @@ class TestRunReportNoCredentials:
     @pytest.mark.asyncio
     async def test_raises_without_credentials(self):
         adapter = GoogleAnalyticsAdapter(
-            client_config={"client_id": "id", "client_secret": "secret"}
+            client_config={"client_id": "id", "client_secret": "secret"},
         )
 
         with pytest.raises(ValueError, match="Credentials not initialized"):

@@ -62,9 +62,10 @@ def _enrich_with_derived_metrics(
                     value=round(spend / clicks, 2),
                     unit="currency",
                     currency=next(
-                        (m.currency for m in metrics if m.name == "spend"), None
+                        (m.currency for m in metrics if m.name == "spend"),
+                        None,
                     ),
-                )
+                ),
             )
         impressions = existing.get("impressions")
         if impressions and impressions > 0 and "cpm" not in existing:
@@ -74,9 +75,10 @@ def _enrich_with_derived_metrics(
                     value=round(spend / impressions * 1000, 2),
                     unit="currency",
                     currency=next(
-                        (m.currency for m in metrics if m.name == "spend"), None
+                        (m.currency for m in metrics if m.name == "spend"),
+                        None,
                     ),
-                )
+                ),
             )
 
     # ── NON_AGGREGABLE metrics: reach (last available value from official_metrics)
@@ -143,7 +145,7 @@ class AttractionStageService:
                     unit=agg.unit or "count",
                     currency=getattr(agg, "currency", None),
                     breakdown=breakdown,
-                )
+                ),
             )
 
             if hasattr(agg, "computed_at") and agg.computed_at:
@@ -184,7 +186,9 @@ class AttractionStageService:
         return False, None
 
     async def get_metrics(
-        self, tenant_id: UUID, period: str = "last_30_days"
+        self,
+        tenant_id: UUID,
+        period: str = "last_30_days",
     ) -> AttractionDetailDTO:
         """Return attraction-stage metrics from ETL official tables.
 
@@ -269,7 +273,7 @@ class AttractionStageService:
                 for m_name, m_value in mc_metrics.items():
                     if m_name not in existing_names:
                         metrics.append(
-                            MetricValueDTO(name=m_name, value=float(m_value))
+                            MetricValueDTO(name=m_name, value=float(m_value)),
                         )
 
             # Enrich with DERIVED and NON_AGGREGABLE metrics

@@ -33,7 +33,8 @@ async def extract_brand_data(
 ):
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant."
+            status_code=400,
+            detail="User is not associated with a tenant.",
         )
 
     service = CopilotBrandAIActionsService(db, current_user.tenant_id)
@@ -43,7 +44,8 @@ async def extract_brand_data(
         raise HTTPException(status_code=400, detail=str(error)) from error
     except Exception as error:
         raise HTTPException(
-            status_code=500, detail=f"Internal extraction error: {error!s}"
+            status_code=500,
+            detail=f"Internal extraction error: {error!s}",
         ) from error
 
     if not data:
@@ -84,7 +86,8 @@ async def extract_full_brand_data(
         )
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant."
+            status_code=400,
+            detail="User is not associated with a tenant.",
         )
 
     service = CopilotBrandAIActionsService(db, current_user.tenant_id)
@@ -114,5 +117,6 @@ async def generate_offer_psychology(
         raise HTTPException(status_code=404, detail=str(error)) from error
     except Exception as error:
         raise HTTPException(
-            status_code=500, detail=f"AI Generation failed: {error!s}"
+            status_code=500,
+            detail=f"AI Generation failed: {error!s}",
         ) from error

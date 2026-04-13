@@ -22,7 +22,7 @@ class CloudflareClient:
         self.kv_namespace_id = settings.CLOUDFLARE_KV_NAMESPACE_ID
         self.api_token = settings.CLOUDFLARE_API_TOKEN
         self.is_configured = bool(
-            self.zone_id and self.api_token and self.kv_namespace_id
+            self.zone_id and self.api_token and self.kv_namespace_id,
         )
         if not self.is_configured:
             logger.warning(
@@ -50,7 +50,10 @@ class CloudflareClient:
         }
         with httpx.Client() as client:
             response = client.post(
-                url, json=payload, headers=self.headers, timeout=30.0
+                url,
+                json=payload,
+                headers=self.headers,
+                timeout=30.0,
             )
             response.raise_for_status()
             return response.json().get("result", {})

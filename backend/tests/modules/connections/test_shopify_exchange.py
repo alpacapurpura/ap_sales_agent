@@ -98,7 +98,7 @@ async def test_callback_publico_permite_state_ausente():
     repo.upsert = MagicMock()
 
     request = _build_request(
-        "shop=mi-tienda.myshopify.com&code=auth_code&hmac=signature"
+        "shop=mi-tienda.myshopify.com&code=auth_code&hmac=signature",
     )
 
     with (

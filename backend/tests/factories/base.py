@@ -41,7 +41,7 @@ class TenantFactory(factory.Factory):
     id = factory.LazyFunction(uuid.uuid4)
     name = factory.Faker("company")
     slug = factory.LazyAttribute(
-        lambda o: f"{o.name.lower().replace(' ', '-')}-{uuid.uuid4().hex[:6]}"
+        lambda o: f"{o.name.lower().replace(' ', '-')}-{uuid.uuid4().hex[:6]}",
     )
     config_json = factory.LazyFunction(dict)
     is_active = True
@@ -102,7 +102,8 @@ class BrandIdentityFactory(factory.Factory):
     )
     website = factory.Faker("url")
     founding_year = factory.Faker(
-        "random_element", elements=["2018", "2019", "2020", "2021", "2022", "2023"]
+        "random_element",
+        elements=["2018", "2019", "2020", "2021", "2022", "2023"],
     )
 
 
@@ -115,10 +116,12 @@ class BrandVisualsFactory(factory.Factory):
     accent_color = factory.Faker("hex_color")
     background_color = "#ffffff"
     font_heading = factory.Faker(
-        "random_element", elements=["Inter", "Poppins", "Montserrat", "DM Sans"]
+        "random_element",
+        elements=["Inter", "Poppins", "Montserrat", "DM Sans"],
     )
     font_body = factory.Faker(
-        "random_element", elements=["Inter", "Open Sans", "Lato", "Source Sans Pro"]
+        "random_element",
+        elements=["Inter", "Open Sans", "Lato", "Source Sans Pro"],
     )
 
 

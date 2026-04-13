@@ -32,7 +32,10 @@ class SalesMetricsRepository:
         self.db = db
 
     def get_sales_summary(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> list[SaleAggregation]:
         """Aggregate completed sales by stage, offer_id, source, currency."""
         stmt = (
@@ -61,7 +64,10 @@ class SalesMetricsRepository:
         return self.db.execute(stmt).all()
 
     def get_total_conversion_customers(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> int:
         """Count distinct customers with CONVERSION sales in period."""
         stmt = select(func.count(distinct(SaleModel.customer_id))).where(
@@ -75,7 +81,10 @@ class SalesMetricsRepository:
         return result or 0
 
     def get_total_sql_count(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> int:
         """Count SQLs (Stage 3 pipeline) for mini funnel denominator.
 

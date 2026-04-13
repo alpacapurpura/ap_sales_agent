@@ -55,7 +55,7 @@ def get_landing_pages(status: str | None = None) -> str:
         draft_count = len(rows) - published_count
 
         lines = [
-            f"## Landing Pages ({len(rows)} total: {published_count} publicadas, {draft_count} borradores)\n"
+            f"## Landing Pages ({len(rows)} total: {published_count} publicadas, {draft_count} borradores)\n",
         ]
 
         for r in rows:

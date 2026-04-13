@@ -34,7 +34,11 @@ class GroupDetailService:
         self.cache = cache
 
     async def get_group_detail(
-        self, tenant_id: str, stage: str, group_key: str, period: str
+        self,
+        tenant_id: str,
+        stage: str,
+        group_key: str,
+        period: str,
     ) -> GroupDetailDTO:
         """Return full detail for a single group within a stage.
 
@@ -96,7 +100,10 @@ class GroupDetailService:
         return dto
 
     def _extract_group(
-        self, stage: str, stage_data: dict | None, group_key: str
+        self,
+        stage: str,
+        stage_data: dict | None,
+        group_key: str,
     ) -> dict | None:
         """Extract a single group's data from the full stage cache."""
         if stage_data is None:

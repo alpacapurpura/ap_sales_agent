@@ -75,7 +75,10 @@ class TestShopifyProviderBasics:
     @pytest.mark.asyncio
     async def test_missing_credentials_returns_empty(self, provider):
         extraction = await provider.extract_metrics(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 10)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 10),
         )
         assert extraction.metrics == []
 

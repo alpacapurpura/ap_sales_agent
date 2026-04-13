@@ -92,7 +92,7 @@ class PeriodExtractionPipeline:
         self.db.execute(
             update(ExtractionRunModel)
             .where(ExtractionRunModel.id == run_id)
-            .values(status=ExtractionStatus.RUNNING.value)
+            .values(status=ExtractionStatus.RUNNING.value),
         )
 
         # Commit the run row + RUNNING status NOW so it survives any later
@@ -142,7 +142,7 @@ class PeriodExtractionPipeline:
                         else cost_type,
                         "extra": m.extra,
                         "source_extraction_run_id": run_id,
-                    }
+                    },
                 )
 
             rows_upserted = self.period_repo.upsert_period_metrics(period_dicts)

@@ -44,7 +44,7 @@ async def run_frozen_detection(ctx: dict) -> None:
                 select(func.max(MessageModel.created_at)).where(
                     MessageModel.user_id == cp.lead_id,
                     MessageModel.tenant_id == cp.tenant_id,
-                )
+                ),
             ).scalar()
 
             if not last_msg_at:

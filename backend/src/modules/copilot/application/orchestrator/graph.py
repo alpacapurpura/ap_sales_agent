@@ -63,8 +63,10 @@ def _get_completion_snapshot(tenant_id) -> str:
                     completion = check_section_completion(raw, sections)
                     lines.append(
                         format_completion_markdown(
-                            brand_desc.label, completion, sections
-                        )
+                            brand_desc.label,
+                            completion,
+                            sections,
+                        ),
                     )
                 else:
                     lines.append(f"### ⚠️ {brand_desc.label}\n  Sin datos configurados")
@@ -76,7 +78,7 @@ def _get_completion_snapshot(tenant_id) -> str:
             count = (
                 db.execute(
                     text(
-                        "SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true"
+                        "SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true",
                     ),
                     {"tid": str(tenant_id)},
                 ).scalar()
@@ -92,7 +94,7 @@ def _get_completion_snapshot(tenant_id) -> str:
             conn_count = (
                 db.execute(
                     text(
-                        "SELECT COUNT(*) FROM channel_connections WHERE tenant_id = :tid AND is_active = true"
+                        "SELECT COUNT(*) FROM channel_connections WHERE tenant_id = :tid AND is_active = true",
                     ),
                     {"tid": str(tenant_id)},
                 ).scalar()
@@ -133,7 +135,7 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
             total = accepted + rejected
             rate = round(accepted / total * 100) if total else 0
             lines.append(
-                f"- Propuestas: acepta {rate}% ({accepted} aceptadas, {rejected} rechazadas)"
+                f"- Propuestas: acepta {rate}% ({accepted} aceptadas, {rejected} rechazadas)",
             )
 
         # Nudges
@@ -141,7 +143,7 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
         nudge_dismissed = summary.get("nudge_dismissed", 0)
         if nudge_clicked or nudge_dismissed:
             lines.append(
-                f"- Nudges: {nudge_clicked} aceptados, {nudge_dismissed} descartados"
+                f"- Nudges: {nudge_clicked} aceptados, {nudge_dismissed} descartados",
             )
 
         # Navigation
@@ -171,7 +173,7 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
                 else ""
             )
             lines.append(
-                f"- Busquedas en knowledge base: {ks['search_count']}{scope_info}"
+                f"- Busquedas en knowledge base: {ks['search_count']}{scope_info}",
             )
 
         # Procedures
@@ -183,7 +185,7 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
             total = info.get("started", 0)
             if abandoned and avg_step is not None:
                 lines.append(
-                    f"- Procedimiento '{name}': abandonado {abandoned}/{total} veces en paso ~{avg_step}"
+                    f"- Procedimiento '{name}': abandonado {abandoned}/{total} veces en paso ~{avg_step}",
                 )
 
         return "\n".join(lines) if lines else ""
@@ -330,7 +332,7 @@ def tool_executor_node(state: CopilotState) -> dict:
                         content=str(result),
                         tool_call_id=tool_call["id"],
                         name=tool_name,
-                    )
+                    ),
                 )
             except Exception as e:
                 logger.error("copilot_tool_error", tool=tool_name, error=str(e))
@@ -339,7 +341,7 @@ def tool_executor_node(state: CopilotState) -> dict:
                         content=f"Error ejecutando {tool_name}: {e!s}",
                         tool_call_id=tool_call["id"],
                         name=tool_name,
-                    )
+                    ),
                 )
         else:
             tool_messages.append(
@@ -347,7 +349,7 @@ def tool_executor_node(state: CopilotState) -> dict:
                     content=f"Tool '{tool_name}' no encontrada.",
                     tool_call_id=tool_call["id"],
                     name=tool_name,
-                )
+                ),
             )
 
     return {"messages": tool_messages}

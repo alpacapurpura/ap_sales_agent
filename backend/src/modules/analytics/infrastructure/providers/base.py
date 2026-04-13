@@ -79,7 +79,11 @@ class BaseMetricsProvider(ABC):
         current = start_date
         while current <= end_date:
             day_result = await self.extract_metrics(
-                tenant_id, credentials, current, current, stage=stage
+                tenant_id,
+                credentials,
+                current,
+                current,
+                stage=stage,
             )
             all_metrics.extend(day_result.metrics)
             all_failures.extend(day_result.failures)

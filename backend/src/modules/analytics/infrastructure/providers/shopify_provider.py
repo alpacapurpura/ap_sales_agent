@@ -115,7 +115,7 @@ class ShopifyProvider(BaseMetricsProvider):
                     "period_type": period_type,
                     "total_customers": len(customer_counts),
                 },
-            )
+            ),
         ]
 
         return ExtractionResult(metrics=metrics)
@@ -335,13 +335,13 @@ class ShopifyProvider(BaseMetricsProvider):
                 "order_count": 0,
                 "abandoned_count": 0,
                 "abandoned_value": 0.0,
-            }
+            },
         )
 
         completed_tokens = set()
         for order in orders:
             d = self._parse_date(
-                order.get("processed_at") or order.get("created_at", "")
+                order.get("processed_at") or order.get("created_at", ""),
             )
             if d:
                 by_date[d]["order_count"] += 1
@@ -405,7 +405,7 @@ class ShopifyProvider(BaseMetricsProvider):
                         unit=unit,
                         currency=currency,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         return metrics
@@ -460,7 +460,7 @@ class ShopifyProvider(BaseMetricsProvider):
                 "shipping_revenue": 0.0,
                 "discount_usage_count": 0,
                 "repeat_customer_ids": set(),
-            }
+            },
         )
 
         for order in orders:
@@ -511,7 +511,7 @@ class ShopifyProvider(BaseMetricsProvider):
                         unit=unit,
                         currency=cur,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         return metrics

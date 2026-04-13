@@ -103,7 +103,7 @@ def _fetch_brand_context(db, tenant_id: str) -> dict | None:
                 text(
                     "SELECT niche, industry, target_audience "
                     "FROM brands WHERE tenant_id = :tid AND is_active = true "
-                    "LIMIT 1"
+                    "LIMIT 1",
                 ),
                 {"tid": tenant_id},
             )
@@ -113,7 +113,9 @@ def _fetch_brand_context(db, tenant_id: str) -> dict | None:
         return dict(row) if row else None
     except Exception as e:
         logger.warning(
-            "offer_ladder_brand_fetch_error", tenant_id=tenant_id, error=str(e)
+            "offer_ladder_brand_fetch_error",
+            tenant_id=tenant_id,
+            error=str(e),
         )
         return None
 
@@ -127,7 +129,7 @@ def _fetch_offers(db, tenant_id: str) -> list[dict]:
                     "SELECT id, name, archetype, format_hint, offer_value_level, "
                     "delivery_model, status "
                     "FROM products WHERE tenant_id = :tid AND is_active = true "
-                    "ORDER BY created_at"
+                    "ORDER BY created_at",
                 ),
                 {"tid": tenant_id},
             )
@@ -213,17 +215,17 @@ def _calculate_completeness(groups: dict[str, list[dict]]) -> str:
     if pct == 100:
         lines.append(
             "Tu offer ladder esta completo. Revisa cada oferta para asegurar "
-            "que los detalles esten bien configurados."
+            "que los detalles esten bien configurados.",
         )
     elif pct >= 60:
         lines.append(
             "Buen avance. Completa los niveles faltantes para maximizar "
-            "el valor de cada cliente en tu embudo."
+            "el valor de cada cliente en tu embudo.",
         )
     else:
         lines.append(
             "Tu offer ladder necesita mas ofertas. Empieza por los gaps "
-            "marcados como CRITICO."
+            "marcados como CRITICO.",
         )
 
     return "\n".join(lines)

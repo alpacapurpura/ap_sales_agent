@@ -24,7 +24,9 @@ class InterviewSessionModel(Base):
     messages_count = Column(Integer, nullable=False, default=0)
     entity_id = Column(UUID(as_uuid=True), nullable=True)
     created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )
     updated_at = Column(
         DateTime(timezone=True),

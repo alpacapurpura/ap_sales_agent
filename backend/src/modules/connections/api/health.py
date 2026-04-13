@@ -179,5 +179,6 @@ async def get_connection_health(
     )
 
     return evaluate_connection_health(
-        credentials=credentials, channel_slug=channel_slug
+        credentials=credentials,
+        channel_slug=channel_slug,
     )

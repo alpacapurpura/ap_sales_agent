@@ -31,7 +31,8 @@ class MockTenantModel(Base):
     name = Column(String, default="Test Tenant")
     slug = Column(String, default="test-tenant")
     config_json = Column(
-        String, default="{}"
+        String,
+        default="{}",
     )  # SQLite doesn't support JSONB natively easily in this context without extensions
     openai_api_key = Column(String, nullable=True)
     gemini_api_key = Column(String, nullable=True)

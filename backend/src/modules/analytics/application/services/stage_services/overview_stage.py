@@ -79,7 +79,10 @@ class StageOverviewService:
         self.connection_port = connection_port
 
     async def get_stage_overview(
-        self, tenant_id: str, stage: str, period: str
+        self,
+        tenant_id: str,
+        stage: str,
+        period: str,
     ) -> StageOverviewDTO:
         """Return a lightweight overview for a funnel stage.
 
@@ -134,7 +137,10 @@ class StageOverviewService:
         return overview
 
     async def _compute_stage_data(
-        self, tenant_id: str, stage: str, period: str
+        self,
+        tenant_id: str,
+        stage: str,
+        period: str,
     ) -> dict | None:
         """Compute full stage data on-demand when cache is empty.
 
@@ -187,7 +193,9 @@ class StageOverviewService:
             return None
 
     def _extract_overview(
-        self, stage: str, stage_data: dict | None
+        self,
+        stage: str,
+        stage_data: dict | None,
     ) -> StageOverviewDTO:
         """Extract overview fields from full stage cached data."""
         if stage_data is None:
@@ -286,7 +294,7 @@ class StageOverviewService:
                     group_key=group_key,
                     group_label=group_label,
                     channel_count=channel_count,
-                )
+                ),
             )
 
         return groups
@@ -321,7 +329,7 @@ class StageOverviewService:
                         last_updated=ch.get("last_updated"),
                         stale=ch.get("stale", False),
                         provider_name=ch.get("provider_name"),
-                    )
+                    ),
                 )
 
         return channels

@@ -14,7 +14,10 @@ class AppointmentModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
     lead_id = Column(
-        UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True, index=True
+        UUID(as_uuid=True),
+        ForeignKey("leads.id"),
+        nullable=True,
+        index=True,
     )
 
     summary = Column(String, nullable=False)
@@ -22,7 +25,8 @@ class AppointmentModel(Base):
     end_time = Column(DateTime(timezone=True), nullable=False)
 
     status = Column(
-        String, default="SCHEDULED"
+        String,
+        default="SCHEDULED",
     )  # SCHEDULED, CANCELLED, COMPLETED, NO_SHOW
     meeting_link = Column(String, nullable=True)
 

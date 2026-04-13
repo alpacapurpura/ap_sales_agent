@@ -94,7 +94,7 @@ class CloserStudioService:
                 CustomerProfileModel.full_name.ilike(search_pattern)
                 | LeadModel.telegram_id.ilike(search_pattern)
                 | LeadModel.whatsapp_id.ilike(search_pattern)
-                | LeadModel.instagram_id.ilike(search_pattern)
+                | LeadModel.instagram_id.ilike(search_pattern),
             )
 
         # Count before pagination
@@ -146,7 +146,7 @@ class CloserStudioService:
                     "unread_count": checkpoint.unread_count if checkpoint else 0,
                     "avatar_url": self._resolve_avatar(lead),
                     "is_frozen": bool(checkpoint and checkpoint.frozen_at),
-                }
+                },
             )
 
         return conversations, total
@@ -167,7 +167,7 @@ class CloserStudioService:
             self.db.execute(
                 select(LeadModel)
                 .options(joinedload(LeadModel.customer))
-                .where(LeadModel.id == lead_id, LeadModel.tenant_id == tenant_id)
+                .where(LeadModel.id == lead_id, LeadModel.tenant_id == tenant_id),
             )
             .unique()
             .scalar_one_or_none()
@@ -183,7 +183,7 @@ class CloserStudioService:
                 AgentStateCheckpointModel.is_active.is_(True),
                 AgentStateCheckpointModel.deleted_at.is_(None),
             )
-            .order_by(AgentStateCheckpointModel.updated_at.desc())
+            .order_by(AgentStateCheckpointModel.updated_at.desc()),
         ).scalar_one_or_none()
 
         # Fetch messages with optional pagination
@@ -195,7 +195,7 @@ class CloserStudioService:
             msg_stmt = msg_stmt.where(MessageModel.created_at < before)
 
         msg_stmt = msg_stmt.order_by(MessageModel.created_at.desc()).limit(
-            message_limit
+            message_limit,
         )
         messages_raw = self.db.execute(msg_stmt).scalars().all()
 
@@ -205,7 +205,7 @@ class CloserStudioService:
                 select(func.count()).where(
                     MessageModel.user_id == lead_id,
                     MessageModel.tenant_id == tenant_id,
-                )
+                ),
             ).scalar()
             or 0
         )
@@ -279,7 +279,10 @@ class CloserStudioService:
     # ── RESUME ──────────────────────────────────────────────────────────
 
     def resume_ai(
-        self, tenant_id: UUID, lead_id: UUID, objective: str | None = None
+        self,
+        tenant_id: UUID,
+        lead_id: UUID,
+        objective: str | None = None,
     ) -> dict | None:
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
@@ -307,7 +310,11 @@ class CloserStudioService:
     # ── Send Message ────────────────────────────────────────────────────
 
     def send_message(
-        self, tenant_id: UUID, lead_id: UUID, content: str, mode: str = "direct"
+        self,
+        tenant_id: UUID,
+        lead_id: UUID,
+        content: str,
+        mode: str = "direct",
     ) -> dict | None:
         """Send a direct message or AI instruction."""
         import uuid as uuid_mod
@@ -364,7 +371,10 @@ class CloserStudioService:
     # ── Reactivate Frozen ───────────────────────────────────────────────
 
     def reactivate(
-        self, tenant_id: UUID, lead_id: UUID, objective: str | None = None
+        self,
+        tenant_id: UUID,
+        lead_id: UUID,
+        objective: str | None = None,
     ) -> dict | None:
         checkpoint = self._get_checkpoint(tenant_id, lead_id)
         if not checkpoint:
@@ -407,7 +417,7 @@ class CloserStudioService:
                     MessageModel.tenant_id == tenant_id,
                 )
                 .order_by(MessageModel.created_at.desc())
-                .limit(20)
+                .limit(20),
             )
             .scalars()
             .all()
@@ -476,7 +486,7 @@ class CloserStudioService:
                     "last_message_at": None,
                     "last_message_preview": preview,
                     "avatar_url": self._resolve_avatar(lead),
-                }
+                },
             )
         return result
 
@@ -486,13 +496,13 @@ class CloserStudioService:
         base = select(
             func.count().label("total"),
             func.sum(
-                case((AgentStateCheckpointModel.handler_mode == "ai", 1), else_=0)
+                case((AgentStateCheckpointModel.handler_mode == "ai", 1), else_=0),
             ).label("ai"),
             func.sum(
-                case((AgentStateCheckpointModel.handler_mode == "human", 1), else_=0)
+                case((AgentStateCheckpointModel.handler_mode == "human", 1), else_=0),
             ).label("human"),
             func.sum(
-                case((AgentStateCheckpointModel.frozen_at.isnot(None), 1), else_=0)
+                case((AgentStateCheckpointModel.frozen_at.isnot(None), 1), else_=0),
             ).label("frozen"),
             func.avg(AgentStateCheckpointModel.lead_score).label("avg_score"),
             func.sum(AgentStateCheckpointModel.unread_count).label("unread"),
@@ -513,7 +523,7 @@ class CloserStudioService:
                 LeadModel.tenant_id == tenant_id,
                 LeadModel.is_blacklisted.is_(False),
             )
-            .group_by(func.lower(LeadModel.temperature))
+            .group_by(func.lower(LeadModel.temperature)),
         ).all()
         temp_map = {t.temp: t.cnt for t in temp_counts if t.temp}
 
@@ -532,7 +542,9 @@ class CloserStudioService:
     # ── Private helpers ─────────────────────────────────────────────────
 
     def _get_checkpoint(
-        self, tenant_id: UUID, lead_id: UUID
+        self,
+        tenant_id: UUID,
+        lead_id: UUID,
     ) -> AgentStateCheckpointModel | None:
         return self.db.execute(
             select(AgentStateCheckpointModel)
@@ -542,7 +554,7 @@ class CloserStudioService:
                 AgentStateCheckpointModel.is_active.is_(True),
                 AgentStateCheckpointModel.deleted_at.is_(None),
             )
-            .order_by(AgentStateCheckpointModel.updated_at.desc())
+            .order_by(AgentStateCheckpointModel.updated_at.desc()),
         ).scalar_one_or_none()
 
     def _get_last_message_preview(self, lead_id: UUID, tenant_id: UUID) -> str | None:
@@ -554,7 +566,7 @@ class CloserStudioService:
                 MessageModel.role.in_(["user", "assistant"]),
             )
             .order_by(MessageModel.created_at.desc())
-            .limit(1)
+            .limit(1),
         ).scalar_one_or_none()
         if msg:
             return msg[:120] + ("..." if len(msg) > 120 else "")
@@ -587,7 +599,11 @@ class CloserStudioService:
         return None
 
     def _log_system_event(
-        self, tenant_id: UUID, lead_id: UUID, channel: str | None, content: str
+        self,
+        tenant_id: UUID,
+        lead_id: UUID,
+        channel: str | None,
+        content: str,
     ) -> None:
         import uuid as uuid_mod
 

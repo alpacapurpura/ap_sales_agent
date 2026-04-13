@@ -271,7 +271,9 @@ class LifecycleService:
     # ------------------------------------------------------------------
 
     def _load_profile_for_update(
-        self, profile_id: UUID, tenant_id: UUID
+        self,
+        profile_id: UUID,
+        tenant_id: UUID,
     ) -> CustomerProfileModel | None:
         """Load profile with FOR UPDATE lock (degrades gracefully on SQLite)."""
         stmt = select(CustomerProfileModel).where(
@@ -359,7 +361,9 @@ class LifecycleService:
         return LifecycleStage.SUBSCRIBER
 
     def _check_threshold_transition(
-        self, profile: CustomerProfileModel, score: float
+        self,
+        profile: CustomerProfileModel,
+        score: float,
     ) -> None:
         """Check if score warrants a stage transition."""
         new_stage = self._determine_stage(score)

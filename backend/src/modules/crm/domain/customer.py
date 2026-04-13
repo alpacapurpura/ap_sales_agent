@@ -48,7 +48,7 @@ class CustomerProfile(BaseEntity):
     # Metadata
     traits: dict[str, Any] = Field(default_factory=dict)  # Demographics, etc.
     computed_traits: dict[str, Any] = Field(
-        default_factory=dict
+        default_factory=dict,
     )  # LTV, Last Seen, etc.
 
     created_at: datetime | None = None

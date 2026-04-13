@@ -67,7 +67,8 @@ def _resolve_tenant_id(
             return uuid.UUID(state)
         except ValueError:
             raise HTTPException(
-                status_code=400, detail="Invalid state parameter"
+                status_code=400,
+                detail="Invalid state parameter",
             ) from None
 
     connection = repo.get_active_shopify_by_shop(shop)
@@ -135,17 +136,20 @@ async def exchange_shopify_token(
     )
 
     access_token, error = await ShopifyConnector.exchange_token(
-        request.shop, request.code
+        request.shop,
+        request.code,
     )
     if error:
         raise HTTPException(status_code=400, detail=f"Token exchange failed: {error}")
 
     is_valid, shop_details = await ShopifyConnector.verify_connection(
-        request.shop, access_token
+        request.shop,
+        access_token,
     )
     if not is_valid:
         raise HTTPException(
-            status_code=400, detail="Failed to verify connection with Shopify"
+            status_code=400,
+            detail="Failed to verify connection with Shopify",
         )
 
     repo.upsert(
@@ -190,11 +194,13 @@ async def auth_callback(
         raise HTTPException(status_code=400, detail=f"Token exchange failed: {error}")
 
     is_valid, shop_details = await ShopifyConnector.verify_connection(
-        shop, access_token
+        shop,
+        access_token,
     )
     if not is_valid:
         raise HTTPException(
-            status_code=400, detail="Failed to verify connection with Shopify"
+            status_code=400,
+            detail="Failed to verify connection with Shopify",
         )
 
     repo.upsert(
@@ -207,10 +213,11 @@ async def auth_callback(
     dashboard_url = settings.DASHBOARD_DOMAIN
     if not dashboard_url:
         raise HTTPException(
-            status_code=500, detail="DASHBOARD_DOMAIN not configured on server"
+            status_code=500,
+            detail="DASHBOARD_DOMAIN not configured on server",
         )
     return RedirectResponse(
-        url=f"{dashboard_url}/growth-studio/connections?status=success&channel=shopify"
+        url=f"{dashboard_url}/growth-studio/connections?status=success&channel=shopify",
     )
 
 
@@ -233,15 +240,18 @@ async def quick_connect_shopify(
     access_token, error = await ShopifyConnector.client_credentials_token(shop_url)
     if error:
         raise HTTPException(
-            status_code=400, detail=f"Client credentials failed: {error}"
+            status_code=400,
+            detail=f"Client credentials failed: {error}",
         )
 
     is_valid, shop_details = await ShopifyConnector.verify_connection(
-        shop_url, access_token
+        shop_url,
+        access_token,
     )
     if not is_valid:
         raise HTTPException(
-            status_code=400, detail="Failed to verify connection with Shopify"
+            status_code=400,
+            detail="Failed to verify connection with Shopify",
         )
 
     repo.upsert(
@@ -285,7 +295,8 @@ async def test_shopify_connection(
 
     if not connection:
         raise HTTPException(
-            status_code=404, detail="No active Shopify connection found"
+            status_code=404,
+            detail="No active Shopify connection found",
         )
 
     access_token = connection.credentials.get("access_token")
@@ -302,9 +313,13 @@ async def test_shopify_connection(
     if is_valid:
         repo.update_config(connection, {"shop_info": result})
         return ConnectionResponse(
-            status="active", message="Connection is valid", details=result
+            status="active",
+            message="Connection is valid",
+            details=result,
         )
 
     return ConnectionResponse(
-        status="error", message="Connection test failed", details=result
+        status="error",
+        message="Connection test failed",
+        details=result,
     )

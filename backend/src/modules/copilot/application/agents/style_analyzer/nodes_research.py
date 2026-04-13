@@ -18,7 +18,7 @@ def node_researcher(state: OnboardingState) -> dict[str, Any]:
     try:
         # 1. Search for brand reputation/context
         search_results = research_service.search(
-            f"site:{target_url} OR related:{target_url}"
+            f"site:{target_url} OR related:{target_url}",
         )
 
         # 2. Analyze the specific landing page (Mocked in tool for now)

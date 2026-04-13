@@ -212,7 +212,10 @@ class TestSystemUserProfile:
 
     def test_with_tenant(self):
         p = SystemUserProfile(
-            id="u1", full_name="Alice", email="alice@example.com", tenant={"id": "t1"}
+            id="u1",
+            full_name="Alice",
+            email="alice@example.com",
+            tenant={"id": "t1"},
         )
         assert p.tenant == {"id": "t1"}
 

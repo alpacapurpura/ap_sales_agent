@@ -42,14 +42,16 @@ def generate_secret_key(length=32):
 
 @router.get("/general", response_model=GeneralSettings)
 async def get_general_settings(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get current General configuration for the user's tenant.
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     tenant = (
@@ -77,7 +79,8 @@ async def update_general_settings(
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     tenant = (
@@ -105,14 +108,16 @@ async def update_general_settings(
 
 @router.get("/ai", response_model=AISettings)
 async def get_ai_settings(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get current AI configuration for the user's tenant.
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     tenant = (
@@ -132,7 +137,8 @@ async def get_ai_settings(
 
 @router.get("/profile", response_model=SystemUserProfile)
 async def get_user_profile(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get current user profile and tenant info.
@@ -149,7 +155,7 @@ async def get_user_profile(
     if getattr(current_user, "tenant_id", None):
         tenant = (
             db.execute(
-                select(TenantModel).where(TenantModel.id == current_user.tenant_id)
+                select(TenantModel).where(TenantModel.id == current_user.tenant_id),
             )
             .scalars()
             .first()
@@ -168,7 +174,8 @@ async def get_user_profile(
             )
         else:
             logger.warning(
-                "tenant_not_found_for_profile", tenant_id=str(current_user.tenant_id)
+                "tenant_not_found_for_profile",
+                tenant_id=str(current_user.tenant_id),
             )
 
     return SystemUserProfile(
@@ -181,14 +188,16 @@ async def get_user_profile(
 
 @router.get("/webhook", response_model=WebhookSettings)
 async def get_webhook_settings(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get Webhook configuration for the user's tenant.
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     tenant = (
@@ -203,26 +212,30 @@ async def get_webhook_settings(
     domain = app_settings.API_DOMAIN
     if not domain:
         raise HTTPException(
-            status_code=500, detail="API_DOMAIN not configured on server"
+            status_code=500,
+            detail="API_DOMAIN not configured on server",
         )
     protocol = "https" if not domain.startswith("localhost") else "http"
     webhook_url = f"{protocol}://{domain}/api/v1/webhook/chat"
 
     return WebhookSettings(
-        webhook_url=webhook_url, webhook_secret=tenant.webhook_secret
+        webhook_url=webhook_url,
+        webhook_secret=tenant.webhook_secret,
     )
 
 
 @router.post("/webhook/regenerate", response_model=WebhookSettings)
 async def regenerate_webhook_secret(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Regenerate Webhook Secret for the user's tenant.
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     tenant = (
@@ -243,13 +256,15 @@ async def regenerate_webhook_secret(
     domain = app_settings.API_DOMAIN
     if not domain:
         raise HTTPException(
-            status_code=500, detail="API_DOMAIN not configured on server"
+            status_code=500,
+            detail="API_DOMAIN not configured on server",
         )
     protocol = "https" if not domain.startswith("localhost") else "http"
     webhook_url = f"{protocol}://{domain}/api/v1/webhook/chat"
 
     return WebhookSettings(
-        webhook_url=webhook_url, webhook_secret=tenant.webhook_secret
+        webhook_url=webhook_url,
+        webhook_secret=tenant.webhook_secret,
     )
 
 
@@ -264,7 +279,8 @@ async def update_ai_settings(
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     tenant = (
@@ -295,14 +311,16 @@ async def update_ai_settings(
 
 @router.get("/team", response_model=list[TeamMemberSchema])
 async def get_team_members(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     List all team members for the current tenant.
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     # FIX: Query User via UserTenant M:N table
@@ -314,7 +332,7 @@ async def get_team_members(
                 UserTenantModel.tenant_id == current_user.tenant_id,
                 UserTenantModel.is_active.is_(True),
             )
-            .order_by(UserModel.created_at)
+            .order_by(UserModel.created_at),
         )
         .scalars()
         .all()
@@ -333,7 +351,7 @@ async def get_team_members(
                     UserTenantModel.user_id == u.id,
                     UserTenantModel.tenant_id == current_user.tenant_id,
                     UserTenantModel.is_active.is_(True),
-                )
+                ),
             )
             .scalars()
             .first()
@@ -349,7 +367,7 @@ async def get_team_members(
                 role=role,
                 is_active=u.is_active,
                 created_at=u.created_at,
-            )
+            ),
         )
 
     return results
@@ -366,7 +384,8 @@ async def create_team_member(
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     # Check limit
@@ -375,11 +394,12 @@ async def create_team_member(
         select(func.count(UserTenantModel.user_id)).where(
             UserTenantModel.tenant_id == current_user.tenant_id,
             UserTenantModel.is_active.is_(True),
-        )
+        ),
     ).scalar()
     if count >= 3:
         raise HTTPException(
-            status_code=403, detail="Límite de usuarios alcanzado (Máximo 3 por plan)."
+            status_code=403,
+            detail="Límite de usuarios alcanzado (Máximo 3 por plan).",
         )
 
     # Check email usage locally
@@ -396,13 +416,14 @@ async def create_team_member(
                     UserTenantModel.user_id == existing_user.id,
                     UserTenantModel.tenant_id == current_user.tenant_id,
                     UserTenantModel.is_active.is_(True),
-                )
+                ),
             )
             .scalars()
             .first()
         ):
             raise HTTPException(
-                status_code=400, detail="El email ya está registrado en este equipo."
+                status_code=400,
+                detail="El email ya está registrado en este equipo.",
             )
         # Link existing user? For now, simplistic approach: Fail if email exists globally to avoid confusion
         # (unless we want to support multi-tenant invites here).
@@ -420,7 +441,9 @@ async def create_team_member(
     try:
         # Create in Clerk
         clerk_resp = clerk.create_user(
-            user_in.email, user_in.password, user_in.full_name
+            user_in.email,
+            user_in.password,
+            user_in.full_name,
         )
         clerk_user_id = clerk_resp.get("id")
 
@@ -437,7 +460,8 @@ async def create_team_member(
                 detail="El usuario ya existe en el sistema de identidad.",
             ) from e
         raise HTTPException(
-            status_code=500, detail=f"Error creando usuario en Clerk: {e!s}"
+            status_code=500,
+            detail=f"Error creando usuario en Clerk: {e!s}",
         ) from e
 
     # Create DB User
@@ -455,7 +479,9 @@ async def create_team_member(
 
     # Create Link
     new_link = UserTenantModel(
-        user_id=new_user.id, tenant_id=current_user.tenant_id, role="member"
+        user_id=new_user.id,
+        tenant_id=current_user.tenant_id,
+        role="member",
     )
     db.add(new_link)
 

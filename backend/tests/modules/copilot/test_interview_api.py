@@ -19,7 +19,8 @@ def _build_client(tenant_id):
     app.dependency_overrides[get_db] = lambda: mock_db
     app.dependency_overrides[get_tenant_context] = lambda: tenant_id
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
-        id=uuid4(), tenant_id=tenant_id
+        id=uuid4(),
+        tenant_id=tenant_id,
     )
     return TestClient(app), mock_db
 
@@ -41,7 +42,8 @@ class TestStartInterview:
             }
             svc_cls.return_value = svc
             response = client.post(
-                "/api/v1/copilot/interview/start", json={"domain": "brand"}
+                "/api/v1/copilot/interview/start",
+                json={"domain": "brand"},
             )
 
         assert response.status_code == 200
@@ -58,7 +60,8 @@ class TestStartInterview:
             svc.start_interview.side_effect = ValueError("Active session exists")
             svc_cls.return_value = svc
             response = client.post(
-                "/api/v1/copilot/interview/start", json={"domain": "brand"}
+                "/api/v1/copilot/interview/start",
+                json={"domain": "brand"},
             )
 
         assert response.status_code == 409

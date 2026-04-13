@@ -29,7 +29,8 @@ class UserProfile(BaseEntity):
     gender: str | None = Field(None, description="Client's gender")
 
     occupation: str | None = Field(
-        None, description="Job title or role (e.g. Therapist, Lawyer)"
+        None,
+        description="Job title or role (e.g. Therapist, Lawyer)",
     )
     location: str | None = Field(None, description="City or Country")
     timezone: str | None = Field(None, description="Timezone (e.g. GMT-5)")
@@ -37,36 +38,45 @@ class UserProfile(BaseEntity):
 
     # --- Contexto de la Consulta (Terceros) ---
     user: str | None = Field(
-        "himself", description="Is the user inquiring for themselves or others?"
+        "himself",
+        description="Is the user inquiring for themselves or others?",
     )
     relation: str | None = Field(
-        None, description="Relation to the real client if user='Other'"
+        None,
+        description="Relation to the real client if user='Other'",
     )
     user_name: str | None = Field(
-        None, description="Name of the person inquiring (if user='Other')"
+        None,
+        description="Name of the person inquiring (if user='Other')",
     )
 
     # --- Calificación (Mandatory) ---
     business_stage: BusinessStage | None = Field(
-        None, description="Current stage of their business journey"
+        None,
+        description="Current stage of their business journey",
     )
     financial_tier: FinancialCapacity | None = Field(
-        None, description="Estimated financial capacity (BROKE_STUDENT, etc.)"
+        None,
+        description="Estimated financial capacity (BROKE_STUDENT, etc.)",
     )
     sophistication: SophisticationLevel | None = Field(
-        None, description="Awareness level (UNAWARE, PROBLEM_AWARE, etc.)"
+        None,
+        description="Awareness level (UNAWARE, PROBLEM_AWARE, etc.)",
     )
     authority: AuthorityLevel | None = Field(
-        None, description="Decision making authority (SOLO, PARTNER, etc.)"
+        None,
+        description="Decision making authority (SOLO, PARTNER, etc.)",
     )
     temperature: LeadTemperature | None = Field(
-        None, description="Lead temperature (COLD, WARM, HOT)"
+        None,
+        description="Lead temperature (COLD, WARM, HOT)",
     )
 
     # --- Datos del Negocio (New) ---
     business_name: str | None = Field(None, description="Name of the user's business")
     business_industry: str | None = Field(
-        None, description="Industry or niche of the business"
+        None,
+        description="Industry or niche of the business",
     )
     business_details: str | None = Field(
         None,
@@ -75,18 +85,22 @@ class UserProfile(BaseEntity):
 
     # --- Psicografía (Desirable) ---
     main_pain_point: str | None = Field(
-        None, description="Primary struggle (e.g. Burnout, Chaos)"
+        None,
+        description="Primary struggle (e.g. Burnout, Chaos)",
     )
     main_goal: str | None = Field(
-        None, description="Primary desire (e.g. Freedom, Scale)"
+        None,
+        description="Primary desire (e.g. Freedom, Scale)",
     )
     assigned_persona: AvatarPersona | None = Field(
-        None, description="The archetype to use (NEWBIE, SKEPTIC, VIP)"
+        None,
+        description="The archetype to use (NEWBIE, SKEPTIC, VIP)",
     )
 
     # --- Metadata de Progreso ---
     missing_fields: list[str] = Field(
-        default_factory=list, description="Fields that are mandatory/desirable but null"
+        default_factory=list,
+        description="Fields that are mandatory/desirable but null",
     )
 
 

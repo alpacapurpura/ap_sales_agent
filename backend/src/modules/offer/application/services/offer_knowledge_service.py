@@ -79,7 +79,11 @@ class OfferKnowledgeService:
 
     # ---------------------------------------------------------------- get
     def get_source(
-        self, *, tenant_id: UUID, offer_id: UUID, source_id: UUID
+        self,
+        *,
+        tenant_id: UUID,
+        offer_id: UUID,
+        source_id: UUID,
     ) -> KnowledgeSource:
         source = self._repo.get_by_id(tenant_id, offer_id, source_id)
         if source is None:
@@ -173,7 +177,11 @@ class OfferKnowledgeService:
 
     # --------------------------------------------------------------- delete
     def delete_source(
-        self, *, tenant_id: UUID, offer_id: UUID, source_id: UUID
+        self,
+        *,
+        tenant_id: UUID,
+        offer_id: UUID,
+        source_id: UUID,
     ) -> None:
         source = self._repo.get_by_id(tenant_id, offer_id, source_id)
         if source is None:
@@ -197,7 +205,11 @@ class OfferKnowledgeService:
 
     # ------------------------------------------------------------- reindex
     def reindex_source(
-        self, *, tenant_id: UUID, offer_id: UUID, source_id: UUID
+        self,
+        *,
+        tenant_id: UUID,
+        offer_id: UUID,
+        source_id: UUID,
     ) -> KnowledgeSource:
         source = self._repo.get_by_id(tenant_id, offer_id, source_id)
         if source is None:
@@ -239,7 +251,11 @@ class OfferKnowledgeService:
             )
 
     def _emit_deleted(
-        self, *, tenant_id: UUID, offer_id: UUID, source_id: UUID
+        self,
+        *,
+        tenant_id: UUID,
+        offer_id: UUID,
+        source_id: UUID,
     ) -> None:
         if self._events is None:
             return

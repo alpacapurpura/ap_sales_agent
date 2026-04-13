@@ -25,7 +25,7 @@ class AuditRepository(EpisodicMemoryStore):
                 select(Message)
                 .where(Message.user_id == user_id)
                 .order_by(Message.created_at.desc())
-                .limit(limit)
+                .limit(limit),
             )
             .scalars()
             .all()
@@ -33,7 +33,12 @@ class AuditRepository(EpisodicMemoryStore):
         return list(reversed(msgs))
 
     def log_message(
-        self, user_id: str, role: str, content: str, channel: str, tenant_id: str = None
+        self,
+        user_id: str,
+        role: str,
+        content: str,
+        channel: str,
+        tenant_id: str = None,
     ) -> Any:
         msg = Message(
             user_id=user_id,
@@ -51,7 +56,7 @@ class AuditRepository(EpisodicMemoryStore):
             self.db.execute(
                 select(Message)
                 .where(Message.user_id == user_id)
-                .order_by(Message.created_at.desc())
+                .order_by(Message.created_at.desc()),
             )
             .scalars()
             .first()
@@ -136,22 +141,24 @@ class AuditRepository(EpisodicMemoryStore):
         self.db.execute(
             text(
                 "DELETE FROM llm_logs WHERE trace_id IN "
-                "(SELECT id FROM agent_traces WHERE user_id = :lid)"
+                "(SELECT id FROM agent_traces WHERE user_id = :lid)",
             ),
             {"lid": lead_uuid},
         )
         self.db.execute(
             text(
                 "DELETE FROM llm_call_logs WHERE trace_id IN "
-                "(SELECT id FROM agent_traces WHERE user_id = :lid)"
+                "(SELECT id FROM agent_traces WHERE user_id = :lid)",
             ),
             {"lid": lead_uuid},
         )
         self.db.execute(
-            text("DELETE FROM agent_traces WHERE user_id = :lid"), {"lid": lead_uuid}
+            text("DELETE FROM agent_traces WHERE user_id = :lid"),
+            {"lid": lead_uuid},
         )
         self.db.execute(
-            text("DELETE FROM messages WHERE user_id = :lid"), {"lid": lead_uuid}
+            text("DELETE FROM messages WHERE user_id = :lid"),
+            {"lid": lead_uuid},
         )
         self.db.execute(
             text("DELETE FROM agent_state_checkpoints WHERE lead_id = :lid"),
@@ -164,7 +171,7 @@ class AuditRepository(EpisodicMemoryStore):
                 "temperature = 'COLD', conversation_summary = NULL, "
                 "key_objections_history = '[]', style_profile = '{}', "
                 "custom_system_instruction = NULL, last_interaction_date = NULL "
-                "WHERE id = :lid"
+                "WHERE id = :lid",
             ),
             {"lid": lead_uuid},
         )
@@ -177,7 +184,7 @@ class AuditRepository(EpisodicMemoryStore):
                 select(Message)
                 .where(Message.user_id == lead_id)
                 .order_by(Message.created_at.desc())
-                .limit(limit)
+                .limit(limit),
             )
             .scalars()
             .all()
@@ -189,7 +196,7 @@ class AuditRepository(EpisodicMemoryStore):
                 .options(joinedload(AgentTrace.llm_logs))
                 .where(AgentTrace.user_id == lead_id)
                 .order_by(AgentTrace.created_at.desc())
-                .limit(limit)
+                .limit(limit),
             )
             .scalars()
             .all()
@@ -230,7 +237,7 @@ class AuditRepository(EpisodicMemoryStore):
                     "execution_time": t.execution_time_ms,
                     "llm_summary": llm_summary,
                     "created_at": t.created_at,
-                }
+                },
             )
 
         timeline.sort(key=lambda x: x["created_at"], reverse=True)

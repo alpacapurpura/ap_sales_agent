@@ -50,7 +50,9 @@ class ReferralService:
             except IntegrityError:
                 self.db.rollback()
                 logger.warning(
-                    "Referral code collision on attempt %d: %s", attempt + 1, code
+                    "Referral code collision on attempt %d: %s",
+                    attempt + 1,
+                    code,
                 )
                 if attempt == 2:
                     raise
@@ -60,7 +62,9 @@ class ReferralService:
         raise RuntimeError(msg)
 
     def get_codes_by_tenant(
-        self, tenant_id: UUID, active_only: bool = True
+        self,
+        tenant_id: UUID,
+        active_only: bool = True,
     ) -> list[ReferralCodeModel]:
         """List all referral codes for tenant. Filter by is_active if active_only."""
         stmt = select(ReferralCodeModel).where(ReferralCodeModel.tenant_id == tenant_id)
@@ -70,7 +74,9 @@ class ReferralService:
         return list(result.scalars().all())
 
     def get_code_by_customer(
-        self, tenant_id: UUID, customer_id: UUID
+        self,
+        tenant_id: UUID,
+        customer_id: UUID,
     ) -> ReferralCodeModel | None:
         """Get active referral code for a specific customer."""
         stmt = select(ReferralCodeModel).where(
@@ -95,7 +101,10 @@ class ReferralService:
             logger.info("Referral code %s deactivated", code_id)
 
     async def extract_shopify_codes(
-        self, tenant_id: UUID, shop_domain: str, access_token: str
+        self,
+        tenant_id: UUID,
+        shop_domain: str,
+        access_token: str,
     ) -> list[ReferralCodeModel]:
         """Read existing discount codes from Shopify Admin GraphQL API.
 
@@ -155,7 +164,7 @@ class ReferralService:
                             select(ReferralCodeModel).where(
                                 ReferralCodeModel.code == code_str,
                                 ReferralCodeModel.tenant_id == tenant_id,
-                            )
+                            ),
                         )
                         .scalars()
                         .first()

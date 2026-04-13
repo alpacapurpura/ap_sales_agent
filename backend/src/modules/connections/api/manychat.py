@@ -62,7 +62,7 @@ async def connect_manychat(
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
     is_valid, result = await ManyChatConnector.verify_connection(
-        api_key=request.api_key
+        api_key=request.api_key,
     )
 
     if not is_valid:
@@ -112,7 +112,8 @@ async def test_manychat_connection(
 
     if not connection:
         raise HTTPException(
-            status_code=404, detail="No active ManyChat connection found"
+            status_code=404,
+            detail="No active ManyChat connection found",
         )
 
     api_key = connection.credentials.get("api_key")
@@ -124,9 +125,13 @@ async def test_manychat_connection(
     if is_valid:
         repo.update_config(connection, {"account_info": result})
         return ConnectionResponse(
-            status="active", message="Connection is valid", details=result
+            status="active",
+            message="Connection is valid",
+            details=result,
         )
 
     return ConnectionResponse(
-        status="error", message="Connection test failed", details=result
+        status="error",
+        message="Connection test failed",
+        details=result,
     )

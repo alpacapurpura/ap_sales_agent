@@ -61,7 +61,9 @@ class EvangelizationStageService:
         # 1. Check cache
         if self.cache is not None:
             cached = await self.cache.get(
-                str(tenant_id), "evangelization", "last_30_days"
+                str(tenant_id),
+                "evangelization",
+                "last_30_days",
             )
             if cached is not None:
                 return EvangelizationDetailDTO(**cached)
@@ -83,7 +85,7 @@ class EvangelizationStageService:
                     severity="critical",
                     threshold=0.5,
                     tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
-                )
+                ),
             )
         elif k_factor < 1.0:
             bottlenecks.append(
@@ -94,7 +96,7 @@ class EvangelizationStageService:
                     severity="warning",
                     threshold=1.0,
                     tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
-                )
+                ),
             )
 
         nps_response_rate = data.get("nps_response_rate_pct", 0.0)
@@ -109,7 +111,7 @@ class EvangelizationStageService:
                         severity="critical",
                         threshold=15,
                         tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
-                    )
+                    ),
                 )
             elif nps_response_rate < 30:
                 bottlenecks.append(
@@ -120,7 +122,7 @@ class EvangelizationStageService:
                         severity="warning",
                         threshold=30,
                         tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
-                    )
+                    ),
                 )
 
         # 4. Assemble DTO

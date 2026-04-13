@@ -75,7 +75,9 @@ class ConnectionPortImpl(ConnectionPort):
         self.repo = ChannelConnectionRepository(db)
 
     async def get_credentials(
-        self, tenant_id: UUID, channel_type: str
+        self,
+        tenant_id: UUID,
+        channel_type: str,
     ) -> ConnectionCredentials:
         """Retrieve credentials for a specific channel, refreshing expired tokens.
 
@@ -86,7 +88,9 @@ class ConnectionPortImpl(ConnectionPort):
         parent_type = CHILD_PROVIDER_PARENT.get(channel_type)
         if parent_type:
             return await self._get_child_credentials(
-                tenant_id, channel_type, parent_type
+                tenant_id,
+                channel_type,
+                parent_type,
             )
 
         # Resolve provider alias → actual ChannelType value
@@ -139,7 +143,10 @@ class ConnectionPortImpl(ConnectionPort):
         )
 
     async def _get_child_credentials(
-        self, tenant_id: UUID, child_type: str, parent_type: str
+        self,
+        tenant_id: UUID,
+        child_type: str,
+        parent_type: str,
     ) -> ConnectionCredentials:
         """Resolve credentials for a child provider.
 
@@ -156,7 +163,9 @@ class ConnectionPortImpl(ConnectionPort):
                 channel_type=child_type,
             ) from None
         child_conn = await asyncio.to_thread(
-            self.repo.get_active, tenant_id, child_enum
+            self.repo.get_active,
+            tenant_id,
+            child_enum,
         )
         if child_conn is None:
             msg = f"No active connection for {child_type}"
@@ -175,7 +184,8 @@ class ConnectionPortImpl(ConnectionPort):
         )
 
     async def list_active_connections(
-        self, tenant_id: UUID
+        self,
+        tenant_id: UUID,
     ) -> list[ConnectionCredentials]:
         """List all active connections for a tenant."""
         connections = await asyncio.to_thread(self.repo.get_all_by_tenant, tenant_id)

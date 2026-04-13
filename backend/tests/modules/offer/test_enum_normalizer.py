@@ -45,13 +45,13 @@ class TestNormalizeGuarantee:
 class TestNormalizePricingOptions:
     def test_pay_in_full(self):
         r = normalize_pricing_options(
-            [{"plan_type": "PAY_IN_FULL", "label": "x", "total_amount": 100}]
+            [{"plan_type": "PAY_IN_FULL", "label": "x", "total_amount": 100}],
         )
         assert r[0]["plan_type"] == "one_time"
 
     def test_split_pay(self):
         r = normalize_pricing_options(
-            [{"plan_type": "SPLIT_PAY", "label": "x", "total_amount": 300}]
+            [{"plan_type": "SPLIT_PAY", "label": "x", "total_amount": 300}],
         )
         assert r[0]["plan_type"] == "payment_plan"
 

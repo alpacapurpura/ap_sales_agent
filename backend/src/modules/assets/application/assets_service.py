@@ -93,7 +93,10 @@ class AssetsService:
         return created_asset
 
     async def _process_asset_task(
-        self, asset_id: UUID, tenant_id: UUID, storage_path: str
+        self,
+        asset_id: UUID,
+        tenant_id: UUID,
+        storage_path: str,
     ):
         """Background task: fetch file bytes from storage, then run AI processing."""
         try:
@@ -150,7 +153,9 @@ class AssetsService:
         db.commit()
 
     def list_assets(
-        self, tenant_id: UUID, asset_type: str | None = None
+        self,
+        tenant_id: UUID,
+        asset_type: str | None = None,
     ) -> list[Asset]:
         return self.repository.list_by_tenant(tenant_id, asset_type)
 
@@ -158,7 +163,10 @@ class AssetsService:
         return self.repository.list_by_offer(offer_id)
 
     def delete_asset(
-        self, tenant_id: UUID, asset_id: UUID, offer_id: UUID | None = None
+        self,
+        tenant_id: UUID,
+        asset_id: UUID,
+        offer_id: UUID | None = None,
     ) -> bool:
         asset = self.repository.get_by_id(asset_id, tenant_id=tenant_id)
         if not asset or str(asset.tenant_id) != str(tenant_id):

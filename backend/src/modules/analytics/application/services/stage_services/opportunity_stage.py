@@ -86,17 +86,22 @@ class OpportunityStageService:
             "checkout-lp": [
                 MetricValueDTO(name="count", value=0.0),
                 MetricValueDTO(
-                    name="value", value=0.0, unit="currency", currency="USD"
+                    name="value",
+                    value=0.0,
+                    unit="currency",
+                    currency="USD",
                 ),
             ],
             "meeting-booked": [
                 MetricValueDTO(name="booked", value=float(meeting_events["booked"])),
                 MetricValueDTO(
-                    name="completed", value=float(meeting_events["completed"])
+                    name="completed",
+                    value=float(meeting_events["completed"]),
                 ),
                 MetricValueDTO(name="no_show", value=float(meeting_events["no_show"])),
                 MetricValueDTO(
-                    name="rescheduled", value=float(meeting_events["rescheduled"])
+                    name="rescheduled",
+                    value=float(meeting_events["rescheduled"]),
                 ),
             ],
         }
@@ -148,7 +153,7 @@ class OpportunityStageService:
                         severity=severity,
                         threshold=threshold,
                         tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
-                    )
+                    ),
                 )
 
         meeting_booked = meeting_events["booked"]
@@ -166,7 +171,7 @@ class OpportunityStageService:
                         severity=severity,
                         threshold=threshold,
                         tip="Considera recordatorios automaticos antes de la reunion",
-                    )
+                    ),
                 )
 
         return bottlenecks
@@ -201,7 +206,9 @@ class OpportunityStageService:
         checkout_events = repo.count_checkout_events(tenant_id, start_date, end_date)
         meeting_events = repo.count_meeting_events(tenant_id, start_date, end_date)
         payment_link_events = repo.count_payment_link_events(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
 
         # 4. Calculate header KPIs
@@ -244,7 +251,7 @@ class OpportunityStageService:
                 for m_name, m_value in mc_metrics_opp.items():
                     if m_name not in existing_names:
                         metrics.append(
-                            MetricValueDTO(name=m_name, value=float(m_value))
+                            MetricValueDTO(name=m_name, value=float(m_value)),
                         )
 
             conn_config = ch.get("connection_config", {})
@@ -263,7 +270,7 @@ class OpportunityStageService:
                     connected=True,
                     source_display_name=source_display,
                     provider_name=provider_name,
-                )
+                ),
             )
 
         available_channels = [

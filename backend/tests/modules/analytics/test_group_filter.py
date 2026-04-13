@@ -91,7 +91,8 @@ class TestFilterGroupsHelper:
             outbound=_make_group(1),
         )
         filtered = _filter_groups(
-            dto, ["organic_social", "ga4_search", "paid", "outbound"]
+            dto,
+            ["organic_social", "ga4_search", "paid", "outbound"],
         )
         assert filtered.organic_social is not None
         assert filtered.ga4_search is not None

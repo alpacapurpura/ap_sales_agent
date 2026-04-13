@@ -30,7 +30,9 @@ def _build_client(db: Session, tenant_id: uuid.UUID) -> TestClient:
 
 class TestGetCampaigns:
     def test_returns_empty_view_with_correct_shape(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         client = _build_client(db, tenant_a)
 
@@ -46,7 +48,9 @@ class TestGetCampaigns:
         assert body["kpis"]["leads_7d"] == 0
 
     def test_accepts_filter_query_params(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         client = _build_client(db, tenant_a)
 

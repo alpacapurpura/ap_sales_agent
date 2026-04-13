@@ -155,7 +155,9 @@ async def update_product(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -171,7 +173,9 @@ async def update_identity(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -187,7 +191,9 @@ async def update_strategy(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -203,7 +209,9 @@ async def update_promise(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -219,7 +227,9 @@ async def update_psychology(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -235,7 +245,9 @@ async def update_value_stack(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -251,7 +263,9 @@ async def update_pricing(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -267,7 +281,9 @@ async def update_details(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -283,7 +299,9 @@ async def update_visuals(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -299,7 +317,9 @@ async def update_closing(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -315,7 +335,9 @@ async def update_resources(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None
@@ -331,7 +353,9 @@ async def update_instructors(
     service = OfferService(db)
     try:
         return service.patch_offer(
-            UUID(product_id), user.tenant_id, update.model_dump(exclude_unset=True)
+            UUID(product_id),
+            user.tenant_id,
+            update.model_dump(exclude_unset=True),
         )
     except ValueError:
         raise HTTPException(status_code=404, detail="Product not found") from None

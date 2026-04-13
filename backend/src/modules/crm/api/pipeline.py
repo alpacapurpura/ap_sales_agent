@@ -37,7 +37,8 @@ class StageOverrideRequest(BaseModel):
     """Request body for manual stage override."""
 
     new_stage: str = Field(
-        ..., description="Target lifecycle stage (e.g. 'customer', 'mql')"
+        ...,
+        description="Target lifecycle stage (e.g. 'customer', 'mql')",
     )
     note: str = Field("", description="Optional note explaining the override")
 
@@ -84,7 +85,7 @@ async def get_pipeline(
                 LeadModel.tenant_id == user.tenant_id,
                 LeadModel.is_blacklisted.is_(False),
             )
-            .limit(limit)
+            .limit(limit),
         )
         .scalars()
         .all()
@@ -108,7 +109,7 @@ async def get_pipeline(
                 temperature=lead.temperature or "COLD",
                 last_interaction=lead.last_interaction_date,
                 channel="Unknown",
-            )
+            ),
         )
     return results
 
@@ -149,7 +150,7 @@ async def override_stage(
             select(CustomerProfileModel).where(
                 CustomerProfileModel.id == profile_id,
                 CustomerProfileModel.tenant_id == user.tenant_id,
-            )
+            ),
         )
         .scalars()
         .first()
@@ -180,7 +181,8 @@ async def override_stage(
 
 
 @router.get(
-    "/pipeline/{profile_id}/transitions", response_model=list[TransitionResponse]
+    "/pipeline/{profile_id}/transitions",
+    response_model=list[TransitionResponse],
 )
 async def get_transitions(
     profile_id: UUID,

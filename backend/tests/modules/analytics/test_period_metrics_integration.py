@@ -106,7 +106,7 @@ def _make_service_with_mocks(
 
     # Mock get_channel_raw_daily_rows (called 3 times via asyncio.to_thread)
     service.repo.get_channel_raw_daily_rows = MagicMock(
-        side_effect=[current_raw, previous_raw, daily_raw]
+        side_effect=[current_raw, previous_raw, daily_raw],
     )
 
     # Mock currency detection query
@@ -124,7 +124,9 @@ class TestPeriodMetricsFallback:
 
     @pytest.mark.asyncio
     async def test_reach_from_period_metrics_when_available(
-        self, mock_db, mock_brand_port
+        self,
+        mock_db,
+        mock_brand_port,
     ):
         """If period_metrics has reach for the period, use it instead of daily."""
         current = {
@@ -166,7 +168,11 @@ class TestPeriodMetricsFallback:
             return None
 
         service = _make_service_with_mocks(
-            mock_db, mock_brand_port, current, previous, period_fn
+            mock_db,
+            mock_brand_port,
+            current,
+            previous,
+            period_fn,
         )
         result = await service.get_dashboard(_TENANT_ID, _CHANNEL, "30d")
 
@@ -202,7 +208,11 @@ class TestPeriodMetricsFallback:
             return None
 
         service = _make_service_with_mocks(
-            mock_db, mock_brand_port, current, previous, period_fn
+            mock_db,
+            mock_brand_port,
+            current,
+            previous,
+            period_fn,
         )
         result = await service.get_dashboard(_TENANT_ID, _CHANNEL, "30d")
 
@@ -214,7 +224,9 @@ class TestPeriodMetricsFallback:
 
     @pytest.mark.asyncio
     async def test_frequency_derived_from_impressions_and_period_reach(
-        self, mock_db, mock_brand_port
+        self,
+        mock_db,
+        mock_brand_port,
     ):
         """frequency = SUM(impressions) / period_reach when period data exists."""
         current = {
@@ -249,7 +261,11 @@ class TestPeriodMetricsFallback:
             return None
 
         service = _make_service_with_mocks(
-            mock_db, mock_brand_port, current, previous, period_fn
+            mock_db,
+            mock_brand_port,
+            current,
+            previous,
+            period_fn,
         )
         result = await service.get_dashboard(_TENANT_ID, _CHANNEL, "30d")
 
@@ -259,7 +275,9 @@ class TestPeriodMetricsFallback:
 
     @pytest.mark.asyncio
     async def test_period_override_does_not_affect_additive_metrics(
-        self, mock_db, mock_brand_port
+        self,
+        mock_db,
+        mock_brand_port,
     ):
         """Additive metrics like spend are NOT overridden by period_metrics."""
         current = {
@@ -281,7 +299,11 @@ class TestPeriodMetricsFallback:
             return None
 
         service = _make_service_with_mocks(
-            mock_db, mock_brand_port, current, previous, period_fn
+            mock_db,
+            mock_brand_port,
+            current,
+            previous,
+            period_fn,
         )
         result = await service.get_dashboard(_TENANT_ID, _CHANNEL, "30d")
 
@@ -311,11 +333,15 @@ class TestPeriodMetricsFallback:
 
         def period_fn(tenant_id, channel_slug, metric_name, start_date, end_date):
             calls.append(
-                (str(tenant_id), channel_slug, metric_name, start_date, end_date)
+                (str(tenant_id), channel_slug, metric_name, start_date, end_date),
             )
 
         service = _make_service_with_mocks(
-            mock_db, mock_brand_port, current, previous, period_fn
+            mock_db,
+            mock_brand_port,
+            current,
+            previous,
+            period_fn,
         )
         await service.get_dashboard(_TENANT_ID, _CHANNEL, "30d")
 

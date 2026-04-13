@@ -23,7 +23,9 @@ class _StubOfferReadPort(OfferReadPort):
         return list(self._offers)
 
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: UUID | None = None
+        self,
+        offer_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> OfferReadDTO | None:
         for o in self._offers:
             if o.id == offer_id:
@@ -42,7 +44,7 @@ def _seed_minimal_templates(db) -> None:
             description="Programa con checkout directo",
             recommended_objective="OUTCOME_SALES",
             priority=100,
-        )
+        ),
     )
     db.add(
         AdCampaignTemplateModel(
@@ -54,7 +56,7 @@ def _seed_minimal_templates(db) -> None:
             description="Servicio 1:1 via DMs",
             recommended_objective="OUTCOME_MESSAGES",
             priority=100,
-        )
+        ),
     )
     db.flush()
 

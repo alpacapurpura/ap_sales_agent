@@ -14,7 +14,10 @@ class LocalStorageStrategy(StorageStrategy):
         os.makedirs(self.upload_dir, exist_ok=True)
 
     def save(
-        self, file_obj: BinaryIO, filename: str, path_prefix: str = ""
+        self,
+        file_obj: BinaryIO,
+        filename: str,
+        path_prefix: str = "",
     ) -> tuple[str, str]:
         # Generate safe filename
         ext = os.path.splitext(filename)[1]

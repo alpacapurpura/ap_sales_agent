@@ -31,7 +31,9 @@ class ConnectionManager:
             self._connections[tenant_id] = set()
         self._connections[tenant_id].add(ws)
         logger.info(
-            "ws_connected", tenant_id=tenant_id, total=len(self._connections[tenant_id])
+            "ws_connected",
+            tenant_id=tenant_id,
+            total=len(self._connections[tenant_id]),
         )
 
     def disconnect(self, tenant_id: str, ws: WebSocket) -> None:

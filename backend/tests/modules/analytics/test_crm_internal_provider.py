@@ -62,7 +62,10 @@ class TestCRMInternalErrorHandling:
     async def test_missing_db_session(self):
         provider = CRMInternalProvider()
         result = await provider.extract_metrics(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 15),
         )
         assert result.metrics == []
 

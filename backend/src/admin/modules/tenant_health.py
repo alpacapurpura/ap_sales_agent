@@ -55,11 +55,15 @@ def render_tenant_health():  # noqa: C901
         search = st.text_input("Buscar tenant", key="health_search")
     with col_status:
         status_filter = st.selectbox(
-            "Estado", ["Todos", "Activos", "Inactivos"], key="health_status"
+            "Estado",
+            ["Todos", "Activos", "Inactivos"],
+            key="health_status",
         )
     with col_sort:
         sort_by = st.selectbox(
-            "Ordenar", ["Mas activo", "Menos activo", "Mas reciente"], key="health_sort"
+            "Ordenar",
+            ["Mas activo", "Menos activo", "Mas reciente"],
+            key="health_sort",
         )
     with col_period:
         period = st.slider("Periodo (dias)", 7, 90, 30, key="health_period")
@@ -127,7 +131,7 @@ def render_tenant_health():  # noqa: C901
                         "Msgs": msg_count,
                         "Users": t["user_count"],
                         "Ultima Act.": last_act,
-                    }
+                    },
                 )
 
             # Sort
@@ -141,7 +145,7 @@ def render_tenant_health():  # noqa: C901
             if rows:
                 display_df = pd.DataFrame(rows)
                 display_df = display_df.drop(
-                    columns=["_id", "_days_inactive", "_msg_count"]
+                    columns=["_id", "_days_inactive", "_msg_count"],
                 )
 
                 st.dataframe(
@@ -196,7 +200,9 @@ def render_tenant_health():  # noqa: C901
 
     tenant_names = [t["name"] for t in tenant_opts]
     selected_name = st.selectbox(
-        "Ver detalle de:", tenant_names, key="health_detail_tenant"
+        "Ver detalle de:",
+        tenant_names,
+        key="health_detail_tenant",
     )
     selected_tenant = next((t for t in tenant_opts if t["name"] == selected_name), None)
 
@@ -211,7 +217,7 @@ def render_tenant_health():  # noqa: C901
             "🧠 Uso Copilot",
             "👥 Usuarios",
             "💬 Conversaciones",
-        ]
+        ],
     )
 
     # ── Tab: Modulos ──
@@ -287,7 +293,7 @@ def render_tenant_health():  # noqa: C901
                     [
                         {"Tipo": k, "Cantidad": v}
                         for k, v in sorted(summary.items(), key=lambda x: -x[1])
-                    ]
+                    ],
                 )
                 st.bar_chart(df_ev.set_index("Tipo"))
 
@@ -306,7 +312,7 @@ def render_tenant_health():  # noqa: C901
                             "Aperturas": count,
                             "%": f"{pct}%",
                             "Flag": flag,
-                        }
+                        },
                     )
                 st.dataframe(
                     pd.DataFrame(friction_rows),
@@ -329,10 +335,12 @@ def render_tenant_health():  # noqa: C901
                             "Iniciados": started,
                             "Completados": completed,
                             "% OK": f"{pct}%",
-                        }
+                        },
                     )
                 st.dataframe(
-                    pd.DataFrame(proc_rows), use_container_width=True, hide_index=True
+                    pd.DataFrame(proc_rows),
+                    use_container_width=True,
+                    hide_index=True,
                 )
         finally:
             db_copilot.close()
@@ -373,11 +381,13 @@ def render_tenant_health():  # noqa: C901
                         "Rol": row["role"] or "—",
                         "Msgs": row["msg_count"],
                         "Ultima Act.": last.strftime("%Y-%m-%d") if last else "—",
-                    }
+                    },
                 )
             if user_rows:
                 st.dataframe(
-                    pd.DataFrame(user_rows), use_container_width=True, hide_index=True
+                    pd.DataFrame(user_rows),
+                    use_container_width=True,
+                    hide_index=True,
                 )
             else:
                 st.info("Sin usuarios para este tenant.")
@@ -401,7 +411,7 @@ def render_tenant_health():  # noqa: C901
                         msgs[0].get("content", "")[:50] if msgs else "Sin titulo"
                     )
                     with st.expander(
-                        f"💬 {title} ({len(msgs)} msgs) — {conv.updated_at.strftime('%Y-%m-%d %H:%M') if conv.updated_at else ''}"
+                        f"💬 {title} ({len(msgs)} msgs) — {conv.updated_at.strftime('%Y-%m-%d %H:%M') if conv.updated_at else ''}",
                     ):
                         for msg in msgs[:20]:
                             if isinstance(msg, dict):
@@ -417,7 +427,7 @@ def render_tenant_health():  # noqa: C901
                                         for tc in tool_calls:
                                             if isinstance(tc, dict):
                                                 st.caption(
-                                                    f"🔧 {tc.get('name', '?')}({str(tc.get('args', ''))[:80]})"
+                                                    f"🔧 {tc.get('name', '?')}({str(tc.get('args', ''))[:80]})",
                                                 )
             else:
                 st.info("Sin conversaciones para este tenant.")

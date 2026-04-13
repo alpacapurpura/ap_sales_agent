@@ -82,7 +82,7 @@ class MetaPixelProvider(BaseMetricsProvider):
                         value=float(count),
                         unit="count",
                         date=end_date,
-                    )
+                    ),
                 )
 
         return ExtractionResult(metrics=metrics)

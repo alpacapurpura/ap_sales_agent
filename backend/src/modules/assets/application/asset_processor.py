@@ -13,7 +13,9 @@ class AssetProcessor:
         pass
 
     async def process_asset(
-        self, asset: Asset, file_data: bytes | str
+        self,
+        asset: Asset,
+        file_data: bytes | str,
     ) -> dict[str, Any]:
         """
         Process asset to extract AI metadata.
@@ -26,7 +28,9 @@ class AssetProcessor:
         return {}
 
     async def _analyze_image(
-        self, file_data: bytes | str, context: str | None
+        self,
+        file_data: bytes | str,
+        context: str | None,
     ) -> dict[str, Any]:
         try:
             from src.shared.infrastructure.files.image_analysis import (

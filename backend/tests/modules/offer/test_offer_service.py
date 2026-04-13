@@ -25,7 +25,9 @@ class TestArchiveOffer:
         assert offer.archived_at is not None
 
     def test_archive_offer_unpublishes_embedded_landing_page(
-        self, db: Session, tenant_a
+        self,
+        db: Session,
+        tenant_a,
     ):
         """Archiving an offer unpublishes its embedded landing page config.
 
@@ -53,7 +55,9 @@ class TestArchiveOffer:
         assert offer.landing_page_config.get("slug") == "my-offer"
 
     def test_archive_offer_without_landing_config_does_not_fail(
-        self, db: Session, tenant_a
+        self,
+        db: Session,
+        tenant_a,
     ):
         service = OfferService(db)
         model = create_product_model(tenant_a, landing_page_config={})
@@ -146,7 +150,7 @@ class TestListArchivedOffers:
                 create_product_model(tenant_a, name="Active"),
                 create_product_model(tenant_a, name="Archived1", archived_at=utc_now()),
                 create_product_model(tenant_a, name="Archived2", archived_at=utc_now()),
-            ]
+            ],
         )
         db.flush()
 
@@ -160,7 +164,9 @@ class TestCreateOfferCurrency:
     """
 
     def test_create_offer_with_explicit_currency_preserves_it(
-        self, db: Session, tenant_a
+        self,
+        db: Session,
+        tenant_a,
     ):
         service = OfferService(db)
         offer = service.create_offer(

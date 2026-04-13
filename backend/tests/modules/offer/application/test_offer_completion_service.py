@@ -125,7 +125,10 @@ def test_partial_producto_is_between(service, offer_service, tenant_id, offer_id
 
 
 def test_programa_archetype_uses_program_details(
-    service, offer_service, tenant_id, offer_id
+    service,
+    offer_service,
+    tenant_id,
+    offer_id,
 ):
     offer = _make_offer(
         archetype=OfferArchetype.PROGRAMA,

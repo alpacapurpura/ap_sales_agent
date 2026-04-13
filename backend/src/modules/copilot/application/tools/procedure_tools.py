@@ -25,7 +25,9 @@ PROCEDURE_REGISTRY: dict[str, Procedure] = {
 
 
 def _build_ui_action(
-    procedure: Procedure, summary: dict[str, bool], current_idx: int
+    procedure: Procedure,
+    summary: dict[str, bool],
+    current_idx: int,
 ) -> dict:
     """Build a procedure_progress ui_action payload."""
     steps = []
@@ -43,7 +45,7 @@ def _build_ui_action(
                 "label": step.instruction.split(":")[0].split("—")[0].strip()[:30],
                 "status": status,
                 "routeHint": step.route_hint,
-            }
+            },
         )
 
     return {

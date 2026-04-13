@@ -27,7 +27,7 @@ def propose_field_updates(updates: list[dict]) -> dict:
                 "field_id": u["field_id"],
                 "new_value": u["new_value"],
                 "reason": u.get("reason", ""),
-            }
+            },
         )
 
     if not validated:

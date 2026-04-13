@@ -70,7 +70,9 @@ def normalize_archetype(raw: str, offer_id=None) -> OfferArchetype:
             import structlog
 
             structlog.get_logger().warning(
-                "invalid_archetype", raw=raw, offer_id=str(offer_id)
+                "invalid_archetype",
+                raw=raw,
+                offer_id=str(offer_id),
             )
             msg = f"Invalid OfferArchetype in DB: {raw}"
             raise ValueError(msg) from None

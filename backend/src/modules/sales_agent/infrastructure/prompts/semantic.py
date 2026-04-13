@@ -30,7 +30,7 @@ async def check_is_complete(text: str, tenant=None) -> bool:
             [
                 SystemMessage(content=sys_prompt),
                 HumanMessage(content=f"Mensaje: {text}"),
-            ]
+            ],
         )
 
         content = response.content.strip().upper()
@@ -38,7 +38,10 @@ async def check_is_complete(text: str, tenant=None) -> bool:
         is_complete = content == "COMPLETO"
 
         logger.info(
-            "semantic_check_result", text=text, result=content, is_complete=is_complete
+            "semantic_check_result",
+            text=text,
+            result=content,
+            is_complete=is_complete,
         )
         return is_complete
 

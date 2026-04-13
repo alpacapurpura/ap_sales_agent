@@ -49,7 +49,9 @@ class LLMFactory:
 
     @classmethod
     def _create_service_instance(
-        cls, provider: str, api_key: str | None = None
+        cls,
+        provider: str,
+        api_key: str | None = None,
     ) -> BaseLLMService:
         if provider == AIProvider.OPENAI:
             return OpenAIService(api_key=api_key)

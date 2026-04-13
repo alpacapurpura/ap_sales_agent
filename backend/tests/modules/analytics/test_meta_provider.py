@@ -42,7 +42,7 @@ def _error_response(status: int = 500) -> MagicMock:
             "Server error",
             request=MagicMock(),
             response=resp,
-        )
+        ),
     )
     return resp
 
@@ -80,7 +80,7 @@ class TestInstagramOrganic:
                                         {"dimension_values": ["REELS"], "value": 100},
                                         {"dimension_values": ["STORY"], "value": 50},
                                     ],
-                                }
+                                },
                             ],
                         },
                     },
@@ -96,7 +96,7 @@ class TestInstagramOrganic:
                                         {"dimension_values": ["FEED"], "value": 500},
                                         {"dimension_values": ["REELS"], "value": 300},
                                     ],
-                                }
+                                },
                             ],
                         },
                     },
@@ -112,12 +112,12 @@ class TestInstagramOrganic:
                                         {"dimension_values": ["FEED"], "value": 200},
                                         {"dimension_values": ["REELS"], "value": 100},
                                     ],
-                                }
+                                },
                             ],
                         },
                     },
-                ]
-            }
+                ],
+            },
         )
 
         # Non-breakdownable response: no breakdown available
@@ -132,8 +132,8 @@ class TestInstagramOrganic:
                         "name": "replies",
                         "total_value": {"value": 45},
                     },
-                ]
-            }
+                ],
+            },
         )
 
         mock_user_node_response = _ok_response(
@@ -141,7 +141,7 @@ class TestInstagramOrganic:
                 "id": "12345",
                 "followers_count": 28400,
                 "media_count": 342,
-            }
+            },
         )
 
         mock_demographics_response = _ok_response(
@@ -156,14 +156,14 @@ class TestInstagramOrganic:
                                         {
                                             "dimension_values": ["25-34", "F"],
                                             "value": 4200,
-                                        }
-                                    ]
-                                }
-                            ]
+                                        },
+                                    ],
+                                },
+                            ],
                         },
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         )
 
         async def mock_get(url, **kwargs):
@@ -187,7 +187,10 @@ class TestInstagramOrganic:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         metrics = result.metrics
 
@@ -248,7 +251,10 @@ class TestInstagramOrganic:
 
             provider = MetaProvider()
             await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         for call_kwargs in captured_kwargs:
@@ -267,9 +273,9 @@ class TestFacebookOrganic:
                     {
                         "name": "page_impressions_organic_unique",
                         "values": [{"value": 5000}],
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         )
 
         mock_engagement_response = _ok_response(
@@ -278,9 +284,9 @@ class TestFacebookOrganic:
                     {
                         "name": "page_post_engagements",
                         "values": [{"value": 800}],
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         )
 
         async def mock_get(url, **kwargs):
@@ -307,7 +313,10 @@ class TestFacebookOrganic:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         metrics = result.metrics
 
@@ -410,7 +419,10 @@ class TestMetaAds:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         metrics = result.metrics
 
@@ -466,7 +478,10 @@ class TestMetaAds:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
 
@@ -504,7 +519,10 @@ class TestMetaAds:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
 
@@ -538,7 +556,10 @@ class TestMetaAds:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
 
@@ -586,7 +607,10 @@ class TestMetaAds:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         ads = [m for m in result.metrics if m.channel_slug == "meta-ads"]
 
@@ -614,9 +638,9 @@ class TestMetaAds:
                         "cpm": "0",
                         "frequency": "1",
                         "actions": [],
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         )
 
         async def mock_get(url, **kwargs):
@@ -633,7 +657,10 @@ class TestMetaAds:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, creds_eur, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                creds_eur,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         metrics = result.metrics
 
@@ -660,9 +687,9 @@ class TestMetaAds:
                         "cpm": "0",
                         "frequency": "1",
                         "actions": [],
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         )
 
         async def mock_get(url, **kwargs):
@@ -679,7 +706,10 @@ class TestMetaAds:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, creds_no_currency, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                creds_no_currency,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         metrics = result.metrics
 
@@ -726,7 +756,7 @@ class TestExtractMetricsDaily:
                 "id": "12345",
                 "followers_count": 28400,
                 "media_count": 342,
-            }
+            },
         )
 
         async def mock_get(url, **kwargs):
@@ -748,7 +778,7 @@ class TestExtractMetricsDaily:
                                         "breakdowns": [
                                             {
                                                 "dimension_keys": [
-                                                    "media_product_type"
+                                                    "media_product_type",
                                                 ],
                                                 "results": [
                                                     {
@@ -767,13 +797,13 @@ class TestExtractMetricsDaily:
                                                         "value": total,
                                                     },
                                                 ],
-                                            }
+                                            },
                                         ],
                                     },
                                 }
                                 for name, (total, ad) in values.items()
-                            ]
-                        }
+                            ],
+                        },
                     )
                 # Non-breakdownable call
                 return _ok_response(
@@ -781,8 +811,8 @@ class TestExtractMetricsDaily:
                         "data": [
                             {"name": name, "total_value": {"value": val}}
                             for name, val in no_breakdown_data.items()
-                        ]
-                    }
+                        ],
+                    },
                 )
             if url.endswith("/12345") and "fields" in params:
                 return mock_user_node_response
@@ -798,7 +828,10 @@ class TestExtractMetricsDaily:
             provider = MetaProvider()
             # Closed range [Mar 1, Mar 3] inclusive → 3 days
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 3),
             )
         metrics = result.metrics
 
@@ -880,8 +913,8 @@ class TestExtractMetricsDaily:
                             },
                         ],
                     },
-                ]
-            }
+                ],
+            },
         )
 
         captured_params = []
@@ -907,7 +940,10 @@ class TestExtractMetricsDaily:
 
             provider = MetaProvider()
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 2),
             )
         metrics = result.metrics
 
@@ -950,9 +986,9 @@ class TestExtractMetricsDaily:
                             {"value": 3000, "end_time": "2026-03-01T08:00:00+0000"},
                             {"value": 4000, "end_time": "2026-03-02T08:00:00+0000"},
                         ],
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         )
         mock_engagement_response = _ok_response(
             {
@@ -963,9 +999,9 @@ class TestExtractMetricsDaily:
                             {"value": 200, "end_time": "2026-03-01T08:00:00+0000"},
                             {"value": 300, "end_time": "2026-03-02T08:00:00+0000"},
                         ],
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         )
 
         call_count = 0
@@ -993,7 +1029,10 @@ class TestExtractMetricsDaily:
 
             provider = MetaProvider()
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 2),
             )
         metrics = result.metrics
 
@@ -1018,7 +1057,10 @@ class TestExtractMetricsDaily:
     async def test_empty_credentials_returns_empty(self):
         provider = MetaProvider()
         result = await provider.extract_metrics_daily(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 3)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 3),
         )
         assert result.metrics == []
 
@@ -1064,7 +1106,10 @@ class TestMetaAdsCampaigns:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         metrics = result.metrics
 
@@ -1116,7 +1161,10 @@ class TestMetaAdsCampaigns:
 
             provider = MetaProvider()
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 1),
             )
         campaign_metrics = [m for m in result.metrics if m.campaign_id == "camp_A"]
         assert len(campaign_metrics) >= 7
@@ -1190,7 +1238,10 @@ class TestMetaAdsBreakdowns:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         metrics = result.metrics
 
@@ -1248,7 +1299,10 @@ class TestMetaAdsBreakdowns:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         # Breakdown metrics should not be present when API returns empty
         # But the account-level FULL_ADS_DATA is returned for all /act_ URLs
@@ -1278,7 +1332,7 @@ class TestExtractOrganicFromBreakdown:
                             {"dimension_values": ["REELS"], "value": 100},
                             {"dimension_values": ["STORY"], "value": 50},
                         ],
-                    }
+                    },
                 ],
             },
         }
@@ -1301,7 +1355,7 @@ class TestExtractOrganicFromBreakdown:
                             {"dimension_values": ["FEED"], "value": 250},
                             {"dimension_values": ["REELS"], "value": 150},
                         ],
-                    }
+                    },
                 ],
             },
         }
@@ -1347,7 +1401,7 @@ class TestExtractOrganicFromBreakdown:
                         "results": [
                             {"dimension_values": ["AD"], "value": 500},
                         ],
-                    }
+                    },
                 ],
             },
         }
@@ -1372,7 +1426,7 @@ class TestExtractOrganicFromBreakdown:
                             {"dimension_values": ["CAROUSEL_CONTAINER"], "value": 150},
                             {"dimension_values": ["POST"], "value": 150},
                         ],
-                    }
+                    },
                 ],
             },
         }
@@ -1402,7 +1456,10 @@ class TestFBOrganicMetricName:
 
             provider = MetaProvider()
             await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         fb_reach_calls = [
@@ -1417,7 +1474,10 @@ class TestMetaProviderErrorHandling:
     async def test_empty_credentials(self):
         provider = MetaProvider()
         result = await provider.extract_metrics(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 15),
         )
         assert result.metrics == []
 
@@ -1535,17 +1595,17 @@ class TestInstagramFollowTypeBreakdown:
                                                 },
                                                 {
                                                     "dimension_values": [
-                                                        "NON_FOLLOWER"
+                                                        "NON_FOLLOWER",
                                                     ],
                                                     "value": lost,
                                                 },
                                             ],
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
-                            }
-                        ]
-                    }
+                            },
+                        ],
+                    },
                 )
 
             if "/insights" in url:
@@ -1554,7 +1614,7 @@ class TestInstagramFollowTypeBreakdown:
 
             if url.endswith("/12345") and "fields" in params:
                 return _ok_response(
-                    {"id": "12345", "followers_count": 1000, "media_count": 50}
+                    {"id": "12345", "followers_count": 1000, "media_count": 50},
                 )
 
             return _ok_response({"data": []})
@@ -1569,7 +1629,10 @@ class TestInstagramFollowTypeBreakdown:
             provider = MetaProvider()
             # Closed [Mar 1, Mar 3] inclusive → 3 days
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 3),
             )
 
         # One dedicated follow_type call per day
@@ -1651,17 +1714,17 @@ class TestInstagramFollowTypeBreakdown:
                                                 },
                                                 {
                                                     "dimension_values": [
-                                                        "NON_FOLLOWER"
+                                                        "NON_FOLLOWER",
                                                     ],
                                                     "value": 45,
                                                 },
                                             ],
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
-                            }
-                        ]
-                    }
+                            },
+                        ],
+                    },
                 )
 
             if "/insights" in url:
@@ -1669,7 +1732,7 @@ class TestInstagramFollowTypeBreakdown:
 
             if url.endswith("/12345") and "fields" in params:
                 return _ok_response(
-                    {"id": "12345", "followers_count": 5000, "media_count": 200}
+                    {"id": "12345", "followers_count": 5000, "media_count": 200},
                 )
 
             return _ok_response({"data": []})
@@ -1683,7 +1746,10 @@ class TestInstagramFollowTypeBreakdown:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         assert follow_type_call_count >= 1
@@ -1731,14 +1797,14 @@ class TestInstagramFollowTypeBreakdown:
                                                 {
                                                     "dimension_values": ["FOLLOWER"],
                                                     "value": 17,
-                                                }
+                                                },
                                             ],
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
-                            }
-                        ]
-                    }
+                            },
+                        ],
+                    },
                 )
 
             if "/insights" in url:
@@ -1746,7 +1812,7 @@ class TestInstagramFollowTypeBreakdown:
 
             if url.endswith("/12345") and "fields" in params:
                 return _ok_response(
-                    {"id": "12345", "followers_count": 100, "media_count": 10}
+                    {"id": "12345", "followers_count": 100, "media_count": 10},
                 )
 
             return _ok_response({"data": []})
@@ -1763,7 +1829,10 @@ class TestInstagramFollowTypeBreakdown:
             # Also serves as a regression guard against the half-open loop
             # bug where start == end would silently yield zero iterations.
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 1),
             )
 
         metrics = result.metrics
@@ -1813,17 +1882,17 @@ class TestInstagramFollowTypeBreakdown:
                                                 },
                                                 {
                                                     "dimension_values": [
-                                                        "NON_FOLLOWER"
+                                                        "NON_FOLLOWER",
                                                     ],
                                                     "value": 1,
                                                 },
                                             ],
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
-                            }
-                        ]
-                    }
+                            },
+                        ],
+                    },
                 )
 
             if "/insights" in url:
@@ -1831,7 +1900,7 @@ class TestInstagramFollowTypeBreakdown:
 
             if url.endswith("/12345") and "fields" in params:
                 return _ok_response(
-                    {"id": "12345", "followers_count": 100, "media_count": 10}
+                    {"id": "12345", "followers_count": 100, "media_count": 10},
                 )
 
             return _ok_response({"data": []})
@@ -1846,7 +1915,10 @@ class TestInstagramFollowTypeBreakdown:
             provider = MetaProvider()
             # start_date == end_date — the exact scenario that triggered the bug
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 1)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 1),
             )
 
         # The follow_type call must have happened at least once
@@ -1905,17 +1977,17 @@ class TestInstagramFollowTypeBreakdown:
                                                 },
                                                 {
                                                     "dimension_values": [
-                                                        "NON_FOLLOWER"
+                                                        "NON_FOLLOWER",
                                                     ],
                                                     "value": lost,
                                                 },
                                             ],
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
-                            }
-                        ]
-                    }
+                            },
+                        ],
+                    },
                 )
 
             if "/insights" in url:
@@ -1927,7 +1999,7 @@ class TestInstagramFollowTypeBreakdown:
                         "id": "12345",
                         "followers_count": current_followers,
                         "media_count": 50,
-                    }
+                    },
                 )
 
             return _ok_response({"data": []})
@@ -1941,7 +2013,10 @@ class TestInstagramFollowTypeBreakdown:
 
             provider = MetaProvider()
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 3),
             )
 
         followers = sorted(
@@ -2007,10 +2082,16 @@ class TestInstagramFollowTypeBreakdown:
 
             provider = MetaProvider()
             await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 3),
             )
             await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 3)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 3),
             )
 
         assert calls_without_breakdown == [], (

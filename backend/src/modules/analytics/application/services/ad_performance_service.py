@@ -183,7 +183,8 @@ class AdPerformanceService:
 
         # Fetch creative metadata from ads table (bulk query for all ad_ids)
         creative_lookup = self._fetch_creative_metadata(
-            tenant_id, list(metrics_by_ad.keys())
+            tenant_id,
+            list(metrics_by_ad.keys()),
         )
 
         # Build ad DTOs
@@ -216,7 +217,7 @@ class AdPerformanceService:
                     cpa=(float(spend) / float(conversions) if conversions else None),
                     ctr=float(m["ctr"]) if "ctr" in m else None,
                     cpc=float(m["cpc"]) if "cpc" in m else None,
-                )
+                ),
             )
 
         # Sort by spend descending
@@ -285,7 +286,7 @@ class AdPerformanceService:
                     avg_cpa=round(avg_cpa, 2) if avg_cpa else None,
                     avg_roas=round(avg_roas, 1) if avg_roas else None,
                     total_spend=round(total_spend, 2),
-                )
+                ),
             )
 
         # Normalize performance_score (0-100)

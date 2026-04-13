@@ -44,7 +44,8 @@ class TestDetectDomainConflict:
     def test_dns_failure_returns_none(self, service):
         """If DNS resolution fails, no conflict — domain simply unresolvable."""
         with patch(
-            "socket.gethostbyname", side_effect=socket.gaierror("Name not found")
+            "socket.gethostbyname",
+            side_effect=socket.gaierror("Name not found"),
         ):
             result = service.detect_domain_conflict("nonexistent.example.com")
 

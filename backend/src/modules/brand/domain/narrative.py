@@ -19,10 +19,12 @@ class StoryBrandProblem(BaseEntity):
     villain: str | None = Field(None, description="El villano")
     external_problem: str | None = Field(None, description="Problema externo")
     internal_problem: str | None = Field(
-        None, description="Problema interno (emocional)"
+        None,
+        description="Problema interno (emocional)",
     )
     philosophical_problem: str | None = Field(
-        None, description="Problema filosófico (injusticia)"
+        None,
+        description="Problema filosófico (injusticia)",
     )
     model_config = ConfigDict(extra="ignore")
 
@@ -32,7 +34,8 @@ class StoryBrandGuide(BaseEntity):
 
     empathy_statement: str | None = Field(None, description="Declaración de empatía")
     authority_statement: str | None = Field(
-        None, description="Declaración de autoridad"
+        None,
+        description="Declaración de autoridad",
     )
     model_config = ConfigDict(extra="ignore")
 
@@ -51,10 +54,12 @@ class StoryBrandCTA(BaseEntity):
     """StoryBrand: Calls to action."""
 
     direct_cta: str | None = Field(
-        None, description="CTA directo (ej: 'Agenda tu demo gratis')"
+        None,
+        description="CTA directo (ej: 'Agenda tu demo gratis')",
     )
     transitional_cta: str | None = Field(
-        None, description="CTA transicional (ej: 'Descarga la guía')"
+        None,
+        description="CTA transicional (ej: 'Descarga la guía')",
     )
     model_config = ConfigDict(extra="ignore")
 
@@ -63,10 +68,12 @@ class StoryBrandOutcome(BaseEntity):
     """StoryBrand: Success and failure outcomes."""
 
     success_transformation: str | None = Field(
-        None, description="Transformación exitosa"
+        None,
+        description="Transformación exitosa",
     )
     failure_consequence: str | None = Field(
-        None, description="Consecuencia del fracaso"
+        None,
+        description="Consecuencia del fracaso",
     )
     model_config = ConfigDict(extra="ignore")
 
@@ -81,7 +88,8 @@ class BrandNarrative(BaseEntity):
     problem: StoryBrandProblem | None = None
     guide: StoryBrandGuide | None = None
     plan: list[StoryBrandPlanStep] = Field(
-        default_factory=list, description="3-4 pasos max"
+        default_factory=list,
+        description="3-4 pasos max",
     )
     cta: StoryBrandCTA | None = None
     outcome: StoryBrandOutcome | None = None

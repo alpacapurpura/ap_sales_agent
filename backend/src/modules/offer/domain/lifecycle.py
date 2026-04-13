@@ -47,7 +47,8 @@ LIFECYCLE_TRANSITIONS: dict[OfferLifecycleStatus, set[OfferLifecycleStatus]] = {
 
 
 def is_transition_allowed(
-    from_status: OfferLifecycleStatus, to_status: OfferLifecycleStatus
+    from_status: OfferLifecycleStatus,
+    to_status: OfferLifecycleStatus,
 ) -> bool:
     """Return True if ``from_status → to_status`` is a legal transition."""
     if from_status == to_status:
@@ -83,7 +84,7 @@ class InvalidLifecycleTransitionError(ValueError):
         allowed = sorted(s.value for s in LIFECYCLE_TRANSITIONS.get(from_status, set()))
         super().__init__(
             f"Invalid transition {from_status.value} -> {to_status.value}. "
-            f"Allowed targets: {allowed}"
+            f"Allowed targets: {allowed}",
         )
         self.from_status = from_status
         self.to_status = to_status

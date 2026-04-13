@@ -115,7 +115,7 @@ def _handle_appointment_event(event: DomainEvent, journey_event_name: str) -> No
             profile = None
             if lead_id:
                 lead = db.execute(
-                    select(LeadModel).where(LeadModel.id == UUID(lead_id))
+                    select(LeadModel).where(LeadModel.id == UUID(lead_id)),
                 ).scalar_one_or_none()
 
                 if lead and lead.email:
@@ -124,7 +124,7 @@ def _handle_appointment_event(event: DomainEvent, journey_event_name: str) -> No
                             CustomerProfileModel.tenant_id == event.tenant_id,
                             CustomerProfileModel.primary_email == lead.email,
                             CustomerProfileModel.is_inactive == False,  # noqa: E712
-                        )
+                        ),
                     ).scalar_one_or_none()
 
             properties = {
@@ -194,5 +194,5 @@ def register_event_handlers() -> None:
     EventBus.subscribe("appointment_no_show", handle_appointment_no_show)
     logger.info(
         "CRM event handlers registered: sale_completed, churn_detected, "
-        "lead_captured, appointment_booked, appointment_completed, appointment_no_show"
+        "lead_captured, appointment_booked, appointment_completed, appointment_no_show",
     )

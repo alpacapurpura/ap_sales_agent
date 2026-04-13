@@ -106,7 +106,7 @@ class TestChurnDetection:
                 select(LifecycleTransitionModel).where(
                     LifecycleTransitionModel.profile_id == profile.id,
                     LifecycleTransitionModel.triggered_by == "churn_event",
-                )
+                ),
             )
             .scalars()
             .all()
@@ -131,7 +131,7 @@ class TestChurnDetection:
             db.execute(
                 select(LifecycleTransitionModel).where(
                     LifecycleTransitionModel.profile_id == profile.id,
-                )
+                ),
             )
             .scalars()
             .all()
@@ -204,7 +204,7 @@ class TestManualOverride:
                 select(LifecycleTransitionModel).where(
                     LifecycleTransitionModel.profile_id == profile.id,
                     LifecycleTransitionModel.triggered_by == "manual",
-                )
+                ),
             )
             .scalars()
             .all()

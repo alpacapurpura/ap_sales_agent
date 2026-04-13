@@ -17,7 +17,7 @@ class TestCampaignSyncPipeline:
         mock_provider.extract_campaigns = AsyncMock(
             return_value=[
                 {"external_id": "c1", "name": "Camp 1"},
-            ]
+            ],
         )
         mock_provider.extract_ad_sets = AsyncMock(
             return_value=(
@@ -26,10 +26,10 @@ class TestCampaignSyncPipeline:
                         "external_id": "as1",
                         "campaign_external_id": "c1",
                         "name": "AdSet 1",
-                    }
+                    },
                 ],
                 [{"source": "ad_set", "recommendation_type": "1942008", "body": "tip"}],
-            )
+            ),
         )
         mock_provider.extract_ads = AsyncMock(
             return_value=(
@@ -39,10 +39,10 @@ class TestCampaignSyncPipeline:
                         "campaign_external_id": "c1",
                         "ad_set_external_id": "as1",
                         "name": "Ad 1",
-                    }
+                    },
                 ],
                 [],
-            )
+            ),
         )
         mock_provider.extract_account_recommendations = AsyncMock(
             return_value=[
@@ -51,7 +51,7 @@ class TestCampaignSyncPipeline:
                     "recommendation_type": "CREATIVE_FATIGUE",
                     "body": "Refresh creative",
                 },
-            ]
+            ],
         )
 
         mock_repo = MagicMock()

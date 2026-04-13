@@ -21,7 +21,10 @@ class UserService:
 
         return [
             TenantSchema(
-                id=str(tenant.id), name=tenant.name, slug=tenant.slug, role=role
+                id=str(tenant.id),
+                name=tenant.name,
+                slug=tenant.slug,
+                role=role,
             )
             for tenant, role in tenant_roles
         ]

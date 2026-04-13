@@ -9,7 +9,8 @@ from src.modules.assets.infrastructure.repositories.gallery_repository import (
 
 
 def _make_gallery_image(
-    tenant_id: uuid.UUID, offer_id: uuid.UUID = None
+    tenant_id: uuid.UUID,
+    offer_id: uuid.UUID = None,
 ) -> GalleryImage:
     return GalleryImage(
         id=uuid.uuid4(),
@@ -28,7 +29,12 @@ def _make_gallery_image(
 
 class TestGalleryRepository:
     def test_get_by_id_filters_by_tenant(
-        self, db, seed_tenant, tenant_id, seed_other_tenant, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
+        seed_other_tenant,
+        other_tenant_id,
     ):
         repo = GalleryRepository(db)
         image = _make_gallery_image(tenant_id)

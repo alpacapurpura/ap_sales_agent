@@ -84,7 +84,7 @@ async def get_optional_tenant_context(
                         UserTenantModel.user_id == user.id,
                         UserTenantModel.tenant_id == target_uuid,
                         UserTenantModel.is_active.is_(True),
-                    )
+                    ),
                 )
                 .scalars()
                 .first()
@@ -105,7 +105,7 @@ async def get_optional_tenant_context(
                             UserTenantModel.user_id == user.id,
                             UserTenantModel.tenant_id == tenant.id,
                             UserTenantModel.is_active.is_(True),
-                        )
+                        ),
                     )
                     .scalars()
                     .first()
@@ -120,7 +120,7 @@ async def get_optional_tenant_context(
                 select(UserTenantModel).where(
                     UserTenantModel.user_id == user.id,
                     UserTenantModel.is_active.is_(True),
-                )
+                ),
             )
             .scalars()
             .first()
@@ -138,7 +138,8 @@ async def get_optional_tenant_context(
 
 
 def _resolve_email_from_clerk_api(
-    user_id: str, clerk_secret: str
+    user_id: str,
+    clerk_secret: str,
 ) -> tuple[str | None, dict | None]:
     """Fetch email from Clerk API as fallback when JWT lacks email claim.
 
@@ -195,7 +196,11 @@ def _resolve_name(token_payload: dict, clerk_user_data: dict | None) -> str | No
 
 
 def _sync_clerk_fields(
-    db: Session, user_orm, clerk_id: str, name: str | None, email: str
+    db: Session,
+    user_orm,
+    clerk_id: str,
+    name: str | None,
+    email: str,
 ) -> None:
     """Sync Clerk ID and full name to the user ORM model if needed."""
     should_update = False
@@ -239,7 +244,8 @@ def get_user_from_token(
         clerk_secret = os.getenv("CLERK_SECRET_KEY")
         if user_id and clerk_secret:
             email, clerk_user_data = _resolve_email_from_clerk_api(
-                user_id, clerk_secret
+                user_id,
+                clerk_secret,
             )
 
     if not email:
@@ -318,7 +324,7 @@ def get_current_user(
                     UserTenantModel.user_id == user.id,
                     UserTenantModel.tenant_id == target_tenant_id,
                     UserTenantModel.is_active.is_(True),
-                )
+                ),
             )
             .scalars()
             .first()
@@ -326,7 +332,9 @@ def get_current_user(
 
         if not user_tenant:
             logger.warning(
-                "access_denied_tenant_mismatch", email=email, target_tenant=x_tenant_id
+                "access_denied_tenant_mismatch",
+                email=email,
+                target_tenant=x_tenant_id,
             )
             raise HTTPException(
                 status_code=403,
@@ -348,7 +356,7 @@ def get_current_user(
                 select(UserTenantModel).where(
                     UserTenantModel.user_id == user.id,
                     UserTenantModel.is_active.is_(True),
-                )
+                ),
             )
             .scalars()
             .first()

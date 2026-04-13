@@ -75,7 +75,11 @@ def _make_asset_mock(
 
 
 def test_upload_asset_stores_file_and_persists_row(
-    service, asset_repo, file_storage, tenant_id, offer_id
+    service,
+    asset_repo,
+    file_storage,
+    tenant_id,
+    offer_id,
 ):
     created = _make_asset_mock(tenant_id=tenant_id, offer_id=offer_id)
     asset_repo.create.return_value = created
@@ -105,7 +109,10 @@ def test_upload_asset_stores_file_and_persists_row(
 
 
 def test_generate_asset_creates_processing_stub(
-    service, asset_repo, tenant_id, offer_id
+    service,
+    asset_repo,
+    tenant_id,
+    offer_id,
 ):
     """AI generation is a stub — row is created with status PROCESSING and
     returned immediately. No real AI call."""
@@ -217,7 +224,11 @@ def test_delete_asset_missing_raises(service, asset_repo, tenant_id, offer_id):
 
 
 def test_get_download_url_delegates_to_storage(
-    service, asset_repo, file_storage, tenant_id, offer_id
+    service,
+    asset_repo,
+    file_storage,
+    tenant_id,
+    offer_id,
 ):
     entity = MagicMock(spec=OfferAsset)
     entity.file_url = "https://cdn.example/file.pdf"
@@ -225,7 +236,9 @@ def test_get_download_url_delegates_to_storage(
     file_storage.get_signed_url = MagicMock(return_value="https://signed.url")
 
     result = service.get_download_url(
-        tenant_id=tenant_id, offer_id=offer_id, asset_id=uuid4()
+        tenant_id=tenant_id,
+        offer_id=offer_id,
+        asset_id=uuid4(),
     )
     assert result == "https://signed.url"
     file_storage.get_signed_url.assert_called_once_with("https://cdn.example/file.pdf")

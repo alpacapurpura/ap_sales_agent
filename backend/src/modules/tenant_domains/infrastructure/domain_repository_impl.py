@@ -138,5 +138,7 @@ class DomainRepositoryImpl(DomainRepository):
         model.deleted_at = func.now()
         self.db.commit()
         logger.info(
-            "domain_soft_deleted", domain_id=str(domain_id), tenant_id=str(tenant_id)
+            "domain_soft_deleted",
+            domain_id=str(domain_id),
+            tenant_id=str(tenant_id),
         )

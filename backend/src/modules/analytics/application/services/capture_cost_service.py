@@ -48,7 +48,7 @@ class CaptureCostService:
                 ChannelCostSettingModel.is_active.is_(True),
                 ChannelCostSettingModel.deleted_at.is_(None),
                 ChannelCostSettingModel.proration_category.is_(
-                    None
+                    None,
                 ),  # exclude prorated costs
             )
             .group_by(ChannelCostSettingModel.channel_slug)

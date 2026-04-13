@@ -128,7 +128,7 @@ def compute_health_score(
         engagement_score * 0.30
         + delivery_score * 0.30
         + growth_score * 0.20
-        + contenido_score * 0.20
+        + contenido_score * 0.20,
     )
 
     sub_scores = [
@@ -162,7 +162,9 @@ def compute_health_score(
 
 
 def classify_engagement_segment(
-    open_rate: float, click_rate: float, days_inactive: int
+    open_rate: float,
+    click_rate: float,
+    days_inactive: int,
 ) -> str:
     """Classify a subscriber segment based on engagement metrics."""
     if days_inactive >= 60:
@@ -202,15 +204,24 @@ class EmailDashboardService:
 
         # Current and previous period metrics
         current = self._repo.get_channel_metrics_for_period(
-            tenant_id, CHANNEL_SLUG, start, end
+            tenant_id,
+            CHANNEL_SLUG,
+            start,
+            end,
         )
         previous = self._repo.get_channel_metrics_for_period(
-            tenant_id, CHANNEL_SLUG, prev_start, prev_end
+            tenant_id,
+            CHANNEL_SLUG,
+            prev_start,
+            prev_end,
         )
 
         # Capture metrics for subscriber data
         capture = self._repo.get_channel_metrics_for_period(
-            tenant_id, CAPTURE_SLUG, start, end
+            tenant_id,
+            CAPTURE_SLUG,
+            start,
+            end,
         )
 
         # Daily data for time series
@@ -229,7 +240,11 @@ class EmailDashboardService:
             "new_subscribers",
         ]
         daily = self._repo.get_channel_daily_metrics(
-            tenant_id, CHANNEL_SLUG, ts_metrics, start, end
+            tenant_id,
+            CHANNEL_SLUG,
+            ts_metrics,
+            start,
+            end,
         )
 
         # Also get capture daily for subscriber timeseries
@@ -378,7 +393,7 @@ class EmailDashboardService:
                     avg_open_rate=round(avg_open, 1),
                     avg_ctor=round(avg_ctor, 1),
                     total_unsubs=sum(c.unsubscribes for c in clist),
-                )
+                ),
             )
 
         # Rank types
@@ -582,7 +597,7 @@ class EmailDashboardService:
                     active_subscribers=ingresados,
                     unsubscribes=int(m.get("unsubscribes", 0)),
                     steps=steps,
-                )
+                ),
             )
         return automations
 
@@ -603,14 +618,21 @@ class EmailDashboardService:
         start = end - timedelta(days=days)
 
         current = self._repo.get_channel_metrics_for_period(
-            tenant_id, CHANNEL_SLUG, start, end
+            tenant_id,
+            CHANNEL_SLUG,
+            start,
+            end,
         )
         capture = self._repo.get_channel_metrics_for_period(
-            tenant_id, CAPTURE_SLUG, start, end
+            tenant_id,
+            CAPTURE_SLUG,
+            start,
+            end,
         )
 
         active = capture.get("active_subscribers", 0) or current.get(
-            "active_subscribers", 0
+            "active_subscribers",
+            0,
         )
         open_rate = current.get("open_rate", 0)
 
@@ -674,16 +696,20 @@ class EmailDashboardService:
         # Engagement decay: estimated from industry averages
         decay = [
             EngagementDecayDTO(
-                period_label="0-30 dias", open_rate=round(open_rate * 1.9, 1)
+                period_label="0-30 dias",
+                open_rate=round(open_rate * 1.9, 1),
             ),
             EngagementDecayDTO(
-                period_label="31-90 dias", open_rate=round(open_rate * 1.3, 1)
+                period_label="31-90 dias",
+                open_rate=round(open_rate * 1.3, 1),
             ),
             EngagementDecayDTO(
-                period_label="91-180 dias", open_rate=round(open_rate * 0.75, 1)
+                period_label="91-180 dias",
+                open_rate=round(open_rate * 0.75, 1),
             ),
             EngagementDecayDTO(
-                period_label="180+ dias", open_rate=round(open_rate * 0.25, 1)
+                period_label="180+ dias",
+                open_rate=round(open_rate * 0.25, 1),
             ),
         ]
 
@@ -710,10 +736,16 @@ class EmailDashboardService:
         prev_end = start - timedelta(days=1)
 
         current = self._repo.get_channel_metrics_for_period(
-            tenant_id, CHANNEL_SLUG, start, end
+            tenant_id,
+            CHANNEL_SLUG,
+            start,
+            end,
         )
         previous = self._repo.get_channel_metrics_for_period(
-            tenant_id, CHANNEL_SLUG, prev_start, prev_end
+            tenant_id,
+            CHANNEL_SLUG,
+            prev_start,
+            prev_end,
         )
 
         sent = current.get("emails_sent", 0)
@@ -749,7 +781,11 @@ class EmailDashboardService:
 
         ts_metrics = ["bounce_rate", "unsubscribe_rate", "deliverability_rate"]
         daily = self._repo.get_channel_daily_metrics(
-            tenant_id, CHANNEL_SLUG, ts_metrics, start, end
+            tenant_id,
+            CHANNEL_SLUG,
+            ts_metrics,
+            start,
+            end,
         )
         time_series = self._build_time_series(daily)
 
@@ -781,13 +817,22 @@ class EmailDashboardService:
         prev_end = start - timedelta(days=1)
 
         current = self._repo.get_channel_metrics_for_period(
-            tenant_id, CAPTURE_SLUG, start, end
+            tenant_id,
+            CAPTURE_SLUG,
+            start,
+            end,
         )
         nurture = self._repo.get_channel_metrics_for_period(
-            tenant_id, CHANNEL_SLUG, start, end
+            tenant_id,
+            CHANNEL_SLUG,
+            start,
+            end,
         )
         previous = self._repo.get_channel_metrics_for_period(
-            tenant_id, CAPTURE_SLUG, prev_start, prev_end
+            tenant_id,
+            CAPTURE_SLUG,
+            prev_start,
+            prev_end,
         )
 
         # Merge nurture unsubs into capture metrics
@@ -817,7 +862,11 @@ class EmailDashboardService:
             end,
         )
         nurture_daily = self._repo.get_channel_daily_metrics(
-            tenant_id, CHANNEL_SLUG, ["unsubscribes"], start, end
+            tenant_id,
+            CHANNEL_SLUG,
+            ["unsubscribes"],
+            start,
+            end,
         )
         time_series = self._build_time_series(daily + nurture_daily)
 
@@ -905,7 +954,7 @@ class EmailDashboardService:
                     unit=defn.unit.value if defn else "count",
                     higher_is_better=defn.higher_is_better if defn else True,
                     benchmark=bench_dto,
-                )
+                ),
             )
         return kpis
 
@@ -916,7 +965,7 @@ class EmailDashboardService:
         by_metric: dict[str, list[TimeSeriesDataPointDTO]] = {}
         for metric_date, metric_name, value in daily:
             by_metric.setdefault(metric_name, []).append(
-                TimeSeriesDataPointDTO(date=str(metric_date), value=round(value, 2))
+                TimeSeriesDataPointDTO(date=str(metric_date), value=round(value, 2)),
             )
         result: list[MetricTimeSeriesDTO] = []
         for name, points in by_metric.items():
@@ -928,7 +977,7 @@ class EmailDashboardService:
                     display_name=defn.display_name if defn else name,
                     unit=defn.unit.value if defn else "count",
                     data_points=points,
-                )
+                ),
             )
         return result
 
@@ -1036,7 +1085,7 @@ class EmailDashboardService:
                     unique_clicks=int(m.get("unique_clicks", 0)),
                     screenshot_url=cdata.get("screenshot_url"),  # type: ignore[arg-type]
                     preview_url=cdata.get("preview_url"),  # type: ignore[arg-type]
-                )
+                ),
             )
         return campaigns
 
@@ -1070,7 +1119,7 @@ class EmailDashboardService:
                         day_of_week=day,
                         hour_block=hour,
                         open_rate=round(rate * 100, 1),
-                    )
+                    ),
                 )
         return cells
 
@@ -1084,17 +1133,17 @@ class EmailDashboardService:
 
         if bounce > 2:
             alerts.append(
-                f"Bounce rate elevado ({bounce:.1f}%). Limpia la lista de emails invalidos."
+                f"Bounce rate elevado ({bounce:.1f}%). Limpia la lista de emails invalidos.",
             )
         if spam > 0.1:
             alerts.append(
                 f"Tasa de spam ({spam:.2f}%) por encima del umbral. "
-                "Revisa el contenido y la frecuencia de envio."
+                "Revisa el contenido y la frecuencia de envio.",
             )
         if unsub > 0.5:
             alerts.append(
                 f"Tasa de bajas alta ({unsub:.1f}%). "
-                "Verifica la relevancia del contenido para tu audiencia."
+                "Verifica la relevancia del contenido para tu audiencia.",
             )
         if not alerts:
             alerts.append("Tu reputacion de envio esta saludable. Sigue asi.")

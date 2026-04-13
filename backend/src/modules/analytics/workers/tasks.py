@@ -42,7 +42,7 @@ async def _maybe_enqueue_period_extraction(ctx: dict, db, tenant_id: str) -> Non
 
         count = (
             db.execute(
-                select(func.count()).where(PeriodMetricModel.tenant_id == tenant_id)
+                select(func.count()).where(PeriodMetricModel.tenant_id == tenant_id),
             ).scalar()
             or 0
         )
@@ -235,7 +235,7 @@ async def run_initial_load(
                             "status": status,
                             "total_days": total,
                             "completed_days": loaded,
-                        }
+                        },
                     ),
                 )
 
@@ -524,7 +524,8 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
         synced_count = await _sync_mailerlite_tenants(db, connections)
 
         logger.info(
-            "Mailerlite ETL backup sync complete: %d events synced", synced_count
+            "Mailerlite ETL backup sync complete: %d events synced",
+            synced_count,
         )
         capture_checkin(
             monitor_slug="mailerlite-etl-sync",
@@ -561,8 +562,8 @@ def _get_active_mailerlite_connections(db):
             and_(
                 ChannelConnectionModel.channel_type == "mailerlite",
                 ChannelConnectionModel.is_active == True,  # noqa: E712
-            )
-        )
+            ),
+        ),
     )
     return result.scalars().all()
 
@@ -630,8 +631,8 @@ async def _sync_single_tenant(db, conn, tenant_id) -> int:
                     CustomerProfileModel.tenant_id == tenant_id,
                     CustomerProfileModel.primary_email == email,
                     CustomerProfileModel.is_inactive == False,  # noqa: E712
-                )
-            )
+                ),
+            ),
         )
         profile = profile_result.scalar_one_or_none()
         if not profile:
@@ -647,8 +648,8 @@ async def _sync_single_tenant(db, conn, tenant_id) -> int:
                     JourneyEventModel.event_name == event_name,
                     JourneyEventModel.properties["campaign_id"].astext
                     == str(campaign_id),
-                )
-            )
+                ),
+            ),
         )
         if existing.scalar_one_or_none():
             continue
@@ -707,7 +708,7 @@ async def run_manychat_subscriber_sync(
                 str(exc),
             )
             raise Retry(
-                defer=CacheConfig.DETAIL_STAGE_TTL
+                defer=CacheConfig.DETAIL_STAGE_TTL,
             ) from exc  # Retry in 5 minutes
         logger.error(
             "ManyChat sync permanently failed for tenant=%s: %s",

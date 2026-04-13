@@ -33,5 +33,5 @@ def complete_interview(
                 "health_score": health_score,
                 "redirect": redirect_path,
             },
-        }
+        },
     )

@@ -43,7 +43,7 @@ def _format_section_data(section_name: str, data) -> str:
                 continue
             if isinstance(value, (dict, list)):
                 lines.append(
-                    f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}"
+                    f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}",
                 )
             else:
                 lines.append(f"- **{key}:** {value}")
@@ -96,7 +96,7 @@ def _format_offer_list(offers: list) -> str:
             pricing = o["pricing"]
             currency = o.get("currency", "USD")
             lines.append(
-                f"   Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}"
+                f"   Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}",
             )
         lines.append("")
 
@@ -174,7 +174,10 @@ def _format_model_result(data: object, descriptor: object, section: str | None) 
 
 
 def _read_and_format_module(
-    descriptor: object, module: str, tenant_id: UUID, section: str | None
+    descriptor: object,
+    module: str,
+    tenant_id: UUID,
+    section: str | None,
 ) -> str:
     """Read module data and format the result."""
     db = SessionLocal()

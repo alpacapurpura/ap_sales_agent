@@ -54,7 +54,9 @@ class TestListEventsTenantIsolation:
         )
 
         events_a = service.list_events(
-            country_code="PE", year=2026, tenant_id=tenant_id
+            country_code="PE",
+            year=2026,
+            tenant_id=tenant_id,
         )
         names_a = [e.name for e in events_a]
         assert "Evento Tenant A" in names_a

@@ -18,7 +18,10 @@ class GalleryImageModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
     offer_id = Column(
-        UUID(as_uuid=True), ForeignKey("products.id"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("products.id"),
+        nullable=False,
+        index=True,
     )
 
     # File Info

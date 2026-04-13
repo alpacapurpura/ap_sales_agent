@@ -19,7 +19,7 @@ class EventBus:
             self._subscribers[event_type] = []
         self._subscribers[event_type].append(handler)
         logger.info(
-            f"Subscribed handler {handler.__name__} to event {event_type.__name__}"
+            f"Subscribed handler {handler.__name__} to event {event_type.__name__}",
         )
 
     async def publish(self, event: DomainEvent):

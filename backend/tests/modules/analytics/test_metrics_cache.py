@@ -43,7 +43,7 @@ class TestMetricsCacheGet:
 
         assert result == data
         mock_redis.get.assert_called_once_with(
-            f"metrics:{TENANT_ID}:attraction:last_30_days"
+            f"metrics:{TENANT_ID}:attraction:last_30_days",
         )
 
     def test_returns_none_on_cache_miss(self):

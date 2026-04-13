@@ -13,7 +13,10 @@ T = TypeVar("T", bound=BaseModel)
 
 
 async def extract_from_url(
-    url: str, schema: type[T], max_depth: int = 0, prompt_template: str | None = None
+    url: str,
+    schema: type[T],
+    max_depth: int = 0,
+    prompt_template: str | None = None,
 ) -> T | None:
     """
     Extracts structured data from a URL using the Web Extractor Subgraph.

@@ -209,7 +209,7 @@ class TestDecayTransitions:
                 select(LifecycleTransitionModel).where(
                     LifecycleTransitionModel.profile_id == profile.id,
                     LifecycleTransitionModel.triggered_by == "decay",
-                )
+                ),
             )
             .scalars()
             .all()

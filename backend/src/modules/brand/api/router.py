@@ -17,7 +17,8 @@ router = APIRouter()
 
 @router.get("", response_model=BrandSettings)
 async def get_brand_settings(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get Global Brand Settings for the user's tenant.
@@ -29,7 +30,8 @@ async def get_brand_settings(
             user_id=str(current_user.id),
         )
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     repo = BrandRepository(db)
@@ -43,7 +45,7 @@ async def get_brand_settings(
         has_identity=bool((settings_dict.get("identity") or {}).get("brand_name")),
         has_story=bool((settings_dict.get("story") or {}).get("origin_story")),
         has_strategy=bool(
-            (settings_dict.get("strategy") or {}).get("value_proposition")
+            (settings_dict.get("strategy") or {}).get("value_proposition"),
         ),
         team_count=len(settings_dict.get("team") or []),
         testimonials_count=len(settings_dict.get("testimonials") or []),
@@ -65,7 +67,8 @@ async def update_brand_settings(
     """
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant"
+            status_code=400,
+            detail="User is not associated with a tenant",
         )
 
     repo = BrandRepository(db)

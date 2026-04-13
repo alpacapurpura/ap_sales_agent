@@ -53,7 +53,10 @@ class CustomerRepository:
         )
 
     def find_by_identity(
-        self, identity_type: IdentityType, identity_value: str, tenant_id: UUID
+        self,
+        identity_type: IdentityType,
+        identity_value: str,
+        tenant_id: UUID,
     ) -> CustomerProfile | None:
         """
         Find a profile by one of its identities.
@@ -149,7 +152,10 @@ class CustomerRepository:
         return self._to_domain(profile_model)
 
     def find_by_trait(
-        self, tenant_id: UUID, trait_key: str, trait_value: str
+        self,
+        tenant_id: UUID,
+        trait_key: str,
+        trait_value: str,
     ) -> CustomerProfile | None:
         """Find a profile by a specific JSONB trait key/value.
 
@@ -181,7 +187,7 @@ class CustomerRepository:
                 CustomerIdentityModel.profile_id == source_id,
                 CustomerIdentityModel.tenant_id == tenant_id,
             )
-            .values(profile_id=target_id)
+            .values(profile_id=target_id),
         )
 
         # Move journey_events from source to target
@@ -191,7 +197,7 @@ class CustomerRepository:
                 JourneyEventModel.profile_id == source_id,
                 JourneyEventModel.tenant_id == tenant_id,
             )
-            .values(profile_id=target_id)
+            .values(profile_id=target_id),
         )
 
         # Soft-delete the source profile
@@ -200,7 +206,7 @@ class CustomerRepository:
                 select(CustomerProfileModel).where(
                     CustomerProfileModel.id == source_id,
                     CustomerProfileModel.tenant_id == tenant_id,
-                )
+                ),
             )
             .scalars()
             .first()
@@ -213,7 +219,7 @@ class CustomerRepository:
                     select(CustomerProfileModel).where(
                         CustomerProfileModel.id == target_id,
                         CustomerProfileModel.tenant_id == tenant_id,
-                    )
+                    ),
                 )
                 .scalars()
                 .first()
@@ -240,7 +246,7 @@ class CustomerRepository:
             .where(
                 CustomerProfileModel.tenant_id == tenant_id,
                 CustomerProfileModel.lifecycle_stage == stage,
-            )
+            ),
         )
         return result.scalar() or 0
 
@@ -284,7 +290,7 @@ class JourneyEventRepository:
                 sa_select(CustomerProfileModel).where(
                     CustomerProfileModel.id == profile_id,
                     CustomerProfileModel.tenant_id == tenant_id,
-                )
+                ),
             )
             .scalars()
             .first()
@@ -303,7 +309,7 @@ class JourneyEventRepository:
                 .where(
                     JourneyEventModel.tenant_id == tenant_id,
                     JourneyEventModel.event_name == "page_view",
-                )
+                ),
             )
             return result.scalar() or 0
         except Exception:

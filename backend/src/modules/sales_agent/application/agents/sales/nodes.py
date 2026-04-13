@@ -196,7 +196,9 @@ def node_closer(state: AgentState) -> dict[str, Any]:
 
 
 def _accumulate_qualification(
-    state: AgentState, qual_data: dict | None, updates: dict
+    state: AgentState,
+    qual_data: dict | None,
+    updates: dict,
 ) -> None:
     """Merge qualification data into updates."""
     if qual_data:
@@ -225,7 +227,9 @@ def _accumulate_signals(state: AgentState, signals: dict | None, updates: dict) 
 
 
 def _compute_lead_score(
-    state: AgentState, qual_data: dict | None, signals: dict | None
+    state: AgentState,
+    qual_data: dict | None,
+    signals: dict | None,
 ) -> int:
     """Compute updated lead score based on qualification data and signals."""
     score = state.get("lead_score", 0)
@@ -339,7 +343,7 @@ def node_escalation(state: AgentState) -> dict[str, Any]:
                     "Entiendo perfectamente. Voy a conectarte con alguien de nuestro "
                     "equipo que puede ayudarte mejor con esto. Dame un momento."
                 ),
-            }
+            },
         ],
         "next_node": "respond",
     }
@@ -378,7 +382,7 @@ def node_tool_executor(state: AgentState) -> dict[str, Any]:
                         },
                         ensure_ascii=False,
                     ),
-                }
+                },
             ],
             "_pending_tool": None,
         }
@@ -388,7 +392,8 @@ def node_tool_executor(state: AgentState) -> dict[str, Any]:
         result_text = json.dumps(result, ensure_ascii=False)
     except Exception as e:
         result_text = json.dumps(
-            {"status": "error", "message": str(e)}, ensure_ascii=False
+            {"status": "error", "message": str(e)},
+            ensure_ascii=False,
         )
 
     return {

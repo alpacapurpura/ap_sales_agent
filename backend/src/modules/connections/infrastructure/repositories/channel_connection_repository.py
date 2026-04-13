@@ -37,7 +37,9 @@ class ChannelConnectionRepository:
     # --- Queries ---
 
     def get_active(
-        self, tenant_id: UUID, channel_type: ChannelType
+        self,
+        tenant_id: UUID,
+        channel_type: ChannelType,
     ) -> ChannelConnectionModel | None:
         """Get the active connection for a tenant + channel type."""
         stmt = select(ChannelConnectionModel).where(
@@ -48,7 +50,9 @@ class ChannelConnectionRepository:
         return self.db.execute(stmt).scalars().first()
 
     def get_by_tenant_and_type(
-        self, tenant_id: UUID, channel_type: ChannelType
+        self,
+        tenant_id: UUID,
+        channel_type: ChannelType,
     ) -> ChannelConnectionModel | None:
         """Get connection (active or not) for a tenant + channel type, excluding soft-deleted."""
         stmt = select(ChannelConnectionModel).where(
@@ -59,7 +63,9 @@ class ChannelConnectionRepository:
         return self.db.execute(stmt).scalars().first()
 
     def get_all_by_tenant_and_types(
-        self, tenant_id: UUID, channel_types: list[ChannelType]
+        self,
+        tenant_id: UUID,
+        channel_types: list[ChannelType],
     ) -> list[ChannelConnectionModel]:
         """Get all connections (active or not) for a tenant filtered by a list of channel types, excluding soft-deleted."""
         type_values = [ct.value for ct in channel_types]
@@ -71,7 +77,10 @@ class ChannelConnectionRepository:
         return list(self.db.execute(stmt).scalars().all())
 
     def get_by_asset_id(
-        self, tenant_id: UUID, channel_type: ChannelType, asset_id: str
+        self,
+        tenant_id: UUID,
+        channel_type: ChannelType,
+        asset_id: str,
     ) -> ChannelConnectionModel | None:
         """Get a specific asset connection by its stored asset_id in config."""
         stmt = select(ChannelConnectionModel).where(
@@ -82,7 +91,8 @@ class ChannelConnectionRepository:
         return self.db.execute(stmt).scalars().first()
 
     def get_all_active_by_type(
-        self, channel_types: list[str]
+        self,
+        channel_types: list[str],
     ) -> list[ChannelConnectionModel]:
         """Get all active connections across tenants for given channel types."""
         stmt = select(ChannelConnectionModel).where(
@@ -190,7 +200,9 @@ class ChannelConnectionRepository:
         return connection
 
     def update_config(
-        self, connection: ChannelConnectionModel, config_updates: dict
+        self,
+        connection: ChannelConnectionModel,
+        config_updates: dict,
     ) -> ChannelConnectionModel:
         """Merge updates into config JSONB."""
         from sqlalchemy.orm.attributes import flag_modified
@@ -204,7 +216,9 @@ class ChannelConnectionRepository:
         return connection
 
     def update_credentials(
-        self, connection: ChannelConnectionModel, credentials: dict
+        self,
+        connection: ChannelConnectionModel,
+        credentials: dict,
     ) -> ChannelConnectionModel:
         """Replace credentials."""
         connection.credentials = credentials

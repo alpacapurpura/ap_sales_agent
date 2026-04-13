@@ -17,7 +17,10 @@ class StorageStrategy(ABC):
 
     @abstractmethod
     def save(
-        self, file_obj: BinaryIO, filename: str, path_prefix: str = ""
+        self,
+        file_obj: BinaryIO,
+        filename: str,
+        path_prefix: str = "",
     ) -> tuple[str, str]:
         """
         Save a file to storage.

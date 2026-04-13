@@ -52,8 +52,9 @@ async def sync_manychat_subscribers(tenant_id: UUID, db: Session) -> dict:
     sub_stmt = (
         select(
             sa_func.jsonb_extract_path_text(
-                JourneyEventModel.properties, "manychat_subscriber_id"
-            ).label("sub_id")
+                JourneyEventModel.properties,
+                "manychat_subscriber_id",
+            ).label("sub_id"),
         )
         .where(
             JourneyEventModel.tenant_id == tenant_id,

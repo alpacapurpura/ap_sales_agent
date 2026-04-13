@@ -69,7 +69,9 @@ class TestGoogleWorkspaceDisconnect:
         assert conn.is_active is False
 
     def test_status_is_not_connected_after_revoke_all_services(
-        self, repo, connected_google_tenant
+        self,
+        repo,
+        connected_google_tenant,
     ):
         """After revoking all Google services, get_status logic must return is_connected=False."""
         tenant_id = connected_google_tenant
@@ -93,7 +95,9 @@ class TestGoogleWorkspaceDisconnect:
         )
 
     def test_reconnect_after_revoke_restores_active_state(
-        self, repo, connected_google_tenant
+        self,
+        repo,
+        connected_google_tenant,
     ):
         """After revoke, upsert with new OAuth credentials must re-activate the connection."""
         tenant_id = connected_google_tenant
@@ -102,7 +106,10 @@ class TestGoogleWorkspaceDisconnect:
 
         new_creds = {"access_token": "ya29.new", "refresh_token": "1//new"}
         repo.upsert(
-            tenant_id, ChannelType.GMAIL, new_creds, {"email": "user@gmail.com"}
+            tenant_id,
+            ChannelType.GMAIL,
+            new_creds,
+            {"email": "user@gmail.com"},
         )
 
         conn = repo.get_by_tenant_and_type(tenant_id, ChannelType.GMAIL)

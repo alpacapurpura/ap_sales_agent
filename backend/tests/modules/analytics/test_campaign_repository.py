@@ -23,7 +23,7 @@ class TestCampaignRepositoryUpsert:
                 "status": "ACTIVE",
                 "effective_status": "ACTIVE",
                 "daily_budget": 5000,
-            }
+            },
         ]
         count = repo.upsert_campaigns(tenant_id, campaigns)
         assert count == 1
@@ -43,7 +43,7 @@ class TestCampaignRepositoryUpsert:
                 "campaign_external_id": "camp_001",
                 "name": "Women 25-34",
                 "targeting": {"age_min": 25, "age_max": 34},
-            }
+            },
         ]
         count = repo.upsert_ad_sets(tenant_id, ad_sets)
         assert count == 1
@@ -59,7 +59,7 @@ class TestCampaignRepositoryUpsert:
                 "campaign_external_id": "camp_001",
                 "ad_set_external_id": "adset_001",
                 "name": "Ad Creative 1",
-            }
+            },
         ]
         count = repo.upsert_ads(tenant_id, ads)
         assert count == 1
@@ -74,7 +74,7 @@ class TestCampaignRepositoryUpsert:
                 "recommendation_type": "CREATIVE_FATIGUE",
                 "source": "account",
                 "body": "Refresh your creative",
-            }
+            },
         ]
         count = repo.upsert_recommendations(tenant_id, recs)
         assert count == 1

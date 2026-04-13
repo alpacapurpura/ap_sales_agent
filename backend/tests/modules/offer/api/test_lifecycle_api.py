@@ -32,10 +32,14 @@ def _build_client(db: Session, tenant_id: uuid.UUID) -> TestClient:
 
 class TestChangeStatus:
     def test_transition_active_to_paused_returns_200(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(
-            tenant_a, name="Live", status=OfferStatus.ACTIVE.value
+            tenant_a,
+            name="Live",
+            status=OfferStatus.ACTIVE.value,
         )
         db.add(model)
         db.flush()
@@ -52,10 +56,14 @@ class TestChangeStatus:
         assert body["offer_id"] == str(model.id)
 
     def test_invalid_transition_from_draft_to_paused_returns_409(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(
-            tenant_a, name="Drafted", status=OfferStatus.DRAFT.value
+            tenant_a,
+            name="Drafted",
+            status=OfferStatus.DRAFT.value,
         )
         db.add(model)
         db.flush()

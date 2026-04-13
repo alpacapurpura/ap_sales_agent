@@ -194,7 +194,7 @@ class MetricsByOfferService:
 
         offers_out: list[OfferMetricsDTO] = []
         offer_ids_with_associations = set(campaign_ids_by_offer.keys()) | set(
-            adset_ids_by_offer.keys()
+            adset_ids_by_offer.keys(),
         )
         for offer_id in offer_ids_with_associations:
             offer = offer_by_id.get(offer_id)
@@ -223,7 +223,7 @@ class MetricsByOfferService:
                     adset_ids=adset_ids,
                     currency=currency,
                     period_reach_rows=period_reach_rows,
-                )
+                ),
             )
 
         unassigned = self._aggregate_unassigned(
@@ -316,7 +316,8 @@ class MetricsByOfferService:
                 roas = round(conversion_value / total_spend, 2)
 
         timeseries = self._build_timeseries(
-            rows=rows, primary_metric_names=primary_metric_names
+            rows=rows,
+            primary_metric_names=primary_metric_names,
         )
 
         # Pass sets directly (never collapse to None) so a degenerate offer
@@ -355,10 +356,12 @@ class MetricsByOfferService:
 
     @staticmethod
     def _build_timeseries(
-        *, rows: list[MetricRow], primary_metric_names: set[str]
+        *,
+        rows: list[MetricRow],
+        primary_metric_names: set[str],
     ) -> list[OfferTimeSeriesPointDTO]:
         by_day: dict[date, dict[str, float]] = defaultdict(
-            lambda: {"spend": 0.0, "primary": 0.0}
+            lambda: {"spend": 0.0, "primary": 0.0},
         )
         for r in rows:
             if r.metric_name == "spend":
@@ -424,7 +427,8 @@ class MetricsByOfferService:
         cpm = (total_spend / impressions * 1000.0) if impressions else 0.0
 
         reach = self._compute_reach_for_campaigns(
-            period_reach_rows, unassigned_campaign_ids
+            period_reach_rows,
+            unassigned_campaign_ids,
         )
 
         funnel = self._build_funnel_from_rows(funnel_row_filter)
@@ -548,7 +552,7 @@ class MetricsByOfferService:
                     metric_name=metric_name,
                     value=round(value, 2),
                     conversion_rate_from_previous=conv_rate,
-                )
+                ),
             )
             prev_value = value
         return steps

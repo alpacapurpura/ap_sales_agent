@@ -22,7 +22,10 @@ class SaleModel(Base):
         index=True,
     )
     offer_id = Column(
-        UUID(as_uuid=True), ForeignKey("products.id"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("products.id"),
+        nullable=False,
+        index=True,
     )
 
     transaction_id = Column(String, nullable=True, index=True)

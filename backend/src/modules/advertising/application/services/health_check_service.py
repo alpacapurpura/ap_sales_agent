@@ -90,7 +90,7 @@ class HealthCheckService:
                     tenant_id=tenant_id,
                     assoc_by_target=assoc_by_target,
                     offer_by_id=offer_by_id,
-                )
+                ),
             )
 
         # 2) Offer coverage
@@ -143,7 +143,8 @@ class HealthCheckService:
         issue_text: str | None = None
 
         if expected == OfferExpectedMetric.PURCHASE and not self._has_recent_purchases(
-            tenant_id, campaign.external_id
+            tenant_id,
+            campaign.external_id,
         ):
             has_issue = True
             issue_text = (
@@ -194,7 +195,7 @@ class HealthCheckService:
                     expected_metric_label_es=expected_metric_label_es(expected.value),
                     has_active_campaign=bool(targets),
                     associated_targets=dtos,
-                )
+                ),
             )
         return coverage
 
@@ -216,7 +217,7 @@ class HealthCheckService:
                     name=campaign.name,
                     objective=campaign.objective,
                     status=campaign.effective_status,
-                )
+                ),
             )
         return out
 
@@ -282,7 +283,7 @@ class HealthCheckService:
                     action_url=None,
                     related_offer_id=None,
                     related_target_id=None,
-                )
+                ),
             )
 
         # Objective mismatch per covered offer
@@ -303,7 +304,7 @@ class HealthCheckService:
                 if campaign_health is None:
                     continue
                 campaign_expected = expected_metric_for_objective(
-                    campaign_health.objective
+                    campaign_health.objective,
                 )
                 if (
                     campaign_expected is not None
@@ -327,7 +328,7 @@ class HealthCheckService:
                             action_url=None,
                             related_offer_id=cov.offer_id,
                             related_target_id=campaign_health.external_id,
-                        )
+                        ),
                     )
 
         return out
@@ -387,14 +388,17 @@ class HealthCheckService:
     }
 
     def _expected_outcome_text(
-        self, objective: str | None, expected: OfferExpectedMetric | None
+        self,
+        objective: str | None,
+        expected: OfferExpectedMetric | None,
     ) -> str:
         if not objective:
             return "Sin objetivo definido."
         label = objective_label_es(objective)
         if expected is None:
             return self._OBJECTIVE_OUTCOME_TEXT.get(
-                objective.upper(), f"Objetivo: {label}."
+                objective.upper(),
+                f"Objetivo: {label}.",
             )
         return self._EXPECTED_METRIC_TEXT.get(expected, f"Objetivo: {label}.")
 

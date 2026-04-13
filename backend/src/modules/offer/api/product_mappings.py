@@ -260,7 +260,9 @@ async def list_unmatched_products(
 
 
 @router.post(
-    "/product-mappings", response_model=CreateProductMappingOut, status_code=201
+    "/product-mappings",
+    response_model=CreateProductMappingOut,
+    status_code=201,
 )
 async def create_product_mapping(
     payload: CreateProductMappingIn,
@@ -276,7 +278,9 @@ async def create_product_mapping(
 
     # Check for duplicates
     existing = repo.get_by_external_id(
-        user.tenant_id, payload.source, payload.external_id
+        user.tenant_id,
+        payload.source,
+        payload.external_id,
     )
     if existing:
         raise HTTPException(
@@ -341,7 +345,7 @@ async def create_product_mapping(
                     "amount": float(item.get("price", 0))
                     * int(item.get("quantity", 1)),
                     "order_id": order_id,
-                }
+                },
             )
 
     # Phase 2: single batch dedup query
@@ -374,7 +378,7 @@ async def create_product_mapping(
                         f"{payload.source}_order_id": str(c["order_id"]),
                     },
                     occurred_at=c["occurred_at"],
-                )
+                ),
             )
 
         if new_sales:
@@ -463,7 +467,7 @@ async def get_offer_products_detail(
         select(ProductModel.name, ProductModel.archetype).where(
             ProductModel.id == offer_id,
             ProductModel.tenant_id == tenant_id,
-        )
+        ),
     ).first()
     if not offer_row:
         raise HTTPException(status_code=404, detail="Offer not found")
@@ -475,7 +479,7 @@ async def get_offer_products_detail(
             sa_func.count(SaleModel.id).label("sales_count"),
             sa_func.coalesce(sa_func.sum(SaleModel.amount), 0).label("total_revenue"),
             sa_func.count(sa_func.distinct(SaleModel.customer_id)).label(
-                "unique_customers"
+                "unique_customers",
             ),
             sa_func.min(SaleModel.occurred_at).label("first_sale"),
             sa_func.max(SaleModel.occurred_at).label("last_sale"),
@@ -484,7 +488,7 @@ async def get_offer_products_detail(
             SaleModel.offer_id == offer_id,
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
-        )
+        ),
     ).first()
 
     sales_count = agg_row.sales_count if agg_row else 0
@@ -505,7 +509,7 @@ async def get_offer_products_detail(
             SaleModel.tenant_id == tenant_id,
             SaleModel.status == "COMPLETED",
         )
-        .group_by(SaleModel.source)
+        .group_by(SaleModel.source),
     ).all()
     source_breakdown = dict(source_rows)
 
@@ -525,7 +529,7 @@ async def get_offer_products_detail(
         .subquery()
     )
     repeat_customer_count = db.execute(
-        select(sa_func.count()).select_from(repeat_subq)
+        select(sa_func.count()).select_from(repeat_subq),
     ).scalar_one()
     repeat_rate = (
         (repeat_customer_count / unique_customers * 100)
@@ -547,7 +551,7 @@ async def get_offer_products_detail(
             SaleModel.occurred_at >= twelve_weeks_ago,
         )
         .group_by("week")
-        .order_by("week")
+        .order_by("week"),
     ).all()
     weekly_revenue = [
         {"week": w.strftime("%G-W%V"), "revenue": float(rev)} for w, rev in weekly_rows
@@ -595,7 +599,7 @@ async def get_offer_products_detail(
                         "currency": props.get("currency", "USD"),
                     }
                 prod_agg[pid]["revenue"] += float(item.get("price", 0)) * int(
-                    item.get("quantity", 1)
+                    item.get("quantity", 1),
                 )
                 prod_agg[pid]["quantity"] += int(item.get("quantity", 1))
                 prod_agg[pid]["transactions"] += 1
@@ -619,7 +623,7 @@ async def get_offer_products_detail(
                     pct_of_total=round(rev / total_product_revenue * 100, 1)
                     if rev > 0
                     else 0.0,
-                )
+                ),
             )
         products.sort(key=lambda p: p.total_revenue, reverse=True)
 

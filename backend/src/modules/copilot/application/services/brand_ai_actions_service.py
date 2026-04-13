@@ -21,7 +21,9 @@ class CopilotBrandAIActionsService:
         self.brand_extraction_service = BrandExtractionService(db, tenant_id)
 
     async def extract_brand_identity(
-        self, url: str, extraction_type: Literal["brand_identity"]
+        self,
+        url: str,
+        extraction_type: Literal["brand_identity"],
     ) -> BrandVisuals:
         if extraction_type != "brand_identity":
             msg = f"Unsupported extraction type: {extraction_type}"

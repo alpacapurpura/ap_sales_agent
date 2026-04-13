@@ -80,7 +80,7 @@ def _setup_trace(node_name: str, state: dict):
     token = current_trace_id.set(trace_id_val)
 
     logger.debug(
-        f"TRACING: Node={node_name}, UserID={user_uuid}, TraceID={trace_id_val}"
+        f"TRACING: Node={node_name}, UserID={user_uuid}, TraceID={trace_id_val}",
     )
 
     return start_time, db, repo, trace, token

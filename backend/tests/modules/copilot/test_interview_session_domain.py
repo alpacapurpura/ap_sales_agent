@@ -44,7 +44,10 @@ class TestInterviewConfig:
             objetivo="Completar Brand Studio",
             bloques=[
                 InterviewBlock(
-                    id="b1", label="B1", campos_objetivo=["f1"], prompt_context="ctx"
+                    id="b1",
+                    label="B1",
+                    campos_objetivo=["f1"],
+                    prompt_context="ctx",
                 ),
             ],
             output_schema_path="modules.brand.domain.BrandSettings",

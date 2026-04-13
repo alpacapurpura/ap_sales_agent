@@ -28,11 +28,13 @@ class BrandStrategy(BaseEntity):
 
     methodology_name: str | None = Field(None, description="Name of the methodology.")
     methodology_description: str | None = Field(
-        None, description="Description of the methodology."
+        None,
+        description="Description of the methodology.",
     )
 
     methodology_pillars: list[BrandMethodologyPillar] = Field(
-        default_factory=list, description="Pillars of the methodology."
+        default_factory=list,
+        description="Pillars of the methodology.",
     )
 
     model_config = ConfigDict(extra="ignore")
@@ -55,7 +57,7 @@ class BrandStrategy(BaseEntity):
                                 "id": str(uuid.uuid4()),
                                 "title": pillar,
                                 "description": None,
-                            }
+                            },
                         )
                     elif isinstance(pillar, dict):
                         if "id" not in pillar:

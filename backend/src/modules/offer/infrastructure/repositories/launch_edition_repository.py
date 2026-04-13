@@ -47,7 +47,7 @@ class LaunchEditionRepository:
 
     def get_next_edition_number(self, offer_id: UUID) -> int:
         stmt = select(
-            func.coalesce(func.max(LaunchEditionModel.edition_number), 0)
+            func.coalesce(func.max(LaunchEditionModel.edition_number), 0),
         ).where(
             LaunchEditionModel.offer_id == offer_id,
         )

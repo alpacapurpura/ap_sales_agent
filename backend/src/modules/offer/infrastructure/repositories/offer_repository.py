@@ -51,7 +51,7 @@ class OfferRepository:
             "instructors": [],
             "requires_application": model.requires_application or False,
             "min_financial_capacity": normalize_financial_capacity(
-                model.min_financial_capacity
+                model.min_financial_capacity,
             ),
             "prerequisites": model.prerequisites or [],
             "anti_avatar_keywords": model.anti_avatar_keywords or [],

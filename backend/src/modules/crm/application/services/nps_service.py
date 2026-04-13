@@ -99,7 +99,7 @@ class NpsService:
         # Update survey status
         survey = (
             self.db.execute(
-                select(NpsSurveyModel).where(NpsSurveyModel.id == survey_id)
+                select(NpsSurveyModel).where(NpsSurveyModel.id == survey_id),
             )
             .scalars()
             .first()
@@ -113,7 +113,7 @@ class NpsService:
                 select(CustomerProfileModel).where(
                     CustomerProfileModel.id == customer_id,
                     CustomerProfileModel.tenant_id == tenant_id,
-                )
+                ),
             )
             .scalars()
             .first()
@@ -145,7 +145,7 @@ class NpsService:
             self.db.execute(
                 select(sa_func.count(NpsSurveyModel.id)).where(
                     NpsSurveyModel.tenant_id == tenant_id,
-                )
+                ),
             ).scalar()
             or 0
         )

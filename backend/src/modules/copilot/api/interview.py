@@ -150,7 +150,9 @@ async def process_interview_documents(
 
     if result.delta:
         svc.update_mapa_global(
-            session_id=session_id, tenant_id=tenant_id, delta=result.delta
+            session_id=session_id,
+            tenant_id=tenant_id,
+            delta=result.delta,
         )
         logger.info(
             "documents_processed_and_merged",

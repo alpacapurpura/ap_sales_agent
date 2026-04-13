@@ -27,17 +27,18 @@ class ManyChatConnector(BaseConnector):
                     if data.get("status") == "success":
                         return True, data.get("data", {})
                     return False, {
-                        "error": f"API Error: {data.get('message', 'Unknown error')}"
+                        "error": f"API Error: {data.get('message', 'Unknown error')}",
                     }
                 return False, {
-                    "error": f"Status: {response.status_code}, Body: {response.text}"
+                    "error": f"Status: {response.status_code}, Body: {response.text}",
                 }
         except Exception as e:
             return False, {"error": str(e)}
 
     @staticmethod
     async def get_subscriber(
-        api_key: str, subscriber_id: str
+        api_key: str,
+        subscriber_id: str,
     ) -> tuple[bool, dict[str, Any]]:
         """Fetch full subscriber profile by ManyChat ID."""
         url = f"https://api.manychat.com/fb/subscriber/getInfo?subscriber_id={subscriber_id}"
@@ -58,7 +59,8 @@ class ManyChatConnector(BaseConnector):
 
     @staticmethod
     async def find_subscriber_by_email(
-        api_key: str, email: str
+        api_key: str,
+        email: str,
     ) -> tuple[bool, dict[str, Any]]:
         """Find subscriber by email via system field search."""
         url = "https://api.manychat.com/fb/subscriber/findBySystemField"
@@ -70,7 +72,10 @@ class ManyChatConnector(BaseConnector):
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    url, headers=headers, params=params, timeout=10.0
+                    url,
+                    headers=headers,
+                    params=params,
+                    timeout=10.0,
                 )
                 if response.status_code == 200:
                     data = response.json()

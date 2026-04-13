@@ -36,7 +36,8 @@ router = APIRouter()
 @router.get("/booking-links/{token}", response_model=BookingLinkResolveResponse)
 def resolve_booking_link(token: str, db: Session = Depends(get_db)):
     stmt = select(BookingLink).where(
-        BookingLink.token == token, BookingLink.status == "ACTIVE"
+        BookingLink.token == token,
+        BookingLink.status == "ACTIVE",
     )
     link = db.execute(stmt).scalars().first()
 
@@ -45,7 +46,7 @@ def resolve_booking_link(token: str, db: Session = Depends(get_db)):
 
     # Check expiration
     if link.expires_at.replace(tzinfo=datetime.UTC) < datetime.datetime.now(
-        datetime.UTC
+        datetime.UTC,
     ):
         link.status = "EXPIRED"
         db.commit()
@@ -129,7 +130,8 @@ def resolve_event_type_by_tenant_id(
         tenant_uuid = UUID(x_tenant_id)
     except ValueError:
         raise HTTPException(
-            status_code=400, detail="Invalid X-Tenant-ID format"
+            status_code=400,
+            detail="Invalid X-Tenant-ID format",
         ) from None
 
     stmt = select(TenantModel).where(TenantModel.id == tenant_uuid)
@@ -143,7 +145,9 @@ def resolve_event_type_by_tenant_id(
         raise HTTPException(status_code=404, detail="Event Type not found")
 
     logger.info(
-        "event_type_resolved_by_tenant_id", tenant_id=x_tenant_id, event_slug=event_slug
+        "event_type_resolved_by_tenant_id",
+        tenant_id=x_tenant_id,
+        event_slug=event_slug,
     )
     return EventTypeResolveResponse(
         event_type=event_type,
@@ -156,10 +160,13 @@ def resolve_event_type_by_tenant_id(
 
 
 @router.get(
-    "/event-types/{tenant_slug}/{event_slug}", response_model=EventTypeResolveResponse
+    "/event-types/{tenant_slug}/{event_slug}",
+    response_model=EventTypeResolveResponse,
 )
 def resolve_event_type(
-    tenant_slug: str, event_slug: str, db: Session = Depends(get_db)
+    tenant_slug: str,
+    event_slug: str,
+    db: Session = Depends(get_db),
 ):
     stmt = select(Tenant).where(Tenant.slug == tenant_slug)
     tenant = db.execute(stmt).scalars().first()
@@ -181,7 +188,8 @@ def resolve_event_type(
 
 
 @router.get(
-    "/event-types/{tenant_slug}/{event_slug}/slots", response_model=SlotsResponse
+    "/event-types/{tenant_slug}/{event_slug}/slots",
+    response_model=SlotsResponse,
 )
 def get_event_type_slots(
     tenant_slug: str,
@@ -245,7 +253,7 @@ def book_event_type(
 
         # Check expiration (ensure UTC comparison)
         if link.expires_at.replace(tzinfo=datetime.UTC) < datetime.datetime.now(
-            datetime.UTC
+            datetime.UTC,
         ):
             link.status = "EXPIRED"
             db.commit()
@@ -253,7 +261,8 @@ def book_event_type(
 
         if link.event_slug != event_slug:
             raise HTTPException(
-                status_code=400, detail="Token does not match event type"
+                status_code=400,
+                detail="Token does not match event type",
             )
 
         lead_id_override = str(link.lead_id)
@@ -285,7 +294,9 @@ def book_event_type(
 
 @router.post("/{token}/book", response_model=BookingConfirmationResponse)
 def public_book_meeting(
-    token: str, payload: BookingRequest, db: Session = Depends(get_db)
+    token: str,
+    payload: BookingRequest,
+    db: Session = Depends(get_db),
 ):
     link_service = LinkService(db)
     link = link_service.resolve_link(token)

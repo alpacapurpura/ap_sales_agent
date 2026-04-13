@@ -16,7 +16,8 @@ logger = structlog.get_logger()
 
 @router.get("", response_model=list[EventType])
 async def list_event_types(
-    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     service = EventTypeService(db, user.tenant_id)
     return service.list_event_types()

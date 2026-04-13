@@ -68,10 +68,11 @@ class TestGetPerformance:
                 fetchall=MagicMock(
                     return_value=[
                         self._make_campaign_row(
-                            external_id="camp_1", name="Campaign A"
+                            external_id="camp_1",
+                            name="Campaign A",
                         ),
-                    ]
-                )
+                    ],
+                ),
             ),
             # 2nd call: metrics aggregated by campaign
             MagicMock(
@@ -81,8 +82,8 @@ class TestGetPerformance:
                         self._make_metric_row("camp_1", "conversions", 50.0),
                         self._make_metric_row("camp_1", "clicks", 2000.0),
                         self._make_metric_row("camp_1", "impressions", 100000.0),
-                    ]
-                )
+                    ],
+                ),
             ),
             # 3rd call: recommendations
             MagicMock(fetchall=MagicMock(return_value=[])),
@@ -91,18 +92,18 @@ class TestGetPerformance:
                 fetchone=MagicMock(
                     return_value=MagicMock(
                         _mapping={"currency": "MXN"},
-                    )
-                )
+                    ),
+                ),
             ),
             # 5th call: last_synced
             MagicMock(
                 fetchone=MagicMock(
                     return_value=MagicMock(
                         _mapping={
-                            "last_synced": datetime(2026, 4, 6, tzinfo=timezone.utc)
+                            "last_synced": datetime(2026, 4, 6, tzinfo=timezone.utc),
                         },
-                    )
-                )
+                    ),
+                ),
             ),
         ]
 
@@ -133,8 +134,8 @@ class TestGetPerformance:
                         self._make_campaign_row(external_id="camp_g3", name="Good3"),
                         self._make_campaign_row(external_id="camp_g4", name="Good4"),
                         self._make_campaign_row(external_id="camp_bad", name="Bad"),
-                    ]
-                )
+                    ],
+                ),
             ),
             # metrics
             MagicMock(
@@ -150,8 +151,8 @@ class TestGetPerformance:
                         self._make_metric_row("camp_g4", "conversions", 10.0),
                         self._make_metric_row("camp_bad", "spend", 500.0),
                         self._make_metric_row("camp_bad", "conversions", 1.0),
-                    ]
-                )
+                    ],
+                ),
             ),
             # recommendations
             MagicMock(fetchall=MagicMock(return_value=[])),
@@ -160,16 +161,16 @@ class TestGetPerformance:
                 fetchone=MagicMock(
                     return_value=MagicMock(
                         _mapping={"currency": "USD"},
-                    )
-                )
+                    ),
+                ),
             ),
             # last_synced
             MagicMock(
                 fetchone=MagicMock(
                     return_value=MagicMock(
                         _mapping={"last_synced": None},
-                    )
-                )
+                    ),
+                ),
             ),
         ]
 
@@ -191,15 +192,15 @@ class TestGetPerformance:
                 fetchone=MagicMock(
                     return_value=MagicMock(
                         _mapping={"currency": None},
-                    )
-                )
+                    ),
+                ),
             ),
             MagicMock(
                 fetchone=MagicMock(
                     return_value=MagicMock(
                         _mapping={"last_synced": None},
-                    )
-                )
+                    ),
+                ),
             ),
         ]
 

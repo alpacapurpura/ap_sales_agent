@@ -13,7 +13,11 @@ class MessageModel(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(
-        "user_id", UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True, index=True
+        "user_id",
+        UUID(as_uuid=True),
+        ForeignKey("leads.id"),
+        nullable=True,
+        index=True,
     )
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
 
@@ -21,11 +25,14 @@ class MessageModel(Base):
     content = Column(Text, nullable=False)
     channel = Column(String, nullable=True)  # whatsapp / telegram
     sender_source = Column(
-        String(20), nullable=False, server_default="auto"
+        String(20),
+        nullable=False,
+        server_default="auto",
     )  # auto / human_direct / human_instruction
     product_context_id = Column(UUID(as_uuid=True), nullable=True)
     external_id = Column(
-        String, nullable=True
+        String,
+        nullable=True,
     )  # Message ID from channel (e.g. ManyChat)
 
     metadata_log = Column("metadata_log", JSONB, default=dict)

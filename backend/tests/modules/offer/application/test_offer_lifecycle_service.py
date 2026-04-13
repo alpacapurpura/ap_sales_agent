@@ -73,7 +73,12 @@ def service(offer_service, event_bus):
 
 
 def test_draft_to_active_transition(
-    service, offer_service, event_bus, offer_factory, tenant_id, actor_id
+    service,
+    offer_service,
+    event_bus,
+    offer_factory,
+    tenant_id,
+    actor_id,
 ):
     offer = offer_factory(OfferStatus.DRAFT)
     updated_offer = offer_factory(OfferStatus.ACTIVE)
@@ -162,7 +167,11 @@ def test_paused_to_draft_transition(service, offer_service, offer_factory, tenan
 
 
 def test_transition_to_archived_delegates_to_archive_offer(
-    service, offer_service, event_bus, offer_factory, tenant_id
+    service,
+    offer_service,
+    event_bus,
+    offer_factory,
+    tenant_id,
 ):
     offer = offer_factory(OfferStatus.ACTIVE)
     archived_offer = offer_factory(
@@ -192,11 +201,15 @@ def test_transition_to_archived_delegates_to_archive_offer(
 
 
 def test_archived_offer_cannot_transition_via_change_status(
-    service, offer_service, offer_factory, tenant_id
+    service,
+    offer_service,
+    offer_factory,
+    tenant_id,
 ):
     """ARCHIVED is terminal from the header endpoint — must use /restore."""
     archived_offer = offer_factory(
-        OfferStatus.ARCHIVED, archived_at=datetime.now(timezone.utc)
+        OfferStatus.ARCHIVED,
+        archived_at=datetime.now(timezone.utc),
     )
     offer_service.get_offer.return_value = archived_offer
 
@@ -242,7 +255,11 @@ def test_not_found_offer_raises(service, offer_service, tenant_id):
 
 
 def test_same_status_is_noop(
-    service, offer_service, event_bus, offer_factory, tenant_id
+    service,
+    offer_service,
+    event_bus,
+    offer_factory,
+    tenant_id,
 ):
     offer = offer_factory(OfferStatus.ACTIVE)
     offer_service.get_offer.return_value = offer

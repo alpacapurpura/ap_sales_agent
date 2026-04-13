@@ -85,12 +85,13 @@ def cleanup_test_data(db):
     db.execute(
         text(
             "DELETE FROM messages WHERE user_id IN "
-            "(SELECT id FROM leads WHERE telegram_id = :tid)"
+            "(SELECT id FROM leads WHERE telegram_id = :tid)",
         ),
         {"tid": test_user_id},
     )
     db.execute(
-        text("DELETE FROM leads WHERE telegram_id = :tid"), {"tid": test_user_id}
+        text("DELETE FROM leads WHERE telegram_id = :tid"),
+        {"tid": test_user_id},
     )
     db.execute(
         text("DELETE FROM customer_identities WHERE value = :tid"),
@@ -99,7 +100,7 @@ def cleanup_test_data(db):
     db.execute(
         text(
             "DELETE FROM customer_profiles WHERE id IN "
-            "(SELECT profile_id FROM customer_identities WHERE value = :tid)"
+            "(SELECT profile_id FROM customer_identities WHERE value = :tid)",
         ),
         {"tid": test_user_id},
     )
@@ -248,7 +249,9 @@ class TestStep3LeadCreation:
         assert user is None, "No lead should exist yet"
 
         user = lead_repo.create_lead(
-            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
+            customer_id=customer.id,
+            channel="telegram",
+            channel_user_id=test_user_id,
         )
 
         assert user is not None
@@ -273,12 +276,16 @@ class TestStep3LeadCreation:
 
         # Create first lead
         lead1 = lead_repo.create_lead(
-            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
+            customer_id=customer.id,
+            channel="telegram",
+            channel_user_id=test_user_id,
         )
 
         # Create second lead with same telegram_id — should return existing
         lead2 = lead_repo.create_lead(
-            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
+            customer_id=customer.id,
+            channel="telegram",
+            channel_user_id=test_user_id,
         )
 
         assert lead1.id == lead2.id, "Should return same lead, not create duplicate"
@@ -305,7 +312,9 @@ class TestStep4AuditLogging:
         )
 
         user = lead_repo.create_lead(
-            customer_id=customer.id, channel="telegram", channel_user_id=test_user_id
+            customer_id=customer.id,
+            channel="telegram",
+            channel_user_id=test_user_id,
         )
 
         # Log message
@@ -387,7 +396,10 @@ class TestStep5FullFlowIntegration:
         # Step 4: Log message
         audit_repo = AuditRepository(db)
         audit_repo.log_message(
-            user_id=user.id, role="user", content="hola amiga", channel=channel_type
+            user_id=user.id,
+            role="user",
+            content="hola amiga",
+            channel=channel_type,
         )
 
         # Step 5: Session state

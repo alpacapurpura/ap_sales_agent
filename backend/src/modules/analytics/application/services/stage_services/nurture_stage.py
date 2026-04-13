@@ -84,7 +84,9 @@ class NurtureStageService:
         return [
             MetricValueDTO(name="followups", value=float(sent)),
             MetricValueDTO(
-                name="response_rate", value=response_rate, unit="percentage"
+                name="response_rate",
+                value=response_rate,
+                unit="percentage",
             ),
         ]
 
@@ -104,7 +106,7 @@ class NurtureStageService:
                     unit=agg.unit or "count",
                     currency=getattr(agg, "currency", None),
                     breakdown=breakdown,
-                )
+                ),
             )
         return metrics
 
@@ -119,16 +121,26 @@ class NurtureStageService:
         cost_svc = StageCostService(self.db)
         manual_costs = cost_svc.get_channel_costs(tenant_id, "nurture")
         retargeting_spend = cost_svc.get_retargeting_spend(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         all_costs = {**manual_costs, **retargeting_spend}
         total_cost = sum(all_costs.values())
         cost_per_mql = cost_svc.calculate_cost_per_mql(total_cost, total_mqls)
         retargeting_cpm = cost_svc.get_group_cost_per_mql(
-            "retargeting", tenant_id, start_date, end_date, total_mqls
+            "retargeting",
+            tenant_id,
+            start_date,
+            end_date,
+            total_mqls,
         )
         automation_cpm = cost_svc.get_group_cost_per_mql(
-            "automation", tenant_id, start_date, end_date, total_mqls
+            "automation",
+            tenant_id,
+            start_date,
+            end_date,
+            total_mqls,
         )
         return cost_per_mql, retargeting_cpm, automation_cpm
 
@@ -154,7 +166,9 @@ class NurtureStageService:
                 metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
 
     async def get_metrics(
-        self, tenant_id: UUID, period: str = "last_30_days"
+        self,
+        tenant_id: UUID,
+        period: str = "last_30_days",
     ) -> NurtureDetailDTO:
         """Return nurture-stage (Stage 2) metrics."""
         # 1. Check cache
@@ -187,7 +201,10 @@ class NurtureStageService:
 
         # 5. Load costs
         cost_per_mql, retargeting_cpm, automation_cpm = self._load_nurture_costs(
-            tenant_id, start_date, now, total_mqls
+            tenant_id,
+            start_date,
+            now,
+            total_mqls,
         )
 
         # 6. Query CRM for internal channel-specific data
@@ -240,7 +257,7 @@ class NurtureStageService:
                     connected=True,
                     source_display_name=source_display,
                     provider_name=provider_name,
-                )
+                ),
             )
 
         available_channels = [

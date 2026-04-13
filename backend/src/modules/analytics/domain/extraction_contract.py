@@ -394,7 +394,9 @@ def _meta_contract() -> ProviderContract:
                     ),
                     MetricMapping("meta_purchase_roas", "purchase_roas", "count"),
                     MetricMapping(
-                        "meta_inline_link_clicks", "inline_link_clicks", "count"
+                        "meta_inline_link_clicks",
+                        "inline_link_clicks",
+                        "count",
                     ),
                     MetricMapping("meta_outbound_clicks", "outbound_clicks", "count"),
                     MetricMapping("meta_link_clicks", "actions[link_click]", "count"),
@@ -404,10 +406,14 @@ def _meta_contract() -> ProviderContract:
                         "count",
                     ),
                     MetricMapping(
-                        "meta_post_engagement", "actions[post_engagement]", "count"
+                        "meta_post_engagement",
+                        "actions[post_engagement]",
+                        "count",
                     ),
                     MetricMapping(
-                        "meta_page_engagement", "actions[page_engagement]", "count"
+                        "meta_page_engagement",
+                        "actions[page_engagement]",
+                        "count",
                     ),
                     MetricMapping(
                         "meta_conversations_started",
@@ -558,7 +564,9 @@ def _meta_contract() -> ProviderContract:
                     MetricMapping("ig_reposts", "reposts", "count"),
                     MetricMapping("ig_accounts_engaged", "accounts_engaged", "count"),
                     MetricMapping(
-                        "ig_profile_links_taps", "profile_links_taps", "count"
+                        "ig_profile_links_taps",
+                        "profile_links_taps",
+                        "count",
                     ),
                     MetricMapping("ig_followers_count", "followers_count", "count"),
                     MetricMapping(
@@ -857,7 +865,9 @@ def _google_ads_contract() -> ProviderContract:
                         notes="Divide by 1_000_000 (cost_micros)",
                     ),
                     MetricMapping(
-                        "conversion_value", "metrics.conversions_value", "currency"
+                        "conversion_value",
+                        "metrics.conversions_value",
+                        "currency",
                     ),
                     MetricMapping("ctr", "derived: clicks/impressions", "percentage"),
                     MetricMapping("cpc", "derived: spend/clicks", "currency"),
@@ -1005,7 +1015,9 @@ def _youtube_contract() -> ProviderContract:
                         "count",
                     ),
                     MetricMapping(
-                        "avg_view_duration", "averageViewDuration", "seconds"
+                        "avg_view_duration",
+                        "averageViewDuration",
+                        "seconds",
                     ),
                     MetricMapping(
                         "avg_view_percentage",
@@ -1025,7 +1037,9 @@ def _youtube_contract() -> ProviderContract:
                     MetricMapping("card_clicks", "cardClicks", "count"),
                     MetricMapping("card_impressions", "cardImpressions", "count"),
                     MetricMapping(
-                        "end_screen_clicks", "endScreenElementClicks", "count"
+                        "end_screen_clicks",
+                        "endScreenElementClicks",
+                        "count",
                     ),
                     MetricMapping(
                         "end_screen_impressions",
@@ -1173,19 +1187,27 @@ def _shopify_contract() -> ProviderContract:
                     MetricMapping("order_count", "count(orders)", "count"),
                     MetricMapping("units_sold", "line_items.quantity (sum)", "count"),
                     MetricMapping(
-                        "avg_order_value", "derived: revenue/orders", "currency"
+                        "avg_order_value",
+                        "derived: revenue/orders",
+                        "currency",
                     ),
                     MetricMapping("refund_count", "count(refunds)", "count"),
                     MetricMapping("refund_amount", "refunds.amount (sum)", "currency"),
                     MetricMapping(
-                        "total_discounts", "total_discounts (sum)", "currency"
+                        "total_discounts",
+                        "total_discounts (sum)",
+                        "currency",
                     ),
                     MetricMapping("total_tax", "total_tax (sum)", "currency"),
                     MetricMapping(
-                        "shipping_revenue", "total_shipping_price_set", "currency"
+                        "shipping_revenue",
+                        "total_shipping_price_set",
+                        "currency",
                     ),
                     MetricMapping(
-                        "discount_usage_count", "count(discount_codes)", "count"
+                        "discount_usage_count",
+                        "count(discount_codes)",
+                        "count",
                     ),
                     MetricMapping(
                         "repeat_customers",
@@ -1294,7 +1316,9 @@ def _mailerlite_contract() -> ProviderContract:
                 metrics=(
                     MetricMapping("active_subscribers", "subscribers.count", "count"),
                     MetricMapping(
-                        "new_subscribers", "subscribers.created_today", "count"
+                        "new_subscribers",
+                        "subscribers.created_today",
+                        "count",
                     ),
                     MetricMapping("form_conversions", "forms.stats.converted", "count"),
                     MetricMapping(
@@ -1312,19 +1336,29 @@ def _mailerlite_contract() -> ProviderContract:
                     MetricMapping("emails_sent", "campaign.stats.sent", "count"),
                     MetricMapping("opens_count", "campaign.stats.opens_count", "count"),
                     MetricMapping(
-                        "clicks_count", "campaign.stats.clicks_count", "count"
+                        "clicks_count",
+                        "campaign.stats.clicks_count",
+                        "count",
                     ),
                     MetricMapping(
-                        "unique_opens", "campaign.stats.unique_opens_count", "count"
+                        "unique_opens",
+                        "campaign.stats.unique_opens_count",
+                        "count",
                     ),
                     MetricMapping(
-                        "unique_clicks", "campaign.stats.unique_clicks_count", "count"
+                        "unique_clicks",
+                        "campaign.stats.unique_clicks_count",
+                        "count",
                     ),
                     MetricMapping(
-                        "open_rate", "campaign.stats.open_rate", "percentage"
+                        "open_rate",
+                        "campaign.stats.open_rate",
+                        "percentage",
                     ),
                     MetricMapping(
-                        "click_rate", "campaign.stats.click_rate", "percentage"
+                        "click_rate",
+                        "campaign.stats.click_rate",
+                        "percentage",
                     ),
                     MetricMapping(
                         "click_to_open_rate",
@@ -1332,10 +1366,14 @@ def _mailerlite_contract() -> ProviderContract:
                         "percentage",
                     ),
                     MetricMapping(
-                        "hard_bounces", "campaign.stats.hard_bounces_count", "count"
+                        "hard_bounces",
+                        "campaign.stats.hard_bounces_count",
+                        "count",
                     ),
                     MetricMapping(
-                        "soft_bounces", "campaign.stats.soft_bounces_count", "count"
+                        "soft_bounces",
+                        "campaign.stats.soft_bounces_count",
+                        "count",
                     ),
                     MetricMapping(
                         "bounce_rate",
@@ -1343,7 +1381,9 @@ def _mailerlite_contract() -> ProviderContract:
                         "percentage",
                     ),
                     MetricMapping(
-                        "unsubscribes", "campaign.stats.unsubscribes_count", "count"
+                        "unsubscribes",
+                        "campaign.stats.unsubscribes_count",
+                        "count",
                     ),
                     MetricMapping(
                         "unsubscribe_rate",
@@ -1361,7 +1401,9 @@ def _mailerlite_contract() -> ProviderContract:
                 metrics=(
                     MetricMapping("emails_sent", "campaign.stats.sent", "count"),
                     MetricMapping(
-                        "click_rate", "campaign.stats.click_rate", "percentage"
+                        "click_rate",
+                        "campaign.stats.click_rate",
+                        "percentage",
                     ),
                 ),
             ),
@@ -1371,7 +1413,9 @@ def _mailerlite_contract() -> ProviderContract:
                 description="Onboarding/delivery automation flows",
                 metrics=(
                     MetricMapping(
-                        "automation_completed", "automation.stats.completed", "count"
+                        "automation_completed",
+                        "automation.stats.completed",
+                        "count",
                     ),
                 ),
             ),
@@ -1381,7 +1425,9 @@ def _mailerlite_contract() -> ProviderContract:
                 description="Adoption automation flows",
                 metrics=(
                     MetricMapping(
-                        "automation_completed", "automation.stats.completed", "count"
+                        "automation_completed",
+                        "automation.stats.completed",
+                        "count",
                     ),
                 ),
             ),
@@ -1499,10 +1545,14 @@ def _crm_internal_contract() -> ProviderContract:
                 ),
                 metrics=(
                     MetricMapping(
-                        "contacts", "count(OUTBOUND_CONTACT_EVENTS)", "count"
+                        "contacts",
+                        "count(OUTBOUND_CONTACT_EVENTS)",
+                        "count",
                     ),
                     MetricMapping(
-                        "responses", "count(OUTBOUND_RESPONSE_EVENTS)", "count"
+                        "responses",
+                        "count(OUTBOUND_RESPONSE_EVENTS)",
+                        "count",
                     ),
                 ),
             ),

@@ -58,7 +58,7 @@ class CalendarEventRepository:
         if tenant_id is not None:
             stmt = stmt.where(
                 (CalendarEventModel.tenant_id == None)  # noqa: E711
-                | (CalendarEventModel.tenant_id == tenant_id)
+                | (CalendarEventModel.tenant_id == tenant_id),
             )
         else:
             stmt = stmt.where(CalendarEventModel.tenant_id == None)  # noqa: E711
@@ -71,7 +71,9 @@ class CalendarEventRepository:
         return [self._to_domain(m) for m in result.scalars().all()]
 
     def get_by_id(
-        self, event_id: UUID, tenant_id: UUID | None = None
+        self,
+        event_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> CalendarEvent | None:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.id == event_id,
@@ -80,7 +82,7 @@ class CalendarEventRepository:
         if tenant_id is not None:
             stmt = stmt.where(
                 (CalendarEventModel.tenant_id == tenant_id)
-                | (CalendarEventModel.tenant_id == None)  # noqa: E711
+                | (CalendarEventModel.tenant_id == None),  # noqa: E711
             )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()
@@ -135,7 +137,11 @@ class CalendarEventRepository:
         return True
 
     def exists(
-        self, country_code: str, event_date: date, name: str, tenant_id: UUID | None
+        self,
+        country_code: str,
+        event_date: date,
+        name: str,
+        tenant_id: UUID | None,
     ) -> bool:
         stmt = select(CalendarEventModel).where(
             CalendarEventModel.country_code == country_code,

@@ -143,7 +143,7 @@ class AvailabilityService:
                 results.append(AvailabilitySchedule(**data))
             except Exception as e:
                 logger.error(
-                    f"Failed to migrate schedule {s.get('id', 'unknown')}: {e}"
+                    f"Failed to migrate schedule {s.get('id', 'unknown')}: {e}",
                 )
                 # Skip invalid entries to prevent crashing the whole list
                 continue
@@ -191,14 +191,17 @@ class AvailabilityService:
         return schedule
 
     def update_schedule(
-        self, schedule_id: str, update: ScheduleUpdate
+        self,
+        schedule_id: str,
+        update: ScheduleUpdate,
     ) -> AvailabilitySchedule | None:
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         schedules = config.get("availability_schedules", [])
 
         target_idx = next(
-            (i for i, s in enumerate(schedules) if s["id"] == schedule_id), None
+            (i for i, s in enumerate(schedules) if s["id"] == schedule_id),
+            None,
         )
         if target_idx is None:
             return None
@@ -277,10 +280,11 @@ class AvailabilityService:
         busy_intervals = []
         if self.adapter:
             start_dt_q = datetime.datetime.combine(
-                start_date, datetime.time.min
+                start_date,
+                datetime.time.min,
             ).replace(tzinfo=datetime.UTC)
             end_dt_q = datetime.datetime.combine(end_date, datetime.time.max).replace(
-                tzinfo=datetime.UTC
+                tzinfo=datetime.UTC,
             )
             try:
                 busy_periods = self.adapter.list_busy_periods(start_dt_q, end_dt_q)
@@ -314,15 +318,17 @@ class AvailabilityService:
                             tz = ZoneInfo(schedule_config.timezone)
                         except Exception:
                             logger.warning(
-                                f"Invalid timezone {schedule_config.timezone}, falling back to UTC"
+                                f"Invalid timezone {schedule_config.timezone}, falling back to UTC",
                             )
 
                     # Create local time then convert to UTC
                     slot_start_local = datetime.datetime.combine(
-                        current_day, datetime.time(h_start, m_start)
+                        current_day,
+                        datetime.time(h_start, m_start),
                     ).replace(tzinfo=tz)
                     slot_end_limit_local = datetime.datetime.combine(
-                        current_day, datetime.time(h_end, m_end)
+                        current_day,
+                        datetime.time(h_end, m_end),
                     ).replace(tzinfo=tz)
 
                     slot_start = slot_start_local.astimezone(datetime.UTC)
@@ -334,7 +340,7 @@ class AvailabilityService:
                         <= slot_end_limit
                     ):
                         slot_end = current_slot + datetime.timedelta(
-                            minutes=duration_minutes
+                            minutes=duration_minutes,
                         )
 
                         # Check intersection with busy intervals
@@ -354,7 +360,10 @@ class AvailabilityService:
         return available_slots
 
     def get_event_type_slots(
-        self, event_type: EventType, start_date: datetime.date, end_date: datetime.date
+        self,
+        event_type: EventType,
+        start_date: datetime.date,
+        end_date: datetime.date,
     ) -> list[datetime.datetime]:
         schedule = None
         if event_type.availability_id:
@@ -477,22 +486,27 @@ class AvailabilityService:
         return event
 
     def list_appointments(
-        self, start_date: datetime.date, end_date: datetime.date
+        self,
+        start_date: datetime.date,
+        end_date: datetime.date,
     ) -> list[dict[str, Any]]:
         if not self.adapter:
             return []
 
         start_dt = datetime.datetime.combine(start_date, datetime.time.min).replace(
-            tzinfo=datetime.UTC
+            tzinfo=datetime.UTC,
         )
         end_dt = datetime.datetime.combine(end_date, datetime.time.max).replace(
-            tzinfo=datetime.UTC
+            tzinfo=datetime.UTC,
         )
 
         return self.adapter.list_events(start_dt, end_dt)
 
     def watch_calendar(
-        self, calendar_id: str = "primary", channel_id: str = None, address: str = None
+        self,
+        calendar_id: str = "primary",
+        channel_id: str = None,
+        address: str = None,
     ) -> dict[str, Any]:
         """
         Placeholder/Skeleton for Webhook Setup.

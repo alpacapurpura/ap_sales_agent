@@ -108,7 +108,9 @@ class LaunchEditionResponse(BaseModel):
 
 
 def _build_response(
-    svc: LaunchEditionService, edition: LaunchEdition, tenant_id: UUID
+    svc: LaunchEditionService,
+    edition: LaunchEdition,
+    tenant_id: UUID,
 ) -> LaunchEditionResponse:
     effective_pricing, currency = svc.resolve_effective_pricing(edition, tenant_id)
     return LaunchEditionResponse.from_domain(edition, effective_pricing, currency)

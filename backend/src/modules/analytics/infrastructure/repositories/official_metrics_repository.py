@@ -120,7 +120,7 @@ class OfficialMetricsRepository:
     ) -> list[OfficialMetricModel]:
         """Flexible query with optional filters for dashboard display."""
         stmt = select(OfficialMetricModel).where(
-            OfficialMetricModel.tenant_id == tenant_id
+            OfficialMetricModel.tenant_id == tenant_id,
         )
 
         if channel_slug is not None:

@@ -123,7 +123,10 @@ def _event_to_channel_suffix(event_type: str, payload: dict) -> str:
 
 
 def _resolve_manychat_profile(
-    db: Session, tenant_id: UUID, payload: dict, channel_slug: str
+    db: Session,
+    tenant_id: UUID,
+    payload: dict,
+    channel_slug: str,
 ):
     """Resolve or create a customer profile from ManyChat subscriber data."""
     from src.modules.crm.application.services.customer_service import CustomerService
@@ -181,7 +184,10 @@ def _resolve_manychat_profile(
 
 
 def _build_manychat_event_properties(
-    payload: dict, subscriber_id: str, channel: str, event_type: str
+    payload: dict,
+    subscriber_id: str,
+    channel: str,
+    event_type: str,
 ) -> dict[str, str | dict[str, str]]:
     """Build journey_event properties dict from ManyChat payload."""
     properties: dict[str, str | dict[str, str]] = {
@@ -289,7 +295,10 @@ def _promote_manychat_metric(
 
 
 async def _handle_manychat_event(
-    db: Session, tenant_id: UUID, payload: dict, channel: str
+    db: Session,
+    tenant_id: UUID,
+    payload: dict,
+    channel: str,
 ) -> None:
     """Process a ManyChat webhook event into journey_events + official_metrics."""
     event_type = payload.get("event_type", "")
@@ -303,7 +312,10 @@ async def _handle_manychat_event(
     # 2. Create journey_event(s) + recalculate score
     if profile:
         properties = _build_manychat_event_properties(
-            payload, subscriber_id, channel, event_type
+            payload,
+            subscriber_id,
+            channel,
+            event_type,
         )
         _create_journey_events(
             db,
@@ -319,7 +331,12 @@ async def _handle_manychat_event(
 
     # 3. Promote metric to official_metrics for Growth Studio
     _promote_manychat_metric(
-        db, tenant_id, event_type, payload, channel_slug, subscriber_id
+        db,
+        tenant_id,
+        event_type,
+        payload,
+        channel_slug,
+        subscriber_id,
     )
 
     db.commit()
@@ -391,7 +408,8 @@ async def _handle_checkout_created(db: Session, tenant_id: UUID, payload: dict) 
             JourneyEventModel.tenant_id == tenant_id,
             JourneyEventModel.event_name == "checkout_initiated",
             sa_func.jsonb_extract_path_text(
-                JourneyEventModel.properties, "checkout_token"
+                JourneyEventModel.properties,
+                "checkout_token",
             )
             == checkout_token,
         )
@@ -724,7 +742,8 @@ async def mailerlite_webhook_legacy(request: Request, db: Session = Depends(get_
     try:
         payload = await request.json()
         logger.info(
-            "mailerlite_webhook_received_legacy", payload_keys=list(payload.keys())
+            "mailerlite_webhook_received_legacy",
+            payload_keys=list(payload.keys()),
         )
         return {"status": "received", "source": "mailerlite"}
     except Exception as e:

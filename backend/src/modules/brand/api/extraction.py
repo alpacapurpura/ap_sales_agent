@@ -44,7 +44,8 @@ async def extract_data(
 
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant."
+            status_code=400,
+            detail="User is not associated with a tenant.",
         )
 
     service = BrandExtractionService(db, current_user.tenant_id)
@@ -54,7 +55,8 @@ async def extract_data(
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Internal extraction error: {e!s}"
+            status_code=500,
+            detail=f"Internal extraction error: {e!s}",
         ) from e
 
     if not data:
@@ -108,7 +110,8 @@ async def extract_full_brand(
 
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant."
+            status_code=400,
+            detail="User is not associated with a tenant.",
         )
 
     if not redis_client:
@@ -145,7 +148,7 @@ async def extract_full_brand(
                     "progress": 0,
                     "stage": "Iniciando análisis...",
                     "started_at": datetime.now(UTC).isoformat(),
-                }
+                },
             ),
         )
 
@@ -172,7 +175,8 @@ async def extract_full_brand(
 
 
 @router.get(
-    "/extract-full-brand/status/{job_id}", response_model=ExtractionStatusResponse
+    "/extract-full-brand/status/{job_id}",
+    response_model=ExtractionStatusResponse,
 )
 async def get_extraction_status(
     job_id: str,
@@ -222,7 +226,8 @@ async def list_extraction_traces(
 
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant."
+            status_code=400,
+            detail="User is not associated with a tenant.",
         )
 
     stmt = (
@@ -262,7 +267,8 @@ async def get_extraction_trace(
 
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant."
+            status_code=400,
+            detail="User is not associated with a tenant.",
         )
 
     try:

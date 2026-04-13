@@ -70,7 +70,7 @@ class SaleRepository:
     def find_by_customer_id(self, customer_id: UUID) -> list[Sale]:
         models = (
             self.db.execute(
-                select(SaleModel).where(SaleModel.customer_id == customer_id)
+                select(SaleModel).where(SaleModel.customer_id == customer_id),
             )
             .scalars()
             .all()
@@ -83,13 +83,16 @@ class SaleRepository:
                 select(func.count(SaleModel.id)).where(
                     SaleModel.customer_id == customer_id,
                     SaleModel.status == SaleStatus.COMPLETED,
-                )
+                ),
             ).scalar()
             or 0
         )
 
     def get_sales_by_date_range(
-        self, tenant_id: UUID, start: datetime, end: datetime
+        self,
+        tenant_id: UUID,
+        start: datetime,
+        end: datetime,
     ) -> list[Sale]:
         models = (
             self.db.execute(
@@ -100,7 +103,7 @@ class SaleRepository:
                     SaleModel.occurred_at >= start,
                     SaleModel.occurred_at <= end,
                 )
-                .order_by(SaleModel.occurred_at.desc())
+                .order_by(SaleModel.occurred_at.desc()),
             )
             .scalars()
             .all()

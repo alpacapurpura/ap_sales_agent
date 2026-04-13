@@ -67,7 +67,10 @@ class LinkService:
         self.db.refresh(link)
 
         logger.info(
-            "link_created", token=token, tenant_id=str(tenant_id), type=target_type
+            "link_created",
+            token=token,
+            tenant_id=str(tenant_id),
+            type=target_type,
         )
         return link
 
@@ -89,7 +92,7 @@ class LinkService:
             return None
 
         if link.expires_at and link.expires_at.replace(tzinfo=None) < utc_now().replace(
-            tzinfo=None
+            tzinfo=None,
         ):
             logger.warning("link_resolution_failed", reason="expired", token=token)
             return None

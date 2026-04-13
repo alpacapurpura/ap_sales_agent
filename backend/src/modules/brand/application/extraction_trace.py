@@ -83,7 +83,11 @@ class ExtractionTraceCollector:
         self._append("crawl_start", url=url)
 
     def crawl_end(
-        self, duration_s: float, *, content_len: int = 0, visual_len: int = 0
+        self,
+        duration_s: float,
+        *,
+        content_len: int = 0,
+        visual_len: int = 0,
     ) -> None:
         self._append(
             "crawl_end",
@@ -118,7 +122,12 @@ class ExtractionTraceCollector:
         )
 
     def section_failed(
-        self, section: str, duration_s: float, *, error: str = "", error_type: str = ""
+        self,
+        section: str,
+        duration_s: float,
+        *,
+        error: str = "",
+        error_type: str = "",
     ) -> None:
         self._append(
             "section_failed",
@@ -129,7 +138,11 @@ class ExtractionTraceCollector:
         )
 
     def section_timeout(
-        self, section: str, duration_s: float, *, timeout_limit: float = 0
+        self,
+        section: str,
+        duration_s: float,
+        *,
+        timeout_limit: float = 0,
     ) -> None:
         self._append(
             "section_timeout",

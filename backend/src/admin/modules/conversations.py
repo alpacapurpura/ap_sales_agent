@@ -128,7 +128,7 @@ def render_conversations_page():  # noqa: C901
                 "Fecha": conv.updated_at.strftime("%Y-%m-%d %H:%M")
                 if conv.updated_at
                 else "—",
-            }
+            },
         )
 
     display_df = pd.DataFrame(table_rows)
@@ -162,7 +162,7 @@ def render_conversations_page():  # noqa: C901
             "💬 Mensajes",
             "🔧 Tools Usados",
             "📋 Contexto",
-        ]
+        ],
     )
 
     # ── Messages Tab ──
@@ -190,13 +190,13 @@ def render_conversations_page():  # noqa: C901
                         if isinstance(tc, dict):
                             args_str = str(tc.get("args", ""))[:80]
                             st.markdown(
-                                f"**🟠 [tool_call]** `{tc.get('name', '?')}`({args_str})"
+                                f"**🟠 [tool_call]** `{tc.get('name', '?')}`({args_str})",
                             )
             elif role == "tool":
                 tool_content = content or ""
                 if len(tool_content) > 200:
                     with st.expander(
-                        f"⚪ [tool_result] {msg.get('name', '')} ({len(tool_content)} chars)"
+                        f"⚪ [tool_result] {msg.get('name', '')} ({len(tool_content)} chars)",
                     ):
                         st.code(tool_content[:2000])
                 else:
@@ -220,7 +220,9 @@ def render_conversations_page():  # noqa: C901
                 for k, v in sorted(tool_counts.items(), key=lambda x: -x[1])
             ]
             st.dataframe(
-                pd.DataFrame(tool_rows), use_container_width=True, hide_index=True
+                pd.DataFrame(tool_rows),
+                use_container_width=True,
+                hide_index=True,
             )
         else:
             st.info("No se usaron tools en esta conversacion.")

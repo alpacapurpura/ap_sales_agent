@@ -33,7 +33,7 @@ def _format_lead_option(lead_tuple):
 def render_sales_audit_page():  # noqa: C901
     st.title("🔍 Auditoría Sales Agent")
     st.markdown(
-        "Visualiza las conversaciones de los leads y las trazas de ejecución de los nodos del agente."
+        "Visualiza las conversaciones de los leads y las trazas de ejecución de los nodos del agente.",
     )
 
     col1, col2 = st.columns(2)
@@ -74,7 +74,9 @@ def render_sales_audit_page():  # noqa: C901
         # Intentar obtener el nombre desde customer o desde profile_data
         lead_name = "Sin Nombre"
         if getattr(lead, "customer", None) and getattr(
-            lead.customer, "full_name", None
+            lead.customer,
+            "full_name",
+            None,
         ):
             lead_name = lead.customer.full_name
         elif lead.profile_data and isinstance(lead.profile_data, dict):
@@ -94,7 +96,9 @@ def render_sales_audit_page():  # noqa: C901
                 st.session_context_tab = "state"
 
             if st.button(
-                "🗑️ Limpiar Conversación", use_container_width=True, type="secondary"
+                "🗑️ Limpiar Conversación",
+                use_container_width=True,
+                type="secondary",
             ):
                 st.session_state["confirm_clear"] = lead_id
 
@@ -103,17 +107,19 @@ def render_sales_audit_page():  # noqa: C901
             st.warning(
                 f"**¿Limpiar TODA la conversación de {lead_name}?**\n\n"
                 "Se borrarán: mensajes, trazas, LLM logs, checkpoints, y se resetearán los scores del lead. "
-                "Esta acción no se puede deshacer."
+                "Esta acción no se puede deshacer.",
             )
             col_yes, col_no = st.columns(2)
             with col_yes:
                 if st.button(
-                    "✅ Sí, limpiar", use_container_width=True, type="primary"
+                    "✅ Sí, limpiar",
+                    use_container_width=True,
+                    type="primary",
                 ):
                     repo.clear_user_history(lead_id=lead_id, tenant_id=str(tenant_id))
                     st.session_state.pop("confirm_clear", None)
                     st.success(
-                        "Conversación limpiada. El lead empezará de cero en la próxima interacción."
+                        "Conversación limpiada. El lead empezará de cero en la próxima interacción.",
                     )
                     st.rerun()
             with col_no:
@@ -164,7 +170,7 @@ def render_sales_audit_page():  # noqa: C901
                         st.json(last_trace.output_state, expanded=False)
                     else:
                         st.info(
-                            "No hay trazas o estados registrados aún para este lead."
+                            "No hay trazas o estados registrados aún para este lead.",
                         )
 
                 if st.button("Cerrar Contexto", key="close_ctx"):
@@ -173,7 +179,9 @@ def render_sales_audit_page():  # noqa: C901
 
         # Fetch timeline
         timeline = repo.get_full_timeline(
-            lead_id=lead_id, tenant_id=str(tenant_id), limit=200
+            lead_id=lead_id,
+            tenant_id=str(tenant_id),
+            limit=200,
         )
 
         # reverse timeline to show oldest first, or keep newest first depending on preference.
@@ -206,7 +214,7 @@ def render_sales_audit_page():  # noqa: C901
                     st.caption(f"Fecha: {date_str}")
 
                     tab_in, tab_out, tab_llm = st.tabs(
-                        ["Input State", "Output State", "LLM Logs"]
+                        ["Input State", "Output State", "LLM Logs"],
                     )
 
                     with tab_in:
@@ -221,15 +229,16 @@ def render_sales_audit_page():  # noqa: C901
                             st.info("Este nodo no registró interacciones con el LLM.")
                         else:
                             trace_details = repo.get_trace_details(
-                                event["id"], str(tenant_id)
+                                event["id"],
+                                str(tenant_id),
                             )
                             if trace_details and trace_details.get("llm_logs"):
                                 for log in trace_details["llm_logs"]:
                                     st.markdown(
-                                        f"**Modelo:** `{log['model']}` | **Template:** `{log['prompt_template']}`"
+                                        f"**Modelo:** `{log['model']}` | **Template:** `{log['prompt_template']}`",
                                     )
                                     st.markdown(
-                                        f"**Tokens:** In `{log['tokens']['in']}` / Out `{log['tokens']['out']}`"
+                                        f"**Tokens:** In `{log['tokens']['in']}` / Out `{log['tokens']['out']}`",
                                     )
 
                                     with st.container():
@@ -245,7 +254,7 @@ def render_sales_audit_page():  # noqa: C901
                                             st.json(log["metadata"])
                             else:
                                 st.warning(
-                                    "No se pudieron cargar los detalles del LLM."
+                                    "No se pudieron cargar los detalles del LLM.",
                                 )
 
     finally:

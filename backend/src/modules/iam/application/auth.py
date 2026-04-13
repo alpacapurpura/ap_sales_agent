@@ -33,7 +33,8 @@ def verify_token_payload(token: str) -> dict:
     """
     if not CLERK_ISSUER:
         raise HTTPException(
-            status_code=500, detail="Server misconfiguration: CLERK_ISSUER missing"
+            status_code=500,
+            detail="Server misconfiguration: CLERK_ISSUER missing",
         )
 
     try:
@@ -53,7 +54,8 @@ def verify_token_payload(token: str) -> dict:
     except Exception as e:
         logger.error(f"Token Verification Error: {e}")
         raise HTTPException(
-            status_code=401, detail="Could not verify credentials"
+            status_code=401,
+            detail="Could not verify credentials",
         ) from e
 
 

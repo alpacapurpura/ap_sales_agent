@@ -56,7 +56,12 @@ class TestLandingRepositoryCRUD:
         assert result is None
 
     def test_list_by_tenant_returns_only_own_pages(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         repo = LandingRepository(db)
         repo.create(_make_landing(tenant_id, slug="page-a1"))
@@ -95,7 +100,12 @@ class TestLandingRepositoryCRUD:
 
 class TestSlugUniquenessPerTenant:
     def test_same_slug_different_tenants_is_allowed(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         """Slug uniqueness is scoped per tenant — same slug for two tenants must not conflict."""
         repo = LandingRepository(db)
@@ -106,7 +116,12 @@ class TestSlugUniquenessPerTenant:
         assert result.tenant_id == other_tenant_id
 
     def test_get_by_slug_and_tenant_returns_correct_page(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         repo = LandingRepository(db)
         repo.create(_make_landing(tenant_id, slug="shared-slug"))
@@ -119,7 +134,10 @@ class TestSlugUniquenessPerTenant:
         assert page_b.tenant_id == other_tenant_id
 
     def test_get_by_slug_and_tenant_nonexistent_returns_none(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         repo = LandingRepository(db)
         result = repo.get_by_slug_and_tenant("ghost-slug", tenant_id)
@@ -193,7 +211,12 @@ class TestSoftDelete:
 
 class TestTenantIsolation:
     def test_get_by_id_returns_page_regardless_of_tenant(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         """get_by_id has no tenant filter — tests that data exists but is opaque without slug+tenant."""
         repo = LandingRepository(db)
@@ -205,7 +228,12 @@ class TestTenantIsolation:
         assert result.tenant_id == other_tenant_id
 
     def test_list_by_tenant_a_does_not_include_tenant_b_pages(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         repo = LandingRepository(db)
         repo.create(_make_landing(other_tenant_id, slug="only-b-page"))
@@ -214,7 +242,12 @@ class TestTenantIsolation:
         assert len(pages_a) == 0
 
     def test_get_by_slug_and_tenant_does_not_cross_tenants(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         """Tenant A cannot fetch tenant B's page using tenant B's slug with tenant A's ID."""
         repo = LandingRepository(db)

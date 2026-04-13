@@ -260,7 +260,7 @@ class TestSignalAccumulatorStageProgression:
                 {
                     "role": "assistant",
                     "content": '[QUALIFICATION_DATA: {"budget": "5k"}] Genial!',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -281,7 +281,7 @@ class TestSignalAccumulatorStageProgression:
                 {
                     "role": "assistant",
                     "content": '[QUALIFICATION_DATA: {"q3": "c"}] Excelente!',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)
@@ -307,7 +307,7 @@ class TestSignalAccumulatorStageProgression:
                 {
                     "role": "assistant",
                     "content": '[SIGNALS: {"buying": ["ready_to_commit"], "objections": []}] Vamos!',
-                }
+                },
             ],
         )
         result = nodes_mod.node_signal_accumulator(state)

@@ -18,7 +18,7 @@ class TestNavigateToChannel:
             {
                 "stage": "atraccion-captura",
                 "channel_slug": "meta-ads",
-            }
+            },
         )
         assert result["success"] is True
         action = result["ui_action"]
@@ -34,7 +34,7 @@ class TestNavigateToChannel:
                 "stage": "atraccion-captura",
                 "channel_slug": "meta-ads",
                 "tab": "campanas",
-            }
+            },
         )
         assert result["success"] is True
         action = result["ui_action"]
@@ -48,7 +48,7 @@ class TestNavigateToChannel:
                 "stage": "atraccion-captura",
                 "channel_slug": "meta-ads",
                 "expanded": True,
-            }
+            },
         )
         assert result["success"] is True
         action = result["ui_action"]
@@ -63,7 +63,7 @@ class TestNavigateToChannel:
                 "channel_slug": "meta-ads",
                 "expanded": True,
                 "tab": "campanas",
-            }
+            },
         )
         assert result["success"] is True
         action = result["ui_action"]
@@ -77,7 +77,7 @@ class TestNavigateToChannel:
             {
                 "stage": "nutricion-oportunidad",
                 "channel_slug": "email-nurture",
-            }
+            },
         )
         assert result["success"] is True
         action = result["ui_action"]
@@ -90,7 +90,7 @@ class TestNavigateToChannel:
             {
                 "stage": "ventas",
                 "channel_slug": "shopify",
-            }
+            },
         )
         assert result["ui_action"]["type"] == "navigate"
 

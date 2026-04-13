@@ -26,7 +26,9 @@ class CopilotOfferPsychologyService(PsychologyGeneratorPort):
         self.ai_action_service = AIActionService()
 
     async def generate_psychology(
-        self, request: PsychologyGenerationRequest, tenant_id: UUID
+        self,
+        request: PsychologyGenerationRequest,
+        tenant_id: UUID,
     ) -> PsychologyGenerationResponse:
         avatar = self.avatar_repo.get_by_id(request.avatar_id)
         if not avatar:

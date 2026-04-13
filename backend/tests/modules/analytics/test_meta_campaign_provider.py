@@ -48,7 +48,7 @@ class TestExtractCampaigns:
                     },
                 ],
                 "paging": {},
-            }
+            },
         )
 
         async def mock_get(url, **kwargs):
@@ -107,12 +107,12 @@ class TestExtractAdSets:
                                 "importance": "HIGH",
                                 "confidence": "HIGH",
                                 "blame_field": "targeting",
-                            }
+                            },
                         ],
                     },
                 ],
                 "paging": {},
-            }
+            },
         )
 
         async def mock_get(url, **kwargs):
@@ -157,7 +157,7 @@ class TestExtractRecommendations:
                     },
                 ],
                 "paging": {},
-            }
+            },
         )
 
         async def mock_get(url, **kwargs):

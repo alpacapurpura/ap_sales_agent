@@ -40,7 +40,10 @@ class CopilotEventRepository:
         return CopilotEventModel.deleted_at.is_(None)
 
     def get_user_behavior_summary(
-        self, tenant_id: UUID, user_id: UUID, days: int = 30
+        self,
+        tenant_id: UUID,
+        user_id: UUID,
+        days: int = 30,
     ) -> dict[str, int]:
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = (
@@ -90,7 +93,10 @@ class CopilotEventRepository:
         return list(self.db.execute(stmt).scalars().all())
 
     def get_knowledge_search_stats(
-        self, tenant_id: UUID, user_id: UUID, days: int = 30
+        self,
+        tenant_id: UUID,
+        user_id: UUID,
+        days: int = 30,
     ) -> dict:
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = select(CopilotEventModel).where(
@@ -149,7 +155,7 @@ class CopilotEventRepository:
 
         # Active users (unique user_ids on message_sent)
         active_stmt = select(
-            func.count(func.distinct(CopilotEventModel.user_id))
+            func.count(func.distinct(CopilotEventModel.user_id)),
         ).where(
             CopilotEventModel.tenant_id == tenant_id,
             CopilotEventModel.event_type == "message_sent",
@@ -272,7 +278,7 @@ class CopilotEventRepository:
                     CopilotEventModel.event_type == "message_sent",
                     CopilotEventModel.created_at >= cutoff,
                     self._active_filter(),
-                )
+                ),
             ).scalar()
             or 0
         )
@@ -283,7 +289,7 @@ class CopilotEventRepository:
                     CopilotEventModel.event_type == "message_sent",
                     CopilotEventModel.created_at >= cutoff,
                     self._active_filter(),
-                )
+                ),
             ).scalar()
             or 0
         )
@@ -296,7 +302,7 @@ class CopilotEventRepository:
                     CopilotEventModel.event_type == "suggested_action_clicked",
                     CopilotEventModel.created_at >= cutoff,
                     self._active_filter(),
-                )
+                ),
             ).scalar()
             or 0
         )
@@ -318,7 +324,7 @@ class CopilotEventRepository:
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = select(CopilotEventModel).where(
             CopilotEventModel.event_type.in_(
-                ["procedure_abandoned", "procedure_completed"]
+                ["procedure_abandoned", "procedure_completed"],
             ),
             CopilotEventModel.created_at >= cutoff,
             self._active_filter(),
@@ -377,7 +383,9 @@ class CopilotEventRepository:
         ]
 
     def get_recent_events_all(
-        self, limit: int = 50, event_type: str | None = None
+        self,
+        limit: int = 50,
+        event_type: str | None = None,
     ) -> list[CopilotEventModel]:
         """Recent events without tenant filter (admin only)."""
         stmt = (

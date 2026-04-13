@@ -49,7 +49,7 @@ def _build_adoption_bottlenecks(
                 severity="warning",
                 threshold=70.0,
                 tip=tip,
-            )
+            ),
         )
 
     # Per-offer bottleneck
@@ -122,10 +122,14 @@ class AdoptionStageService:
         health_rows = repo.get_customer_health_by_offer(tenant_id, start_date, end_date)
         ttv_map = repo.get_avg_ttv_by_offer(tenant_id, start_date, end_date)
         total_customers, total_sales = repo.get_total_customers_and_sales(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         refund_count, refund_amount, refund_currency = repo.get_refunds(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
 
         # 3. Get offer names via OfferReadPort
@@ -153,7 +157,7 @@ class AdoptionStageService:
                     inactive_count=inactive,
                     health_pct=health,
                     ttv_days=ttv_map.get(offer_id_str),
-                )
+                ),
             )
 
         # 5. Header KPIs -- use distinct total counts (avoid double-counting)

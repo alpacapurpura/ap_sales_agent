@@ -56,7 +56,9 @@ class TestLaunchEditionResponse:
         )
         effective_pricing, currency = svc.resolve_effective_pricing(edition, tenant_a)
         response = LaunchEditionResponse.from_domain(
-            edition, effective_pricing, currency
+            edition,
+            effective_pricing,
+            currency,
         )
         assert response.edition_name == "Edición #1"
         assert response.effective_pricing[0]["total_amount"] == 497

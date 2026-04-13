@@ -52,7 +52,7 @@ def _is_ready_for_follow_up(cadence: dict, follow_ups_sent: int, now: datetime) 
     delays = cadence.get("delays_hours", [])
     next_delay_hours = delays[follow_ups_sent]
     next_follow_up_at = reference_time.replace(tzinfo=timezone.utc) + timedelta(
-        hours=next_delay_hours
+        hours=next_delay_hours,
     )
 
     return now >= next_follow_up_at

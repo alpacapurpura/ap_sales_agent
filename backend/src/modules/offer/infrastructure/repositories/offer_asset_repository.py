@@ -86,7 +86,10 @@ class OfferAssetRepository(IOfferAssetRepository):
         return self._to_domain(model)
 
     def get_by_id(
-        self, tenant_id: UUID, offer_id: UUID, asset_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
+        asset_id: UUID,
     ) -> OfferAsset | None:
         stmt = select(OfferAssetModel).where(
             OfferAssetModel.id == asset_id,
@@ -120,7 +123,7 @@ class OfferAssetRepository(IOfferAssetRepository):
                 or_(
                     OfferAssetModel.name.ilike(like),
                     OfferAssetModel.mime_type.ilike(like),
-                )
+                ),
             )
         if type_ is not None:
             base_filters.append(OfferAssetModel.type == type_.value)

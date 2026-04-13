@@ -98,11 +98,13 @@ class ExtractionRunRepository:
         return run
 
     def get_latest(
-        self, tenant_id: UUID, provider: str | None = None
+        self,
+        tenant_id: UUID,
+        provider: str | None = None,
     ) -> ExtractionRunModel | None:
         """Get the latest extraction run for a tenant, optionally filtered by provider."""
         stmt = select(ExtractionRunModel).where(
-            ExtractionRunModel.tenant_id == tenant_id
+            ExtractionRunModel.tenant_id == tenant_id,
         )
 
         if provider is not None:

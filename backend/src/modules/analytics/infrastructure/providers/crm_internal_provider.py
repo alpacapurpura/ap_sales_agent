@@ -107,5 +107,5 @@ class CRMInternalProvider(BaseMetricsProvider):
                     unit="count",
                     date=end_date,
                 ),
-            ]
+            ],
         )

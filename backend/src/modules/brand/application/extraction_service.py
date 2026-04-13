@@ -261,7 +261,9 @@ class BrandExtractionService:
             raise
 
     def _append_schema_instruction(
-        self, prompt: str, schema_model: type[BaseModel]
+        self,
+        prompt: str,
+        schema_model: type[BaseModel],
     ) -> str:
         schema_json = json.dumps(schema_model.model_json_schema(), indent=2)
         return f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
@@ -306,7 +308,11 @@ class BrandExtractionService:
             msg = "Could not crawl content from URL"
             raise ValueError(msg)
         prompt = self._render_prompt(
-            "brand_extract_visuals", content, "", "", max_chars=40000
+            "brand_extract_visuals",
+            content,
+            "",
+            "",
+            max_chars=40000,
         )
         return await self._run_section(
             "visuals",
@@ -356,7 +362,8 @@ class BrandExtractionService:
                     action_name=action_name,
                     tenant_id=self.tenant_id,
                     system_prompt=self._append_schema_instruction(
-                        prompt, response_model
+                        prompt,
+                        response_model,
                     ),
                     user_prompt=user_prompt,
                     response_model=response_model,
@@ -390,7 +397,9 @@ class BrandExtractionService:
             )
             if trace:
                 trace.section_timeout(
-                    section_name, elapsed, timeout_limit=per_call_timeout
+                    section_name,
+                    elapsed,
+                    timeout_limit=per_call_timeout,
                 )
             return default_result
         except Exception as e:
@@ -404,7 +413,10 @@ class BrandExtractionService:
             )
             if trace:
                 trace.section_failed(
-                    section_name, elapsed, error=str(e), error_type=type(e).__name__
+                    section_name,
+                    elapsed,
+                    error=str(e),
+                    error_type=type(e).__name__,
                 )
             return default_result
 
@@ -413,10 +425,16 @@ class BrandExtractionService:
     # ------------------------------------------------------------------
 
     async def _extract_identity(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandIdentity:
         prompt = self._render_prompt(
-            "brand_extract_identity", content, current_data, instructions
+            "brand_extract_identity",
+            content,
+            current_data,
+            instructions,
         )
         return await self._run_section(
             "identity",
@@ -428,10 +446,16 @@ class BrandExtractionService:
         )
 
     async def _extract_story(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandStory:
         prompt = self._render_prompt(
-            "brand_extract_story", content, current_data, instructions
+            "brand_extract_story",
+            content,
+            current_data,
+            instructions,
         )
         return await self._run_section(
             "story",
@@ -443,7 +467,10 @@ class BrandExtractionService:
         )
 
     async def _extract_strategy(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandStrategy:
         prompt = self._render_prompt(
             "brand_extract_strategy",
@@ -462,7 +489,10 @@ class BrandExtractionService:
         )
 
     async def _extract_people_contact(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandPeopleContactExtraction:
         prompt = self._render_prompt(
             "brand_extract_people_contact",
@@ -481,10 +511,16 @@ class BrandExtractionService:
         )
 
     async def _extract_testimonials(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandTestimonialsExtraction:
         prompt = self._render_prompt(
-            "brand_extract_testimonials", content, current_data, instructions
+            "brand_extract_testimonials",
+            content,
+            current_data,
+            instructions,
         )
         return await self._run_section(
             "testimonials",
@@ -496,10 +532,16 @@ class BrandExtractionService:
         )
 
     async def _extract_authority(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandAuthorityExtraction:
         prompt = self._render_prompt(
-            "brand_extract_authority", content, current_data, instructions
+            "brand_extract_authority",
+            content,
+            current_data,
+            instructions,
         )
         return await self._run_section(
             "authority",
@@ -511,7 +553,10 @@ class BrandExtractionService:
         )
 
     async def _extract_visuals(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandVisuals:
         """Extract visual identity (colors, fonts, design style) from CSS-enriched content."""
         prompt = self._render_prompt(
@@ -532,7 +577,10 @@ class BrandExtractionService:
         )
 
     async def _extract_positioning(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandPositioning:
         """Extract Brand Love Key positioning from content."""
         prompt = self._render_prompt(
@@ -552,7 +600,10 @@ class BrandExtractionService:
         )
 
     async def _extract_narrative(
-        self, content: str, current_data: str, instructions: str | None
+        self,
+        content: str,
+        current_data: str,
+        instructions: str | None,
     ) -> BrandNarrative:
         """Extract StoryBrand narrative from content."""
         prompt = self._render_prompt(

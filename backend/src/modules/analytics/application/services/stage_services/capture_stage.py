@@ -88,7 +88,9 @@ class CaptureStageService:
 
             meta_dto.sub_sources = [
                 SubSourceDTO(
-                    name="Meta Direct", leads=meta_leads, conversations=meta_convs
+                    name="Meta Direct",
+                    leads=meta_leads,
+                    conversations=meta_convs,
                 ),
                 SubSourceDTO(name="ManyChat", leads=mc_leads, conversations=mc_convs),
             ]
@@ -113,19 +115,39 @@ class CaptureStageService:
         ed = end_date.date() if hasattr(end_date, "date") else end_date
 
         ga4_organic = official_repo.get_channel_metrics(
-            tenant_id, "google_analytics", "google-organic", sd, ed
+            tenant_id,
+            "google_analytics",
+            "google-organic",
+            sd,
+            ed,
         )
         ga4_ai = official_repo.get_channel_metrics(
-            tenant_id, "google_analytics", "ai-search-organic", sd, ed
+            tenant_id,
+            "google_analytics",
+            "ai-search-organic",
+            sd,
+            ed,
         )
         ga4_direct = official_repo.get_channel_metrics(
-            tenant_id, "google_analytics", "direct", sd, ed
+            tenant_id,
+            "google_analytics",
+            "direct",
+            sd,
+            ed,
         )
         ga4_total = official_repo.get_channel_metrics(
-            tenant_id, "google_analytics", "website-total", sd, ed
+            tenant_id,
+            "google_analytics",
+            "website-total",
+            sd,
+            ed,
         )
         meta_ads = official_repo.get_channel_metrics(
-            tenant_id, "meta", "meta-ads", sd, ed
+            tenant_id,
+            "meta",
+            "meta-ads",
+            sd,
+            ed,
         )
 
         seo = ga4_organic.get("sessions", 0)
@@ -219,7 +241,8 @@ class CaptureStageService:
         cost_service = CaptureCostService(self.db)
         channel_costs = cost_service.get_channel_costs(tenant_id)
         prorated_costs = cost_service.get_prorated_agency_costs(
-            tenant_id, connected_slugs
+            tenant_id,
+            connected_slugs,
         )
         all_costs: dict[str, float] = {}
         for slug, amount in channel_costs.items():
@@ -238,7 +261,7 @@ class CaptureStageService:
         )
 
         visitor_stmt = select(
-            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0),
         ).where(
             MetricAggregationModel.tenant_id == tenant_id,
             MetricAggregationModel.metric_name.in_(("reach", "sessions")),
@@ -284,7 +307,7 @@ class CaptureStageService:
 
         if channel_type == "messaging":
             metrics.append(
-                MetricValueDTO(name="conversations", value=float(conv_count))
+                MetricValueDTO(name="conversations", value=float(conv_count)),
             )
 
         provider_name = ch.get("provider_name", "")
@@ -323,7 +346,9 @@ class CaptureStageService:
         )
 
     async def get_metrics(
-        self, tenant_id: UUID, period: str = "last_30_days"
+        self,
+        tenant_id: UUID,
+        period: str = "last_30_days",
     ) -> CaptureDetailDTO:
         """Return capture-stage (Stage 1) metrics."""
         # 1. Check cache
@@ -345,10 +370,14 @@ class CaptureStageService:
 
         capture_repo = CaptureMetricsRepository(self.db)
         lead_counts = capture_repo.count_leads_by_source(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         conversation_counts = capture_repo.count_conversations_by_channel(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
 
         # 4. Get costs
@@ -371,7 +400,12 @@ class CaptureStageService:
 
             if slug == "website-capture":
                 groups["web_infrastructure"].append(
-                    self._build_website_capture_dto(ch, tenant_id, start_date, end_date)
+                    self._build_website_capture_dto(
+                        ch,
+                        tenant_id,
+                        start_date,
+                        end_date,
+                    ),
                 )
                 continue
 
@@ -389,10 +423,14 @@ class CaptureStageService:
 
         # Merge manychat-ig into ig-dm as a unified card with sub_sources
         detailed_leads = capture_repo.count_leads_by_source_detailed(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         self._merge_manychat_into_meta(
-            groups["ai_agent"], detailed_leads, conversation_counts
+            groups["ai_agent"],
+            detailed_leads,
+            conversation_counts,
         )
 
         # Available (unconnected) channels -- remove manychat-ig/wa if merged

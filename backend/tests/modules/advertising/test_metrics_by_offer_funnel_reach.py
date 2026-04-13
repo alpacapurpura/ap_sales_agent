@@ -47,7 +47,9 @@ class _StubOfferReadPort(OfferReadPort):
         return list(self._offers)
 
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: UUID | None = None
+        self,
+        offer_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> OfferReadDTO | None:
         for o in self._offers:
             if o.id == offer_id:
@@ -118,7 +120,11 @@ def _make_period_reach(
 class TestFunnelAllAndReachAll:
     @pytest.mark.asyncio
     async def test_funnel_all_sums_across_all_campaigns(
-        self, db, tenant_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         port = _StubOfferReadPort([])
         c1 = make_campaign(db, tenant_id=tenant_id, external_id="c1", name="One")
@@ -169,7 +175,8 @@ class TestFunnelAllAndReachAll:
         assert by_metric["clicks"].value == 150.0
         # clicks conv rate from previous (impressions)
         assert by_metric["clicks"].conversion_rate_from_previous == round(
-            150 / 3000 * 100, 2
+            150 / 3000 * 100,
+            2,
         )
         # first step has None conversion rate
         assert by_metric["impressions"].conversion_rate_from_previous is None
@@ -208,7 +215,12 @@ class TestFunnelAllAndReachAll:
 class TestPerOfferReach:
     @pytest.mark.asyncio
     async def test_single_campaign_offer_reads_reach_from_period_metrics(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -219,7 +231,10 @@ class TestPerOfferReach:
         )
         port = _StubOfferReadPort([offer])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Sales"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Sales",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -269,7 +284,12 @@ class TestPerOfferReach:
 
     @pytest.mark.asyncio
     async def test_multi_campaign_offer_reach_is_none(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -318,7 +338,12 @@ class TestPerOfferReach:
 
     @pytest.mark.asyncio
     async def test_offer_with_one_campaign_no_period_row_reach_none(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -329,7 +354,10 @@ class TestPerOfferReach:
         )
         port = _StubOfferReadPort([offer])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Sales"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Sales",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -357,7 +385,12 @@ class TestPerOfferReach:
 class TestOfferAggregateSecondaryMetrics:
     @pytest.mark.asyncio
     async def test_ctr_cpm_cpc_computed_on_offer(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -368,7 +401,10 @@ class TestOfferAggregateSecondaryMetrics:
         )
         port = _StubOfferReadPort([offer])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Sales"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Sales",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -418,11 +454,18 @@ class TestOfferAggregateSecondaryMetrics:
 class TestBrandingAggregate:
     @pytest.mark.asyncio
     async def test_branding_computes_ctr_cpm_cpc_and_funnel(
-        self, db, tenant_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         port = _StubOfferReadPort([])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="br1", name="Brand"
+            db,
+            tenant_id=tenant_id,
+            external_id="br1",
+            name="Brand",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -475,11 +518,18 @@ class TestBrandingAggregate:
 class TestUnassignedAggregate:
     @pytest.mark.asyncio
     async def test_unassigned_computes_ctr_cpm_cpc_and_funnel(
-        self, db, tenant_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         port = _StubOfferReadPort([])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="u1", name="Sin asignar"
+            db,
+            tenant_id=tenant_id,
+            external_id="u1",
+            name="Sin asignar",
         )
         today = date.today()
         make_metric(
@@ -523,7 +573,12 @@ class TestUnassignedAggregate:
 class TestRoasAndPixelOff:
     @pytest.mark.asyncio
     async def test_purchase_offer_with_zero_conversions_has_null_roas(
-        self, db, tenant_id, offer_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         offer = _offer(
             tenant_id,
@@ -534,7 +589,10 @@ class TestRoasAndPixelOff:
         )
         port = _StubOfferReadPort([offer])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c1", name="Sales"
+            db,
+            tenant_id=tenant_id,
+            external_id="c1",
+            name="Sales",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -564,7 +622,13 @@ class TestRoasAndPixelOff:
 
     @pytest.mark.asyncio
     async def test_metric_not_supported_branch(
-        self, db, tenant_id, offer_id, make_campaign, make_metric, monkeypatch
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_campaign,
+        make_metric,
+        monkeypatch,
     ) -> None:
         """If an offer's expected metric is not in `_PRIMARY_METRIC_CONFIG`,
         the service must surface `metric_not_supported` (vs. `no_events_reported`).
@@ -591,7 +655,10 @@ class TestRoasAndPixelOff:
         )
         port = _StubOfferReadPort([offer])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="cu", name="Unsup"
+            db,
+            tenant_id=tenant_id,
+            external_id="cu",
+            name="Unsup",
         )
         AssociationRepository(db).create(
             tenant_id=tenant_id,
@@ -664,14 +731,18 @@ class TestReachWindowOverlap:
 
         svc = MetricsByOfferService(db, port)
         result = await svc.run(
-            tenant_id, period="7d", tenant_locale=TenantLocale.default()
+            tenant_id,
+            period="7d",
+            tenant_locale=TenantLocale.default(),
         )
 
         assert result.reach_all == 12000.0
 
     @pytest.mark.asyncio
     async def test_monthly_row_straddling_window_boundary_still_matches(
-        self, db, tenant_id
+        self,
+        db,
+        tenant_id,
     ) -> None:
         """A row whose period starts before the window and ends inside it still matches."""
         port = _StubOfferReadPort([])
@@ -691,7 +762,9 @@ class TestReachWindowOverlap:
 
         svc = MetricsByOfferService(db, port)
         result = await svc.run(
-            tenant_id, period="30d", tenant_locale=TenantLocale.default()
+            tenant_id,
+            period="30d",
+            tenant_locale=TenantLocale.default(),
         )
 
         assert result.reach_all == 8500.0
@@ -715,7 +788,9 @@ class TestReachWindowOverlap:
 
         svc = MetricsByOfferService(db, port)
         result = await svc.run(
-            tenant_id, period="30d", tenant_locale=TenantLocale.default()
+            tenant_id,
+            period="30d",
+            tenant_locale=TenantLocale.default(),
         )
 
         # The 30d window is [today-29, today] — no overlap with 100-95d ago.
@@ -732,7 +807,11 @@ class TestTenantLocaleTimezoneThroughService:
 
     @pytest.mark.asyncio
     async def test_lima_locale_changes_period_window(
-        self, db, tenant_id, make_campaign, make_metric
+        self,
+        db,
+        tenant_id,
+        make_campaign,
+        make_metric,
     ) -> None:
         """Row dated 'today in Lima' but 'tomorrow in UTC' must still be included
         when the tenant_locale is America/Lima.
@@ -747,7 +826,10 @@ class TestTenantLocaleTimezoneThroughService:
         """
         port = _StubOfferReadPort([])
         campaign = make_campaign(
-            db, tenant_id=tenant_id, external_id="c-lima", name="Lima Campaign"
+            db,
+            tenant_id=tenant_id,
+            external_id="c-lima",
+            name="Lima Campaign",
         )
         today = date.today()
         make_metric(

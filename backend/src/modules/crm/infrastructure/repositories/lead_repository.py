@@ -73,7 +73,10 @@ class LeadRepository:
         return None
 
     def get_by_channel_id(
-        self, channel: str, channel_id: str, tenant_id: UUID
+        self,
+        channel: str,
+        channel_id: str,
+        tenant_id: UUID,
     ) -> Lead | None:
         """
         Generic fetch by channel ID (telegram_id, whatsapp_id, etc.)
@@ -97,7 +100,10 @@ class LeadRepository:
         return None
 
     def get_high_intent_leads(
-        self, tenant_id: UUID, min_score: int = 50, limit: int = 20
+        self,
+        tenant_id: UUID,
+        min_score: int = 50,
+        limit: int = 20,
     ) -> list[Lead]:
         models = (
             self.db.execute(
@@ -108,7 +114,7 @@ class LeadRepository:
                     LeadModel.is_blacklisted.is_(False),
                 )
                 .order_by(desc(LeadModel.intent_score))
-                .limit(limit)
+                .limit(limit),
             )
             .scalars()
             .all()

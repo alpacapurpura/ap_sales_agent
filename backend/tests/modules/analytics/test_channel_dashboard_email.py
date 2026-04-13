@@ -149,7 +149,9 @@ class TestEmailBenchmarks:
         ],
     )
     def test_benchmark_exists_and_median(
-        self, metric_name: str, expected_median: float
+        self,
+        metric_name: str,
+        expected_median: float,
     ) -> None:
         entry = get_benchmarks(IndustryCategory.GENERAL, metric_name)
         assert entry is not None, f"No benchmark for {metric_name}"

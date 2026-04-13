@@ -113,7 +113,9 @@ class OfferExtractionService:
             raise
 
     def _append_schema_instruction(
-        self, prompt: str, schema_model: type[BaseModel]
+        self,
+        prompt: str,
+        schema_model: type[BaseModel],
     ) -> str:
         schema_json = json.dumps(schema_model.model_json_schema(), indent=2)
         return f"{prompt}\n\nSCHEMA:\n{schema_json}\n\nReturn a valid JSON object matching this schema."
@@ -142,7 +144,8 @@ class OfferExtractionService:
                     action_name=action_name,
                     tenant_id=self.tenant_id,
                     system_prompt=self._append_schema_instruction(
-                        prompt, response_model
+                        prompt,
+                        response_model,
                     ),
                     user_prompt=user_prompt,
                     response_model=response_model,
@@ -191,7 +194,11 @@ class OfferExtractionService:
         archetype: str | None,
     ) -> OfferPromiseUpdate:
         prompt = self._render_prompt(
-            "offer_extract_promise", content, current_data, instructions, archetype
+            "offer_extract_promise",
+            content,
+            current_data,
+            instructions,
+            archetype,
         )
         return await self._run_section(
             "promise",
@@ -210,7 +217,11 @@ class OfferExtractionService:
         archetype: str | None,
     ) -> OfferPsychologyUpdate:
         prompt = self._render_prompt(
-            "offer_extract_psychology", content, current_data, instructions, archetype
+            "offer_extract_psychology",
+            content,
+            current_data,
+            instructions,
+            archetype,
         )
         return await self._run_section(
             "psychology",
@@ -229,7 +240,11 @@ class OfferExtractionService:
         archetype: str | None,
     ) -> OfferStrategyUpdate:
         prompt = self._render_prompt(
-            "offer_extract_strategy", content, current_data, instructions, archetype
+            "offer_extract_strategy",
+            content,
+            current_data,
+            instructions,
+            archetype,
         )
         return await self._run_section(
             "strategy",
@@ -248,7 +263,11 @@ class OfferExtractionService:
         archetype: str | None,
     ) -> OfferValueStackUpdate:
         prompt = self._render_prompt(
-            "offer_extract_value_stack", content, current_data, instructions, archetype
+            "offer_extract_value_stack",
+            content,
+            current_data,
+            instructions,
+            archetype,
         )
         return await self._run_section(
             "value_stack",
@@ -267,7 +286,11 @@ class OfferExtractionService:
         archetype: str | None,
     ) -> OfferClosingUpdate:
         prompt = self._render_prompt(
-            "offer_extract_closing", content, current_data, instructions, archetype
+            "offer_extract_closing",
+            content,
+            current_data,
+            instructions,
+            archetype,
         )
         return await self._run_section(
             "closing",
@@ -286,7 +309,11 @@ class OfferExtractionService:
         archetype: str | None,
     ) -> OfferDetailsUpdate:
         prompt = self._render_prompt(
-            "offer_extract_details", content, current_data, instructions, archetype
+            "offer_extract_details",
+            content,
+            current_data,
+            instructions,
+            archetype,
         )
         return await self._run_section(
             "details",
@@ -362,7 +389,10 @@ class OfferExtractionService:
             self._extract_promise(content, current_data_str, instructions, archetype),
             self._extract_strategy(content, current_data_str, instructions, archetype),
             self._extract_psychology(
-                content, current_data_str, instructions, archetype
+                content,
+                current_data_str,
+                instructions,
+                archetype,
             ),
             return_exceptions=True,
         )
@@ -385,7 +415,10 @@ class OfferExtractionService:
 
         wave2_results = await asyncio.gather(
             self._extract_value_stack(
-                content, current_data_str, instructions, archetype
+                content,
+                current_data_str,
+                instructions,
+                archetype,
             ),
             self._extract_closing(content, current_data_str, instructions, archetype),
             self._extract_details(content, current_data_str, instructions, archetype),

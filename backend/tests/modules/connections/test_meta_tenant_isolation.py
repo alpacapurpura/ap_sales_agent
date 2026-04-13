@@ -45,13 +45,13 @@ class TestSequentialTenantIsolation:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User"
+                "src.modules.connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
             # Create two adapters with different tokens
@@ -134,13 +134,13 @@ class TestConcurrentTenantIsolation:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User"
+                "src.modules.connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
             api_a = MagicMock()
@@ -211,13 +211,13 @@ class TestConcurrentTenantIsolation:
 
         with (
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi"
+                "src.modules.connections.infrastructure.channels.meta.FacebookAdsApi",
             ) as mock_api_class,
             patch(
-                "src.modules.connections.infrastructure.channels.meta.FacebookSession"
+                "src.modules.connections.infrastructure.channels.meta.FacebookSession",
             ),
             patch(
-                "src.modules.connections.infrastructure.channels.meta.User"
+                "src.modules.connections.infrastructure.channels.meta.User",
             ) as mock_user_class,
         ):
 

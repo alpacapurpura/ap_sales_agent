@@ -19,13 +19,15 @@ class ChannelCostSettingModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     channel_slug = Column(
-        String, nullable=False
+        String,
+        nullable=False,
     )  # "mailerlite", "whatsapp-inbound", etc.
     cost_type = Column(String, nullable=False)  # "platform", "agency", "tool", "llm"
     monthly_amount = Column(Float, nullable=False)
     currency = Column(String(3), default="USD")
     proration_category = Column(
-        String, nullable=True
+        String,
+        nullable=True,
     )  # "organic_management", "paid_management", "video", "full_service"
     description = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)

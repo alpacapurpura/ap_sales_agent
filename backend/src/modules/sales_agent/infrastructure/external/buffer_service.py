@@ -27,7 +27,11 @@ class SmartBufferService:
         return f"chat:lock:{user_id}"
 
     def add_message(
-        self, user_id: str, text: str, channel_type: str, metadata: dict = None
+        self,
+        user_id: str,
+        text: str,
+        channel_type: str,
+        metadata: dict = None,
     ):
         """
         Appends a message to the user's buffer and updates the last timestamp.
@@ -84,7 +88,7 @@ class SmartBufferService:
         Tries to acquire a lock for processing. Returns True if acquired.
         """
         return bool(
-            self.redis.set(self._key_lock(user_id), "locked", ex=expire, nx=True)
+            self.redis.set(self._key_lock(user_id), "locked", ex=expire, nx=True),
         )
 
     def release_lock(self, user_id: str):

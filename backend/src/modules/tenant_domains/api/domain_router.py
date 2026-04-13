@@ -75,7 +75,8 @@ async def create_domain(
     except Exception:
         logger.exception("domain_create_failed", tenant_id=str(user.tenant_id))
         raise HTTPException(
-            status_code=500, detail="Internal error creating domain"
+            status_code=500,
+            detail="Internal error creating domain",
         ) from None
     return _to_response(domain)
 
@@ -112,7 +113,8 @@ async def set_primary(
 ) -> DomainResponse:
     if not body.is_primary:
         raise HTTPException(
-            status_code=400, detail="Use is_primary=true to set a domain as primary"
+            status_code=400,
+            detail="Use is_primary=true to set a domain as primary",
         )
     service = DomainService(db)
     try:
@@ -149,7 +151,8 @@ async def verify_domain(
     except Exception as e:
         logger.error("domain_verify_error", error=str(e), domain_id=str(domain_id))
         raise HTTPException(
-            status_code=502, detail="Cloudflare verification failed"
+            status_code=502,
+            detail="Cloudflare verification failed",
         ) from e
     return _to_response(domain)
 
@@ -163,7 +166,8 @@ async def get_domain_instructions(
     """Return DNS setup instructions for a custom domain."""
     service = DomainService(db)
     domain = service.get_domain_instructions(
-        domain_id=domain_id, tenant_id=user.tenant_id
+        domain_id=domain_id,
+        tenant_id=user.tenant_id,
     )
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")

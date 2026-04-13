@@ -24,7 +24,7 @@ class BrandVisuals(BaseEntity):
         None  # {success, error, warning, info}
     )
     gradient_definitions: list[str] = Field(
-        default_factory=list
+        default_factory=list,
     )  # CSS gradient strings
     color_usage_rules: str | None = None  # 60-30-10 distribution rules
 
@@ -71,19 +71,23 @@ class BrandIdentity(BaseEntity):
     # --- Identity ---
     brand_name: str | None = Field(None, description="The name of the brand.")
     industry: str | None = Field(
-        None, description="The industry or category of the brand."
+        None,
+        description="The industry or category of the brand.",
     )
     tagline: str | None = Field(None, description="Brand tagline or slogan.")
     description: str | None = Field(
-        None, description="Positioning statement (2-3 sentences)."
+        None,
+        description="Positioning statement (2-3 sentences).",
     )
     founding_year: str | None = Field(None, description="Year the brand was founded.")
     website: str | None = Field(None, description="Canonical website URL.")
     language: str | None = Field(
-        None, description="Primary language code (e.g. 'es', 'en')."
+        None,
+        description="Primary language code (e.g. 'es', 'en').",
     )
     timezone: str | None = Field(
-        None, description="Operational timezone (e.g. 'America/Mexico_City')."
+        None,
+        description="Operational timezone (e.g. 'America/Mexico_City').",
     )
     voice_tone: str | None = Field(
         None,
@@ -93,7 +97,8 @@ class BrandIdentity(BaseEntity):
     tax_id: str | None = Field(None, description="Tax ID (RFC, NIF, CUIT, EIN).")
     fiscal_address: str | None = Field(None, description="Fiscal address.")
     legal_representative: str | None = Field(
-        None, description="Legal representative name."
+        None,
+        description="Legal representative name.",
     )
     terms_url: str | None = Field(None, description="Terms and conditions URL.")
     privacy_url: str | None = Field(None, description="Privacy policy URL.")

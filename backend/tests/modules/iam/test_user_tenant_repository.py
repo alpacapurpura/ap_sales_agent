@@ -10,7 +10,10 @@ from src.modules.iam.infrastructure.repositories.user_tenant_repository import (
 
 class TestUserTenantRepository:
     def test_get_tenants_for_user_returns_linked_tenant(
-        self, db, seed_user_tenant_link, user_id
+        self,
+        db,
+        seed_user_tenant_link,
+        user_id,
     ):
         repo = UserTenantRepository(db)
         results = repo.get_tenants_for_user(user_id)
@@ -20,7 +23,11 @@ class TestUserTenantRepository:
         assert role == "admin"
 
     def test_get_tenants_for_user_returns_correct_tenant(
-        self, db, seed_user_tenant_link, user_id, tenant_id
+        self,
+        db,
+        seed_user_tenant_link,
+        user_id,
+        tenant_id,
     ):
         repo = UserTenantRepository(db)
         results = repo.get_tenants_for_user(user_id)
@@ -35,7 +42,12 @@ class TestUserTenantRepository:
         assert results == []
 
     def test_get_tenants_for_user_only_active_links(
-        self, db, seed_user, seed_tenant, user_id, tenant_id
+        self,
+        db,
+        seed_user,
+        seed_tenant,
+        user_id,
+        tenant_id,
     ):
         """Inactive user-tenant links must be excluded."""
         from src.modules.iam.infrastructure.models.user_tenant_model import (
@@ -57,7 +69,11 @@ class TestUserTenantRepository:
         assert results == []
 
     def test_get_tenants_for_user_only_active_tenants(
-        self, db, seed_user, user_id, tenant_id
+        self,
+        db,
+        seed_user,
+        user_id,
+        tenant_id,
     ):
         """Links to inactive tenants must be excluded."""
         from src.modules.iam.infrastructure.models.user_tenant_model import (

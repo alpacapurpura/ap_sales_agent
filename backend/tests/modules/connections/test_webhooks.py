@@ -39,7 +39,7 @@ def generate_meta_signature(secret, body):
 @pytest.fixture
 def mock_settings():
     with patch(
-        "src.modules.connections.api.dependencies.webhook_security.settings"
+        "src.modules.connections.api.dependencies.webhook_security.settings",
     ) as mock:
         mock.SHOPIFY_API_SECRET = "test_shopify_secret"  # noqa: S105
         mock.META_APP_SECRET = "test_meta_secret"  # noqa: S105
@@ -68,7 +68,9 @@ def test_shopify_signature_valid(client, mock_settings, mock_db):
 
     # Note: Using the actual mounted path found in main.py
     response = client.post(
-        "/api/v1/connections/marketing-webhooks/shopify", content=body, headers=headers
+        "/api/v1/connections/marketing-webhooks/shopify",
+        content=body,
+        headers=headers,
     )
 
     # Valid signature must not return 401 (signature error)
@@ -86,7 +88,9 @@ def test_shopify_signature_invalid(client, mock_settings, mock_db):
     }
 
     response = client.post(
-        "/api/v1/connections/marketing-webhooks/shopify", content=body, headers=headers
+        "/api/v1/connections/marketing-webhooks/shopify",
+        content=body,
+        headers=headers,
     )
 
     # Expect 401 per implementation in webhook_security.py
@@ -202,7 +206,9 @@ def test_meta_signature_valid(client, mock_settings, mock_db):
     headers = {"X-Hub-Signature-256": signature, "Content-Type": "application/json"}
 
     response = client.post(
-        "/api/v1/connections/meta/webhook", content=body, headers=headers
+        "/api/v1/connections/meta/webhook",
+        content=body,
+        headers=headers,
     )
 
     assert response.status_code == 200
@@ -219,7 +225,9 @@ def test_meta_signature_invalid(client, mock_settings, mock_db):
     }
 
     response = client.post(
-        "/api/v1/connections/meta/webhook", content=body, headers=headers
+        "/api/v1/connections/meta/webhook",
+        content=body,
+        headers=headers,
     )
 
     # Expect 401 per implementation in webhook_security.py

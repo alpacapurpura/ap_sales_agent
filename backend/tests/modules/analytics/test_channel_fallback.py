@@ -94,7 +94,10 @@ class TestGetAvailableChannels:
 
     @pytest.mark.asyncio
     async def test_connected_channels_listed_first(
-        self, registry, mock_connection_port, tenant_id
+        self,
+        registry,
+        mock_connection_port,
+        tenant_id,
     ):
         """Connected channels appear in the 'connected' list."""
         mock_connection_port.list_active_connections.return_value = [
@@ -112,7 +115,10 @@ class TestGetAvailableChannels:
 
     @pytest.mark.asyncio
     async def test_disconnected_channels_have_configurar_badge(
-        self, registry, mock_connection_port, tenant_id
+        self,
+        registry,
+        mock_connection_port,
+        tenant_id,
     ):
         """Channels not connected show badge_type='configurar'."""
         # No connections at all
@@ -127,7 +133,10 @@ class TestGetAvailableChannels:
 
     @pytest.mark.asyncio
     async def test_connected_channels_marked_true(
-        self, registry, mock_connection_port, tenant_id
+        self,
+        registry,
+        mock_connection_port,
+        tenant_id,
     ):
         """Connected channels have connected=True."""
         mock_connection_port.list_active_connections.return_value = [
@@ -147,7 +156,10 @@ class TestGetAvailableChannels:
 
     @pytest.mark.asyncio
     async def test_all_channels_accounted_for(
-        self, registry, mock_connection_port, tenant_id
+        self,
+        registry,
+        mock_connection_port,
+        tenant_id,
     ):
         """Total of connected + available equals total stage channels."""
         mock_connection_port.list_active_connections.return_value = [

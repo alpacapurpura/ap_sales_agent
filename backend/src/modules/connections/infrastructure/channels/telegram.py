@@ -55,7 +55,10 @@ class TelegramChannel(BaseChannel):
         }
 
         return IncomingMessage(
-            user_id=user_id, text=text, channel_type="telegram", metadata=metadata
+            user_id=user_id,
+            text=text,
+            channel_type="telegram",
+            metadata=metadata,
         )
 
     async def send_message(self, message: OutgoingMessage) -> dict[str, Any]:
@@ -87,7 +90,7 @@ class TelegramChannel(BaseChannel):
                 # If 400 Bad Request (likely Markdown error), retry as plain text
                 if e.response.status_code == 400:
                     logger.warning(
-                        f"Telegram Markdown send failed ({e}), retrying as plain text..."
+                        f"Telegram Markdown send failed ({e}), retrying as plain text...",
                     )
                     payload.pop("parse_mode")
                     retry_response = await client.post(url, json=payload, timeout=10.0)

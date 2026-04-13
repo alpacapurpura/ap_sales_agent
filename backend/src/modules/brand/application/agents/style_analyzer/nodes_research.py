@@ -27,7 +27,7 @@ def node_researcher(state: OnboardingState) -> dict[str, Any]:
 
     try:
         search_results = _research_service.search(
-            f"site:{target_url} OR related:{target_url}"
+            f"site:{target_url} OR related:{target_url}",
         )
         page_analysis = _research_service.analyze_url(target_url)
         summary = f"Landing Page Analysis:\n{page_analysis}\n\nSearch Context:\n{search_results}"

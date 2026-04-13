@@ -114,12 +114,14 @@ async def oauth_callback(
     except Exception as e:
         logger.error("youtube_oauth_exchange_failed", error=str(e))
         raise HTTPException(
-            status_code=400, detail=f"Error de autenticacion con Google: {e!s}"
+            status_code=400,
+            detail=f"Error de autenticacion con Google: {e!s}",
         ) from e
 
     try:
         authenticated_adapter = YoutubeAdapter(
-            client_config=client_config, credentials_data=creds_data
+            client_config=client_config,
+            credentials_data=creds_data,
         )
         channel_info = authenticated_adapter.get_channel_info()
         channel_id = channel_info.get("id")
@@ -204,7 +206,8 @@ async def test_connection(
 
     try:
         adapter = YoutubeAdapter(
-            client_config=client_config, credentials_data=connection.credentials
+            client_config=client_config,
+            credentials_data=connection.credentials,
         )
         channel_info = adapter.get_channel_info()
         return {"status": "ok", "message": "Conexion exitosa", "data": channel_info}

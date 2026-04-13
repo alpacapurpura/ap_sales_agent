@@ -6,7 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field
 class ExtractRequest(BaseModel):
     url: str = Field(..., description="URL to scrape")
     type: Literal["brand_identity"] = Field(
-        "brand_identity", description="Type of extraction to perform"
+        "brand_identity",
+        description="Type of extraction to perform",
     )
 
 

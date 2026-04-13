@@ -10,7 +10,8 @@ from src.shared.domain.base_entity import BaseEntity
 class ExtractRequest(BaseEntity):
     url: str = Field(..., description="URL to scrape")
     type: Literal["brand_identity"] = Field(
-        "brand_identity", description="Type of extraction to perform"
+        "brand_identity",
+        description="Type of extraction to perform",
     )
 
 

@@ -42,13 +42,14 @@ class MailerliteConnector(BaseConnector):
                 if response.status_code == 200:
                     return True, response.json()
                 return False, {
-                    "error": f"Status: {response.status_code}, Body: {response.text}"
+                    "error": f"Status: {response.status_code}, Body: {response.text}",
                 }
         except Exception as e:
             return False, {"error": str(e)}
 
     async def get_recent_campaign_activity(
-        self, hours: int = 7
+        self,
+        hours: int = 7,
     ) -> list[dict[str, Any]]:
         """
         Fetch recent campaign subscriber activity (opens/clicks) from Mailerlite API.
@@ -136,7 +137,7 @@ class MailerliteConnector(BaseConnector):
                                     "campaign_id": str(campaign_id),
                                     "campaign_name": campaign_name,
                                     "event_type": event_type,
-                                }
+                                },
                             )
 
         except httpx.HTTPError as e:

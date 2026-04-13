@@ -185,7 +185,7 @@ class GoogleAdsAdapter:
             from google.ads.googleads.client import GoogleAdsClient
         except ImportError:
             logger.warning(
-                "google_ads_package_not_installed - install google-ads to enable Google Ads provider"
+                "google_ads_package_not_installed - install google-ads to enable Google Ads provider",
             )
             return []
 

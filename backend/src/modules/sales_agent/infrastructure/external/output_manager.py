@@ -52,7 +52,9 @@ class OutputManager:
         chunks = cls._parse_response(raw_response, channel_type=channel_type)
 
         logger.info(
-            "processing_response_chunks", user_id=user_id, chunks_count=len(chunks)
+            "processing_response_chunks",
+            user_id=user_id,
+            chunks_count=len(chunks),
         )
 
         for i, chunk in enumerate(chunks):
@@ -119,7 +121,10 @@ class OutputManager:
         # 2. Remove markdown code blocks if present
         if cleaned.startswith("```"):
             cleaned = re.sub(
-                r"^```(?:json)?\s*|\s*```$", "", cleaned, flags=re.MULTILINE
+                r"^```(?:json)?\s*|\s*```$",
+                "",
+                cleaned,
+                flags=re.MULTILINE,
             ).strip()
 
         # 3. Try JSON array first (backward compat)

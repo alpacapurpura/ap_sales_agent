@@ -22,7 +22,7 @@ class UserTenantRepository:
             .join(UserTenantModel, TenantModel.id == UserTenantModel.tenant_id)
             .where(UserTenantModel.user_id == user_id)
             .where(UserTenantModel.is_active.is_(True))
-            .where(TenantModel.is_active.is_(True))
+            .where(TenantModel.is_active.is_(True)),
         ).all()
 
         return [(Tenant.model_validate(tenant), role) for tenant, role in results]

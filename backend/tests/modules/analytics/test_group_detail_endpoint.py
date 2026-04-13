@@ -72,7 +72,9 @@ class TestGroupDetailEndpoint:
 
     @pytest.mark.asyncio
     async def test_returns_channels_and_totals(
-        self, test_tenant_id, sample_attraction_cache
+        self,
+        test_tenant_id,
+        sample_attraction_cache,
     ):
         mock_cache = AsyncMock()
         # Group cache miss, stage cache hit
@@ -81,7 +83,10 @@ class TestGroupDetailEndpoint:
         service = GroupDetailService(cache=mock_cache)
 
         result = await service.get_group_detail(
-            test_tenant_id, "attraction", "paid", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "paid",
+            "last_30_days",
         )
 
         assert isinstance(result, GroupDetailDTO)
@@ -94,7 +99,9 @@ class TestGroupDetailEndpoint:
 
     @pytest.mark.asyncio
     async def test_returns_empty_for_unknown_group(
-        self, test_tenant_id, sample_attraction_cache
+        self,
+        test_tenant_id,
+        sample_attraction_cache,
     ):
         mock_cache = AsyncMock()
         mock_cache.get = AsyncMock(side_effect=[None, sample_attraction_cache])
@@ -102,7 +109,10 @@ class TestGroupDetailEndpoint:
         service = GroupDetailService(cache=mock_cache)
 
         result = await service.get_group_detail(
-            test_tenant_id, "attraction", "nonexistent", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "nonexistent",
+            "last_30_days",
         )
 
         assert result.channels == []
@@ -139,7 +149,9 @@ class TestGroupDetailEndpoint:
 
     @pytest.mark.asyncio
     async def test_channel_dto_has_correct_metrics(
-        self, test_tenant_id, sample_attraction_cache
+        self,
+        test_tenant_id,
+        sample_attraction_cache,
     ):
         mock_cache = AsyncMock()
         mock_cache.get = AsyncMock(side_effect=[None, sample_attraction_cache])
@@ -147,7 +159,10 @@ class TestGroupDetailEndpoint:
         service = GroupDetailService(cache=mock_cache)
 
         result = await service.get_group_detail(
-            test_tenant_id, "attraction", "paid", "last_30_days"
+            test_tenant_id,
+            "attraction",
+            "paid",
+            "last_30_days",
         )
 
         channel = result.channels[0]

@@ -65,12 +65,15 @@ class TestExtractMetaAdsByAd:
                 [
                     _ad_insight_row("ad_001", "Video Testimonio"),
                     _ad_insight_row("ad_002", "Carrusel Beneficios"),
-                ]
-            )
+                ],
+            ),
         )
 
         metrics = await provider._extract_meta_ads_by_ad(
-            mock_client, credentials, date(2026, 3, 1), date(2026, 3, 31)
+            mock_client,
+            credentials,
+            date(2026, 3, 1),
+            date(2026, 3, 31),
         )
 
         # Should have metrics for both ads
@@ -93,7 +96,10 @@ class TestExtractMetaAdsByAd:
         mock_client = AsyncMock()
 
         metrics = await provider._extract_meta_ads_by_ad(
-            mock_client, credentials, date(2026, 3, 1), date(2026, 3, 31)
+            mock_client,
+            credentials,
+            date(2026, 3, 1),
+            date(2026, 3, 31),
         )
         assert metrics == []
 
@@ -109,7 +115,10 @@ class TestExtractMetaAdsByAd:
         mock_client.get = AsyncMock(return_value=_ok_response([]))
 
         await provider._extract_meta_ads_by_ad(
-            mock_client, credentials, date(2026, 3, 1), date(2026, 3, 31)
+            mock_client,
+            credentials,
+            date(2026, 3, 1),
+            date(2026, 3, 31),
         )
 
         call_args = mock_client.get.call_args
@@ -138,12 +147,15 @@ class TestExtractMetaAdsByAd:
                         "Video Testimonio",
                         campaign_id="camp_777",
                     ),
-                ]
-            )
+                ],
+            ),
         )
 
         metrics = await provider._extract_meta_ads_by_ad(
-            mock_client, credentials, date(2026, 3, 1), date(2026, 3, 31)
+            mock_client,
+            credentials,
+            date(2026, 3, 1),
+            date(2026, 3, 31),
         )
 
         # All returned metrics must carry both ad_id and campaign_id
@@ -174,7 +186,9 @@ class TestParseAdsRowDate:
         }
 
         metrics = MetaProvider._parse_ads_row(
-            row, currency="USD", metric_date=date(2026, 4, 8)
+            row,
+            currency="USD",
+            metric_date=date(2026, 4, 8),
         )
 
         assert len(metrics) > 0
@@ -189,7 +203,9 @@ class TestParseAdsRowDate:
         }
 
         metrics = MetaProvider._parse_ads_row(
-            row, currency="USD", metric_date=date(2026, 4, 8)
+            row,
+            currency="USD",
+            metric_date=date(2026, 4, 8),
         )
 
         assert len(metrics) > 0
@@ -204,7 +220,9 @@ class TestParseAdsRowDate:
         }
 
         metrics = MetaProvider._parse_ads_row(
-            row, currency="USD", metric_date=date(2026, 4, 8)
+            row,
+            currency="USD",
+            metric_date=date(2026, 4, 8),
         )
 
         assert len(metrics) > 0

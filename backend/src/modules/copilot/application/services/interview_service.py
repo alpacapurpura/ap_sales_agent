@@ -152,7 +152,11 @@ class InterviewService:
         return self.session_repo.get_by_id(session_id, tenant_id)
 
     def update_mapa_global(
-        self, *, session_id: UUID, tenant_id: UUID, delta: dict
+        self,
+        *,
+        session_id: UUID,
+        tenant_id: UUID,
+        delta: dict,
     ) -> None:
         """Merge delta into the session's mapa_global and persist."""
         session = self.session_repo.get_by_id(session_id, tenant_id)

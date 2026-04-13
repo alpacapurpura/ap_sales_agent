@@ -141,7 +141,8 @@ class OfferDetectionService:
 
     @staticmethod
     def _find_offer_by_url(
-        ad_url: str, offers: list[OfferReadDTO]
+        ad_url: str,
+        offers: list[OfferReadDTO],
     ) -> OfferReadDTO | None:
         for offer in offers:
             if offer.landing_page_url and urls_match(ad_url, offer.landing_page_url):
@@ -213,7 +214,8 @@ class OfferDetectionService:
 
     @staticmethod
     def _best_token_match(
-        text: str, offer_tokens: list[tuple[OfferReadDTO, set[str]]]
+        text: str,
+        offer_tokens: list[tuple[OfferReadDTO, set[str]]],
     ) -> tuple[OfferReadDTO, float] | None:
         text_tokens = tokenize_es(text)
         if not text_tokens:

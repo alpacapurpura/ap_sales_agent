@@ -263,7 +263,9 @@ class TestResolveDailyTimeseries:
         ]
         assert len(result["CPC"]) == 3
         for (d_actual, v_actual), (d_expected, v_expected) in zip(
-            result["CPC"], expected, strict=True
+            result["CPC"],
+            expected,
+            strict=True,
         ):
             assert d_actual == d_expected
             assert v_actual == v_expected
@@ -401,7 +403,8 @@ class TestResolveFromAggregated:
             "conversions": 10.0,
         }
         result = resolver.resolve_from_aggregated(
-            aggregated, ["spend", "CPC", "CTR", "CPA"]
+            aggregated,
+            ["spend", "CPC", "CTR", "CPA"],
         )
         assert result["spend"] == 300.0
         assert result["CPC"] == pytest.approx(5.0)
@@ -461,7 +464,8 @@ class TestResolveDailyFetchMetrics:
 
         resolver = MetricResolver()
         result = ChannelDashboardService._resolve_daily_fetch_metrics(
-            resolver, ["spend"]
+            resolver,
+            ["spend"],
         )
         assert "spend" in result
         assert len(result) == 1
@@ -485,7 +489,8 @@ class TestResolveDailyFetchMetrics:
             "CPL",
         ]
         result = ChannelDashboardService._resolve_daily_fetch_metrics(
-            resolver, timeseries
+            resolver,
+            timeseries,
         )
         # Must include base metrics
         for base in ["spend", "impressions", "clicks", "reach", "conversions"]:

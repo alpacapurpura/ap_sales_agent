@@ -97,7 +97,7 @@ class TestOfferExtractionStatusEndpoint:
                 "progress": 50,
                 "stage": "Analizando promesa...",
                 "started_at": "2026-04-06T10:00:00",
-            }
+            },
         )
 
         mock_redis.get.return_value = redis_data
@@ -125,6 +125,6 @@ class TestOfferExtractionStatusEndpoint:
         app = _build_app()
         client = TestClient(app)
         response = client.get(
-            "/api/v1/offer/tools/extract-full-offer/status/not-a-uuid"
+            "/api/v1/offer/tools/extract-full-offer/status/not-a-uuid",
         )
         assert response.status_code == 400

@@ -40,7 +40,7 @@ async def test_generate_psychology_success():
             return_value="PROMPT_RENDERED",
         ) as render_mock,
         patch(
-            "src.modules.copilot.application.services.offer_psychology_service.AIActionService.run_structured_action"
+            "src.modules.copilot.application.services.offer_psychology_service.AIActionService.run_structured_action",
         ) as run_structured_action_mock,
     ):
         run_structured_action_mock.return_value = PsychologyGenerationResponse(

@@ -31,7 +31,9 @@ async def search_leads(
 
 @router.get("/{lead_id}", response_model=Lead)
 async def get_lead(
-    lead_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    lead_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """
     Get a specific lead by ID.

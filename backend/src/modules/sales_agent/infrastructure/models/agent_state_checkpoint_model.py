@@ -40,7 +40,10 @@ class AgentStateCheckpointModel(Base):
 
     # Question fatigue tracking (Fase 3)
     consecutive_questions = Column(
-        Integer, nullable=False, default=0, server_default="0"
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
     )
     follow_up_cadence = Column(JSONB, nullable=True)
 
@@ -63,7 +66,9 @@ class AgentStateCheckpointModel(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
     updated_at = Column(
         DateTime(timezone=True),

@@ -27,13 +27,16 @@ async def create_landing(
         raise HTTPException(status_code=400, detail="Slug is required")
 
     return service.create_landing(
-        user.tenant_id, slug, UUID(offer_id) if offer_id else None
+        user.tenant_id,
+        slug,
+        UUID(offer_id) if offer_id else None,
     )
 
 
 @router.get("/", response_model=list[LandingPage])
 def list_landings(
-    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     service = LandingService(db)
     return service.list_landings(user.tenant_id)
@@ -51,7 +54,8 @@ def get_landing(
     except ValueError:
         # If not a valid UUID, let it pass to next route or return 404
         raise HTTPException(
-            status_code=404, detail="Invalid Landing ID format"
+            status_code=404,
+            detail="Invalid Landing ID format",
         ) from None
 
     landing = service.get_landing(landing_uuid)
@@ -62,7 +66,9 @@ def get_landing(
 
 @router.get("/offer/{offer_id}", response_model=LandingPage)
 def get_landing_by_offer(
-    offer_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    offer_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     service = LandingService(db)
     try:
@@ -111,7 +117,8 @@ def update_landing(
         landing_uuid = UUID(landing_id)
     except ValueError:
         raise HTTPException(
-            status_code=400, detail="Invalid Landing ID format"
+            status_code=400,
+            detail="Invalid Landing ID format",
         ) from None
 
     # Check ownership
@@ -174,7 +181,8 @@ def update_offer_landing(
 
 
 @router.post(
-    "/{offer_id}/landing/ai/regenerate-block", response_model=RegenerateBlockResponse
+    "/{offer_id}/landing/ai/regenerate-block",
+    response_model=RegenerateBlockResponse,
 )
 def regenerate_block(
     offer_id: UUID,

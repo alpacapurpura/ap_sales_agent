@@ -147,7 +147,7 @@ def _get_meta_children(repo: ChannelConnectionRepository, tenant_id) -> list[dic
                 "details": {
                     k: v for k, v in cfg.items() if k != "parent_connection_id"
                 },
-            }
+            },
         )
     return result
 
@@ -163,7 +163,8 @@ async def get_channel_info(
     channel_types = _PROVIDER_CHANNEL_TYPES.get(provider)
     if not channel_types:
         raise HTTPException(
-            status_code=400, detail=f"Proveedor desconocido: {provider}"
+            status_code=400,
+            detail=f"Proveedor desconocido: {provider}",
         )
 
     # Find active connection

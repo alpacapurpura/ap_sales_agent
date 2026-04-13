@@ -53,7 +53,7 @@ class TestCreate:
         repo = OfferAssetRepository(db)
 
         created = repo.create(
-            _build_asset(tenant_a, offer_id, name="Flyer promo", source=AssetSource.AI)
+            _build_asset(tenant_a, offer_id, name="Flyer promo", source=AssetSource.AI),
         )
 
         assert created.id is not None
@@ -67,7 +67,9 @@ class TestCreate:
         assert created.metadata == {}
 
     def test_create_persists_metadata_and_prompt_params(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ):
         offer_id = _make_offer(db, tenant_a)
         repo = OfferAssetRepository(db)
@@ -91,7 +93,10 @@ class TestGetById:
         assert repo.get_by_id(tenant_a, offer_id, uuid.uuid4()) is None
 
     def test_enforces_tenant_isolation(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_a = _make_offer(db, tenant_a)
         repo = OfferAssetRepository(db)
@@ -111,7 +116,10 @@ class TestGetById:
 
 class TestList:
     def test_list_filters_by_tenant_and_offer(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_a = _make_offer(db, tenant_a)
         offer_b = _make_offer(db, tenant_b)
@@ -140,7 +148,7 @@ class TestList:
                 name="AI flyer",
                 type_=AssetType.FLYER,
                 source=AssetSource.AI,
-            )
+            ),
         )
         repo.create(
             _build_asset(
@@ -149,7 +157,7 @@ class TestList:
                 name="External video",
                 type_=AssetType.VIDEO,
                 source=AssetSource.EXTERNAL,
-            )
+            ),
         )
 
         items, total = repo.list(tenant_a, offer_id, type_=AssetType.VIDEO)
@@ -217,7 +225,9 @@ class TestUpdate:
 
 class TestSoftDelete:
     def test_soft_delete_returns_false_when_missing(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ):
         offer_id = _make_offer(db, tenant_a)
         repo = OfferAssetRepository(db)
@@ -225,7 +235,10 @@ class TestSoftDelete:
         assert repo.soft_delete(tenant_a, offer_id, uuid.uuid4()) is False
 
     def test_soft_delete_enforces_tenant(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_id = _make_offer(db, tenant_a)
         repo = OfferAssetRepository(db)
@@ -239,7 +252,10 @@ class TestSoftDelete:
 
 class TestCountByOffer:
     def test_counts_only_tenant_live(
-        self, db: Session, tenant_a: uuid.UUID, tenant_b: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
+        tenant_b: uuid.UUID,
     ):
         offer_a = _make_offer(db, tenant_a)
         offer_b = _make_offer(db, tenant_b)

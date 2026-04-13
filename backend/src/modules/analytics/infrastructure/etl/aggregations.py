@@ -94,7 +94,7 @@ def compute_aggregations(
                     period_end=d,
                     value=total,
                     **common,
-                )
+                ),
             )
 
         # Multi-period aggregations: only for ADDITIVE and SNAPSHOT.
@@ -181,7 +181,7 @@ def _append_multi_period_aggregations(
                     period_end=pe,
                     value=_aggregate_period_values(period_daily, agg_type),
                     **common,
-                )
+                ),
             )
 
     # Last 30 days aggregation
@@ -192,7 +192,7 @@ def _append_multi_period_aggregations(
             period_end=all_dates[-1],
             value=_aggregate_period_values(daily_by_date, agg_type),
             **common,
-        )
+        ),
     )
 
 

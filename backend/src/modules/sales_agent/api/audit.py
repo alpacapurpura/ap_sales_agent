@@ -52,7 +52,7 @@ def list_audit_leads(
             select(LeadModel, subq.c.last_activity)
             .join(subq, LeadModel.id == subq.c.lead_id)
             .order_by(subq.c.last_activity.desc())
-            .limit(30)
+            .limit(30),
         ).all()
 
     result = []
@@ -67,7 +67,7 @@ def list_audit_leads(
                     created_at=lead.created_at.isoformat() if lead.created_at else None,
                 ),
                 last_activity=last_activity.isoformat() if last_activity else None,
-            )
+            ),
         )
     return result
 
@@ -84,7 +84,7 @@ def get_lead_details(
             select(LeadModel).where(
                 LeadModel.id == UUID(lead_id),
                 LeadModel.tenant_id == user.tenant_id,
-            )
+            ),
         )
         .scalars()
         .first()
@@ -119,7 +119,7 @@ def get_lead_timeline(
             select(LeadModel).where(
                 LeadModel.id == UUID(lead_id),
                 LeadModel.tenant_id == user.tenant_id,
-            )
+            ),
         )
         .scalars()
         .first()
@@ -165,7 +165,7 @@ def clear_lead_history(
             select(LeadModel).where(
                 LeadModel.id == UUID(lead_id),
                 LeadModel.tenant_id == user.tenant_id,
-            )
+            ),
         )
         .scalars()
         .first()

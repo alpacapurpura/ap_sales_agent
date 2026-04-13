@@ -170,7 +170,7 @@ async def test_tenant_resolution_from_shop_domain():
     mock_db.execute.side_effect = [
         MagicMock(all=MagicMock(return_value=[(tenant_id,)])),
         MagicMock(
-            scalar_one_or_none=MagicMock(return_value={"shop_domain": shop_domain})
+            scalar_one_or_none=MagicMock(return_value={"shop_domain": shop_domain}),
         ),
     ]
 

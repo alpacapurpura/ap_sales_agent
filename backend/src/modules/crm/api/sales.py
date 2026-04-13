@@ -101,7 +101,8 @@ def create_sale(
 @router.get("/ticker", response_model=list[TickerItem])
 async def get_ticker(
     range_: Literal["today", "week", "30d", "all"] = Query(
-        default="30d", alias="range"
+        default="30d",
+        alias="range",
     ),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -131,8 +132,8 @@ async def get_ticker(
         customers = (
             db.execute(
                 select(CustomerProfileModel).where(
-                    CustomerProfileModel.id.in_(customer_ids)
-                )
+                    CustomerProfileModel.id.in_(customer_ids),
+                ),
             )
             .scalars()
             .all()

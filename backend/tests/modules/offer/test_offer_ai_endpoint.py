@@ -29,7 +29,7 @@ def test_offer_psychology_endpoint_keeps_contract():
             return_value=PsychologyGenerationResponse(
                 pains=["p1", "p2", "p3", "p4", "p5"],
                 desires=["d1", "d2", "d3", "d4", "d5"],
-            )
+            ),
         )
         service_cls.return_value = service_instance
 
@@ -57,7 +57,7 @@ def test_offer_psychology_endpoint_maps_value_error_to_404():
     with patch("src.modules.offer.api.offer_ai.OfferGeneratorService") as service_cls:
         service_instance = MagicMock()
         service_instance.generate_psychology = AsyncMock(
-            side_effect=ValueError("Avatar not found in this tenant")
+            side_effect=ValueError("Avatar not found in this tenant"),
         )
         service_cls.return_value = service_instance
 

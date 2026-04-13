@@ -38,7 +38,7 @@ class OpportunityMetricsRepository:
     ) -> int:
         """Count distinct profiles that transitioned TO SQL stage within period."""
         stmt = select(
-            func.count(func.distinct(LifecycleTransitionModel.profile_id))
+            func.count(func.distinct(LifecycleTransitionModel.profile_id)),
         ).where(
             LifecycleTransitionModel.tenant_id == tenant_id,
             LifecycleTransitionModel.to_stage == LifecycleStage.SQL,
@@ -56,7 +56,7 @@ class OpportunityMetricsRepository:
     ) -> int:
         """Count distinct profiles that transitioned TO MQL stage (mini funnel source)."""
         stmt = select(
-            func.count(func.distinct(LifecycleTransitionModel.profile_id))
+            func.count(func.distinct(LifecycleTransitionModel.profile_id)),
         ).where(
             LifecycleTransitionModel.tenant_id == tenant_id,
             LifecycleTransitionModel.to_stage == LifecycleStage.MQL,
@@ -111,13 +111,14 @@ class OpportunityMetricsRepository:
                         func.sum(
                             cast(
                                 func.jsonb_extract_path_text(
-                                    JourneyEventModel.properties, "total_price"
+                                    JourneyEventModel.properties,
+                                    "total_price",
                                 ),
                                 Float,
-                            )
+                            ),
                         ),
                         0.0,
-                    )
+                    ),
                 ).where(
                     JourneyEventModel.tenant_id == tenant_id,
                     JourneyEventModel.event_name == name,

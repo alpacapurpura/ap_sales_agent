@@ -53,7 +53,7 @@ def render_users_view():  # noqa: C901
     tenants = get_tenants()
     if not tenants:
         st.warning(
-            "⚠️ No hay tenants activos. Cree un tenant primero en la sección de Tenants."
+            "⚠️ No hay tenants activos. Cree un tenant primero en la sección de Tenants.",
         )
         return
 
@@ -64,7 +64,8 @@ def render_users_view():  # noqa: C901
     col_sel, _ = st.columns([1, 2])
     with col_sel:
         selected_tenant_name = st.selectbox(
-            "🏢 Seleccionar Tenant", list(tenant_options.keys())
+            "🏢 Seleccionar Tenant",
+            list(tenant_options.keys()),
         )
 
     selected_tenant_id = tenant_options[selected_tenant_name]
@@ -73,14 +74,14 @@ def render_users_view():  # noqa: C901
     current_tenant = next((t for t in tenants if t.id == selected_tenant_id), None)
     if current_tenant:
         st.caption(
-            f"Gestión de usuarios para: **{current_tenant.name}** ({current_tenant.slug})"
+            f"Gestión de usuarios para: **{current_tenant.name}** ({current_tenant.slug})",
         )
 
     st.divider()
 
     # Tabs for organized view
     tab_list, tab_create = st.tabs(
-        ["📋 Lista de Usuarios", "➕ Crear / Asignar Usuario"]
+        ["📋 Lista de Usuarios", "➕ Crear / Asignar Usuario"],
     )
 
     # --- TAB 1: LIST USERS ---
@@ -104,7 +105,7 @@ def render_users_view():  # noqa: C901
                         "Creado": u.created_at.strftime("%Y-%m-%d")
                         if u.created_at
                         else "N/A",
-                    }
+                    },
                 )
 
             df = pd.DataFrame(data)
@@ -131,7 +132,8 @@ def render_users_view():  # noqa: C901
                 for u, _ in users_result
             }
             selected_user_label = st.selectbox(
-                "Seleccionar Usuario para modificar", list(user_options_map.keys())
+                "Seleccionar Usuario para modificar",
+                list(user_options_map.keys()),
             )
             selected_user_id = user_options_map[selected_user_label]
 
@@ -156,30 +158,31 @@ def render_users_view():  # noqa: C901
                                     help="Mínimo 8 caracteres",
                                 )
                                 submit_pass = st.form_submit_button(
-                                    "Actualizar Password"
+                                    "Actualizar Password",
                                 )
 
                                 if submit_pass:
                                     if not new_pass or len(new_pass) < 8:
                                         st.error(
-                                            "La contraseña debe tener al menos 8 caracteres."
+                                            "La contraseña debe tener al menos 8 caracteres.",
                                         )
                                     elif not target_user.clerk_id:
                                         st.error(
-                                            "❌ Este usuario no tiene Clerk ID vinculado. No se puede cambiar password."
+                                            "❌ Este usuario no tiene Clerk ID vinculado. No se puede cambiar password.",
                                         )
                                     else:
                                         clerk = ClerkService()
                                         try:
                                             if clerk.update_user_password(
-                                                target_user.clerk_id, new_pass
+                                                target_user.clerk_id,
+                                                new_pass,
                                             ):
                                                 st.success(
-                                                    "✅ Contraseña actualizada exitosamente en Clerk."
+                                                    "✅ Contraseña actualizada exitosamente en Clerk.",
                                                 )
                                             else:
                                                 st.error(
-                                                    "❌ Error al actualizar en Clerk. Verifique logs (Posible password débil o pwned)."
+                                                    "❌ Error al actualizar en Clerk. Verifique logs (Posible password débil o pwned).",
                                                 )
                                         except Exception as e:
                                             st.error(f"❌ Error Clerk: {e}")
@@ -193,7 +196,7 @@ def render_users_view():  # noqa: C901
                             )
                             status_color = "green" if target_user.is_active else "red"
                             st.markdown(
-                                f"Estado Actual: :{status_color}[**{status_label}**]"
+                                f"Estado Actual: :{status_color}[**{status_label}**]",
                             )
 
                             clerk = ClerkService()
@@ -209,7 +212,7 @@ def render_users_view():  # noqa: C901
                                     if target_user.clerk_id:  # noqa: SIM102
                                         if not clerk.ban_user(target_user.clerk_id):
                                             st.warning(
-                                                "⚠️ No se pudo banear en Clerk (o no existe), pero se bloqueará localmente."
+                                                "⚠️ No se pudo banear en Clerk (o no existe), pero se bloqueará localmente.",
                                             )
                                             clerk_success = False
 
@@ -219,11 +222,11 @@ def render_users_view():  # noqa: C901
 
                                     if clerk_success:
                                         st.success(
-                                            "Usuario baneado en Clerk y DB local."
+                                            "Usuario baneado en Clerk y DB local.",
                                         )
                                     else:
                                         st.success(
-                                            "Usuario bloqueado localmente (Fallo en Clerk)."
+                                            "Usuario bloqueado localmente (Fallo en Clerk).",
                                         )
 
                                     time.sleep(1)
@@ -238,7 +241,7 @@ def render_users_view():  # noqa: C901
                                 if target_user.clerk_id:  # noqa: SIM102
                                     if not clerk.unban_user(target_user.clerk_id):
                                         st.warning(
-                                            "⚠️ No se pudo desbanear en Clerk, pero se activará localmente."
+                                            "⚠️ No se pudo desbanear en Clerk, pero se activará localmente.",
                                         )
                                         clerk_success = False
 
@@ -248,7 +251,7 @@ def render_users_view():  # noqa: C901
 
                                 if clerk_success:
                                     st.success(
-                                        "Usuario reactivado en Clerk y DB local."
+                                        "Usuario reactivado en Clerk y DB local.",
                                     )
                                 else:
                                     st.success("Usuario reactivado localmente.")
@@ -261,7 +264,7 @@ def render_users_view():  # noqa: C901
                         with st.container(border=True):
                             st.markdown("#### 🗑️ Eliminar del Tenant")
                             st.caption(
-                                "Remueve al usuario de este tenant sin afectar su cuenta global ni otros tenants."
+                                "Remueve al usuario de este tenant sin afectar su cuenta global ni otros tenants.",
                             )
 
                             # Check if this is the last active admin
@@ -294,7 +297,7 @@ def render_users_view():  # noqa: C901
 
                             if is_last_admin:
                                 st.warning(
-                                    "⚠️ No se puede eliminar: es el ultimo admin activo de este tenant."
+                                    "⚠️ No se puede eliminar: es el ultimo admin activo de este tenant.",
                                 )
                             else:
                                 confirm_remove = st.checkbox(
@@ -311,13 +314,13 @@ def render_users_view():  # noqa: C901
                                         target_link.is_active = False
                                         db_actions.commit()
                                         st.success(
-                                            f"✅ Usuario eliminado de {selected_tenant_name}. Sus datos se preservan para auditoria."
+                                            f"✅ Usuario eliminado de {selected_tenant_name}. Sus datos se preservan para auditoria.",
                                         )
                                         time.sleep(1)
                                         st.rerun()
                                     else:
                                         st.error(
-                                            "❌ No se encontro la relacion usuario-tenant."
+                                            "❌ No se encontro la relacion usuario-tenant.",
                                         )
 
             finally:
@@ -340,7 +343,9 @@ def render_users_view():  # noqa: C901
                     help="Solo aplica al crear usuarios nuevos. Para existentes, use 'Cambiar Contraseña' en la pestaña de usuarios.",
                 )
                 new_role = st.selectbox(
-                    "Rol en este Tenant", ["admin", "member", "viewer"], index=0
+                    "Rol en este Tenant",
+                    ["admin", "member", "viewer"],
+                    index=0,
                 )
 
             submitted_create = st.form_submit_button("🚀 Crear o Asignar Usuario")
@@ -361,7 +366,7 @@ def render_users_view():  # noqa: C901
                         if existing_user:
                             # --- ASSIGN EXISTING USER ---
                             st.info(
-                                f"ℹ️ El usuario {new_email} ya existe. Intentando asignar a este tenant..."
+                                f"ℹ️ El usuario {new_email} ya existe. Intentando asignar a este tenant...",
                             )
 
                             # Check if already in tenant
@@ -376,7 +381,7 @@ def render_users_view():  # noqa: C901
 
                             if existing_link and existing_link.is_active:
                                 st.warning(
-                                    f"⚠️ El usuario ya pertenece a este tenant con el rol: {existing_link.role}."
+                                    f"⚠️ El usuario ya pertenece a este tenant con el rol: {existing_link.role}.",
                                 )
                             elif existing_link and not existing_link.is_active:
                                 # Reactivate inactive link
@@ -396,14 +401,14 @@ def render_users_view():  # noqa: C901
                                         )
 
                                     st.success(
-                                        f"✅ Usuario reactivado en {selected_tenant_name} con rol: {existing_link.role}"
+                                        f"✅ Usuario reactivado en {selected_tenant_name} con rol: {existing_link.role}",
                                     )
                                     time.sleep(1.5)
                                     st.rerun()
                                 except Exception as e_react:
                                     db.rollback()
                                     st.error(
-                                        f"❌ Error al reactivar usuario: {e_react}"
+                                        f"❌ Error al reactivar usuario: {e_react}",
                                     )
                             else:
                                 # Create Link
@@ -429,11 +434,11 @@ def render_users_view():  # noqa: C901
                                     # Warn if admin entered a password — it won't be used for existing users
                                     if new_pass:
                                         st.warning(
-                                            "⚠️ La contraseña no se actualizó porque el usuario ya existe. Use la sección 'Cambiar Contraseña' en la pestaña de usuarios."
+                                            "⚠️ La contraseña no se actualizó porque el usuario ya existe. Use la sección 'Cambiar Contraseña' en la pestaña de usuarios.",
                                         )
 
                                     st.success(
-                                        f"✅ Usuario existente asignado correctamente a {selected_tenant_name}!"
+                                        f"✅ Usuario existente asignado correctamente a {selected_tenant_name}!",
                                     )
 
                                     time.sleep(1.5)
@@ -445,7 +450,7 @@ def render_users_view():  # noqa: C901
                         # --- CREATE NEW USER ---
                         elif not new_pass or not new_name:
                             st.error(
-                                "❌ Para crear un usuario NUEVO, nombre y contraseña son obligatorios."
+                                "❌ Para crear un usuario NUEVO, nombre y contraseña son obligatorios.",
                             )
                         else:
                             created_clerk_id = None
@@ -453,7 +458,9 @@ def render_users_view():  # noqa: C901
                             with st.spinner("Creando usuario en Clerk..."):
                                 try:
                                     clerk_user = clerk.create_user(
-                                        new_email, new_pass, new_name
+                                        new_email,
+                                        new_pass,
+                                        new_name,
                                     )
                                     created_clerk_id = clerk_user.get("id")
 
@@ -472,7 +479,7 @@ def render_users_view():  # noqa: C901
                                         or "already exists" in str(e_clerk).lower()
                                     ):
                                         st.warning(
-                                            "⚠️ El usuario existe en Clerk pero no en DB Local. Intentando recuperar..."
+                                            "⚠️ El usuario existe en Clerk pero no en DB Local. Intentando recuperar...",
                                         )
                                         u_clerk = clerk.get_user_by_email(new_email)
                                         if u_clerk:
@@ -480,7 +487,8 @@ def render_users_view():  # noqa: C901
                                             # Set the password the admin intended
                                             if new_pass and created_clerk_id:
                                                 clerk.update_user_password(
-                                                    created_clerk_id, new_pass
+                                                    created_clerk_id,
+                                                    new_pass,
                                                 )
                                     else:
                                         raise e_clerk
@@ -508,7 +516,7 @@ def render_users_view():  # noqa: C901
                                     db.commit()
 
                                     st.success(
-                                        f"✅ Usuario {new_name} creado y asignado exitosamente!"
+                                        f"✅ Usuario {new_name} creado y asignado exitosamente!",
                                     )
 
                                     time.sleep(1.5)

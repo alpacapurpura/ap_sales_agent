@@ -95,12 +95,16 @@ class TenantPeriodConfig:
     def _fiscal_year_start_for(self, d: date) -> date:
         """Return the fiscal year start date that contains ``d``."""
         fy_start_this_year = date(
-            d.year, self.fiscal_year_start_month, self.fiscal_year_start_day
+            d.year,
+            self.fiscal_year_start_month,
+            self.fiscal_year_start_day,
         )
         if d >= fy_start_this_year:
             return fy_start_this_year
         return date(
-            d.year - 1, self.fiscal_year_start_month, self.fiscal_year_start_day
+            d.year - 1,
+            self.fiscal_year_start_month,
+            self.fiscal_year_start_day,
         )
 
 

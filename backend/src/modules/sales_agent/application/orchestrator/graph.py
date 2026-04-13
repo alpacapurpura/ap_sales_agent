@@ -34,7 +34,9 @@ workflow.add_node("sales_agent", sales_agent_node)
 workflow.add_edge(START, "supervisor")
 
 workflow.add_conditional_edges(
-    "supervisor", lambda x: x["next_node"], {"sales_agent": "sales_agent", "end": END}
+    "supervisor",
+    lambda x: x["next_node"],
+    {"sales_agent": "sales_agent", "end": END},
 )
 
 workflow.add_edge("sales_agent", END)

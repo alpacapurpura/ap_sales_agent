@@ -41,7 +41,7 @@ class NurtureMetricsRepository:
         Uses lifecycle_transitions table where to_stage = 'mql'.
         """
         stmt = select(
-            func.count(func.distinct(LifecycleTransitionModel.profile_id))
+            func.count(func.distinct(LifecycleTransitionModel.profile_id)),
         ).where(
             LifecycleTransitionModel.tenant_id == tenant_id,
             LifecycleTransitionModel.to_stage == LifecycleStage.MQL,
@@ -73,7 +73,7 @@ class NurtureMetricsRepository:
                     LifecycleStage.OPPORTUNITY,
                     LifecycleStage.CUSTOMER,
                     LifecycleStage.EVANGELIST,
-                ]
+                ],
             ),
             CustomerProfileModel.is_inactive == False,  # noqa: E712
         )
@@ -95,7 +95,7 @@ class NurtureMetricsRepository:
             select(
                 CustomerProfileModel.lead_source,
                 func.count(func.distinct(LifecycleTransitionModel.profile_id)).label(
-                    "count"
+                    "count",
                 ),
             )
             .join(

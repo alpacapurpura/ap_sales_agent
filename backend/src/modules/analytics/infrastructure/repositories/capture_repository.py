@@ -110,14 +110,15 @@ class CaptureMetricsRepository:
         # as approximation for unique conversations.
         # TODO: Add session tracking to JourneyEventModel for more accurate counts.
         channel_col = func.jsonb_extract_path_text(
-            JourneyEventModel.properties, "channel_slug"
+            JourneyEventModel.properties,
+            "channel_slug",
         ).label("channel")
 
         stmt = (
             select(
                 channel_col,
                 func.count(func.distinct(JourneyEventModel.profile_id)).label(
-                    "conv_count"
+                    "conv_count",
                 ),
             )
             .where(

@@ -74,7 +74,7 @@ class TestGA4Segmentation:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -82,7 +82,10 @@ class TestGA4Segmentation:
 
             provider = GoogleAnalyticsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -134,7 +137,7 @@ class TestGA4Segmentation:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -142,7 +145,10 @@ class TestGA4Segmentation:
 
             provider = GoogleAnalyticsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -187,7 +193,7 @@ class TestGA4Segmentation:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -195,7 +201,10 @@ class TestGA4Segmentation:
 
             provider = GoogleAnalyticsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -242,7 +251,7 @@ class TestGA4DailyExtraction:
         }
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -250,7 +259,10 @@ class TestGA4DailyExtraction:
 
             provider = GoogleAnalyticsProvider()
             result = await provider.extract_metrics_daily(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 2)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 2),
             )
 
         metrics = result.metrics
@@ -286,7 +298,10 @@ class TestGA4DailyExtraction:
     async def test_extract_metrics_daily_missing_property(self):
         provider = GoogleAnalyticsProvider()
         result = await provider.extract_metrics_daily(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 2)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 2),
         )
         assert result.metrics == []
 
@@ -296,7 +311,10 @@ class TestGAProviderErrorHandling:
     async def test_missing_property_id(self):
         provider = GoogleAnalyticsProvider()
         result = await provider.extract_metrics(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 15),
         )
         assert result.metrics == []
 
@@ -305,7 +323,7 @@ class TestGAProviderErrorHandling:
         mock_report = {"row_count": 0, "rows": [], "metadata": {}}
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter"
+            "src.modules.analytics.infrastructure.providers.google_analytics_provider.GoogleAnalyticsAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.run_report = AsyncMock(return_value=mock_report)
@@ -313,6 +331,9 @@ class TestGAProviderErrorHandling:
 
             provider = GoogleAnalyticsProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         assert result.metrics == []

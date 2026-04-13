@@ -15,7 +15,8 @@ from src.modules.tenant_domains.infrastructure.domain_repository_impl import (
 
 
 def _make_domain(
-    tenant_id: uuid.UUID, hostname: str = "shop.example.com"
+    tenant_id: uuid.UUID,
+    hostname: str = "shop.example.com",
 ) -> TenantDomain:
     return TenantDomain(
         id=uuid.uuid4(),

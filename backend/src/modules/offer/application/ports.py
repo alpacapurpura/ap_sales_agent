@@ -29,7 +29,9 @@ if TYPE_CHECKING:
 class PsychologyGeneratorPort(ABC):
     @abstractmethod
     async def generate_psychology(
-        self, request: PsychologyGenerationRequest, tenant_id: UUID
+        self,
+        request: PsychologyGenerationRequest,
+        tenant_id: UUID,
     ) -> PsychologyGenerationResponse: ...
 
 
@@ -41,7 +43,10 @@ class IOfferAssetRepository(ABC):
 
     @abstractmethod
     def get_by_id(
-        self, tenant_id: UUID, offer_id: UUID, asset_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
+        asset_id: UUID,
     ) -> OfferAsset | None: ...
 
     @abstractmethod
@@ -76,7 +81,10 @@ class IKnowledgeSourceRepository(ABC):
 
     @abstractmethod
     def get_by_id(
-        self, tenant_id: UUID, offer_id: UUID, source_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
+        source_id: UUID,
     ) -> KnowledgeSource | None: ...
 
     @abstractmethod
@@ -163,7 +171,9 @@ class IRAGIndexerPort(ABC):
 
     @abstractmethod
     def index_source(
-        self, source: KnowledgeSource, raw_bytes: bytes | None = None
+        self,
+        source: KnowledgeSource,
+        raw_bytes: bytes | None = None,
     ) -> tuple[list[str], int]: ...  # (qdrant_point_ids, chunk_count)
 
     @abstractmethod

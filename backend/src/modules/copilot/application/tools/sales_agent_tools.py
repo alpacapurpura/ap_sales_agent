@@ -30,7 +30,7 @@ def get_sales_agent_status() -> str:
             db.execute(
                 text(
                     "SELECT COUNT(DISTINCT user_id) FROM messages "
-                    "WHERE tenant_id = :tid"
+                    "WHERE tenant_id = :tid",
                 ),
                 {"tid": str(tenant_id)},
             ).scalar()
@@ -42,7 +42,7 @@ def get_sales_agent_status() -> str:
             db.execute(
                 text(
                     "SELECT COUNT(DISTINCT user_id) FROM messages "
-                    "WHERE tenant_id = :tid AND created_at > NOW() - INTERVAL '7 days'"
+                    "WHERE tenant_id = :tid AND created_at > NOW() - INTERVAL '7 days'",
                 ),
                 {"tid": str(tenant_id)},
             ).scalar()
@@ -55,7 +55,7 @@ def get_sales_agent_status() -> str:
                 text(
                     "SELECT role, COUNT(*) as cnt FROM messages "
                     "WHERE tenant_id = :tid AND created_at > NOW() - INTERVAL '30 days' "
-                    "GROUP BY role"
+                    "GROUP BY role",
                 ),
                 {"tid": str(tenant_id)},
             )
@@ -71,7 +71,7 @@ def get_sales_agent_status() -> str:
                 text(
                     "SELECT COALESCE(channel, 'unknown') as ch, COUNT(DISTINCT user_id) as cnt "
                     "FROM messages WHERE tenant_id = :tid "
-                    "GROUP BY channel"
+                    "GROUP BY channel",
                 ),
                 {"tid": str(tenant_id)},
             )

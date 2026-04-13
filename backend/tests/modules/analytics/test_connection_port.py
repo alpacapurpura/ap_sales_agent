@@ -18,7 +18,8 @@ class TestConnectionPort:
         methods = {
             name
             for name, _ in inspect.getmembers(
-                ConnectionPort, predicate=inspect.isfunction
+                ConnectionPort,
+                predicate=inspect.isfunction,
             )
         }
         assert "get_credentials" in methods
@@ -31,7 +32,8 @@ class TestConnectionPort:
         methods = {
             name
             for name, _ in inspect.getmembers(
-                ConnectionPort, predicate=inspect.isfunction
+                ConnectionPort,
+                predicate=inspect.isfunction,
             )
         }
         assert "list_active_connections" in methods

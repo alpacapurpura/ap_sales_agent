@@ -65,7 +65,7 @@ def _parse_linked_ig(
                 "linked_page_id": page["id"],
                 "linked_page_name": page.get("name", ""),
                 "page_access_token": page.get("access_token"),
-            }
+            },
         )
 
 
@@ -91,7 +91,9 @@ def _parse_ad_accounts(ads_raw: httpx.Response) -> list[dict[str, Any]]:
 
 
 async def _fetch_pixels(
-    ads_accounts: list[dict[str, Any]], token: str, base: str
+    ads_accounts: list[dict[str, Any]],
+    token: str,
+    base: str,
 ) -> list[dict[str, Any]]:
     """Fetch pixels for all ad accounts in parallel."""
     pixels: list[dict[str, Any]] = []
@@ -169,7 +171,9 @@ async def _fetch_whatsapp_accounts(token: str, base: str) -> list[dict[str, Any]
 
 
 async def _fetch_wabas(
-    businesses: list[dict], token: str, base: str
+    businesses: list[dict],
+    token: str,
+    base: str,
 ) -> list[dict[str, Any]]:
     """Fetch WABAs for each business in parallel."""
     async with httpx.AsyncClient(timeout=15.0) as client:
@@ -213,7 +217,9 @@ async def _fetch_wabas(
 
 
 async def _enrich_wabas_with_phones(
-    wabas: list[dict[str, Any]], token: str, base: str
+    wabas: list[dict[str, Any]],
+    token: str,
+    base: str,
 ) -> list[dict[str, Any]]:
     """Fetch phone numbers for each WABA and build the final account dicts."""
     async with httpx.AsyncClient(timeout=15.0) as client:
@@ -267,7 +273,7 @@ async def _enrich_wabas_with_phones(
                     }
                     for ph in phones
                 ],
-            }
+            },
         )
 
     return whatsapp_accounts
@@ -315,7 +321,9 @@ class MetaAdapter:
             raise
 
     def get_authorization_url(
-        self, redirect_uri: str, state: str | None = None
+        self,
+        redirect_uri: str,
+        state: str | None = None,
     ) -> tuple[str, str]:
         """Generates the OAuth authorization URL and state token.
         State is always prefixed with 'meta_' so the frontend callback
@@ -386,7 +394,8 @@ class MetaAdapter:
                     if long_lived.status_code == 200:
                         long_data = long_lived.json()
                         token_data["access_token"] = long_data.get(
-                            "access_token", short_lived_token
+                            "access_token",
+                            short_lived_token,
                         )
                         token_data["token_type"] = long_data.get("token_type", "bearer")
                         token_data["expires_in"] = long_data.get("expires_in")
@@ -468,7 +477,9 @@ class MetaAdapter:
             )
 
         pages, instagram_accounts = await self._parse_pages_and_ig(
-            pages_raw, token, base
+            pages_raw,
+            token,
+            base,
         )
         ads_accounts = _parse_ad_accounts(ads_raw)
         pixels = await _fetch_pixels(ads_accounts, token, base)

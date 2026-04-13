@@ -45,7 +45,10 @@ class RFMCalculationEngine:
         # Asumimos que el valor viene en properties como 'total_price' o 'amount'
         monetary = sum(
             float(
-                event.properties.get("total_price", event.properties.get("amount", 0.0))
+                event.properties.get(
+                    "total_price",
+                    event.properties.get("amount", 0.0),
+                ),
             )
             for event in purchase_events
         )
@@ -63,7 +66,8 @@ class RFMCalculationEngine:
 
         recency_delta = now - last_purchase_date
         recency_days = max(
-            0.0, recency_delta.total_seconds() / 86400.0
+            0.0,
+            recency_delta.total_seconds() / 86400.0,
         )  # Convertir a días
 
         return {

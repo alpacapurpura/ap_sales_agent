@@ -83,25 +83,33 @@ class TestEngagementSegmentation:
 
     def test_champion(self):
         seg = classify_engagement_segment(
-            open_rate=65.0, click_rate=8.0, days_inactive=0
+            open_rate=65.0,
+            click_rate=8.0,
+            days_inactive=0,
         )
         assert seg == "champions"
 
     def test_active(self):
         seg = classify_engagement_segment(
-            open_rate=30.0, click_rate=2.0, days_inactive=5
+            open_rate=30.0,
+            click_rate=2.0,
+            days_inactive=5,
         )
         assert seg == "activos"
 
     def test_at_risk(self):
         seg = classify_engagement_segment(
-            open_rate=8.0, click_rate=0.3, days_inactive=45
+            open_rate=8.0,
+            click_rate=0.3,
+            days_inactive=45,
         )
         assert seg == "en_riesgo"
 
     def test_dormant(self):
         seg = classify_engagement_segment(
-            open_rate=0.5, click_rate=0.0, days_inactive=90
+            open_rate=0.5,
+            click_rate=0.0,
+            days_inactive=90,
         )
         assert seg == "dormidos"
 
@@ -114,7 +122,8 @@ TENANT_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
 # Simulate rows from official_metrics grouped by campaign_id + metric_name
 _AutoRow = namedtuple(
-    "AutoRow", ["campaign_id", "metric_name", "total_value", "extra", "last_date"]
+    "AutoRow",
+    ["campaign_id", "metric_name", "total_value", "extra", "last_date"],
 )
 
 
@@ -129,7 +138,7 @@ def _make_auto_rows():
             "completed_subscribers": 11,
             "subscribers_in_queue": 0,
             "steps_count": 2,
-        }
+        },
     )
     extra_2 = json.dumps(
         {
@@ -140,7 +149,7 @@ def _make_auto_rows():
             "completed_subscribers": 0,
             "subscribers_in_queue": 9,
             "steps_count": 11,
-        }
+        },
     )
     return [
         _AutoRow("auto_001", "emails_sent", 11.0, extra_1, "2026-04-10"),
@@ -173,7 +182,7 @@ class TestGetAutomations:
         import asyncio
 
         result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d")
+            service.get_automations(TENANT_ID, "30d"),
         )
         assert len(result.automations) == 2
 
@@ -182,7 +191,7 @@ class TestGetAutomations:
         import asyncio
 
         result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d")
+            service.get_automations(TENANT_ID, "30d"),
         )
         auto = next(a for a in result.automations if a.automation_id == "auto_001")
         assert auto.name == "BIENVENIDA: nuevas inscritas"
@@ -200,11 +209,12 @@ class TestGetAutomations:
         import asyncio
 
         result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d")
+            service.get_automations(TENANT_ID, "30d"),
         )
         assert len(result.kpis) > 0
         sent_kpi = next(
-            (k for k in result.kpis if k.metric_name == "automation_emails_sent"), None
+            (k for k in result.kpis if k.metric_name == "automation_emails_sent"),
+            None,
         )
         assert sent_kpi is not None
         assert sent_kpi.current_value == 27  # 11 + 16
@@ -214,7 +224,7 @@ class TestGetAutomations:
         import asyncio
 
         result = asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d")
+            service.get_automations(TENANT_ID, "30d"),
         )
         assert result.automations == []
 
@@ -247,7 +257,7 @@ def _make_rows_with_steps(
             "subscribers_in_queue": in_queue_subs,
             "steps_count": len(steps) if steps else 0,
             "steps": steps or [],
-        }
+        },
     )
     return [
         _AutoRow(automation_id, "emails_sent", emails_sent, extra, "2026-04-10"),
@@ -265,7 +275,7 @@ class TestAutomationBugFixes:
         import asyncio
 
         return asyncio.get_event_loop().run_until_complete(
-            service.get_automations(TENANT_ID, "30d")
+            service.get_automations(TENANT_ID, "30d"),
         )
 
     def test_active_subscribers_equals_completed_plus_queue(self):

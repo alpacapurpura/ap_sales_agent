@@ -32,7 +32,9 @@ class TestCreateAndRetrieveRoundtrip:
 
 class TestListActiveExcludesArchivedAndDeleted:
     def test_list_active_only_returns_non_archived_non_deleted(
-        self, db: Session, tenant_a
+        self,
+        db: Session,
+        tenant_a,
     ):
         repo = OfferRepository(db)
         db.add_all(
@@ -40,7 +42,7 @@ class TestListActiveExcludesArchivedAndDeleted:
                 create_product_model(tenant_a, name="Active"),
                 create_product_model(tenant_a, name="Archived", archived_at=utc_now()),
                 create_product_model(tenant_a, name="Deleted", deleted_at=utc_now()),
-            ]
+            ],
         )
         db.flush()
         names = [o.public_name for o in repo.list_active(tenant_a)]
@@ -53,7 +55,7 @@ class TestListActiveExcludesArchivedAndDeleted:
             [
                 create_product_model(tenant_a, name="Active"),
                 create_product_model(tenant_a, name="Archived", archived_at=utc_now()),
-            ]
+            ],
         )
         db.flush()
         names = [o.public_name for o in repo.get_all_by_tenant(tenant_a)]
@@ -69,25 +71,32 @@ class TestListArchived:
                 create_product_model(tenant_a, name="Archived1", archived_at=utc_now()),
                 create_product_model(tenant_a, name="Archived2", archived_at=utc_now()),
                 create_product_model(tenant_a, name="Deleted", deleted_at=utc_now()),
-            ]
+            ],
         )
         db.flush()
         names = {o.public_name for o in repo.list_archived(tenant_a)}
         assert names == {"Archived1", "Archived2"}
 
     def test_list_archived_respects_tenant_isolation(
-        self, db: Session, tenant_a, tenant_b
+        self,
+        db: Session,
+        tenant_a,
+        tenant_b,
     ):
         repo = OfferRepository(db)
         db.add_all(
             [
                 create_product_model(
-                    tenant_a, name="A Archived", archived_at=utc_now()
+                    tenant_a,
+                    name="A Archived",
+                    archived_at=utc_now(),
                 ),
                 create_product_model(
-                    tenant_b, name="B Archived", archived_at=utc_now()
+                    tenant_b,
+                    name="B Archived",
+                    archived_at=utc_now(),
                 ),
-            ]
+            ],
         )
         db.flush()
         names_a = [o.public_name for o in repo.list_archived(tenant_a)]
@@ -155,7 +164,9 @@ class TestArchiveAndRestore:
 
 class TestSoftDelete:
     def test_soft_delete_sets_deleted_at_and_hides_everywhere(
-        self, db: Session, tenant_a
+        self,
+        db: Session,
+        tenant_a,
     ):
         repo = OfferRepository(db)
         model = create_product_model(tenant_a, name="ToDelete", archived_at=utc_now())
@@ -208,7 +219,10 @@ class TestGetByIdIncludeArchived:
         db.flush()
 
         result = repo.get_by_id(
-            model.id, tenant_a, include_archived=True, include_deleted=True
+            model.id,
+            tenant_a,
+            include_archived=True,
+            include_deleted=True,
         )
         assert result is not None
         assert result.is_deleted is True

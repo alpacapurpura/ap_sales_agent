@@ -54,7 +54,7 @@ class StagingMetricsRepository:
     def get_by_run(self, extraction_run_id: UUID) -> list[StagingMetricModel]:
         """Get all staging metrics for a specific extraction run."""
         stmt = select(StagingMetricModel).where(
-            StagingMetricModel.extraction_run_id == extraction_run_id
+            StagingMetricModel.extraction_run_id == extraction_run_id,
         )
         return list(self.db.execute(stmt).scalars().all())
 

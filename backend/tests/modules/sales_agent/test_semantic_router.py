@@ -100,7 +100,9 @@ class TestDetectIntentEdgeCases:
             patch.object(SemanticRouter, "_model", mock_model),
             patch.object(SemanticRouter, "_system_embeddings", route_embeddings),
             patch.object(
-                SemanticRouter, "_system_route_names", ["a", "b", "c", "d", "e"]
+                SemanticRouter,
+                "_system_route_names",
+                ["a", "b", "c", "d", "e"],
             ),
         ):
             intent, score = SemanticRouter.detect_intent("alguna cosa random xyz")
@@ -121,20 +123,28 @@ class TestMultiTurnAccumulation:
 
         # Turn 1: buying_signal
         with patch.object(
-            SemanticRouter, "detect_intent", return_value=("buying_signal", 0.85)
+            SemanticRouter,
+            "detect_intent",
+            return_value=("buying_signal", 0.85),
         ):
             _, _, signals = SemanticRouter.detect_and_accumulate(
-                "Quiero comprar", existing_signals=signals, tenant_id=None
+                "Quiero comprar",
+                existing_signals=signals,
+                tenant_id=None,
             )
         assert len(signals) == 1
         assert signals[0]["type"] == "buying_signal"
 
         # Turn 2: schedule_signal (different type, should accumulate)
         with patch.object(
-            SemanticRouter, "detect_intent", return_value=("schedule_signal", 0.78)
+            SemanticRouter,
+            "detect_intent",
+            return_value=("schedule_signal", 0.78),
         ):
             _, _, signals = SemanticRouter.detect_and_accumulate(
-                "Quiero agendar", existing_signals=signals, tenant_id=None
+                "Quiero agendar",
+                existing_signals=signals,
+                tenant_id=None,
             )
         assert len(signals) == 2
         assert signals[1]["type"] == "schedule_signal"
@@ -146,7 +156,9 @@ class TestMultiTurnAccumulation:
             return_value=("query_payment_methods", 0.72),
         ):
             _, _, signals = SemanticRouter.detect_and_accumulate(
-                "Como pago?", existing_signals=signals, tenant_id=None
+                "Como pago?",
+                existing_signals=signals,
+                tenant_id=None,
             )
         assert len(signals) == 3
         assert signals[2]["type"] == "query_payment_methods"
@@ -156,18 +168,26 @@ class TestMultiTurnAccumulation:
         signals = []
 
         with patch.object(
-            SemanticRouter, "detect_intent", return_value=("buying_signal", 0.85)
+            SemanticRouter,
+            "detect_intent",
+            return_value=("buying_signal", 0.85),
         ):
             _, _, signals = SemanticRouter.detect_and_accumulate(
-                "Quiero comprar", existing_signals=signals, tenant_id=None
+                "Quiero comprar",
+                existing_signals=signals,
+                tenant_id=None,
             )
         assert len(signals) == 1
 
         with patch.object(
-            SemanticRouter, "detect_intent", return_value=("buying_signal", 0.92)
+            SemanticRouter,
+            "detect_intent",
+            return_value=("buying_signal", 0.92),
         ):
             _, _, signals = SemanticRouter.detect_and_accumulate(
-                "Quiero pagar ya", existing_signals=signals, tenant_id=None
+                "Quiero pagar ya",
+                existing_signals=signals,
+                tenant_id=None,
             )
         # Should still be 1 (dedup)
         assert len(signals) == 1
@@ -183,10 +203,14 @@ class TestMultiTurnAccumulation:
         ]
         for intent, score in intents:
             with patch.object(
-                SemanticRouter, "detect_intent", return_value=(intent, score)
+                SemanticRouter,
+                "detect_intent",
+                return_value=(intent, score),
             ):
                 _, _, signals = SemanticRouter.detect_and_accumulate(
-                    "texto de prueba", existing_signals=signals, tenant_id=None
+                    "texto de prueba",
+                    existing_signals=signals,
+                    tenant_id=None,
                 )
         assert len(signals) == 0
 
@@ -237,7 +261,8 @@ class TestTenantCacheInvalidation:
             patch.object(SemanticRouter, "_system_embeddings", np.eye(2, 10)),
         ):
             intent, score = SemanticRouter.detect_intent(
-                "test query text", tenant_id=tenant_id
+                "test query text",
+                tenant_id=tenant_id,
             )
             assert intent == "tenant_route_a"
             assert score > 0.9
@@ -263,11 +288,14 @@ class TestTenantCacheInvalidation:
             patch.object(SemanticRouter, "_model", mock_model),
             patch.object(SemanticRouter, "_system_embeddings", route_embeddings),
             patch.object(
-                SemanticRouter, "_system_route_names", ["sys_a", "sys_b", "sys_c"]
+                SemanticRouter,
+                "_system_route_names",
+                ["sys_a", "sys_b", "sys_c"],
             ),
         ):
             intent, score = SemanticRouter.detect_intent(
-                "test query", tenant_id=tenant_id
+                "test query",
+                tenant_id=tenant_id,
             )
             assert intent == "sys_b"
             assert score > 0.9

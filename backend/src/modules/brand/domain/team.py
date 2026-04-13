@@ -27,7 +27,8 @@ class KeyFigure(BaseEntity):
 
 class BrandTeamWrapper(BaseEntity):
     key_leadership: list[KeyFigure] = Field(
-        default_factory=list, description="Personas clave identificadas"
+        default_factory=list,
+        description="Personas clave identificadas",
     )
     culture_vibe: str | None = Field(None, description="Descripción de la cultura")
     locations: str | None = Field(None, description="Ubicaciones operativas")

@@ -112,7 +112,7 @@ def _find_route_decorators(filepath: Path) -> list[dict]:
                     "has_response_model": has_response_model,
                     "status_code": status_code,
                     "line": node.lineno,
-                }
+                },
             )
     return routes
 
@@ -148,7 +148,7 @@ def test_all_endpoints_have_response_model():
 
                 violations.append(
                     f"{violation_key} (line {route['line']}, "
-                    f"{route['method']}, no response_model)"
+                    f"{route['method']}, no response_model)",
                 )
 
     assert violations == [], (

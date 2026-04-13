@@ -74,13 +74,15 @@ class DomainService:
                 domain.verification_txt_name = ownership.get("name")
                 domain.verification_txt_value = ownership.get("value")
             cname_target = cf_result.get("ownership_verification_http", {}).get(
-                "http_url"
+                "http_url",
             )
             if cname_target:
                 domain.verification_cname_target = cname_target
         except Exception as e:
             logger.error(
-                "cf_custom_hostname_create_failed", hostname=hostname, error=str(e)
+                "cf_custom_hostname_create_failed",
+                hostname=hostname,
+                error=str(e),
             )
             domain.status = DomainStatus.FAILED
         return self.repo.create(domain)
@@ -111,7 +113,9 @@ class DomainService:
                 )
             except Exception as e:
                 logger.warning(
-                    "cf_kv_sync_failed", hostname=domain.hostname, error=str(e)
+                    "cf_kv_sync_failed",
+                    hostname=domain.hostname,
+                    error=str(e),
                 )
         else:
             domain.status = DomainStatus.VERIFYING
@@ -197,7 +201,9 @@ class DomainService:
         return None
 
     def get_domain_instructions(
-        self, domain_id: UUID, tenant_id: UUID
+        self,
+        domain_id: UUID,
+        tenant_id: UUID,
     ) -> TenantDomain | None:
         """Return the domain entity so the API layer can build DNS setup instructions."""
         return self.repo.get_by_id(domain_id, tenant_id)

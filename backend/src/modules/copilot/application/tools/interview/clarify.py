@@ -30,5 +30,5 @@ def clarify(items: list[dict]) -> str:
                 "type": "clarify_card",
                 "items": capped_items,
             },
-        }
+        },
     )

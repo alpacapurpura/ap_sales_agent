@@ -52,7 +52,9 @@ class MetricsRepository:
         self._db = db
 
     def detect_currency(
-        self, tenant_id: UUID, channel_slug: str = DEFAULT_CHANNEL_SLUG
+        self,
+        tenant_id: UUID,
+        channel_slug: str = DEFAULT_CHANNEL_SLUG,
     ) -> str | None:
         """Return the currency recorded for the tenant's Meta ads metrics."""
         stmt = (

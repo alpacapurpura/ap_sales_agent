@@ -72,7 +72,9 @@ class InstagramDMSyncService:
 
         # Fetch conversations using Page Token and page_id
         conversations = await self._fetch_conversations(
-            page_token, page_id, max_conversations
+            page_token,
+            page_id,
+            max_conversations,
         )
 
         synced = 0
@@ -201,7 +203,10 @@ class InstagramDMSyncService:
             return ""
 
     async def _fetch_conversations(
-        self, page_token: str, page_id: str, limit: int
+        self,
+        page_token: str,
+        page_id: str,
+        limit: int,
     ) -> list[dict]:
         """Fetch IG DM conversations via Facebook Conversations API."""
         url = f"{_GRAPH_API_BASE}/{page_id}/conversations"
@@ -226,7 +231,9 @@ class InstagramDMSyncService:
             return []
 
     async def _fetch_messages(
-        self, conversation_id: str, access_token: str
+        self,
+        conversation_id: str,
+        access_token: str,
     ) -> list[dict]:
         """Fetch messages for a single conversation."""
         url = f"{_GRAPH_API_BASE}/{conversation_id}/messages"

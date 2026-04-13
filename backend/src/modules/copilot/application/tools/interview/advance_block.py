@@ -45,5 +45,5 @@ def advance_block(
                 "block_completed": block_id,
                 "next_block": next_block_id,
             },
-        }
+        },
     )

@@ -39,15 +39,19 @@ class LifecycleTransitionModel(Base):
     )
 
     reason = Column(
-        String, nullable=False
+        String,
+        nullable=False,
     )  # Human-readable: "Score crossed MQL threshold (42.5 >= 40)"
     triggered_by = Column(
-        String, nullable=False
+        String,
+        nullable=False,
     )  # Values: scoring_rule, sale_event, churn_event, manual, decay, reactivation
 
     score_at_transition = Column(Float, nullable=True)
 
     transition_metadata = Column(
-        "metadata", JSONB, default=dict
+        "metadata",
+        JSONB,
+        default=dict,
     )  # Flexible context per trigger type
     occurred_at = Column(DateTime(timezone=True), server_default=func.now())

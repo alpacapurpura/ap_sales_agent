@@ -121,7 +121,9 @@ NAVIGATION_MAP: list[AppPage] = [
                 "Héroe, problema, guía, plan, CTAs, resultado, one-liner",
             ),
             AppSection(
-                "methodology", "Metodología", "Framework o método propio de la marca"
+                "methodology",
+                "Metodología",
+                "Framework o método propio de la marca",
             ),
         ],
     ),
@@ -172,7 +174,9 @@ NAVIGATION_MAP: list[AppPage] = [
             ),
             AppSection("logos", "Logo Kit", "Variantes de logo"),
             AppSection(
-                "voice", "Voz AI", "Estilo de comunicación y configuración de voz"
+                "voice",
+                "Voz AI",
+                "Estilo de comunicación y configuración de voz",
             ),
             AppSection(
                 "creative-concepts",
@@ -195,7 +199,9 @@ NAVIGATION_MAP: list[AppPage] = [
         keywords=["oferta", "producto", "servicio", "precio", "offer", "escalera"],
         sections=[
             AppSection(
-                "offer-list", "Lista de Ofertas", "Todas las ofertas del negocio"
+                "offer-list",
+                "Lista de Ofertas",
+                "Todas las ofertas del negocio",
             ),
         ],
     ),
@@ -279,7 +285,9 @@ NAVIGATION_MAP: list[AppPage] = [
         ],
         sections=[
             AppSection(
-                "nurture", "Nutrición", "Retargeting, email automation, engagement"
+                "nurture",
+                "Nutrición",
+                "Retargeting, email automation, engagement",
             ),
             AppSection(
                 "opportunity",
@@ -310,7 +318,9 @@ NAVIGATION_MAP: list[AppPage] = [
                 "Revenue total, nuevos clientes, CAC",
             ),
             AppSection(
-                "offer-ladder", "Escalera de Ofertas", "Revenue por oferta y tipo"
+                "offer-ladder",
+                "Escalera de Ofertas",
+                "Revenue por oferta y tipo",
             ),
         ],
     ),
@@ -359,7 +369,9 @@ NAVIGATION_MAP: list[AppPage] = [
                 "Net MRR, LTV, retención, crecimiento, cancelaciones",
             ),
             AppSection(
-                "evangelization", "Evangelización", "Referidos, NPS, k-factor, UGC"
+                "evangelization",
+                "Evangelización",
+                "Referidos, NPS, k-factor, UGC",
             ),
         ],
     ),
@@ -401,7 +413,9 @@ NAVIGATION_MAP: list[AppPage] = [
             ),
             AppSection("thread", "Thread", "Historial de mensajes de una conversación"),
             AppSection(
-                "actions", "Acciones", "STOP/RESUME AI, mensajes, instrucciones"
+                "actions",
+                "Acciones",
+                "STOP/RESUME AI, mensajes, instrucciones",
             ),
         ],
     ),
@@ -423,10 +437,14 @@ NAVIGATION_MAP: list[AppPage] = [
         keywords=["congelada", "frozen", "inactiva", "reactivar", "diagnóstico"],
         sections=[
             AppSection(
-                "frozen-list", "Lista", "Conversaciones congeladas con diagnóstico"
+                "frozen-list",
+                "Lista",
+                "Conversaciones congeladas con diagnóstico",
             ),
             AppSection(
-                "diagnosis", "Diagnóstico AI", "Análisis automático y recomendaciones"
+                "diagnosis",
+                "Diagnóstico AI",
+                "Análisis automático y recomendaciones",
             ),
         ],
     ),
@@ -453,13 +471,17 @@ NAVIGATION_MAP: list[AppPage] = [
             AppSection("whatsapp", "WhatsApp", "Conexión con WhatsApp Business"),
             AppSection("shopify", "Shopify", "Conexión con tienda Shopify"),
             AppSection(
-                "google-calendar", "Google Calendar", "Sincronización de agenda"
+                "google-calendar",
+                "Google Calendar",
+                "Sincronización de agenda",
             ),
             AppSection("gmail", "Gmail", "Conexión de email"),
             AppSection("mailerlite", "MailerLite", "Email marketing"),
             AppSection("youtube", "YouTube", "Canal de YouTube"),
             AppSection(
-                "google-analytics", "Google Analytics", "Analytics del sitio web"
+                "google-analytics",
+                "Google Analytics",
+                "Analytics del sitio web",
             ),
         ],
     ),

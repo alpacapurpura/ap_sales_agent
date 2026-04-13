@@ -56,12 +56,14 @@ async def extract_full_offer(
 
     if not current_user.tenant_id:
         raise HTTPException(
-            status_code=400, detail="User is not associated with a tenant."
+            status_code=400,
+            detail="User is not associated with a tenant.",
         )
 
     if not redis_client:
         raise HTTPException(
-            status_code=503, detail="Servicio temporalmente no disponible."
+            status_code=503,
+            detail="Servicio temporalmente no disponible.",
         )
 
     job_id = str(uuid4())
@@ -88,7 +90,7 @@ async def extract_full_offer(
                     "progress": 0,
                     "stage": "Iniciando análisis de oferta...",
                     "started_at": datetime.now(UTC).isoformat(),
-                }
+                },
             ),
         )
 

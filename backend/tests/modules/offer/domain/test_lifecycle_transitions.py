@@ -53,7 +53,8 @@ class TestLifecycleTransitions:
 
     def test_invalid_transition_error_message(self) -> None:
         err = InvalidLifecycleTransitionError(
-            OfferLifecycleStatus.DRAFT, OfferLifecycleStatus.PAUSED
+            OfferLifecycleStatus.DRAFT,
+            OfferLifecycleStatus.PAUSED,
         )
         assert "draft" in str(err)
         assert "paused" in str(err)

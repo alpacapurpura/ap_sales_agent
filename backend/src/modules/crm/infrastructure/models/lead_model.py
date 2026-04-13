@@ -15,7 +15,9 @@ class LeadModel(Base):
 
     # Customer Link
     customer_id = Column(
-        UUID(as_uuid=True), ForeignKey("customer_profiles.id"), nullable=True
+        UUID(as_uuid=True),
+        ForeignKey("customer_profiles.id"),
+        nullable=True,
     )
     customer = relationship("CustomerProfileModel", foreign_keys=[customer_id])
 
@@ -56,8 +58,12 @@ class LeadModel(Base):
 
     # Relationships
     messages = relationship(
-        "MessageModel", back_populates="lead", cascade="all, delete-orphan"
+        "MessageModel",
+        back_populates="lead",
+        cascade="all, delete-orphan",
     )
     appointments = relationship(
-        "AppointmentModel", back_populates="lead", cascade="all, delete-orphan"
+        "AppointmentModel",
+        back_populates="lead",
+        cascade="all, delete-orphan",
     )

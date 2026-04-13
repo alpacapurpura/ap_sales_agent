@@ -37,7 +37,7 @@ def render_events_page():  # noqa: C901
             "📋 Procedimientos",
             "💡 Engagement",
             "🔍 Explorar",
-        ]
+        ],
     )
 
     # ── Tab 1: Dashboard ──
@@ -89,7 +89,7 @@ def render_events_page():  # noqa: C901
                         [
                             {"Tipo": k, "Cantidad": v}
                             for k, v in sorted(summary.items(), key=lambda x: -x[1])
-                        ]
+                        ],
                     )
                     st.bar_chart(df_events.set_index("Tipo"))
                     st.dataframe(df_events, use_container_width=True, hide_index=True)
@@ -136,7 +136,7 @@ def render_events_page():  # noqa: C901
                                 "Aperturas": count,
                                 "% Total": f"{pct}%",
                                 "Flag": pct_flag(pct),
-                            }
+                            },
                         )
                     df = pd.DataFrame(rows)
                     st.dataframe(df, use_container_width=True, hide_index=True)
@@ -146,7 +146,7 @@ def render_events_page():  # noqa: C901
                     for r in high:
                         st.warning(
                             f"**{r['Ruta']}** concentra {r['% Total']} de las aperturas. "
-                            f"Los usuarios necesitan mas ayuda en esa seccion."
+                            f"Los usuarios necesitan mas ayuda en esa seccion.",
                         )
                 else:
                     st.info("Sin datos de aperturas del copilot.")
@@ -166,7 +166,8 @@ def render_events_page():  # noqa: C901
                     rates = repo.get_global_procedure_rates(days=days)
                 else:
                     rates = repo.get_procedure_completion_rates(
-                        selected_tenant, days=days
+                        selected_tenant,
+                        days=days,
                     )
 
                 if rates:
@@ -187,10 +188,12 @@ def render_events_page():  # noqa: C901
                                 "Avg Paso Abandono": avg_step or "—",
                                 "% Completado": f"{pct}%",
                                 "Flag": flag,
-                            }
+                            },
                         )
                     st.dataframe(
-                        pd.DataFrame(rows), use_container_width=True, hide_index=True
+                        pd.DataFrame(rows),
+                        use_container_width=True,
+                        hide_index=True,
                     )
 
                     low = [
@@ -202,7 +205,7 @@ def render_events_page():  # noqa: C901
                     for r in low:
                         st.warning(
                             f"**{r['Procedimiento']}** — {r['% Completado']} completado. "
-                            f"Abandono promedio en paso {r['Avg Paso Abandono']}. Considerar simplificar."
+                            f"Abandono promedio en paso {r['Avg Paso Abandono']}. Considerar simplificar.",
                         )
                 else:
                     st.info("Sin datos de procedimientos.")
@@ -234,7 +237,7 @@ def render_events_page():  # noqa: C901
                         [
                             {"Tipo": "Sugeridos", "Cantidad": sv["suggested"]},
                             {"Tipo": "Escritos", "Cantidad": sv["typed"]},
-                        ]
+                        ],
                     )
                     st.bar_chart(sv_df.set_index("Tipo"))
                 else:
@@ -250,7 +253,7 @@ def render_events_page():  # noqa: C901
                         [
                             {"Resultado": "Aceptadas", "Cantidad": accepted},
                             {"Resultado": "Rechazadas", "Cantidad": rejected},
-                        ]
+                        ],
                     )
                     st.bar_chart(prop_df.set_index("Resultado"))
                 else:
@@ -265,7 +268,9 @@ def render_events_page():  # noqa: C901
                 if total_nudge:
                     ctr = round(clicked / total_nudge * 100, 1)
                     st.metric(
-                        "CTR", f"{ctr}%", help="nudge_clicked / (clicked + dismissed)"
+                        "CTR",
+                        f"{ctr}%",
+                        help="nudge_clicked / (clicked + dismissed)",
                     )
                     st.write(f"Clicked: {clicked} | Dismissed: {dismissed}")
                 else:
@@ -286,7 +291,8 @@ def render_events_page():  # noqa: C901
         col_type, col_limit = st.columns(2)
         with col_type:
             event_type_filter = st.text_input(
-                "Filtrar por Event Type (opcional)", key="intel_type"
+                "Filtrar por Event Type (opcional)",
+                key="intel_type",
             )
         with col_limit:
             explore_limit = st.slider("Limite", 10, 500, 100, key="intel_limit")
@@ -322,10 +328,12 @@ def render_events_page():  # noqa: C901
                                 "Ruta": ev.route or "—",
                                 "Data": data_str[:100]
                                 + ("..." if len(data_str) > 100 else ""),
-                            }
+                            },
                         )
                     st.dataframe(
-                        pd.DataFrame(rows), use_container_width=True, hide_index=True
+                        pd.DataFrame(rows),
+                        use_container_width=True,
+                        hide_index=True,
                     )
                     st.caption(f"Mostrando {len(events)} eventos")
 

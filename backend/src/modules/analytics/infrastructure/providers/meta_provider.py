@@ -188,7 +188,7 @@ def _emit_ig_count_metrics(
                 value=total,
                 unit="count",
                 date=end_date,
-            )
+            ),
         )
     for metric_name, val in last_values.items():
         metrics.append(
@@ -199,7 +199,7 @@ def _emit_ig_count_metrics(
                 value=val,
                 unit="count",
                 date=end_date,
-            )
+            ),
         )
 
 
@@ -223,7 +223,7 @@ def _emit_ig_follows_metrics(
                 value=val,
                 unit="count",
                 date=end_date,
-            )
+            ),
         )
 
 
@@ -312,8 +312,9 @@ class MetaProvider(BaseMetricsProvider):
         since_ts = int(datetime.combine(period_start, datetime.min.time()).timestamp())
         until_ts = int(
             datetime.combine(
-                period_end + timedelta(days=1), datetime.min.time()
-            ).timestamp()
+                period_end + timedelta(days=1),
+                datetime.min.time(),
+            ).timestamp(),
         )
 
         if period_type == "weekly":
@@ -334,7 +335,9 @@ class MetaProvider(BaseMetricsProvider):
                 "until": until_ts,
             }
             resp = await client.get(
-                url, headers=_auth_headers(access_token), params=params
+                url,
+                headers=_auth_headers(access_token),
+                params=params,
             )
             _raise_for_meta_error(resp, f"ig_organic_period_{period_type}")
 
@@ -363,7 +366,7 @@ class MetaProvider(BaseMetricsProvider):
                                 "period_type": period_type,
                                 "meta_period": meta_period,
                             },
-                        )
+                        ),
                     )
 
         return metrics
@@ -381,7 +384,7 @@ class MetaProvider(BaseMetricsProvider):
             {
                 "since": period_start.isoformat(),
                 "until": period_end.isoformat(),
-            }
+            },
         )
 
         async with httpx.AsyncClient(timeout=30) as client:
@@ -391,7 +394,9 @@ class MetaProvider(BaseMetricsProvider):
                 "time_range": time_range,
             }
             resp = await client.get(
-                url, headers=_auth_headers(access_token), params=params
+                url,
+                headers=_auth_headers(access_token),
+                params=params,
             )
             _raise_for_meta_error(resp, "meta_ads_period")
 
@@ -410,7 +415,7 @@ class MetaProvider(BaseMetricsProvider):
                                 unit="count" if field == "reach" else "ratio",
                                 date=period_start,
                                 extra={"period_exact": True},
-                            )
+                            ),
                         )
 
         return metrics
@@ -639,7 +644,7 @@ class MetaProvider(BaseMetricsProvider):
 
         for chunk_start, chunk_end in _ig_day_chunks(start_date, end_date):
             since_ts = int(
-                datetime.combine(chunk_start, datetime.min.time()).timestamp()
+                datetime.combine(chunk_start, datetime.min.time()).timestamp(),
             )
             until_ts = int(datetime.combine(chunk_end, datetime.min.time()).timestamp())
 
@@ -772,7 +777,7 @@ class MetaProvider(BaseMetricsProvider):
                         value=float(val),
                         unit="count",
                         date=end_date,
-                    )
+                    ),
                 )
 
     async def _fetch_ig_demographics(
@@ -816,7 +821,7 @@ class MetaProvider(BaseMetricsProvider):
                         unit="json",
                         date=end_date,
                         extra={"breakdowns": extra},
-                    )
+                    ),
                 )
             except httpx.HTTPStatusError:
                 logger.warning("ig_organic_%s_unavailable", demo_metric)
@@ -831,7 +836,8 @@ class MetaProvider(BaseMetricsProvider):
         """Extract Facebook page organic reach and engagement."""
         page_id = credentials.get("page_id")
         page_token = credentials.get(
-            "page_access_token", credentials.get("access_token", "")
+            "page_access_token",
+            credentials.get("access_token", ""),
         )
         if not page_id:
             return []
@@ -848,10 +854,10 @@ class MetaProvider(BaseMetricsProvider):
                 "metric": "page_impressions_organic_unique",
                 "period": "day",
                 "since": int(
-                    datetime.combine(start_date, datetime.min.time()).timestamp()
+                    datetime.combine(start_date, datetime.min.time()).timestamp(),
                 ),
                 "until": int(
-                    datetime.combine(end_date, datetime.min.time()).timestamp()
+                    datetime.combine(end_date, datetime.min.time()).timestamp(),
                 ),
             },
         )
@@ -869,10 +875,10 @@ class MetaProvider(BaseMetricsProvider):
                 "metric": "page_post_engagements",
                 "period": "day",
                 "since": int(
-                    datetime.combine(start_date, datetime.min.time()).timestamp()
+                    datetime.combine(start_date, datetime.min.time()).timestamp(),
                 ),
                 "until": int(
-                    datetime.combine(end_date, datetime.min.time()).timestamp()
+                    datetime.combine(end_date, datetime.min.time()).timestamp(),
                 ),
             },
         )
@@ -934,7 +940,7 @@ class MetaProvider(BaseMetricsProvider):
             params={
                 "fields": "id,name,targeting,insights.time_range("
                 + json.dumps(
-                    {"since": start_date.isoformat(), "until": end_date.isoformat()}
+                    {"since": start_date.isoformat(), "until": end_date.isoformat()},
                 )
                 + "){reach,clicks,spend}",
                 "limit": 200,
@@ -1086,7 +1092,7 @@ class MetaProvider(BaseMetricsProvider):
                         unit=unit,
                         currency=cur,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         # B) Outbound clicks (list of AdsActionStats)
@@ -1132,7 +1138,7 @@ class MetaProvider(BaseMetricsProvider):
                     value=value,
                     unit="count",
                     date=metric_date,
-                )
+                ),
             )
 
         # D) Action values → monetary conversion value
@@ -1170,7 +1176,7 @@ class MetaProvider(BaseMetricsProvider):
                         unit="currency",
                         currency=currency,
                         date=metric_date,
-                    )
+                    ),
                 )
             elif action_type in ("offsite_conversion.fb_pixel_lead", "lead"):
                 metrics.append(
@@ -1182,7 +1188,7 @@ class MetaProvider(BaseMetricsProvider):
                         unit="currency",
                         currency=currency,
                         date=metric_date,
-                    )
+                    ),
                 )
 
         # F) ROAS
@@ -1220,7 +1226,7 @@ class MetaProvider(BaseMetricsProvider):
                             value=float(entry.get("value", 0)),
                             unit=unit,
                             date=metric_date,
-                        )
+                        ),
                     )
 
         return metrics
@@ -1456,7 +1462,7 @@ class MetaProvider(BaseMetricsProvider):
                     value=val,
                     unit="count",
                     date=current,
-                )
+                ),
             )
 
     async def _fetch_ig_daily_no_breakdown(
@@ -1496,7 +1502,7 @@ class MetaProvider(BaseMetricsProvider):
                     value=val,
                     unit="count",
                     date=current,
-                )
+                ),
             )
 
     async def _fetch_ig_daily_follows(
@@ -1544,7 +1550,7 @@ class MetaProvider(BaseMetricsProvider):
                     value=val,
                     unit="count",
                     date=current,
-                )
+                ),
             )
 
     async def _fetch_ig_user_node_daily(
@@ -1575,7 +1581,7 @@ class MetaProvider(BaseMetricsProvider):
                     value=float(media_count_val),
                     unit="count",
                     date=end_date,
-                )
+                ),
             )
 
         followers_now = user_data.get("followers_count")
@@ -1611,7 +1617,7 @@ class MetaProvider(BaseMetricsProvider):
                     value=round(cursor_value),
                     unit="count",
                     date=cursor_day,
-                )
+                ),
             )
             cursor_value -= net_by_date.get(cursor_day, 0.0)
             cursor_day -= timedelta(days=1)
@@ -1657,7 +1663,7 @@ class MetaProvider(BaseMetricsProvider):
                         unit="json",
                         date=end_date,
                         extra={"breakdowns": extra},
-                    )
+                    ),
                 )
             except httpx.HTTPStatusError:
                 logger.warning("ig_organic_%s_daily_unavailable", demo_metric)
@@ -1672,7 +1678,8 @@ class MetaProvider(BaseMetricsProvider):
         """Parse FB insights values[] array to emit per-day metrics."""
         page_id = credentials.get("page_id")
         page_token = credentials.get(
-            "page_access_token", credentials.get("access_token", "")
+            "page_access_token",
+            credentials.get("access_token", ""),
         )
         if not page_id:
             return []
@@ -1691,10 +1698,10 @@ class MetaProvider(BaseMetricsProvider):
                     "metric": metric_name,
                     "period": "day",
                     "since": int(
-                        datetime.combine(start_date, datetime.min.time()).timestamp()
+                        datetime.combine(start_date, datetime.min.time()).timestamp(),
                     ),
                     "until": int(
-                        datetime.combine(end_date, datetime.min.time()).timestamp()
+                        datetime.combine(end_date, datetime.min.time()).timestamp(),
                     ),
                 },
             )
@@ -1716,7 +1723,7 @@ class MetaProvider(BaseMetricsProvider):
                             value=float(v.get("value", 0)),
                             unit="count",
                             date=metric_date,
-                        )
+                        ),
                     )
         return metrics
 
@@ -1753,7 +1760,7 @@ class MetaProvider(BaseMetricsProvider):
                     {
                         "since": start_date.isoformat(),
                         "until": end_date.isoformat(),
-                    }
+                    },
                 ),
                 "time_increment": "1",
                 "level": "account",
@@ -1815,7 +1822,7 @@ class MetaProvider(BaseMetricsProvider):
                     {
                         "since": start_date.isoformat(),
                         "until": end_date.isoformat(),
-                    }
+                    },
                 ),
                 "time_increment": "1",
                 "level": "campaign",
@@ -1876,7 +1883,7 @@ class MetaProvider(BaseMetricsProvider):
                     {
                         "since": start_date.isoformat(),
                         "until": end_date.isoformat(),
-                    }
+                    },
                 ),
                 "time_increment": "1",
                 "level": "ad",
@@ -1932,7 +1939,7 @@ class MetaProvider(BaseMetricsProvider):
 
         headers = _auth_headers(access_token)
         time_range = json.dumps(
-            {"since": start_date.isoformat(), "until": end_date.isoformat()}
+            {"since": start_date.isoformat(), "until": end_date.isoformat()},
         )
         fields = ",".join(self._BREAKDOWN_METRICS)
         metrics: list[ExtractedMetric] = []
@@ -1973,7 +1980,7 @@ class MetaProvider(BaseMetricsProvider):
                     else:
                         dim_values = [row.get(breakdown_key, "")]
                     breakdowns_list.append(
-                        {"dimension_values": dim_values, "value": float(val)}
+                        {"dimension_values": dim_values, "value": float(val)},
                     )
 
                 if breakdowns_list:
@@ -1987,7 +1994,7 @@ class MetaProvider(BaseMetricsProvider):
                             unit="json",
                             date=end_date,
                             extra={"breakdowns": breakdowns_list},
-                        )
+                        ),
                     )
 
         return metrics
@@ -2004,7 +2011,10 @@ class MetaProvider(BaseMetricsProvider):
         current = start_date
         while current <= end_date:
             day_metrics = await self._extract_meta_retargeting(
-                client, credentials, current, current
+                client,
+                credentials,
+                current,
+                current,
             )
             # Override date to match the actual day (original uses end_date)
             for m in day_metrics:

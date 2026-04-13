@@ -63,7 +63,12 @@ def service(asset_repo, knowledge_repo, advertising_port):
 
 
 def test_get_counts_aggregates_all_three_sources(
-    service, asset_repo, knowledge_repo, advertising_port, tenant_id, offer_id
+    service,
+    asset_repo,
+    knowledge_repo,
+    advertising_port,
+    tenant_id,
+    offer_id,
 ):
     counts = service.get_counts(tenant_id=tenant_id, offer_id=offer_id)
 
@@ -80,7 +85,11 @@ def test_get_counts_aggregates_all_three_sources(
 
 
 def test_get_counts_returns_zeros_when_nothing(
-    asset_repo, knowledge_repo, advertising_port, tenant_id, offer_id
+    asset_repo,
+    knowledge_repo,
+    advertising_port,
+    tenant_id,
+    offer_id,
 ):
     asset_repo.count_by_offer.return_value = 0
     knowledge_repo.count_by_offer.return_value = 0
@@ -99,7 +108,10 @@ def test_get_counts_returns_zeros_when_nothing(
 
 
 def test_get_counts_swallows_advertising_port_errors(
-    asset_repo, knowledge_repo, tenant_id, offer_id
+    asset_repo,
+    knowledge_repo,
+    tenant_id,
+    offer_id,
 ):
     """If advertising port fails, fall back to 0 campaigns — the badge is
     non-critical and must never break the offer page."""
@@ -118,7 +130,10 @@ def test_get_counts_swallows_advertising_port_errors(
 
 
 def test_advertising_port_is_called_with_date_range(
-    service, advertising_port, tenant_id, offer_id
+    service,
+    advertising_port,
+    tenant_id,
+    offer_id,
 ):
     service.get_counts(tenant_id=tenant_id, offer_id=offer_id)
     call = advertising_port.get_campaigns_for_offer.call_args

@@ -85,7 +85,7 @@ class CampaignService:
                     stop_time=r.get("stop_time"),
                     ad_sets_count=r.get("ad_sets_count", 0),
                     ads_count=r.get("ads_count", 0),
-                )
+                ),
             )
 
         # Recommendations
@@ -114,7 +114,7 @@ class CampaignService:
                     opportunity_score=r.get("opportunity_score"),
                     url=r.get("url"),
                     object_ids=r.get("object_ids", []),
-                )
+                ),
             )
 
         active_count = sum(1 for c in campaigns if c.effective_status == "ACTIVE")
@@ -140,7 +140,9 @@ class CampaignService:
         )
 
     def get_performance(
-        self, tenant_id: UUID, period: str = "30d"
+        self,
+        tenant_id: UUID,
+        period: str = "30d",
     ) -> "CampaignPerformanceDTO":
         """Get campaigns with aggregated metrics for the given period."""
         from src.modules.analytics.application.dto.campaign_dto import (
@@ -275,7 +277,7 @@ class CampaignService:
                     ads_count=r.get("ads_count", 0),
                     metrics=metrics_dto,
                     health="good",  # placeholder, computed below
-                )
+                ),
             )
 
         # 4. Compute health based on CPA vs average
@@ -473,7 +475,9 @@ class CampaignService:
     """)
 
     def get_creatives_overview(
-        self, tenant_id: UUID, period: str = "30d"
+        self,
+        tenant_id: UUID,
+        period: str = "30d",
     ) -> "CreativesOverviewDTO":
         """Get ad gallery with creative details and video retention metrics."""
         from src.modules.analytics.application.dto.campaign_dto import (

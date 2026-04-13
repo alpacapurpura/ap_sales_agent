@@ -50,7 +50,8 @@ ALLOWED_PERIOD_FUNCTIONS: set[str] = {
 
 
 def _find_function_by_name(
-    tree: ast.AST, name: str
+    tree: ast.AST,
+    name: str,
 ) -> ast.AsyncFunctionDef | ast.FunctionDef | None:
     for node in ast.walk(tree):
         if (
@@ -102,7 +103,9 @@ def test_every_ads_insights_call_uses_time_increment():
 
         params_keys: dict[str, ast.AST] = {}
         for key_node, val_node in zip(
-            params_kw.value.keys, params_kw.value.values, strict=False
+            params_kw.value.keys,
+            params_kw.value.values,
+            strict=False,
         ):
             if isinstance(key_node, ast.Constant) and isinstance(key_node.value, str):
                 params_keys[key_node.value] = val_node
@@ -128,7 +131,7 @@ def test_every_ads_insights_call_uses_time_increment():
             violations.append(
                 f"{enclosing or '<module>'}: /insights call with "
                 f"level={level_node.value!r} is missing time_increment "
-                f"(line {node.lineno})"
+                f"(line {node.lineno})",
             )
 
     assert not violations, (

@@ -79,7 +79,11 @@ def test_status_no_landing_returns_idle(service, landing_repo, tenant_id, offer_
 
 
 def test_status_in_sync_landing(
-    service, landing_repo, offer_service, tenant_id, offer_id
+    service,
+    landing_repo,
+    offer_service,
+    tenant_id,
+    offer_id,
 ):
     now = datetime.now(timezone.utc)
     landing = MagicMock()
@@ -100,7 +104,11 @@ def test_status_in_sync_landing(
 
 
 def test_status_outdated_when_offer_updated_after_landing(
-    service, landing_repo, offer_service, tenant_id, offer_id
+    service,
+    landing_repo,
+    offer_service,
+    tenant_id,
+    offer_id,
 ):
     generated = datetime.now(timezone.utc) - timedelta(hours=2)
     landing = MagicMock()
@@ -123,7 +131,10 @@ def test_status_outdated_when_offer_updated_after_landing(
 
 
 def test_generate_rejects_incomplete_offer(
-    service, completion_service, tenant_id, offer_id
+    service,
+    completion_service,
+    tenant_id,
+    offer_id,
 ):
     completion_service.compute.return_value = {
         "percentage": 40.0,
@@ -136,7 +147,11 @@ def test_generate_rejects_incomplete_offer(
 
 
 def test_generate_queues_job_and_emits_event(
-    service, landing_repo, event_bus, tenant_id, offer_id
+    service,
+    landing_repo,
+    event_bus,
+    tenant_id,
+    offer_id,
 ):
     created = MagicMock()
     created.id = uuid4()
@@ -155,7 +170,11 @@ def test_generate_queues_job_and_emits_event(
 
 
 def test_publish_sets_flag_and_emits_event(
-    service, landing_repo, event_bus, tenant_id, offer_id
+    service,
+    landing_repo,
+    event_bus,
+    tenant_id,
+    offer_id,
 ):
     landing = MagicMock()
     landing.id = uuid4()
@@ -183,7 +202,11 @@ def test_unpublish_clears_flag(service, landing_repo, event_bus, tenant_id, offe
 
 
 def test_regenerate_bumps_snapshot_and_queues(
-    service, landing_repo, event_bus, tenant_id, offer_id
+    service,
+    landing_repo,
+    event_bus,
+    tenant_id,
+    offer_id,
 ):
     landing = MagicMock()
     landing.id = uuid4()

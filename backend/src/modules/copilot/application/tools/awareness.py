@@ -32,7 +32,9 @@ def _check_introspectable_module(db, tenant_id: UUID, descriptor) -> dict:
         data = descriptor.read_fn(repo, tenant_id)
     except Exception as e:
         logger.warning(
-            "awareness_read_error", module=descriptor.module_id, error=str(e)
+            "awareness_read_error",
+            module=descriptor.module_id,
+            error=str(e),
         )
         return {"configured": False, "message": f"Error leyendo {descriptor.label}"}
 
@@ -55,7 +57,7 @@ def _check_offer_completion(db, tenant_id: UUID) -> dict:
         count = (
             db.execute(
                 text(
-                    "SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true"
+                    "SELECT COUNT(*) FROM products WHERE tenant_id = :tid AND is_active = true",
                 ),
                 {"tid": str(tenant_id)},
             ).scalar()
@@ -79,7 +81,7 @@ def _check_connections_completion(db, tenant_id: UUID) -> dict:
         rows = (
             db.execute(
                 text(
-                    "SELECT channel_type, is_active FROM channel_connections WHERE tenant_id = :tid"
+                    "SELECT channel_type, is_active FROM channel_connections WHERE tenant_id = :tid",
                 ),
                 {"tid": str(tenant_id)},
             )
@@ -114,7 +116,7 @@ def _check_landing_completion(db, tenant_id: UUID) -> dict:
         published = (
             db.execute(
                 text(
-                    "SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid AND is_published = true"
+                    "SELECT COUNT(*) FROM landing_pages WHERE tenant_id = :tid AND is_published = true",
                 ),
                 {"tid": str(tenant_id)},
             ).scalar()
@@ -215,7 +217,7 @@ def get_module_completion_status(module: str | None = None) -> str:
                     "label": descriptor.label,
                     "done": result["configured"],
                     "route": f"/{{tenantId}}/{descriptor.route_prefix}",
-                }
+                },
             )
 
         return json.dumps(
@@ -225,7 +227,7 @@ def get_module_completion_status(module: str | None = None) -> str:
                     "type": "checklist",
                     "items": checklist_items,
                 },
-            }
+            },
         )
     finally:
         db.close()

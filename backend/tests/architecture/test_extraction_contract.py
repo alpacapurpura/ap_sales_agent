@@ -58,7 +58,8 @@ def test_contract_class_importable(name: str, contract: ProviderContract) -> Non
 
 @pytest.mark.parametrize("name,contract", sorted(EXTRACTION_CONTRACTS.items()))
 def test_contract_provider_name_matches_class(
-    name: str, contract: ProviderContract
+    name: str,
+    contract: ProviderContract,
 ) -> None:
     module = importlib.import_module(contract.module_path)
     cls = getattr(module, contract.class_name)
@@ -72,7 +73,8 @@ def test_contract_provider_name_matches_class(
 
 @pytest.mark.parametrize("name,contract", sorted(EXTRACTION_CONTRACTS.items()))
 def test_contract_has_period_extraction_matches_class(
-    name: str, contract: ProviderContract
+    name: str,
+    contract: ProviderContract,
 ) -> None:
     module = importlib.import_module(contract.module_path)
     cls = getattr(module, contract.class_name)
@@ -146,7 +148,8 @@ def test_catalog_metrics_appear_in_contract() -> None:
     for metric in METRIC_CATALOG.values():
         for catalog_provider in metric.providers:
             contract_provider = catalog_to_contract_provider.get(
-                catalog_provider, catalog_provider
+                catalog_provider,
+                catalog_provider,
             )
             contract = EXTRACTION_CONTRACTS.get(contract_provider)
             if contract is None:
@@ -156,7 +159,7 @@ def test_catalog_metrics_appear_in_contract() -> None:
             if metric.name not in _contract_metric_names(contract):
                 missing.append(
                     f"{contract_provider}/{metric.name} "
-                    f"(declared in catalog by '{catalog_provider}')"
+                    f"(declared in catalog by '{catalog_provider}')",
                 )
 
     # Allowlist for KNOWN gaps that we are tracking and intentionally tolerate.

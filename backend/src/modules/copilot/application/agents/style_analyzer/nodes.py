@@ -39,7 +39,10 @@ def clean_text_regex(text: str) -> str:
     text = re.sub(r"audio omitted", "", text, flags=re.IGNORECASE)
     text = re.sub(r"sticker omitted", "", text, flags=re.IGNORECASE)
     text = re.sub(
-        r"Messages and calls are end-to-end encrypted.*", "", text, flags=re.IGNORECASE
+        r"Messages and calls are end-to-end encrypted.*",
+        "",
+        text,
+        flags=re.IGNORECASE,
     )
 
     # 4. Remove URLs (Optional: sometimes style is in the link sharing, but usually noise for text style)
@@ -124,7 +127,9 @@ def node_psychologist(state: OnboardingState):
 
     except Exception as e:
         logger.exception(
-            "psychologist_analysis_failed", error_type=type(e).__name__, error=str(e)
+            "psychologist_analysis_failed",
+            error_type=type(e).__name__,
+            error=str(e),
         )
         return {"error": f"Failed to analyze style: {e!s}"}
 

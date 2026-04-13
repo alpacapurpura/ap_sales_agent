@@ -41,7 +41,12 @@ class SearchConsoleAdapter:
     ) -> list[dict[str, Any]]:
         """Query Search Console analytics data."""
         return await asyncio.to_thread(
-            self._query_sync, site_url, start_date, end_date, dimensions, row_limit
+            self._query_sync,
+            site_url,
+            start_date,
+            end_date,
+            dimensions,
+            row_limit,
         )
 
     def _query_sync(

@@ -29,7 +29,11 @@ def _make_repo(db: Session) -> StateRepository:
 
 class TestCreateNewCheckpoint:
     def test_create_new_checkpoint(
-        self, db: Session, tenant_id, lead_id, customer_profile_id
+        self,
+        db: Session,
+        tenant_id,
+        lead_id,
+        customer_profile_id,
     ):
         repo = _make_repo(db)
 

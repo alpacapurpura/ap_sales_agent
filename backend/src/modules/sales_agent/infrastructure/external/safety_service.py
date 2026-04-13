@@ -55,14 +55,17 @@ class SafetyLayerService:
                         # If context_instruction exists, use LLM to verify
                         if rule.context_instruction:
                             should_replace = await self._verify_context(
-                                match_text, final_content, rule.context_instruction
+                                match_text,
+                                final_content,
+                                rule.context_instruction,
                             )
                             if not should_replace:
                                 continue
 
                         # Replace
                         final_content = final_content.replace(
-                            match_text, rule.replacement
+                            match_text,
+                            rule.replacement,
                         )
                         modified_flag = True
                         logger.info(
@@ -81,7 +84,9 @@ class SafetyLayerService:
             cc_pattern = r"\b(?:\d{4}[-\s]?){3}\d{4}\b"
             if re.search(cc_pattern, final_content):
                 final_content = re.sub(
-                    cc_pattern, "[REDACTED_PAYMENT_INFO]", final_content
+                    cc_pattern,
+                    "[REDACTED_PAYMENT_INFO]",
+                    final_content,
                 )
                 modified_flag = True
                 logger.warning("safety_layer_trigger_system", type="credit_card")
@@ -92,7 +97,10 @@ class SafetyLayerService:
             db.close()
 
     async def _verify_context(
-        self, match_text: str, full_context: str, instruction: str
+        self,
+        match_text: str,
+        full_context: str,
+        instruction: str,
     ) -> bool:
         """
         Uses LLM (Fast Model) to verify if the match actually violates the rule in this specific context.

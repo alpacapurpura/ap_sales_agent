@@ -79,17 +79,17 @@ def summarize_settings(settings: BrandSettings) -> dict:
         "team_count": len(settings.team or []),
         "contact": bool(
             settings.contact
-            and (settings.contact.support_email or settings.contact.phone)
+            and (settings.contact.support_email or settings.contact.phone),
         ),
         "testimonials_count": len(settings.testimonials or []),
         "authority_count": len(settings.authority_vault or []),
         "visuals": bool(settings.visuals and settings.visuals.primary_color),
         "positioning": bool(
-            settings.positioning and settings.positioning.brand_essence
+            settings.positioning and settings.positioning.brand_essence,
         ),
         "narrative": bool(settings.narrative and settings.narrative.hero),
         "communication_assets_count": len(
-            (settings.communication_assets or CommunicationAssets()).assets
+            (settings.communication_assets or CommunicationAssets()).assets,
         ),
     }
 
@@ -180,7 +180,8 @@ def _merge_people(
 
 
 def _merge_contact(
-    current: BrandContact | None, new: BrandContact | None
+    current: BrandContact | None,
+    new: BrandContact | None,
 ) -> BrandContact | None:
     """Merge contact — deep update existing or replace."""
     if not new:
@@ -194,7 +195,10 @@ def _merge_contact(
 
 
 def _deep_merge_with_nested(
-    existing_dict: dict, new_dict: dict, list_fields: tuple, nested_fields: tuple
+    existing_dict: dict,
+    new_dict: dict,
+    list_fields: tuple,
+    nested_fields: tuple,
 ) -> dict:
     """Deep merge: lists replace, nested objects merge, rest updates."""
     for list_field in list_fields:
@@ -210,7 +214,8 @@ def _deep_merge_with_nested(
 
 
 def _merge_positioning(
-    current: BrandPositioning | None, new: BrandPositioning | None
+    current: BrandPositioning | None,
+    new: BrandPositioning | None,
 ) -> BrandPositioning | None:
     """Merge positioning with deep merge for nested objects."""
     if not new or is_empty(new):
@@ -229,7 +234,8 @@ def _merge_positioning(
 
 
 def _merge_narrative(
-    current: BrandNarrative | None, new: BrandNarrative | None
+    current: BrandNarrative | None,
+    new: BrandNarrative | None,
 ) -> BrandNarrative | None:
     """Merge narrative with deep merge for nested StoryBrand objects."""
     if not new or is_empty(new):
@@ -248,7 +254,8 @@ def _merge_narrative(
 
 
 def _merge_communication_assets(
-    current: CommunicationAssets | None, new: CommunicationAssets | None
+    current: CommunicationAssets | None,
+    new: CommunicationAssets | None,
 ) -> CommunicationAssets | None:
     """Merge communication assets — replace sub-collections if non-empty."""
     if not new or is_empty(new):
@@ -311,7 +318,8 @@ class ExtractionOrchestrator:
         enriched_visual_content = ""
         if include_visuals:
             crawled_content, enriched_visual_content = await asyncio.gather(
-                safe_crawl(), safe_crawl_styles()
+                safe_crawl(),
+                safe_crawl_styles(),
             )
         else:
             crawled_content = await safe_crawl()
@@ -390,7 +398,10 @@ class ExtractionOrchestrator:
 
         if url:
             crawled_content, enriched_visual_content = await self._crawl_content(
-                url, include_visuals, progress_callback, trace
+                url,
+                include_visuals,
+                progress_callback,
+                trace,
             )
             if crawled_content:
                 content = f"{content}\n\n{crawled_content}"
@@ -406,7 +417,8 @@ class ExtractionOrchestrator:
         if mode == "update":
             current_settings = svc.repository.get_settings(svc.tenant_id)
             current_data_str = json.dumps(
-                current_settings.model_dump(mode="json"), indent=2
+                current_settings.model_dump(mode="json"),
+                indent=2,
             )
 
         logger.info(
@@ -595,8 +607,10 @@ class ExtractionOrchestrator:
             wave1_sections.append("visuals")
             wave1_coros.append(
                 svc._extract_visuals(
-                    enriched_visual_content, current_data_str, update_instructions
-                )
+                    enriched_visual_content,
+                    current_data_str,
+                    update_instructions,
+                ),
             )
 
         wave1_results = await self._run_wave(1, wave1_sections, wave1_coros, svc, trace)
@@ -617,7 +631,9 @@ class ExtractionOrchestrator:
             [
                 svc._extract_strategy(content, current_data_str, update_instructions),
                 svc._extract_people_contact(
-                    content, current_data_str, update_instructions
+                    content,
+                    current_data_str,
+                    update_instructions,
                 ),
                 svc._extract_authority(content, current_data_str, update_instructions),
             ],
@@ -635,7 +651,9 @@ class ExtractionOrchestrator:
             ["positioning", "narrative"],
             [
                 svc._extract_positioning(
-                    content, current_data_str, update_instructions
+                    content,
+                    current_data_str,
+                    update_instructions,
                 ),
                 svc._extract_narrative(content, current_data_str, update_instructions),
             ],
@@ -662,7 +680,12 @@ class ExtractionOrchestrator:
             progress_callback(95, "Finalizando extraccion...")
 
         self._store_section_results(
-            identity, story, strategy, people_contact, testimonials_data, authority_data
+            identity,
+            story,
+            strategy,
+            people_contact,
+            testimonials_data,
+            authority_data,
         )
         return extracted_visuals, positioning, narrative, communication_assets
 
@@ -704,8 +727,10 @@ class ExtractionOrchestrator:
             all_sections.append("visuals")
             coros.append(
                 svc._extract_visuals(
-                    enriched_visual_content, current_data_str, update_instructions
-                )
+                    enriched_visual_content,
+                    current_data_str,
+                    update_instructions,
+                ),
             )
 
         all_results = await self._run_wave(1, all_sections, coros, svc, trace)
@@ -730,7 +755,12 @@ class ExtractionOrchestrator:
             progress_callback(95, "Finalizando extraccion...")
 
         self._store_section_results(
-            identity, story, strategy, people_contact, testimonials_data, authority_data
+            identity,
+            story,
+            strategy,
+            people_contact,
+            testimonials_data,
+            authority_data,
         )
         return extracted_visuals, positioning, narrative, communication_assets
 
@@ -760,10 +790,13 @@ class ExtractionOrchestrator:
         updated_story = _merge_story(current_settings.story, new_story)
         updated_strategy = _merge_strategy(current_settings.strategy, new_strategy)
         updated_team, updated_team_metadata = _merge_people(
-            current_settings.team, current_settings.team_metadata, new_people_contact
+            current_settings.team,
+            current_settings.team_metadata,
+            new_people_contact,
         )
         updated_contact = _merge_contact(
-            current_settings.contact, new_people_contact.contact
+            current_settings.contact,
+            new_people_contact.contact,
         )
         updated_testimonials = new_testimonials.testimonials or (
             current_settings.testimonials or []
@@ -773,11 +806,13 @@ class ExtractionOrchestrator:
         )
         updated_visuals = _merge_simple_model(current_settings.visuals, new_visuals)
         updated_positioning = _merge_positioning(
-            current_settings.positioning, new_positioning
+            current_settings.positioning,
+            new_positioning,
         )
         updated_narrative = _merge_narrative(current_settings.narrative, new_narrative)
         updated_comm_assets = _merge_communication_assets(
-            current_settings.communication_assets, new_communication_assets
+            current_settings.communication_assets,
+            new_communication_assets,
         )
 
         final_settings = current_settings.model_copy(
@@ -794,7 +829,7 @@ class ExtractionOrchestrator:
                 "positioning": updated_positioning,
                 "narrative": updated_narrative,
                 "communication_assets": updated_comm_assets,
-            }
+            },
         )
 
         logger.info(

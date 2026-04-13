@@ -77,7 +77,7 @@ class SummaryStageService:
         )
 
         visitor_stmt = select(
-            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0),
         ).where(
             MetricAggregationModel.tenant_id == tenant_id,
             MetricAggregationModel.metric_name.in_(("reach", "sessions")),
@@ -127,7 +127,9 @@ class SummaryStageService:
         )
 
     def _build_sales_kpi(
-        self, cache: dict | None, tenant_id: UUID
+        self,
+        cache: dict | None,
+        tenant_id: UUID,
     ) -> StageSummaryKpiDTO:
         """Build sales KPI from cache or DB fallback."""
         if cache:
@@ -213,7 +215,8 @@ class SummaryStageService:
                 secondary_unit="%" if conv_rate > 0 else None,
             )
         evangelists = self.customer_repo.count_by_stage(
-            tenant_id, LifecycleStage.EVANGELIST
+            tenant_id,
+            LifecycleStage.EVANGELIST,
         )
         return StageSummaryKpiDTO(
             stage="evangelization",
@@ -267,7 +270,7 @@ class SummaryStageService:
                 "conversion_rate",
                 "tasa conversion",
                 fallback_main=fallback_leads,
-            )
+            ),
         )
 
         # --- Nurture ---
@@ -286,7 +289,7 @@ class SummaryStageService:
                 "conversion_rate",
                 "engagement rate",
                 fallback_main=fallback_mqls,
-            )
+            ),
         )
 
         # --- Opportunity ---
@@ -294,7 +297,8 @@ class SummaryStageService:
         if not opportunity_cache:
             sql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.SQL)
             opp_count = self.customer_repo.count_by_stage(
-                tenant_id, LifecycleStage.OPPORTUNITY
+                tenant_id,
+                LifecycleStage.OPPORTUNITY,
             )
             fallback_sqls = sql_count + opp_count
         else:
@@ -308,7 +312,7 @@ class SummaryStageService:
                 "conversion_rate",
                 "pipeline value",
                 fallback_main=fallback_sqls,
-            )
+            ),
         )
 
         # --- Sales ---
@@ -316,7 +320,7 @@ class SummaryStageService:
             self._build_sales_kpi(
                 await _get_stage_cache("sales"),
                 tenant_id,
-            )
+            ),
         )
 
         # --- Adoption ---
@@ -332,7 +336,7 @@ class SummaryStageService:
                 "churn_rate_pct",
                 "churn rate",
                 main_unit="$",
-            )
+            ),
         )
 
         # --- Evangelization ---
@@ -340,7 +344,7 @@ class SummaryStageService:
             self._build_evangelization_kpi(
                 await _get_stage_cache("evangelization"),
                 tenant_id,
-            )
+            ),
         )
 
         result = BowtiesSummaryDTO(

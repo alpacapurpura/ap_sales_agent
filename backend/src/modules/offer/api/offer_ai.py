@@ -38,5 +38,6 @@ async def generate_offer_psychology(
         raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"AI Generation failed: {e!s}"
+            status_code=500,
+            detail=f"AI Generation failed: {e!s}",
         ) from e

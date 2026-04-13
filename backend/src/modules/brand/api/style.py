@@ -52,11 +52,13 @@ async def analyze_style(
             raw_input = content.decode("utf-8")
         except Exception as e:
             raise HTTPException(
-                status_code=400, detail=f"Error reading file: {e!s}"
+                status_code=400,
+                detail=f"Error reading file: {e!s}",
             ) from e
     else:
         raise HTTPException(
-            status_code=400, detail="Either text_input or file must be provided"
+            status_code=400,
+            detail="Either text_input or file must be provided",
         )
 
     # 2. Run Onboarding Graph

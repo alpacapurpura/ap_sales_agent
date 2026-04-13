@@ -9,7 +9,10 @@ from src.modules.analytics.application.services.ad_performance_service import (
 
 
 def _make_metric_row(
-    ad_id: str, metric_name: str, value: float, ad_name: str = "Test Ad"
+    ad_id: str,
+    metric_name: str,
+    value: float,
+    ad_name: str = "Test Ad",
 ):
     """Create a mock DB row for official_metrics."""
     row = MagicMock()
@@ -88,7 +91,8 @@ class TestAdPerformanceService:
         ad_creative_rows = [
             _make_ad_creative_row("ad_001", creative_video_id="vid_123"),
             _make_ad_creative_row(
-                "ad_002", creative_image_url="https://img.example.com/carousel.jpg"
+                "ad_002",
+                creative_image_url="https://img.example.com/carousel.jpg",
             ),
         ]
         _setup_query_mocks(mock_db, metric_rows, ad_creative_rows)
@@ -295,7 +299,8 @@ class TestFormatComparisonGrouping:
             _make_ad_creative_row("ad_v1", creative_video_id="vid_1"),
             _make_ad_creative_row("ad_v2", creative_video_id="vid_2"),
             _make_ad_creative_row(
-                "ad_i1", creative_image_url="https://img.example.com/1.jpg"
+                "ad_i1",
+                creative_image_url="https://img.example.com/1.jpg",
             ),
         ]
 

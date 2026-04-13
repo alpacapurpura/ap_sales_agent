@@ -34,10 +34,18 @@ SAMPLE_ATTRACTION_DATA = {
     "organic_social": _make_group(
         [
             _make_channel(
-                "ig-organic", "Instagram", "organic_social", reach=8000, engagement=500
+                "ig-organic",
+                "Instagram",
+                "organic_social",
+                reach=8000,
+                engagement=500,
             ),
             _make_channel(
-                "yt-organic", "YouTube", "organic_social", reach=3000, views=12000
+                "yt-organic",
+                "YouTube",
+                "organic_social",
+                reach=3000,
+                views=12000,
             ),
         ],
         reach=11000,
@@ -56,7 +64,7 @@ SAMPLE_ATTRACTION_DATA = {
                 spend=1500,
                 impressions=50000,
                 clicks=2000,
-            )
+            ),
         ],
         spend=1500,
         impressions=50000,
@@ -91,8 +99,12 @@ SAMPLE_CAPTURE_DATA = {
     "ai_agent": _make_group(
         [
             _make_channel(
-                "manychat-ig", "ManyChat IG", "ai_agent", leads=50, conversations=120
-            )
+                "manychat-ig",
+                "ManyChat IG",
+                "ai_agent",
+                leads=50,
+                conversations=120,
+            ),
         ],
         leads=50,
     ),
@@ -201,17 +213,21 @@ class TestCachingBehavior:
                 "channel_list": [],
                 "bottlenecks": [],
                 "period": "last_30_days",
-            }
+            },
         )
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            "tenant-1", "attraction", "last_30_days"
+            "tenant-1",
+            "attraction",
+            "last_30_days",
         )
         assert result.stage == "attraction"
         # Should have called get with overview key first
         mock_cache.get.assert_any_call(
-            "tenant-1", "overview_attraction", "last_30_days"
+            "tenant-1",
+            "overview_attraction",
+            "last_30_days",
         )
 
     @pytest.mark.asyncio
@@ -223,7 +239,9 @@ class TestCachingBehavior:
         service = StageOverviewService(cache=mock_cache)
 
         result = await service.get_stage_overview(
-            "tenant-1", "attraction", "last_30_days"
+            "tenant-1",
+            "attraction",
+            "last_30_days",
         )
         assert len(result.channel_list) > 0
         # Should cache the computed overview
@@ -235,7 +253,9 @@ class TestCachingBehavior:
     async def test_works_without_cache(self):
         service = StageOverviewService(cache=None)
         result = await service.get_stage_overview(
-            "tenant-1", "attraction", "last_30_days"
+            "tenant-1",
+            "attraction",
+            "last_30_days",
         )
         # Should return empty overview since no cache and no DB
         assert result.stage == "attraction"

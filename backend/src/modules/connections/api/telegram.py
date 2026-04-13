@@ -47,7 +47,10 @@ async def telegram_webhook_tenant(
     """
     payload = await request.json()
     await orchestrator.handle_telegram_webhook(
-        payload, background_tasks, tenant_id=tenant_id, db=db
+        payload,
+        background_tasks,
+        tenant_id=tenant_id,
+        db=db,
     )
     return {"status": "ok"}
 
@@ -57,7 +60,8 @@ async def telegram_webhook_tenant(
 
 @router.get("/status", response_model=ChannelStatusResponse)
 async def get_telegram_status(
-    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """
     Get current Telegram connection status for the tenant.
@@ -97,7 +101,8 @@ async def connect_telegram(
 
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_telegram_connection(
-    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """
     Test the current Telegram connection.
@@ -115,7 +120,8 @@ async def test_telegram_connection(
 
 @router.delete("/disconnect")
 async def disconnect_telegram(
-    db: Session = Depends(get_db), user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """
     Disconnect Telegram: Delete Webhook and deactivate in DB.
@@ -128,5 +134,6 @@ async def disconnect_telegram(
     except Exception as e:
         logger.error("telegram_disconnect_error", error=str(e))
         raise HTTPException(
-            status_code=500, detail="Error al desconectar Telegram."
+            status_code=500,
+            detail="Error al desconectar Telegram.",
         ) from e

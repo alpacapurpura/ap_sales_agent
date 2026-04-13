@@ -71,14 +71,19 @@ class TestUploadAsset:
         assert storage.save.called
 
     def test_upload_detects_mime_from_filename_when_none_given(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         storage = _make_storage_mock()
         svc = _make_service(db, storage)
 
         file_obj = io.BytesIO(b"data")
         asset = svc.upload_asset(
-            tenant_id=tenant_id, file_obj=file_obj, filename="photo.jpeg"
+            tenant_id=tenant_id,
+            file_obj=file_obj,
+            filename="photo.jpeg",
         )
 
         assert asset.type == AssetType.IMAGE.value
@@ -140,7 +145,12 @@ class TestListAssets:
         assert len(results) == 2
 
     def test_list_assets_tenant_isolation(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         storage = _make_storage_mock()
         svc = _make_service(db, storage)
@@ -214,7 +224,12 @@ class TestDeleteAsset:
         assert storage.delete.called
 
     def test_delete_asset_wrong_tenant_returns_false(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         """Tenant B must not be able to delete tenant A's asset."""
         storage = _make_storage_mock()

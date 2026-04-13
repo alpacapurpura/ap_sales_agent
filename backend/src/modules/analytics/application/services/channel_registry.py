@@ -20,7 +20,7 @@ PROVIDER_TO_CHANNEL_TYPES: dict[str, set[str]] = {
     "meta": {"meta", "facebook_page", "instagram_account", "meta_ads_account"},
     "google_analytics": {"google_analytics"},
     "google_ads": {
-        "google_analytics"
+        "google_analytics",
     },  # Google Ads uses the same Google OAuth connection
     "youtube": {"youtube", "youtube_analytics"},
     "tiktok": {"tiktok", "tiktok_ads"},
@@ -751,7 +751,9 @@ class ChannelRegistry:
         return get_stage_channels(stage_slug)
 
     async def get_available_channels(
-        self, tenant_id: UUID, stage_slug: str
+        self,
+        tenant_id: UUID,
+        stage_slug: str,
     ) -> dict[str, list[dict]]:
         """Split stage channels into connected and available for a tenant.
 
@@ -763,7 +765,7 @@ class ChannelRegistry:
         """
         channels = get_stage_channels(stage_slug)
         active_connections = await self._connection_port.list_active_connections(
-            tenant_id
+            tenant_id,
         )
 
         # Build a set of connected channel_types for fast lookup
@@ -800,7 +802,7 @@ class ChannelRegistry:
                 )
                 conn_config = matching_conn.config if matching_conn else {}
                 connected.append(
-                    {**ch, "connected": True, "connection_config": conn_config}
+                    {**ch, "connected": True, "connection_config": conn_config},
                 )
             else:
                 available.append({**ch, "connected": False, "badge_type": "configurar"})

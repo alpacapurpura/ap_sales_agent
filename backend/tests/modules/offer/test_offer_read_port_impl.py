@@ -23,7 +23,8 @@ from tests.modules.offer.conftest import create_product_model
 
 @pytest.mark.asyncio
 async def test_get_offers_by_tenant_excludes_archived(
-    db: Session, tenant_a: uuid.UUID
+    db: Session,
+    tenant_a: uuid.UUID,
 ) -> None:
     """Archived offers (archived_at IS NOT NULL) must not appear."""
     from datetime import UTC, datetime
@@ -48,7 +49,8 @@ async def test_get_offers_by_tenant_excludes_archived(
 
 @pytest.mark.asyncio
 async def test_get_offers_by_tenant_excludes_soft_deleted(
-    db: Session, tenant_a: uuid.UUID
+    db: Session,
+    tenant_a: uuid.UUID,
 ) -> None:
     """Soft-deleted offers (deleted_at IS NOT NULL) must not appear."""
     from datetime import UTC, datetime
@@ -73,7 +75,8 @@ async def test_get_offers_by_tenant_excludes_soft_deleted(
 
 @pytest.mark.asyncio
 async def test_get_offers_by_tenant_includes_draft(
-    db: Session, tenant_a: uuid.UUID
+    db: Session,
+    tenant_a: uuid.UUID,
 ) -> None:
     """Draft offers should still be returned (they are not archived).
 

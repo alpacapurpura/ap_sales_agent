@@ -23,7 +23,9 @@ class BrandExtractionTrace(Base):
 
     # Results
     status = Column(
-        String, nullable=False, default="running"
+        String,
+        nullable=False,
+        default="running",
     )  # running | completed | failed
     content_length = Column(Integer, default=0)
     sections_total = Column(Integer, default=0)

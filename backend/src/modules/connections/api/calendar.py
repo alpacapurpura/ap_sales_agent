@@ -72,7 +72,8 @@ async def oauth_callback(
     except Exception as e:
         logger.error("oauth_exchange_failed", error=str(e))
         raise HTTPException(
-            status_code=400, detail="Error de autenticacion con Google"
+            status_code=400,
+            detail="Error de autenticacion con Google",
         ) from e
 
     try:
@@ -155,7 +156,7 @@ async def create_personalized_link(
             select(Lead).where(
                 Lead.id == payload.lead_id,
                 Lead.tenant_id == user.tenant_id,
-            )
+            ),
         )
         .scalars()
         .first()
@@ -165,7 +166,7 @@ async def create_personalized_link(
 
     token = secrets.token_urlsafe(16)
     expires_at = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
-        days=payload.expiration_days
+        days=payload.expiration_days,
     )
 
     link = BookingLink(
@@ -196,7 +197,8 @@ async def disconnect(
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
     connection = repo.get_by_tenant_and_type(
-        user.tenant_id, ChannelType.GOOGLE_CALENDAR
+        user.tenant_id,
+        ChannelType.GOOGLE_CALENDAR,
     )
     if connection:
         repo.deactivate(connection)
@@ -284,7 +286,7 @@ async def list_appointments(
                 "end": end_time,
                 "meet_link": meet_link,
                 "attendees": [a.get("email") for a in e.get("attendees", [])],
-            }
+            },
         )
     return result
 
@@ -335,6 +337,7 @@ async def delete_schedule(
     deleted = service.delete_schedule(schedule_id)
     if not deleted:
         raise HTTPException(
-            status_code=404, detail="Schedule not found or is last remaining"
+            status_code=404,
+            detail="Schedule not found or is last remaining",
         )
     return {"status": "deleted"}

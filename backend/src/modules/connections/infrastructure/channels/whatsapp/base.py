@@ -33,7 +33,8 @@ class BaseEvolutionApi(WhatsAppProvider):
 
         # Check for text content
         conversation = message.get("conversation") or message.get(
-            "extendedTextMessage", {}
+            "extendedTextMessage",
+            {},
         ).get("text")
 
         if not conversation:
@@ -73,7 +74,10 @@ class BaseEvolutionApi(WhatsAppProvider):
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
-                    url, json=payload, headers=self.headers, timeout=10.0
+                    url,
+                    json=payload,
+                    headers=self.headers,
+                    timeout=10.0,
                 )
                 if response.status_code not in [200, 201]:
                     # Use class name in log to distinguish V1/V2

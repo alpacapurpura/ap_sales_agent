@@ -14,7 +14,10 @@ logger = structlog.get_logger()
 
 
 def _track_knowledge_search(
-    tenant_id, query: str, scope: str, results_count: int
+    tenant_id,
+    query: str,
+    scope: str,
+    results_count: int,
 ) -> None:
     """Best-effort server-side event tracking for knowledge searches."""
     try:

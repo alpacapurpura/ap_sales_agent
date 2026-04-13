@@ -42,7 +42,8 @@ def _make_schedule(
         is_default=is_default,
         schedule=WeeklySchedule(
             monday=DaySchedule(
-                active=monday_active, ranges=ranges if monday_active else []
+                active=monday_active,
+                ranges=ranges if monday_active else [],
             ),
             tuesday=DaySchedule(active=False, ranges=[]),
             wednesday=DaySchedule(active=False, ranges=[]),
@@ -60,7 +61,10 @@ def tenant(db):
     from tests.factories import TenantFactory
 
     t = TenantFactory.build(
-        id=TENANT_ID, name="Scheduling Tenant", slug="scheduling-tenant", config_json={}
+        id=TENANT_ID,
+        name="Scheduling Tenant",
+        slug="scheduling-tenant",
+        config_json={},
     )
     db.add(t)
     db.commit()

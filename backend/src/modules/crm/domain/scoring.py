@@ -29,7 +29,7 @@ class ScoringWeights:
             "email_clicked": 3.0,
             "social_interaction": 1.5,
             "content_downloaded": 3.0,
-        }
+        },
     )
 
     intent: dict[str, float] = field(
@@ -41,7 +41,7 @@ class ScoringWeights:
             "demo_requested": 10.0,
             "message_sent": 4.0,
             "contact_extracted": 5.0,
-        }
+        },
     )
 
     fit: dict[str, float] = field(
@@ -52,7 +52,7 @@ class ScoringWeights:
             "sophistication_most_aware": 8.0,
             "business_stage_active": 10.0,
             "business_stage_idea": 5.0,
-        }
+        },
     )
 
 

@@ -31,7 +31,7 @@ def _fetch_offers(db, tenant_id: UUID, offer_id: str | None = None) -> list[dict
                         "access_duration_text, guarantee_type, guarantee_terms, "
                         "marketing_pain_points, marketing_desires, objections, "
                         "target_avatar_match, requires_application, checkout_page_url "
-                        "FROM products WHERE tenant_id = :tid AND id = :oid AND is_active = true"
+                        "FROM products WHERE tenant_id = :tid AND id = :oid AND is_active = true",
                     ),
                     {"tid": str(tenant_id), "oid": offer_id},
                 )
@@ -45,7 +45,7 @@ def _fetch_offers(db, tenant_id: UUID, offer_id: str | None = None) -> list[dict
                         "SELECT id, name, archetype, format_hint, status, headline_promise, primary_outcome, "
                         "pricing, currency, offer_value_level AS value_level, delivery_model, access_duration "
                         "FROM products WHERE tenant_id = :tid AND is_active = true "
-                        "ORDER BY created_at DESC"
+                        "ORDER BY created_at DESC",
                     ),
                     {"tid": str(tenant_id)},
                 )
@@ -54,7 +54,9 @@ def _fetch_offers(db, tenant_id: UUID, offer_id: str | None = None) -> list[dict
             )
     except Exception as e:
         logger.warning(
-            "offer_tools_fetch_error", tenant_id=str(tenant_id), error=str(e)
+            "offer_tools_fetch_error",
+            tenant_id=str(tenant_id),
+            error=str(e),
         )
         return []
 
@@ -86,7 +88,7 @@ def _format_offer_summary(offer: dict) -> str:
         if isinstance(pricing, list) and pricing:
             currency = offer.get("currency", "USD")
             lines.append(
-                f"  Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}"
+                f"  Precios ({currency}): {json.dumps(pricing, ensure_ascii=False, default=str)}",
             )
 
     if offer.get("access_duration"):

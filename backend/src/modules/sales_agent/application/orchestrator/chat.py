@@ -97,7 +97,7 @@ class ChatOrchestrator:
                             ChannelConnectionModel.channel_type
                             == ChannelType.TELEGRAM.value,
                             ChannelConnectionModel.is_active.is_(True),
-                        )
+                        ),
                     )
                     .scalars()
                     .first()
@@ -115,11 +115,16 @@ class ChatOrchestrator:
         # Instantiate adapter (with specific token or fallback to global env)
         adapter = TelegramChannel(token=token)
         await self._handle_incoming_webhook(
-            adapter, payload, background_tasks, tenant_id
+            adapter,
+            payload,
+            background_tasks,
+            tenant_id,
         )
 
     async def handle_whatsapp_webhook(
-        self, payload: dict, background_tasks: BackgroundTasks
+        self,
+        payload: dict,
+        background_tasks: BackgroundTasks,
     ):
         # WhatsApp logic is now handled via direct router-to-service calls or unified webhook handler.
         # This method is kept for backward compatibility but should be deprecated.
@@ -147,7 +152,10 @@ class ChatOrchestrator:
 
         # Add to buffer
         self.buffer_service.add_message(
-            buffer_key, incoming.text, incoming.channel_type, incoming.metadata
+            buffer_key,
+            incoming.text,
+            incoming.channel_type,
+            incoming.metadata,
         )
 
         # Launch Smart Debounce Task
@@ -183,7 +191,9 @@ class ChatOrchestrator:
                     db_tmp = SessionLocal()
                     tenant_obj = (
                         db_tmp.execute(
-                            select(TenantModel).where(TenantModel.id == UUID(tenant_id))
+                            select(TenantModel).where(
+                                TenantModel.id == UUID(tenant_id),
+                            ),
                         )
                         .scalars()
                         .first()
@@ -309,7 +319,11 @@ class ChatOrchestrator:
 
     @staticmethod
     async def _enrich_instagram_profile(
-        db: Session, tenant_uuid: UUID, user_id_str: str, customer, was_created: bool
+        db: Session,
+        tenant_uuid: UUID,
+        user_id_str: str,
+        customer,
+        was_created: bool,
     ) -> None:
         """Enrich Instagram profile with name/username/pic from User Profile API."""
         if not (was_created or not (customer.traits or {}).get("instagram_username")):
@@ -370,7 +384,9 @@ class ChatOrchestrator:
 
     @staticmethod
     def _update_customer_traits(
-        db: Session, customer, incoming: IncomingMessage
+        db: Session,
+        customer,
+        incoming: IncomingMessage,
     ) -> None:
         """Update customer profile traits from incoming message metadata."""
         if not incoming.metadata:
@@ -392,8 +408,8 @@ class ChatOrchestrator:
         profile_model = (
             db.execute(
                 select(CustomerProfileModel).where(
-                    CustomerProfileModel.id == customer.id
-                )
+                    CustomerProfileModel.id == customer.id,
+                ),
             )
             .scalars()
             .first()
@@ -504,7 +520,7 @@ class ChatOrchestrator:
         elif checkpoint and not session_active:
             if checkpoint.lead_data is not None:
                 last_session_summary = (checkpoint.lead_data or {}).get(
-                    "session_summary"
+                    "session_summary",
                 )
                 if not last_session_summary and history:
                     try:
@@ -528,7 +544,8 @@ class ChatOrchestrator:
                         last_session_summary = summary.strip()
                     except Exception as e:
                         logger.warning(
-                            "session_summary_generation_failed", error=str(e)
+                            "session_summary_generation_failed",
+                            error=str(e),
                         )
             state_repo.deactivate(tenant_uuid, user.id)
 
@@ -614,7 +631,10 @@ class ChatOrchestrator:
 
     @staticmethod
     async def _emit_assistant_ws_event(
-        tenant_uuid: UUID, user, bot_text: str, result: dict
+        tenant_uuid: UUID,
+        user,
+        bot_text: str,
+        result: dict,
     ) -> None:
         """Emit WS event for Closer Studio real-time updates (best-effort)."""
         try:
@@ -651,17 +671,29 @@ class ChatOrchestrator:
         Returns (customer, was_created, capture_slug, channel_type, user_id_str).
         """
         customer, was_created, capture_slug, channel_type, _ = self._resolve_customer(
-            db, identity_service, incoming, tenant_uuid
+            db,
+            identity_service,
+            incoming,
+            tenant_uuid,
         )
 
         if channel_type == "instagram" and tenant_uuid:
             await self._enrich_instagram_profile(
-                db, tenant_uuid, incoming.user_id, customer, was_created
+                db,
+                tenant_uuid,
+                incoming.user_id,
+                customer,
+                was_created,
             )
 
         if tenant_uuid:
             self._track_message_event(
-                db, tenant_uuid, customer, capture_slug, channel_type, incoming
+                db,
+                tenant_uuid,
+                customer,
+                capture_slug,
+                channel_type,
+                incoming,
             )
         if was_created and tenant_uuid:
             EventBus.publish(
@@ -805,7 +837,7 @@ class ChatOrchestrator:
                 initial_state["detected_intent"] = detected_intent
                 initial_state["buying_signals"] = updated_signals
                 logger.debug(
-                    f"Semantic intent: {detected_intent} (score={intent_score:.2f})"
+                    f"Semantic intent: {detected_intent} (score={intent_score:.2f})",
                 )
         except Exception as e:
             logger.warning(f"Semantic router failed, continuing without intent: {e}")
@@ -856,7 +888,10 @@ class ChatOrchestrator:
         )
 
         await OutputManager.process_response(
-            incoming.user_id, bot_text, channel_adapter, channel_type=channel_type
+            incoming.user_id,
+            bot_text,
+            channel_adapter,
+            channel_type=channel_type,
         )
 
         if tenant_uuid:
@@ -879,7 +914,10 @@ class ChatOrchestrator:
 
     @staticmethod
     def _load_checkpoint(
-        db: Session, state_repo: StateRepository, tenant_uuid, user_id
+        db: Session,
+        state_repo: StateRepository,
+        tenant_uuid,
+        user_id,
     ):
         """Load active checkpoint, rolling back on failure."""
         if not tenant_uuid:
@@ -905,7 +943,10 @@ class ChatOrchestrator:
         return user
 
     async def process_chat_flow(
-        self, channel_adapter, incoming: IncomingMessage, tenant_id: str = None
+        self,
+        channel_adapter,
+        incoming: IncomingMessage,
+        tenant_id: str = None,
     ):
         """Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced)."""
         if tenant_id:
@@ -930,11 +971,17 @@ class ChatOrchestrator:
                 _capture_slug,
                 channel_type,
             ) = await self._process_customer_lifecycle(
-                db, identity_service, incoming, tenant_uuid
+                db,
+                identity_service,
+                incoming,
+                tenant_uuid,
             )
 
             user = self._resolve_lead(
-                lead_repo, customer.id, channel_type, incoming.user_id
+                lead_repo,
+                customer.id,
+                channel_type,
+                incoming.user_id,
             )
             audit_repo.log_message(
                 user_id=user.id,
@@ -948,7 +995,12 @@ class ChatOrchestrator:
             checkpoint = self._load_checkpoint(db, state_repo, tenant_uuid, user.id)
 
             if await self._handle_human_mode(
-                db, checkpoint, user, tenant_uuid, tenant_id, incoming
+                db,
+                checkpoint,
+                user,
+                tenant_uuid,
+                tenant_id,
+                incoming,
             ):
                 return
 
@@ -972,11 +1024,17 @@ class ChatOrchestrator:
             )
 
             await self._prepare_messages_and_intent(
-                incoming, initial_state, checkpoint, db, tenant_uuid
+                incoming,
+                initial_state,
+                checkpoint,
+                db,
+                tenant_uuid,
             )
 
             result = await self._invoke_agent_with_typing(
-                channel_adapter, incoming, initial_state
+                channel_adapter,
+                incoming,
+                initial_state,
             )
 
             if tenant_uuid and user:

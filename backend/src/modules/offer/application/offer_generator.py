@@ -12,6 +12,8 @@ class OfferGeneratorService:
         self.psychology_port = psychology_port
 
     async def generate_psychology(
-        self, request: PsychologyGenerationRequest, tenant_id: UUID
+        self,
+        request: PsychologyGenerationRequest,
+        tenant_id: UUID,
     ) -> PsychologyGenerationResponse:
         return await self.psychology_port.generate_psychology(request, tenant_id)

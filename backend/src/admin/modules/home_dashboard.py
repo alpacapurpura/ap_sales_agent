@@ -81,10 +81,14 @@ def render_home_dashboard():
             # Row 1
             c1, c2, c3, c4 = st.columns(4)
             c1.metric(
-                "Tenants Total", len(tenants), help="Tenants registrados en el sistema"
+                "Tenants Total",
+                len(tenants),
+                help="Tenants registrados en el sistema",
             )
             c2.metric(
-                "Tenants Activos 7d", active_tenants, help=TOOLTIPS["active_tenant"]
+                "Tenants Activos 7d",
+                active_tenants,
+                help=TOOLTIPS["active_tenant"],
             )
             c3.metric(
                 "Usuarios Totales",
@@ -105,10 +109,14 @@ def render_home_dashboard():
                 help=TOOLTIPS["total_events"],
             )
             c6.metric(
-                "Tasa Aceptacion", acceptance_rate, help=TOOLTIPS["proposal_acceptance"]
+                "Tasa Aceptacion",
+                acceptance_rate,
+                help=TOOLTIPS["proposal_acceptance"],
             )
             c7.metric(
-                "Procedimientos OK", proc_pct, help=TOOLTIPS["procedure_completion"]
+                "Procedimientos OK",
+                proc_pct,
+                help=TOOLTIPS["procedure_completion"],
             )
             c8.metric("Knowledge Chunks", kb_docs, help=TOOLTIPS["knowledge_docs"])
 
@@ -130,7 +138,7 @@ def render_home_dashboard():
             "📊 Funnel de Adopcion",
             "🚨 Alertas de Salud",
             "⏱️ Actividad Reciente",
-        ]
+        ],
     )
 
     # ── Funnel de Adopcion ──
@@ -175,7 +183,7 @@ def render_home_dashboard():
                     days_inactive = (now - t["last_event"]).days
                     if days_inactive > 14:
                         st.error(
-                            f"🚫 **{t['name']}** — Inactivo hace {days_inactive} dias (sin eventos de copilot)"
+                            f"🚫 **{t['name']}** — Inactivo hace {days_inactive} dias (sin eventos de copilot)",
                         )
                         has_alerts = True
                 elif t["is_active"]:
@@ -191,7 +199,7 @@ def render_home_dashboard():
                     if info.get("abandoned", 0) >= 3:
                         st.warning(
                             f"⚠️ Procedimiento **{info.get('name', proc_id)}** — "
-                            f"{info['abandoned']} abandonos (avg paso {info.get('avg_abandoned_step', '?')})"
+                            f"{info['abandoned']} abandonos (avg paso {info.get('avg_abandoned_step', '?')})",
                         )
                         has_alerts = True
 
@@ -203,7 +211,7 @@ def render_home_dashboard():
                         pct = count / total_opens * 100
                         if pct > 50:
                             st.warning(
-                                f"⚠️ Ruta **{route}** concentra {pct:.0f}% de las aperturas del copilot"
+                                f"⚠️ Ruta **{route}** concentra {pct:.0f}% de las aperturas del copilot",
                             )
                             has_alerts = True
 
@@ -213,7 +221,8 @@ def render_home_dashboard():
             # Alert 4: Tenants without connections
             funnel_data = get_adoption_funnel()
             no_conn = funnel_data.get("total_tenants", 0) - funnel_data.get(
-                "has_connection", 0
+                "has_connection",
+                0,
             )
             if no_conn > 0:
                 st.info(f"ℹ️ {no_conn} tenant(s) sin conexiones configuradas")
@@ -248,7 +257,7 @@ def render_home_dashboard():
                                 "Ruta": ev.route or "—",
                                 "Detalle": data_str[:80]
                                 + ("..." if len(data_str) > 80 else ""),
-                            }
+                            },
                         )
                     df = pd.DataFrame(rows)
                     st.dataframe(df, use_container_width=True, hide_index=True)

@@ -32,7 +32,9 @@ def _build_client(db: Session, tenant_id: uuid.UUID) -> TestClient:
 
 class TestListAssets:
     def test_empty_list_returns_zero_total(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(tenant_a, name="Empty")
         db.add(model)
@@ -51,7 +53,9 @@ class TestListAssets:
 
 class TestUploadAsset:
     def test_upload_creates_ready_external_asset(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(tenant_a, name="Upload")
         db.add(model)
@@ -81,7 +85,7 @@ class TestGetAsset:
         client = _build_client(db, tenant_a)
 
         response = client.get(
-            f"/api/v1/offer/products/{model.id}/assets/{uuid.uuid4()}"
+            f"/api/v1/offer/products/{model.id}/assets/{uuid.uuid4()}",
         )
 
         assert response.status_code == 404

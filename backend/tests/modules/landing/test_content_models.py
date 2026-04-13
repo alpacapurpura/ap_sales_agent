@@ -182,7 +182,8 @@ class TestBrochureContent:
             headline="Grow Revenue by 3x in 6 Months",
             process_steps=[
                 FeatureBullet(
-                    title="Discovery Call", description="We audit your funnel"
+                    title="Discovery Call",
+                    description="We audit your funnel",
                 ),
                 FeatureBullet(title="Strategy", description="Custom roadmap"),
             ],
@@ -210,7 +211,9 @@ class TestFeatureBullet:
 
     def test_feature_bullet_full(self):
         bullet = FeatureBullet(
-            icon="🎯", title="Core Skill", description="Master the fundamentals"
+            icon="🎯",
+            title="Core Skill",
+            description="Master the fundamentals",
         )
         assert bullet.icon == "🎯"
 

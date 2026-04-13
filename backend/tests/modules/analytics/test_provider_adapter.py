@@ -39,7 +39,7 @@ class TestBaseMetricsProvider:
                         value=100.0,
                         unit="count",
                         date=start_date,
-                    )
+                    ),
                 ]
 
             def provider_name(self) -> str:
@@ -78,7 +78,7 @@ class TestBaseMetricsProvider:
                         value=42.0,
                         unit="count",
                         date=start_date,
-                    )
+                    ),
                 ]
 
             def provider_name(self) -> str:

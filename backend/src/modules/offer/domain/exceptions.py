@@ -37,7 +37,7 @@ class InvalidTransitionError(OfferDomainError):
             message
             or (
                 f"Invalid lifecycle transition {from_status.value} -> {to_status.value}"
-            )
+            ),
         )
 
 
@@ -53,7 +53,7 @@ class LandingNotReadyError(OfferDomainError):
         self.completion_percentage = completion_percentage
         super().__init__(
             f"Offer {offer_id} is only {completion_percentage:.0f}% complete; "
-            f"landing generation requires >= 90%"
+            f"landing generation requires >= 90%",
         )
 
 

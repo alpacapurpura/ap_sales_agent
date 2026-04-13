@@ -50,7 +50,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                 "🔍 Buscar",
                 "📥 Ingestar Docs",
                 "🗑️ Eliminar",
-            ]
+            ],
         )
     )
 
@@ -60,7 +60,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
         st.info(
             "**Para que sirve:** Ver de un vistazo que tenants tienen documentos indexados y cuales no. "
             "Si un tenant tiene chunks en `help` pero 0 en `business`, su copilot puede ayudarle a usar "
-            "la plataforma pero NO tiene contexto de su negocio — considera ingestar info de su producto."
+            "la plataforma pero NO tiene contexto de su negocio — considera ingestar info de su producto.",
         )
         try:
             store = get_store()
@@ -83,11 +83,13 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                             "Scope": scope,
                             "Documentos": len(info["docs"]),
                             "Chunks": info["chunks"],
-                        }
+                        },
                     )
 
                 st.dataframe(
-                    pd.DataFrame(rows), use_container_width=True, hide_index=True
+                    pd.DataFrame(rows),
+                    use_container_width=True,
+                    hide_index=True,
                 )
                 st.caption(f"Total: {len(all_docs)} chunks")
             else:
@@ -99,7 +101,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
     with tab_dashboard:
         st.header("Stats de Colección")
         st.caption(
-            "Health check tecnico: verifica que Qdrant (motor de busqueda vectorial) esta funcionando y cuantos vectores hay."
+            "Health check tecnico: verifica que Qdrant (motor de busqueda vectorial) esta funcionando y cuantos vectores hay.",
         )
         try:
             store = get_store()
@@ -121,18 +123,21 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
         st.header("Explorar Documentos")
         st.caption(
             "Audita que documentos concretos estan indexados por tenant y scope. "
-            "Util para detectar info desactualizada (ej: precios viejos) que deberia eliminarse y re-ingestarse."
+            "Util para detectar info desactualizada (ej: precios viejos) que deberia eliminarse y re-ingestarse.",
         )
 
         col1, col2 = st.columns(2)
         with col1:
             explore_tid = render_tenant_selector(
-                key="kb_explore_tenant", allow_all=True
+                key="kb_explore_tenant",
+                allow_all=True,
             )
             tenant_filter = str(explore_tid) if explore_tid else None
         with col2:
             scope_filter = st.selectbox(
-                "Scope", ["all", "help", "business"], key="explore_scope"
+                "Scope",
+                ["all", "help", "business"],
+                key="explore_scope",
             )
 
         explore_limit = st.slider("Límite", 10, 500, 100, key="explore_limit")
@@ -159,7 +164,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
         st.header("Buscar en Knowledge Base")
         st.caption(
             "Herramienta de QA: prueba exactamente lo que haria el copilot cuando un usuario pregunta algo. "
-            "Escribe una pregunta real y verifica que los chunks devueltos sean relevantes y con buen score."
+            "Escribe una pregunta real y verifica que los chunks devueltos sean relevantes y con buen score.",
         )
 
         search_query = st.text_input("Query de búsqueda", key="search_query")
@@ -169,7 +174,9 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
             search_tenant = str(search_tid) if search_tid else ""
         with col2:
             search_scope = st.selectbox(
-                "Scope", ["all", "help", "business"], key="search_scope"
+                "Scope",
+                ["all", "help", "business"],
+                key="search_scope",
             )
 
         if st.button("Buscar", key="search_btn") and search_query and search_tenant:
@@ -190,7 +197,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                         scope_val = meta.get("scope", "—")
 
                         with st.expander(
-                            f"#{i + 1} — Score: {score:.4f} | {source} ({scope_val})"
+                            f"#{i + 1} — Score: {score:.4f} | {source} ({scope_val})",
                         ):
                             st.write(text)
                             st.json(meta)
@@ -207,7 +214,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
             "- **Subir Archivo** — PDF/DOCX/TXT con info del negocio del tenant (FAQ, catalogo, precios, manual)\n"
             "- **Auto-Resumen** — Genera automaticamente un doc a partir de lo que el tenant ya configuro (brand + offers). "
             "Quick-start para que el copilot tenga contexto sin subir nada manual.\n\n"
-            "**Scope `help`** = como usar Nicolify. **Scope `business`** = info del negocio del cliente."
+            "**Scope `help`** = como usar Nicolify. **Scope `business`** = info del negocio del cliente.",
         )
 
         st.subheader("📄 Subir Archivo")
@@ -215,13 +222,18 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
             ingest_tid = render_tenant_selector(key="kb_ingest_tenant", allow_all=False)
             ingest_tenant = str(ingest_tid) if ingest_tid else ""
             ingest_scope = st.selectbox(
-                "Scope", ["help", "business"], key="ingest_scope"
+                "Scope",
+                ["help", "business"],
+                key="ingest_scope",
             )
             ingest_source = st.text_input(
-                "Source Label", value="upload", key="ingest_source"
+                "Source Label",
+                value="upload",
+                key="ingest_source",
             )
             uploaded_file = st.file_uploader(
-                "Archivo (PDF/DOCX/TXT/MD)", type=["pdf", "docx", "txt", "md"]
+                "Archivo (PDF/DOCX/TXT/MD)",
+                type=["pdf", "docx", "txt", "md"],
             )
 
             submitted = st.form_submit_button("Ingestar")
@@ -258,7 +270,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                             scope=ingest_scope,
                         )
                         st.success(
-                            f"✅ Documento ingestado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}"
+                            f"✅ Documento ingestado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}",
                         )
                     else:
                         st.warning("No se pudo extraer texto del archivo.")
@@ -276,11 +288,11 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
                 result = service.ingest_product_summary(auto_tenant)
                 if result["chunks_indexed"] > 0:
                     st.success(
-                        f"✅ Auto-resumen generado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}"
+                        f"✅ Auto-resumen generado! ID: {result['document_id']}, Chunks: {result['chunks_indexed']}",
                     )
                 else:
                     st.warning(
-                        "No se encontraron datos del tenant para generar resumen."
+                        "No se encontraron datos del tenant para generar resumen.",
                     )
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -290,7 +302,7 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
         st.header("Eliminar Documentos")
         st.caption(
             "Quita documentos obsoletos o incorrectos. Si el copilot esta dando info vieja o equivocada, "
-            "elimina el documento aqui y re-ingesta la version correcta en la tab Ingestar."
+            "elimina el documento aqui y re-ingesta la version correcta en la tab Ingestar.",
         )
         st.warning("⚠️ Esta accion es irreversible.")
 
@@ -300,7 +312,8 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
 
         if st.button("🗑️ Eliminar", key="del_btn") and del_tenant and del_doc_id:
             confirm = st.checkbox(
-                "Confirmo que quiero eliminar este documento", key="del_confirm"
+                "Confirmo que quiero eliminar este documento",
+                key="del_confirm",
             )
             if confirm:
                 try:

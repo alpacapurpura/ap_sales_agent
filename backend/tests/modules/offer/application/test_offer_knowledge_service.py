@@ -80,7 +80,12 @@ def _make_source_mock(
 
 
 def test_upload_source_stores_file_creates_row_indexes(
-    service, knowledge_repo, file_storage, rag_indexer, tenant_id, offer_id
+    service,
+    knowledge_repo,
+    file_storage,
+    rag_indexer,
+    tenant_id,
+    offer_id,
 ):
     stub = _make_source_mock(tenant_id=tenant_id, offer_id=offer_id)
     knowledge_repo.create.return_value = stub
@@ -108,7 +113,11 @@ def test_upload_source_stores_file_creates_row_indexes(
 
 
 def test_add_url_source_creates_row_and_indexes(
-    service, knowledge_repo, rag_indexer, tenant_id, offer_id
+    service,
+    knowledge_repo,
+    rag_indexer,
+    tenant_id,
+    offer_id,
 ):
     stub = _make_source_mock(
         tenant_id=tenant_id,
@@ -152,7 +161,11 @@ def test_list_sources_passes_filters(service, knowledge_repo, tenant_id, offer_i
 
 
 def test_delete_source_soft_deletes_and_removes_from_index(
-    service, knowledge_repo, rag_indexer, tenant_id, offer_id
+    service,
+    knowledge_repo,
+    rag_indexer,
+    tenant_id,
+    offer_id,
 ):
     stub = MagicMock(spec=KnowledgeSource)
     knowledge_repo.get_by_id.return_value = stub
@@ -173,7 +186,11 @@ def test_delete_source_missing_raises(service, knowledge_repo, tenant_id, offer_
 
 
 def test_reindex_source_resets_status_and_calls_indexer(
-    service, knowledge_repo, rag_indexer, tenant_id, offer_id
+    service,
+    knowledge_repo,
+    rag_indexer,
+    tenant_id,
+    offer_id,
 ):
     stub = MagicMock(spec=KnowledgeSource)
     stub.status = KnowledgeSourceStatus.INDEXED
@@ -190,5 +207,7 @@ def test_reindex_missing_source_raises(service, knowledge_repo, tenant_id, offer
     knowledge_repo.get_by_id.return_value = None
     with pytest.raises(KnowledgeSourceNotFoundError):
         service.reindex_source(
-            tenant_id=tenant_id, offer_id=offer_id, source_id=uuid4()
+            tenant_id=tenant_id,
+            offer_id=offer_id,
+            source_id=uuid4(),
         )

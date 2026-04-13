@@ -43,6 +43,8 @@ class TenantModel(Base):
 
     # Relationships
     users = relationship(
-        "UserModel", secondary="user_tenants", back_populates="tenants"
+        "UserModel",
+        secondary="user_tenants",
+        back_populates="tenants",
     )
     leads = relationship("LeadModel", back_populates="tenant")

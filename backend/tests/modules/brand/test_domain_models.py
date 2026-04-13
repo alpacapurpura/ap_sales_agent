@@ -54,10 +54,10 @@ class TestBrandSettings:
             "strategy": {
                 "unique_value_proposition": "We are the best",
                 "competitors": [
-                    {"id": "1", "name": "Rival", "differentiation": "cheap"}
+                    {"id": "1", "name": "Rival", "differentiation": "cheap"},
                 ],
                 "methodology_name": "Test Method",
-            }
+            },
         }
         s = BrandSettings(**data)
         assert s.positioning is not None
@@ -112,7 +112,10 @@ class TestBrandStory:
 
     def test_with_milestones(self):
         m = BrandStoryMilestone(
-            id="1", year="2020", title="Founded", description="Started"
+            id="1",
+            year="2020",
+            title="Founded",
+            description="Started",
         )
         s = BrandStory(milestones=[m])
         assert len(s.milestones) == 1
@@ -172,14 +175,16 @@ class TestBrandPositioning:
                 philosophical_enemy="Complexity",
             ),
             insight=ConsumerInsight(
-                tension="Need simplicity", observation="Tools are complex"
+                tension="Need simplicity",
+                observation="Tools are complex",
             ),
             benefits=BrandBenefits(
-                functional_benefits=["Fast"], emotional_benefits=["Calm"]
+                functional_benefits=["Fast"],
+                emotional_benefits=["Calm"],
             ),
             values=BrandValues(core_values=["Innovation"], personality_traits=["Bold"]),
             reasons_to_believe=[
-                ReasonToBelieve(id="1", type="dato", statement="99% uptime")
+                ReasonToBelieve(id="1", type="dato", statement="99% uptime"),
             ],
             discriminator="Only AI-native solution",
             brand_essence="Simplicity",

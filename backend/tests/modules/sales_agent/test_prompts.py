@@ -116,7 +116,7 @@ IDENTITY_CONTEXT = {
             ],
             "checkout_page_url": "https://pay.example.com/test",
             "calendar_type_id": "cal_123",
-        }
+        },
     ],
     "has_testimonials": True,
     "testimonials": [

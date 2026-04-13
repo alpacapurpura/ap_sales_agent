@@ -227,7 +227,8 @@ class AppointmentEvent(DomainEvent):
         }
         return cls(
             event_name=event_names.get(
-                appointment_status, f"appointment_{appointment_status.lower()}"
+                appointment_status,
+                f"appointment_{appointment_status.lower()}",
             ),
             tenant_id=tenant_id,
             payload={

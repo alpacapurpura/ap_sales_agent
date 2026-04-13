@@ -17,16 +17,28 @@ class ProductMappingPortImpl(ProductMappingPort):
         self.repo = ExternalProductMappingRepository(db)
 
     async def resolve_offer_id(
-        self, tenant_id: UUID, source: str, external_product_id: str
+        self,
+        tenant_id: UUID,
+        source: str,
+        external_product_id: str,
     ) -> UUID | None:
         mapping = await asyncio.to_thread(
-            self.repo.get_by_external_id, tenant_id, source, external_product_id
+            self.repo.get_by_external_id,
+            tenant_id,
+            source,
+            external_product_id,
         )
         return mapping.offer_id if mapping else None
 
     async def bulk_resolve(
-        self, tenant_id: UUID, source: str, external_ids: list[str]
+        self,
+        tenant_id: UUID,
+        source: str,
+        external_ids: list[str],
     ) -> dict[str, UUID]:
         return await asyncio.to_thread(
-            self.repo.bulk_resolve, tenant_id, source, external_ids
+            self.repo.bulk_resolve,
+            tenant_id,
+            source,
+            external_ids,
         )

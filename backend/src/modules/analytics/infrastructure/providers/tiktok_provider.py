@@ -54,7 +54,8 @@ class TikTokProvider(BaseMetricsProvider):
         ads_currency: str | None = None
         if advertiser_id:
             ads_currency = await adapter.get_advertiser_currency(
-                access_token, advertiser_id
+                access_token,
+                advertiser_id,
             )
         if not ads_currency:
             ads_currency = credentials.get("currency", "USD")
@@ -125,7 +126,10 @@ class TikTokProvider(BaseMetricsProvider):
         filters by campaign name containing 'retargeting' or 'remarketing'.
         """
         data = await adapter.get_ads_report(
-            access_token, advertiser_id, start_date, end_date
+            access_token,
+            advertiser_id,
+            start_date,
+            end_date,
         )
         if not data:
             return []
@@ -241,7 +245,10 @@ class TikTokProvider(BaseMetricsProvider):
     ) -> list[ExtractedMetric]:
         """Extract TikTok Ads metrics."""
         data = await adapter.get_ads_report(
-            access_token, advertiser_id, start_date, end_date
+            access_token,
+            advertiser_id,
+            start_date,
+            end_date,
         )
         if not data:
             return []

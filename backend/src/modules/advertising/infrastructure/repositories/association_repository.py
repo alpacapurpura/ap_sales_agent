@@ -58,7 +58,9 @@ class AssociationRepository:
         return result.scalar_one_or_none()
 
     def get_by_id(
-        self, tenant_id: UUID, association_id: UUID
+        self,
+        tenant_id: UUID,
+        association_id: UUID,
     ) -> AdOfferAssociationModel | None:
         """Return association by id scoped to tenant (any status)."""
         stmt = select(AdOfferAssociationModel).where(

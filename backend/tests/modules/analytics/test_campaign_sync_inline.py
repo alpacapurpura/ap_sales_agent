@@ -30,7 +30,7 @@ class TestTriggerSyncInline:
     async def test_inline_sync_called_first(self, campaign_service, tenant_id):
         """Inline sync should be attempted before ARQ enqueue."""
         campaign_service._sync_campaigns_inline = AsyncMock(
-            return_value={"status": "success", "campaigns_synced": 5}
+            return_value={"status": "success", "campaigns_synced": 5},
         )
         campaign_service._enqueue_campaign_sync_arq = AsyncMock()
 
@@ -44,10 +44,10 @@ class TestTriggerSyncInline:
     async def test_falls_back_to_arq_on_failure(self, campaign_service, tenant_id):
         """When inline sync fails, should fall back to ARQ enqueue."""
         campaign_service._sync_campaigns_inline = AsyncMock(
-            side_effect=Exception("connection error")
+            side_effect=Exception("connection error"),
         )
         campaign_service._enqueue_campaign_sync_arq = AsyncMock(
-            return_value={"status": "queued", "job_id": "abc123"}
+            return_value={"status": "queued", "job_id": "abc123"},
         )
 
         result = await campaign_service.trigger_sync(tenant_id)

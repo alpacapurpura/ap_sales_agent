@@ -93,7 +93,10 @@ class TestExtractMetricsAlwaysUsesDaily:
 
             provider = MetaProvider()
             await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 4, 1), date(2026, 4, 8)
+                TENANT_ID,
+                CREDS,
+                date(2026, 4, 1),
+                date(2026, 4, 8),
             )
 
         by_level = _insights_calls_by_level(captured_params)
@@ -124,7 +127,10 @@ class TestExtractMetricsAlwaysUsesDaily:
 
             provider = MetaProvider()
             await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 4, 1), date(2026, 4, 8)
+                TENANT_ID,
+                CREDS,
+                date(2026, 4, 1),
+                date(2026, 4, 8),
             )
 
         by_level = _insights_calls_by_level(captured_params)
@@ -153,7 +159,10 @@ class TestExtractMetricsAlwaysUsesDaily:
 
             provider = MetaProvider()
             await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 4, 1), date(2026, 4, 8)
+                TENANT_ID,
+                CREDS,
+                date(2026, 4, 1),
+                date(2026, 4, 8),
             )
 
         by_level = _insights_calls_by_level(captured_params)
@@ -200,7 +209,10 @@ class TestExtractMetricsPeriodAggregateDoesNotPollute:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 12), date(2026, 4, 8)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 12),
+                date(2026, 4, 8),
             )
 
         # The spend metric from the polluted row must NOT appear anywhere
@@ -240,7 +252,10 @@ class TestExtractMetricsPeriodAggregateDoesNotPollute:
 
             provider = MetaProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 4, 6), date(2026, 4, 8)
+                TENANT_ID,
+                CREDS,
+                date(2026, 4, 6),
+                date(2026, 4, 8),
             )
 
         account_spend = [

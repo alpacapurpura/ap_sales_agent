@@ -49,7 +49,7 @@ class ImageAnalysisService:
                             "url": f"data:image/jpeg;base64,{base64_image}",
                         },
                     },
-                ]
+                ],
             )
 
             response = await self.llm.ainvoke([message])

@@ -102,7 +102,8 @@ class TestGetAllByTenantAndTypesTenantIsolation:
         repo = ChannelConnectionRepository(db)
 
         results = repo.get_all_by_tenant_and_types(
-            TENANT_B, [ChannelType.META, ChannelType.GOOGLE_ANALYTICS]
+            TENANT_B,
+            [ChannelType.META, ChannelType.GOOGLE_ANALYTICS],
         )
         assert len(results) == 0
 

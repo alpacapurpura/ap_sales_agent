@@ -105,7 +105,10 @@ class InactivityService:
         return stats
 
     def update_last_activity(
-        self, profile_id: UUID, tenant_id: UUID, activity_at: datetime
+        self,
+        profile_id: UUID,
+        tenant_id: UUID,
+        activity_at: datetime,
     ) -> None:
         """Atomic UPDATE of last_activity_at for a profile."""
         stmt = (
@@ -161,7 +164,12 @@ class InactivityService:
             new_stage = self._determine_stage(new_score)
             if new_stage != profile.lifecycle_stage:
                 self._backward_transition(
-                    profile, new_stage, original_score, new_score, days_inactive, stats
+                    profile,
+                    new_stage,
+                    original_score,
+                    new_score,
+                    days_inactive,
+                    stats,
                 )
 
     def _determine_stage(self, score: float) -> LifecycleStage:

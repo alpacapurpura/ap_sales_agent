@@ -15,7 +15,9 @@ class AgentTrace(Base):
 
     # Links (Loose coupling - No Foreign Keys to other modules)
     user_id = Column(
-        UUID(as_uuid=True), nullable=True, index=True
+        UUID(as_uuid=True),
+        nullable=True,
+        index=True,
     )  # Generic User ID (maps to Lead ID)
     tenant_id = Column(UUID(as_uuid=True), nullable=True, index=True)
 
@@ -35,5 +37,7 @@ class AgentTrace(Base):
 
     # Relationships
     llm_logs = relationship(
-        "LLMLog", back_populates="trace", cascade="all, delete-orphan"
+        "LLMLog",
+        back_populates="trace",
+        cascade="all, delete-orphan",
     )

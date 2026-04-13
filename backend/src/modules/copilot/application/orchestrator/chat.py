@@ -98,7 +98,9 @@ class CopilotOrchestrator:
 
             async for event in copilot_graph.astream_events(state, version="v2"):
                 sse_event, text_chunk = self._process_stream_event(
-                    event, accumulated_messages, last_tool_call_ids
+                    event,
+                    accumulated_messages,
+                    last_tool_call_ids,
                 )
                 if text_chunk:
                     full_response += text_chunk
@@ -110,7 +112,7 @@ class CopilotOrchestrator:
             yield SSEEvent(
                 event="error",
                 data={
-                    "message": "Ocurrió un error procesando tu mensaje. Intenta de nuevo."
+                    "message": "Ocurrió un error procesando tu mensaje. Intenta de nuevo.",
                 },
             ).to_sse()
             full_response = ""
@@ -148,7 +150,8 @@ class CopilotOrchestrator:
             if chunk and hasattr(chunk, "content") and chunk.content:
                 return (
                     SSEEvent(
-                        event="text_chunk", data={"content": chunk.content}
+                        event="text_chunk",
+                        data={"content": chunk.content},
                     ).to_sse(),
                     chunk.content,
                 )
@@ -168,14 +171,17 @@ class CopilotOrchestrator:
             tool_input = event.get("data", {}).get("input", {})
             return (
                 SSEEvent(
-                    event="tool_start", data={"tool": tool_name, "args": tool_input}
+                    event="tool_start",
+                    data={"tool": tool_name, "args": tool_input},
                 ).to_sse(),
                 None,
             )
 
         if kind == "on_tool_end":
             return self._handle_tool_end(
-                event, accumulated_messages, last_tool_call_ids
+                event,
+                accumulated_messages,
+                last_tool_call_ids,
             ), None
 
         return None, None
@@ -196,8 +202,10 @@ class CopilotOrchestrator:
             tool_call_id = last_tool_call_ids.pop(tool_name, "")
             accumulated_messages.append(
                 ToolMessage(
-                    content=tool_output, name=tool_name, tool_call_id=tool_call_id
-                )
+                    content=tool_output,
+                    name=tool_name,
+                    tool_call_id=tool_call_id,
+                ),
             )
 
         result_sse = SSEEvent(
@@ -233,7 +241,7 @@ class CopilotOrchestrator:
             return
 
         new_messages = self._serialize_messages(
-            [HumanMessage(content=message), *accumulated_messages]
+            [HumanMessage(content=message), *accumulated_messages],
         )
         # Fallback: if no accumulated messages, persist simple format
         if not accumulated_messages:
@@ -323,7 +331,7 @@ class CopilotOrchestrator:
                         "content": msg.content,
                         "tool_call_id": msg.tool_call_id,
                         "name": msg.name,
-                    }
+                    },
                 )
         return result
 
@@ -343,7 +351,7 @@ class CopilotOrchestrator:
             elif role == "assistant":
                 if msg.get("tool_calls"):
                     result.append(
-                        AIMessage(content=content, tool_calls=msg["tool_calls"])
+                        AIMessage(content=content, tool_calls=msg["tool_calls"]),
                     )
                 else:
                     result.append(AIMessage(content=content))
@@ -353,6 +361,6 @@ class CopilotOrchestrator:
                         content=content,
                         tool_call_id=msg.get("tool_call_id", ""),
                         name=msg.get("name", ""),
-                    )
+                    ),
                 )
         return result

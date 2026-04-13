@@ -60,7 +60,8 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
 
     @staticmethod
     def _apply_domain_to_model(
-        model: KnowledgeSourceModel, source: KnowledgeSource
+        model: KnowledgeSourceModel,
+        source: KnowledgeSource,
     ) -> None:
         model.tenant_id = source.tenant_id
         model.offer_id = source.offer_id
@@ -89,7 +90,10 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         return self._to_domain(model)
 
     def get_by_id(
-        self, tenant_id: UUID, offer_id: UUID, source_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
+        source_id: UUID,
     ) -> KnowledgeSource | None:
         stmt = select(KnowledgeSourceModel).where(
             KnowledgeSourceModel.id == source_id,
@@ -119,7 +123,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
                 or_(
                     KnowledgeSourceModel.name.ilike(like),
                     KnowledgeSourceModel.source_url.ilike(like),
-                )
+                ),
             )
         if type_ is not None:
             filters.append(KnowledgeSourceModel.type == type_.value)

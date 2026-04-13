@@ -43,7 +43,8 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
 
 
 def _build_adapter(
-    connection: ChannelConnectionModel, with_creds: bool = False
+    connection: ChannelConnectionModel,
+    with_creds: bool = False,
 ) -> GoogleAnalyticsAdapter:
     """Build a GoogleAnalyticsAdapter from a connection model."""
     client_config = {
@@ -62,7 +63,8 @@ async def save_config(
 ):
     """Save Google Analytics client configuration (client_id, client_secret)."""
     connection = repo.get_by_tenant_and_type(
-        user.tenant_id, ChannelType.GOOGLE_ANALYTICS
+        user.tenant_id,
+        ChannelType.GOOGLE_ANALYTICS,
     )
 
     creds_update = {
@@ -95,7 +97,8 @@ async def get_auth_url(
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
     connection = repo.get_by_tenant_and_type(
-        user.tenant_id, ChannelType.GOOGLE_ANALYTICS
+        user.tenant_id,
+        ChannelType.GOOGLE_ANALYTICS,
     )
 
     if (
@@ -122,7 +125,8 @@ async def oauth_callback(
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
     connection = repo.get_by_tenant_and_type(
-        user.tenant_id, ChannelType.GOOGLE_ANALYTICS
+        user.tenant_id,
+        ChannelType.GOOGLE_ANALYTICS,
     )
 
     if (
@@ -132,7 +136,8 @@ async def oauth_callback(
         or "client_secret" not in connection.credentials
     ):
         raise HTTPException(
-            status_code=400, detail="Configuracion de cliente no encontrada."
+            status_code=400,
+            detail="Configuracion de cliente no encontrada.",
         )
 
     # Exchange code for tokens
@@ -142,7 +147,8 @@ async def oauth_callback(
     except Exception as e:
         logger.error("google_analytics_oauth_exchange_failed", error=str(e))
         raise HTTPException(
-            status_code=400, detail="Error de autenticacion con Google"
+            status_code=400,
+            detail="Error de autenticacion con Google",
         ) from e
 
     # Save credentials FIRST (don't block on Admin API)
@@ -177,19 +183,20 @@ async def get_status(
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
     connection = repo.get_by_tenant_and_type(
-        user.tenant_id, ChannelType.GOOGLE_ANALYTICS
+        user.tenant_id,
+        ChannelType.GOOGLE_ANALYTICS,
     )
 
     if not connection:
         return GoogleAnalyticsStatusResponse(is_connected=False, is_configured=False)
 
     has_client_id = bool(
-        connection.credentials and connection.credentials.get("client_id")
+        connection.credentials and connection.credentials.get("client_id"),
     )
     is_connected = bool(
         connection.is_active
         and connection.credentials
-        and connection.credentials.get("refresh_token")
+        and connection.credentials.get("refresh_token"),
     )
 
     # Read selected property from config (fast, no API call)
@@ -225,7 +232,8 @@ async def get_properties(
     except Exception as e:
         logger.error("google_analytics_properties_failed", error=str(e))
         raise HTTPException(
-            status_code=500, detail="Error al obtener propiedades de Google Analytics"
+            status_code=500,
+            detail="Error al obtener propiedades de Google Analytics",
         ) from e
 
 
@@ -285,7 +293,8 @@ async def disconnect(
     repo: ChannelConnectionRepository = Depends(_get_repo),
 ):
     connection = repo.get_by_tenant_and_type(
-        user.tenant_id, ChannelType.GOOGLE_ANALYTICS
+        user.tenant_id,
+        ChannelType.GOOGLE_ANALYTICS,
     )
     if connection:
         repo.deactivate(connection)

@@ -60,7 +60,7 @@ def mock_connection_port():
                 credentials={"access_token": "tok2"},
                 config={},
             ),
-        ]
+        ],
     )
     return port
 
@@ -105,11 +105,16 @@ def _make_service(db, cache=None, connection_port=None):
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_get_attraction_uses_channel_registry(
-    mock_db, mock_cache, mock_connection_port, test_tenant_id
+    mock_db,
+    mock_cache,
+    mock_connection_port,
+    test_tenant_id,
 ):
     """AttractionStageService delegates channel list to ChannelRegistry, not hardcoded defs."""
     service = _make_service(
-        mock_db, cache=mock_cache, connection_port=mock_connection_port
+        mock_db,
+        cache=mock_cache,
+        connection_port=mock_connection_port,
     )
 
     with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
@@ -140,7 +145,7 @@ async def test_get_attraction_uses_channel_registry(
                             "badge_type": "configurar",
                         },
                     ],
-                }
+                },
             )
             MockReg.return_value = mock_reg_inst
 
@@ -148,7 +153,8 @@ async def test_get_attraction_uses_channel_registry(
 
             # ChannelRegistry was used
             mock_reg_inst.get_available_channels.assert_called_once_with(
-                test_tenant_id, "attraction"
+                test_tenant_id,
+                "attraction",
             )
 
     assert isinstance(result, AttractionDetailDTO)
@@ -159,11 +165,17 @@ async def test_get_attraction_uses_channel_registry(
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_get_attraction_populates_values_from_repo(
-    mock_db, mock_cache, mock_connection_port, sample_aggregations, test_tenant_id
+    mock_db,
+    mock_cache,
+    mock_connection_port,
+    sample_aggregations,
+    test_tenant_id,
 ):
     """Channel metric values come from OfficialMetricsRepository.get_channel_summary()."""
     service = _make_service(
-        mock_db, cache=mock_cache, connection_port=mock_connection_port
+        mock_db,
+        cache=mock_cache,
+        connection_port=mock_connection_port,
     )
 
     with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
@@ -192,7 +204,7 @@ async def test_get_attraction_populates_values_from_repo(
                         },
                     ],
                     "available": [],
-                }
+                },
             )
             MockReg.return_value = mock_reg_inst
 
@@ -214,7 +226,9 @@ async def test_get_attraction_populates_values_from_repo(
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_get_attraction_returns_cached_on_hit(
-    mock_db, mock_connection_port, test_tenant_id
+    mock_db,
+    mock_connection_port,
+    test_tenant_id,
 ):
     """On cache hit, OfficialMetricsRepository is NOT called."""
     cached_data = {
@@ -232,7 +246,9 @@ async def test_get_attraction_returns_cached_on_hit(
     mock_cache.set = AsyncMock()
 
     service = _make_service(
-        mock_db, cache=mock_cache, connection_port=mock_connection_port
+        mock_db,
+        cache=mock_cache,
+        connection_port=mock_connection_port,
     )
 
     with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
@@ -253,11 +269,16 @@ async def test_get_attraction_returns_cached_on_hit(
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_get_attraction_sets_cache_after_query(
-    mock_db, mock_cache, mock_connection_port, test_tenant_id
+    mock_db,
+    mock_cache,
+    mock_connection_port,
+    test_tenant_id,
 ):
     """After DB query, result is stored in cache."""
     service = _make_service(
-        mock_db, cache=mock_cache, connection_port=mock_connection_port
+        mock_db,
+        cache=mock_cache,
+        connection_port=mock_connection_port,
     )
 
     with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
@@ -268,7 +289,7 @@ async def test_get_attraction_sets_cache_after_query(
         with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
-                return_value={"connected": [], "available": []}
+                return_value={"connected": [], "available": []},
             )
             MockReg.return_value = mock_reg_inst
 
@@ -287,11 +308,16 @@ async def test_get_attraction_sets_cache_after_query(
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_unconnected_channels_return_zero(
-    mock_db, mock_cache, mock_connection_port, test_tenant_id
+    mock_db,
+    mock_cache,
+    mock_connection_port,
+    test_tenant_id,
 ):
     """Available (unconnected) channels have value=0 and connected=False."""
     service = _make_service(
-        mock_db, cache=mock_cache, connection_port=mock_connection_port
+        mock_db,
+        cache=mock_cache,
+        connection_port=mock_connection_port,
     )
 
     with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
@@ -314,7 +340,7 @@ async def test_unconnected_channels_return_zero(
                             "badge_type": "configurar",
                         },
                     ],
-                }
+                },
             )
             MockReg.return_value = mock_reg_inst
 
@@ -322,7 +348,8 @@ async def test_unconnected_channels_return_zero(
 
     assert result.available is not None
     tiktok = next(
-        (ch for ch in result.available.channels if ch.slug == "tiktok-organic"), None
+        (ch for ch in result.available.channels if ch.slug == "tiktok-organic"),
+        None,
     )
     assert tiktok is not None
     assert tiktok.value == 0
@@ -334,11 +361,17 @@ async def test_unconnected_channels_return_zero(
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_connected_channels_include_last_updated(
-    mock_db, mock_cache, mock_connection_port, sample_aggregations, test_tenant_id
+    mock_db,
+    mock_cache,
+    mock_connection_port,
+    sample_aggregations,
+    test_tenant_id,
 ):
     """Connected channels that have aggregation data include last_updated timestamp."""
     service = _make_service(
-        mock_db, cache=mock_cache, connection_port=mock_connection_port
+        mock_db,
+        cache=mock_cache,
+        connection_port=mock_connection_port,
     )
 
     with patch(f"{_ATTRACTION_MODULE}.OfficialMetricsRepository") as MockRepo:
@@ -360,14 +393,15 @@ async def test_connected_channels_include_last_updated(
                         },
                     ],
                     "available": [],
-                }
+                },
             )
             MockReg.return_value = mock_reg_inst
 
             result = await service.get_metrics(test_tenant_id)
 
     ig = next(
-        (ch for ch in result.organic_social.channels if ch.slug == "ig-organic"), None
+        (ch for ch in result.organic_social.channels if ch.slug == "ig-organic"),
+        None,
     )
     assert ig is not None
     assert ig.last_updated is not None
@@ -390,7 +424,7 @@ async def test_works_without_cache(mock_db, mock_connection_port, test_tenant_id
         with patch(f"{_ATTRACTION_MODULE}.ChannelRegistry") as MockReg:
             mock_reg_inst = AsyncMock()
             mock_reg_inst.get_available_channels = AsyncMock(
-                return_value={"connected": [], "available": []}
+                return_value={"connected": [], "available": []},
             )
             MockReg.return_value = mock_reg_inst
 

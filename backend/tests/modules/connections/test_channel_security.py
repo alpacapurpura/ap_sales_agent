@@ -59,7 +59,7 @@ def test_channel_credentials_legacy_support(db):
     db.execute(
         text(
             "INSERT INTO channel_connections (id, tenant_id, channel_type, credentials, config, is_active)"
-            " VALUES (:cid, :tid, 'telegram', :creds, '{}', 1)"
+            " VALUES (:cid, :tid, 'telegram', :creds, '{}', 1)",
         ),
         {"cid": str(channel_id), "tid": str(tenant_id), "creds": legacy_creds_json},
     )

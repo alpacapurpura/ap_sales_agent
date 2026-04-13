@@ -79,7 +79,10 @@ class TestInterviewSessionRepository:
         assert loaded is None
 
     def test_get_active_by_domain_wrong_tenant_returns_none(
-        self, repo, sample_session, db
+        self,
+        repo,
+        sample_session,
+        db,
     ):
         repo.save(sample_session)
         db.commit()

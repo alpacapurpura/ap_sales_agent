@@ -92,7 +92,10 @@ class TestRecalculateScore:
 
         profile = _make_profile(db, tenant_id)
         _add_events(
-            db, profile.id, tenant_id, ["page_view", "email_opened", "form_submitted"]
+            db,
+            profile.id,
+            tenant_id,
+            ["page_view", "email_opened", "form_submitted"],
         )
 
         svc = LifecycleService(db)
@@ -109,7 +112,10 @@ class TestRecalculateScore:
         )
 
         profile = _make_profile(
-            db, tenant_id, stage=LifecycleStage.CUSTOMER, score=80.0
+            db,
+            tenant_id,
+            stage=LifecycleStage.CUSTOMER,
+            score=80.0,
         )
         _add_events(db, profile.id, tenant_id, ["page_view", "page_view"])
 
@@ -340,7 +346,9 @@ class TestJourneyEventWriteHook:
         assert profile.last_activity_at is not None
 
     def test_journey_event_write_triggers_stage_transition(
-        self, db: Session, tenant_id
+        self,
+        db: Session,
+        tenant_id,
     ):
         """Write enough high-weight events to cross LEAD threshold (>=10)."""
         from src.modules.crm.application.services.customer_service import (

@@ -46,7 +46,7 @@ def _build_dto(
                     severity="critical",
                     threshold=50.0,
                     tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
-                )
+                ),
             )
         elif abandon_rate > 30:
             bottlenecks.append(
@@ -57,7 +57,7 @@ def _build_dto(
                     severity="warning",
                     threshold=30.0,
                     tip="Revisa tu proceso de pago y considera email de recuperacion de carrito",
-                )
+                ),
             )
 
     if meeting_booked > 0:
@@ -71,7 +71,7 @@ def _build_dto(
                     severity="critical",
                     threshold=40.0,
                     tip="Considera recordatorios automaticos antes de la reunion",
-                )
+                ),
             )
         elif no_show_rate > 20:
             bottlenecks.append(
@@ -82,7 +82,7 @@ def _build_dto(
                     severity="warning",
                     threshold=20.0,
                     tip="Considera recordatorios automaticos antes de la reunion",
-                )
+                ),
             )
 
     return OpportunityDetailDTO(
@@ -134,7 +134,10 @@ def test_opportunity_dto_construction():
                     metrics=[
                         MetricValueDTO(name="count", value=45.0),
                         MetricValueDTO(
-                            name="value", value=2250.0, unit="currency", currency="USD"
+                            name="value",
+                            value=2250.0,
+                            unit="currency",
+                            currency="USD",
                         ),
                     ],
                     source_label="Shopify",

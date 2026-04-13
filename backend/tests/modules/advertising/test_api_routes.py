@@ -93,7 +93,11 @@ class TestAssociationsEndpoint:
         assert resp.status_code == 422
 
     def test_list_associations_returns_active_rows(
-        self, db, tenant_id, offer_id, make_offer
+        self,
+        db,
+        tenant_id,
+        offer_id,
+        make_offer,
     ):
         make_offer(db, tenant_id=tenant_id, name="Curso", offer_id=offer_id)
         client = _build_client(db, tenant_id)
@@ -145,7 +149,7 @@ class TestAutoDetectEndpoint:
             reason="match 60%",
         )
         with patch(
-            "src.modules.advertising.api.routes.OfferDetectionService"
+            "src.modules.advertising.api.routes.OfferDetectionService",
         ) as svc_cls:
             instance = MagicMock()
             instance.detect = AsyncMock(return_value=[suggestion])
@@ -181,7 +185,8 @@ class TestHealthCheckEndpoint:
     def test_rejects_unsupported_provider(self, db, tenant_id):
         client = _build_client(db, tenant_id)
         resp = client.get(
-            "/api/v1/advertising/health-check", params={"provider": "tiktok"}
+            "/api/v1/advertising/health-check",
+            params={"provider": "tiktok"},
         )
         assert resp.status_code == 400
 
@@ -222,7 +227,7 @@ class TestMetricsByOfferEndpoint:
             reach_all=None,
         )
         with patch(
-            "src.modules.advertising.api.routes.MetricsByOfferService"
+            "src.modules.advertising.api.routes.MetricsByOfferService",
         ) as svc_cls:
             instance = MagicMock()
             instance.run = AsyncMock(return_value=dto)
@@ -234,7 +239,8 @@ class TestMetricsByOfferEndpoint:
     def test_invalid_period_returns_400(self, db, tenant_id):
         client = _build_client(db, tenant_id)
         resp = client.get(
-            "/api/v1/advertising/metrics-by-offer", params={"period": "1y"}
+            "/api/v1/advertising/metrics-by-offer",
+            params={"period": "1y"},
         )
         assert resp.status_code == 400
 
@@ -243,7 +249,7 @@ class TestCampaignTemplateEndpoint:
     def test_returns_404_when_no_template(self, db, tenant_id):
         client = _build_client(db, tenant_id)
         with patch(
-            "src.modules.advertising.api.routes.CampaignTemplateService"
+            "src.modules.advertising.api.routes.CampaignTemplateService",
         ) as svc_cls:
             instance = MagicMock()
             instance.get_template_for_offer = AsyncMock(return_value=None)

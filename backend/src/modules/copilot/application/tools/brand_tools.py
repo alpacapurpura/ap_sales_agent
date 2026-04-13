@@ -42,7 +42,7 @@ def _format_section(section_name: str, data: dict) -> str:
             continue
         if isinstance(value, (dict, list)):
             lines.append(
-                f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}"
+                f"- **{key}:** {json.dumps(value, ensure_ascii=False, default=str)}",
             )
         else:
             lines.append(f"- **{key}:** {value}")
@@ -133,7 +133,7 @@ def get_brand_data(section: str | None = None) -> str:
                     lines.append(f"### {display_name}\n(sin datos)\n")
                 else:
                     lines.append(
-                        f"### {display_name}\n{len(section_data)} elemento(s) configurado(s)\n"
+                        f"### {display_name}\n{len(section_data)} elemento(s) configurado(s)\n",
                     )
             else:
                 lines.append(f"### {display_name}\n{section_data}\n")

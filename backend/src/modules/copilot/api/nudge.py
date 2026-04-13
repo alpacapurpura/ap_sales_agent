@@ -47,7 +47,10 @@ def _compute_model_completion(data: object, model_class: type) -> float:
 
 
 def _get_module_completion_ratio(
-    db, tenant_id: UUID, module_id: str, registry
+    db,
+    tenant_id: UUID,
+    module_id: str,
+    registry,
 ) -> float | None:
     """Return 0.0-1.0 completion ratio for a module, or None if not readable."""
     descriptor = registry.get(module_id)
@@ -86,7 +89,9 @@ def _resolve_route_module(route: str | None) -> str | None:
 
 
 def _check_empty_module(
-    route_module: str | None, completions: dict, registry
+    route_module: str | None,
+    completions: dict,
+    registry,
 ) -> dict | None:
     """Rule 1: EmptyModuleNudge — current route's module is empty."""
     if not route_module or route_module not in completions:
@@ -124,7 +129,7 @@ def _check_cross_module_gaps(completions: dict) -> list[dict]:
                 "message": "Ya tienes tu identidad de marca definida. El siguiente paso es crear tu primera oferta.",
                 "suggested_prompt": "Guíame para crear mi primera oferta",
                 "priority": 2,
-            }
+            },
         )
     if brand_ratio > 0.3 and offer_ratio > 0.0 and conn_ratio == 0.0:
         nudges.append(
@@ -136,13 +141,15 @@ def _check_cross_module_gaps(completions: dict) -> list[dict]:
                 "message": "Tu marca y ofertas están listas. Conecta Instagram, WhatsApp u otro canal para empezar a vender.",
                 "suggested_prompt": "Quiero conectar mi primer canal de ventas",
                 "priority": 3,
-            }
+            },
         )
     return nudges
 
 
 def _check_incomplete_module(
-    route_module: str | None, completions: dict, registry
+    route_module: str | None,
+    completions: dict,
+    registry,
 ) -> dict | None:
     """Rule 4: IncompleteModuleNudge — module has <30% completion."""
     if not route_module or route_module not in completions:

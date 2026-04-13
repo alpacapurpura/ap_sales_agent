@@ -160,7 +160,8 @@ class TestTruncateAtPageBoundary:
             + "x" * 100000
         )
         result = BrandExtractionService._truncate_at_page_boundary(
-            content, max_chars=60
+            content,
+            max_chars=60,
         )
         assert result.endswith("=== FIN PAGINA ===")
         assert len(result) <= 60

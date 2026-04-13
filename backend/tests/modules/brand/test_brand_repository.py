@@ -49,7 +49,8 @@ class TestBrandRepository:
         """Settings saved for tenant A are not visible to tenant B."""
         repo = BrandRepository(db)
         repo.save_settings(
-            tenant_id, BrandSettings(identity=BrandIdentity(brand_name="A"))
+            tenant_id,
+            BrandSettings(identity=BrandIdentity(brand_name="A")),
         )
 
         other = repo.get_settings(uuid.uuid4())

@@ -62,7 +62,7 @@ class EventTypeService:
                 results.append(EventType(**data))
             except Exception as e:
                 logger.error(
-                    f"Failed to migrate event type {et.get('id', 'unknown')}: {e}"
+                    f"Failed to migrate event type {et.get('id', 'unknown')}: {e}",
                 )
                 continue
         return results
@@ -75,7 +75,8 @@ class EventTypeService:
         config = tenant.config_json or {}
         event_types_data = config.get("event_types", [])
         data = next(
-            (et.copy() for et in event_types_data if et["id"] == event_type_id), None
+            (et.copy() for et in event_types_data if et["id"] == event_type_id),
+            None,
         )
         if data:
             data = self._migrate_event_type(data)
@@ -117,14 +118,17 @@ class EventTypeService:
         return event_type
 
     def update_event_type(
-        self, event_type_id: str, update: EventTypeUpdate
+        self,
+        event_type_id: str,
+        update: EventTypeUpdate,
     ) -> EventType | None:
         tenant = self._get_tenant()
         config = dict(tenant.config_json or {})
         event_types = config.get("event_types", [])
 
         target_idx = next(
-            (i for i, et in enumerate(event_types) if et["id"] == event_type_id), None
+            (i for i, et in enumerate(event_types) if et["id"] == event_type_id),
+            None,
         )
         if target_idx is None:
             return None

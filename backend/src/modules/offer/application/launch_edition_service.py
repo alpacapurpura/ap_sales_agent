@@ -64,7 +64,10 @@ class LaunchEditionService:
         return self.repo.list_by_offer(offer_id, tenant_id)
 
     def update_edition(
-        self, edition_id: UUID, tenant_id: UUID, data: dict
+        self,
+        edition_id: UUID,
+        tenant_id: UUID,
+        data: dict,
     ) -> LaunchEdition:
         return self.repo.update(edition_id, tenant_id, data)
 
@@ -93,7 +96,9 @@ class LaunchEditionService:
         )
 
     def resolve_effective_pricing(
-        self, edition: LaunchEdition, tenant_id: UUID
+        self,
+        edition: LaunchEdition,
+        tenant_id: UUID,
     ) -> tuple[list[dict[str, Any]], str]:
         """Return (pricing_list, currency). Uses override if set, else offer's pricing."""
         offer = self.offer_repo.get_by_id(edition.offer_id, tenant_id)

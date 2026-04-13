@@ -46,7 +46,9 @@ def get_funnel_metrics(period: str | None = None) -> str:
         # Sales summary (grouped by stage, offer, source)
         summary = repo.get_sales_summary(tenant_id, start_date, end_date)
         total_conversions = repo.get_total_conversion_customers(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         total_sqls = repo.get_total_sql_count(tenant_id, start_date, end_date)
 
@@ -78,7 +80,7 @@ def get_funnel_metrics(period: str | None = None) -> str:
                 stage_agg[stage]["revenue"] += s.total_revenue
             for stage, data in stage_agg.items():
                 lines.append(
-                    f"  - {stage}: {data['count']} ventas, ${data['revenue']:,.2f}"
+                    f"  - {stage}: {data['count']} ventas, ${data['revenue']:,.2f}",
                 )
 
         # Build ui_action payload for MetricSummaryCard
@@ -97,7 +99,7 @@ def get_funnel_metrics(period: str | None = None) -> str:
                     "type": "metric_summary",
                     "metrics": ui_metrics,
                 },
-            }
+            },
         )
     except Exception as e:
         logger.error("analytics_tools_error", error=str(e))

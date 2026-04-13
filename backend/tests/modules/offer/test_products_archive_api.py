@@ -68,7 +68,7 @@ class TestArchivedListEndpoint:
             [
                 create_product_model(tenant_a, name="Active"),
                 create_product_model(tenant_a, name="Archived", archived_at=utc_now()),
-            ]
+            ],
         )
         db.flush()
         client = _build_client(db, tenant_a)
@@ -84,7 +84,7 @@ class TestArchivedListEndpoint:
             [
                 create_product_model(tenant_a, name="Active"),
                 create_product_model(tenant_a, name="Archived", archived_at=utc_now()),
-            ]
+            ],
         )
         db.flush()
         client = _build_client(db, tenant_a)

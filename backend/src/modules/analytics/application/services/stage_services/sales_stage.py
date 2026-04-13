@@ -242,7 +242,7 @@ def _build_sales_bottlenecks(
                     severity=severity,
                     threshold=threshold,
                     tip="Baja conversion de oportunidades a ventas -- revisa tu proceso de cierre",
-                )
+                ),
             )
 
     if cac is not None and new_customers > 0 and total_rev > 0:
@@ -263,7 +263,7 @@ def _build_sales_bottlenecks(
                     severity=severity,
                     threshold=threshold,
                     tip="Tu costo de adquisicion es alto respecto al ticket promedio -- optimiza tu funnel pre-venta",
-                )
+                ),
             )
 
     return bottlenecks
@@ -416,11 +416,15 @@ class SalesStageService:
 
         # 6. Header KPIs + Shopify enrichment
         new_customers = sales_repo.get_total_conversion_customers(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         cost_svc = StageCostService(self.db)
         total_investment, cost_complete = cost_svc.get_total_funnel_investment(
-            tenant_id, start_date, end_date
+            tenant_id,
+            start_date,
+            end_date,
         )
         cac = round(total_investment / new_customers, 2) if new_customers > 0 else None
         total_rev_usd = convert_to_usd(total_revenue_all, display_currency)

@@ -31,7 +31,9 @@ def _build_client(db: Session, tenant_id: uuid.UUID) -> TestClient:
 
 class TestLandingStatus:
     def test_status_returns_idle_for_offer_without_landing(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(tenant_a, name="NoLanding")
         db.add(model)
@@ -49,7 +51,9 @@ class TestLandingStatus:
 
 class TestLandingGenerate:
     def test_generate_returns_422_when_offer_incomplete(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         # Fresh product_model fixture has minimal fields filled — well below
         # the 90% completion threshold — so generate must reject it.
@@ -75,7 +79,9 @@ class TestLandingGenerate:
 
 class TestLandingPublishUnpublish:
     def test_publish_without_landing_returns_422(
-        self, db: Session, tenant_a: uuid.UUID
+        self,
+        db: Session,
+        tenant_a: uuid.UUID,
     ) -> None:
         model = create_product_model(tenant_a, name="NoLandingPublish")
         db.add(model)

@@ -121,7 +121,7 @@ class LandingGenerationService:
                 offer_id=offer_id,
                 snapshot_version=snapshot_version,
                 job_id=job_id,
-            )
+            ),
         )
         logger.info(
             "offer_landing_generate_queued",
@@ -159,7 +159,7 @@ class LandingGenerationService:
                 previous_snapshot_version=previous_snapshot,
                 snapshot_version=snapshot_version,
                 job_id=job_id,
-            )
+            ),
         )
         logger.info(
             "offer_landing_regenerate_queued",
@@ -188,7 +188,7 @@ class LandingGenerationService:
                 occurred_at=utc_now(),
                 offer_id=offer_id,
                 landing_page_id=getattr(landing, "id", offer_id),
-            )
+            ),
         )
         logger.info(
             "offer_landing_published",
@@ -217,7 +217,7 @@ class LandingGenerationService:
                 offer_id=offer_id,
                 landing_page_id=getattr(landing, "id", offer_id),
                 reason=reason,
-            )
+            ),
         )
         logger.info(
             "offer_landing_unpublished",

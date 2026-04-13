@@ -273,7 +273,8 @@ def _compute_derived_metrics(metrics: dict[str, float]) -> dict[str, float]:
     end_impressions = metrics.get("end_screen_impressions", 0)
     if end_impressions > 0:
         metrics["end_screen_click_rate"] = round(
-            (end_clicks / end_impressions) * 100, 2
+            (end_clicks / end_impressions) * 100,
+            2,
         )
 
     # Email: CTOR, bounce_rate, unsubscribe_rate
@@ -282,18 +283,21 @@ def _compute_derived_metrics(metrics: dict[str, float]) -> dict[str, float]:
     unique_clicks_val = metrics.get("unique_clicks", 0)
     if unique_opens_val > 0 and "click_to_open_rate" not in metrics:
         metrics["click_to_open_rate"] = round(
-            (unique_clicks_val / unique_opens_val) * 100, 2
+            (unique_clicks_val / unique_opens_val) * 100,
+            2,
         )
     hard_b = metrics.get("hard_bounces", 0)
     soft_b = metrics.get("soft_bounces", 0)
     if emails_sent_val > 0:
         if "bounce_rate" not in metrics:
             metrics["bounce_rate"] = round(
-                ((hard_b + soft_b) / emails_sent_val) * 100, 2
+                ((hard_b + soft_b) / emails_sent_val) * 100,
+                2,
             )
         if "unsubscribe_rate" not in metrics:
             metrics["unsubscribe_rate"] = round(
-                (metrics.get("unsubscribes", 0) / emails_sent_val) * 100, 2
+                (metrics.get("unsubscribes", 0) / emails_sent_val) * 100,
+                2,
             )
 
     return metrics
@@ -391,10 +395,18 @@ class ChannelDashboardService:
 
         # Override NON_AGGREGABLE metrics with period_metrics if available
         await self._apply_period_overrides(
-            current_flat, tenant_id, channel_slug, start, today
+            current_flat,
+            tenant_id,
+            channel_slug,
+            start,
+            today,
         )
         await self._apply_period_overrides(
-            previous_flat, tenant_id, channel_slug, prev_start, prev_end
+            previous_flat,
+            tenant_id,
+            channel_slug,
+            prev_start,
+            prev_end,
         )
         current_metrics.update(current_flat)
         previous_metrics.update(previous_flat)
@@ -404,10 +416,12 @@ class ChannelDashboardService:
             m for m in config.timeseries_metrics if m not in config.hero_metrics
         ]
         resolved_current = resolver.resolve_from_aggregated(
-            current_metrics, all_metric_names
+            current_metrics,
+            all_metric_names,
         )
         resolved_previous = resolver.resolve_from_aggregated(
-            previous_metrics, all_metric_names
+            previous_metrics,
+            all_metric_names,
         )
         # Merge resolved values into metrics dicts (aliases get added as keys)
         for name, val in resolved_current.items():
@@ -445,7 +459,8 @@ class ChannelDashboardService:
 
         # Build time series using MetricResolver for correct daily derivation
         resolved_daily = resolver.resolve_daily_timeseries(
-            daily_raw, timeseries_metrics
+            daily_raw,
+            timeseries_metrics,
         )
         time_series = self._build_time_series_from_resolved(resolved_daily)
 
@@ -581,7 +596,7 @@ class ChannelDashboardService:
                     higher_is_better=higher_is_better,
                     benchmark=benchmark,
                     currency=channel_currency if unit == "currency" else None,
-                )
+                ),
             )
 
         return kpis
@@ -641,7 +656,7 @@ class ChannelDashboardService:
                     display_name=display_name,
                     unit=unit,
                     data_points=data_points,
-                )
+                ),
             )
 
         return series
@@ -677,7 +692,7 @@ class ChannelDashboardService:
                     display_name=display_name,
                     unit=unit,
                     data_points=data_points,
-                )
+                ),
             )
 
         return series
@@ -706,7 +721,7 @@ class ChannelDashboardService:
                     metric_name=metric_name,
                     value=round(value, 2),
                     conversion_rate_from_previous=conv_rate,
-                )
+                ),
             )
             prev_value = value
 
@@ -841,6 +856,6 @@ class ChannelDashboardService:
                     label=label,
                     value=value,
                     percentage=pct,
-                )
+                ),
             )
         return segments

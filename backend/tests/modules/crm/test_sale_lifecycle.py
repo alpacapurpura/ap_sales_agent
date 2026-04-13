@@ -117,7 +117,10 @@ class TestConversionSale:
         from src.modules.crm.domain.events import SaleCompletedEvent
 
         profile = _make_profile(
-            db, tenant_id, stage=LifecycleStage.SQL, lifetime_value=0.0
+            db,
+            tenant_id,
+            stage=LifecycleStage.SQL,
+            lifetime_value=0.0,
         )
 
         event = SaleCompletedEvent.create(

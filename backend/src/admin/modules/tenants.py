@@ -19,7 +19,11 @@ def create_tenant(name, slug, can_use_keys, company_name, agent_persona):
     try:
         service = TenantService(db)
         return service.create_tenant(
-            name, slug, can_use_keys, company_name, agent_persona
+            name,
+            slug,
+            can_use_keys,
+            company_name,
+            agent_persona,
         )
     finally:
         db.close()
@@ -42,7 +46,7 @@ def render_tenants_view():
 
     # Tabs para organizar
     tab_list, tab_create, tab_edit = st.tabs(
-        ["📋 Listado", "➕ Crear Nuevo", "✏️ Editar"]
+        ["📋 Listado", "➕ Crear Nuevo", "✏️ Editar"],
     )
 
     # --- TAB 1: LISTADO ---
@@ -108,7 +112,8 @@ def render_tenants_view():
                 )
 
             new_use_keys = st.checkbox(
-                "¿Permitir uso de Keys de Plataforma?", value=False
+                "¿Permitir uso de Keys de Plataforma?",
+                value=False,
             )
 
             submitted = st.form_submit_button("Crear Tenant")
@@ -141,7 +146,8 @@ def render_tenants_view():
             st.warning("No hay tenants para editar.")
         else:
             selected_name = st.selectbox(
-                "Seleccionar Tenant", list(tenants_opts.keys())
+                "Seleccionar Tenant",
+                list(tenants_opts.keys()),
             )
             selected_id = tenants_opts[selected_name]
 
@@ -162,7 +168,8 @@ def render_tenants_view():
                         )
                     with col_e2:
                         edit_active = st.checkbox(
-                            "Activo", value=current_tenant.is_active
+                            "Activo",
+                            value=current_tenant.is_active,
                         )
 
                     submitted_edit = st.form_submit_button("Guardar Cambios")

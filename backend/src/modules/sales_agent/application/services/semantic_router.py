@@ -165,7 +165,7 @@ class SemanticRouter:
             )
         except Exception as e:
             logger.warning(
-                f"Could not load multilingual model, falling back to default: {e}"
+                f"Could not load multilingual model, falling back to default: {e}",
             )
             cls._model = TextEmbedding(cache_dir="/app/model_cache")
 
@@ -187,7 +187,7 @@ class SemanticRouter:
             cls._system_embeddings = cls._system_embeddings / norms
             logger.info(
                 f"Semantic Router initialized with {len(SYSTEM_ROUTES)} system routes "
-                f"and {len(all_anchors)} anchors."
+                f"and {len(all_anchors)} anchors.",
             )
         except Exception as e:
             logger.error(f"Failed to compute system embeddings: {e}")
@@ -241,14 +241,17 @@ class SemanticRouter:
             cls._tenant_cache[tenant_id] = (combined_names, combined_embeddings)
             logger.info(
                 f"Registered {len(tenant_anchors)} tenant-specific anchors "
-                f"for tenant {tenant_id}"
+                f"for tenant {tenant_id}",
             )
         except Exception as e:
             logger.error(f"Failed to register tenant routes for {tenant_id}: {e}")
 
     @classmethod
     def detect_intent(
-        cls, text: str, tenant_id: UUID | None = None, threshold: float = 0.65
+        cls,
+        text: str,
+        tenant_id: UUID | None = None,
+        threshold: float = 0.65,
     ) -> tuple[str | None, float]:
         """
         Detects the intent of a given text using cosine similarity.
@@ -288,7 +291,10 @@ class SemanticRouter:
 
     @classmethod
     def detect_and_accumulate(
-        cls, text: str, existing_signals: list, tenant_id: UUID | None = None
+        cls,
+        text: str,
+        existing_signals: list,
+        tenant_id: UUID | None = None,
     ) -> tuple[str | None, float, list]:
         """
         Detects intent AND accumulates buying signals.
@@ -307,7 +313,7 @@ class SemanticRouter:
                         "type": intent,
                         "confidence": round(score, 3),
                         "turn": len(existing_signals),
-                    }
+                    },
                 )
 
         return intent, score, existing_signals

@@ -59,14 +59,15 @@ class GoogleCalendarAdapter(BaseConnector):
                 "client_secret": settings.GOOGLE_CLIENT_SECRET,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
-            }
+            },
         }
 
     @staticmethod
     def get_authorization_url(redirect_uri: str = None) -> tuple[str, str]:
         """Generates the authorization URL and state."""
         flow = Flow.from_client_config(
-            GoogleCalendarAdapter.get_client_config(), scopes=SCOPES
+            GoogleCalendarAdapter.get_client_config(),
+            scopes=SCOPES,
         )
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
 
@@ -81,7 +82,8 @@ class GoogleCalendarAdapter(BaseConnector):
     def exchange_code(code: str, redirect_uri: str = None) -> dict[str, Any]:
         """Exchanges the authorization code for tokens."""
         flow = Flow.from_client_config(
-            GoogleCalendarAdapter.get_client_config(), scopes=SCOPES
+            GoogleCalendarAdapter.get_client_config(),
+            scopes=SCOPES,
         )
 
         # Ensure redirect_uri matches exactly what was sent in get_authorization_url
@@ -151,7 +153,7 @@ class GoogleCalendarAdapter(BaseConnector):
                 "createRequest": {
                     "requestId": f"req-{int(datetime.datetime.now().timestamp())}",
                     "conferenceSolutionKey": {"type": "hangoutsMeet"},
-                }
+                },
             },
         }
 

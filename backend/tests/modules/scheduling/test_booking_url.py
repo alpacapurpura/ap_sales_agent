@@ -45,7 +45,7 @@ def test_falls_back_to_dashboard_domain_when_no_custom_domain():
             return_value=[],
         ),
         patch(
-            "src.modules.scheduling.application.booking_url.settings"
+            "src.modules.scheduling.application.booking_url.settings",
         ) as mock_settings,
     ):
         mock_settings.DASHBOARD_DOMAIN = "https://app.nicolify.com"
@@ -71,7 +71,7 @@ def test_falls_back_when_no_primary_active_domain():
             return_value=[non_primary],
         ),
         patch(
-            "src.modules.scheduling.application.booking_url.settings"
+            "src.modules.scheduling.application.booking_url.settings",
         ) as mock_settings,
     ):
         mock_settings.DASHBOARD_DOMAIN = "https://app.nicolify.com"
@@ -92,7 +92,7 @@ def test_falls_back_on_exception():
             side_effect=RuntimeError("DB unreachable"),
         ),
         patch(
-            "src.modules.scheduling.application.booking_url.settings"
+            "src.modules.scheduling.application.booking_url.settings",
         ) as mock_settings,
     ):
         mock_settings.DASHBOARD_DOMAIN = "https://app.nicolify.com"
@@ -113,7 +113,7 @@ def test_accepts_string_tenant_id():
             return_value=[],
         ),
         patch(
-            "src.modules.scheduling.application.booking_url.settings"
+            "src.modules.scheduling.application.booking_url.settings",
         ) as mock_settings,
     ):
         mock_settings.DASHBOARD_DOMAIN = "https://app.nicolify.com"

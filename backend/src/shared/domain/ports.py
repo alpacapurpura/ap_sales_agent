@@ -27,14 +27,17 @@ class ConnectionPort(ABC):
 
     @abstractmethod
     async def get_credentials(
-        self, tenant_id: UUID, channel_type: str
+        self,
+        tenant_id: UUID,
+        channel_type: str,
     ) -> ConnectionCredentials:
         """Retrieve credentials for a specific channel type and tenant."""
         ...
 
     @abstractmethod
     async def list_active_connections(
-        self, tenant_id: UUID
+        self,
+        tenant_id: UUID,
     ) -> list[ConnectionCredentials]:
         """List all active connections for a tenant."""
         ...
@@ -71,14 +74,20 @@ class ProductMappingPort(ABC):
 
     @abstractmethod
     async def resolve_offer_id(
-        self, tenant_id: UUID, source: str, external_product_id: str
+        self,
+        tenant_id: UUID,
+        source: str,
+        external_product_id: str,
     ) -> UUID | None:
         """Resolve a single external product ID to an offer ID."""
         ...
 
     @abstractmethod
     async def bulk_resolve(
-        self, tenant_id: UUID, source: str, external_ids: list[str]
+        self,
+        tenant_id: UUID,
+        source: str,
+        external_ids: list[str],
     ) -> dict:
         """Batch resolve: {external_id: offer_id}."""
         ...
@@ -94,7 +103,9 @@ class OfferReadPort(ABC):
 
     @abstractmethod
     async def get_offer_by_id(
-        self, offer_id: UUID, tenant_id: UUID | None = None
+        self,
+        offer_id: UUID,
+        tenant_id: UUID | None = None,
     ) -> OfferReadDTO | None:
         """Single offer by ID, scoped to tenant when provided."""
         ...

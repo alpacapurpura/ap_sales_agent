@@ -87,7 +87,8 @@ class Offer(BaseEntity):
     has_editions: bool | None = None
 
     value_level: OfferValueLevel | None = Field(
-        None, serialization_alias="offer_value_level"
+        None,
+        serialization_alias="offer_value_level",
     )
     delivery_model: OfferDeliveryModel | None = None
 
@@ -198,7 +199,8 @@ class OfferIdentityUpdate(BaseEntity):
 
 class OfferStrategyUpdate(BaseEntity):
     value_level: OfferValueLevel | None = Field(
-        None, serialization_alias="offer_value_level"
+        None,
+        serialization_alias="offer_value_level",
     )
     delivery_model: OfferDeliveryModel | None = None
 

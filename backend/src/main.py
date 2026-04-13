@@ -226,7 +226,7 @@ async def startup_arq_pool():
     """Create shared ARQ connection pool for job dispatch."""
     try:
         app.state.arq_pool = await create_pool(
-            RedisSettings.from_dsn(settings.REDIS_URL)
+            RedisSettings.from_dsn(settings.REDIS_URL),
         )
         logger.info("arq_pool_connected", redis_url=settings.REDIS_URL)
     except Exception as exc:
@@ -342,7 +342,9 @@ app.include_router(
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(
-    iam_users.router, prefix="/api/v1/iam/users", tags=["IAM - Users"]
+    iam_users.router,
+    prefix="/api/v1/iam/users",
+    tags=["IAM - Users"],
 )  # Global Context
 app.include_router(
     iam_settings.router,
@@ -357,10 +359,14 @@ app.include_router(
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(
-    iam_tracking_public, prefix="/api/v1/public", tags=["Public - Tracking"]
+    iam_tracking_public,
+    prefix="/api/v1/public",
+    tags=["Public - Tracking"],
 )
 app.include_router(
-    iam_webhooks.router, prefix="/api/v1/iam/webhooks", tags=["IAM - Webhooks"]
+    iam_webhooks.router,
+    prefix="/api/v1/iam/webhooks",
+    tags=["IAM - Webhooks"],
 )
 
 # 2. Brand
@@ -470,7 +476,9 @@ app.include_router(
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(
-    landing_public.router, prefix="/api/v1/public", tags=["Public - Landing"]
+    landing_public.router,
+    prefix="/api/v1/public",
+    tags=["Public - Landing"],
 )
 
 # 5. Sales Agent - Audit
@@ -684,7 +692,9 @@ app.include_router(
     dependencies=[Depends(get_tenant_context)],
 )
 app.include_router(
-    conn_meta.router, prefix="/api/v1/connections/meta", tags=["Connections - Meta"]
+    conn_meta.router,
+    prefix="/api/v1/connections/meta",
+    tags=["Connections - Meta"],
 )
 app.include_router(
     conn_manychat.router,

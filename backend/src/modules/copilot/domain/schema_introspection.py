@@ -138,7 +138,8 @@ def get_model_sections(model_class: type[BaseModel]) -> dict[str, SectionInfo]:
 
 
 def check_section_completion(
-    data: dict, sections: dict[str, SectionInfo]
+    data: dict,
+    sections: dict[str, SectionInfo],
 ) -> dict[str, CompletionStatus]:
     """
     Check completion status dynamically — NEVER hardcodes field names.
@@ -203,7 +204,7 @@ def format_completion_markdown(
     total = len(completion)
 
     lines = [
-        f"### {'✅' if configured_count == total else '⚠️'} {module_label} ({configured_count}/{total} secciones)"
+        f"### {'✅' if configured_count == total else '⚠️'} {module_label} ({configured_count}/{total} secciones)",
     ]
 
     for name, status in completion.items():

@@ -39,7 +39,9 @@ class TestCreateLanding:
         service = LandingService(db)
         config = _make_config(slug="explicit-page")
         landing = service.create_landing(
-            tenant_id=tenant_id, slug="explicit-page", config=config
+            tenant_id=tenant_id,
+            slug="explicit-page",
+            config=config,
         )
 
         assert landing.slug == "explicit-page"
@@ -50,13 +52,18 @@ class TestCreateLanding:
         service = LandingService(db)
         offer_id = uuid.uuid4()
         landing = service.create_landing(
-            tenant_id=tenant_id, slug="offer-page", offer_id=offer_id
+            tenant_id=tenant_id,
+            slug="offer-page",
+            offer_id=offer_id,
         )
 
         assert landing.offer_id == offer_id
 
     def test_create_landing_is_not_published_by_default(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         service = LandingService(db)
         landing = service.create_landing(tenant_id=tenant_id, slug="unpublished")
@@ -89,7 +96,10 @@ class TestPublishLanding:
 
 class TestGetPublicLanding:
     def test_get_public_landing_returns_published_page(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         """get_public_landing returns a page only if it is published."""
         service = LandingService(db)
@@ -102,7 +112,10 @@ class TestGetPublicLanding:
         assert result.is_published is True
 
     def test_get_public_landing_unpublished_returns_none(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         """Unpublished pages MUST return None — security requirement."""
         service = LandingService(db)
@@ -112,19 +125,28 @@ class TestGetPublicLanding:
         assert result is None
 
     def test_get_public_landing_nonexistent_slug_returns_none(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         service = LandingService(db)
         result = service.get_public_landing(slug="ghost", tenant_id=tenant_id)
         assert result is None
 
     def test_get_public_landing_tenant_isolation(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         """Tenant A cannot access tenant B's published page by providing tenant A's ID."""
         service = LandingService(db)
         landing = service.create_landing(
-            tenant_id=other_tenant_id, slug="b-public-page"
+            tenant_id=other_tenant_id,
+            slug="b-public-page",
         )
         service.publish_landing(landing.id)
 
@@ -154,7 +176,7 @@ class TestGenerateLandingForOffer:
             text(
                 "INSERT INTO products (id, tenant_id, name, archetype, status,"
                 " headline_promise, primary_outcome, marketing_pain_points)"
-                " VALUES (:id, :tid, :name, :archetype, :status, :headline, :outcome, :pains)"
+                " VALUES (:id, :tid, :name, :archetype, :status, :headline, :outcome, :pains)",
             ),
             {
                 "id": str(offer_id),
@@ -170,7 +192,10 @@ class TestGenerateLandingForOffer:
         db.commit()
 
     def test_generate_for_offer_creates_landing_when_none_exists(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         """generate_landing_for_offer creates a new landing linked to the offer."""
         service = LandingService(db)
@@ -178,7 +203,8 @@ class TestGenerateLandingForOffer:
         self._seed_offer(db, offer_id, tenant_id)
 
         landing = service.generate_landing_for_offer(
-            tenant_id=tenant_id, offer_id=offer_id
+            tenant_id=tenant_id,
+            offer_id=offer_id,
         )
 
         assert landing is not None
@@ -188,7 +214,10 @@ class TestGenerateLandingForOffer:
         assert "my-course" in landing.slug
 
     def test_generate_for_offer_returns_existing_when_already_exists(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         """If a landing already exists for this offer, return it without creating a new one."""
         service = LandingService(db)
@@ -200,12 +229,16 @@ class TestGenerateLandingForOffer:
         )
 
         result = service.generate_landing_for_offer(
-            tenant_id=tenant_id, offer_id=offer_id
+            tenant_id=tenant_id,
+            offer_id=offer_id,
         )
         assert result.id == existing.id
 
     def test_generate_for_offer_uses_pain_points_as_bullets(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         """generate_landing_for_offer uses the offer's marketing pain points as bullets."""
         import json
@@ -223,7 +256,8 @@ class TestGenerateLandingForOffer:
         )
 
         landing = service.generate_landing_for_offer(
-            tenant_id=tenant_id, offer_id=offer_id
+            tenant_id=tenant_id,
+            offer_id=offer_id,
         )
 
         content = landing.config.content
@@ -231,11 +265,15 @@ class TestGenerateLandingForOffer:
         assert "Pain 1" in content.bullets
 
     def test_generate_for_offer_nonexistent_offer_raises(
-        self, db, seed_tenant, tenant_id
+        self,
+        db,
+        seed_tenant,
+        tenant_id,
     ):
         """generate_landing_for_offer raises ValueError when offer does not exist."""
         service = LandingService(db)
         with pytest.raises(ValueError, match="Offer not found"):
             service.generate_landing_for_offer(
-                tenant_id=tenant_id, offer_id=uuid.uuid4()
+                tenant_id=tenant_id,
+                offer_id=uuid.uuid4(),
             )

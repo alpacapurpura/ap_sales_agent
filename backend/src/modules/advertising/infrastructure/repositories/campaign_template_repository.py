@@ -16,7 +16,7 @@ class CampaignTemplateRepository:
 
     def list_all(self) -> list[AdCampaignTemplateModel]:
         stmt = select(AdCampaignTemplateModel).order_by(
-            AdCampaignTemplateModel.priority.desc()
+            AdCampaignTemplateModel.priority.desc(),
         )
         result = self._db.execute(stmt)
         return list(result.scalars().all())

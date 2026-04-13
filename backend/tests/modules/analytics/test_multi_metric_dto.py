@@ -171,8 +171,8 @@ class TestAttractionDetailDTO:
                     metrics=[],
                     source_label="LinkedIn",
                     connected=False,
-                )
-            ]
+                ),
+            ],
         )
         dto = AttractionDetailDTO(
             organic_social=empty_group,

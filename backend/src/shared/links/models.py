@@ -16,7 +16,8 @@ class ShareableLink(Base):
     token = Column(String, unique=True, index=True, nullable=False)
     target_type = Column(String, nullable=False)  # "calendar", "payment", "file"
     params = Column(
-        JSONB, default=dict
+        JSONB,
+        default=dict,
     )  # Context data (e.g. event_type_slug, offer_id)
 
     expires_at = Column(DateTime(timezone=True), nullable=True)

@@ -37,7 +37,7 @@ class TestTikTokOrganic:
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter"
+            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(return_value=mock_organic)
@@ -47,7 +47,10 @@ class TestTikTokOrganic:
 
             provider = TikTokProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -71,12 +74,12 @@ class TestTikTokAds:
                     "clicks": "1200",
                     "conversion": "45",
                     "spend": "250.50",
-                }
+                },
             },
         ]
 
         with patch(
-            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter"
+            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(return_value=[])
@@ -86,7 +89,10 @@ class TestTikTokAds:
 
             provider = TikTokProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -106,27 +112,33 @@ class TestTikTokProviderErrorHandling:
     async def test_missing_credentials(self):
         provider = TikTokProvider()
         result = await provider.extract_metrics(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 15),
         )
         assert result.metrics == []
 
     @pytest.mark.asyncio
     async def test_adapter_exception(self):
         with patch(
-            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter"
+            "src.modules.analytics.infrastructure.providers.tiktok_provider.TikTokAdapter",
         ) as MockAdapter:
             adapter_instance = MagicMock()
             adapter_instance.get_organic_insights = AsyncMock(
-                side_effect=Exception("API down")
+                side_effect=Exception("API down"),
             )
             adapter_instance.get_ads_report = AsyncMock(
-                side_effect=Exception("API down")
+                side_effect=Exception("API down"),
             )
             adapter_instance.get_advertiser_currency = AsyncMock(return_value=None)
             MockAdapter.return_value = adapter_instance
 
             provider = TikTokProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
         assert result.metrics == []

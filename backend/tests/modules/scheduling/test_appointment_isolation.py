@@ -74,10 +74,14 @@ class TestGetAppointmentsByDateRangeTenantIsolation:
         window_end = _BASE_TIME + timedelta(hours=4)
 
         results_a = repo.get_appointments_by_date_range(
-            window_start, window_end, TENANT_A
+            window_start,
+            window_end,
+            TENANT_A,
         )
         results_b = repo.get_appointments_by_date_range(
-            window_start, window_end, TENANT_B
+            window_start,
+            window_end,
+            TENANT_B,
         )
 
         assert len(results_a) == 2

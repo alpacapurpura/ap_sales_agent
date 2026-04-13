@@ -18,7 +18,10 @@ class BrandPersister:
         self.repo = BrandRepository(db)
 
     def persist(
-        self, tenant_id: UUID, mapa_global: dict, fields_to_persist: list[str]
+        self,
+        tenant_id: UUID,
+        mapa_global: dict,
+        fields_to_persist: list[str],
     ) -> None:
         """Persist specific fields from mapa_global to BrandSettings.
 

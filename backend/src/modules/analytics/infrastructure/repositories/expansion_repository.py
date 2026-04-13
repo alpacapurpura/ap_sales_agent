@@ -26,7 +26,10 @@ class ExpansionMetricsRepository:
         self.db = db
 
     def get_expansion_sales_grouped(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> dict[str, list[tuple]]:
         """Return expansion sales grouped as renewals vs upsells.
 
@@ -89,7 +92,10 @@ class ExpansionMetricsRepository:
         }
 
     def get_churn_data_by_offer(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> list[tuple]:
         """Get churn counts grouped by the churned customer's last known offer.
 
@@ -144,7 +150,10 @@ class ExpansionMetricsRepository:
         return [(r[0], int(r[1]), float(r[2]), r[3]) for r in results]
 
     def get_total_churn_count(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> int:
         """Count distinct profiles that churned in the period."""
         stmt = select(func.count(distinct(LifecycleTransitionModel.profile_id))).where(
@@ -164,7 +173,7 @@ class ExpansionMetricsRepository:
                 [
                     LifecycleStage.CUSTOMER,
                     LifecycleStage.EVANGELIST,
-                ]
+                ],
             ),
         )
         result = self.db.execute(stmt).scalar()
@@ -181,7 +190,7 @@ class ExpansionMetricsRepository:
                 [
                     LifecycleStage.CUSTOMER,
                     LifecycleStage.EVANGELIST,
-                ]
+                ],
             ),
             CustomerProfileModel.lifetime_value > 0,
         )
@@ -202,7 +211,10 @@ class ExpansionMetricsRepository:
         return (round(float(avg_val), 2) if avg_val else 0.0, currency or "MXN")
 
     def get_expansion_customer_count(
-        self, tenant_id: UUID, start_date: datetime, end_date: datetime
+        self,
+        tenant_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
     ) -> int:
         """Count distinct customers with EXPANSION sales (upsells only, not renewals)."""
         stmt = select(func.count(distinct(SaleModel.customer_id))).where(

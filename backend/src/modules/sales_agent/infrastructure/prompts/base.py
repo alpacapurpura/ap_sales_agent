@@ -85,7 +85,7 @@ class PromptLoader:
                             PromptVersion.is_active,
                             PromptVersion.tenant_id == tenant_id,
                         )
-                        .order_by(desc(PromptVersion.version))
+                        .order_by(desc(PromptVersion.version)),
                     )
                     .scalars()
                     .first()
@@ -104,7 +104,7 @@ class PromptLoader:
                         PromptVersion.is_active,
                         PromptVersion.tenant_id.is_(None),
                     )
-                    .order_by(desc(PromptVersion.version))
+                    .order_by(desc(PromptVersion.version)),
                 )
                 .scalars()
                 .first()

@@ -46,7 +46,7 @@ class TestAssetRepositoryCreate:
         repo.create(asset)
 
         row = db.execute(
-            select(AssetModel).where(AssetModel.id == asset.id)
+            select(AssetModel).where(AssetModel.id == asset.id),
         ).scalar_one_or_none()
         assert row is not None
         assert row.filename == "test.png"
@@ -61,7 +61,11 @@ class TestAssetRepositoryGetById:
         assert result.id == sample_asset.id
 
     def test_get_by_id_filters_by_tenant(
-        self, db, sample_asset, seed_other_tenant, other_tenant_id
+        self,
+        db,
+        sample_asset,
+        seed_other_tenant,
+        other_tenant_id,
     ):
         """Must return None if the asset belongs to a different tenant."""
         repo = AssetRepository(db)
@@ -90,10 +94,10 @@ class TestAssetRepositoryListByTenant:
     def test_list_by_tenant_filters_by_type(self, db, seed_tenant, tenant_id):
         repo = AssetRepository(db)
         repo.create(
-            _make_asset(tenant_id, filename="image.png", type=AssetType.IMAGE.value)
+            _make_asset(tenant_id, filename="image.png", type=AssetType.IMAGE.value),
         )
         repo.create(
-            _make_asset(tenant_id, filename="doc.pdf", type=AssetType.DOCUMENT.value)
+            _make_asset(tenant_id, filename="doc.pdf", type=AssetType.DOCUMENT.value),
         )
 
         images = repo.list_by_tenant(tenant_id, asset_type=AssetType.IMAGE.value)
@@ -101,7 +105,12 @@ class TestAssetRepositoryListByTenant:
         assert images[0].filename == "image.png"
 
     def test_list_by_tenant_isolation(
-        self, db, seed_tenant, seed_other_tenant, tenant_id, other_tenant_id
+        self,
+        db,
+        seed_tenant,
+        seed_other_tenant,
+        tenant_id,
+        other_tenant_id,
     ):
         """Assets from tenant A must not appear in tenant B's list."""
         repo = AssetRepository(db)
@@ -123,7 +132,7 @@ class TestAssetRepositoryDelete:
         repo.delete(sample_asset.id)
 
         row = db.execute(
-            select(AssetModel).where(AssetModel.id == sample_asset.id)
+            select(AssetModel).where(AssetModel.id == sample_asset.id),
         ).scalar_one_or_none()
         assert row is not None
         assert row.deleted_at is not None

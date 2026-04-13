@@ -23,7 +23,10 @@ class SemanticMemoryStore(ABC):
 
     @abstractmethod
     def add_texts(
-        self, texts: list[str], metadatas: list[dict], collection_name: str
+        self,
+        texts: list[str],
+        metadatas: list[dict],
+        collection_name: str,
     ) -> None:
         """
         Add new knowledge to the memory.

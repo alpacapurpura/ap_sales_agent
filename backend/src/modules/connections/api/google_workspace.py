@@ -88,7 +88,7 @@ def _get_client_config() -> dict:
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
-        }
+        },
     }
 
 
@@ -190,7 +190,8 @@ async def oauth_callback(
 
             # Update YOUTUBE_ANALYTICS connection config with same channel data
             yta_conn = repo.get_by_tenant_and_type(
-                user.tenant_id, ChannelType.YOUTUBE_ANALYTICS
+                user.tenant_id,
+                ChannelType.YOUTUBE_ANALYTICS,
             )
             if yta_conn:
                 repo.update_config(yta_conn, youtube_channel)
@@ -209,7 +210,9 @@ async def oauth_callback(
         )
 
     logger.info(
-        "google_workspace_connected", tenant_id=str(user.tenant_id), email=email
+        "google_workspace_connected",
+        tenant_id=str(user.tenant_id),
+        email=email,
     )
     return {"status": "connected", "email": email, "youtube_channel": youtube_channel}
 

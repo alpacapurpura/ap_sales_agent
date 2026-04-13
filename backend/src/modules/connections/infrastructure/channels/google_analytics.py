@@ -46,7 +46,7 @@ class GoogleAnalyticsAdapter:
             if "client_id" not in credentials_data and client_config.get("client_id"):
                 credentials_data["client_id"] = client_config["client_id"]
             if "client_secret" not in credentials_data and client_config.get(
-                "client_secret"
+                "client_secret",
             ):
                 credentials_data["client_secret"] = client_config["client_secret"]
 
@@ -59,7 +59,7 @@ class GoogleAnalyticsAdapter:
                 "client_secret": self.client_config.get("client_secret"),
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
-            }
+            },
         }
 
     def get_authorization_url(self, redirect_uri: str = None) -> tuple[str, str]:
@@ -68,7 +68,9 @@ class GoogleAnalyticsAdapter:
         flow.redirect_uri = redirect_uri or settings.GOOGLE_REDIRECT_URI
 
         authorization_url, state = flow.authorization_url(
-            access_type="offline", include_granted_scopes="true", prompt="consent"
+            access_type="offline",
+            include_granted_scopes="true",
+            prompt="consent",
         )
         return authorization_url, state
 
@@ -129,7 +131,7 @@ class GoogleAnalyticsAdapter:
                         "property_id": property_id,
                         "display_name": prop.get("displayName", property_id),
                         "account_name": account_name,
-                    }
+                    },
                 )
         return properties
 

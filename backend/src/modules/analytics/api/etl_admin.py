@@ -91,14 +91,14 @@ def get_etl_health(db: Session = Depends(get_db)):
 
     # Pending tenants (distinct tenant_ids with PENDING or RUNNING status)
     pending_stmt = select(
-        func.count(func.distinct(ExtractionRunModel.tenant_id))
+        func.count(func.distinct(ExtractionRunModel.tenant_id)),
     ).where(
         ExtractionRunModel.status.in_(
             [
                 ExtractionStatus.PENDING.value,
                 ExtractionStatus.RUNNING.value,
-            ]
-        )
+            ],
+        ),
     )
     pending_count = db.execute(pending_stmt).scalar_one() or 0
 
@@ -164,7 +164,7 @@ async def retry_extraction(
                     ExtractionStatus.PENDING.value,
                     ExtractionStatus.RUNNING.value,
                     ExtractionStatus.RETRYING.value,
-                ]
+                ],
             ),
             ExtractionRunModel.created_at > cooldown_threshold,
         )
@@ -194,7 +194,8 @@ async def retry_extraction(
     except Exception as exc:
         logger.error("Failed to enqueue retry job: %s", str(exc))
         raise HTTPException(
-            status_code=500, detail="Failed to enqueue retry job"
+            status_code=500,
+            detail="Failed to enqueue retry job",
         ) from exc
 
     logger.info(

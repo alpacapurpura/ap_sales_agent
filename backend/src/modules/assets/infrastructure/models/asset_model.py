@@ -22,12 +22,16 @@ class AssetModel(Base):
 
     # Optional Link to Offer (Backward Compatibility & Offer Context)
     offer_id = Column(
-        UUID(as_uuid=True), ForeignKey("products.id"), nullable=True, index=True
+        UUID(as_uuid=True),
+        ForeignKey("products.id"),
+        nullable=True,
+        index=True,
     )
 
     # Asset Details
     type = Column(
-        String, default=AssetType.IMAGE.value
+        String,
+        default=AssetType.IMAGE.value,
     )  # Enum as String for DB compatibility
     filename = Column(String, nullable=False)
     mime_type = Column(String, nullable=True)

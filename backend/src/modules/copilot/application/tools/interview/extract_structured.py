@@ -47,5 +47,5 @@ def extract_structured(session_id: str, extractions: list[dict]) -> str:
                 "delta": delta,
                 "confidence_map": confidence_map,
             },
-        }
+        },
     )

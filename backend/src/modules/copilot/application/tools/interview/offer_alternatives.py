@@ -41,5 +41,5 @@ def offer_alternatives(
                 "alternatives": alternatives,
                 "allow_custom": allow_custom,
             },
-        }
+        },
     )

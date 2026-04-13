@@ -48,7 +48,7 @@ def _patch_adapter_and_thread(overview=None, card_data=None):
     card_data = card_data if card_data is not None else MOCK_CARD_DATA
 
     adapter_patch = patch(
-        "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter"
+        "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter",
     )
     # asyncio.to_thread calls the function — we need to route by function
     call_results = {
@@ -86,14 +86,17 @@ class TestYouTubeOrganic:
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
             adapter_instance.get_channel_overview = MagicMock(
-                return_value=MOCK_OVERVIEW
+                return_value=MOCK_OVERVIEW,
             )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         metrics = result.metrics
@@ -117,14 +120,17 @@ class TestYouTubeExpandedMetrics:
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
             adapter_instance.get_channel_overview = MagicMock(
-                return_value=MOCK_OVERVIEW
+                return_value=MOCK_OVERVIEW,
             )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         yt_metrics = {
@@ -144,14 +150,17 @@ class TestYouTubeExpandedMetrics:
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
             adapter_instance.get_channel_overview = MagicMock(
-                return_value=MOCK_OVERVIEW
+                return_value=MOCK_OVERVIEW,
             )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         yt_metrics = {
@@ -168,14 +177,17 @@ class TestYouTubeExpandedMetrics:
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
             adapter_instance.get_channel_overview = MagicMock(
-                return_value=MOCK_OVERVIEW
+                return_value=MOCK_OVERVIEW,
             )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         yt_metrics = {
@@ -197,14 +209,17 @@ class TestYouTubeCardMetrics:
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
             adapter_instance.get_channel_overview = MagicMock(
-                return_value=MOCK_OVERVIEW
+                return_value=MOCK_OVERVIEW,
             )
             adapter_instance.get_card_metrics = MagicMock(return_value=MOCK_CARD_DATA)
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         yt_metrics = {
@@ -236,20 +251,23 @@ class TestYouTubeCardMetrics:
             "endScreenElementImpressions": 0,
         }
         adapter_patch, thread_patch, _ = _patch_adapter_and_thread(
-            card_data=zero_card_data
+            card_data=zero_card_data,
         )
 
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
             adapter_instance.get_channel_overview = MagicMock(
-                return_value=MOCK_OVERVIEW
+                return_value=MOCK_OVERVIEW,
             )
             adapter_instance.get_card_metrics = MagicMock(return_value=zero_card_data)
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         yt_metrics = {m.metric_name: m for m in result.metrics}
@@ -260,7 +278,7 @@ class TestYouTubeCardMetrics:
     async def test_card_api_failure_partial_success(self):
         """Card API failure should not block overview metrics (partial success)."""
         adapter_patch = patch(
-            "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter"
+            "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter",
         )
 
         async def fake_to_thread(fn, *args, **kwargs):
@@ -280,16 +298,19 @@ class TestYouTubeCardMetrics:
         with adapter_patch as MockAdapter, thread_patch:
             adapter_instance = MagicMock()
             adapter_instance.get_channel_overview = MagicMock(
-                return_value=MOCK_OVERVIEW
+                return_value=MOCK_OVERVIEW,
             )
             adapter_instance.get_card_metrics = MagicMock(
-                side_effect=RuntimeError("Card metrics unavailable")
+                side_effect=RuntimeError("Card metrics unavailable"),
             )
             MockAdapter.return_value = adapter_instance
 
             provider = YouTubeProvider()
             result = await provider.extract_metrics(
-                TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                TENANT_ID,
+                CREDS,
+                date(2026, 3, 1),
+                date(2026, 3, 15),
             )
 
         # Overview metrics should still be present
@@ -310,7 +331,10 @@ class TestYouTubeProviderErrorHandling:
     async def test_missing_credentials(self):
         provider = YouTubeProvider()
         result = await provider.extract_metrics(
-            TENANT_ID, {}, date(2026, 3, 1), date(2026, 3, 15)
+            TENANT_ID,
+            {},
+            date(2026, 3, 1),
+            date(2026, 3, 15),
         )
         assert result.metrics == []
 
@@ -318,12 +342,15 @@ class TestYouTubeProviderErrorHandling:
     async def test_api_exception(self):
         """API exceptions propagate to the pipeline, which handles them as FAILED runs."""
         with patch(
-            "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter"
+            "src.modules.analytics.infrastructure.providers.youtube_provider.YouTubeAnalyticsAdapter",
         ) as MockAdapter:
             MockAdapter.side_effect = Exception("Auth failed")
 
             provider = YouTubeProvider()
             with pytest.raises(Exception, match="Auth failed"):
                 await provider.extract_metrics(
-                    TENANT_ID, CREDS, date(2026, 3, 1), date(2026, 3, 15)
+                    TENANT_ID,
+                    CREDS,
+                    date(2026, 3, 1),
+                    date(2026, 3, 15),
                 )

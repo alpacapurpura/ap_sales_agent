@@ -45,16 +45,20 @@ class MessageRepository:
         return self._to_domain(model)
 
     def get_history(
-        self, lead_id: UUID, tenant_id: UUID, limit: int = 50
+        self,
+        lead_id: UUID,
+        tenant_id: UUID,
+        limit: int = 50,
     ) -> list[Message]:
         models = (
             self.db.execute(
                 select(MessageModel)
                 .where(
-                    MessageModel.user_id == lead_id, MessageModel.tenant_id == tenant_id
+                    MessageModel.user_id == lead_id,
+                    MessageModel.tenant_id == tenant_id,
                 )
                 .order_by(MessageModel.created_at.asc())
-                .limit(limit)
+                .limit(limit),
             )
             .scalars()
             .all()

@@ -40,7 +40,7 @@ class PromptLoader:
             result = (
                 db.execute(
                     text(
-                        "SELECT config_json FROM tenants WHERE id = :tenant_id LIMIT 1"
+                        "SELECT config_json FROM tenants WHERE id = :tenant_id LIMIT 1",
                     ),
                     {"tenant_id": str(tenant_id)},
                 )
@@ -59,7 +59,10 @@ class PromptLoader:
             db.close()
 
     def _update_cache(
-        self, key: str, tenant_id: UUID | None, prompt: dict[str, Any]
+        self,
+        key: str,
+        tenant_id: UUID | None,
+        prompt: dict[str, Any],
     ) -> None:
         self._cache[(key, tenant_id)] = {
             "content": prompt["content"],
@@ -82,7 +85,7 @@ class PromptLoader:
                           AND tenant_id = :tenant_id
                         ORDER BY version DESC
                         LIMIT 1
-                        """
+                        """,
                         ),
                         {"key": key, "tenant_id": str(tenant_id)},
                     )
@@ -104,7 +107,7 @@ class PromptLoader:
                       AND tenant_id IS NULL
                     ORDER BY version DESC
                     LIMIT 1
-                    """
+                    """,
                     ),
                     {"key": key},
                 )

@@ -30,7 +30,7 @@ class TestExtractStructured:
                         "source": "user_explicit",
                     },
                 ],
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["type"] == "preview_update"
@@ -41,7 +41,7 @@ class TestExtractStructured:
             {
                 "session_id": str(uuid4()),
                 "extractions": [],
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["delta"] == {}
@@ -58,7 +58,7 @@ class TestExtractStructured:
                         "source": "inferred",
                     },
                 ],
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert "positioning.competitors" in parsed["ui_action"]["confidence_map"]
@@ -76,7 +76,7 @@ class TestExtractStructured:
                         "source": "user_explicit",
                     },
                 ],
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["text"] == ""
@@ -94,7 +94,7 @@ class TestExtractStructured:
                     },
                     {"value": "also ignored", "confidence": 1.0, "source": "inferred"},
                 ],
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["delta"] == {}
@@ -122,7 +122,7 @@ class TestOfferAlternatives:
                     },
                 ],
                 "allow_custom": True,
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["type"] == "alternatives_card"
@@ -150,7 +150,7 @@ class TestOfferAlternatives:
                     },
                 ],
                 "allow_custom": False,
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["text"] == ""
@@ -170,7 +170,7 @@ class TestOfferAlternatives:
                     },
                 ],
                 "allow_custom": True,
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["field_path"] == "positioning.uvp"
@@ -187,7 +187,7 @@ class TestClarify:
                         "options": ["Option A", "Option B"],
                     },
                 ],
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["type"] == "clarify_card"
@@ -202,7 +202,7 @@ class TestClarify:
                     {"field_path": "f2", "issue": "Issue 2", "options": ["B"]},
                     {"field_path": "f3", "issue": "Issue 3", "options": ["C"]},
                 ],
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert len(parsed["ui_action"]["items"]) <= 2
@@ -221,7 +221,7 @@ class TestCheckpoint:
                 "health_score": 85,
                 "blocks_completed": 1,
                 "blocks_total": 5,
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["type"] == "checkpoint_card"
@@ -238,7 +238,7 @@ class TestCheckpoint:
                 "health_score": 60,
                 "blocks_completed": 3,
                 "blocks_total": 5,
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["blocks_progress"]["completed"] == 3
@@ -253,7 +253,7 @@ class TestAdvanceBlock:
                 "persisted_fields": ["story.origin_story", "story.mission"],
                 "next_block_id": "posicionamiento",
                 "next_block_label": "Tu Posicionamiento",
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["type"] == "preview_update"
@@ -268,7 +268,7 @@ class TestAdvanceBlock:
                 "persisted_fields": ["identity.archetype"],
                 "next_block_id": None,
                 "next_block_label": None,
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert "completados" in parsed["text"]
@@ -283,7 +283,7 @@ class TestCompleteInterview:
                 "session_id": sid,
                 "health_score": 92,
                 "redirect_path": "/brand-studio",
-            }
+            },
         )
         parsed = json.loads(result) if isinstance(result, str) else result
         assert parsed["ui_action"]["type"] == "interview_complete"

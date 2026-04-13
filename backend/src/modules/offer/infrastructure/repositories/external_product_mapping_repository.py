@@ -15,7 +15,10 @@ class ExternalProductMappingRepository:
         self.db = db
 
     def get_by_external_id(
-        self, tenant_id: UUID, source: str, external_id: str
+        self,
+        tenant_id: UUID,
+        source: str,
+        external_id: str,
     ) -> ExternalProductMappingModel | None:
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
@@ -25,7 +28,9 @@ class ExternalProductMappingRepository:
         return self.db.execute(stmt).scalar_one_or_none()
 
     def get_by_offer_id(
-        self, tenant_id: UUID, offer_id: UUID
+        self,
+        tenant_id: UUID,
+        offer_id: UUID,
     ) -> list[ExternalProductMappingModel]:
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
@@ -34,7 +39,9 @@ class ExternalProductMappingRepository:
         return list(self.db.execute(stmt).scalars().all())
 
     def list_by_source(
-        self, tenant_id: UUID, source: str
+        self,
+        tenant_id: UUID,
+        source: str,
     ) -> list[ExternalProductMappingModel]:
         stmt = select(ExternalProductMappingModel).where(
             ExternalProductMappingModel.tenant_id == tenant_id,
@@ -72,7 +79,10 @@ class ExternalProductMappingRepository:
         return result.rowcount > 0
 
     def bulk_resolve(
-        self, tenant_id: UUID, source: str, external_ids: list[str]
+        self,
+        tenant_id: UUID,
+        source: str,
+        external_ids: list[str],
     ) -> dict[str, UUID]:
         """Batch lookup: returns {external_id: offer_id} for found mappings."""
         if not external_ids:
