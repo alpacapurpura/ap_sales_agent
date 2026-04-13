@@ -1,14 +1,15 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+/**
+ * Brand Interview Header — backward-compatible re-export.
+ *
+ * Wraps the generic InterviewHeader from copilot with brand-specific
+ * block labels and title.
+ */
 
-interface InterviewHeaderProps {
-  currentBlockLabel: string;
-  blocksCompleted: number;
-  totalBlocks: number;
-}
+import { InterviewHeader as GenericInterviewHeader } from "@/features/copilot/components/interview/interview-header";
 
-const BLOCK_LABELS: Record<string, string> = {
+const BRAND_BLOCK_LABELS: Record<string, string> = {
   identidad: "Identidad",
   posicionamiento: "Posicionamiento",
   narrativa: "Narrativa",
@@ -16,52 +17,24 @@ const BLOCK_LABELS: Record<string, string> = {
   identidad_creativa: "Identidad Creativa",
 };
 
-/**
- * Header for the interview split view.
- * Shows the current block label and progress dots.
- */
+interface InterviewHeaderProps {
+  currentBlockLabel: string;
+  blocksCompleted: number;
+  totalBlocks: number;
+}
+
 export function InterviewHeader({
   currentBlockLabel,
   blocksCompleted,
   totalBlocks,
 }: InterviewHeaderProps) {
-  const label = BLOCK_LABELS[currentBlockLabel] ?? currentBlockLabel;
-
   return (
-    <div className="flex items-center justify-between px-4 py-2 border-b bg-[#12122a] border-white/10">
-      {/* Left: title + current block */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold text-white">
-          🎙️ Cocreando tu Marca
-        </span>
-        {label && (
-          <>
-            <span className="text-white/30 text-sm">·</span>
-            <span className="text-sm text-purple-300 font-medium">{label}</span>
-          </>
-        )}
-      </div>
-
-      {/* Right: progress dots */}
-      <div className="flex items-center gap-1.5">
-        {Array.from({ length: totalBlocks }).map((_, idx) => {
-          const isDone = idx < blocksCompleted;
-          const isCurrent = idx === blocksCompleted;
-          return (
-            <span
-              key={idx}
-              className={cn(
-                "inline-block rounded-full transition-all duration-300",
-                isDone
-                  ? "w-2 h-2 bg-emerald-400"
-                  : isCurrent
-                    ? "w-2.5 h-2.5 bg-purple-400 animate-pulse"
-                    : "w-2 h-2 bg-white/20",
-              )}
-            />
-          );
-        })}
-      </div>
-    </div>
+    <GenericInterviewHeader
+      currentBlockLabel={currentBlockLabel}
+      blocksCompleted={blocksCompleted}
+      totalBlocks={totalBlocks}
+      blockLabels={BRAND_BLOCK_LABELS}
+      title="Cocreando tu Marca"
+    />
   );
 }
