@@ -7,6 +7,7 @@ from uuid import UUID
 
 import structlog
 
+from src.modules.copilot.infrastructure.persisters.brand_persister import BrandPersister
 from src.modules.copilot.infrastructure.persisters.persister_registry import get_persister
 
 if TYPE_CHECKING:
@@ -16,7 +17,12 @@ logger = structlog.get_logger()
 
 
 class FocusContextLoader:
-    """Load entity snapshot for focus mode system prompt and tools."""
+    """Load entity snapshot for focus mode system prompt and tools.
+
+    Each persister issues exactly one DB query — no N+1 queries.
+    Brand data lives in a single JSONB column; offer data in a single row
+    with JSONB fields for pricing, deliverables, and objections.
+    """
 
     def __init__(self, db: Session) -> None:
         """Initialize with database session."""
@@ -41,10 +47,10 @@ class FocusContextLoader:
         persister = get_persister(domain, self.db)
         eid = UUID(entity_id) if entity_id else None
         try:
+            if isinstance(persister, BrandPersister):
+                # BrandPersister.load_existing is a singleton lookup (no entity_id).
+                return persister.load_existing(tenant_id)
             return persister.load_existing(tenant_id, eid)
-        except TypeError:
-            # BrandPersister.load_existing may take (tenant_id) only
-            return persister.load_existing(tenant_id)
         except Exception:
             logger.exception("focus_context_load_error", domain=domain, entity_id=entity_id)
             return {}

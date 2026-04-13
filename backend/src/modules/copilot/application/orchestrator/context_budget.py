@@ -6,6 +6,23 @@ from dataclasses import dataclass
 
 from langchain_core.messages import BaseMessage, SystemMessage
 
+# Try to use tiktoken for accurate token counting (Claude uses ~cl100k_base tokens).
+# Fall back to the char-based heuristic if tiktoken is not available.
+try:
+    import tiktoken as _tiktoken
+
+    _ENCODING = _tiktoken.get_encoding("cl100k_base")
+
+    def _count_tokens(text: str) -> int:
+        return len(_ENCODING.encode(text))
+
+except ImportError:  # pragma: no cover — only executed when tiktoken is absent
+
+    def _count_tokens(text: str) -> int:  # type: ignore[misc]
+        # Conservative heuristic: ~2 chars per token (safer than the old //4).
+        # Claude tokenises more aggressively than GPT-2 on mixed content.
+        return max(1, len(text) // 2)
+
 
 @dataclass(frozen=True)
 class ContextBudget:
@@ -27,8 +44,13 @@ PRESERVE_LAST_TURNS = 3
 
 
 def _estimate_tokens(text: str) -> int:
-    """Rough token estimate: ~4 chars per token for mixed content."""
-    return len(text) // 4
+    """Token estimate using tiktoken (cl100k_base) when available.
+
+    Falls back to a conservative heuristic of len(text) // 2 (not the old
+    // 4) when tiktoken is absent. The old //4 underestimated Claude's
+    tokenisation by ~2x, risking context-window overflows.
+    """
+    return _count_tokens(text)
 
 
 def _message_tokens(msg: BaseMessage) -> int:

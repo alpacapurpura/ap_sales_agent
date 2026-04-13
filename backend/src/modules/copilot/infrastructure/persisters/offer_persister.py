@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import structlog
 
+from src.modules.copilot.domain.offer_fields import PERSISTABLE_FIELDS
 from src.modules.offer.domain.offer import (
     DeliverableItem,
     ObjectionItem,
@@ -29,35 +30,8 @@ COMPLEX_FIELD_TYPES: dict[str, type] = {
     "deliverables": DeliverableItem,
 }
 
-# All Offer entity fields that the interview can write to.
-# Excludes system fields (id, tenant_id, status, deleted_at, etc.)
-PERSISTABLE_FIELDS: set[str] = {
-    "public_name",
-    "archetype",
-    "format_hint",
-    "value_level",
-    "delivery_model",
-    "headline_promise",
-    "primary_outcome",
-    "time_to_value",
-    "target_avatar_match",
-    "marketing_pain_points",
-    "marketing_desires",
-    "objections",
-    "pricing_options",
-    "price_pay_in_full",
-    "guarantee_type",
-    "guarantee_terms",
-    "deliverables",
-    "includes_offers",
-    "access_duration_text",
-    "support_duration_days",
-    "onboarding_action",
-    "prerequisites",
-    "requires_application",
-    "anti_avatar_keywords",
-    "currency",
-}
+# Re-export so existing importers don't break (deprecated — import from domain directly).
+__all__ = ["COMPLEX_FIELD_TYPES", "PERSISTABLE_FIELDS", "OfferPersister"]
 
 
 class OfferPersister:
@@ -67,6 +41,15 @@ class OfferPersister:
     OfferPersister maps directly to flat Offer entity fields. Complex types
     (objections, pricing_options, deliverables) are converted from raw dicts
     to their domain types.
+
+    Query-count contract (no N+1):
+        ``pricing``, ``deliverables``, and ``objections`` are stored as JSONB
+        columns on ``ProductModel`` — there are no ORM relationships that
+        could trigger lazy-loading.  Every ``load_existing`` call issues
+        exactly one SELECT; every ``persist`` call issues one SELECT + one
+        UPDATE (two total, not N+1).  If ORM relationships are added in the
+        future, add ``options(selectinload(...))`` to ``OfferRepository.get_by_id``
+        to preserve the single-query guarantee.
     """
 
     def __init__(self, db: Session) -> None:

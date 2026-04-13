@@ -248,12 +248,11 @@ def _build_brand_paths() -> set[str]:
 def _build_offer_paths() -> set[str]:
     """Discover all valid field paths for the 'offer' domain from PERSISTABLE_FIELDS.
 
-    Imports lazily to avoid circular imports (copilot -> offer).
     Offer fields are flat (no dot-notation) — top-level entity attributes.
+    PERSISTABLE_FIELDS lives in the domain layer (offer_fields.py) so this
+    function stays within the domain boundary.
     """
-    from src.modules.copilot.infrastructure.persisters.offer_persister import (
-        PERSISTABLE_FIELDS,
-    )
+    from src.modules.copilot.domain.offer_fields import PERSISTABLE_FIELDS
 
     return set(PERSISTABLE_FIELDS)
 

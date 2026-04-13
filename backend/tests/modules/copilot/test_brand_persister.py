@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 
+from src.modules.brand.domain.aggregates import BrandSettings
 from src.modules.copilot.infrastructure.persisters.brand_persister import BrandPersister
 from src.modules.copilot.infrastructure.persisters.persister_registry import (
     get_persister,
@@ -70,6 +71,58 @@ class TestBrandPersister:
             mock_repo.get_settings.return_value = None
             persister.persist(tenant_id, {"x": "y"}, ["x"])
             mock_repo.save_settings.assert_not_called()
+
+
+class TestBrandPersisterLoadExisting:
+    """Tests for BrandPersister.load_existing — focus mode read path."""
+
+    def test_load_existing_returns_flat_dict(self):
+        """load_existing returns brand settings as flat dot-notation dict."""
+        db = MagicMock()
+        persister = BrandPersister(db)
+        tenant_id = uuid4()
+
+        settings = BrandSettings.model_validate(
+            {
+                "identity": {"brand_name": "Nicolify", "tagline": "Automate sales"},
+                "story": {"origin_story": "Started in 2020"},
+            }
+        )
+
+        with patch.object(persister, "repo") as mock_repo:
+            mock_repo.get_settings.return_value = settings
+            result = persister.load_existing(tenant_id)
+
+        assert result["identity.brand_name"] == "Nicolify"
+        assert result["identity.tagline"] == "Automate sales"
+        assert result["story.origin_story"] == "Started in 2020"
+
+    def test_load_existing_returns_empty_when_no_settings(self):
+        """load_existing returns empty dict when no brand settings exist (all None sections)."""
+        db = MagicMock()
+        persister = BrandPersister(db)
+        tenant_id = uuid4()
+
+        with patch.object(persister, "repo") as mock_repo:
+            # BrandSettings() with no data → all None sections
+            mock_repo.get_settings.return_value = BrandSettings()
+            result = persister.load_existing(tenant_id)
+
+        assert isinstance(result, dict)
+        # None-valued fields are stripped — no keys like "identity.brand_name"
+        assert "identity.brand_name" not in result
+
+    def test_load_existing_calls_repo_exactly_once(self):
+        """load_existing must issue exactly 1 query (bounded, no N+1)."""
+        db = MagicMock()
+        persister = BrandPersister(db)
+        tenant_id = uuid4()
+
+        with patch.object(persister, "repo") as mock_repo:
+            mock_repo.get_settings.return_value = BrandSettings()
+            persister.load_existing(tenant_id)
+
+        mock_repo.get_settings.assert_called_once_with(tenant_id)
 
 
 class TestPersisterRegistry:

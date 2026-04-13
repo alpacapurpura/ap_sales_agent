@@ -11,7 +11,12 @@ from src.modules.brand.infrastructure.repositories.brand_repository import (
 
 
 class BrandPersister:
-    """Writes confirmed interview data to BrandSettings (Tenant.config_json)."""
+    """Writes confirmed interview data to BrandSettings (Tenant.config_json).
+
+    All data lives in a single JSONB column (Tenant.config_json['brand_settings']).
+    There are no ORM relationships — every load_existing / persist call is
+    bounded to exactly one DB query (get_settings or save_settings).
+    """
 
     def __init__(self, db: Session) -> None:
         """Initialize brand persister."""
@@ -51,3 +56,36 @@ class BrandPersister:
 
         updated_settings = BrandSettings.model_validate(current)
         self.repo.save_settings(tenant_id, updated_settings)
+
+    def load_existing(self, tenant_id: UUID) -> dict:
+        """Load existing BrandSettings as a flat dot-notation dict for mapa_global.
+
+        All brand data lives in a single JSONB column — this method issues exactly
+        one DB query (get_settings), then flattens the nested BrandSettings model
+        to dot-notation keys (e.g. ``"identity.brand_name"``) compatible with the
+        interview engine's mapa_global format.
+
+        Args:
+            tenant_id: The tenant UUID.
+
+        Returns:
+            Flat dict with dot-notation keys for all non-None scalar fields,
+            or empty dict if no settings exist yet.
+
+        """
+        settings = self.repo.get_settings(tenant_id)
+        if not settings:
+            return {}
+
+        raw = settings.model_dump(mode="json")
+        result: dict = {}
+
+        for section, section_data in raw.items():
+            if not isinstance(section_data, dict):
+                continue
+            for key, value in section_data.items():
+                if value is None:
+                    continue
+                result[f"{section}.{key}"] = value
+
+        return result

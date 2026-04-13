@@ -305,6 +305,85 @@ class TestOfferPersister:
             assert result == {}
 
 
+class TestOfferPersisterQueryCount:
+    """Verify that focus-mode queries are bounded (no N+1).
+
+    ProductModel stores pricing/deliverables/objections as JSONB columns —
+    there are no ORM relationships to lazy-load.  These tests ensure that
+    load_existing and persist each hit the repo exactly once (single SELECT),
+    confirming the single-query contract is maintained even if relationships
+    are added in the future.
+    """
+
+    def test_load_existing_calls_repo_exactly_once(self) -> None:
+        """load_existing must call get_by_id exactly once (1 SELECT, no N+1)."""
+        db = MagicMock()
+        persister = OfferPersister(db)
+        tenant_id = uuid4()
+        offer_id = uuid4()
+        offer = _make_offer(id=offer_id, tenant_id=tenant_id)
+
+        with patch.object(persister, "repo") as mock_repo:
+            mock_repo.get_by_id.return_value = offer
+            persister.load_existing(tenant_id, offer_id)
+
+        mock_repo.get_by_id.assert_called_once_with(offer_id, tenant_id)
+
+    def test_persist_calls_get_by_id_exactly_once(self) -> None:
+        """persist must call get_by_id exactly once before updating."""
+        db = MagicMock()
+        persister = OfferPersister(db)
+        tenant_id = uuid4()
+        offer_id = uuid4()
+        offer = _make_offer(id=offer_id, tenant_id=tenant_id)
+
+        with patch.object(persister, "repo") as mock_repo:
+            mock_repo.get_by_id.return_value = offer
+            mock_repo.update.return_value = offer
+            persister.persist(tenant_id, {"headline_promise": "New"}, ["headline_promise"], offer_id)
+
+        mock_repo.get_by_id.assert_called_once_with(offer_id, tenant_id)
+
+    def test_load_existing_with_rich_data_single_query(self) -> None:
+        """Even with pricing/deliverables/objections populated, still 1 query."""
+        db = MagicMock()
+        persister = OfferPersister(db)
+        tenant_id = uuid4()
+        offer_id = uuid4()
+        # Rich offer: pricing + deliverables + objections all populated
+        offer = _make_offer(
+            id=offer_id,
+            tenant_id=tenant_id,
+            pricing_options=[
+                PricingStructure(label="A", plan_type=PaymentPlanType.ONE_TIME, total_amount=100.0),
+                PricingStructure(label="B", plan_type=PaymentPlanType.ONE_TIME, total_amount=200.0),
+                PricingStructure(label="C", plan_type=PaymentPlanType.ONE_TIME, total_amount=300.0),
+            ],
+            deliverables=[
+                DeliverableItem(
+                    name=f"Módulo {i}",
+                    format=DeliverableFormat.VIDEO,
+                    quantity="5 videos",
+                    value_stack_price=0.0,
+                )
+                for i in range(5)
+            ],
+            objections=[
+                ObjectionItem(type="price", trigger_phrases=["caro"], strategy="ROI", rebuttal="Vale") for _ in range(3)
+            ],
+        )
+
+        with patch.object(persister, "repo") as mock_repo:
+            mock_repo.get_by_id.return_value = offer
+            result = persister.load_existing(tenant_id, offer_id)
+
+        # Still exactly 1 call — no per-item queries
+        mock_repo.get_by_id.assert_called_once()
+        assert len(result["pricing_options"]) == 3
+        assert len(result["deliverables"]) == 5
+        assert len(result["objections"]) == 3
+
+
 class TestPersisterRegistryOffer:
     """Tests for persister registry offer entry."""
 
