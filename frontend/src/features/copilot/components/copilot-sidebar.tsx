@@ -7,6 +7,7 @@ import { useCopilotNavigator } from "../hooks/useCopilotNavigator";
 import { CopilotChat } from "./CopilotChat";
 import { CopilotRail } from "./CopilotRail";
 import { CopilotHeader } from "./copilot-header";
+import { CopilotPreviewPane } from "./copilot-preview-pane";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_WIDTHS = {
@@ -33,9 +34,11 @@ export const CopilotSidebar = memo(function CopilotSidebar() {
         <CopilotRail />
       ) : (
         <div className="flex h-full">
-          {/* Preview pane — only when expanded (Task 8 adds content) */}
+          {/* Preview pane — only when expanded */}
           {sidebarState === "expanded" && (
-            <div className="w-[400px] shrink-0 border-r border-slate-200 overflow-hidden dark:border-slate-700" />
+            <div className="w-[400px] shrink-0 border-r border-slate-200 overflow-hidden dark:border-slate-700">
+              <CopilotPreviewPane />
+            </div>
           )}
           {/* Chat column — always 380px */}
           <div className="flex w-[380px] shrink-0 flex-col">
