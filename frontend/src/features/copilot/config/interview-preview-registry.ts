@@ -19,14 +19,6 @@ export interface PreviewTabsProps {
   data: Record<string, unknown>;
 }
 
-/** Backward-compatible config interface (sync components). Kept for legacy callers. */
-export interface PreviewConfig {
-  summaryComponent: ComponentType<PreviewSummaryProps>;
-  sectionsComponent: ComponentType<PreviewSectionsProps>;
-  tabsComponent?: ComponentType<PreviewTabsProps>;
-  emptyStateMessage: string;
-}
-
 /** Static lazy-loaded entry — components resolved on demand via dynamic import. */
 export interface PreviewRegistryEntry {
   summaryComponent: () => Promise<{ default: ComponentType<PreviewSummaryProps> }>;
@@ -89,42 +81,3 @@ export function getSupportedDomains(): string[] {
   return Object.keys(PREVIEW_REGISTRY);
 }
 
-/**
- * Backward-compatible retrieval. Throws if the domain is not registered.
- * Callers will migrate to getPreviewEntry() in a future phase.
- *
- * @throws {Error} if no entry exists for the domain.
- */
-export function getPreview(domain: string): PreviewConfig {
-  const entry = getPreviewEntry(domain);
-  if (!entry) {
-    throw new Error(`No preview registered for domain: ${domain}`);
-  }
-  // Bridge to the old sync interface.
-  // summaryComponent / sectionsComponent are intentionally null here —
-  // lazy entries must be loaded asynchronously via getPreviewEntry().
-  return {
-    summaryComponent: null as any, // lazy — use getPreviewEntry() for async loading
-    sectionsComponent: null as any, // lazy — use getPreviewEntry() for async loading
-    emptyStateMessage: entry.emptyStateMessage,
-  };
-}
-
-/**
- * No-op. Registry is now static; side-effect register-* imports still call
- * this function, but it does nothing.
- */
-export function registerPreview(
-  _domain: string,
-  _config: PreviewConfig,
-): void {
-  // No-op: registry is static. Side-effect imports call this but it is ignored.
-}
-
-/**
- * No-op. Registry is static and cannot be cleared.
- * Kept for test isolation in legacy test files.
- */
-export function clearPreviewRegistry(): void {
-  // No-op: registry is static.
-}

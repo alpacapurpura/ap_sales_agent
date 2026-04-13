@@ -15,15 +15,15 @@ import type { PreviewSummaryProps } from "@/features/copilot/config/interview-pr
  */
 export function BrandPreviewSummary({ completenessScore }: PreviewSummaryProps) {
   const { settings } = useBrandSettings();
-  const { interviewPreviewData } = useCopilotStore();
+  const previewData = useCopilotStore((s) => s.previewData);
 
   const mergedSettings = useMemo<BrandSettings | null>(() => {
     if (!settings) return null;
-    if (!interviewPreviewData) return settings;
+    if (!previewData) return settings;
     return {
       ...settings,
       ...Object.fromEntries(
-        Object.entries(interviewPreviewData).map(([k, v]) => [
+        Object.entries(previewData).map(([k, v]) => [
           k,
           typeof v === "object" && v !== null && !Array.isArray(v)
             ? {
@@ -34,7 +34,7 @@ export function BrandPreviewSummary({ completenessScore }: PreviewSummaryProps) 
         ]),
       ),
     } as BrandSettings;
-  }, [settings, interviewPreviewData]);
+  }, [settings, previewData]);
 
   if (!mergedSettings) return null;
 

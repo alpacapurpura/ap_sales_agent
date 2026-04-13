@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useBrandSettings } from "@/features/brand/hooks/useBrandSettings";
@@ -52,29 +52,22 @@ export function BrandPreviewSections({
   currentBlock,
 }: PreviewSectionsProps) {
   const { settings } = useBrandSettings();
-  const { interviewPreviewData } = useCopilotStore();
+  const previewData = useCopilotStore((s) => s.previewData);
 
-  // Active tab — synced with current interview block
-  const [activeTab, setActiveTab] = useState<BrandSectionId>("esencia");
+  // Active tab — user-selected or derived from current interview block
+  const [manualTab, setManualTab] = useState<BrandSectionId | null>(null);
 
-  // Auto-switch tab when the interview block changes
-  useEffect(() => {
-    if (currentBlock) {
-      const tab = BLOCK_TO_TAB[currentBlock];
-      if (tab) {
-        setActiveTab(tab);
-      }
-    }
-  }, [currentBlock]);
+  const activeTab: BrandSectionId =
+    manualTab ?? (currentBlock ? (BLOCK_TO_TAB[currentBlock] ?? "esencia") : "esencia");
 
   // Merge live settings with interview draft data
   const mergedSettings = useMemo<BrandSettings | null>(() => {
     if (!settings) return null;
-    if (!interviewPreviewData) return settings;
+    if (!previewData) return settings;
     return {
       ...settings,
       ...Object.fromEntries(
-        Object.entries(interviewPreviewData).map(([k, v]) => [
+        Object.entries(previewData).map(([k, v]) => [
           k,
           typeof v === "object" && v !== null && !Array.isArray(v)
             ? {
@@ -85,7 +78,7 @@ export function BrandPreviewSections({
         ]),
       ),
     } as BrandSettings;
-  }, [settings, interviewPreviewData]);
+  }, [settings, previewData]);
 
   if (!mergedSettings) return null;
 
@@ -94,7 +87,7 @@ export function BrandPreviewSections({
       {/* Tab bar for switching preview sections */}
       <BrandStudioTabs
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={setManualTab}
         settings={mergedSettings}
       />
 
