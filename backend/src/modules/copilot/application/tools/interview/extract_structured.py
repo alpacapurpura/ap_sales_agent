@@ -9,23 +9,30 @@ from src.modules.copilot.domain.schema_introspection import validate_field_path
 
 @tool
 def extract_structured(session_id: str, domain: str, extractions: list[dict]) -> str:
-    """Extract structured data from the user's last message into the mapa_global.
+    """Extract structured data from the conversation into the mapa_global.
 
-    INVOKE THIS ON EVERY TURN. It is silent — the user does not see any text output.
-    Use field_path with dot notation to place data in the correct section regardless of current block.
+    INVOKE THIS ON EVERY TURN where the user provides factual information.
+    This tool is SILENT — the user does not see any text output.
+
+    CRITICAL: Extract data for ANY section, not just the current block.
+    If the user mentions pricing while you are on the promise block,
+    extract the pricing data here. The mapa_global is your global memory.
+    Never let information pass uncaptured.
 
     Args:
         session_id: The interview session UUID.
-        domain: The interview domain (e.g. "brand", "offer"). Used to validate field paths.
+        domain: The entity domain ("brand", "offer", "buyer_persona").
         extractions: List of extracted data items. Each has:
-            - field_path: Dot-notation path (e.g., "story.origin_story", "positioning.competitors")
-            - value: The extracted value (string, list, or dict) — redacted with expert frameworks
+            - field_path: Dot-notation path (e.g., "strategy.offer_name",
+              "pricing.total_amount", "program_details.total_sessions").
+              Can be from ANY section regardless of current block.
+            - value: The extracted value (string, list, or dict).
             - confidence: Float 0.0-1.0. Below 0.8 means pending clarification.
             - source: "user_explicit" | "inferred" | "recommended"
 
     Returns:
         JSON with empty text and a preview_update ui_action containing the delta.
-        Includes a "skipped" list of field_paths that failed validation.
+        Includes skipped_fields if any field_paths were invalid.
 
     """
     delta = {}
