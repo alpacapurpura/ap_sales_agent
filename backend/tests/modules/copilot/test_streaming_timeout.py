@@ -223,9 +223,7 @@ class TestStreamingTimeout:
 
             events = await _collect_sse_events(orchestrator)
             parsed = _parse_sse_events(events)
-            text_chunks = [
-                e["data"]["content"] for e in parsed if e["event"] == "text_chunk"
-            ]
+            text_chunks = [e["data"]["content"] for e in parsed if e["event"] == "text_chunk"]
 
             # Partial chunks should be preserved
             assert len(text_chunks) >= 1
