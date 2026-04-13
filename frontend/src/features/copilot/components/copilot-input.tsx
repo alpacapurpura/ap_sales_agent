@@ -1,10 +1,15 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { Mic, Send, Square, Loader2 } from "lucide-react";
+import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
 import { AttachmentButton } from "./shared/attachment-button";
+import {
+  VoiceButton,
+  RecordingIndicator,
+  TranscribingIndicator,
+} from "./shared/voice-button";
 import {
   DocumentChip,
   type DocumentStatus,
@@ -22,14 +27,6 @@ export interface CopilotInputProps {
   onFilesAttached?: (files: File[]) => void;
   disabled?: boolean;
   placeholder?: string;
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -70,7 +67,6 @@ export function CopilotInput({
     if (value.trim().length > 0) {
       onSend(value.trim());
     } else if (hasFiles) {
-      // Trigger processing when only files are attached
       onSend("");
     }
 
@@ -116,7 +112,6 @@ export function CopilotInput({
 
   return (
     <div className="border-t border-white/10 bg-[#12122a] p-3">
-      {/* Voice error message */}
       {voiceError && (
         <div
           role="alert"
@@ -126,7 +121,6 @@ export function CopilotInput({
         </div>
       )}
 
-      {/* Document chips */}
       {hasFiles && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {attachedFiles.map((af, index) => (
@@ -141,45 +135,20 @@ export function CopilotInput({
       )}
 
       <div className="flex items-end gap-2">
-        {/* Attachment button */}
         <AttachmentButton
           onFilesSelected={handleFilesSelected}
           disabled={disabled || isBusy}
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-gray-400 hover:text-gray-200"
         />
 
-        {/* Text input or recording/transcribing indicator */}
         {isRecording ? (
-          <div className="flex flex-1 items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-            <span className="font-mono text-sm text-red-400">
-              {formatDuration(duration)}
-            </span>
-            <span className="text-xs text-gray-400">Grabando...</span>
-            <div className="ml-auto flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => cancelRecording()}
-                aria-label="Cancelar grabación"
-                className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-white/10 hover:text-gray-200"
-              >
-                <Square className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleMicClick}
-                aria-label="Detener grabación"
-                className="flex h-7 w-7 items-center justify-center rounded-md bg-red-500/20 text-red-400 transition-colors hover:bg-red-500/30"
-              >
-                <Square className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
+          <RecordingIndicator
+            duration={duration}
+            onCancel={cancelRecording}
+            onStop={handleMicClick}
+          />
         ) : isTranscribing ? (
-          <div className="flex flex-1 items-center gap-2 rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-2">
-            <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
-            <span className="text-sm text-purple-300">Transcribiendo...</span>
-          </div>
+          <TranscribingIndicator />
         ) : (
           <textarea
             ref={textareaRef}
@@ -205,24 +174,13 @@ export function CopilotInput({
           />
         )}
 
-        {/* Mic button */}
-        <button
-          type="button"
-          onClick={handleMicClick}
-          disabled={disabled || isTranscribing}
-          aria-label={isRecording ? "Detener grabación" : "Micrófono"}
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors",
-            isRecording
-              ? "border-red-500/50 bg-red-500/20 text-red-400 hover:bg-red-500/30"
-              : "border-white/10 text-gray-400 hover:text-gray-200",
-            (disabled || isTranscribing) && "cursor-not-allowed opacity-40",
-          )}
-        >
-          <Mic className="h-4 w-4" />
-        </button>
+        <VoiceButton
+          isRecording={isRecording}
+          isTranscribing={isTranscribing}
+          disabled={disabled}
+          onMicClick={handleMicClick}
+        />
 
-        {/* Send button */}
         <button
           type="button"
           onClick={handleSubmit}
