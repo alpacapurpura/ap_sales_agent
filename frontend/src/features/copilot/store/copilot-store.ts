@@ -122,7 +122,7 @@ interface CopilotState {
   addMessage: (msg: CopilotMessage) => void;
   appendToLastAssistant: (chunk: string) => void;
   addUIActionToLastAssistant: (action: UIAction) => void;
-  updateUIActionStatus: (messageId: string, actionIndex: number, status: string) => void;
+  updateUIActionStatus: (messageId: string, actionIndex: number, status: NonNullable<UIAction["card_status"]>) => void;
   setStatus: (status: CopilotStatus) => void;
   clearMessages: () => void;
 
@@ -239,7 +239,7 @@ export const useCopilotStore = create<CopilotState>((set, get) => ({
       const msg = msgs[msgIdx];
       if (!msg.uiActions || !msg.uiActions[actionIndex]) return s;
       const actions = [...msg.uiActions];
-      actions[actionIndex] = { ...actions[actionIndex], card_status: status as UIAction["card_status"] };
+      actions[actionIndex] = { ...actions[actionIndex], card_status: status };
       msgs[msgIdx] = { ...msg, uiActions: actions };
       return { messages: msgs };
     }),
