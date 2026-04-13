@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -118,5 +118,107 @@ describe("FocusModeButton", () => {
 
     const button = container.querySelector("button");
     expect(button?.className).toContain("custom-class");
+  });
+
+  // ── R3: Fresh data at activation time ────────────────────────────────
+
+  it("uses getEntityData() result instead of stale entityData prop on click", async () => {
+    const user = userEvent.setup();
+    const staleData = { name: "Old Name" };
+    const freshData = { name: "Fresh Name", updated: true };
+    const getEntityData = vi.fn(() => freshData);
+
+    render(
+      <FocusModeButton
+        domain="brand"
+        label="Mi Marca"
+        entityData={staleData}
+        getEntityData={getEntityData}
+      />,
+    );
+
+    await user.click(screen.getByRole("button"));
+
+    expect(getEntityData).toHaveBeenCalledOnce();
+    const state = useCopilotStore.getState();
+    expect(state.focusSnapshot).toEqual(freshData);
+    expect(state.focusSnapshot).not.toEqual(staleData);
+  });
+
+  it("falls back to entityData prop when getEntityData is not provided", async () => {
+    const user = userEvent.setup();
+    const entityData = { name: "Static" };
+
+    render(
+      <FocusModeButton
+        domain="brand"
+        label="Mi Marca"
+        entityData={entityData}
+      />,
+    );
+
+    await user.click(screen.getByRole("button"));
+
+    const state = useCopilotStore.getState();
+    expect(state.focusSnapshot).toEqual(entityData);
+  });
+
+  // ── UX3: Prefetch on hover ───────────────────────────────────────────
+
+  it("calls prefetchFn on mouse enter", async () => {
+    const user = userEvent.setup();
+    const prefetchFn = vi.fn();
+
+    render(
+      <FocusModeButton
+        domain="offer"
+        entityId="offer-1"
+        label="Test Offer"
+        entityData={{}}
+        prefetchFn={prefetchFn}
+      />,
+    );
+
+    await user.hover(screen.getByRole("button"));
+
+    expect(prefetchFn).toHaveBeenCalledOnce();
+  });
+
+  it("does not throw when prefetchFn is not provided and hovering", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <FocusModeButton
+        domain="brand"
+        label="No Prefetch"
+        entityData={{}}
+      />,
+    );
+
+    // Should not throw
+    await expect(user.hover(screen.getByRole("button"))).resolves.toBeUndefined();
+  });
+
+  it("prefetchFn is called only once per hover entry", async () => {
+    const user = userEvent.setup();
+    const prefetchFn = vi.fn();
+
+    render(
+      <FocusModeButton
+        domain="offer"
+        entityId="offer-2"
+        label="Test"
+        entityData={{}}
+        prefetchFn={prefetchFn}
+      />,
+    );
+
+    const button = screen.getByRole("button");
+    await user.hover(button);
+    await user.unhover(button);
+    await user.hover(button);
+
+    // Called each time mouse enters
+    expect(prefetchFn).toHaveBeenCalledTimes(2);
   });
 });
