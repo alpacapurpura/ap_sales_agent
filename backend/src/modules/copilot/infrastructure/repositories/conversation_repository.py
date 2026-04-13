@@ -4,12 +4,13 @@ from datetime import UTC
 from uuid import UUID
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from src.modules.copilot.infrastructure.models.conversation_model import (
     CopilotConversationModel,
 )
+from src.shared.domain.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 
@@ -45,12 +46,22 @@ class ConversationRepository:
         self,
         conversation_id: UUID,
         tenant_id: UUID,
+        user_id: UUID | None = None,
     ) -> CopilotConversationModel | None:
-        """Return by id."""
-        stmt = select(CopilotConversationModel).where(
+        """Return by id, filtered by tenant and optionally by user.
+
+        When user_id is provided, acts as an ownership check — prevents
+        cross-user conversation access within the same tenant.
+        """
+        conditions = [
             CopilotConversationModel.id == conversation_id,
             CopilotConversationModel.tenant_id == tenant_id,
-        )
+            CopilotConversationModel.deleted_at.is_(None),
+        ]
+        if user_id is not None:
+            conditions.append(CopilotConversationModel.user_id == user_id)
+
+        stmt = select(CopilotConversationModel).where(*conditions)
         return self.db.execute(stmt).scalars().first()
 
     def append_messages(
@@ -58,9 +69,14 @@ class ConversationRepository:
         conversation_id: UUID,
         tenant_id: UUID,
         new_messages: list,
+        *,
+        user_id: UUID | None = None,
     ) -> None:
-        """Execute append messages operation."""
-        conv = self.get_by_id(conversation_id, tenant_id)
+        """Execute append messages operation.
+
+        When user_id is provided, validates ownership before appending.
+        """
+        conv = self.get_by_id(conversation_id, tenant_id, user_id)
         if not conv:
             logger.warning(
                 "conversation_not_found",
@@ -73,9 +89,16 @@ class ConversationRepository:
         conv.messages = existing
         self.db.flush()
 
-    def update_title(self, conversation_id: UUID, tenant_id: UUID, title: str) -> None:
-        """Update title."""
-        conv = self.get_by_id(conversation_id, tenant_id)
+    def update_title(
+        self,
+        conversation_id: UUID,
+        tenant_id: UUID,
+        title: str,
+        *,
+        user_id: UUID | None = None,
+    ) -> None:
+        """Update title, validating ownership when user_id is provided."""
+        conv = self.get_by_id(conversation_id, tenant_id, user_id)
         if conv:
             conv.title = title
             self.db.flush()
@@ -93,12 +116,32 @@ class ConversationRepository:
             .where(
                 CopilotConversationModel.tenant_id == tenant_id,
                 CopilotConversationModel.user_id == user_id,
+                CopilotConversationModel.deleted_at.is_(None),
             )
             .order_by(CopilotConversationModel.updated_at.desc())
             .limit(limit)
             .offset(offset)
         )
         return list(self.db.execute(stmt).scalars().all())
+
+    def cleanup_expired_conversations(self) -> int:
+        """Soft-delete conversations past their expires_at.
+
+        Returns the number of soft-deleted rows.
+        Uses bulk UPDATE for efficiency — no need to load rows into memory.
+        """
+        now = utc_now()
+        stmt = (
+            update(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.expires_at.isnot(None),
+                CopilotConversationModel.expires_at <= now,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+            .values(deleted_at=now)
+        )
+        result = self.db.execute(stmt)
+        return result.rowcount
 
     # ── Cross-tenant methods (admin) ─────────────────────────────────────
 
@@ -111,7 +154,10 @@ class ConversationRepository:
         """List conversations for a tenant (all users)."""
         stmt = (
             select(CopilotConversationModel)
-            .where(CopilotConversationModel.tenant_id == tenant_id)
+            .where(
+                CopilotConversationModel.tenant_id == tenant_id,
+                CopilotConversationModel.deleted_at.is_(None),
+            )
             .order_by(CopilotConversationModel.updated_at.desc())
             .limit(limit)
             .offset(offset)
@@ -127,6 +173,7 @@ class ConversationRepository:
         """List conversations, optionally filtered by tenant."""
         stmt = (
             select(CopilotConversationModel)
+            .where(CopilotConversationModel.deleted_at.is_(None))
             .order_by(CopilotConversationModel.updated_at.desc())
             .limit(limit)
             .offset(offset)
@@ -139,7 +186,13 @@ class ConversationRepository:
         """Count conversations, optionally filtered by tenant."""
         from sqlalchemy import func
 
-        stmt = select(func.count()).select_from(CopilotConversationModel)
+        stmt = (
+            select(func.count())
+            .select_from(CopilotConversationModel)
+            .where(
+                CopilotConversationModel.deleted_at.is_(None),
+            )
+        )
         if tenant_id:
             stmt = stmt.where(CopilotConversationModel.tenant_id == tenant_id)
         return self.db.execute(stmt).scalar() or 0
@@ -156,7 +209,10 @@ class ConversationRepository:
             self.db.execute(
                 select(func.count())
                 .select_from(CopilotConversationModel)
-                .where(CopilotConversationModel.created_at >= cutoff),
+                .where(
+                    CopilotConversationModel.created_at >= cutoff,
+                    CopilotConversationModel.deleted_at.is_(None),
+                ),
             ).scalar()
             or 0
         )
@@ -165,7 +221,10 @@ class ConversationRepository:
             self.db.execute(
                 select(
                     func.count(func.distinct(CopilotConversationModel.tenant_id)),
-                ).where(CopilotConversationModel.created_at >= cutoff),
+                ).where(
+                    CopilotConversationModel.created_at >= cutoff,
+                    CopilotConversationModel.deleted_at.is_(None),
+                ),
             ).scalar()
             or 0
         )

@@ -1,12 +1,17 @@
 """Copilot conversation SQLAlchemy model."""
 
 import uuid
+from datetime import timedelta
 
 from sqlalchemy import Column, DateTime, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 
 from src.shared.domain.base_entity import Base
+from src.shared.domain.datetime_utils import utc_now
+
+# Default retention period for conversation data (PII)
+CONVERSATION_RETENTION_DAYS = 90
 
 
 class CopilotConversationModel(Base):
@@ -21,6 +26,12 @@ class CopilotConversationModel(Base):
     messages = Column(JSONB, nullable=False, default=list)
     client_context = Column(JSONB, nullable=True)
     summary = Column(Text, nullable=True)
+    expires_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=lambda: utc_now() + timedelta(days=CONVERSATION_RETENTION_DAYS),
+    )
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
