@@ -53,7 +53,7 @@ export function CopilotPreviewPane() {
   const hasData = Object.keys(data).length > 0;
 
   return (
-    <div className="flex h-full flex-col bg-slate-50 dark:bg-slate-800/50">
+    <div className="flex h-full w-full flex-col bg-slate-50 dark:bg-slate-800/50 animate-in fade-in-0 slide-in-from-left-2 duration-200">
       <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Vista previa
