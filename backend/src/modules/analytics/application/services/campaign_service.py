@@ -127,9 +127,7 @@ class CampaignService:
             """),
             {"tenant_id": str(tenant_id)},
         ).fetchone()
-        last_synced = (
-            last_synced_row._mapping["last_synced"] if last_synced_row else None
-        )
+        last_synced = last_synced_row._mapping["last_synced"] if last_synced_row else None
 
         return CampaignOverviewDTO(
             campaigns=campaigns,
@@ -342,9 +340,7 @@ class CampaignService:
             """),
             {"tenant_id": str(tenant_id)},
         ).fetchone()
-        last_synced = (
-            last_synced_row._mapping["last_synced"] if last_synced_row else None
-        )
+        last_synced = last_synced_row._mapping["last_synced"] if last_synced_row else None
 
         active_count = sum(1 for c in campaigns if c.effective_status == "ACTIVE")
 

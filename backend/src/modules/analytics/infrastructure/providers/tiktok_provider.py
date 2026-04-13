@@ -140,13 +140,8 @@ class TikTokProvider(BaseMetricsProvider):
 
         for row in data:
             # Best-effort retargeting detection by campaign name
-            campaign_name = (
-                row.get("dimensions", {}).get("campaign_name", "") or ""
-            ).lower()
-            if (
-                "retargeting" not in campaign_name
-                and "remarketing" not in campaign_name
-            ):
+            campaign_name = (row.get("dimensions", {}).get("campaign_name", "") or "").lower()
+            if "retargeting" not in campaign_name and "remarketing" not in campaign_name:
                 continue
             row_metrics = row.get("metrics", {})
             total_reach += float(row_metrics.get("reach", 0))

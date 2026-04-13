@@ -33,10 +33,7 @@ class TestNormalizeGuarantee:
         assert normalize_guarantee_type("NO_REFUNDS") == "none"
 
     def test_valid_passthrough(self):
-        assert (
-            normalize_guarantee_type("conditional_action_based")
-            == "conditional_action_based"
-        )
+        assert normalize_guarantee_type("conditional_action_based") == "conditional_action_based"
 
     def test_null_returns_none(self):
         assert normalize_guarantee_type(None) == "none"
@@ -68,24 +65,13 @@ class TestNormalizeDeliverables:
 
 class TestNormalizeSpecificDetails:
     def test_recorded_content(self):
-        assert (
-            normalize_specific_details({"format": "RECORDED_CONTENT"})["format"]
-            == "video_course"
-        )
+        assert normalize_specific_details({"format": "RECORDED_CONTENT"})["format"] == "video_course"
 
     def test_fixed_cohort(self):
-        assert (
-            normalize_specific_details({"structure_type": "FIXED_COHORT"})[
-                "structure_type"
-            ]
-            == "fixed_cohort"
-        )
+        assert normalize_specific_details({"structure_type": "FIXED_COHORT"})["structure_type"] == "fixed_cohort"
 
     def test_virtual_location(self):
-        assert (
-            normalize_specific_details({"location_type": "VIRTUAL"})["location_type"]
-            == "virtual"
-        )
+        assert normalize_specific_details({"location_type": "VIRTUAL"})["location_type"] == "virtual"
 
 
 class TestNormalizeArchetype:

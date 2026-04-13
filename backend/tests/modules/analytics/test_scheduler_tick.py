@@ -226,10 +226,6 @@ async def test_tick_enqueues_campaign_sync_alongside_extraction(mock_ctx):
     assert "run_campaign_sync" in job_names
 
     # Campaign sync receives tenant_id and provider="meta"
-    campaign_call = next(
-        c
-        for c in mock_redis.enqueue_job.call_args_list
-        if c[0][0] == "run_campaign_sync"
-    )
+    campaign_call = next(c for c in mock_redis.enqueue_job.call_args_list if c[0][0] == "run_campaign_sync")
     assert campaign_call[0][1] == str(tenant.id)
     assert campaign_call[0][2] == "meta"

@@ -222,8 +222,7 @@ class TestMetricCatalogLookupPerformance:
     def test_catalog_has_expected_entries(self) -> None:
         """Sanity check: catalog should have a meaningful number of metrics."""
         assert len(METRIC_CATALOG) >= 10, (
-            f"METRIC_CATALOG only has {len(METRIC_CATALOG)} entries — "
-            f"expected at least 10 defined metrics."
+            f"METRIC_CATALOG only has {len(METRIC_CATALOG)} entries — expected at least 10 defined metrics."
         )
 
 
@@ -255,10 +254,7 @@ class TestPeriodConfigPerformance:
             assert "quarter_key" in keys
         elapsed_ms = (time.perf_counter() - start) * 1000
 
-        assert elapsed_ms < 50, (
-            f"compute_period_keys() for 365 dates took {elapsed_ms:.2f}ms "
-            f"(limit: 50ms)."
-        )
+        assert elapsed_ms < 50, f"compute_period_keys() for 365 dates took {elapsed_ms:.2f}ms (limit: 50ms)."
 
     def test_period_keys_correctness(self) -> None:
         """Verify compute_period_keys returns correct values for known dates."""
@@ -288,6 +284,5 @@ class TestPeriodConfigPerformance:
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         assert elapsed_ms < 50, (
-            f"compute_period_keys() with custom fiscal year for 365 dates "
-            f"took {elapsed_ms:.2f}ms (limit: 50ms)."
+            f"compute_period_keys() with custom fiscal year for 365 dates took {elapsed_ms:.2f}ms (limit: 50ms)."
         )

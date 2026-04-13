@@ -35,9 +35,7 @@ class OfferRepository:
             "archetype": archetype,
             "format_hint": model.format_hint,
             "is_lead_magnet": model.is_lead_magnet or False,
-            "has_editions": bool(model.has_editions)
-            if model.has_editions is not None
-            else None,
+            "has_editions": bool(model.has_editions) if model.has_editions is not None else None,
             "value_level": normalize_value_level(model.value_level),
             "status": normalize_status(model.status),
             "headline_promise": model.headline_promise or "",
@@ -96,11 +94,7 @@ class OfferRepository:
     def _to_model(self, offer: Offer) -> ProductModel:
         pricing_data = [p.model_dump(mode="json") for p in offer.pricing_options]
         deliverables_data = [d.model_dump(mode="json") for d in offer.deliverables]
-        details_data = (
-            offer.specific_details.model_dump(mode="json")
-            if offer.specific_details
-            else {}
-        )
+        details_data = offer.specific_details.model_dump(mode="json") if offer.specific_details else {}
         # landing_page_config is typed as dict in the domain. Legacy callers
         # may still hand a Pydantic model — handle both for safety.
         raw_landing = offer.landing_page_config

@@ -161,11 +161,7 @@ def test_domain_layer_has_no_framework_imports():
             continue
 
         for imp in parse_imports(py_file):
-            violations.extend(
-                f"{rel}: imports {imp}"
-                for prefix in forbidden_prefixes
-                if imp.startswith(prefix)
-            )
+            violations.extend(f"{rel}: imports {imp}" for prefix in forbidden_prefixes if imp.startswith(prefix))
 
     assert violations == [], (
         "Domain layer files import framework code.\n"

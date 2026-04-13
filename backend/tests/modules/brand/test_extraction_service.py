@@ -44,40 +44,25 @@ class TestLinkScoring:
         assert BrandExtractionService._score_link("tel:+1234567890", "") == -1
 
     def test_skip_pdf(self):
-        assert (
-            BrandExtractionService._score_link("https://example.com/file.pdf", "") == -1
-        )
+        assert BrandExtractionService._score_link("https://example.com/file.pdf", "") == -1
 
     def test_skip_blog(self):
-        assert (
-            BrandExtractionService._score_link("https://example.com/blog/post-1", "")
-            == -1
-        )
+        assert BrandExtractionService._score_link("https://example.com/blog/post-1", "") == -1
 
     def test_high_score_about(self):
         assert BrandExtractionService._score_link("https://example.com/about", "") == 10
 
     def test_high_score_nosotros(self):
-        assert (
-            BrandExtractionService._score_link("https://example.com/nosotros", "") == 10
-        )
+        assert BrandExtractionService._score_link("https://example.com/nosotros", "") == 10
 
     def test_high_score_anchor_text(self):
-        assert (
-            BrandExtractionService._score_link("https://example.com/info", "About Us")
-            == 10
-        )
+        assert BrandExtractionService._score_link("https://example.com/info", "About Us") == 10
 
     def test_medium_score_pricing(self):
-        assert (
-            BrandExtractionService._score_link("https://example.com/pricing", "") == 5
-        )
+        assert BrandExtractionService._score_link("https://example.com/pricing", "") == 5
 
     def test_low_score_generic(self):
-        assert (
-            BrandExtractionService._score_link("https://example.com/random-page", "")
-            == 1
-        )
+        assert BrandExtractionService._score_link("https://example.com/random-page", "") == 1
 
 
 class TestHtmlExtraction:
@@ -143,10 +128,7 @@ class TestIsEmpty:
         assert BrandExtractionService._is_empty(BrandPositioning()) is True
 
     def test_non_empty_positioning(self):
-        assert (
-            BrandExtractionService._is_empty(BrandPositioning(brand_essence="Core"))
-            is False
-        )
+        assert BrandExtractionService._is_empty(BrandPositioning(brand_essence="Core")) is False
 
 
 class TestTruncateAtPageBoundary:
@@ -155,10 +137,7 @@ class TestTruncateAtPageBoundary:
         assert BrandExtractionService._truncate_at_page_boundary(content) == content
 
     def test_truncates_at_marker(self):
-        content = (
-            "Page1\n=== FIN PAGINA ===\nPage2\n=== FIN PAGINA ===\nPage3 very long..."
-            + "x" * 100000
-        )
+        content = "Page1\n=== FIN PAGINA ===\nPage2\n=== FIN PAGINA ===\nPage3 very long..." + "x" * 100000
         result = BrandExtractionService._truncate_at_page_boundary(
             content,
             max_chars=60,

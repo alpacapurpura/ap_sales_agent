@@ -162,9 +162,7 @@ class EvangelizationRepository:
         stmt = (
             select(
                 func.count(SaleModel.id).label("total"),
-                func.count(SaleModel.id)
-                .filter(SaleModel.status == SaleStatus.COMPLETED)
-                .label("conversions"),
+                func.count(SaleModel.id).filter(SaleModel.status == SaleStatus.COMPLETED).label("conversions"),
                 func.coalesce(
                     func.sum(SaleModel.amount).filter(
                         SaleModel.status == SaleStatus.COMPLETED,
@@ -175,8 +173,7 @@ class EvangelizationRepository:
             )
             .where(
                 SaleModel.tenant_id == tenant_id,
-                func.jsonb_extract_path_text(SaleModel.metadata_info, "referral_code")
-                == referral_code,
+                func.jsonb_extract_path_text(SaleModel.metadata_info, "referral_code") == referral_code,
             )
             .group_by(SaleModel.currency)
         )
@@ -226,9 +223,7 @@ class EvangelizationRepository:
         # Count all sales with referral_code in metadata_info within date range
         referral_sales_stmt = select(
             func.count(SaleModel.id).label("total"),
-            func.count(SaleModel.id)
-            .filter(SaleModel.status == SaleStatus.COMPLETED)
-            .label("conversions"),
+            func.count(SaleModel.id).filter(SaleModel.status == SaleStatus.COMPLETED).label("conversions"),
         ).where(
             SaleModel.tenant_id == tenant_id,
             SaleModel.occurred_at >= start_date,
@@ -247,8 +242,7 @@ class EvangelizationRepository:
             k_factor = 0.0
         else:
             k_factor = round(
-                (total_referrals_sent / evangelists_with_codes)
-                * (referral_conversions / total_referrals_sent),
+                (total_referrals_sent / evangelists_with_codes) * (referral_conversions / total_referrals_sent),
                 2,
             )
 
@@ -293,9 +287,7 @@ class EvangelizationRepository:
         promoters = int(result[1]) if result else 0
         passives = int(result[2]) if result else 0
         detractors = int(result[3]) if result else 0
-        avg_score = (
-            round(float(result[4]), 1) if result and result[4] is not None else None
-        )
+        avg_score = round(float(result[4]), 1) if result and result[4] is not None else None
 
         # Standard NPS: ((promoters - detractors) / total) * 100
         standard_nps = None
@@ -310,9 +302,7 @@ class EvangelizationRepository:
         surveys_sent = self.db.execute(surveys_stmt).scalar() or 0
 
         # Response rate
-        response_rate = (
-            round((total / surveys_sent * 100), 1) if surveys_sent > 0 else 0.0
-        )
+        response_rate = round((total / surveys_sent * 100), 1) if surveys_sent > 0 else 0.0
 
         return {
             "nps_score": avg_score,
@@ -408,9 +398,7 @@ class EvangelizationRepository:
         )
         target_value = self.db.execute(target_stmt).scalar() or 0
 
-        conversion_rate = (
-            round((target_value / source_value * 100), 1) if source_value > 0 else 0.0
-        )
+        conversion_rate = round((target_value / source_value * 100), 1) if source_value > 0 else 0.0
 
         return {
             "source_label": "Clientes Activos",

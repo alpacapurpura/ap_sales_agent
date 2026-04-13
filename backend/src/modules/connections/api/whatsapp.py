@@ -89,9 +89,7 @@ async def get_whatsapp_status(
                         "ownerJid",
                     ) or provider_instance.get("number")
                     profile_name = (
-                        provider_instance.get("profileName")
-                        or provider_instance.get("pushName")
-                        or "WhatsApp User"
+                        provider_instance.get("profileName") or provider_instance.get("pushName") or "WhatsApp User"
                     )
 
                     if owner_jid:

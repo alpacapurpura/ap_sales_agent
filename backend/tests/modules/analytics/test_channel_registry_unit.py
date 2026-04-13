@@ -34,9 +34,7 @@ class TestStageChannelMapStructure:
         """Every channel definition must have a 'slug' key."""
         for stage, channels in STAGE_CHANNEL_MAP.items():
             for ch in channels:
-                assert "slug" in ch, (
-                    f"Channel in stage '{stage}' missing slug: {ch.get('name', 'unknown')}"
-                )
+                assert "slug" in ch, f"Channel in stage '{stage}' missing slug: {ch.get('name', 'unknown')}"
                 assert ch["slug"], f"Channel in stage '{stage}' has empty slug"
 
     def test_no_duplicate_slugs_per_stage(self):
@@ -50,9 +48,7 @@ class TestStageChannelMapStructure:
         """Every channel must have a 'name' key."""
         for stage, channels in STAGE_CHANNEL_MAP.items():
             for ch in channels:
-                assert ch.get("name"), (
-                    f"Channel slug='{ch.get('slug')}' in stage '{stage}' missing name"
-                )
+                assert ch.get("name"), f"Channel slug='{ch.get('slug')}' in stage '{stage}' missing name"
 
     def test_all_channels_have_channel_type(self):
         """Every channel must have a 'channel_type' key."""
@@ -129,15 +125,9 @@ class TestChannelRegistryAvailableChannels:
 
         connected_slugs = [ch["slug"] for ch in result["connected"]]
         # "landing-form" is internal in capture stage
-        internal_channels = [
-            ch["slug"]
-            for ch in STAGE_CHANNEL_MAP["capture"]
-            if ch.get("provider_name") == "internal"
-        ]
+        internal_channels = [ch["slug"] for ch in STAGE_CHANNEL_MAP["capture"] if ch.get("provider_name") == "internal"]
         for slug in internal_channels:
-            assert slug in connected_slugs, (
-                f"Internal channel '{slug}' should be connected"
-            )
+            assert slug in connected_slugs, f"Internal channel '{slug}' should be connected"
 
     @pytest.mark.asyncio
     async def test_connected_provider_shows_connected(self):

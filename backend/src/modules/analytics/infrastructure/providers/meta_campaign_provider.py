@@ -34,10 +34,7 @@ _AD_FIELDS = (
     "preview_shareable_link,recommendations"
 )
 
-_RECOMMENDATION_FIELDS = (
-    "recommendation_data{recommendation_signature,type,object_ids,"
-    "recommendation_content,url}"
-)
+_RECOMMENDATION_FIELDS = "recommendation_data{recommendation_signature,type,object_ids,recommendation_content,url}"
 
 
 def _auth_headers(access_token: str) -> dict:
@@ -111,15 +108,9 @@ class MetaCampaignProvider:
                 "status": row.get("status"),
                 "effective_status": row.get("effective_status"),
                 "bid_strategy": row.get("bid_strategy"),
-                "daily_budget": int(row["daily_budget"])
-                if row.get("daily_budget")
-                else None,
-                "lifetime_budget": int(row["lifetime_budget"])
-                if row.get("lifetime_budget")
-                else None,
-                "budget_remaining": int(row["budget_remaining"])
-                if row.get("budget_remaining")
-                else None,
+                "daily_budget": int(row["daily_budget"]) if row.get("daily_budget") else None,
+                "lifetime_budget": int(row["lifetime_budget"]) if row.get("lifetime_budget") else None,
+                "budget_remaining": int(row["budget_remaining"]) if row.get("budget_remaining") else None,
                 "buying_type": row.get("buying_type", "AUCTION"),
                 "special_ad_categories": row.get("special_ad_categories", []),
                 "start_time": row.get("start_time"),
@@ -164,20 +155,12 @@ class MetaCampaignProvider:
                     "optimization_goal": row.get("optimization_goal"),
                     "billing_event": row.get("billing_event"),
                     "bid_strategy": row.get("bid_strategy"),
-                    "daily_budget": int(row["daily_budget"])
-                    if row.get("daily_budget")
-                    else None,
-                    "lifetime_budget": int(row["lifetime_budget"])
-                    if row.get("lifetime_budget")
-                    else None,
-                    "budget_remaining": int(row["budget_remaining"])
-                    if row.get("budget_remaining")
-                    else None,
+                    "daily_budget": int(row["daily_budget"]) if row.get("daily_budget") else None,
+                    "lifetime_budget": int(row["lifetime_budget"]) if row.get("lifetime_budget") else None,
+                    "budget_remaining": int(row["budget_remaining"]) if row.get("budget_remaining") else None,
                     "targeting": row.get("targeting", {}),
                     "destination_type": row.get("destination_type"),
-                    "learning_stage": learning_info.get("status")
-                    if learning_info
-                    else None,
+                    "learning_stage": learning_info.get("status") if learning_info else None,
                     "start_time": row.get("start_time"),
                     "end_time": row.get("end_time"),
                 },
@@ -272,11 +255,7 @@ class MetaCampaignProvider:
         Stores the HD URL in creative_image_url so the service layer picks it.
         """
         access_token = credentials.get("access_token", "")
-        video_ads = [
-            a
-            for a in ads
-            if a.get("creative_video_id") and not a.get("creative_image_url")
-        ]
+        video_ads = [a for a in ads if a.get("creative_video_id") and not a.get("creative_image_url")]
         if not video_ads:
             return
 

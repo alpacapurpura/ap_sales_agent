@@ -143,7 +143,9 @@ NAVIGATION_MAP: list[AppPage] = [
         route_template="/{tenantId}/brand-studio/identidad-creativa",
         label="Identidad Creativa",
         module="brand",
-        description="Imagen, voz y mensajes: galería, colores, tipografía, logos, tono, conceptos creativos, assets por funnel",
+        description=(
+            "Imagen, voz y mensajes: galería, colores, tipografía, logos, tono, conceptos creativos, assets por funnel"
+        ),
         keywords=[
             "assets",
             "visual",
@@ -209,7 +211,10 @@ NAVIGATION_MAP: list[AppPage] = [
         route_template="/{tenantId}/offer-studio/offer/{offerId}",
         label="Detalle de Oferta",
         module="offer",
-        description="Configuración individual de una oferta: nombre, descripción, precio, psicología, avatar, objeciones, knowledge base",
+        description=(
+            "Configuración individual de una oferta: nombre, descripción, precio,"
+            " psicología, avatar, objeciones, knowledge base"
+        ),
         keywords=["oferta", "detalle", "psicología", "dolor", "deseo", "objeción"],
         sections=[
             AppSection("offer-general", "General", "Nombre, descripción, precio, tipo"),
@@ -395,7 +400,10 @@ NAVIGATION_MAP: list[AppPage] = [
         route_template="/{tenantId}/sales/studio/inbox",
         label="Closer Studio - Inbox",
         module="sales",
-        description="Supervisión en tiempo real de conversaciones del AI Sales Agent. Ver mensajes, pausar/reanudar AI, enviar mensajes directos.",
+        description=(
+            "Supervisión en tiempo real de conversaciones del AI Sales Agent."
+            " Ver mensajes, pausar/reanudar AI, enviar mensajes directos."
+        ),
         keywords=[
             "closer",
             "inbox",
@@ -453,7 +461,10 @@ NAVIGATION_MAP: list[AppPage] = [
         route_template="/connections",
         label="Conexiones",
         module="connections",
-        description="Integraciones externas: Meta, Instagram, WhatsApp, Shopify, Google Calendar, Gmail, Mailerlite, YouTube, Google Analytics, Google Ads",
+        description=(
+            "Integraciones externas: Meta, Instagram, WhatsApp, Shopify,"
+            " Google Calendar, Gmail, Mailerlite, YouTube, Google Analytics, Google Ads"
+        ),
         keywords=[
             "conexión",
             "integración",

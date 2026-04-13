@@ -93,11 +93,7 @@ class ShopifyProvider(BaseMetricsProvider):
         # Count customers with >1 order in the period
         from collections import Counter
 
-        customer_ids = [
-            o.get("customer", {}).get("id")
-            for o in all_orders
-            if o.get("customer", {}).get("id")
-        ]
+        customer_ids = [o.get("customer", {}).get("id") for o in all_orders if o.get("customer", {}).get("id")]
         customer_counts = Counter(customer_ids)
         repeat_count = sum(1 for c in customer_counts.values() if c > 1)
 
@@ -136,8 +132,7 @@ class ShopifyProvider(BaseMetricsProvider):
 
         if not access_token or not shop_domain:
             logger.warning(
-                "shopify_provider_missing_credentials tenant=%s "
-                "access_token=%s shop_domain=%s",
+                "shopify_provider_missing_credentials tenant=%s access_token=%s shop_domain=%s",
                 tenant_id,
                 bool(access_token),
                 bool(shop_domain),
@@ -365,9 +360,7 @@ class ShopifyProvider(BaseMetricsProvider):
         for metric_date, data in by_date.items():
             checkout_count = data["checkout_count"]
             abandoned_count = data["abandoned_count"]
-            abandonment_rate = (
-                (abandoned_count / checkout_count * 100) if checkout_count > 0 else 0.0
-            )
+            abandonment_rate = (abandoned_count / checkout_count * 100) if checkout_count > 0 else 0.0
 
             metric_tuples = [
                 ("checkout-init", "count", float(checkout_count), "count", None),

@@ -51,10 +51,7 @@ class Procedure:
         db = SessionLocal()
         try:
             registry = get_module_registry()
-            return {
-                step.step_id: self._is_step_complete(step, tenant_id, db, registry)
-                for step in self.steps
-            }
+            return {step.step_id: self._is_step_complete(step, tenant_id, db, registry) for step in self.steps}
         finally:
             db.close()
 

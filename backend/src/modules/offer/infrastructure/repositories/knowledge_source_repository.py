@@ -128,11 +128,7 @@ class KnowledgeSourceRepository(IKnowledgeSourceRepository):
         if type_ is not None:
             filters.append(KnowledgeSourceModel.type == type_.value)
 
-        stmt = (
-            select(KnowledgeSourceModel)
-            .where(*filters)
-            .order_by(KnowledgeSourceModel.created_at.desc())
-        )
+        stmt = select(KnowledgeSourceModel).where(*filters).order_by(KnowledgeSourceModel.created_at.desc())
         rows = self.db.execute(stmt).scalars().all()
         return [self._to_domain(r) for r in rows]
 

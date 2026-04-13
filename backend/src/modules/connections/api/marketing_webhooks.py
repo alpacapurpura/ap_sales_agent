@@ -66,9 +66,7 @@ def _flow_to_metric(payload: dict) -> str:
 
 
 def _field_to_metric(payload: dict) -> str | None:
-    return (
-        "consultations" if payload.get("custom_field_name", "") == "Consultas" else None
-    )
+    return "consultations" if payload.get("custom_field_name", "") == "Consultas" else None
 
 
 _EVENT_METRIC_HANDLERS: dict[str, Callable[[dict], str | None]] = {
@@ -89,12 +87,8 @@ def _event_to_metric_name(event_type: str, payload: dict) -> str | None:
 _EVENT_STAGE_HANDLERS: dict[str, Callable[[dict], str]] = {
     "comment.trigger": lambda _: "attraction",
     "subscriber.new": lambda _: "capture",
-    "tag.applied": lambda p: (
-        "opportunity" if p.get("tag_name", "") == "Solicito_reunion" else "nurture"
-    ),
-    "flow.triggered": lambda p: (
-        "opportunity" if "BOFU" in p.get("flow_name", "").upper() else "nurture"
-    ),
+    "tag.applied": lambda p: "opportunity" if p.get("tag_name", "") == "Solicito_reunion" else "nurture",
+    "flow.triggered": lambda p: "opportunity" if "BOFU" in p.get("flow_name", "").upper() else "nurture",
     "field.updated": lambda _: "nurture",
 }
 
@@ -496,8 +490,7 @@ async def _handle_order_created(db: Session, tenant_id: UUID, payload: dict) -> 
         existing_stmt = select(JourneyEventModel.id).where(
             JourneyEventModel.tenant_id == tenant_id,
             JourneyEventModel.event_name == "checkout_completed",
-            sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "order_id")
-            == order_id,
+            sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "order_id") == order_id,
         )
         existing = db.execute(existing_stmt).scalar_one_or_none()
         if existing:

@@ -78,8 +78,7 @@ def summarize_settings(settings: BrandSettings) -> dict:
         "strategy": bool(settings.strategy and settings.strategy.methodology_name),
         "team_count": len(settings.team or []),
         "contact": bool(
-            settings.contact
-            and (settings.contact.support_email or settings.contact.phone),
+            settings.contact and (settings.contact.support_email or settings.contact.phone),
         ),
         "testimonials_count": len(settings.testimonials or []),
         "authority_count": len(settings.authority_vault or []),
@@ -429,9 +428,7 @@ class ExtractionOrchestrator:
 
         # 3. Run LLM extractions (wave strategy from profile)
         waves = svc.profile.concurrency_waves
-        want_visuals = (
-            include_visuals and has_url and bool(enriched_visual_content.strip())
-        )
+        want_visuals = include_visuals and has_url and bool(enriched_visual_content.strip())
         total_sections = 8 + (1 if want_visuals else 0) + (1 if include_assets else 0)
         logger.info(
             "starting_llm_extractions",
@@ -539,15 +536,9 @@ class ExtractionOrchestrator:
             await self._pause_between_waves(wave_num, svc, trace)
 
         positioning_ctx = (
-            json.dumps(positioning.model_dump(exclude_none=True), indent=2)
-            if not is_empty(positioning)
-            else ""
+            json.dumps(positioning.model_dump(exclude_none=True), indent=2) if not is_empty(positioning) else ""
         )
-        narrative_ctx = (
-            json.dumps(narrative.model_dump(exclude_none=True), indent=2)
-            if not is_empty(narrative)
-            else ""
-        )
+        narrative_ctx = json.dumps(narrative.model_dump(exclude_none=True), indent=2) if not is_empty(narrative) else ""
 
         next_wave = (wave_num or 0) + 1
         logger.info(
@@ -734,9 +725,7 @@ class ExtractionOrchestrator:
             )
 
         all_results = await self._run_wave(1, all_sections, coros, svc, trace)
-        identity, story, strategy, people_contact, testimonials_data, authority_data = (
-            all_results[:6]
-        )
+        identity, story, strategy, people_contact, testimonials_data, authority_data = all_results[:6]
         positioning, narrative = all_results[6], all_results[7]
         extracted_visuals = all_results[8] if len(all_results) > 8 else None
         if progress_callback:
@@ -798,12 +787,8 @@ class ExtractionOrchestrator:
             current_settings.contact,
             new_people_contact.contact,
         )
-        updated_testimonials = new_testimonials.testimonials or (
-            current_settings.testimonials or []
-        )
-        updated_authority = new_authority.authority_vault or (
-            current_settings.authority_vault or []
-        )
+        updated_testimonials = new_testimonials.testimonials or (current_settings.testimonials or [])
+        updated_authority = new_authority.authority_vault or (current_settings.authority_vault or [])
         updated_visuals = _merge_simple_model(current_settings.visuals, new_visuals)
         updated_positioning = _merge_positioning(
             current_settings.positioning,

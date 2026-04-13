@@ -135,9 +135,7 @@ class StageCostService:
         elif group == "automation":
             # Get manual costs for automation channels
             all_costs = self.get_channel_costs(tenant_id, "nurture")
-            group_cost = sum(
-                cost for slug, cost in all_costs.items() if slug in _AUTOMATION_SLUGS
-            )
+            group_cost = sum(cost for slug, cost in all_costs.items() if slug in _AUTOMATION_SLUGS)
         else:
             logger.warning("Unknown cost group: %s", group)
             return None

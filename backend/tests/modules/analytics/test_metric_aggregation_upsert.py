@@ -124,6 +124,4 @@ class TestBulkUpsertFromPipeline:
             "unit",
         }
         for agg in sample_agg_dicts:
-            assert required_keys.issubset(agg.keys()), (
-                f"Missing keys: {required_keys - set(agg.keys())}"
-            )
+            assert required_keys.issubset(agg.keys()), f"Missing keys: {required_keys - set(agg.keys())}"

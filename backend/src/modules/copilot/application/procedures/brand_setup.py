@@ -10,7 +10,10 @@ from src.modules.copilot.application.procedures.base import Procedure, Procedure
 BRAND_SETUP = Procedure(
     procedure_id="brand_setup",
     name="Configuración de Marca",
-    description="Configura tu identidad de marca paso a paso: identidad, historia, posicionamiento, narrativa, visuales y assets de comunicación.",
+    description=(
+        "Configura tu identidad de marca paso a paso: identidad, historia,"
+        " posicionamiento, narrativa, visuales y assets de comunicación."
+    ),
     steps=[
         ProcedureStep(
             step_id="identity",
@@ -40,7 +43,10 @@ BRAND_SETUP = Procedure(
             step_id="positioning",
             module_id="brand",
             section_id="positioning",
-            instruction="Define el posicionamiento de tu marca usando el framework Brand Love Key: UVP, atributos clave, beneficios funcionales y emocionales.",
+            instruction=(
+                "Define el posicionamiento de tu marca usando el framework Brand Love Key:"
+                " UVP, atributos clave, beneficios funcionales y emocionales."
+            ),
             validation="has_required_fields",
             tips=[
                 "El posicionamiento responde: por que alguien te elegiria sobre la competencia?",

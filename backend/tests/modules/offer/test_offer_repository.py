@@ -260,9 +260,7 @@ class TestToDomainNormalization:
         model = create_product_model(tenant_a, value_level="ACTIVACION")
         db.add(model)
         db.flush()
-        assert (
-            repo.get_by_id(model.id, tenant_a).value_level == OfferValueLevel.ACTIVACION
-        )
+        assert repo.get_by_id(model.id, tenant_a).value_level == OfferValueLevel.ACTIVACION
 
     def test_legacy_guarantee(self, db: Session, tenant_a):
         repo = OfferRepository(db)
@@ -279,10 +277,7 @@ class TestToDomainNormalization:
         )
         db.add(model)
         db.flush()
-        assert (
-            repo.get_by_id(model.id, tenant_a).pricing_options[0].plan_type
-            == "one_time"
-        )
+        assert repo.get_by_id(model.id, tenant_a).pricing_options[0].plan_type == "one_time"
 
 
 class TestHasEditionsRoundtrip:

@@ -86,9 +86,7 @@ async def shop_redact(
         )
         # Stub: Trigger shop data deletion workflow
     except Exception as e:
-        logger.exception(
-            "shopify_compliance_error", endpoint="shop_redact", error=str(e)
-        )
+        logger.exception("shopify_compliance_error", endpoint="shop_redact", error=str(e))
         return {"status": "error", "message": str(e)}
     else:
         return {"status": "received"}

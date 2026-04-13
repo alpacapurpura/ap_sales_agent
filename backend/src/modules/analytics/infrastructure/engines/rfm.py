@@ -27,9 +27,7 @@ class RFMCalculationEngine:
         events = self.repository.get_timeline(profile_id)
 
         # Filtrar solo eventos de compra/orden
-        purchase_events = [
-            e for e in events if e.event_type in ("order_placed", "purchase")
-        ]
+        purchase_events = [e for e in events if e.event_type in ("order_placed", "purchase")]
 
         if not purchase_events:
             return {

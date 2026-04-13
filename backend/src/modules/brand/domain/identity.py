@@ -20,9 +20,7 @@ class BrandVisuals(BaseEntity):
     # === COLORES (extended) ===
     color_palette: list[str] = Field(default_factory=list)
     neutral_colors: list[str] = Field(default_factory=list)
-    semantic_colors: dict[str, str | None] | None = (
-        None  # {success, error, warning, info}
-    )
+    semantic_colors: dict[str, str | None] | None = None  # {success, error, warning, info}
     gradient_definitions: list[str] = Field(
         default_factory=list,
     )  # CSS gradient strings

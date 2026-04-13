@@ -90,11 +90,7 @@ class YoutubeAdapter:
         service = self.get_service()
         try:
             # Request own channel with snippet and statistics
-            response = (
-                service.channels()
-                .list(mine=True, part="snippet,statistics,contentDetails")
-                .execute()
-            )
+            response = service.channels().list(mine=True, part="snippet,statistics,contentDetails").execute()
 
             items = response.get("items", [])
             if not items:

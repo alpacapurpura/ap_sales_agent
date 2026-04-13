@@ -145,17 +145,14 @@ class EventTypeService:
             original_slug = new_slug
             counter = 1
             # Check against OTHER event types
-            while any(
-                et["slug"] == new_slug
-                for i, et in enumerate(event_types)
-                if i != target_idx
-            ):
+            while any(et["slug"] == new_slug for i, et in enumerate(event_types) if i != target_idx):
                 new_slug = f"{original_slug}-{counter}"
                 counter += 1
             update_data["slug"] = new_slug
 
         # Nested Pydantic models need special handling if we want to merge instead of replace
-        # But here EventTypeUpdate uses Optional[SchedulingLimits], so if provided, it replaces the whole object usually.
+        # But here EventTypeUpdate uses Optional[SchedulingLimits], so if provided,
+        # it replaces the whole object usually.
         # However, for deeper partial updates, we might need manual merging.
         # Given the frontend sends the whole object structure for nested fields usually, replacing is fine.
 

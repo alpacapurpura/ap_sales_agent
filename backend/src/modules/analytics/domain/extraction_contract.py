@@ -255,15 +255,13 @@ STORAGE_TABLES_DOC: dict[str, str] = {
         "rate_limit_headroom, period_start/end, extraction_type."
     ),
     "ad_campaigns": (
-        "Meta Ads campaign hierarchy snapshot. Populated by "
-        "``run_campaign_sync`` (separate from metrics extraction)."
+        "Meta Ads campaign hierarchy snapshot. Populated by ``run_campaign_sync`` (separate from metrics extraction)."
     ),
     "ad_sets": "Meta ad set hierarchy snapshot.",
     "ads": "Meta individual ads + creative snapshot.",
     "ad_recommendations": "Meta-suggested optimizations per object.",
     "channel_cost_settings": (
-        "User-configured manual costs (e.g. agency fees). NOT populated by "
-        "the ETL — written from the Connections UI."
+        "User-configured manual costs (e.g. agency fees). NOT populated by the ETL — written from the Connections UI."
     ),
     "journey_events": (
         "Customer event timeline. Populated by inbound webhooks "
@@ -972,8 +970,7 @@ def _search_console_contract() -> ProviderContract:
             "Shares OAuth credentials with google_analytics. When the GA "
             "token is invalid_grant, search_console fails too because the "
             "refresh token is the same.",
-            "Production for Visionarias is currently failing for the same "
-            "reason as GA (expired token, 2026-04-11).",
+            "Production for Visionarias is currently failing for the same reason as GA (expired token, 2026-04-11).",
         ),
         last_verified=_LAST_VERIFIED,
     )
@@ -1293,8 +1290,7 @@ def _mailerlite_contract() -> ProviderContract:
             ExtractionMode.SCHEDULED_EXTERNAL,
         ),
         cron_schedule=(
-            "Daily at 03:00 tenant-local time PLUS run_mailerlite_etl_sync "
-            "every 6 hours at minute 15 (UTC)."
+            "Daily at 03:00 tenant-local time PLUS run_mailerlite_etl_sync every 6 hours at minute 15 (UTC)."
         ),
         is_multi_stage=True,
         stages_supported=(
@@ -1632,11 +1628,8 @@ WORKER_SCHEDULE_DOC: dict[str, str] = {
     ),
     "run_inactivity_detection": "Daily at 04:00 UTC. CRM scoring batch.",
     "run_frozen_detection": (
-        "Every 4 hours at :30 (00:30, 04:30, ..., 20:30 UTC). Sales agent "
-        "frozen-conversation detector."
+        "Every 4 hours at :30 (00:30, 04:30, ..., 20:30 UTC). Sales agent frozen-conversation detector."
     ),
     "cleanup_old_events": "Daily at 03:30 UTC. Trims old copilot events.",
-    "poll_domain_verification": (
-        "Every 5 minutes. Polls Cloudflare for tenant_domains DNS status."
-    ),
+    "poll_domain_verification": ("Every 5 minutes. Polls Cloudflare for tenant_domains DNS status."),
 }

@@ -177,10 +177,7 @@ class TestListEvents:
 class TestBulkCreate:
     def test_bulk_create_returns_all(self, db, tenant_id):
         repo = CalendarEventRepository(db)
-        events = [
-            _make_event(name=f"Bulk {i}", event_date=date(2026, 8, i + 1))
-            for i in range(3)
-        ]
+        events = [_make_event(name=f"Bulk {i}", event_date=date(2026, 8, i + 1)) for i in range(3)]
         created = repo.bulk_create(events)
 
         assert len(created) == 3

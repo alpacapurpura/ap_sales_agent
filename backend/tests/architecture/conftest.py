@@ -21,11 +21,7 @@ CROSS_IMPORT_ALLOWED_TARGETS = {"shared", "core", "iam"}
 @pytest.fixture(scope="session")
 def all_module_names() -> list[str]:
     """Return all module directory names under src/modules/."""
-    return sorted(
-        d.name
-        for d in MODULES_DIR.iterdir()
-        if d.is_dir() and not d.name.startswith("__")
-    )
+    return sorted(d.name for d in MODULES_DIR.iterdir() if d.is_dir() and not d.name.startswith("__"))
 
 
 @pytest.fixture(scope="session")

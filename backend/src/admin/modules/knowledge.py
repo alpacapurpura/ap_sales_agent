@@ -28,7 +28,8 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
 
 **Scopes (alcances):**
 - **`help`** — Documentacion de como usar Nicolify. Ayuda al usuario a configurar la plataforma.
-- **`business`** — Documentacion del negocio del tenant. Ayuda al copilot a dar respuestas informadas sobre el producto/servicio del cliente.
+- **`business`** — Documentacion del negocio del tenant. Ayuda al copilot a dar
+  respuestas informadas sobre el producto/servicio del cliente.
 
 **Flujo tipico como admin:**
 1. **Vista General** → "¿Que tenants no tienen knowledge?" → Detectar huecos
@@ -41,17 +42,15 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
 **conoce el negocio de cada cliente** y puede dar respuestas contextuales e informadas.
 """)
 
-    tab_overview, tab_dashboard, tab_explore, tab_search, tab_ingest, tab_delete = (
-        st.tabs(
-            [
-                "🌐 Vista General",
-                "📊 Dashboard",
-                "📋 Explorar Documentos",
-                "🔍 Buscar",
-                "📥 Ingestar Docs",
-                "🗑️ Eliminar",
-            ],
-        )
+    tab_overview, tab_dashboard, tab_explore, tab_search, tab_ingest, tab_delete = st.tabs(
+        [
+            "🌐 Vista General",
+            "📊 Dashboard",
+            "📋 Explorar Documentos",
+            "🔍 Buscar",
+            "📥 Ingestar Docs",
+            "🗑️ Eliminar",
+        ],
     )
 
     # --- TAB 0: Vista General ---
@@ -101,7 +100,8 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
     with tab_dashboard:
         st.header("Stats de Colección")
         st.caption(
-            "Health check tecnico: verifica que Qdrant (motor de busqueda vectorial) esta funcionando y cuantos vectores hay.",
+            "Health check tecnico: verifica que Qdrant (motor de busqueda vectorial)"
+            " esta funcionando y cuantos vectores hay.",
         )
         try:
             store = get_store()
@@ -212,7 +212,8 @@ preguntas usando **documentos reales del negocio** del tenant — manuales, FAQs
         st.info(
             "**Aqui alimentas la memoria del copilot.** Dos modos:\n"
             "- **Subir Archivo** — PDF/DOCX/TXT con info del negocio del tenant (FAQ, catalogo, precios, manual)\n"
-            "- **Auto-Resumen** — Genera automaticamente un doc a partir de lo que el tenant ya configuro (brand + offers). "
+            "- **Auto-Resumen** — Genera automaticamente un doc a partir de lo que el tenant"
+            " ya configuro (brand + offers). "
             "Quick-start para que el copilot tenga contexto sin subir nada manual.\n\n"
             "**Scope `help`** = como usar Nicolify. **Scope `business`** = info del negocio del cliente.",
         )

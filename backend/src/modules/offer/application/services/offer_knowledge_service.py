@@ -43,9 +43,7 @@ logger = structlog.get_logger(__name__)
 
 _DEFAULT_MIME_BY_TYPE: dict[KnowledgeSourceType, str] = {
     KnowledgeSourceType.PDF: "application/pdf",
-    KnowledgeSourceType.DOCX: (
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ),
+    KnowledgeSourceType.DOCX: ("application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
     KnowledgeSourceType.TXT: "text/plain",
     KnowledgeSourceType.MARKDOWN: "text/markdown",
     KnowledgeSourceType.VIDEO: "video/mp4",

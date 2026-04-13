@@ -98,9 +98,7 @@ def _group_raw_sales(
     currency_counts: dict[str, int] = defaultdict(int)
     for row in raw_sales:
         currency_counts[row[3] or "USD"] += int(row[4])
-    display_currency = (
-        max(currency_counts, key=currency_counts.get) if currency_counts else "USD"
-    )
+    display_currency = max(currency_counts, key=currency_counts.get) if currency_counts else "USD"
 
     return stage_data, stage_revenue, display_currency
 
@@ -198,11 +196,7 @@ def _build_revenue_group(
         if tier_key in offers_by_tier
     ]
 
-    rev_pct = (
-        round(group_revenue / total_revenue_all * 100, 1)
-        if total_revenue_all > 0
-        else 0.0
-    )
+    rev_pct = round(group_revenue / total_revenue_all * 100, 1) if total_revenue_all > 0 else 0.0
 
     return RevenueGroupDTO(
         group_key=stage_key,

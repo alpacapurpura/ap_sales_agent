@@ -62,9 +62,7 @@ def _generate_nudge_text(cp, follow_ups_sent: int) -> str:
     """Generate the follow-up nudge message via LLM."""
     session_summary = (cp.lead_data or {}).get("session_summary", "")
     offer_name = (
-        cp.lead_data["active_product_name"]
-        if cp.lead_data and cp.lead_data.get("active_product_name")
-        else None
+        cp.lead_data["active_product_name"] if cp.lead_data and cp.lead_data.get("active_product_name") else None
     )
 
     nudge_prompt = prompt_loader.render(

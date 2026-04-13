@@ -71,9 +71,7 @@ class TestBreakdownMetricCatalog:
         for metric_name in self._EXPECTED_BREAKDOWN_METRICS:
             defn = get_metric_def(metric_name)
             assert defn is not None
-            assert defn.unit == MetricUnit.JSON, (
-                f"{metric_name} should have unit=JSON, got {defn.unit}"
-            )
+            assert defn.unit == MetricUnit.JSON, f"{metric_name} should have unit=JSON, got {defn.unit}"
 
     def test_breakdown_metrics_are_snapshot(self):
         """Breakdown metrics use SNAPSHOT aggregation (period summary, not additive)."""
@@ -89,9 +87,7 @@ class TestBreakdownMetricCatalog:
         for metric_name in self._EXPECTED_BREAKDOWN_METRICS:
             defn = get_metric_def(metric_name)
             assert defn is not None
-            assert "meta" in defn.providers, (
-                f"{metric_name} should have 'meta' in providers"
-            )
+            assert "meta" in defn.providers, f"{metric_name} should have 'meta' in providers"
 
     def test_breakdown_metrics_have_spanish_display_names(self):
         """Breakdown metrics should have Spanish display names with correct accents."""
@@ -199,7 +195,7 @@ class TestMetaDemographicsExtraction:
 
     @pytest.mark.asyncio
     async def test_extracts_placement_breakdown_metrics(self):
-        """Placement breakdown produces meta_reach_by_placement, meta_impressions_by_placement, meta_spend_by_placement."""
+        """Placement breakdown produces meta_reach/impressions/spend_by_placement."""
         client = AsyncMock()
         client.get = AsyncMock(side_effect=_make_breakdown_mock_get())
 
@@ -234,9 +230,7 @@ class TestMetaDemographicsExtraction:
         metrics = await provider._extract_meta_ads_breakdowns(client, CREDS, START, END)
 
         for m in metrics:
-            assert "breakdowns" in m.extra, (
-                f"{m.metric_name} missing 'breakdowns' key in extra"
-            )
+            assert "breakdowns" in m.extra, f"{m.metric_name} missing 'breakdowns' key in extra"
             assert isinstance(m.extra["breakdowns"], list)
             for entry in m.extra["breakdowns"]:
                 assert "dimension_values" in entry
@@ -271,15 +265,11 @@ class TestMetaDemographicsExtraction:
         provider = MetaProvider()
         metrics = await provider._extract_meta_ads_breakdowns(client, CREDS, START, END)
 
-        placement_reach = next(
-            m for m in metrics if m.metric_name == "meta_reach_by_placement"
-        )
+        placement_reach = next(m for m in metrics if m.metric_name == "meta_reach_by_placement")
         breakdowns = placement_reach.extra["breakdowns"]
 
         for entry in breakdowns:
-            assert len(entry["dimension_values"]) == 2, (
-                "Placement should have [publisher_platform, platform_position]"
-            )
+            assert len(entry["dimension_values"]) == 2, "Placement should have [publisher_platform, platform_position]"
 
         # Verify specific placement
         first_entry = breakdowns[0]
@@ -319,9 +309,7 @@ class TestMetaDemographicsExtraction:
         metrics = await provider._extract_meta_ads_breakdowns(client, CREDS, START, END)
 
         for m in metrics:
-            assert m.value == 0.0, (
-                f"{m.metric_name} should have value=0.0 (data lives in extra)"
-            )
+            assert m.value == 0.0, f"{m.metric_name} should have value=0.0 (data lives in extra)"
 
     @pytest.mark.asyncio
     async def test_no_ad_account_returns_empty(self):
@@ -397,9 +385,7 @@ class TestExtractionToDemographicsCompatibility:
         provider = MetaProvider()
         metrics = await provider._extract_meta_ads_breakdowns(client, CREDS, START, END)
 
-        gender_metric = next(
-            m for m in metrics if m.metric_name == "meta_reach_by_gender"
-        )
+        gender_metric = next(m for m in metrics if m.metric_name == "meta_reach_by_gender")
         segments = ChannelDashboardService._parse_breakdown_segments(
             gender_metric.extra["breakdowns"],
         )
@@ -423,9 +409,7 @@ class TestExtractionToDemographicsCompatibility:
         provider = MetaProvider()
         metrics = await provider._extract_meta_ads_breakdowns(client, CREDS, START, END)
 
-        placement_metric = next(
-            m for m in metrics if m.metric_name == "meta_reach_by_placement"
-        )
+        placement_metric = next(m for m in metrics if m.metric_name == "meta_reach_by_placement")
         segments = ChannelDashboardService._parse_breakdown_segments(
             placement_metric.extra["breakdowns"],
         )

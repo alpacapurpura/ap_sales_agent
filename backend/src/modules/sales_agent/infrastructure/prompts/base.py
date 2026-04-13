@@ -57,11 +57,7 @@ class PromptLoader:
 
         db = SessionLocal()
         try:
-            tenant = (
-                db.execute(select(Tenant).where(Tenant.id == tenant_id))
-                .scalars()
-                .first()
-            )
+            tenant = db.execute(select(Tenant).where(Tenant.id == tenant_id)).scalars().first()
             config = tenant.config_json if tenant and tenant.config_json else {}
             self._tenant_config_cache[tenant_id] = config
         except Exception as e:  # noqa: BLE001 — agent resilience

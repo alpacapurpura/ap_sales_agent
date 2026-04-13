@@ -160,11 +160,7 @@ class TimeseriesStageService:
             .group_by(m.channel_slug)
         )
         prev_rows = self.db.execute(prev_stmt).all()
-        return (
-            {row.channel_slug: float(row.total) for row in prev_rows}
-            if prev_rows
-            else None
-        )
+        return {row.channel_slug: float(row.total) for row in prev_rows} if prev_rows else None
 
     async def get_timeseries(
         self,
@@ -226,10 +222,7 @@ class TimeseriesStageService:
         if granularity == "weekly" and date_map:
             date_map = self._aggregate_weekly(date_map)
 
-        data_points = [
-            TimeSeriesPointDTO(date=d.isoformat(), channels=ch_vals)
-            for d, ch_vals in date_map.items()
-        ]
+        data_points = [TimeSeriesPointDTO(date=d.isoformat(), channels=ch_vals) for d, ch_vals in date_map.items()]
 
         # 5. Totals
         period_totals = _compute_period_totals(date_map)

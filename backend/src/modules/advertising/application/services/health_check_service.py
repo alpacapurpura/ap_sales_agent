@@ -70,9 +70,7 @@ class HealthCheckService:
     async def run(self, tenant_id: UUID) -> MetaHealthCheckDTO:
         catalog = self._catalog_repo.load(tenant_id)
         all_offers = await self._offer_read_port.get_offers_by_tenant(tenant_id)
-        active_offers = [
-            o for o in all_offers if (o.status or "active") not in {"archived", "draft"}
-        ]
+        active_offers = [o for o in all_offers if (o.status or "active") not in {"archived", "draft"}]
         associations = self._association_repo.list_active(tenant_id)
         assoc_by_target: dict[tuple[str, str], AdOfferAssociationModel] = {
             (a.target_type, a.target_external_id): a for a in associations
@@ -132,9 +130,7 @@ class HealthCheckService:
         offer_by_id: dict[UUID, OfferReadDTO],
     ) -> CampaignHealthDTO:
         assoc_model = assoc_by_target.get(("campaign", campaign.external_id))
-        assoc_dto = (
-            _association_to_dto(assoc_model, offer_by_id) if assoc_model else None
-        )
+        assoc_dto = _association_to_dto(assoc_model, offer_by_id) if assoc_model else None
 
         expected = expected_metric_for_objective(campaign.objective)
         expected_es = self._expected_outcome_text(campaign.objective, expected)
@@ -294,11 +290,7 @@ class HealthCheckService:
                 if target.target_type != "campaign":
                     continue
                 campaign_health = next(
-                    (
-                        c
-                        for c in active_campaigns_health
-                        if c.external_id == target.target_external_id
-                    ),
+                    (c for c in active_campaigns_health if c.external_id == target.target_external_id),
                     None,
                 )
                 if campaign_health is None:
@@ -306,18 +298,12 @@ class HealthCheckService:
                 campaign_expected = expected_metric_for_objective(
                     campaign_health.objective,
                 )
-                if (
-                    campaign_expected is not None
-                    and campaign_expected.value != cov.expected_metric
-                ):
+                if campaign_expected is not None and campaign_expected.value != cov.expected_metric:
                     out.append(
                         RecommendationDTO(
                             type="fix_objective",
                             severity="warning",
-                            title=(
-                                f"La campaña de '{cov.offer_name}' tiene el "
-                                f"objetivo equivocado"
-                            ),
+                            title=(f"La campaña de '{cov.offer_name}' tiene el objetivo equivocado"),
                             body=(
                                 f"'{cov.offer_name}' espera {cov.expected_metric_label_es.lower()}, "
                                 f"pero la campaña '{campaign_health.name}' está buscando "
@@ -346,8 +332,7 @@ class HealthCheckService:
         if critical:
             status = "critical"
             summary = (
-                "Tu cuenta tiene problemas críticos de configuración que están "
-                "afectando la medición de resultados."
+                "Tu cuenta tiene problemas críticos de configuración que están afectando la medición de resultados."
             )
         elif warnings:
             status = "needs_attention"
@@ -366,15 +351,14 @@ class HealthCheckService:
             if not active_campaigns_health:
                 summary = "No tenés campañas activas ahora mismo."
             else:
-                summary = (
-                    f"{len(active_campaigns_health)} campaña(s) activa(s), "
-                    f"todo correctamente configurado."
-                )
+                summary = f"{len(active_campaigns_health)} campaña(s) activa(s), todo correctamente configurado."
         return status, summary
 
     # ── helpers ────────────────────────────────────────────────────────────
     _OBJECTIVE_OUTCOME_TEXT: ClassVar[dict[str, str]] = {
-        "OUTCOME_TRAFFIC": "Esperá: visitas a tu landing, CTR alto, CPC bajo. NO esperés: ventas atribuidas ni mensajes.",
+        "OUTCOME_TRAFFIC": (
+            "Esperá: visitas a tu landing, CTR alto, CPC bajo. NO esperés: ventas atribuidas ni mensajes."
+        ),
         "OUTCOME_ENGAGEMENT": "Esperá: likes, comentarios, shares. NO esperés: clicks a tu web ni conversiones.",
         "OUTCOME_AWARENESS": "Esperá: alcance amplio y frecuencia controlada. NO esperés: clicks ni conversiones.",
         "REACH": "Esperá: alcance amplio y frecuencia controlada. NO esperés: clicks ni conversiones.",

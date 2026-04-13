@@ -231,9 +231,7 @@ async def quick_connect_shopify(
     Connect to Shopify using Client Credentials Grant (no browser redirect).
     Only works for stores in the same Shopify organization as the app.
     """
-    shop_url = (
-        request.shop_url.replace("https://", "").replace("http://", "").strip("/")
-    )
+    shop_url = request.shop_url.replace("https://", "").replace("http://", "").strip("/")
     if not shop_url.endswith("myshopify.com") and "." not in shop_url:
         shop_url = f"{shop_url}.myshopify.com"
 

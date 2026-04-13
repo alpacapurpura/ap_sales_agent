@@ -84,8 +84,7 @@ def cleanup_test_data(db):
     # Cleanup: remove test data created during the test
     db.execute(
         text(
-            "DELETE FROM messages WHERE user_id IN "
-            "(SELECT id FROM leads WHERE telegram_id = :tid)",
+            "DELETE FROM messages WHERE user_id IN (SELECT id FROM leads WHERE telegram_id = :tid)",
         ),
         {"tid": test_user_id},
     )
@@ -99,8 +98,7 @@ def cleanup_test_data(db):
     )
     db.execute(
         text(
-            "DELETE FROM customer_profiles WHERE id IN "
-            "(SELECT profile_id FROM customer_identities WHERE value = :tid)",
+            "DELETE FROM customer_profiles WHERE id IN (SELECT profile_id FROM customer_identities WHERE value = :tid)",
         ),
         {"tid": test_user_id},
     )
@@ -196,9 +194,7 @@ class TestStep2CustomerProfileCreation:
             profile_data={"first_name": "Test", "last_name": "User", "traits": {}},
         )
 
-        assert customer1.id == customer2.id, (
-            "Should return same customer, not create duplicate"
-        )
+        assert customer1.id == customer2.id, "Should return same customer, not create duplicate"
 
     def test_lifecycle_stage_default(self, db, cleanup_test_data):
         """New customer should get SUBSCRIBER lifecycle stage (tests enum compatibility)."""
@@ -216,11 +212,7 @@ class TestStep2CustomerProfileCreation:
         )
 
         # Verify the DB accepted the lifecycle_stage enum value
-        profile = (
-            db.query(CustomerProfileModel)
-            .filter(CustomerProfileModel.id == customer.id)
-            .first()
-        )
+        profile = db.query(CustomerProfileModel).filter(CustomerProfileModel.id == customer.id).first()
         assert profile is not None
         assert profile.lifecycle_stage == LifecycleStage.SUBSCRIBER
 

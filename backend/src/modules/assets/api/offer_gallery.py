@@ -54,7 +54,8 @@ def list_offer_images(
 ):
     service = AssetsService(db)
     # This might need a new method in service or just use list_by_offer
-    # But list_by_offer doesn't check tenant_id (repo does check offer_id which is unique usually, but safer to check tenant too?)
+    # But list_by_offer doesn't check tenant_id (repo does check offer_id which is
+    # unique usually, but safer to check tenant too?)
     # AssetRepository.list_by_offer only checks offer_id.
     # We should trust offer_id belongs to tenant (checked elsewhere) or add check.
     # For now, rely on offer_id.

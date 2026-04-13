@@ -97,9 +97,7 @@ def tokenize_es(text: str | None) -> set[str]:
     lowered = text.lower()
     # Replace punctuation with spaces.
     cleaned = _PUNCT_RE.sub(" ", lowered)
-    tokens = {
-        tok for tok in cleaned.split() if len(tok) >= 3 and tok not in SPANISH_STOPWORDS
-    }
+    tokens = {tok for tok in cleaned.split() if len(tok) >= 3 and tok not in SPANISH_STOPWORDS}
     return tokens
 
 

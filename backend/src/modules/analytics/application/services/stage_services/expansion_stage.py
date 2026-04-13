@@ -61,11 +61,7 @@ def _build_expansion_group(
     total_count_override: int | None = None,
 ) -> ExpansionGroupDTO:
     """Build a single ExpansionGroupDTO with totals from its offers."""
-    total_count = (
-        total_count_override
-        if total_count_override is not None
-        else sum(o.count for o in offers)
-    )
+    total_count = total_count_override if total_count_override is not None else sum(o.count for o in offers)
     total_revenue = sum(o.revenue for o in offers)
     return ExpansionGroupDTO(
         group_key=group_key,
@@ -169,9 +165,7 @@ class ExpansionStageService:
         renewal_offers = _build_expansion_offers(renewals, offer_map, display_currency)
         retention_rate = (
             round(
-                (active_customer_count - total_churn_count)
-                / active_customer_count
-                * 100,
+                (active_customer_count - total_churn_count) / active_customer_count * 100,
                 1,
             )
             if active_customer_count > 0
@@ -188,9 +182,7 @@ class ExpansionStageService:
 
         upsell_offers = _build_expansion_offers(upsells, offer_map, display_currency)
         expansion_rate = (
-            round(upsell_customer_count / active_customer_count * 100, 1)
-            if active_customer_count > 0
-            else 0.0
+            round(upsell_customer_count / active_customer_count * 100, 1) if active_customer_count > 0 else 0.0
         )
         crecimiento = _build_expansion_group(
             "crecimiento",
@@ -206,11 +198,7 @@ class ExpansionStageService:
             offer_map,
             display_currency,
         )
-        churn_rate_pct = (
-            round(total_churn_count / active_customer_count * 100, 1)
-            if active_customer_count > 0
-            else 0.0
-        )
+        churn_rate_pct = round(total_churn_count / active_customer_count * 100, 1) if active_customer_count > 0 else 0.0
         cancelaciones = _build_expansion_group(
             "cancelaciones",
             "Cancelaciones",
@@ -222,11 +210,7 @@ class ExpansionStageService:
         )
 
         # 5. Header KPIs
-        net_mrr = (
-            retencion.total_revenue
-            + crecimiento.total_revenue
-            - cancelaciones.total_revenue
-        )
+        net_mrr = retencion.total_revenue + crecimiento.total_revenue - cancelaciones.total_revenue
         net_mrr_usd = convert_to_usd(net_mrr, display_currency)
         avg_ltv_usd = convert_to_usd(avg_ltv, ltv_currency)
 
@@ -242,9 +226,7 @@ class ExpansionStageService:
         # 6. Mini funnel: Activos -> Expansion
         total_expansion_count = retencion.total_count + crecimiento.total_count
         expansion_conv_rate = (
-            round(total_expansion_count / active_customer_count * 100, 1)
-            if active_customer_count > 0
-            else 0.0
+            round(total_expansion_count / active_customer_count * 100, 1) if active_customer_count > 0 else 0.0
         )
 
         mini_funnel = MiniFunnelDTO(

@@ -73,6 +73,5 @@ class TestNoHardcodedCurrencyInProviders:
 
         assert not violations, (
             "Hardcoded currency strings found in providers!\n"
-            "Use dynamic currency from account/credentials instead:\n"
-            + "\n".join(violations)
+            "Use dynamic currency from account/credentials instead:\n" + "\n".join(violations)
         )

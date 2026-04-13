@@ -139,11 +139,7 @@ class InstagramDMSyncService:
 
                 # Parse message timestamp
                 created_time = msg.get("created_time")
-                occurred_at = (
-                    datetime.fromisoformat(created_time)
-                    if created_time
-                    else datetime.now(UTC)
-                )
+                occurred_at = datetime.fromisoformat(created_time) if created_time else datetime.now(UTC)
 
                 # Create journey_event with message_id for dedup
                 journey_repo.track_event(
@@ -178,8 +174,7 @@ class InstagramDMSyncService:
         stmt = select(JourneyEventModel.id).where(
             JourneyEventModel.tenant_id == tenant_id,
             JourneyEventModel.event_name == "message_received",
-            func.jsonb_extract_path_text(JourneyEventModel.properties, "message_id")
-            == message_id,
+            func.jsonb_extract_path_text(JourneyEventModel.properties, "message_id") == message_id,
         )
         return self.db.execute(stmt).scalar_one_or_none() is not None
 

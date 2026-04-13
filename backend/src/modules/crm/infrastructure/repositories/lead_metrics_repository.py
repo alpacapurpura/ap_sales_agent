@@ -76,11 +76,7 @@ class LeadRepository(BaseRepository):
             except ValueError:
                 return None
 
-        stmt = (
-            select(LeadModel)
-            .options(joinedload(LeadModel.customer))
-            .where(LeadModel.id == lead_id)
-        )
+        stmt = select(LeadModel).options(joinedload(LeadModel.customer)).where(LeadModel.id == lead_id)
         tenant_id = get_tenant_id()
         if tenant_id:
             stmt = stmt.where(LeadModel.tenant_id == tenant_id)
@@ -100,11 +96,7 @@ class LeadRepository(BaseRepository):
             return None
         channel_filter = getattr(LeadModel, attr) == user_id
 
-        stmt = (
-            select(LeadModel)
-            .options(joinedload(LeadModel.customer))
-            .where(channel_filter)
-        )
+        stmt = select(LeadModel).options(joinedload(LeadModel.customer)).where(channel_filter)
         tenant_id = get_tenant_id()
         if tenant_id:
             stmt = stmt.where(LeadModel.tenant_id == tenant_id)
@@ -220,9 +212,7 @@ class LeadRepository(BaseRepository):
 
         lead_orm = (
             self.db.execute(
-                select(LeadModel)
-                .options(joinedload(LeadModel.customer))
-                .where(LeadModel.id == lead_id),
+                select(LeadModel).options(joinedload(LeadModel.customer)).where(LeadModel.id == lead_id),
             )
             .scalars()
             .first()
@@ -233,11 +223,7 @@ class LeadRepository(BaseRepository):
 
             # Smart merge for lists
             for k, v in psychographics_update.items():
-                if (
-                    isinstance(v, list)
-                    and k in current
-                    and isinstance(current[k], list)
-                ):
+                if isinstance(v, list) and k in current and isinstance(current[k], list):
                     current[k] = list(set(current[k] + v))
                 else:
                     current[k] = v

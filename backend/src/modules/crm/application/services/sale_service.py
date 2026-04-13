@@ -30,9 +30,7 @@ class SaleService:
         # If the customer has 0 COMPLETED sales, this is CONVERSION (Acquisition).
         # If they have > 0, it is EXPANSION (Retention/Upsell).
         previous_sales_count = self.repository.count_sales_by_customer(customer_id)
-        stage = (
-            SaleStage.CONVERSION if previous_sales_count == 0 else SaleStage.EXPANSION
-        )
+        stage = SaleStage.CONVERSION if previous_sales_count == 0 else SaleStage.EXPANSION
 
         sale = Sale(
             id=uuid4(),

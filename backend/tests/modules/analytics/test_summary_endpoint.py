@@ -61,9 +61,7 @@ class TestStageSummaryKpiDTO:
             "secondary_label",
             "secondary_unit",
         }
-        assert fields == expected, (
-            f"Missing fields: {expected - fields}; extra: {fields - expected}"
-        )
+        assert fields == expected, f"Missing fields: {expected - fields}; extra: {fields - expected}"
 
 
 class TestBowtiesSummaryDTO:
@@ -281,9 +279,7 @@ class TestAttractionDetailDTO:
             "paid",
             "outbound",
         }
-        assert expected_groups.issubset(fields), (
-            f"Missing channel group fields: {expected_groups - fields}"
-        )
+        assert expected_groups.issubset(fields), f"Missing channel group fields: {expected_groups - fields}"
 
     def test_has_available_field(self):
         """AttractionDetailDTO should have an 'available' field for unconnected channels."""

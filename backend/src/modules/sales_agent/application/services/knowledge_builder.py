@@ -54,17 +54,11 @@ class TenantKnowledgeBuilder:
             # 2. Prepare template context using full model dumps
             # New fields added to these models will automatically flow into templates
             brand_data = brand.model_dump(mode="json") if brand else {}
-            avatar_data = (
-                [a.model_dump(mode="json") for a in avatars] if avatars else []
-            )
+            avatar_data = [a.model_dump(mode="json") for a in avatars] if avatars else []
 
             # Filter active offers only for the agent's knowledge
             active_offers = [o for o in offers if o.status.value in ("active", "draft")]
-            offers_data = (
-                [o.model_dump(mode="json") for o in active_offers]
-                if active_offers
-                else []
-            )
+            offers_data = [o.model_dump(mode="json") for o in active_offers] if active_offers else []
 
             # 3. Extract convenience variables for the template
             identity = brand_data.get("identity", {}) or {}

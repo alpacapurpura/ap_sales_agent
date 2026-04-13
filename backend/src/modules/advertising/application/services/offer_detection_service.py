@@ -65,9 +65,7 @@ class OfferDetectionService:
         catalog = self._catalog_repo.load(tenant_id)
         offers = await self._offer_read_port.get_offers_by_tenant(tenant_id)
         # Only active, non-draft, non-archived offers participate in detection.
-        offers = [
-            o for o in offers if (o.status or "active") not in {"archived", "draft"}
-        ]
+        offers = [o for o in offers if (o.status or "active") not in {"archived", "draft"}]
         if not offers:
             return []
 

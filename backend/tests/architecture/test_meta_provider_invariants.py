@@ -54,10 +54,7 @@ def _find_function_by_name(
     name: str,
 ) -> ast.AsyncFunctionDef | ast.FunctionDef | None:
     for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.AsyncFunctionDef | ast.FunctionDef)
-            and node.name == name
-        ):
+        if isinstance(node, ast.AsyncFunctionDef | ast.FunctionDef) and node.name == name:
             return node
     return None
 
@@ -134,9 +131,8 @@ def test_every_ads_insights_call_uses_time_increment():
                 f"(line {node.lineno})",
             )
 
-    assert not violations, (
-        "Meta Insights calls that can pollute per-day metrics:\n"
-        + "\n".join(f"  - {v}" for v in violations)
+    assert not violations, "Meta Insights calls that can pollute per-day metrics:\n" + "\n".join(
+        f"  - {v}" for v in violations
     )
 
 
@@ -174,9 +170,7 @@ def _raises_period_aggregate_error(fn: ast.AST) -> bool:
                 and isinstance(node.exc.func, ast.Name)
                 and node.exc.func.id == "PeriodAggregateError"
             )
-            or (
-                isinstance(node.exc, ast.Name) and node.exc.id == "PeriodAggregateError"
-            )
+            or (isinstance(node.exc, ast.Name) and node.exc.id == "PeriodAggregateError")
         )
         for node in ast.walk(fn)
     )

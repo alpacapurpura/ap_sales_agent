@@ -152,9 +152,7 @@ def resolve_event_type_by_tenant_id(
     return EventTypeResolveResponse(
         event_type=event_type,
         tenant_name=tenant.name,
-        tenant_avatar=(tenant.config_json or {})
-        .get("brand_settings", {})
-        .get("logo_url"),
+        tenant_avatar=(tenant.config_json or {}).get("brand_settings", {}).get("logo_url"),
         tenant_id=str(tenant.id),
     )
 

@@ -72,10 +72,7 @@ class InactivityService:
                 break
 
             for profile in profiles:
-                is_past_threshold = (
-                    profile.last_activity_at is None
-                    or profile.last_activity_at < threshold_date
-                )
+                is_past_threshold = profile.last_activity_at is None or profile.last_activity_at < threshold_date
 
                 if is_past_threshold:
                     # Flag as inactive

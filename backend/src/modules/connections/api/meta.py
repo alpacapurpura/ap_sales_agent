@@ -196,16 +196,10 @@ def _cleanup_stale_assets(
     """Remove assets from DB that Meta no longer returns (e.g. permissions revoked)."""
     synced_ids = {
         ChannelType.FACEBOOK_PAGE: {p["page_id"] for p in raw.get("pages", [])},
-        ChannelType.INSTAGRAM_ACCOUNT: {
-            ig["ig_account_id"] for ig in raw.get("instagram_accounts", [])
-        },
-        ChannelType.META_ADS_ACCOUNT: {
-            ad["ad_account_id"] for ad in raw.get("ads_accounts", [])
-        },
+        ChannelType.INSTAGRAM_ACCOUNT: {ig["ig_account_id"] for ig in raw.get("instagram_accounts", [])},
+        ChannelType.META_ADS_ACCOUNT: {ad["ad_account_id"] for ad in raw.get("ads_accounts", [])},
         ChannelType.META_PIXEL: {px["pixel_id"] for px in raw.get("pixels", [])},
-        ChannelType.WHATSAPP_BUSINESS_ACCOUNT: {
-            wa["waba_id"] for wa in raw.get("whatsapp_accounts", [])
-        },
+        ChannelType.WHATSAPP_BUSINESS_ACCOUNT: {wa["waba_id"] for wa in raw.get("whatsapp_accounts", [])},
     }
 
     existing = repo.get_all_by_tenant_and_types(tenant_id, list(synced_ids.keys()))
@@ -642,9 +636,7 @@ async def oauth_callback(
             tenant_id=str(user.tenant_id),
             readback_is_active=verification.is_active,
             readback_has_token=bool(
-                verification.credentials.get("access_token")
-                if verification.credentials
-                else False,
+                verification.credentials.get("access_token") if verification.credentials else False,
             ),
             readback_id=str(verification.id),
         )
@@ -770,12 +762,8 @@ async def get_status(
             result["debug"] = {
                 "connection_exists": connection is not None,
                 "is_active": connection.is_active if connection else None,
-                "has_credentials": bool(connection.credentials)
-                if connection
-                else False,
-                "updated_at": str(connection.updated_at)
-                if connection and hasattr(connection, "updated_at")
-                else None,
+                "has_credentials": bool(connection.credentials) if connection else False,
+                "updated_at": str(connection.updated_at) if connection and hasattr(connection, "updated_at") else None,
             }
         return result
 
@@ -795,9 +783,7 @@ async def get_status(
             "is_active": connection.is_active,
             "has_credentials": bool(connection.credentials),
             "has_access_token": bool(connection.credentials.get("access_token")),
-            "updated_at": str(connection.updated_at)
-            if hasattr(connection, "updated_at")
-            else None,
+            "updated_at": str(connection.updated_at) if hasattr(connection, "updated_at") else None,
             "connection_id": str(connection.id),
         }
 
@@ -939,9 +925,7 @@ async def get_assets(
                     timezone_id=cfg.get("timezone_id"),
                     business_id=cfg.get("business_id"),
                     business_name=cfg.get("business_name"),
-                    phone_numbers=[
-                        WhatsAppPhoneNumber(**ph) for ph in cfg.get("phone_numbers", [])
-                    ],
+                    phone_numbers=[WhatsAppPhoneNumber(**ph) for ph in cfg.get("phone_numbers", [])],
                     is_active=conn.is_active,
                     has_credentials=bool(conn.credentials),
                 ),

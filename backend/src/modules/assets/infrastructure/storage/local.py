@@ -26,9 +26,7 @@ class LocalStorageStrategy(StorageStrategy):
         # Determine full path
         # When path_prefix is provided, creates subdirectories under upload_dir
 
-        relative_path = (
-            str(Path(path_prefix) / unique_name) if path_prefix else unique_name
-        )
+        relative_path = str(Path(path_prefix) / unique_name) if path_prefix else unique_name
         full_path = str(Path(self.upload_dir) / relative_path)
 
         # Ensure directory exists

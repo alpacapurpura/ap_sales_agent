@@ -81,9 +81,7 @@ class BrandRepository:
             tenant_id=str(tenant_id),
             saved_keys=list(saved_config.keys()) if saved_config else [],
             has_identity=bool(
-                (saved_config.get("identity") or {}).get("brand_name")
-                if saved_config
-                else False,
+                (saved_config.get("identity") or {}).get("brand_name") if saved_config else False,
             ),
         )
 

@@ -104,14 +104,8 @@ class TestAssociationRepository:
             offer_id=offer_id,
             association_type=AssociationType.MANUAL,
         )
-        assert (
-            len(repo.list_active(tenant_id, target_type=AssociationTargetType.CAMPAIGN))
-            == 1
-        )
-        assert (
-            len(repo.list_active(tenant_id, target_type=AssociationTargetType.AD_SET))
-            == 1
-        )
+        assert len(repo.list_active(tenant_id, target_type=AssociationTargetType.CAMPAIGN)) == 1
+        assert len(repo.list_active(tenant_id, target_type=AssociationTargetType.AD_SET)) == 1
 
     def test_tenant_isolation(
         self,

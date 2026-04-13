@@ -165,9 +165,7 @@ class TestETLPipelineHappyPath:
 
         # Verify SUCCESS status was set
         update_calls = mock_run_repo.update_status.call_args_list
-        success_call = [
-            c for c in update_calls if c[1].get("status") == ExtractionStatus.SUCCESS
-        ]
+        success_call = [c for c in update_calls if c[1].get("status") == ExtractionStatus.SUCCESS]
         assert len(success_call) == 1
 
 
@@ -212,9 +210,7 @@ class TestETLPipelineFailure:
 
         # Verify FAILED status
         update_calls = mock_run_repo.update_status.call_args_list
-        failed_call = [
-            c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED
-        ]
+        failed_call = [c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED]
         assert len(failed_call) == 1
         assert "API rate limited" in failed_call[0][1].get("error", "")
 
@@ -262,9 +258,7 @@ class TestETLPipelineFailure:
 
         # Verify FAILED status
         update_calls = mock_run_repo.update_status.call_args_list
-        failed_call = [
-            c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED
-        ]
+        failed_call = [c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED]
         assert len(failed_call) == 1
         assert "revoked" in failed_call[0][1].get("error", "").lower()
 
@@ -303,11 +297,9 @@ class TestETLPipelinePartialSuccess:
         mock_provider.provider_name.return_value = "meta"
 
         # Return metrics AND failures
-        mock_provider.extract_metrics.return_value = (
-            _make_extraction_result_with_failures(
-                metrics=[_make_extracted_metric()],
-                failures=[_make_sub_extractor_failure()],
-            )
+        mock_provider.extract_metrics.return_value = _make_extraction_result_with_failures(
+            metrics=[_make_extracted_metric()],
+            failures=[_make_sub_extractor_failure()],
         )
 
         mock_connection_port = AsyncMock()
@@ -340,14 +332,9 @@ class TestETLPipelinePartialSuccess:
 
         # Verify PARTIAL_SUCCESS status was set
         update_calls = mock_run_repo.update_status.call_args_list
-        partial_call = [
-            c
-            for c in update_calls
-            if c[1].get("status") == ExtractionStatus.PARTIAL_SUCCESS
-        ]
+        partial_call = [c for c in update_calls if c[1].get("status") == ExtractionStatus.PARTIAL_SUCCESS]
         assert len(partial_call) == 1, (
-            f"Expected PARTIAL_SUCCESS but got statuses: "
-            f"{[c[1].get('status') for c in update_calls]}"
+            f"Expected PARTIAL_SUCCESS but got statuses: {[c[1].get('status') for c in update_calls]}"
         )
 
     def test_partial_success_still_invalidates_cache(self):
@@ -357,11 +344,9 @@ class TestETLPipelinePartialSuccess:
         mock_db = MagicMock()
         mock_provider = AsyncMock()
         mock_provider.provider_name.return_value = "meta"
-        mock_provider.extract_metrics.return_value = (
-            _make_extraction_result_with_failures(
-                metrics=[_make_extracted_metric()],
-                failures=[_make_sub_extractor_failure()],
-            )
+        mock_provider.extract_metrics.return_value = _make_extraction_result_with_failures(
+            metrics=[_make_extracted_metric()],
+            failures=[_make_sub_extractor_failure()],
         )
 
         mock_connection_port = AsyncMock()
@@ -405,14 +390,12 @@ class TestETLPipelinePartialSuccess:
         mock_provider.provider_name.return_value = "meta"
 
         # Return failures but NO metrics
-        mock_provider.extract_metrics.return_value = (
-            _make_extraction_result_with_failures(
-                metrics=[],
-                failures=[
-                    _make_sub_extractor_failure("instagram_organic", "Auth error"),
-                    _make_sub_extractor_failure("meta_ads", "Rate limited"),
-                ],
-            )
+        mock_provider.extract_metrics.return_value = _make_extraction_result_with_failures(
+            metrics=[],
+            failures=[
+                _make_sub_extractor_failure("instagram_organic", "Auth error"),
+                _make_sub_extractor_failure("meta_ads", "Rate limited"),
+            ],
         )
 
         mock_connection_port = AsyncMock()
@@ -445,13 +428,8 @@ class TestETLPipelinePartialSuccess:
 
         # Verify FAILED status (not PARTIAL_SUCCESS)
         update_calls = mock_run_repo.update_status.call_args_list
-        failed_call = [
-            c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED
-        ]
-        assert len(failed_call) == 1, (
-            f"Expected FAILED but got statuses: "
-            f"{[c[1].get('status') for c in update_calls]}"
-        )
+        failed_call = [c for c in update_calls if c[1].get("status") == ExtractionStatus.FAILED]
+        assert len(failed_call) == 1, f"Expected FAILED but got statuses: {[c[1].get('status') for c in update_calls]}"
 
 
 class TestETLPipelineEmptyExtraction:
@@ -499,9 +477,7 @@ class TestETLPipelineEmptyExtraction:
 
         # Verify SUCCESS status (no failures = success even with 0 metrics)
         update_calls = mock_run_repo.update_status.call_args_list
-        success_call = [
-            c for c in update_calls if c[1].get("status") == ExtractionStatus.SUCCESS
-        ]
+        success_call = [c for c in update_calls if c[1].get("status") == ExtractionStatus.SUCCESS]
         assert len(success_call) == 1
 
     def test_zero_metrics_still_invalidates_cache(self):

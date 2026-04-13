@@ -113,9 +113,7 @@ class TestNonAggregableExcluded:
         result = compute_aggregations(rows, TENANT_ID)
 
         period_types = {r["period_type"] for r in result}
-        assert period_types == {"daily"}, (
-            f"NON_AGGREGABLE 'reach' should only have daily, got {period_types}"
-        )
+        assert period_types == {"daily"}, f"NON_AGGREGABLE 'reach' should only have daily, got {period_types}"
 
     def test_users_has_only_daily_records(self):
         """users is NON_AGGREGABLE — should not produce multi-period rollups."""
@@ -201,16 +199,8 @@ class TestGroupingByMetric:
         ]
         result = compute_aggregations(rows, TENANT_ID)
 
-        clicks_daily = [
-            r
-            for r in result
-            if r["metric_name"] == "clicks" and r["period_type"] == "daily"
-        ]
-        spend_daily = [
-            r
-            for r in result
-            if r["metric_name"] == "spend" and r["period_type"] == "daily"
-        ]
+        clicks_daily = [r for r in result if r["metric_name"] == "clicks" and r["period_type"] == "daily"]
+        spend_daily = [r for r in result if r["metric_name"] == "spend" and r["period_type"] == "daily"]
         assert len(clicks_daily) == 1
         assert clicks_daily[0]["value"] == 100
         assert len(spend_daily) == 1

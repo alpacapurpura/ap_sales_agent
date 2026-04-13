@@ -32,9 +32,7 @@ async def run_tick_scheduler(ctx: dict) -> None:
     try:
         # Query tenants ordered by extraction_priority DESC (premium first)
         stmt = (
-            select(TenantModel)
-            .where(TenantModel.is_active.is_(True))
-            .order_by(TenantModel.extraction_priority.desc())
+            select(TenantModel).where(TenantModel.is_active.is_(True)).order_by(TenantModel.extraction_priority.desc())
         )
         result = db.execute(stmt)
         tenants = result.scalars().all()
@@ -56,10 +54,7 @@ async def run_tick_scheduler(ctx: dict) -> None:
             local_time = now_utc.astimezone(tz)
 
             # Check if it's extraction time in the tenant's local timezone
-            if (
-                local_time.hour == ETLConfig.DAILY_EXTRACTION_HOUR_LOCAL
-                and local_time.minute == 0
-            ):
+            if local_time.hour == ETLConfig.DAILY_EXTRACTION_HOUR_LOCAL and local_time.minute == 0:
                 redis = ctx.get("redis")
                 if not redis:
                     continue

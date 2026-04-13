@@ -37,9 +37,7 @@ class MetricDefinition:
     real_api_name: str | None = None  # Si metric_name difiere del nombre real en la API
     source: str | None = None  # Fuente exacta de la API (endpoint/campo)
     higher_is_better: bool = True
-    benchmarks: str | None = (
-        None  # Referencia de industria (fuente: MetricHQ/Klipfolio)
-    )
+    benchmarks: str | None = None  # Referencia de industria (fuente: MetricHQ/Klipfolio)
     providers: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -99,7 +97,7 @@ _ADDITIVE: list[MetricDefinition] = [
         name="sessions",
         display_name="Sesiones",
         description="Visitas al sitio. Un usuario puede tener múltiples sesiones.",
-        interpretation="Más = más tráfico. sessions creciendo + users estable = usuarios vuelven (bueno para retención).",
+        interpretation="Más = más tráfico. sessions creciendo + users estable = usuarios vuelven (retención).",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
         benchmarks="Referencia semanal: B2C 1,850-9,050, B2B 1,020-3,300 según tamaño empresa.",
@@ -442,7 +440,7 @@ _ADDITIVE: list[MetricDefinition] = [
         name="pixel_view_content",
         display_name="ViewContent (Pixel)",
         description="Eventos ViewContent del Meta Pixel (usuario ve producto o contenido específico)",
-        interpretation="Usuarios que ven producto/contenido. pixel_view_content / pixel_pageviews = tasa de engagement.",
+        interpretation="Usuarios que ven producto/contenido. pixel_view_content / pixel_pageviews = engagement.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.ADDITIVE,
         providers=("meta_pixel",),
@@ -1285,8 +1283,7 @@ _DERIVED: list[MetricDefinition] = [
         name="list_growth_rate",
         display_name="Tasa de Crecimiento de Lista",
         description=(
-            "Crecimiento neto de la lista de email = "
-            "(new_subscribers - unsubscribes) / active_subscribers × 100"
+            "Crecimiento neto de la lista de email = (new_subscribers - unsubscribes) / active_subscribers × 100"
         ),
         interpretation=(
             "Velocidad de crecimiento de la audiencia. Negativo = lista encogiéndose. "
@@ -1303,10 +1300,7 @@ _DERIVED: list[MetricDefinition] = [
     MetricDefinition(
         name="churn_rate",
         display_name="Tasa de Churn",
-        description=(
-            "Porcentaje de suscriptores perdidos = "
-            "unsubscribes / active_subscribers × 100"
-        ),
+        description=("Porcentaje de suscriptores perdidos = unsubscribes / active_subscribers × 100"),
         interpretation=(
             "Velocidad a la que pierdes suscriptores. >2% mensual = contenido o "
             "frecuencia desalineados. Comparar con list_growth_rate para balance neto."
@@ -1345,7 +1339,10 @@ _NON_AGGREGABLE: list[MetricDefinition] = [
     MetricDefinition(
         name="reach",
         display_name="Alcance",
-        description="Personas únicas que vieron tu contenido ese día. NO es summable cross-day (misma persona en lunes y martes = 2 al sumar, pero debería ser 1).",
+        description=(
+            "Personas únicas que vieron tu contenido ese día."
+            " NO es summable cross-day (misma persona en lunes y martes = 2 al sumar, pero debería ser 1)."
+        ),
         interpretation="Mide amplitud de audiencia. Para períodos >1 día, pedir a la API con el rango completo.",
         unit=MetricUnit.COUNT,
         aggregation=AggregationType.NON_AGGREGABLE,
@@ -1365,8 +1362,14 @@ _NON_AGGREGABLE: list[MetricDefinition] = [
     MetricDefinition(
         name="frequency",
         display_name="Frecuencia",
-        description="Promedio de veces que cada persona vio el anuncio = impressions / reach. NO aggregable: depende de reach que tampoco es summable.",
-        interpretation=">3 = fatiga de audiencia, rotar creatives. Para períodos: IMPOSIBLE calcular localmente, requiere API call.",
+        description=(
+            "Promedio de veces que cada persona vio el anuncio = impressions / reach."
+            " NO aggregable: depende de reach que tampoco es summable."
+        ),
+        interpretation=(
+            ">3 = fatiga de audiencia, rotar creatives."
+            " Para períodos: IMPOSIBLE calcular localmente, requiere API call."
+        ),
         unit=MetricUnit.RATIO,
         aggregation=AggregationType.NON_AGGREGABLE,
         is_unique_metric=False,
@@ -1607,8 +1610,7 @@ _SNAPSHOT: list[MetricDefinition] = [
 # ---------------------------------------------------------------------------
 
 METRIC_CATALOG: dict[str, MetricDefinition] = {
-    m.name: m
-    for m in [*_ADDITIVE, *_WEIGHTED_AVERAGE, *_DERIVED, *_NON_AGGREGABLE, *_SNAPSHOT]
+    m.name: m for m in [*_ADDITIVE, *_WEIGHTED_AVERAGE, *_DERIVED, *_NON_AGGREGABLE, *_SNAPSHOT]
 }
 
 

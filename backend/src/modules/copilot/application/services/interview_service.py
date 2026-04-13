@@ -57,8 +57,7 @@ class InterviewService:
                 "conversation_id": session.conversation_id,
                 "config": session.config_snapshot,
                 "initial_message": (
-                    f"¡Bienvenido de vuelta! Continuemos donde quedamos"
-                    f" — estábamos en {session.bloque_actual}."
+                    f"¡Bienvenido de vuelta! Continuemos donde quedamos — estábamos en {session.bloque_actual}."
                 ),
             }
 

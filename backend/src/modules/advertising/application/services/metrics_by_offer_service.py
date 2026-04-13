@@ -208,11 +208,7 @@ class MetricsByOfferService:
             )
             campaign_ids = campaign_ids_by_offer.get(offer_id, set())
             adset_ids = adset_ids_by_offer.get(offer_id, set())
-            filtered = [
-                r
-                for r in rows
-                if (r.campaign_id in campaign_ids or r.ad_set_id in adset_ids)
-            ]
+            filtered = [r for r in rows if (r.campaign_id in campaign_ids or r.ad_set_id in adset_ids)]
             offers_out.append(
                 self._build_offer_metrics(
                     offer=offer,
@@ -274,9 +270,7 @@ class MetricsByOfferService:
         period_reach_rows: list[PeriodMetricModel],
     ) -> OfferMetricsDTO:
         config = _PRIMARY_METRIC_CONFIG.get(expected)
-        primary_metric_names: set[str] = (
-            set(config["metric_names"]) if config else set()
-        )
+        primary_metric_names: set[str] = set(config["metric_names"]) if config else set()
         primary_label = config["label"] if config else "Resultado"
         primary_unit = config["unit"] if config else "currency"
 
@@ -284,9 +278,7 @@ class MetricsByOfferService:
         impressions = sum(r.value for r in rows if r.metric_name == "impressions")
         clicks = sum(r.value for r in rows if r.metric_name == "clicks")
 
-        primary_count = sum(
-            r.value for r in rows if r.metric_name in primary_metric_names
-        )
+        primary_count = sum(r.value for r in rows if r.metric_name in primary_metric_names)
 
         ctr = (clicks / impressions * 100.0) if impressions else 0.0
         cpc = (total_spend / clicks) if clicks else 0.0
@@ -309,9 +301,7 @@ class MetricsByOfferService:
         # ROAS only when expected is PURCHASE/SUBSCRIPTION and we have conversion_value
         roas: float | None = None
         if expected in _ROAS_METRICS:
-            conversion_value = sum(
-                r.value for r in rows if r.metric_name == "meta_conversion_value"
-            )
+            conversion_value = sum(r.value for r in rows if r.metric_name == "meta_conversion_value")
             if total_spend > 0 and primary_count > 0:
                 roas = round(conversion_value / total_spend, 2)
 
@@ -525,9 +515,7 @@ class MetricsByOfferService:
         else:
             cids: set[str] = campaign_ids if campaign_ids is not None else set()
             asids: set[str] = ad_set_ids if ad_set_ids is not None else set()
-            filtered = [
-                r for r in rows if (r.campaign_id in cids or r.ad_set_id in asids)
-            ]
+            filtered = [r for r in rows if (r.campaign_id in cids or r.ad_set_id in asids)]
         return self._build_funnel_from_rows(filtered)
 
     @staticmethod
@@ -542,10 +530,7 @@ class MetricsByOfferService:
         for label, metric_name in _FUNNEL_STEPS:
             value = totals[metric_name]
             conv_rate: float | None
-            if prev_value is not None and prev_value > 0:
-                conv_rate = round((value / prev_value) * 100, 2)
-            else:
-                conv_rate = None
+            conv_rate = round(value / prev_value * 100, 2) if prev_value is not None and prev_value > 0 else None
             steps.append(
                 FunnelStepDTO(
                     label=label,

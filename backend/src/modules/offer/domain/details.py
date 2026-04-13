@@ -39,10 +39,7 @@ class ProductDetails(BaseEntity):
 
     @model_validator(mode="after")
     def validate_fulfillment_logic(self):
-        if (
-            self.format == DigitalFormat.PHYSICAL_ITEM
-            and self.fulfillment_type != FulfillmentType.PHYSICAL_SHIPPING
-        ):
+        if self.format == DigitalFormat.PHYSICAL_ITEM and self.fulfillment_type != FulfillmentType.PHYSICAL_SHIPPING:
             msg = "Format is PHYSICAL but fulfillment is set to Digital."
             raise ValueError(msg)
         return self
@@ -133,9 +130,7 @@ class EventDetails(BaseEntity):
         if self.start_date and self.end_date and self.end_date <= self.start_date:
             msg = "Event end_date must be after start_date."
             raise ValueError(msg)
-        if self.location_type == EventLocationType.VIRTUAL and (
-            self.venue_address or self.venue_name
-        ):
+        if self.location_type == EventLocationType.VIRTUAL and (self.venue_address or self.venue_name):
             msg = "Virtual events should not have a physical venue address/name."
             raise ValueError(msg)
         return self

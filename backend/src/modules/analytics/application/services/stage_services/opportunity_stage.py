@@ -108,11 +108,7 @@ class OpportunityStageService:
 
         if slug == "abandoned-cart":
             abandoned_count = checkout_events["cart_abandoned"]["count"]
-            abandonment_rate = (
-                round(abandoned_count / checkout_count * 100, 2)
-                if checkout_count > 0
-                else 0.0
-            )
+            abandonment_rate = round(abandoned_count / checkout_count * 100, 2) if checkout_count > 0 else 0.0
             return [
                 MetricValueDTO(name="count", value=float(abandoned_count)),
                 MetricValueDTO(
@@ -212,9 +208,7 @@ class OpportunityStageService:
         )
 
         # 4. Calculate header KPIs
-        conversion_rate = (
-            round(total_sqls / mql_count * 100, 2) if mql_count > 0 else 0.0
-        )
+        conversion_rate = round(total_sqls / mql_count * 100, 2) if mql_count > 0 else 0.0
         cost_svc = StageCostService(self.db)
         total_cost = sum(cost_svc.get_channel_costs(tenant_id, "opportunity").values())
         cost_per_sql = cost_svc.calculate_cost_per_mql(total_cost, total_sqls)
@@ -256,9 +250,7 @@ class OpportunityStageService:
 
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = (
-                conn_config.get(display_name_key) if display_name_key else None
-            )
+            source_display = conn_config.get(display_name_key) if display_name_key else None
 
             groups[group_key].append(
                 ChannelMetricDTO(
@@ -291,11 +283,7 @@ class OpportunityStageService:
             meeting_events,
         )
 
-        available_dto = (
-            AvailableChannelsDTO(channels=available_channels)
-            if available_channels
-            else None
-        )
+        available_dto = AvailableChannelsDTO(channels=available_channels) if available_channels else None
         now = dt_cls.now(UTC)
 
         result = OpportunityDetailDTO(

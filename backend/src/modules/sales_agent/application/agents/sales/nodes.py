@@ -58,9 +58,7 @@ def _strip_blocks(text: str) -> str:
 
 def _determine_stage(state: dict, updates: dict) -> str:
     """Determine conversation stage based on accumulated data."""
-    qa = (
-        updates.get("qualification_answers") or state.get("qualification_answers") or {}
-    )
+    qa = updates.get("qualification_answers") or state.get("qualification_answers") or {}
     signals = updates.get("buying_signals") or state.get("buying_signals") or []
     score = updates.get("lead_score", state.get("lead_score", 0))
     turn = state.get("turn_count", 0)
@@ -213,16 +211,11 @@ def _accumulate_signals(state: AgentState, signals: dict | None, updates: dict) 
         return
     current_signals = list(state.get("buying_signals") or [])
     turn = state.get("turn_count", 0)
-    current_signals.extend(
-        {"type": sig, "turn": turn} for sig in signals.get("buying", [])
-    )
+    current_signals.extend({"type": sig, "turn": turn} for sig in signals.get("buying", []))
     updates["buying_signals"] = current_signals
 
     current_obj = list(state.get("objection_history") or [])
-    current_obj.extend(
-        {"type": obj, "turn": turn, "resolved": False}
-        for obj in signals.get("objections", [])
-    )
+    current_obj.extend({"type": obj, "turn": turn, "resolved": False} for obj in signals.get("objections", []))
     updates["objection_history"] = current_obj
 
 
@@ -244,11 +237,7 @@ def _build_follow_up_cadence(state: AgentState, updates: dict) -> dict | None:
     """Build follow-up cadence dict when transitioning to closing stage."""
     prev_stage = state.get("current_state")
     new_stage = updates.get("current_state", prev_stage)
-    if (
-        new_stage != "closing"
-        or prev_stage == "closing"
-        or state.get("follow_up_cadence")
-    ):
+    if new_stage != "closing" or prev_stage == "closing" or state.get("follow_up_cadence"):
         return None
 
     product = state.get("active_product") or {}
@@ -306,9 +295,7 @@ def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
     # Track consecutive questions (Fase 3: fatigue detection)
     current_next = state.get("next_node")
     updates["consecutive_questions"] = (
-        (state.get("consecutive_questions") or 0) + 1
-        if current_next == "qualifier"
-        else 0
+        (state.get("consecutive_questions") or 0) + 1 if current_next == "qualifier" else 0
     )
 
     # Initialize follow-up cadence when transitioning to closing (Fase 4)

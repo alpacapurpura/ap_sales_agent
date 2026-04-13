@@ -581,9 +581,7 @@ class MailerLiteProvider(BaseMetricsProvider):
         #    Emit for EVERY day in the range so the chart line is continuous.
         from datetime import timedelta as _td
 
-        all_days = [
-            start_date + _td(days=i) for i in range((end_date - start_date).days + 1)
-        ]
+        all_days = [start_date + _td(days=i) for i in range((end_date - start_date).days + 1)]
 
         # Cumulative new subs after each day (sum of new_subs from day+1 to end)
         cumulative_after = 0
@@ -1128,9 +1126,7 @@ class MailerLiteProvider(BaseMetricsProvider):
                 raw_open.get("float", 0.0) if isinstance(raw_open, dict) else raw_open,
             )
             click_rate = float(
-                raw_click.get("float", 0.0)
-                if isinstance(raw_click, dict)
-                else raw_click,
+                raw_click.get("float", 0.0) if isinstance(raw_click, dict) else raw_click,
             )
             ctor = float(
                 raw_ctor.get("float", 0.0) if isinstance(raw_ctor, dict) else raw_ctor,
@@ -1140,9 +1136,7 @@ class MailerLiteProvider(BaseMetricsProvider):
             extra = {
                 "source": "automation",
                 "automation_name": name,
-                "automation_status": "active"
-                if auto.get("enabled", True)
-                else "paused",
+                "automation_status": "active" if auto.get("enabled", True) else "paused",
                 "automation_type": classify_automation_type(name),
                 "completed_subscribers": completed,
                 "subscribers_in_queue": in_queue,

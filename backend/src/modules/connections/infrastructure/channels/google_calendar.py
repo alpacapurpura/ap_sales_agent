@@ -120,9 +120,7 @@ class GoogleCalendarAdapter(BaseConnector):
         }
         try:
             events_result = service.freebusy().query(body=body).execute()
-            return (
-                events_result.get("calendars", {}).get(calendar_id, {}).get("busy", [])
-            )
+            return events_result.get("calendars", {}).get(calendar_id, {}).get("busy", [])
         except Exception:
             logger.exception("Error fetching busy periods")
             raise
@@ -158,11 +156,7 @@ class GoogleCalendarAdapter(BaseConnector):
         }
 
         try:
-            event = (
-                service.events()
-                .insert(calendarId=calendar_id, body=event, conferenceDataVersion=1)
-                .execute()
-            )
+            event = service.events().insert(calendarId=calendar_id, body=event, conferenceDataVersion=1).execute()
         except Exception:
             logger.exception("Error creating event")
             raise

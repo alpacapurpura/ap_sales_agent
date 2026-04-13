@@ -92,8 +92,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
 
         if not customer_id or not developer_token:
             logger.warning(
-                "google_ads_provider_missing_credentials tenant=%s "
-                "customer_id=%s dev_token=%s",
+                "google_ads_provider_missing_credentials tenant=%s customer_id=%s dev_token=%s",
                 tenant_id,
                 bool(customer_id),
                 bool(developer_token),

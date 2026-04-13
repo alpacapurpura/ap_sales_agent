@@ -45,9 +45,7 @@ async def test_search_returns_results() -> None:
         assert len(results) == 1
         assert results[0].title == "Coaching pricing 2026"
         assert results[0].url == "https://example.com/pricing"
-        assert results[0].content_snippet == (
-            "Average coaching program costs $500-$2000"
-        )
+        assert results[0].content_snippet == ("Average coaching program costs $500-$2000")
         assert results[0].relevance_score == 0.95
 
 

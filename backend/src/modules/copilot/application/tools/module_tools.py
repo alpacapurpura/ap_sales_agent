@@ -31,7 +31,10 @@ def _format_section_data(section_name: str, data) -> str:
     if isinstance(data, list):
         if not data:
             return f"### {section_name}\n(vacío — 0 elementos)\n"
-        return f"### {section_name}\n{len(data)} elemento(s)\n{json.dumps(data, ensure_ascii=False, indent=2, default=str)}"
+        return (
+            f"### {section_name}\n{len(data)} elemento(s)\n"
+            f"{json.dumps(data, ensure_ascii=False, indent=2, default=str)}"
+        )
 
     if isinstance(data, dict):
         if all(v in (None, "", [], {}) for v in data.values()):
@@ -155,10 +158,7 @@ _LIST_FORMATTERS: dict[str, Callable[[list], str]] = {
 
 def _format_model_result(data: object, descriptor: object, section: str | None) -> str:
     """Format a Pydantic model or dict result from a module."""
-    if hasattr(data, "model_dump"):
-        raw = data.model_dump(mode="json")  # type: ignore[union-attr]
-    else:
-        raw = data if isinstance(data, dict) else {}
+    raw = data.model_dump(mode="json") if hasattr(data, "model_dump") else data if isinstance(data, dict) else {}  # type: ignore[union-attr]
 
     if section:
         section_data = raw.get(section)
@@ -189,11 +189,7 @@ def _read_and_format_module(
             return f"No hay datos configurados para {descriptor.label}."  # type: ignore[union-attr]
         if isinstance(data, list):
             formatter = _LIST_FORMATTERS.get(module)
-            return (
-                formatter(data)
-                if formatter
-                else f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"
-            )  # type: ignore[union-attr]
+            return formatter(data) if formatter else f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"  # type: ignore[union-attr]
         return _format_model_result(data, descriptor, section)
     except Exception as e:
         logger.exception("module_tools_error", module=module, error=str(e))
@@ -220,9 +216,7 @@ def get_module_data(module: str, section: str | None = None) -> str:
     registry = get_module_registry()
     descriptor = registry.get(module)
     if not descriptor:
-        available = ", ".join(
-            k for k, v in registry.items() if v.repo_factory is not None
-        )
+        available = ", ".join(k for k, v in registry.items() if v.repo_factory is not None)
         return f"Módulo '{module}' no encontrado o no tiene lectura directa. Disponibles: {available}"
 
     if not descriptor.repo_factory or not descriptor.read_fn:

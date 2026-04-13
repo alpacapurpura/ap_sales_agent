@@ -41,9 +41,7 @@ def test_buyer_persona_all_blocks_have_campos() -> None:
     """Test all buyer persona blocks have campos_objetivo."""
     config = BUYER_PERSONA_INTERVIEW_CONFIG
     for block in config.bloques:
-        assert len(block.campos_objetivo) > 0, (
-            f"Block {block.id} has no campos_objetivo"
-        )
+        assert len(block.campos_objetivo) > 0, f"Block {block.id} has no campos_objetivo"
 
 
 def test_buyer_persona_has_expertise_template() -> None:

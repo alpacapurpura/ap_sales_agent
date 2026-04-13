@@ -100,11 +100,7 @@ def render_tenant_health():
                 # Compute days inactive
                 if t["last_event"]:
                     days_inactive = (now - t["last_event"]).days
-                    last_act = (
-                        t["last_event"].strftime("%Y-%m-%d")
-                        if days_inactive > 1
-                        else "Hoy"
-                    )
+                    last_act = t["last_event"].strftime("%Y-%m-%d") if days_inactive > 1 else "Hoy"
                 else:
                     days_inactive = 999
                     last_act = "Nunca"
@@ -290,10 +286,7 @@ def render_tenant_health():
             if summary:
                 st.subheader("Eventos por Tipo")
                 df_ev = pd.DataFrame(
-                    [
-                        {"Tipo": k, "Cantidad": v}
-                        for k, v in sorted(summary.items(), key=lambda x: -x[1])
-                    ],
+                    [{"Tipo": k, "Cantidad": v} for k, v in sorted(summary.items(), key=lambda x: -x[1])],
                 )
                 st.bar_chart(df_ev.set_index("Tipo"))
 
@@ -407,11 +400,10 @@ def render_tenant_health():
             if convs:
                 for conv in convs:
                     msgs = conv.messages or []
-                    title = conv.title or (
-                        msgs[0].get("content", "")[:50] if msgs else "Sin titulo"
-                    )
+                    title = conv.title or (msgs[0].get("content", "")[:50] if msgs else "Sin titulo")
                     with st.expander(
-                        f"💬 {title} ({len(msgs)} msgs) — {conv.updated_at.strftime('%Y-%m-%d %H:%M') if conv.updated_at else ''}",
+                        f"💬 {title} ({len(msgs)} msgs)"
+                        f" — {conv.updated_at.strftime('%Y-%m-%d %H:%M') if conv.updated_at else ''}",
                     ):
                         for msg in msgs[:20]:
                             if isinstance(msg, dict):

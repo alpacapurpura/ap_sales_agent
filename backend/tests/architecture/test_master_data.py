@@ -122,12 +122,7 @@ def _find_naive_datetime_columns(root: Path) -> set[str]:
             continue
         text = py_file.read_text()
         for line in text.splitlines():
-            if (
-                "Column(" in line
-                and "DateTime" in line
-                and naive_pattern.search(line)
-                and not tz_pattern.search(line)
-            ):
+            if "Column(" in line and "DateTime" in line and naive_pattern.search(line) and not tz_pattern.search(line):
                 violations.add(rel)
                 break
     return violations
@@ -137,7 +132,6 @@ class TestNoNaiveDatetimeColumns:
     def test_no_new_naive_datetime_columns(self) -> None:
         violations = _find_naive_datetime_columns(BACKEND_SRC)
         new_violations = violations - KNOWN_NAIVE_DATETIME_MODELS
-        assert not new_violations, (
-            "New DateTime columns without timezone=True found:\n"
-            + "\n".join(sorted(new_violations))
+        assert not new_violations, "New DateTime columns without timezone=True found:\n" + "\n".join(
+            sorted(new_violations)
         )

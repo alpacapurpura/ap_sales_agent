@@ -83,8 +83,7 @@ class InvalidLifecycleTransitionError(ValueError):
     ) -> None:
         allowed = sorted(s.value for s in LIFECYCLE_TRANSITIONS.get(from_status, set()))
         super().__init__(
-            f"Invalid transition {from_status.value} -> {to_status.value}. "
-            f"Allowed targets: {allowed}",
+            f"Invalid transition {from_status.value} -> {to_status.value}. Allowed targets: {allowed}",
         )
         self.from_status = from_status
         self.to_status = to_status

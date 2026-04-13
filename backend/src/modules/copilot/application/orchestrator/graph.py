@@ -154,9 +154,7 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
         # Messages
         msgs = summary.get("message_sent", 0)
         if msgs:
-            activity = (
-                "muy activo" if msgs > 30 else "activo" if msgs > 10 else "moderado"
-            )
+            activity = "muy activo" if msgs > 30 else "activo" if msgs > 10 else "moderado"
             lines.append(f"- Mensajes enviados: {msgs} (usuario {activity})")
 
         # Copilot opens — friction map for this user
@@ -167,11 +165,7 @@ def _get_behavior_summary(tenant_id, user_id) -> str:
         # RAG searches
         ks = repo.get_knowledge_search_stats(tenant_id, user_id, days=30)
         if ks["search_count"]:
-            scope_info = (
-                f" (scope preferido: {ks['most_queried_scope']})"
-                if ks["most_queried_scope"]
-                else ""
-            )
+            scope_info = f" (scope preferido: {ks['most_queried_scope']})" if ks["most_queried_scope"] else ""
             lines.append(
                 f"- Busquedas en knowledge base: {ks['search_count']}{scope_info}",
             )
@@ -212,8 +206,7 @@ def build_system_prompt(state: CopilotState) -> str:
     # Build module list from registry
     registry = get_module_registry()
     modules = [
-        {"label": d.label, "route_prefix": d.route_prefix, "description": d.description}
-        for d in registry.values()
+        {"label": d.label, "route_prefix": d.route_prefix, "description": d.description} for d in registry.values()
     ]
 
     # Build behavior summary

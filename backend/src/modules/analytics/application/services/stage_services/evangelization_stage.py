@@ -84,7 +84,10 @@ class EvangelizationStageService:
                     current_rate=k_factor,
                     severity="critical",
                     threshold=0.5,
-                    tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
+                    tip=(
+                        "Incentiva a tus mejores clientes a compartir su codigo de referido."
+                        " Ofrece descuentos o beneficios exclusivos."
+                    ),
                 ),
             )
         elif k_factor < 1.0:
@@ -95,7 +98,10 @@ class EvangelizationStageService:
                     current_rate=k_factor,
                     severity="warning",
                     threshold=1.0,
-                    tip="Incentiva a tus mejores clientes a compartir su codigo de referido. Ofrece descuentos o beneficios exclusivos.",
+                    tip=(
+                        "Incentiva a tus mejores clientes a compartir su codigo de referido."
+                        " Ofrece descuentos o beneficios exclusivos."
+                    ),
                 ),
             )
 
@@ -110,7 +116,10 @@ class EvangelizationStageService:
                         current_rate=nps_response_rate,
                         severity="critical",
                         threshold=15,
-                        tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
+                        tip=(
+                            "Envia mas encuestas de satisfaccion."
+                            " Los clientes que responden tienden a ser tus mejores promotores."
+                        ),
                     ),
                 )
             elif nps_response_rate < 30:
@@ -121,7 +130,10 @@ class EvangelizationStageService:
                         current_rate=nps_response_rate,
                         severity="warning",
                         threshold=30,
-                        tip="Envia mas encuestas de satisfaccion. Los clientes que responden tienden a ser tus mejores promotores.",
+                        tip=(
+                            "Envia mas encuestas de satisfaccion."
+                            " Los clientes que responden tienden a ser tus mejores promotores."
+                        ),
                     ),
                 )
 

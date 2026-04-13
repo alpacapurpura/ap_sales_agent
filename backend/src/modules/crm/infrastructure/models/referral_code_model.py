@@ -26,6 +26,4 @@ class ReferralCodeModel(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    __table_args__ = (
-        Index("ix_referral_codes_tenant_customer", "tenant_id", "customer_id"),
-    )
+    __table_args__ = (Index("ix_referral_codes_tenant_customer", "tenant_id", "customer_id"),)

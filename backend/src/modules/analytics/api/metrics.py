@@ -649,7 +649,10 @@ async def sync_all_sources(
             if remaining.total_seconds() > 0:
                 raise HTTPException(
                     status_code=429,
-                    detail=f"Sync en progreso o muy reciente. Espera {int(remaining.total_seconds())}s antes de volver a sincronizar.",
+                    detail=(
+                        f"Sync en progreso o muy reciente. Espera"
+                        f" {int(remaining.total_seconds())}s antes de volver a sincronizar."
+                    ),
                 )
         redis_client.setex(
             cooldown_key,
@@ -1160,9 +1163,7 @@ async def update_period_config(
 
     if updates:
         db.execute(
-            sa_update(TenantModel)
-            .where(TenantModel.id == user.tenant_id)
-            .values(**updates),
+            sa_update(TenantModel).where(TenantModel.id == user.tenant_id).values(**updates),
         )
         db.commit()
 

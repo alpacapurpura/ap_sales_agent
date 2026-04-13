@@ -103,10 +103,7 @@ class OfferLifecycleService:
                 raise InvalidTransitionError(
                     OfferLifecycleStatus.DRAFT,  # placeholder; message rebuilt
                     new_status,
-                    message=(
-                        f"Current status {offer.status!r} is not writable from "
-                        "the header switcher"
-                    ),
+                    message=(f"Current status {offer.status!r} is not writable from the header switcher"),
                 )
             current_lifecycle = mapped
 

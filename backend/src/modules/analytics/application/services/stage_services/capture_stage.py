@@ -286,9 +286,7 @@ class CaptureStageService:
         lead_count = lead_counts.get(slug, 0)
         channel_cost = all_costs.get(slug, 0.0)
         conv_count = conversation_counts.get(slug, 0)
-        conv_rate = (
-            round(lead_count / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
-        )
+        conv_rate = round(lead_count / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
 
         metrics: list[MetricValueDTO] = [
             MetricValueDTO(name="leads", value=float(lead_count)),
@@ -451,18 +449,10 @@ class CaptureStageService:
         # 7. Compute group totals
         total_leads = sum(lead_counts.values())
         total_costs = sum(all_costs.values())
-        overall_conv_rate = (
-            round(total_leads / stage0_visitors * 100, 2)
-            if stage0_visitors > 0
-            else 0.0
-        )
+        overall_conv_rate = round(total_leads / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
         cal = cost_service.calculate_cal(total_costs, total_leads)
 
-        available_dto = (
-            AvailableChannelsDTO(channels=available_channels)
-            if available_channels
-            else None
-        )
+        available_dto = AvailableChannelsDTO(channels=available_channels) if available_channels else None
 
         result = CaptureDetailDTO(
             header_kpis=CaptureHeaderKpisDTO(

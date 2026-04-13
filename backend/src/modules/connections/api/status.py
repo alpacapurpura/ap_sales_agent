@@ -86,9 +86,7 @@ async def get_all_connections_status(
             ConnectionStatusItem(
                 channel_type=conn.channel_type,
                 is_connected=conn.is_active,
-                display_name=_mask_pii(str(display_name), conn.channel_type)
-                if display_name
-                else None,
+                display_name=_mask_pii(str(display_name), conn.channel_type) if display_name else None,
                 last_sync=str(last_sync) if last_sync else None,
             ),
         )

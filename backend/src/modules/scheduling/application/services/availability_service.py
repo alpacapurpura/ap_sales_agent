@@ -337,10 +337,7 @@ class AvailabilityService:
                     slot_end_limit = slot_end_limit_local.astimezone(datetime.UTC)
 
                     current_slot = slot_start
-                    while (
-                        current_slot + datetime.timedelta(minutes=duration_minutes)
-                        <= slot_end_limit
-                    ):
+                    while current_slot + datetime.timedelta(minutes=duration_minutes) <= slot_end_limit:
                         slot_end = current_slot + datetime.timedelta(
                             minutes=duration_minutes,
                         )
@@ -472,7 +469,8 @@ class AvailabilityService:
                     <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
                         <p style="margin: 5px 0;"><strong>📅 Fecha:</strong> {date_str}</p>
                         <p style="margin: 5px 0;"><strong>⏱️ Duración:</strong> {duration_minutes} minutos</p>
-                        <p style="margin: 5px 0;"><strong>🔗 Enlace:</strong> <a href="{event.get("htmlLink")}" style="color: #2563eb;">Ver en Google Calendar</a></p>
+                        <p style="margin: 5px 0;"><strong>🔗 Enlace:</strong> \
+<a href="{event.get("htmlLink")}" style="color: #2563eb;">Ver en Google Calendar</a></p>
                     </div>
 
                     <p>Si necesitas reprogramar, por favor avísanos con anticipación.</p>
@@ -522,8 +520,7 @@ class AvailabilityService:
 
         # Use provided address or construct default webhook URL
         webhook_address = (
-            address
-            or f"{settings.API_DOMAIN or 'https://api.visionarias.ai'}/api/v1/webhook/calendar/{self.tenant_id}"
+            address or f"{settings.API_DOMAIN or 'https://api.visionarias.ai'}/api/v1/webhook/calendar/{self.tenant_id}"
         )
 
         body = {

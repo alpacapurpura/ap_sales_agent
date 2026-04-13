@@ -146,10 +146,7 @@ class CopilotKnowledgeStore:
 
         dense_embeddings = self.embeddings_model.embed_documents(texts)
 
-        if self.sparse_model:
-            sparse_embeddings = list(self.sparse_model.embed(texts))
-        else:
-            sparse_embeddings = [None] * len(texts)
+        sparse_embeddings = list(self.sparse_model.embed(texts)) if self.sparse_model else [None] * len(texts)
 
         points = []
         for text, meta, dense, sparse in zip(
@@ -245,9 +242,7 @@ class CopilotKnowledgeStore:
                     ),
                 )
 
-            scroll_filter = (
-                models.Filter(must=filter_conditions) if filter_conditions else None
-            )
+            scroll_filter = models.Filter(must=filter_conditions) if filter_conditions else None
             points, _ = self.client.scroll(
                 collection_name=self.COLLECTION,
                 scroll_filter=scroll_filter,

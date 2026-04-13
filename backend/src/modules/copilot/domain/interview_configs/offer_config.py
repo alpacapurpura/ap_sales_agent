@@ -150,10 +150,7 @@ OFFER_BLOCKS = [
 
 OFFER_INTERVIEW_CONFIG = InterviewConfig(
     domain="offer",
-    objetivo=(
-        "Diseñar un offer irresistible, diferenciado, y alineado "
-        "con el ladder de valor del negocio"
-    ),
+    objetivo=("Diseñar un offer irresistible, diferenciado, y alineado con el ladder de valor del negocio"),
     bloques=OFFER_BLOCKS,
     output_schema_path="modules.offer.domain.offer.Offer",
     datos_previos_fields=[
@@ -162,10 +159,7 @@ OFFER_INTERVIEW_CONFIG = InterviewConfig(
         "pricing_options",
         "headline_promise",
     ],
-    tono=(
-        "Eres un estratega de producto con experiencia en info-productos, "
-        "SaaS, y servicios premium."
-    ),
+    tono=("Eres un estratega de producto con experiencia en info-productos, SaaS, y servicios premium."),
     expertise_template="offer_expertise",
     document_extraction_template="offer_doc_extraction",
     rag_collection=None,

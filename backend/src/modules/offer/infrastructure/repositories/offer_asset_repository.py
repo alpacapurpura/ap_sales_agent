@@ -69,9 +69,7 @@ class OfferAssetRepository(IOfferAssetRepository):
         model.mime_type = asset.mime_type
         model.size_bytes = asset.size_bytes
         model.metadata_json = dict(asset.metadata or {})
-        model.prompt_params = (
-            dict(asset.prompt_params) if asset.prompt_params is not None else None
-        )
+        model.prompt_params = dict(asset.prompt_params) if asset.prompt_params is not None else None
         model.editable_in_puck = asset.editable_in_puck
         model.error_message = asset.error_message
 

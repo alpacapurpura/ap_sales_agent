@@ -139,14 +139,9 @@ class Offer(BaseEntity):
     archived_at: datetime | None = None
     deleted_at: datetime | None = None
 
-    specific_details: (
-        ProductDetails
-        | ServiceDetails
-        | ProgramDetails
-        | SubscriptionDetails
-        | EventDetails
-        | None
-    ) = None
+    specific_details: ProductDetails | ServiceDetails | ProgramDetails | SubscriptionDetails | EventDetails | None = (
+        None
+    )
 
     landing_page_config: dict[str, Any] | None = None
 
@@ -231,14 +226,9 @@ class OfferPricingUpdate(BaseEntity):
 
 
 class OfferDetailsUpdate(BaseEntity):
-    specific_details: (
-        ProductDetails
-        | ServiceDetails
-        | ProgramDetails
-        | SubscriptionDetails
-        | EventDetails
-        | None
-    ) = None
+    specific_details: ProductDetails | ServiceDetails | ProgramDetails | SubscriptionDetails | EventDetails | None = (
+        None
+    )
     access_duration: AccessDuration | None = None
     access_duration_text: str | None = None
     support_duration_days: int | None = None

@@ -34,7 +34,8 @@ class ImageAnalysisService:
             prompt = """
             Analyze this image for a brand gallery.
             Provide a JSON output with two keys:
-            1. "description": A concise, engaging description suitable for finding this image later for a landing page (e.g., "Diverse team collaborating in a modern office").
+            1. "description": A concise, engaging description suitable for finding \
+this image later for a landing page (e.g., "Diverse team collaborating in a modern office").
             2. "colors": An array of up to 5 dominant hex color codes found in the image.
 
             """

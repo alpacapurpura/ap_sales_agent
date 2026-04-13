@@ -66,11 +66,8 @@ def node_janitor(state: OnboardingState):
 
     # 2. Smart Sampling for Token Savings
     max_chars = 6000
-    if len(pre_cleaned) > max_chars:
-        # Take the last N chars as they represent the most current style
-        sampled_text = "... " + pre_cleaned[-max_chars:]
-    else:
-        sampled_text = pre_cleaned
+    # Take the last N chars as they represent the most current style
+    sampled_text = "... " + pre_cleaned[-max_chars:] if len(pre_cleaned) > max_chars else pre_cleaned
 
     # 3. LLM Cleaning (Semantic Filtering)
     try:

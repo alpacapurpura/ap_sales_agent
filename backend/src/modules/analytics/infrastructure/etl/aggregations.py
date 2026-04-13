@@ -126,8 +126,7 @@ def _resolve_aggregation_type(metric_name: str) -> AggregationType:
     defn = get_metric_def(metric_name)
     if defn is None:
         logger.warning(
-            "Metric '%s' not in METRIC_CATALOG — using SUM (backward compat). "
-            "Add to metric_catalog.py to fix.",
+            "Metric '%s' not in METRIC_CATALOG — using SUM (backward compat). Add to metric_catalog.py to fix.",
             metric_name,
         )
         return AggregationType.ADDITIVE

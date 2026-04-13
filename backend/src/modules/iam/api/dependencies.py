@@ -48,11 +48,7 @@ def get_optional_current_user(
             # Simplistic fallback for optional auth
             return None
 
-        user = (
-            db.execute(select(UserModel).where(UserModel.email == email))
-            .scalars()
-            .first()
-        )
+        user = db.execute(select(UserModel).where(UserModel.email == email)).scalars().first()
         if user:
             return User.model_validate(user)
     except Exception:  # noqa: BLE001 — API error boundary
@@ -95,11 +91,7 @@ async def get_optional_tenant_context(
                 tenant_id = target_uuid
         except ValueError:
             # Try to resolve by slug
-            tenant = (
-                db.execute(select(TenantModel).where(TenantModel.slug == x_tenant_id))
-                .scalars()
-                .first()
-            )
+            tenant = db.execute(select(TenantModel).where(TenantModel.slug == x_tenant_id)).scalars().first()
             if tenant:
                 link = (
                     db.execute(
@@ -257,18 +249,22 @@ def get_user_from_token(
         logger.error("token_payload_missing_email", keys=list(token_payload.keys()))
         raise HTTPException(
             status_code=401,
-            detail=f"Token missing email claim. Available claims: {available_keys}. Please configure Clerk JWT Template to include 'email'.",
+            detail=(
+                f"Token missing email claim. Available claims: {available_keys}."
+                " Please configure Clerk JWT Template to include 'email'."
+            ),
         )
 
-    user_orm = (
-        db.execute(select(UserModel).where(UserModel.email == email)).scalars().first()
-    )
+    user_orm = db.execute(select(UserModel).where(UserModel.email == email)).scalars().first()
 
     if not user_orm:
         logger.warning("access_denied_user_not_in_db", email=email)
         raise HTTPException(
             status_code=403,
-            detail="Acceso Denegado. Su usuario no está registrado en nuestra base de datos. Por favor contacte a su administrador para solicitar acceso.",
+            detail=(
+                "Acceso Denegado. Su usuario no está registrado en nuestra base de datos."
+                " Por favor contacte a su administrador para solicitar acceso."
+            ),
         )
 
     clerk_id_from_token = token_payload.get("sub")
@@ -309,11 +305,7 @@ def get_current_user(
             target_tenant_id = UUID(x_tenant_id)
         except ValueError:
             # Try to resolve by slug
-            tenant = (
-                db.execute(select(TenantModel).where(TenantModel.slug == x_tenant_id))
-                .scalars()
-                .first()
-            )
+            tenant = db.execute(select(TenantModel).where(TenantModel.slug == x_tenant_id)).scalars().first()
             if not tenant:
                 raise HTTPException(
                     status_code=400,
@@ -410,11 +402,7 @@ def get_current_tenant_id(user: User = Depends(get_current_user)) -> str:
 
 def _resolve_tenant_locale(db: Session, tenant_id: UUID) -> TenantLocale:
     """Load TenantLocale from DB. Extracted for testability."""
-    tenant = (
-        db.execute(select(TenantModel).where(TenantModel.id == tenant_id))
-        .scalars()
-        .first()
-    )
+    tenant = db.execute(select(TenantModel).where(TenantModel.id == tenant_id)).scalars().first()
     if tenant:
         return TenantLocale(
             currency=tenant.default_currency or "USD",

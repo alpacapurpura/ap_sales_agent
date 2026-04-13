@@ -12,31 +12,19 @@ class TenantRepository:
         self.db = db
 
     def get_by_id(self, tenant_id: UUID) -> Tenant | None:
-        model = (
-            self.db.execute(select(TenantModel).where(TenantModel.id == tenant_id))
-            .scalars()
-            .first()
-        )
+        model = self.db.execute(select(TenantModel).where(TenantModel.id == tenant_id)).scalars().first()
         if model:
             return Tenant.model_validate(model)
         return None
 
     def get_by_slug(self, slug: str) -> Tenant | None:
-        model = (
-            self.db.execute(select(TenantModel).where(TenantModel.slug == slug))
-            .scalars()
-            .first()
-        )
+        model = self.db.execute(select(TenantModel).where(TenantModel.slug == slug)).scalars().first()
         if model:
             return Tenant.model_validate(model)
         return None
 
     def get_all(self) -> list[Tenant]:
-        models = (
-            self.db.execute(select(TenantModel).order_by(TenantModel.created_at.desc()))
-            .scalars()
-            .all()
-        )
+        models = self.db.execute(select(TenantModel).order_by(TenantModel.created_at.desc())).scalars().all()
         return [Tenant.model_validate(m) for m in models]
 
     def create(self, tenant: Tenant) -> Tenant:
@@ -57,11 +45,7 @@ class TenantRepository:
         return Tenant.model_validate(db_tenant)
 
     def update(self, tenant: Tenant) -> Tenant:
-        db_tenant = (
-            self.db.execute(select(TenantModel).where(TenantModel.id == tenant.id))
-            .scalars()
-            .first()
-        )
+        db_tenant = self.db.execute(select(TenantModel).where(TenantModel.id == tenant.id)).scalars().first()
         if db_tenant:
             db_tenant.name = tenant.name
             db_tenant.slug = tenant.slug

@@ -96,12 +96,8 @@ class TestETLServiceMultiStageExtraction:
         extract_calls = mock_provider.extract_metrics.call_args_list
         stages_called = [call.kwargs.get("stage") for call in extract_calls]
 
-        assert "capture" in stages_called, (
-            f"Expected 'capture' stage but got: {stages_called}"
-        )
-        assert "nurture" in stages_called, (
-            f"Expected 'nurture' stage but got: {stages_called}"
-        )
+        assert "capture" in stages_called, f"Expected 'capture' stage but got: {stages_called}"
+        assert "nurture" in stages_called, f"Expected 'nurture' stage but got: {stages_called}"
 
     @patch(
         "src.modules.analytics.application.services.etl_service.get_provider",
@@ -184,9 +180,5 @@ class TestETLServiceMultiStageExtraction:
         extract_calls = mock_provider.extract_metrics.call_args_list
         stages_called = [call.kwargs.get("stage") for call in extract_calls]
 
-        assert "capture" in stages_called, (
-            f"Expected 'capture' in stages but got: {stages_called}"
-        )
-        assert "nurture" in stages_called, (
-            f"Expected 'nurture' in stages but got: {stages_called}"
-        )
+        assert "capture" in stages_called, f"Expected 'capture' in stages but got: {stages_called}"
+        assert "nurture" in stages_called, f"Expected 'nurture' in stages but got: {stages_called}"

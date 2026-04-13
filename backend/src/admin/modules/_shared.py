@@ -34,10 +34,7 @@ def _get_all_tenants_cached() -> list[dict]:
     try:
         service = TenantService(db)
         tenants = service.get_all_tenants()
-        return [
-            {"id": str(t.id), "name": t.name, "slug": t.slug, "is_active": t.is_active}
-            for t in tenants
-        ]
+        return [{"id": str(t.id), "name": t.name, "slug": t.slug, "is_active": t.is_active} for t in tenants]
     finally:
         db.close()
 
@@ -150,8 +147,10 @@ def get_adoption_funnel() -> dict:
                 (SELECT COUNT(DISTINCT tenant_id) FROM avatars) AS has_brand,
                 (SELECT COUNT(DISTINCT tenant_id) FROM products) AS has_offer,
                 (SELECT COUNT(DISTINCT tenant_id) FROM channel_connections WHERE is_active = true) AS has_connection,
-                (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events WHERE event_type = 'message_sent' AND deleted_at IS NULL) AS has_copilot,
-                (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events WHERE event_type = 'procedure_completed' AND deleted_at IS NULL) AS has_procedure_completed
+                (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events
+                    WHERE event_type = 'message_sent' AND deleted_at IS NULL) AS has_copilot,
+                (SELECT COUNT(DISTINCT tenant_id) FROM copilot_events
+                    WHERE event_type = 'procedure_completed' AND deleted_at IS NULL) AS has_procedure_completed
         """),
         )
         row = result.fetchone()

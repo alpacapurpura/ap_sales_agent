@@ -307,9 +307,7 @@ class MetricResolver:
         rows: list[RawDailyRow],
     ) -> list[RawDailyRow]:
         """Keep only account-level rows (campaign_id, ad_set_id, ad_id all None)."""
-        return [
-            row for row in rows if row[3] is None and row[4] is None and row[5] is None
-        ]
+        return [row for row in rows if row[3] is None and row[4] is None and row[5] is None]
 
     @staticmethod
     def _group_by_metric(

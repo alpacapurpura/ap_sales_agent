@@ -194,9 +194,7 @@ async def get_status(
         connection.credentials and connection.credentials.get("client_id"),
     )
     is_connected = bool(
-        connection.is_active
-        and connection.credentials
-        and connection.credentials.get("refresh_token"),
+        connection.is_active and connection.credentials and connection.credentials.get("refresh_token"),
     )
 
     # Read selected property from config (fast, no API call)

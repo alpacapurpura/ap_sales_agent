@@ -147,20 +147,12 @@ def _sections_for(archetype: OfferArchetype | str | None) -> tuple[str, ...]:
 
 def _check_all(offer: Offer, *fields: str) -> str:
     """Return "complete" if all fields are present, else "incomplete"."""
-    return (
-        "complete"
-        if all(_has(getattr(offer, f, None)) for f in fields)
-        else "incomplete"
-    )
+    return "complete" if all(_has(getattr(offer, f, None)) for f in fields) else "incomplete"
 
 
 def _check_any(offer: Offer, *fields: str) -> str:
     """Return "complete" if any field is present, else "incomplete"."""
-    return (
-        "complete"
-        if any(_has(getattr(offer, f, None)) for f in fields)
-        else "incomplete"
-    )
+    return "complete" if any(_has(getattr(offer, f, None)) for f in fields) else "incomplete"
 
 
 _SECTION_VALIDATORS: dict[str, tuple[str, tuple[str, ...]]] = {
@@ -198,9 +190,7 @@ def _validate_section(section_id: str, offer: Offer) -> str:
     validator = _SECTION_VALIDATORS.get(section_id)
     if validator:
         mode, fields = validator
-        return (
-            _check_all(offer, *fields) if mode == "all" else _check_any(offer, *fields)
-        )
+        return _check_all(offer, *fields) if mode == "all" else _check_any(offer, *fields)
 
     if section_id in _DETAILS_SECTIONS:
         return _validate_details(offer)

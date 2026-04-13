@@ -114,9 +114,7 @@ class LandingService:
         headline = row["headline_promise"] or f"Discover {public_name}"
         outcome = row["primary_outcome"] or "Transform your life today"
         raw_pains = row["marketing_pain_points"] or []
-        pains = (
-            _json.loads(raw_pains) if isinstance(raw_pains, str) else (raw_pains or [])
-        )
+        pains = _json.loads(raw_pains) if isinstance(raw_pains, str) else (raw_pains or [])
 
         # Create a simple slug based on offer name
         slug = f"{public_name.lower().replace(' ', '-')}-{str(offer_id)[:8]}"
@@ -125,9 +123,7 @@ class LandingService:
         content = SqueezeContent(
             headline=headline,
             subheadline=outcome,
-            bullets=pains[:3]
-            if pains
-            else ["Solve your problem", "Save time", "Get results"],
+            bullets=pains[:3] if pains else ["Solve your problem", "Save time", "Get results"],
             cta_text="Get Access Now",
             privacy_text="100% Secure",
         )

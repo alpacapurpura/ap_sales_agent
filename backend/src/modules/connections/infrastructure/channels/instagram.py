@@ -22,9 +22,7 @@ class InstagramChannel(MetaAdapter, BaseChannel):
         client_config: dict[str, Any],
         credentials_data: dict[str, Any] | None = None,
     ):
-        access_token = (
-            credentials_data.get("access_token") if credentials_data else None
-        )
+        access_token = credentials_data.get("access_token") if credentials_data else None
         super().__init__(access_token=access_token)
         self.client_config = client_config or {}
         # Ensure API version is set, defaulting if not present in parent

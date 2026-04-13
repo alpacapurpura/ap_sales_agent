@@ -38,9 +38,7 @@ class CampaignTemplateRepository:
         """
         templates = self.list_all()
         archetype_upper = (archetype or "").upper()
-        matches = [
-            t for t in templates if (t.offer_archetype or "").upper() == archetype_upper
-        ]
+        matches = [t for t in templates if (t.offer_archetype or "").upper() == archetype_upper]
         if not matches:
             return None
 

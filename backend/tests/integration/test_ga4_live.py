@@ -35,7 +35,7 @@ _has_ga4_credentials = all(os.environ.get(v) for v in _REQUIRED_ENVS)
 @pytest.mark.integration
 @pytest.mark.skipif(
     not _has_ga4_credentials,
-    reason="GA4 credentials not set (need GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, GA4_PROPERTY_ID)",
+    reason="GA4 credentials not set (need GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN)",
 )
 @pytest.mark.asyncio
 async def test_run_report_returns_real_session_data():

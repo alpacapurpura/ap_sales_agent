@@ -263,9 +263,7 @@ class QdrantVectorStore(SemanticMemoryStore):
                 scope_options,
                 filters,
             )
-            search_filter = (
-                models.Filter(must=filter_conditions) if filter_conditions else None
-            )
+            search_filter = models.Filter(must=filter_conditions) if filter_conditions else None
 
             logger.info("Qdrant Query: '%s'", query_text)
 

@@ -20,7 +20,26 @@ class ShopifyConnector(BaseConnector):
     """
 
     API_VERSION = "2026-01"
-    SCOPES = "write_customers,write_orders,read_analytics,read_customer_events,read_cart_transforms,read_all_cart_transforms,read_channels,read_checkouts,read_companies,read_custom_pixels,read_customers,read_customer_data_erasure,read_customer_merge,read_price_rules,read_discounts,read_discounts_allocator_functions,read_discovery,read_draft_orders,read_fulfillments,read_gift_card_transactions,read_gift_cards,read_inventory,read_inventory_shipments,read_inventory_shipments_received_items,read_locales,read_locations,read_marketing_integrated_campaigns,read_marketing_events,read_markets,read_markets_home,read_merchant_managed_fulfillment_orders,read_metaobject_definitions,read_metaobjects,read_online_store_navigation,read_online_store_pages,read_order_edits,read_orders,read_packing_slip_templates,read_payment_terms,read_payment_customizations,read_product_feeds,read_product_listings,read_products,read_publications,read_purchase_options,read_reports,read_resource_feedbacks,read_returns,read_script_tags,read_shipping,read_shopify_payments_payouts,read_shopify_payments_disputes,read_content,read_store_credit_account_transactions,read_third_party_fulfillment_orders,read_translations,read_pixels"  # Default scopes
+    SCOPES = (  # Default scopes
+        "write_customers,write_orders,read_analytics,read_customer_events,"
+        "read_cart_transforms,read_all_cart_transforms,read_channels,read_checkouts,"
+        "read_companies,read_custom_pixels,read_customers,read_customer_data_erasure,"
+        "read_customer_merge,read_price_rules,read_discounts,"
+        "read_discounts_allocator_functions,read_discovery,read_draft_orders,"
+        "read_fulfillments,read_gift_card_transactions,read_gift_cards,read_inventory,"
+        "read_inventory_shipments,read_inventory_shipments_received_items,read_locales,"
+        "read_locations,read_marketing_integrated_campaigns,read_marketing_events,"
+        "read_markets,read_markets_home,read_merchant_managed_fulfillment_orders,"
+        "read_metaobject_definitions,read_metaobjects,read_online_store_navigation,"
+        "read_online_store_pages,read_order_edits,read_orders,"
+        "read_packing_slip_templates,read_payment_terms,read_payment_customizations,"
+        "read_product_feeds,read_product_listings,read_products,read_publications,"
+        "read_purchase_options,read_reports,read_resource_feedbacks,read_returns,"
+        "read_script_tags,read_shipping,read_shopify_payments_payouts,"
+        "read_shopify_payments_disputes,read_content,"
+        "read_store_credit_account_transactions,read_third_party_fulfillment_orders,"
+        "read_translations,read_pixels"
+    )
 
     @staticmethod
     def get_auth_url(shop_domain: str, state: str, redirect_uri: str) -> str:
@@ -29,9 +48,7 @@ class ShopifyConnector(BaseConnector):
         Scopes must be explicit for Custom Distribution apps not deployed via CLI/TOML.
         """
         # Clean up shop URL
-        shop_domain = (
-            shop_domain.replace("https://", "").replace("http://", "").strip("/")
-        )
+        shop_domain = shop_domain.replace("https://", "").replace("http://", "").strip("/")
         if not shop_domain.endswith("myshopify.com") and "." not in shop_domain:
             shop_domain = f"{shop_domain}.myshopify.com"
 
@@ -113,9 +130,7 @@ class ShopifyConnector(BaseConnector):
         Token expires in ~24h and must be refreshed.
         Returns: (access_token, error_message)
         """
-        shop_domain = (
-            shop_domain.replace("https://", "").replace("http://", "").strip("/")
-        )
+        shop_domain = shop_domain.replace("https://", "").replace("http://", "").strip("/")
         if not shop_domain.endswith("myshopify.com") and "." not in shop_domain:
             shop_domain = f"{shop_domain}.myshopify.com"
 
@@ -186,9 +201,7 @@ class ShopifyConnector(BaseConnector):
             if "." not in shop_domain:
                 shop_domain = f"{shop_domain}.myshopify.com"
 
-        url = (
-            f"https://{shop_domain}/admin/api/{ShopifyConnector.API_VERSION}/shop.json"
-        )
+        url = f"https://{shop_domain}/admin/api/{ShopifyConnector.API_VERSION}/shop.json"
         headers = {
             "X-Shopify-Access-Token": access_token,
             "Content-Type": "application/json",

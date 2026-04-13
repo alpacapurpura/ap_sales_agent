@@ -73,9 +73,7 @@ async def extract_full_brand_data(
     for file in files:
         content = await FileParsingService.parse_file(file)
         if content:
-            extracted_file_text += (
-                f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
-            )
+            extracted_file_text += f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
 
     combined_text = f"{text or ''}\n{extracted_file_text}".strip()
 

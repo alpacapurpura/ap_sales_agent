@@ -139,9 +139,7 @@ class LandingGenerationService:
     # ------------------------------------------------------------ regenerate
     def regenerate(self, *, tenant_id: UUID, offer_id: UUID) -> dict[str, Any]:
         existing = self._landing_repo.get_by_offer_id(tenant_id, offer_id)
-        previous_snapshot = (
-            getattr(existing, "offer_snapshot_version", None) if existing else None
-        )
+        previous_snapshot = getattr(existing, "offer_snapshot_version", None) if existing else None
         snapshot_version = utc_now().strftime("%Y%m%d%H%M%S")
         job_id = uuid4()
         landing = self._landing_repo.upsert_for_generation(

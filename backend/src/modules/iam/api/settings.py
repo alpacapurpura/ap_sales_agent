@@ -54,11 +54,7 @@ async def get_general_settings(
             detail="User is not associated with a tenant",
         )
 
-    tenant = (
-        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
-        .scalars()
-        .first()
-    )
+    tenant = db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id)).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -83,11 +79,7 @@ async def update_general_settings(
             detail="User is not associated with a tenant",
         )
 
-    tenant = (
-        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
-        .scalars()
-        .first()
-    )
+    tenant = db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id)).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -120,11 +112,7 @@ async def get_ai_settings(
             detail="User is not associated with a tenant",
         )
 
-    tenant = (
-        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
-        .scalars()
-        .first()
-    )
+    tenant = db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id)).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -146,9 +134,7 @@ async def get_user_profile(
     logger.info(
         "get_user_profile_called",
         user_email=current_user.email,
-        context_tenant_id=str(current_user.tenant_id)
-        if hasattr(current_user, "tenant_id")
-        else "None",
+        context_tenant_id=str(current_user.tenant_id) if hasattr(current_user, "tenant_id") else "None",
     )
 
     tenant_profile = None
@@ -200,11 +186,7 @@ async def get_webhook_settings(
             detail="User is not associated with a tenant",
         )
 
-    tenant = (
-        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
-        .scalars()
-        .first()
-    )
+    tenant = db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id)).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -238,11 +220,7 @@ async def regenerate_webhook_secret(
             detail="User is not associated with a tenant",
         )
 
-    tenant = (
-        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
-        .scalars()
-        .first()
-    )
+    tenant = db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id)).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -283,11 +261,7 @@ async def update_ai_settings(
             detail="User is not associated with a tenant",
         )
 
-    tenant = (
-        db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id))
-        .scalars()
-        .first()
-    )
+    tenant = db.execute(select(TenantModel).where(TenantModel.id == current_user.tenant_id)).scalars().first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
@@ -403,11 +377,7 @@ async def create_team_member(
         )
 
     # Check email usage locally
-    existing_user = (
-        db.execute(select(UserModel).where(UserModel.email == user_in.email))
-        .scalars()
-        .first()
-    )
+    existing_user = db.execute(select(UserModel).where(UserModel.email == user_in.email)).scalars().first()
     if existing_user:
         # Check if already in tenant
         if (

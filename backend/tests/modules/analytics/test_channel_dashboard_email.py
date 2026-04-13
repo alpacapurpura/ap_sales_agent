@@ -58,9 +58,7 @@ class TestEmailNurtureChannelConfig:
             "new_subscribers",
             "automation_completed",
         ]:
-            assert metric in config.timeseries_metrics, (
-                f"{metric} missing from timeseries"
-            )
+            assert metric in config.timeseries_metrics, f"{metric} missing from timeseries"
 
     def test_channel_name(self) -> None:
         config = _CHANNEL_CONFIGS["email-nurture"]

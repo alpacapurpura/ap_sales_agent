@@ -33,9 +33,7 @@ class NpsSurveyModel(Base):
     sent_at = Column(DateTime(timezone=True), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
 
-    __table_args__ = (
-        Index("ix_nps_surveys_tenant_customer", "tenant_id", "customer_id"),
-    )
+    __table_args__ = (Index("ix_nps_surveys_tenant_customer", "tenant_id", "customer_id"),)
 
 
 class NpsResponseModel(Base):
@@ -61,6 +59,4 @@ class NpsResponseModel(Base):
     consent_public_use = Column(Boolean, default=False)
     responded_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    __table_args__ = (
-        Index("ix_nps_responses_tenant_survey", "tenant_id", "survey_id"),
-    )
+    __table_args__ = (Index("ix_nps_responses_tenant_survey", "tenant_id", "survey_id"),)

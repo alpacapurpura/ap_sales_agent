@@ -74,9 +74,7 @@ _ADS_EXPANDED_FIELDS = (
 )
 
 
-_IG_INSIGHTS_MAX_DAYS = (
-    ETLConfig.IG_INSIGHTS_MAX_CHUNK_DAYS
-)  # Meta enforces ≤30 days for period=day
+_IG_INSIGHTS_MAX_DAYS = ETLConfig.IG_INSIGHTS_MAX_CHUNK_DAYS  # Meta enforces ≤30 days for period=day
 
 
 def _ig_day_chunks(start_date: date, end_date: date):
@@ -267,9 +265,7 @@ class MetaProvider(BaseMetricsProvider):
         ad_account_id = credentials.get("ad_account_id")
 
         # ── IG Organic period extraction ──
-        if ig_user_id and any(
-            m in metric_names for m in ("reach", "ig_accounts_engaged")
-        ):
+        if ig_user_id and any(m in metric_names for m in ("reach", "ig_accounts_engaged")):
             ig_metrics, ig_fail = await self._safe_extract(
                 self._extract_ig_organic_period,
                 access_token,
@@ -344,9 +340,7 @@ class MetaProvider(BaseMetricsProvider):
             data = resp.json().get("data", [])
             for item in data:
                 name = item.get("name", "")
-                metric_name = (
-                    "ig_accounts_engaged" if name == "accounts_engaged" else name
-                )
+                metric_name = "ig_accounts_engaged" if name == "accounts_engaged" else name
                 # metric_type=total_value → {total_value: {value: N}}
                 val = item.get("total_value", {}).get("value")
                 if val is None:
@@ -863,9 +857,7 @@ class MetaProvider(BaseMetricsProvider):
         )
         _raise_for_meta_error(reach_resp, "fb_organic_reach")
         reach_data = reach_resp.json().get("data", [])
-        total_reach = sum(
-            v.get("value", 0) for item in reach_data for v in item.get("values", [])
-        )
+        total_reach = sum(v.get("value", 0) for item in reach_data for v in item.get("values", []))
 
         # Page post engagements (total — no organic-only variant exists in Meta API)
         engagement_resp = await client.get(
@@ -884,11 +876,7 @@ class MetaProvider(BaseMetricsProvider):
         )
         _raise_for_meta_error(engagement_resp, "fb_organic_engagement")
         engagement_data = engagement_resp.json().get("data", [])
-        total_engagement = sum(
-            v.get("value", 0)
-            for item in engagement_data
-            for v in item.get("values", [])
-        )
+        total_engagement = sum(v.get("value", 0) for item in engagement_data for v in item.get("values", []))
 
         return [
             ExtractedMetric(

@@ -66,11 +66,7 @@ def test_channel_credentials_legacy_support(db):
     db.commit()
 
     # 2. Retrieve using ORM
-    channel = (
-        db.query(ChannelConnectionModel)
-        .filter(ChannelConnectionModel.id == channel_id)
-        .first()
-    )
+    channel = db.query(ChannelConnectionModel).filter(ChannelConnectionModel.id == channel_id).first()
 
     assert channel is not None
     # Should be read as is (no _encrypted key) because it lacks the marker

@@ -94,8 +94,7 @@ class ChatOrchestrator:
                     db.execute(
                         select(ChannelConnectionModel).where(
                             ChannelConnectionModel.tenant_id == UUID(tenant_id),
-                            ChannelConnectionModel.channel_type
-                            == ChannelType.TELEGRAM.value,
+                            ChannelConnectionModel.channel_type == ChannelType.TELEGRAM.value,
                             ChannelConnectionModel.is_active.is_(True),
                         ),
                     )
@@ -199,9 +198,7 @@ class ChatOrchestrator:
                         .first()
                     )
                 except Exception as e:  # noqa: BLE001 — orchestrator resilience
-                    logger.warning(
-                        "Could not fetch tenant for semantic check", error=str(e)
-                    )
+                    logger.warning("Could not fetch tenant for semantic check", error=str(e))
                 finally:
                     if db_tmp:
                         db_tmp.close()
@@ -244,9 +241,7 @@ class ChatOrchestrator:
                 final_text = " ".join(msgs)
                 # Re-fetch metadata just in case
                 meta = self.buffer_service.get_metadata(buffer_key)
-                channel_type = (
-                    self.buffer_service.get_channel_type(buffer_key) or "unknown"
-                )
+                channel_type = self.buffer_service.get_channel_type(buffer_key) or "unknown"
 
                 # Reconstruct IncomingMessage with REAL user_id
                 incoming = IncomingMessage(
@@ -273,11 +268,7 @@ class ChatOrchestrator:
             return None, {}
         try:
             tenant_uuid = UUID(tenant_id)
-            tenant_obj = (
-                db.execute(select(TenantModel).where(TenantModel.id == tenant_uuid))
-                .scalars()
-                .first()
-            )
+            tenant_obj = db.execute(select(TenantModel).where(TenantModel.id == tenant_uuid)).scalars().first()
             if tenant_obj:
                 return tenant_uuid, tenant_obj.config_json or {}
         except Exception:
@@ -421,7 +412,9 @@ class ChatOrchestrator:
         if profile_model:
             profile_model.traits = current_traits
             if "first_name" in incoming.metadata:
-                profile_model.full_name = f"{incoming.metadata.get('first_name', '')} {incoming.metadata.get('last_name', '')}".strip()
+                profile_model.full_name = (
+                    f"{incoming.metadata.get('first_name', '')} {incoming.metadata.get('last_name', '')}".strip()
+                )
             db.commit()
 
     @staticmethod
@@ -560,9 +553,7 @@ class ChatOrchestrator:
         """Build base profile dict from user's profile_data + style fields."""
         if user and user.profile_data:
             base_profile = (
-                user.profile_data.model_dump()
-                if hasattr(user.profile_data, "model_dump")
-                else dict(user.profile_data)
+                user.profile_data.model_dump() if hasattr(user.profile_data, "model_dump") else dict(user.profile_data)
             )
         else:
             base_profile = {}
@@ -585,13 +576,9 @@ class ChatOrchestrator:
             safety = SafetyLayerService()
             sanitized, was_modified = await safety.sanitize_content(text)
             if was_modified:
-                logger.warning(
-                    "content_sanitized", direction=direction, original_preview=text[:50]
-                )
+                logger.warning("content_sanitized", direction=direction, original_preview=text[:50])
         except Exception as e:  # noqa: BLE001 — orchestrator resilience
-            logger.warning(
-                "safety_sanitization_failed", direction=direction, error=str(e)
-            )
+            logger.warning("safety_sanitization_failed", direction=direction, error=str(e))
             return text
 
         else:
@@ -765,11 +752,7 @@ class ChatOrchestrator:
             }
 
         raw_history = audit_repo.get_chat_history(user.id, limit=MESSAGE_HISTORY_LIMIT)
-        history = [
-            {"role": msg.role, "content": msg.content}
-            for msg in raw_history
-            if msg.content
-        ]
+        history = [{"role": msg.role, "content": msg.content} for msg in raw_history if msg.content]
 
         base_profile = self._build_user_profile(user)
         checkpoint_data, last_session_summary = self._build_checkpoint_data(
@@ -836,12 +819,10 @@ class ChatOrchestrator:
             db.flush()
 
         try:
-            detected_intent, intent_score, updated_signals = (
-                SemanticRouter.detect_and_accumulate(
-                    incoming.text,
-                    existing_signals=initial_state.get("buying_signals", []),
-                    tenant_id=tenant_uuid,
-                )
+            detected_intent, intent_score, updated_signals = SemanticRouter.detect_and_accumulate(
+                incoming.text,
+                existing_signals=initial_state.get("buying_signals", []),
+                tenant_id=tenant_uuid,
             )
             if detected_intent:
                 initial_state["detected_intent"] = detected_intent
@@ -852,9 +833,7 @@ class ChatOrchestrator:
                     score=round(intent_score, 2),
                 )
         except Exception as e:  # noqa: BLE001 — orchestrator resilience
-            logger.warning(
-                "Semantic router failed, continuing without intent", error=str(e)
-            )
+            logger.warning("Semantic router failed, continuing without intent", error=str(e))
 
     async def _invoke_agent_with_typing(
         self,
@@ -888,9 +867,7 @@ class ChatOrchestrator:
     ) -> None:
         """Extract, sanitize, log, and send the agent response."""
         last_msg = result["messages"][-1]
-        bot_text = (
-            last_msg.get("content", "") if isinstance(last_msg, dict) else str(last_msg)
-        )
+        bot_text = last_msg.get("content", "") if isinstance(last_msg, dict) else str(last_msg)
         bot_text = await self._sanitize_text(bot_text, "bot_output")
 
         audit_repo.log_message(

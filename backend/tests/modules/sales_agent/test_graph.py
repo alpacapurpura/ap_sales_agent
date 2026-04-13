@@ -348,9 +348,7 @@ class TestSignalAccumulator:
 
         importlib.reload(nodes_mod)
 
-        raw_msg = (
-            'Hola! [QUALIFICATION_DATA: {"budget": "5k"}] Te cuento sobre el programa.'
-        )
+        raw_msg = 'Hola! [QUALIFICATION_DATA: {"budget": "5k"}] Te cuento sobre el programa.'
         state = _base_state(
             messages=[{"role": "assistant", "content": raw_msg}],
         )

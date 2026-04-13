@@ -123,11 +123,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             metric_values = row.get("metricValues", [])
             for i, ga4_name in enumerate(ga4_metrics):
                 our_name = "users" if ga4_name == "totalUsers" else ga4_name
-                val = (
-                    float(metric_values[i].get("value", 0))
-                    if i < len(metric_values)
-                    else 0
-                )
+                val = float(metric_values[i].get("value", 0)) if i < len(metric_values) else 0
                 extracted.append(
                     ExtractedMetric(
                         provider="google_analytics",
@@ -508,11 +504,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             if data["sessions"] == 0.0 and data["users"] == 0.0:
                 continue
             for metric_name, value in data.items():
-                unit = (
-                    "percentage"
-                    if metric_name in ("bounceRate", "engagementRate")
-                    else "count"
-                )
+                unit = "percentage" if metric_name in ("bounceRate", "engagementRate") else "count"
                 metrics.append(
                     ExtractedMetric(
                         provider="google_analytics",
@@ -680,10 +672,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             day_sessions[key] = 0.0
 
         sessions = float(mets[0])
-        values = [
-            float(mets[i]) if len(mets) > i else 0.0
-            for i in range(len(self._GA4_METRIC_NAMES))
-        ]
+        values = [float(mets[i]) if len(mets) > i else 0.0 for i in range(len(self._GA4_METRIC_NAMES))]
 
         day_data[key]["sessions"] += values[0]
         day_data[key]["users"] += values[1]
@@ -734,11 +723,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 continue
 
             for metric_name, value in data.items():
-                unit = (
-                    "percentage"
-                    if metric_name in ("bounceRate", "engagementRate")
-                    else "count"
-                )
+                unit = "percentage" if metric_name in ("bounceRate", "engagementRate") else "count"
                 metrics.append(
                     ExtractedMetric(
                         provider="google_analytics",

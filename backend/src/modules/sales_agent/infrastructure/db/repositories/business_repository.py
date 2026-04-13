@@ -12,11 +12,7 @@ class BusinessRepository:
 
     def get_current_launch_product(self):
         # Find active product and return it with its stage name
-        product = (
-            self.db.execute(select(Product).where(Product.status == "active"))
-            .scalars()
-            .first()
-        )
+        product = self.db.execute(select(Product).where(Product.status == "active")).scalars().first()
         if product:
             return product, "evergreen"
         return None, None

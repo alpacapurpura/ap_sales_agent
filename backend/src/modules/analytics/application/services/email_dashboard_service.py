@@ -123,10 +123,7 @@ def compute_health_score(
     )
 
     total = int(
-        engagement_score * 0.30
-        + delivery_score * 0.30
-        + growth_score * 0.20
-        + contenido_score * 0.20,
+        engagement_score * 0.30 + delivery_score * 0.30 + growth_score * 0.20 + contenido_score * 0.20,
     )
 
     sub_scores = [
@@ -380,9 +377,7 @@ class EmailDashboardService:
         type_performance = []
         for ctype, clist in type_map.items():
             avg_open = sum(c.open_rate for c in clist) / len(clist) if clist else 0
-            avg_ctor = (
-                sum(c.click_to_open_rate for c in clist) / len(clist) if clist else 0
-            )
+            avg_ctor = sum(c.click_to_open_rate for c in clist) / len(clist) if clist else 0
             type_performance.append(
                 EmailTypePerformanceDTO(
                     campaign_type=ctype,
@@ -449,9 +444,7 @@ class EmailDashboardService:
         total_completed = sum(a.completed for a in automations)
         auto_count = len(automations)
 
-        avg_open = (
-            sum(a.open_rate for a in automations) / auto_count if auto_count else 0
-        )
+        avg_open = sum(a.open_rate for a in automations) / auto_count if auto_count else 0
 
         kpis = [
             MetricKpiDTO(
@@ -561,9 +554,7 @@ class EmailDashboardService:
                 m = {}
             completed = int(adata.get("completed", 0))
             ingresados = int(adata.get("ingresados", 0))
-            completion_rate = (
-                round(completed / ingresados * 100, 1) if ingresados > 0 else 0.0
-            )
+            completion_rate = round(completed / ingresados * 100, 1) if ingresados > 0 else 0.0
 
             steps_raw = adata.get("steps_raw", [])
             steps: list[AutomationStepDTO] = []
@@ -673,7 +664,9 @@ class EmailDashboardService:
                 click_rate=round(max(current.get("click_rate", 0) * 0.15, 0.1), 1),
                 ctor=round(max(current.get("click_to_open_rate", 0) * 0.4, 2), 1),
                 avg_days_inactive=42,
-                recommended_action="Campana de re-engagement con incentivo. Si no responden en 30 dias, mover a Dormidos.",
+                recommended_action=(
+                    "Campana de re-engagement con incentivo. Si no responden en 30 dias, mover a Dormidos."
+                ),
             ),
             EmailEngagementSegmentDTO(
                 segment_name="dormidos",
@@ -1124,9 +1117,7 @@ class EmailDashboardService:
     def _generate_health_alerts(self, metrics: dict[str, float]) -> list[str]:
         alerts: list[str] = []
         bounce = metrics.get("bounce_rate", 0)
-        spam = (
-            metrics.get("spam_reports", 0) / max(metrics.get("emails_sent", 1), 1) * 100
-        )
+        spam = metrics.get("spam_reports", 0) / max(metrics.get("emails_sent", 1), 1) * 100
         unsub = metrics.get("unsubscribe_rate", 0)
 
         if bounce > 2:
@@ -1135,13 +1126,11 @@ class EmailDashboardService:
             )
         if spam > 0.1:
             alerts.append(
-                f"Tasa de spam ({spam:.2f}%) por encima del umbral. "
-                "Revisa el contenido y la frecuencia de envio.",
+                f"Tasa de spam ({spam:.2f}%) por encima del umbral. Revisa el contenido y la frecuencia de envio.",
             )
         if unsub > 0.5:
             alerts.append(
-                f"Tasa de bajas alta ({unsub:.1f}%). "
-                "Verifica la relevancia del contenido para tu audiencia.",
+                f"Tasa de bajas alta ({unsub:.1f}%). Verifica la relevancia del contenido para tu audiencia.",
             )
         if not alerts:
             alerts.append("Tu reputacion de envio esta saludable. Sigue asi.")

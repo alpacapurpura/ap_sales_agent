@@ -32,8 +32,7 @@ async def test_web_research_returns_results() -> None:
     ]
 
     with patch(
-        "src.modules.copilot.application.tools"
-        ".interview.web_research.TavilySearchService",
+        "src.modules.copilot.application.tools.interview.web_research.TavilySearchService",
     ) as mock_cls:
         mock_service = MagicMock()
         mock_service.search = AsyncMock(
@@ -67,8 +66,7 @@ async def test_web_research_returns_results() -> None:
 async def test_web_research_empty_results() -> None:
     """Test web_research with no results."""
     with patch(
-        "src.modules.copilot.application.tools"
-        ".interview.web_research.TavilySearchService",
+        "src.modules.copilot.application.tools.interview.web_research.TavilySearchService",
     ) as mock_cls:
         mock_service = MagicMock()
         mock_service.search = AsyncMock(return_value=[])
@@ -89,8 +87,7 @@ async def test_web_research_empty_results() -> None:
 async def test_web_research_default_max_results() -> None:
     """Test web_research defaults to 5 max results."""
     with patch(
-        "src.modules.copilot.application.tools"
-        ".interview.web_research.TavilySearchService",
+        "src.modules.copilot.application.tools.interview.web_research.TavilySearchService",
     ) as mock_cls:
         mock_service = MagicMock()
         mock_service.search = AsyncMock(return_value=[])

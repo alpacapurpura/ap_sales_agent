@@ -126,15 +126,9 @@ def _enrich_profile(db: Session, tenant_id: UUID, mc_data: dict) -> None:
         "ig_username": ig_username,
         "last_interaction": mc_data.get("last_interaction"),
         "tags": [t.get("name") for t in mc_data.get("tags", [])],
-        "custom_fields": {
-            cf.get("name"): cf.get("value") for cf in mc_data.get("custom_fields", [])
-        },
+        "custom_fields": {cf.get("name"): cf.get("value") for cf in mc_data.get("custom_fields", [])},
         "score": next(
-            (
-                cf.get("value")
-                for cf in mc_data.get("custom_fields", [])
-                if cf.get("name") == "points"
-            ),
+            (cf.get("value") for cf in mc_data.get("custom_fields", []) if cf.get("name") == "points"),
             None,
         ),
         "synced_at": datetime.now(UTC).isoformat(),

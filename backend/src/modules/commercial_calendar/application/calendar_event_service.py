@@ -99,19 +99,13 @@ class CalendarEventService:
         updated = CalendarEvent(
             id=existing.id,
             tenant_id=existing.tenant_id,
-            country_code=country_code
-            if country_code is not None
-            else existing.country_code,
+            country_code=country_code if country_code is not None else existing.country_code,
             date=event_date if event_date is not None else existing.date,
             year=(event_date if event_date is not None else existing.date).year,
-            week_number=(
-                event_date if event_date is not None else existing.date
-            ).isocalendar()[1],
+            week_number=(event_date if event_date is not None else existing.date).isocalendar()[1],
             name=name if name is not None else existing.name,
             category=category if category is not None else existing.category,
-            description=description
-            if description is not None
-            else existing.description,
+            description=description if description is not None else existing.description,
         )
         return self.repo.update(updated)
 

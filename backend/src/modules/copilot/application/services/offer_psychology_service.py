@@ -55,7 +55,10 @@ class CopilotOfferPsychologyService(PsychologyGeneratorPort):
             action_name="offer_psychology_generation",
             tenant_id=tenant_id,
             system_prompt=system_prompt_content,
-            user_prompt="Analiza el avatar y la oferta, y genera los puntos de dolor y deseos según las instrucciones. Recuerda devolver JSON válido.",
+            user_prompt=(
+                "Analiza el avatar y la oferta, y genera los puntos de dolor y deseos"
+                " según las instrucciones. Recuerda devolver JSON válido."
+            ),
             response_model=PsychologyGenerationResponse,
             policy=AIActionPolicy(
                 retries=2,

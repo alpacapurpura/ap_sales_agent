@@ -96,8 +96,7 @@ def get_model_sections(model_class: type[BaseModel]) -> dict[str, SectionInfo]:
             # Nested model = section with sub-fields
             sub_fields = list(inner_type.model_fields.keys())
             field_descs = {
-                fname: finfo.description or _humanize(fname)
-                for fname, finfo in inner_type.model_fields.items()
+                fname: finfo.description or _humanize(fname) for fname, finfo in inner_type.model_fields.items()
             }
             sections[name] = SectionInfo(
                 name=name,
@@ -113,8 +112,7 @@ def get_model_sections(model_class: type[BaseModel]) -> dict[str, SectionInfo]:
             item_type = get_args(inner_type)[0]
             sub_fields = list(item_type.model_fields.keys())
             field_descs = {
-                fname: finfo.description or _humanize(fname)
-                for fname, finfo in item_type.model_fields.items()
+                fname: finfo.description or _humanize(fname) for fname, finfo in item_type.model_fields.items()
             }
             sections[name] = SectionInfo(
                 name=name,

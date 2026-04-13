@@ -68,8 +68,7 @@ class CopilotOrchestrator:
         client_ctx = {
             "current_route": context.current_route if context else None,
             "selected_fields": [
-                f.model_dump() if hasattr(f, "model_dump") else f
-                for f in (context.selected_fields if context else [])
+                f.model_dump() if hasattr(f, "model_dump") else f for f in (context.selected_fields if context else [])
             ],
             "form_data": context.form_data if context else {},
             "locale": context.locale if context else "es",
@@ -108,9 +107,7 @@ class CopilotOrchestrator:
                     yield sse_event
 
         except Exception as e:
-            logger.exception(
-                "copilot_stream_error", error=str(e), conversation_id=conv_id
-            )
+            logger.exception("copilot_stream_error", error=str(e), conversation_id=conv_id)
             yield SSEEvent(
                 event="error",
                 data={
@@ -322,8 +319,7 @@ class CopilotOrchestrator:
                 d: dict = {"role": "assistant", "content": msg.content}
                 if msg.tool_calls:
                     d["tool_calls"] = [
-                        {"id": tc["id"], "name": tc["name"], "args": tc["args"]}
-                        for tc in msg.tool_calls
+                        {"id": tc["id"], "name": tc["name"], "args": tc["args"]} for tc in msg.tool_calls
                     ]
                 result.append(d)
             elif isinstance(msg, ToolMessage):

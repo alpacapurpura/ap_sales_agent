@@ -130,9 +130,7 @@ def render_tenants_view():
                     )
 
                     if new_tenant:
-                        st.session_state.tenant_created_success = (
-                            f"✅ Tenant '{new_name}' creado exitosamente!"
-                        )
+                        st.session_state.tenant_created_success = f"✅ Tenant '{new_name}' creado exitosamente!"
                         st.rerun()
                     else:
                         st.error(error)

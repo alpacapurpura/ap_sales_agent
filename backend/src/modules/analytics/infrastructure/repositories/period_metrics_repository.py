@@ -160,8 +160,7 @@ class PeriodMetricsRepository:
                 # Prefer exact containment first (contains the full range)
                 case(
                     (
-                        (PeriodMetricModel.period_start <= start_date)
-                        & (PeriodMetricModel.period_end >= end_date),
+                        (PeriodMetricModel.period_start <= start_date) & (PeriodMetricModel.period_end >= end_date),
                         0,
                     ),
                     else_=1,

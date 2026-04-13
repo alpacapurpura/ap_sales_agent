@@ -234,11 +234,7 @@ class TestChurnedReactivation:
         assert profile.lifetime_value == 280.0
 
         # Verify audit trail shows reactivation
-        transitions = (
-            db.query(LifecycleTransitionModel)
-            .filter(LifecycleTransitionModel.profile_id == profile.id)
-            .all()
-        )
+        transitions = db.query(LifecycleTransitionModel).filter(LifecycleTransitionModel.profile_id == profile.id).all()
         assert len(transitions) == 1
         assert transitions[0].triggered_by == "reactivation"
 
@@ -309,9 +305,5 @@ class TestModuleDecoupling:
         import src.modules.crm.application.services.sale_service as sale_mod
 
         source = inspect.getsource(sale_mod)
-        assert (
-            "from src.modules.crm.application.services.lifecycle_service" not in source
-        )
-        assert (
-            "from src.modules.crm.application.services.customer_service" not in source
-        )
+        assert "from src.modules.crm.application.services.lifecycle_service" not in source
+        assert "from src.modules.crm.application.services.customer_service" not in source

@@ -165,11 +165,7 @@ class NpsService:
         nps_score = self.calculate_nps_score(scores)
         standard_nps = self.calculate_standard_nps(scores)
 
-        response_rate_pct = (
-            round((total_responses / surveys_sent) * 100, 1)
-            if surveys_sent > 0
-            else 0.0
-        )
+        response_rate_pct = round((total_responses / surveys_sent) * 100, 1) if surveys_sent > 0 else 0.0
 
         return {
             "nps_score": nps_score,
@@ -214,9 +210,7 @@ class NpsService:
                 "customer_id": str(row.customer_id),
                 "full_name": row.full_name,
                 "nps_score": row.score,
-                "responded_at": row.responded_at.isoformat()
-                if row.responded_at
-                else None,
+                "responded_at": row.responded_at.isoformat() if row.responded_at else None,
             }
             for row in rows
         ]

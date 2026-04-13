@@ -134,9 +134,7 @@ class TestExtractMetricsAlwaysUsesDaily:
             )
 
         by_level = _insights_calls_by_level(captured_params)
-        assert by_level["campaign"], (
-            "Expected at least one campaign-level insights call"
-        )
+        assert by_level["campaign"], "Expected at least one campaign-level insights call"
         for params in by_level["campaign"]:
             assert params.get("time_increment") == "1", (
                 f"Campaign-level insights must use time_increment=1, got {params}"
@@ -168,9 +166,7 @@ class TestExtractMetricsAlwaysUsesDaily:
         by_level = _insights_calls_by_level(captured_params)
         assert by_level["ad"], "Expected at least one ad-level insights call"
         for params in by_level["ad"]:
-            assert params.get("time_increment") == "1", (
-                f"Ad-level insights must use time_increment=1, got {params}"
-            )
+            assert params.get("time_increment") == "1", f"Ad-level insights must use time_increment=1, got {params}"
 
 
 class TestExtractMetricsPeriodAggregateDoesNotPollute:
@@ -216,15 +212,9 @@ class TestExtractMetricsPeriodAggregateDoesNotPollute:
             )
 
         # The spend metric from the polluted row must NOT appear anywhere
-        spend_metrics = [
-            m
-            for m in result.metrics
-            if m.metric_name == "spend" and m.channel_slug == "meta-ads"
-        ]
+        spend_metrics = [m for m in result.metrics if m.metric_name == "spend" and m.channel_slug == "meta-ads"]
         for m in spend_metrics:
-            assert m.value != 856.61, (
-                f"Period aggregate leaked into per-day metric: {m}"
-            )
+            assert m.value != 856.61, f"Period aggregate leaked into per-day metric: {m}"
 
     @pytest.mark.asyncio
     async def test_daily_response_produces_per_day_metrics(self):
@@ -261,10 +251,7 @@ class TestExtractMetricsPeriodAggregateDoesNotPollute:
         account_spend = [
             m
             for m in result.metrics
-            if m.metric_name == "spend"
-            and m.channel_slug == "meta-ads"
-            and m.campaign_id is None
-            and m.ad_id is None
+            if m.metric_name == "spend" and m.channel_slug == "meta-ads" and m.campaign_id is None and m.ad_id is None
         ]
         assert len(account_spend) == 3
         by_date = {m.date: m.value for m in account_spend}

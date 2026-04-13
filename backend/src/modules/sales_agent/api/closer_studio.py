@@ -172,11 +172,7 @@ async def send_message(
             ChannelResolver,
         )
 
-        lead = (
-            db.execute(select(LeadModel).where(LeadModel.id == lead_id))
-            .scalars()
-            .first()
-        )
+        lead = db.execute(select(LeadModel).where(LeadModel.id == lead_id)).scalars().first()
         if lead:
             resolver = ChannelResolver(db)
             sent = await resolver.send_to_lead(user.tenant_id, lead, body.content)
@@ -198,9 +194,7 @@ def nudge(
 ):
     # For now, nudge stores as instruction for AI to generate proactive message
     svc = CloserStudioService(db)
-    nudge_instruction = (
-        body.context or "Send a proactive follow-up message to re-engage this lead."
-    )
+    nudge_instruction = body.context or "Send a proactive follow-up message to re-engage this lead."
     result = svc.send_message(
         tenant_id=user.tenant_id,
         lead_id=lead_id,

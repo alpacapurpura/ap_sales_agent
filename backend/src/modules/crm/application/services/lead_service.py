@@ -72,9 +72,7 @@ class PipelineService:
         svc = LifecycleService(self.db)
         svc.force_stage(
             profile_id=profile_id,
-            tenant_id=self.db.info.get("tenant_id")
-            if hasattr(self.db, "info")
-            else None,
+            tenant_id=self.db.info.get("tenant_id") if hasattr(self.db, "info") else None,
             new_stage=stage,
             admin_user_id=admin_user_id,
             note=note,

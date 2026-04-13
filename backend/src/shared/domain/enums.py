@@ -86,9 +86,7 @@ class ChannelType(StrEnum):
     INSTAGRAM_ACCOUNT = "instagram_account"  # IG Business Account linked to a Page
     META_ADS_ACCOUNT = "meta_ads_account"  # Ad Account (uses user token for reads)
     META_PIXEL = "meta_pixel"  # Meta (Facebook) Pixel for conversion tracking
-    WHATSAPP_BUSINESS_ACCOUNT = (
-        "whatsapp_business_account"  # WABA from Meta Business Manager
-    )
+    WHATSAPP_BUSINESS_ACCOUNT = "whatsapp_business_account"  # WABA from Meta Business Manager
     YOUTUBE = "youtube"
     YOUTUBE_ANALYTICS = "youtube_analytics"
 

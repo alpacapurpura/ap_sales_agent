@@ -74,9 +74,7 @@ class GoogleAnalyticsAdapter:
         )
         return authorization_url, state
 
-    def exchange_code(
-        self, code: str, redirect_uri: str | None = None
-    ) -> dict[str, Any]:
+    def exchange_code(self, code: str, redirect_uri: str | None = None) -> dict[str, Any]:
         """Exchanges the authorization code for tokens."""
         flow = Flow.from_client_config(self.get_client_config(), scopes=SCOPES)
 
@@ -125,9 +123,7 @@ class GoogleAnalyticsAdapter:
             account_name = account.get("displayName", "")
             for prop in account.get("propertySummaries", []):
                 raw_property = prop.get("property", "")
-                property_id = (
-                    raw_property.split("/")[-1] if "/" in raw_property else raw_property
-                )
+                property_id = raw_property.split("/")[-1] if "/" in raw_property else raw_property
                 properties.append(
                     {
                         "property_id": property_id,

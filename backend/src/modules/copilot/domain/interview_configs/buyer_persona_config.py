@@ -97,17 +97,11 @@ BUYER_PERSONA_BLOCKS = [
 
 BUYER_PERSONA_INTERVIEW_CONFIG = InterviewConfig(
     domain="buyer_persona",
-    objetivo=(
-        "Construir un buyer persona detallado que guie toda la "
-        "estrategia de marketing y ventas"
-    ),
+    objetivo=("Construir un buyer persona detallado que guie toda la estrategia de marketing y ventas"),
     bloques=BUYER_PERSONA_BLOCKS,
     output_schema_path="modules.brand.domain.buyer_persona.BuyerPersona",
     datos_previos_fields=["name", "demographics", "pain_points", "desires"],
-    tono=(
-        "Eres un investigador de mercado experto. Haces preguntas profundas, "
-        "no superficiales."
-    ),
+    tono=("Eres un investigador de mercado experto. Haces preguntas profundas, no superficiales."),
     expertise_template="buyer_persona_expertise",
     document_extraction_template="buyer_persona_doc_extraction",
     rag_collection=None,

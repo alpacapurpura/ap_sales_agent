@@ -32,13 +32,8 @@ class TestNormalizeIndustry:
         assert normalize_industry("gimnasio") == IndustryCategory.FITNESS
 
     def test_substring_match(self):
-        assert (
-            normalize_industry("Mi tienda online de moda") == IndustryCategory.ECOMMERCE
-        )
-        assert (
-            normalize_industry("Coaching para emprendedores")
-            == IndustryCategory.EDUCATION
-        )
+        assert normalize_industry("Mi tienda online de moda") == IndustryCategory.ECOMMERCE
+        assert normalize_industry("Coaching para emprendedores") == IndustryCategory.EDUCATION
 
     def test_unknown_returns_general(self):
         assert normalize_industry("something random") == IndustryCategory.GENERAL

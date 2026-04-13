@@ -14,25 +14,18 @@ from src.modules.analytics.domain.metric_catalog import (
 def test_all_metrics_have_valid_aggregation_type():
     """Every metric in METRIC_CATALOG has a valid AggregationType."""
     for name, defn in METRIC_CATALOG.items():
-        assert isinstance(defn.aggregation, AggregationType), (
-            f"{name} has invalid aggregation: {defn.aggregation!r}"
-        )
+        assert isinstance(defn.aggregation, AggregationType), f"{name} has invalid aggregation: {defn.aggregation!r}"
 
 
 def test_weighted_average_weight_metrics_are_additive():
     """Every WEIGHTED_AVERAGE metric's weight_metric must exist in catalog and be ADDITIVE."""
     for name, defn in METRIC_CATALOG.items():
         if defn.aggregation == AggregationType.WEIGHTED_AVERAGE:
-            assert defn.weight_metric is not None, (
-                f"{name} is WEIGHTED_AVERAGE but has no weight_metric"
-            )
+            assert defn.weight_metric is not None, f"{name} is WEIGHTED_AVERAGE but has no weight_metric"
             wm = METRIC_CATALOG.get(defn.weight_metric)
-            assert wm is not None, (
-                f"{name}.weight_metric '{defn.weight_metric}' not in catalog"
-            )
+            assert wm is not None, f"{name}.weight_metric '{defn.weight_metric}' not in catalog"
             assert wm.aggregation == AggregationType.ADDITIVE, (
-                f"{name}.weight_metric '{defn.weight_metric}' must be ADDITIVE, "
-                f"got {wm.aggregation}"
+                f"{name}.weight_metric '{defn.weight_metric}' must be ADDITIVE, got {wm.aggregation}"
             )
 
 
@@ -43,8 +36,7 @@ def test_derived_formula_components_exist_in_catalog():
             assert defn.formula is not None, f"{name} is DERIVED but has no formula"
             for component in defn.formula_components:
                 assert component in METRIC_CATALOG, (
-                    f"{name}.formula_components includes '{component}' "
-                    f"which is not in catalog"
+                    f"{name}.formula_components includes '{component}' which is not in catalog"
                 )
 
 
@@ -52,9 +44,7 @@ def test_non_aggregable_have_no_aggregation_params():
     """NON_AGGREGABLE metrics must not have weight_metric or formula_components."""
     for name, defn in METRIC_CATALOG.items():
         if defn.aggregation == AggregationType.NON_AGGREGABLE:
-            assert defn.weight_metric is None, (
-                f"{name} is NON_AGGREGABLE but has weight_metric='{defn.weight_metric}'"
-            )
+            assert defn.weight_metric is None, f"{name} is NON_AGGREGABLE but has weight_metric='{defn.weight_metric}'"
 
 
 def test_is_additive_helper():
@@ -144,9 +134,7 @@ def test_compute_channel_totals_excludes_non_additive():
     assert totals["impressions"] == 10000
     assert totals["clicks"] == 500
     assert totals["spend"] == 750
-    assert "reach" not in totals, (
-        "reach is NON_AGGREGABLE and must not appear in totals"
-    )
+    assert "reach" not in totals, "reach is NON_AGGREGABLE and must not appear in totals"
     assert "ctr" not in totals, "ctr is WEIGHTED_AVERAGE and must not appear in totals"
     assert "cpc" not in totals, "cpc is DERIVED and must not appear in totals"
 

@@ -68,10 +68,7 @@ class MailerliteConnector(BaseConnector):
         try:
             async with httpx.AsyncClient(headers=self._headers, timeout=30.0) as client:
                 # Fetch recent sent campaigns
-                campaigns_url = (
-                    f"{self._base_url}/campaigns"
-                    f"?filter[status]=sent&sort=-finished_at&limit=25"
-                )
+                campaigns_url = f"{self._base_url}/campaigns?filter[status]=sent&sort=-finished_at&limit=25"
                 campaigns_resp = await client.get(campaigns_url)
                 if campaigns_resp.status_code != 200:
                     logger.warning(

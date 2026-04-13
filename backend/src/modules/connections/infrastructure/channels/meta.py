@@ -80,8 +80,7 @@ def _parse_ad_accounts(ads_raw: httpx.Response) -> list[dict[str, Any]]:
         return []
     return [
         {
-            "ad_account_id": ad.get("account_id")
-            or ad.get("id", "").replace("act_", ""),
+            "ad_account_id": ad.get("account_id") or ad.get("id", "").replace("act_", ""),
             "ad_account_name": ad.get("name", ""),
             "currency": ad.get("currency"),
             "account_status": ad.get("account_status"),
@@ -373,9 +372,7 @@ class MetaAdapter:
                 params=params,
             )
             if response.status_code != 200:
-                logger.error(
-                    "Error exchanging code for token", response_text=response.text
-                )
+                logger.error("Error exchanging code for token", response_text=response.text)
                 response.raise_for_status()
 
             token_data = response.json()
@@ -403,13 +400,9 @@ class MetaAdapter:
                         token_data["expires_in"] = long_data.get("expires_in")
                         logger.info("meta_token_extended_to_long_lived")
                     else:
-                        logger.warning(
-                            "Could not extend token", response_text=long_lived.text
-                        )
+                        logger.warning("Could not extend token", response_text=long_lived.text)
                 except Exception as e:  # noqa: BLE001 — infrastructure resilience
-                    logger.warning(
-                        "Token extension failed, using short-lived", error=str(e)
-                    )
+                    logger.warning("Token extension failed, using short-lived", error=str(e))
 
             return token_data
 
@@ -436,11 +429,7 @@ class MetaAdapter:
                 params={"access_token": self.access_token},
             )
             if resp.status_code == 200:
-                return [
-                    p["permission"]
-                    for p in resp.json().get("data", [])
-                    if p.get("status") == "granted"
-                ]
+                return [p["permission"] for p in resp.json().get("data", []) if p.get("status") == "granted"]
             logger.warning(
                 "meta_get_permissions_failed",
                 status=resp.status_code,

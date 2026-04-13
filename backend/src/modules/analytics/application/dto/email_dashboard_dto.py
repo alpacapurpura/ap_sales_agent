@@ -61,9 +61,7 @@ class EmailCampaignSummaryDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     campaign_name: str
     campaign_subject: str | None = None
-    campaign_type: (
-        str  # newsletter | lanzamiento | promocion | contenido | reengagement
-    )
+    campaign_type: str  # newsletter | lanzamiento | promocion | contenido | reengagement
     sent_count: int
     open_rate: float
     click_to_open_rate: float
@@ -125,9 +123,7 @@ class EmailCampaignDTO(BaseModel):
 
 class EmailTypePerformanceDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    campaign_type: (
-        str  # newsletter | lanzamiento | promocion | contenido | reengagement
-    )
+    campaign_type: str  # newsletter | lanzamiento | promocion | contenido | reengagement
     campaign_count: int = 0
     total_sent: int = 0
     avg_open_rate: float = 0.0

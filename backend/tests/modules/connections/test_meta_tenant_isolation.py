@@ -111,9 +111,7 @@ class TestSequentialTenantIsolation:
             # Verify User was called with explicit api= each time
             assert mock_user_class.call_count == 2
             for call in mock_user_class.call_args_list:
-                assert "api" in call.kwargs, (
-                    "User() must be called with api= keyword argument"
-                )
+                assert "api" in call.kwargs, "User() must be called with api= keyword argument"
 
 
 @patch("src.modules.connections.infrastructure.channels.meta.settings")
@@ -191,12 +189,8 @@ class TestConcurrentTenantIsolation:
                 adapter_b.get_user_profile(),
             )
 
-            assert result_a == tenant_a_data, (
-                f"Tenant A got wrong data under concurrency: {result_a}"
-            )
-            assert result_b == tenant_b_data, (
-                f"Tenant B got wrong data under concurrency: {result_b}"
-            )
+            assert result_a == tenant_a_data, f"Tenant A got wrong data under concurrency: {result_a}"
+            assert result_b == tenant_b_data, f"Tenant B got wrong data under concurrency: {result_b}"
 
     @pytest.mark.asyncio
     async def test_concurrent_isolation_with_interleaving(self, mock_settings):

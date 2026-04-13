@@ -28,8 +28,7 @@ class TestModuleRegistryStructure:
         for module_id in registry:
             module_dir = modules_root / module_id
             assert module_dir.is_dir(), (
-                f"Module '{module_id}' is registered in MODULE_REGISTRY but "
-                f"no directory found at {module_dir}"
+                f"Module '{module_id}' is registered in MODULE_REGISTRY but no directory found at {module_dir}"
             )
 
     def test_all_descriptors_have_required_fields(self):

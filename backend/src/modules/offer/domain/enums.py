@@ -82,9 +82,7 @@ class LandingJobStatus(StrEnum):
 
 class GuaranteeType(StrEnum):
     NONE = "none"
-    CONDITIONAL_ACTION_BASED = (
-        "conditional_action_based"  # "Si haces X y no funciona, te devuelvo"
-    )
+    CONDITIONAL_ACTION_BASED = "conditional_action_based"  # "Si haces X y no funciona, te devuelvo"
     UNCONDITIONAL_30_DAY = "unconditional_30_day"
     DOUBLE_MONEY_BACK = "double_money_back"
     SATISFACTION_OR_FREE_WORK = "satisfaction_or_free_work"

@@ -42,7 +42,10 @@ def _build_registry() -> dict[str, ModuleDescriptor]:
         "brand": ModuleDescriptor(
             module_id="brand",
             label="Brand Studio",
-            description="Identidad de marca completa: nombre, historia, posicionamiento (Brand Love Key), narrativa (StoryBrand), identidad visual, voz, equipo, testimonios, autoridad, assets de comunicación",
+            description=(
+                "Identidad de marca completa: nombre, historia, posicionamiento (Brand Love Key),"
+                " narrativa (StoryBrand), identidad visual, voz, equipo, testimonios, autoridad, assets de comunicación"
+            ),
             route_prefix="brand-studio",
             model_class=_lazy_brand_settings(),
             repo_factory=_brand_repo_factory,
@@ -52,7 +55,10 @@ def _build_registry() -> dict[str, ModuleDescriptor]:
         "offer": ModuleDescriptor(
             module_id="offer",
             label="Offer Studio",
-            description="Escalera de ofertas: productos/servicios con precio, psicología de venta, avatar, objeciones, knowledge base",
+            description=(
+                "Escalera de ofertas: productos/servicios con precio,"
+                " psicología de venta, avatar, objeciones, knowledge base"
+            ),
             route_prefix="offer-studio",
             model_class=None,  # Offers are SQLAlchemy rows, not a single Pydantic root
             repo_factory=_offer_repo_factory,
@@ -62,7 +68,10 @@ def _build_registry() -> dict[str, ModuleDescriptor]:
         "connections": ModuleDescriptor(
             module_id="connections",
             label="Conexiones",
-            description="Integraciones externas: Meta, Instagram, WhatsApp, Shopify, Google Calendar, Gmail, Mailerlite, YouTube, Google Analytics, Google Ads",
+            description=(
+                "Integraciones externas: Meta, Instagram, WhatsApp, Shopify,"
+                " Google Calendar, Gmail, Mailerlite, YouTube, Google Analytics, Google Ads"
+            ),
             route_prefix="connections",
             model_class=None,
             repo_factory=_connections_repo_factory,
@@ -116,7 +125,10 @@ def _build_registry() -> dict[str, ModuleDescriptor]:
         "commercial_calendar": ModuleDescriptor(
             module_id="commercial_calendar",
             label="Calendario Comercial",
-            description="Eventos del calendario comercial: feriados nacionales, campanas, temporadas de venta, dias especiales. Eventos del sistema + eventos custom por tenant.",
+            description=(
+                "Eventos del calendario comercial: feriados nacionales, campanas,"
+                " temporadas de venta, dias especiales. Eventos del sistema + eventos custom por tenant."
+            ),
             route_prefix="commercial-calendar",
             model_class=None,  # CalendarEvent is a dataclass, not Pydantic
             repo_factory=_calendar_repo_factory,

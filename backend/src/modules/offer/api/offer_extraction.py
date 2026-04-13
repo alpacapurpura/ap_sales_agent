@@ -41,9 +41,7 @@ async def extract_full_offer(
     for file in files:
         content = await FileParsingService.parse_file(file)
         if content:
-            extracted_file_text += (
-                f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
-            )
+            extracted_file_text += f"\n--- Documento adjunto: {file.filename} ---\n{content}\n"
 
     combined_text = (text or "") + "\n" + extracted_file_text
     combined_text = combined_text.strip()

@@ -19,9 +19,7 @@ from src.modules.analytics.application.dto.attraction_dto import (
     AttractionDetailDTO,
 )
 
-_ATTRACTION_MODULE = (
-    "src.modules.analytics.application.services.stage_services.attraction_stage"
-)
+_ATTRACTION_MODULE = "src.modules.analytics.application.services.stage_services.attraction_stage"
 
 
 @pytest.fixture

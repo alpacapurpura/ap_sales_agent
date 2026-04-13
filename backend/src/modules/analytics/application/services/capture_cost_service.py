@@ -128,11 +128,8 @@ class CaptureCostService:
             category = cost_entry.proration_category
             eligible = _category_channels.get(category)
 
-            if eligible is None:
-                # full_service -> all connected
-                target_channels = connected_set
-            else:
-                target_channels = eligible & connected_set
+            # full_service -> all connected; otherwise intersect with connected
+            target_channels = connected_set if eligible is None else eligible & connected_set
 
             if not target_channels:
                 continue

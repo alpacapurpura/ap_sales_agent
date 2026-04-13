@@ -64,8 +64,7 @@ def get_lead_summary(temperature: str | None = None, limit: int = 10) -> str:
             lines.append(f"  - {temp}: {cnt}")
 
         lines.append(
-            f"\n### Top {len(rows)} Leads"
-            + (f" ({temperature})" if temperature else ""),
+            f"\n### Top {len(rows)} Leads" + (f" ({temperature})" if temperature else ""),
         )
 
         for r in rows:
@@ -134,9 +133,7 @@ def get_pipeline_overview() -> str:
 
         lines.append("### Por Etapa y Estado")
         lines.extend(
-            f"  - {r['stage']} / {r['status']}: "
-            f"{r['cnt']} ventas, "
-            f"${float(r['total_amount']):,.2f} {r['currency']}"
+            f"  - {r['stage']} / {r['status']}: {r['cnt']} ventas, ${float(r['total_amount']):,.2f} {r['currency']}"
             for r in rows
         )
 

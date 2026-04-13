@@ -40,31 +40,19 @@ def render_home_dashboard():
 
             # Active tenants (had events in 7d)
             now = datetime.now(UTC)
-            active_tenants = sum(
-                1
-                for t in tenants_summary
-                if t["last_event"] and (now - t["last_event"]).days < 7
-            )
+            active_tenants = sum(1 for t in tenants_summary if t["last_event"] and (now - t["last_event"]).days < 7)
             total_users = sum(t["user_count"] for t in tenants_summary)
             # Acceptance rate
             accepted = summary_30d.get("proposal_accepted", 0)
             rejected = summary_30d.get("proposal_rejected", 0)
             total_proposals = accepted + rejected
-            acceptance_rate = (
-                f"{round(accepted / total_proposals * 100)}%"
-                if total_proposals
-                else "N/A"
-            )
+            acceptance_rate = f"{round(accepted / total_proposals * 100)}%" if total_proposals else "N/A"
 
             # Procedure completion
             proc_rates = event_repo.get_global_procedure_rates(days=30)
             total_started = sum(p.get("started", 0) for p in proc_rates.values())
             total_completed = sum(p.get("completed", 0) for p in proc_rates.values())
-            proc_pct = (
-                f"{round(total_completed / total_started * 100)}%"
-                if total_started
-                else "N/A"
-            )
+            proc_pct = f"{round(total_completed / total_started * 100)}%" if total_started else "N/A"
 
             # Knowledge docs count
             try:
@@ -248,15 +236,12 @@ def render_home_dashboard():
                         data_str = str(ev.event_data or {})
                         rows.append(
                             {
-                                "Fecha": ev.created_at.strftime("%Y-%m-%d %H:%M")
-                                if ev.created_at
-                                else "—",
+                                "Fecha": ev.created_at.strftime("%Y-%m-%d %H:%M") if ev.created_at else "—",
                                 "Tenant": get_tenant_name(ev.tenant_id),
                                 "Usuario": str(ev.user_id)[:8],
                                 "Tipo": ev.event_type,
                                 "Ruta": ev.route or "—",
-                                "Detalle": data_str[:80]
-                                + ("..." if len(data_str) > 80 else ""),
+                                "Detalle": data_str[:80] + ("..." if len(data_str) > 80 else ""),
                             },
                         )
                     df = pd.DataFrame(rows)

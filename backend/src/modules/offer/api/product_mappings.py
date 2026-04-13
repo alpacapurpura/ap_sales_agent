@@ -189,8 +189,7 @@ async def list_source_products(
     stmt = select(JourneyEventModel.properties).where(
         JourneyEventModel.tenant_id == user.tenant_id,
         JourneyEventModel.event_name.in_(["checkout_initiated", "checkout_completed"]),
-        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
-        == source,
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source") == source,
     )
     events = db.execute(stmt).all()
 
@@ -226,8 +225,7 @@ async def list_unmatched_products(
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
         JourneyEventModel.event_name.in_(["checkout_initiated", "checkout_completed"]),
-        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
-        == source,
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source") == source,
     )
     events = db.execute(stmt).all()
 
@@ -309,8 +307,7 @@ async def create_product_mapping(
     ).where(
         JourneyEventModel.tenant_id == user.tenant_id,
         JourneyEventModel.event_name == "checkout_completed",
-        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
-        == payload.source,
+        sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source") == payload.source,
     )
     checkout_events = db.execute(checkout_stmt).all()
 
@@ -342,8 +339,7 @@ async def create_product_mapping(
                     "profile_id": profile_id,
                     "occurred_at": occurred_at,
                     "currency": currency,
-                    "amount": float(item.get("price", 0))
-                    * int(item.get("quantity", 1)),
+                    "amount": float(item.get("price", 0)) * int(item.get("quantity", 1)),
                     "order_id": order_id,
                 },
             )
@@ -531,11 +527,7 @@ async def get_offer_products_detail(
     repeat_customer_count = db.execute(
         select(sa_func.count()).select_from(repeat_subq),
     ).scalar_one()
-    repeat_rate = (
-        (repeat_customer_count / unique_customers * 100)
-        if unique_customers > 0
-        else 0.0
-    )
+    repeat_rate = (repeat_customer_count / unique_customers * 100) if unique_customers > 0 else 0.0
 
     # 5. Weekly revenue (last 12 weeks)
     twelve_weeks_ago = datetime.now(timezone.utc) - timedelta(weeks=12)
@@ -553,9 +545,7 @@ async def get_offer_products_detail(
         .group_by("week")
         .order_by("week"),
     ).all()
-    weekly_revenue = [
-        {"week": w.strftime("%G-W%V"), "revenue": float(rev)} for w, rev in weekly_rows
-    ]
+    weekly_revenue = [{"week": w.strftime("%G-W%V"), "revenue": float(rev)} for w, rev in weekly_rows]
 
     # 6. Product-level metrics from journey_events
     mappings_stmt = select(
@@ -571,10 +561,7 @@ async def get_offer_products_detail(
     products: list[ProductMetricOut] = []
     if mapping_rows:
         mapped_ids = {r.external_id for r in mapping_rows}
-        mapping_meta = {
-            r.external_id: {"name": r.external_name, "source": r.source}
-            for r in mapping_rows
-        }
+        mapping_meta = {r.external_id: {"name": r.external_name, "source": r.source} for r in mapping_rows}
 
         events_stmt = select(JourneyEventModel.properties).where(
             JourneyEventModel.tenant_id == tenant_id,
@@ -620,9 +607,7 @@ async def get_offer_products_detail(
                     transaction_count=agg.get("transactions", 0),
                     avg_unit_price=round(rev / qty, 2) if qty > 0 else 0.0,
                     currency=agg.get("currency", currency),
-                    pct_of_total=round(rev / total_product_revenue * 100, 1)
-                    if rev > 0
-                    else 0.0,
+                    pct_of_total=round(rev / total_product_revenue * 100, 1) if rev > 0 else 0.0,
                 ),
             )
         products.sort(key=lambda p: p.total_revenue, reverse=True)

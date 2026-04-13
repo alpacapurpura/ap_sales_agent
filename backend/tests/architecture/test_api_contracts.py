@@ -147,8 +147,7 @@ def test_all_endpoints_have_response_model():
                     continue
 
                 violations.append(
-                    f"{violation_key} (line {route['line']}, "
-                    f"{route['method']}, no response_model)",
+                    f"{violation_key} (line {route['line']}, {route['method']}, no response_model)",
                 )
 
     assert violations == [], (

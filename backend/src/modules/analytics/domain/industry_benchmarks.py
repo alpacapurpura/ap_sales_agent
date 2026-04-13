@@ -46,9 +46,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=1.5,
             high=2.19,
             unit="percentage",
-            interpretation_es=(
-                "CTR mide la efectividad de tus anuncios para generar clics"
-            ),
+            interpretation_es=("CTR mide la efectividad de tus anuncios para generar clics"),
         ),
         IndustryBenchmarkEntry(
             metric_name="CPC",
@@ -98,8 +96,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             high=70.0,
             unit="percentage",
             interpretation_es=(
-                "Porcentaje de sesiones con interacción activa. "
-                ">50% saludable, E-commerce 70-80%, B2B 75-85%"
+                "Porcentaje de sesiones con interacción activa. >50% saludable, E-commerce 70-80%, B2B 75-85%"
             ),
         ),
         IndustryBenchmarkEntry(
@@ -109,8 +106,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             high=55.0,
             unit="percentage",
             interpretation_es=(
-                "Porcentaje de sesiones sin interacción. "
-                "<40% bueno, >55% revisar contenido y velocidad"
+                "Porcentaje de sesiones sin interacción. <40% bueno, >55% revisar contenido y velocidad"
             ),
         ),
         IndustryBenchmarkEntry(
@@ -119,9 +115,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=137.0,
             high=300.0,
             unit="seconds",
-            interpretation_es=(
-                "Duración promedio de sesión. <30s sin valor, >180s alto engagement"
-            ),
+            interpretation_es=("Duración promedio de sesión. <30s sin valor, >180s alto engagement"),
         ),
         # ── Instagram Organic ──
         IndustryBenchmarkEntry(
@@ -130,9 +124,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=0.50,
             high=1.20,
             unit="percentage",
-            interpretation_es=(
-                "Tasa de engagement orgánico IG. >0.5% promedio global, >1.2% top 25%"
-            ),
+            interpretation_es=("Tasa de engagement orgánico IG. >0.5% promedio global, >1.2% top 25%"),
         ),
         IndustryBenchmarkEntry(
             metric_name="ig_saves_rate",
@@ -140,9 +132,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=1.2,
             high=2.5,
             unit="percentage",
-            interpretation_es=(
-                "Tasa de guardados sobre vistas. Alto = contenido educativo valioso"
-            ),
+            interpretation_es=("Tasa de guardados sobre vistas. Alto = contenido educativo valioso"),
         ),
         # ── YouTube Organic ──
         IndustryBenchmarkEntry(
@@ -151,9 +141,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=50.0,
             high=70.0,
             unit="percentage",
-            interpretation_es=(
-                "Porcentaje promedio de retención de video. Mide calidad del contenido."
-            ),
+            interpretation_es=("Porcentaje promedio de retención de video. Mide calidad del contenido."),
         ),
         IndustryBenchmarkEntry(
             metric_name="card_click_rate",
@@ -161,9 +149,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=3.0,
             high=7.0,
             unit="percentage",
-            interpretation_es=(
-                "Efectividad de las tarjetas informativas dentro del video."
-            ),
+            interpretation_es=("Efectividad de las tarjetas informativas dentro del video."),
         ),
         IndustryBenchmarkEntry(
             metric_name="end_screen_click_rate",
@@ -180,9 +166,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=18.0,
             high=40.0,
             unit="percentage",
-            interpretation_es=(
-                "Tasa de apertura de emails. 18% promedio global. >40% excelente."
-            ),
+            interpretation_es=("Tasa de apertura de emails. 18% promedio global. >40% excelente."),
         ),
         IndustryBenchmarkEntry(
             metric_name="click_rate",
@@ -214,9 +198,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=0.1,
             high=0.5,
             unit="percentage",
-            interpretation_es=(
-                "Tasa de desuscripción. >0.5% indica contenido desalineado."
-            ),
+            interpretation_es=("Tasa de desuscripción. >0.5% indica contenido desalineado."),
         ),
         IndustryBenchmarkEntry(
             metric_name="completion_rate",
@@ -224,9 +206,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=45.0,
             high=60.0,
             unit="percentage",
-            interpretation_es=(
-                "Tasa de completado de automatizaciones. Mide eficacia de secuencias."
-            ),
+            interpretation_es=("Tasa de completado de automatizaciones. Mide eficacia de secuencias."),
         ),
         IndustryBenchmarkEntry(
             metric_name="deliverability_rate",
@@ -234,10 +214,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=95.0,
             high=99.0,
             unit="percentage",
-            interpretation_es=(
-                "Tasa de entregabilidad. <90% indica problemas de reputación. "
-                ">99% excelente."
-            ),
+            interpretation_es=("Tasa de entregabilidad. <90% indica problemas de reputación. >99% excelente."),
         ),
         IndustryBenchmarkEntry(
             metric_name="list_growth_rate",
@@ -245,9 +222,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=3.0,
             high=8.0,
             unit="percentage",
-            interpretation_es=(
-                "Crecimiento neto de lista. 3-8% mensual saludable para creadores."
-            ),
+            interpretation_es=("Crecimiento neto de lista. 3-8% mensual saludable para creadores."),
         ),
         IndustryBenchmarkEntry(
             metric_name="forward_rate",
@@ -255,9 +230,7 @@ INDUSTRY_BENCHMARKS: dict[IndustryCategory, list[IndustryBenchmarkEntry]] = {
             median=0.05,
             high=0.15,
             unit="percentage",
-            interpretation_es=(
-                "Tasa de reenvío. >0.15% indica contenido viral que se comparte."
-            ),
+            interpretation_es=("Tasa de reenvío. >0.15% indica contenido viral que se comparte."),
         ),
     ],
     IndustryCategory.EDUCATION: [

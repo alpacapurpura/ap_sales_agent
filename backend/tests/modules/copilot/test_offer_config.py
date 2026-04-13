@@ -73,9 +73,7 @@ def test_offer_datos_previos_fields_are_real() -> None:
     offer_fields = set(Offer.model_fields.keys())
 
     for field in OFFER_INTERVIEW_CONFIG.datos_previos_fields:
-        assert field in offer_fields, (
-            f"datos_previos field '{field}' not found in Offer entity"
-        )
+        assert field in offer_fields, f"datos_previos field '{field}' not found in Offer entity"
 
 
 def test_offer_expertise_template_name() -> None:

@@ -133,9 +133,7 @@ class TestYouTubeExpandedMetrics:
                 date(2026, 3, 15),
             )
 
-        yt_metrics = {
-            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
-        }
+        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
 
         assert "comments" in yt_metrics
         assert yt_metrics["comments"].value == 340.0
@@ -163,9 +161,7 @@ class TestYouTubeExpandedMetrics:
                 date(2026, 3, 15),
             )
 
-        yt_metrics = {
-            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
-        }
+        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
 
         assert "subscribers_lost" in yt_metrics
         assert yt_metrics["subscribers_lost"].value == 15.0
@@ -190,9 +186,7 @@ class TestYouTubeExpandedMetrics:
                 date(2026, 3, 15),
             )
 
-        yt_metrics = {
-            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
-        }
+        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
 
         assert "avg_view_percentage" in yt_metrics
         assert yt_metrics["avg_view_percentage"].value == 42.3
@@ -222,9 +216,7 @@ class TestYouTubeCardMetrics:
                 date(2026, 3, 15),
             )
 
-        yt_metrics = {
-            m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"
-        }
+        yt_metrics = {m.metric_name: m for m in result.metrics if m.channel_slug == "yt-organic"}
 
         assert "card_clicks" in yt_metrics
         assert yt_metrics["card_clicks"].value == 250.0

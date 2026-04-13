@@ -125,9 +125,7 @@ class TestStageOverviewDTO:
             "period",
             "last_updated",
         }
-        assert expected == fields, (
-            f"Missing: {expected - fields}; Extra: {fields - expected}"
-        )
+        assert expected == fields, f"Missing: {expected - fields}; Extra: {fields - expected}"
 
     def test_full_instantiation(self):
         """Can create with all fields populated."""

@@ -115,9 +115,7 @@ class CopilotEventRepository:
             scope = (ev.event_data or {}).get("scope", "all")
             scope_counts[scope] = scope_counts.get(scope, 0) + 1
 
-        most_queried_scope = (
-            max(scope_counts, key=scope_counts.get) if scope_counts else None
-        )
+        most_queried_scope = max(scope_counts, key=scope_counts.get) if scope_counts else None
         return {"search_count": search_count, "most_queried_scope": most_queried_scope}
 
     def get_friction_map(self, tenant_id: UUID, days: int = 30) -> dict[str, int]:
@@ -164,9 +162,7 @@ class CopilotEventRepository:
         )
         active_users = self.db.execute(active_stmt).scalar() or 0
 
-        messages_per_user_avg = (
-            round(total_messages / active_users, 1) if active_users else 0
-        )
+        messages_per_user_avg = round(total_messages / active_users, 1) if active_users else 0
 
         # Suggested vs typed
         suggested_stmt = (
@@ -226,9 +222,7 @@ class CopilotEventRepository:
         result = {}
         for proc_id, info in procedures.items():
             steps = info.pop("abandoned_steps")
-            info["avg_abandoned_step"] = (
-                round(sum(steps) / len(steps), 1) if steps else None
-            )
+            info["avg_abandoned_step"] = round(sum(steps) / len(steps), 1) if steps else None
             result[proc_id] = info
 
         return result
@@ -310,9 +304,7 @@ class CopilotEventRepository:
         return {
             "total_messages": msg_count,
             "active_users": active_users,
-            "messages_per_user_avg": round(msg_count / active_users, 1)
-            if active_users
-            else 0,
+            "messages_per_user_avg": round(msg_count / active_users, 1) if active_users else 0,
             "suggested_vs_typed": {
                 "suggested": suggested_count,
                 "typed": max(0, msg_count - suggested_count),
@@ -356,9 +348,7 @@ class CopilotEventRepository:
         result = {}
         for proc_id, info in procedures.items():
             steps = info.pop("abandoned_steps")
-            info["avg_abandoned_step"] = (
-                round(sum(steps) / len(steps), 1) if steps else None
-            )
+            info["avg_abandoned_step"] = round(sum(steps) / len(steps), 1) if steps else None
             result[proc_id] = info
         return result
 
@@ -378,9 +368,7 @@ class CopilotEventRepository:
             .order_by(func.count().desc())
         )
         rows = self.db.execute(stmt).all()
-        return [
-            {"tenant_id": row.tenant_id, "event_count": row.event_count} for row in rows
-        ]
+        return [{"tenant_id": row.tenant_id, "event_count": row.event_count} for row in rows]
 
     def get_recent_events_all(
         self,

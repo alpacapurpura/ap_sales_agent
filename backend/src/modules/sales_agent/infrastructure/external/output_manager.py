@@ -132,11 +132,7 @@ class OutputManager:
             try:
                 parsed = json.loads(cleaned)
                 if isinstance(parsed, list):
-                    return [
-                        str(item).strip()
-                        for item in parsed
-                        if item and str(item).strip()
-                    ]
+                    return [str(item).strip() for item in parsed if item and str(item).strip()]
             except json.JSONDecodeError:
                 pass
 

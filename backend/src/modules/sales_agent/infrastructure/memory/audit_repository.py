@@ -22,10 +22,7 @@ class AuditRepository(EpisodicMemoryStore):
         # Return last N messages in ascending order (oldest to newest) for context
         msgs = (
             self.db.execute(
-                select(Message)
-                .where(Message.user_id == user_id)
-                .order_by(Message.created_at.desc())
-                .limit(limit),
+                select(Message).where(Message.user_id == user_id).order_by(Message.created_at.desc()).limit(limit),
             )
             .scalars()
             .all()
@@ -54,9 +51,7 @@ class AuditRepository(EpisodicMemoryStore):
     def get_last_message(self, user_id: str) -> Any:
         return (
             self.db.execute(
-                select(Message)
-                .where(Message.user_id == user_id)
-                .order_by(Message.created_at.desc()),
+                select(Message).where(Message.user_id == user_id).order_by(Message.created_at.desc()),
             )
             .scalars()
             .first()
@@ -140,15 +135,13 @@ class AuditRepository(EpisodicMemoryStore):
         lead_uuid = str(lead_id)
         self.db.execute(
             text(
-                "DELETE FROM llm_logs WHERE trace_id IN "
-                "(SELECT id FROM agent_traces WHERE user_id = :lid)",
+                "DELETE FROM llm_logs WHERE trace_id IN (SELECT id FROM agent_traces WHERE user_id = :lid)",
             ),
             {"lid": lead_uuid},
         )
         self.db.execute(
             text(
-                "DELETE FROM llm_call_logs WHERE trace_id IN "
-                "(SELECT id FROM agent_traces WHERE user_id = :lid)",
+                "DELETE FROM llm_call_logs WHERE trace_id IN (SELECT id FROM agent_traces WHERE user_id = :lid)",
             ),
             {"lid": lead_uuid},
         )
@@ -181,10 +174,7 @@ class AuditRepository(EpisodicMemoryStore):
     def get_full_timeline(self, lead_id, tenant_id, limit=50):
         messages = (
             self.db.execute(
-                select(Message)
-                .where(Message.user_id == lead_id)
-                .order_by(Message.created_at.desc())
-                .limit(limit),
+                select(Message).where(Message.user_id == lead_id).order_by(Message.created_at.desc()).limit(limit),
             )
             .scalars()
             .all()
@@ -217,8 +207,7 @@ class AuditRepository(EpisodicMemoryStore):
             llm_summary = None
             if t.llm_logs:
                 total_tokens = sum(
-                    (log_entry.tokens_input or 0) + (log_entry.tokens_output or 0)
-                    for log_entry in t.llm_logs
+                    (log_entry.tokens_input or 0) + (log_entry.tokens_output or 0) for log_entry in t.llm_logs
                 )
                 first_log = t.llm_logs[0]
                 llm_summary = {
@@ -244,19 +233,11 @@ class AuditRepository(EpisodicMemoryStore):
         return timeline[:limit]
 
     def get_trace_details(self, trace_id, tenant_id):
-        trace = (
-            self.db.execute(select(AgentTrace).where(AgentTrace.id == trace_id))
-            .scalars()
-            .first()
-        )
+        trace = self.db.execute(select(AgentTrace).where(AgentTrace.id == trace_id)).scalars().first()
         if not trace:
             return None
 
-        logs = (
-            self.db.execute(select(LLMLog).where(LLMLog.trace_id == trace_id))
-            .scalars()
-            .all()
-        )
+        logs = self.db.execute(select(LLMLog).where(LLMLog.trace_id == trace_id)).scalars().all()
 
         return {
             "trace": {

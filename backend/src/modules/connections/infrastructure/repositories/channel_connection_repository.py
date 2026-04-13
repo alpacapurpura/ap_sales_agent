@@ -67,7 +67,7 @@ class ChannelConnectionRepository:
         tenant_id: UUID,
         channel_types: list[ChannelType],
     ) -> list[ChannelConnectionModel]:
-        """Get all connections (active or not) for a tenant filtered by a list of channel types, excluding soft-deleted."""
+        """Get all connections for a tenant filtered by channel types, excluding soft-deleted."""
         type_values = [ct.value for ct in channel_types]
         stmt = select(ChannelConnectionModel).where(
             ChannelConnectionModel.tenant_id == tenant_id,
@@ -111,13 +111,7 @@ class ChannelConnectionRepository:
 
     @staticmethod
     def _normalize_shop_domain(shop: str) -> str:
-        normalized = (
-            shop.replace("https://", "")
-            .replace("http://", "")
-            .strip()
-            .strip("/")
-            .lower()
-        )
+        normalized = shop.replace("https://", "").replace("http://", "").strip().strip("/").lower()
         if not normalized.endswith("myshopify.com") and "." not in normalized:
             normalized = f"{normalized}.myshopify.com"
         return normalized

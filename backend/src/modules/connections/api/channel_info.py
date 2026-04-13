@@ -140,13 +140,9 @@ def _get_meta_children(repo: ChannelConnectionRepository, tenant_id) -> list[dic
             {
                 "channel_type": child.channel_type,
                 "asset_id": cfg.get("asset_id"),
-                "name": cfg.get("page_name")
-                or cfg.get("ig_username")
-                or cfg.get("ad_account_name"),
+                "name": cfg.get("page_name") or cfg.get("ig_username") or cfg.get("ad_account_name"),
                 "is_active": child.is_active,
-                "details": {
-                    k: v for k, v in cfg.items() if k != "parent_connection_id"
-                },
+                "details": {k: v for k, v in cfg.items() if k != "parent_connection_id"},
             },
         )
     return result
@@ -211,12 +207,8 @@ async def get_channel_info(
         if latest_run:
             last_extraction = {
                 "status": latest_run.status,
-                "started_at": latest_run.started_at.isoformat()
-                if latest_run.started_at
-                else None,
-                "completed_at": latest_run.completed_at.isoformat()
-                if latest_run.completed_at
-                else None,
+                "started_at": latest_run.started_at.isoformat() if latest_run.started_at else None,
+                "completed_at": latest_run.completed_at.isoformat() if latest_run.completed_at else None,
                 "metrics_count": latest_run.metrics_count,
                 "error": latest_run.error,
                 "duration_seconds": latest_run.duration_seconds,
@@ -242,12 +234,8 @@ async def get_channel_info(
         row = db.execute(stmt).first()
         if row and row[0]:
             data_range = {
-                "min_date": row[0].isoformat()
-                if isinstance(row[0], date)
-                else str(row[0]),
-                "max_date": row[1].isoformat()
-                if isinstance(row[1], date)
-                else str(row[1]),
+                "min_date": row[0].isoformat() if isinstance(row[0], date) else str(row[0]),
+                "max_date": row[1].isoformat() if isinstance(row[1], date) else str(row[1]),
                 "total_records": row[2],
             }
     except Exception as e:  # noqa: BLE001 — API error boundary

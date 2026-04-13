@@ -114,11 +114,7 @@ def resolve_expected_metric(
 
     normalized_archetype = (archetype or "").strip().upper()
     if has_checkout_url:
-        return (
-            OfferExpectedMetric.SUBSCRIPTION
-            if normalized_archetype == "MEMBRESIA"
-            else OfferExpectedMetric.PURCHASE
-        )
+        return OfferExpectedMetric.SUBSCRIPTION if normalized_archetype == "MEMBRESIA" else OfferExpectedMetric.PURCHASE
     if normalized_archetype == "SERVICIO":
         return OfferExpectedMetric.MESSAGE
     return OfferExpectedMetric.LEAD

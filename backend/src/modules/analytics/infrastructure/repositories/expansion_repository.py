@@ -59,8 +59,7 @@ class ExpansionMetricsRepository:
             )
             .where(
                 *base_where,
-                func.jsonb_extract_path_text(SaleModel.metadata_info, "event_name")
-                == "subscription_cycle",
+                func.jsonb_extract_path_text(SaleModel.metadata_info, "event_name") == "subscription_cycle",
             )
             .group_by(SaleModel.offer_id, SaleModel.currency)
         )

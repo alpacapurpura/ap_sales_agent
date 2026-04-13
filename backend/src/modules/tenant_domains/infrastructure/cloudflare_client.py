@@ -92,10 +92,7 @@ class CloudflareClient:
         if not self.is_configured:
             logger.info("cf_skip_not_configured", operation="put_kv", key=key)
             return
-        url = (
-            f"{self.BASE_URL}/accounts/{self.account_id}"
-            f"/storage/kv/namespaces/{self.kv_namespace_id}/values/{key}"
-        )
+        url = f"{self.BASE_URL}/accounts/{self.account_id}/storage/kv/namespaces/{self.kv_namespace_id}/values/{key}"
         with httpx.Client() as client:
             response = client.put(
                 url,
@@ -110,10 +107,7 @@ class CloudflareClient:
         if not self.is_configured:
             logger.info("cf_skip_not_configured", operation="delete_kv", key=key)
             return
-        url = (
-            f"{self.BASE_URL}/accounts/{self.account_id}"
-            f"/storage/kv/namespaces/{self.kv_namespace_id}/values/{key}"
-        )
+        url = f"{self.BASE_URL}/accounts/{self.account_id}/storage/kv/namespaces/{self.kv_namespace_id}/values/{key}"
         with httpx.Client() as client:
             response = client.delete(url, headers=self.headers, timeout=30.0)
             response.raise_for_status()

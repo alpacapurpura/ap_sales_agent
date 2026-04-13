@@ -53,11 +53,7 @@ class LaunchEdition(BaseEntity):
         if self.end_date and self.end_date < self.start_date:
             msg = "end_date cannot be before start_date"
             raise ValueError(msg)
-        if (
-            self.registration_start
-            and self.registration_end
-            and self.registration_end < self.registration_start
-        ):
+        if self.registration_start and self.registration_end and self.registration_end < self.registration_start:
             msg = "registration_end cannot be before registration_start"
             raise ValueError(msg)
         return self

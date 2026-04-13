@@ -32,14 +32,10 @@ def _build_adoption_bottlenecks(
     # Overall health bottleneck
     if health_pct < 70.0:
         if avg_ttv is not None and avg_ttv > 7:
-            tip = (
-                "Mejora tu proceso de bienvenida -- tus clientes tardan "
-                "mucho en empezar a usar tu producto"
-            )
+            tip = "Mejora tu proceso de bienvenida -- tus clientes tardan mucho en empezar a usar tu producto"
         else:
             tip = (
-                "Contacta a tus clientes inactivos con un mensaje "
-                "personalizado o una oferta especial para reactivarlos"
+                "Contacta a tus clientes inactivos con un mensaje personalizado o una oferta especial para reactivarlos"
             )
         bottlenecks.append(
             BottleneckDTO(
@@ -60,10 +56,7 @@ def _build_adoption_bottlenecks(
             current_rate=offer.health_pct,
             severity="warning",
             threshold=60.0,
-            tip=(
-                "Revisa el engagement de este producto -- mas de "
-                "la mitad de sus clientes estan inactivos"
-            ),
+            tip=("Revisa el engagement de este producto -- mas de la mitad de sus clientes estan inactivos"),
         )
         for offer in offer_list
         if offer.health_pct < 60.0
@@ -173,11 +166,7 @@ class AdoptionStageService:
             active_customers = total_active_per_offer
             inactive_customers = total_inactive_per_offer
 
-        health_pct = (
-            round(active_customers / total_customers * 100, 1)
-            if total_customers > 0
-            else 0.0
-        )
+        health_pct = round(active_customers / total_customers * 100, 1) if total_customers > 0 else 0.0
 
         # Global avg TTV
         all_ttvs = list(ttv_map.values())
@@ -197,9 +186,7 @@ class AdoptionStageService:
         )
 
         # 6. Mini funnel: Ventas -> Activos
-        conv_rate = (
-            round(active_customers / total_sales * 100, 1) if total_sales > 0 else 0.0
-        )
+        conv_rate = round(active_customers / total_sales * 100, 1) if total_sales > 0 else 0.0
         mini_funnel = MiniFunnelDTO(
             source_label="Ventas",
             source_value=total_sales,

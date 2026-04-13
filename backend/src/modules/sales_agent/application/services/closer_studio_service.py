@@ -133,13 +133,9 @@ class CloserStudioService:
                     "display_name": display_name,
                     "channel": checkpoint.channel_type if checkpoint else None,
                     "temperature": lead.temperature,
-                    "lead_score": checkpoint.lead_score
-                    if checkpoint
-                    else (lead.intent_score or 0),
+                    "lead_score": checkpoint.lead_score if checkpoint else (lead.intent_score or 0),
                     "handler_mode": checkpoint.handler_mode if checkpoint else "human",
-                    "funnel_stage": checkpoint.current_stage
-                    if checkpoint
-                    else "rapport",
+                    "funnel_stage": checkpoint.current_stage if checkpoint else "rapport",
                     "pipeline_stage": self._lifecycle_stage(lead),
                     "last_message_preview": preview,
                     "last_message_at": last_msg_at,
@@ -239,9 +235,7 @@ class CloserStudioService:
             "pipeline_stage": self._lifecycle_stage(lead),
             "paused_at": checkpoint.paused_at if checkpoint else None,
             "unread_count": 0,
-            "qualification_answers": checkpoint.qualification_answers
-            if checkpoint
-            else None,
+            "qualification_answers": checkpoint.qualification_answers if checkpoint else None,
             "buying_signals": checkpoint.buying_signals if checkpoint else [],
             "lead_data": checkpoint.lead_data if checkpoint else None,
             "customer_profile_id": lead.customer_id,
@@ -423,9 +417,7 @@ class CloserStudioService:
             .all()
         )
 
-        msg_summary = "\n".join(
-            f"[{m.role}] {m.content[:200]}" for m in reversed(messages)
-        )
+        msg_summary = "\n".join(f"[{m.role}] {m.content[:200]}" for m in reversed(messages))
 
         diagnosis = {
             "lead_score": checkpoint.lead_score,
@@ -581,12 +573,7 @@ class CloserStudioService:
             name = f"{first} {last}".strip()
             if name:
                 return name
-        return (
-            lead.instagram_id
-            or lead.telegram_id
-            or lead.whatsapp_id
-            or str(lead.id)[:8]
-        )
+        return lead.instagram_id or lead.telegram_id or lead.whatsapp_id or str(lead.id)[:8]
 
     def _resolve_avatar(self, lead: LeadModel) -> str | None:
         if lead.customer and lead.customer.traits:
@@ -630,6 +617,4 @@ class CloserStudioService:
             return "Warm lead with moderate interest. Consider a personalized nudge or product demo offer."
         if stage == "rapport" and (checkpoint.turn_count or 0) > 5:
             return "Stuck in rapport stage despite multiple turns. Try a direct question about their needs."
-        return (
-            "Low engagement. Consider a value-first reactivation message or disqualify."
-        )
+        return "Low engagement. Consider a value-first reactivation message or disqualify."

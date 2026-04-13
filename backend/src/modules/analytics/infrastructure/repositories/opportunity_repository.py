@@ -97,9 +97,7 @@ class OpportunityMetricsRepository:
         )
         count_rows = self.db.execute(count_stmt).all()
 
-        counts: dict[str, dict[str, Any]] = {
-            name: {"count": 0, "value": 0.0} for name in event_names
-        }
+        counts: dict[str, dict[str, Any]] = {name: {"count": 0, "value": 0.0} for name in event_names}
         for event_name, count in count_rows:
             counts[event_name]["count"] = int(count)
 

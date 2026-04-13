@@ -19,12 +19,7 @@ def get_tenants():
     """Fetch all active tenants for the dropdown."""
     db = SessionLocal()
     try:
-        return (
-            db.query(Tenant)
-            .filter(Tenant.is_active.is_(True))
-            .order_by(Tenant.name)
-            .all()
-        )
+        return db.query(Tenant).filter(Tenant.is_active.is_(True)).order_by(Tenant.name).all()
     finally:
         db.close()
 
@@ -102,9 +97,7 @@ def render_users_view():
                         "Rol (Tenant)": role,
                         "Estado": "✅ Activo" if u.is_active else "🚫 Bloqueado",
                         "Clerk ID": u.clerk_id,
-                        "Creado": u.created_at.strftime("%Y-%m-%d")
-                        if u.created_at
-                        else "N/A",
+                        "Creado": u.created_at.strftime("%Y-%m-%d") if u.created_at else "N/A",
                     },
                 )
 
@@ -127,10 +120,7 @@ def render_users_view():
 
             # User Selector for Actions
             # Map full_name to User ID. We iterate over users_result (tuples)
-            user_options_map = {
-                f"{u.full_name or 'Sin Nombre'} ({u.email})": u.id
-                for u, _ in users_result
-            }
+            user_options_map = {f"{u.full_name or 'Sin Nombre'} ({u.email})": u.id for u, _ in users_result}
             selected_user_label = st.selectbox(
                 "Seleccionar Usuario para modificar",
                 list(user_options_map.keys()),
@@ -140,9 +130,7 @@ def render_users_view():
             # Fetch fresh user object for actions
             db_actions = SessionLocal()
             try:
-                target_user = (
-                    db_actions.query(User).filter(User.id == selected_user_id).first()
-                )
+                target_user = db_actions.query(User).filter(User.id == selected_user_id).first()
 
                 if target_user:
                     col_act1, col_act2, col_act3 = st.columns(3)
@@ -168,7 +156,8 @@ def render_users_view():
                                         )
                                     elif not target_user.clerk_id:
                                         st.error(
-                                            "❌ Este usuario no tiene Clerk ID vinculado. No se puede cambiar password.",
+                                            "❌ Este usuario no tiene Clerk ID vinculado."
+                                            " No se puede cambiar password.",
                                         )
                                     else:
                                         clerk = ClerkService()
@@ -182,7 +171,8 @@ def render_users_view():
                                                 )
                                             else:
                                                 st.error(
-                                                    "❌ Error al actualizar en Clerk. Verifique logs (Posible password débil o pwned).",
+                                                    "❌ Error al actualizar en Clerk."
+                                                    " Verifique logs (Posible password débil o pwned).",
                                                 )
                                         except Exception as e:  # noqa: BLE001 — Streamlit UI error boundary
                                             st.error(f"❌ Error Clerk: {e}")
@@ -191,9 +181,7 @@ def render_users_view():
                     with col_act2:
                         with st.container(border=True):
                             st.markdown("#### 🚫 Gestión de Acceso")
-                            status_label = (
-                                "Activo" if target_user.is_active else "Bloqueado"
-                            )
+                            status_label = "Activo" if target_user.is_active else "Bloqueado"
                             status_color = "green" if target_user.is_active else "red"
                             st.markdown(
                                 f"Estado Actual: :{status_color}[**{status_label}**]",
@@ -212,7 +200,8 @@ def render_users_view():
                                     if target_user.clerk_id:
                                         if not clerk.ban_user(target_user.clerk_id):
                                             st.warning(
-                                                "⚠️ No se pudo banear en Clerk (o no existe), pero se bloqueará localmente.",
+                                                "⚠️ No se pudo banear en Clerk (o no existe),"
+                                                " pero se bloqueará localmente.",
                                             )
                                             clerk_success = False
 
@@ -289,11 +278,7 @@ def render_users_view():
                                 .first()
                             )
 
-                            is_last_admin = (
-                                target_link
-                                and target_link.role == "admin"
-                                and active_admin_count <= 1
-                            )
+                            is_last_admin = target_link and target_link.role == "admin" and active_admin_count <= 1
 
                             if is_last_admin:
                                 st.warning(
@@ -314,7 +299,8 @@ def render_users_view():
                                         target_link.is_active = False
                                         db_actions.commit()
                                         st.success(
-                                            f"✅ Usuario eliminado de {selected_tenant_name}. Sus datos se preservan para auditoria.",
+                                            f"✅ Usuario eliminado de {selected_tenant_name}."
+                                            " Sus datos se preservan para auditoria.",
                                         )
                                         time.sleep(1)
                                         st.rerun()
@@ -340,7 +326,10 @@ def render_users_view():
                 new_pass = st.text_input(
                     "Contraseña Inicial (Solo para nuevos)",
                     type="password",
-                    help="Solo aplica al crear usuarios nuevos. Para existentes, use 'Cambiar Contraseña' en la pestaña de usuarios.",
+                    help=(
+                        "Solo aplica al crear usuarios nuevos. Para existentes,"
+                        " use 'Cambiar Contraseña' en la pestaña de usuarios."
+                    ),
                 )
                 new_role = st.selectbox(
                     "Rol en este Tenant",
@@ -359,9 +348,7 @@ def render_users_view():
 
                     try:
                         # 1. Check if user exists locally
-                        existing_user = (
-                            db.query(User).filter(User.email == new_email).first()
-                        )
+                        existing_user = db.query(User).filter(User.email == new_email).first()
 
                         if existing_user:
                             # --- ASSIGN EXISTING USER ---
@@ -401,7 +388,8 @@ def render_users_view():
                                         )
 
                                     st.success(
-                                        f"✅ Usuario reactivado en {selected_tenant_name} con rol: {existing_link.role}",
+                                        "✅ Usuario reactivado en"
+                                        f" {selected_tenant_name} con rol: {existing_link.role}",
                                     )
                                     time.sleep(1.5)
                                     st.rerun()
@@ -434,7 +422,9 @@ def render_users_view():
                                     # Warn if admin entered a password — it won't be used for existing users
                                     if new_pass:
                                         st.warning(
-                                            "⚠️ La contraseña no se actualizó porque el usuario ya existe. Use la sección 'Cambiar Contraseña' en la pestaña de usuarios.",
+                                            "⚠️ La contraseña no se actualizó porque el usuario ya existe."
+                                            " Use la sección 'Cambiar Contraseña'"
+                                            " en la pestaña de usuarios.",
                                         )
 
                                     st.success(
@@ -474,10 +464,7 @@ def render_users_view():
                                         )
 
                                 except Exception as e_clerk:
-                                    if (
-                                        "ya existe" in str(e_clerk)
-                                        or "already exists" in str(e_clerk).lower()
-                                    ):
+                                    if "ya existe" in str(e_clerk) or "already exists" in str(e_clerk).lower():
                                         st.warning(
                                             "⚠️ El usuario existe en Clerk pero no en DB Local. Intentando recuperar...",
                                         )

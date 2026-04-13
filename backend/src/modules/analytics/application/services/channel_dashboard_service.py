@@ -468,11 +468,7 @@ class ChannelDashboardService:
         funnel = self._build_funnel(current_metrics, config)
 
         # Frequency alert
-        frequency_alert = (
-            self._check_frequency(current_metrics)
-            if config.has_frequency_alert
-            else None
-        )
+        frequency_alert = self._check_frequency(current_metrics) if config.has_frequency_alert else None
 
         channel_name = _CHANNEL_NAMES.get(channel_slug, config.channel_name)
 
@@ -589,9 +585,7 @@ class ChannelDashboardService:
                     current_value=round(current_val, 2),
                     previous_value=round(prev_val, 2) if prev_val is not None else None,
                     delta_percent=delta_pct,
-                    delta_absolute=round(delta_abs, 2)
-                    if delta_abs is not None
-                    else None,
+                    delta_absolute=round(delta_abs, 2) if delta_abs is not None else None,
                     unit=unit,
                     higher_is_better=higher_is_better,
                     benchmark=benchmark,
@@ -645,10 +639,7 @@ class ChannelDashboardService:
             unit = defn.unit.value if defn else "count"
 
             sorted_points = sorted(points, key=lambda x: x[0])
-            data_points = [
-                TimeSeriesDataPointDTO(date=d.isoformat(), value=round(v, 2))
-                for d, v in sorted_points
-            ]
+            data_points = [TimeSeriesDataPointDTO(date=d.isoformat(), value=round(v, 2)) for d, v in sorted_points]
 
             series.append(
                 MetricTimeSeriesDTO(
@@ -681,10 +672,7 @@ class ChannelDashboardService:
             unit = defn.unit.value if defn else "count"
 
             sorted_points = sorted(points, key=lambda x: x[0])
-            data_points = [
-                TimeSeriesDataPointDTO(date=d.isoformat(), value=round(v, 2))
-                for d, v in sorted_points
-            ]
+            data_points = [TimeSeriesDataPointDTO(date=d.isoformat(), value=round(v, 2)) for d, v in sorted_points]
 
             series.append(
                 MetricTimeSeriesDTO(

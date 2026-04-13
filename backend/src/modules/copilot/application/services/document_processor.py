@@ -150,9 +150,7 @@ class DocumentProcessor:
         fields_extracted = len(raw_delta) - fields_skipped
 
         # Filter out fields that already have values
-        filtered_delta = {
-            k: v for k, v in raw_delta.items() if not existing_mapa.get(k)
-        }
+        filtered_delta = {k: v for k, v in raw_delta.items() if not existing_mapa.get(k)}
 
         summary_parts = [
             f"Extraídos {fields_extracted} campos de {len(source_docs)} documento(s).",

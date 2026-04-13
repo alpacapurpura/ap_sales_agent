@@ -65,14 +65,9 @@ class TelegramService:
         else:
             final_domain = settings.DOMAIN_NAME
 
-        if final_domain.startswith("http"):
-            base_url = final_domain
-        else:
-            base_url = f"https://{final_domain}"
+        base_url = final_domain if final_domain.startswith("http") else f"https://{final_domain}"
 
-        webhook_url = (
-            f"{base_url}/api/v1/connections/telegram/webhooks/telegram/{tenant_id}"
-        )
+        webhook_url = f"{base_url}/api/v1/connections/telegram/webhooks/telegram/{tenant_id}"
         logger.info("setting_telegram_webhook", webhook_url=webhook_url)
 
         async with httpx.AsyncClient() as client:
@@ -94,9 +89,7 @@ class TelegramService:
                     try:
                         error_json = webhook_resp.json()
                         if error_json.get("description"):
-                            error_detail = (
-                                f"Telegram Error: {error_json.get('description')}"
-                            )
+                            error_detail = f"Telegram Error: {error_json.get('description')}"
                     except (ValueError, KeyError) as e:
                         logger.warning("failed_to_parse_telegram_error", error=str(e))
                     raise RuntimeError(error_detail)
@@ -172,9 +165,7 @@ class TelegramService:
                         f"https://api.telegram.org/bot{token}/deleteWebhook",
                     )
                 except httpx.HTTPError as e:
-                    logger.warning(
-                        "Failed to delete webhook during disconnect", error=str(e)
-                    )
+                    logger.warning("Failed to delete webhook during disconnect", error=str(e))
 
         self.repo.deactivate(connection)
 

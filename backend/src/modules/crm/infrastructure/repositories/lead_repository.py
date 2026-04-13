@@ -63,11 +63,7 @@ class LeadRepository:
         )
 
     def get_by_id(self, lead_id: UUID) -> Lead | None:
-        model = (
-            self.db.execute(select(LeadModel).where(LeadModel.id == lead_id))
-            .scalars()
-            .first()
-        )
+        model = self.db.execute(select(LeadModel).where(LeadModel.id == lead_id)).scalars().first()
         if model:
             return self._to_domain(model)
         return None
@@ -129,11 +125,7 @@ class LeadRepository:
         return self._to_domain(model)
 
     def update(self, lead: Lead) -> Lead:
-        model = (
-            self.db.execute(select(LeadModel).where(LeadModel.id == lead.id))
-            .scalars()
-            .first()
-        )
+        model = self.db.execute(select(LeadModel).where(LeadModel.id == lead.id)).scalars().first()
         if not model:
             msg = "Lead not found"
             raise ValueError(msg)

@@ -79,9 +79,7 @@ class LaunchEditionResponse(BaseModel):
     ) -> "LaunchEditionResponse":
         pricing_override = None
         if edition.pricing_override is not None:
-            pricing_override = [
-                p.model_dump(mode="json") for p in edition.pricing_override
-            ]
+            pricing_override = [p.model_dump(mode="json") for p in edition.pricing_override]
         return cls(
             id=edition.id,
             offer_id=edition.offer_id,
@@ -97,9 +95,7 @@ class LaunchEditionResponse(BaseModel):
             currency=currency,
             capacity=edition.capacity,
             enrollment_count=edition.enrollment_count,
-            status=edition.status.value
-            if hasattr(edition.status, "value")
-            else edition.status,
+            status=edition.status.value if hasattr(edition.status, "value") else edition.status,
             location_override=edition.location_override,
             notes=edition.notes,
             created_at=edition.created_at,

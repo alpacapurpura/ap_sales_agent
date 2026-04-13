@@ -29,10 +29,7 @@ def _redact_event(
 
     def _scrub(obj: object) -> object:
         if isinstance(obj, dict):
-            return {
-                k: "[Filtered]" if k.lower() in _SENSITIVE_KEYS else _scrub(v)
-                for k, v in obj.items()
-            }
+            return {k: "[Filtered]" if k.lower() in _SENSITIVE_KEYS else _scrub(v) for k, v in obj.items()}
         if isinstance(obj, list):
             return [_scrub(i) for i in obj]
         return obj

@@ -203,9 +203,7 @@ class TestInstagramOrganic:
         assert reach.provider == "meta"
 
         # total_interactions is ADDITIVE, AD excluded (900 - 100 = 800)
-        interactions = next(
-            m for m in ig_metrics if m.metric_name == "total_interactions"
-        )
+        interactions = next(m for m in ig_metrics if m.metric_name == "total_interactions")
         assert interactions.value == 800.0
 
         # ig_likes is ADDITIVE, AD excluded (330 - 30 = 300)
@@ -227,9 +225,7 @@ class TestInstagramOrganic:
         assert media.value == 342.0
 
         # Demographics
-        demo = next(
-            m for m in ig_metrics if m.metric_name == "ig_follower_demographics"
-        )
+        demo = next(m for m in ig_metrics if m.metric_name == "ig_follower_demographics")
         assert demo.unit == "json"
         assert demo.value == 0.0
 
@@ -664,11 +660,7 @@ class TestMetaAds:
             )
         metrics = result.metrics
 
-        spend = next(
-            m
-            for m in metrics
-            if m.metric_name == "spend" and m.channel_slug == "meta-ads"
-        )
+        spend = next(m for m in metrics if m.metric_name == "spend" and m.channel_slug == "meta-ads")
         assert spend.currency == "EUR"
 
     @pytest.mark.asyncio
@@ -713,11 +705,7 @@ class TestMetaAds:
             )
         metrics = result.metrics
 
-        spend = next(
-            m
-            for m in metrics
-            if m.metric_name == "spend" and m.channel_slug == "meta-ads"
-        )
+        spend = next(m for m in metrics if m.metric_name == "spend" and m.channel_slug == "meta-ads")
         assert spend.currency == "USD"
 
 
@@ -809,8 +797,7 @@ class TestExtractMetricsDaily:
                 return _ok_response(
                     {
                         "data": [
-                            {"name": name, "total_value": {"value": val}}
-                            for name, val in no_breakdown_data.items()
+                            {"name": name, "total_value": {"value": val}} for name, val in no_breakdown_data.items()
                         ],
                     },
                 )
@@ -836,11 +823,7 @@ class TestExtractMetricsDaily:
         metrics = result.metrics
 
         # Reach: 3 days, AD excluded
-        reach_metrics = [
-            m
-            for m in metrics
-            if m.metric_name == "reach" and m.channel_slug == "ig-organic"
-        ]
+        reach_metrics = [m for m in metrics if m.metric_name == "reach" and m.channel_slug == "ig-organic"]
         assert len(reach_metrics) == 3
         assert reach_metrics[0].date == date(2026, 3, 1)
         assert reach_metrics[0].value == 800.0  # 1000 - 200
@@ -850,11 +833,7 @@ class TestExtractMetricsDaily:
         assert reach_metrics[2].value == 500.0  # 500 - 0
 
         # total_interactions: 3 days
-        interactions = [
-            m
-            for m in metrics
-            if m.metric_name == "total_interactions" and m.channel_slug == "ig-organic"
-        ]
+        interactions = [m for m in metrics if m.metric_name == "total_interactions" and m.channel_slug == "ig-organic"]
         assert len(interactions) == 3
 
         # followers_count: one reconstructed row per day in the window.
@@ -957,20 +936,12 @@ class TestExtractMetricsDaily:
         assert len(ads_params) >= 1
 
         # Check day 1 reach
-        day1_reach = [
-            m
-            for m in ads_metrics
-            if m.metric_name == "reach" and m.date == date(2026, 3, 1)
-        ]
+        day1_reach = [m for m in ads_metrics if m.metric_name == "reach" and m.date == date(2026, 3, 1)]
         assert len(day1_reach) == 1
         assert day1_reach[0].value == 5000.0
 
         # Check day 2 conversions
-        day2_conv = [
-            m
-            for m in ads_metrics
-            if m.metric_name == "conversions" and m.date == date(2026, 3, 2)
-        ]
+        day2_conv = [m for m in ads_metrics if m.metric_name == "conversions" and m.date == date(2026, 3, 2)]
         assert len(day2_conv) == 1
         assert day2_conv[0].value == 5.0
 
@@ -1037,19 +1008,11 @@ class TestExtractMetricsDaily:
         metrics = result.metrics
 
         fb_metrics = [m for m in metrics if m.channel_slug == "fb-organic"]
-        reach_d1 = [
-            m
-            for m in fb_metrics
-            if m.metric_name == "reach" and m.date == date(2026, 3, 1)
-        ]
+        reach_d1 = [m for m in fb_metrics if m.metric_name == "reach" and m.date == date(2026, 3, 1)]
         assert len(reach_d1) == 1
         assert reach_d1[0].value == 3000.0
 
-        eng_d2 = [
-            m
-            for m in fb_metrics
-            if m.metric_name == "engagement" and m.date == date(2026, 3, 2)
-        ]
+        eng_d2 = [m for m in fb_metrics if m.metric_name == "engagement" and m.date == date(2026, 3, 2)]
         assert len(eng_d2) == 1
         assert eng_d2[0].value == 300.0
 
@@ -1120,9 +1083,7 @@ class TestMetaAdsCampaigns:
         assert all(m.channel_slug == "meta-ads" for m in campaign_metrics)
 
         # Account-level metrics should have no campaign_id
-        account_metrics = [
-            m for m in metrics if m.channel_slug == "meta-ads" and m.campaign_id is None
-        ]
+        account_metrics = [m for m in metrics if m.channel_slug == "meta-ads" and m.campaign_id is None]
         assert len(account_metrics) >= 30  # from the full data
 
     @pytest.mark.asyncio
@@ -1246,9 +1207,7 @@ class TestMetaAdsBreakdowns:
         metrics = result.metrics
 
         # Find breakdown metrics
-        breakdown_metrics = [
-            m for m in metrics if m.unit == "json" and m.channel_slug == "meta-ads"
-        ]
+        breakdown_metrics = [m for m in metrics if m.unit == "json" and m.channel_slug == "meta-ads"]
         breakdown_names = {m.metric_name for m in breakdown_metrics}
 
         # Should have 9 breakdown metrics (3 base x 3 dimensions)
@@ -1263,9 +1222,7 @@ class TestMetaAdsBreakdowns:
         assert "meta_impressions_by_placement" in breakdown_names
 
         # Verify age breakdown structure
-        age_reach = next(
-            m for m in breakdown_metrics if m.metric_name == "meta_reach_by_age"
-        )
+        age_reach = next(m for m in breakdown_metrics if m.metric_name == "meta_reach_by_age")
         assert age_reach.value == 0.0  # JSON metrics use 0 as placeholder
         assert "breakdowns" in age_reach.extra
         assert len(age_reach.extra["breakdowns"]) == 2
@@ -1273,9 +1230,7 @@ class TestMetaAdsBreakdowns:
         assert age_reach.extra["breakdowns"][0]["value"] == 2000.0
 
         # Verify placement breakdown has two dimension values
-        placement_reach = next(
-            m for m in breakdown_metrics if m.metric_name == "meta_reach_by_placement"
-        )
+        placement_reach = next(m for m in breakdown_metrics if m.metric_name == "meta_reach_by_placement")
         assert placement_reach.extra["breakdowns"][0]["dimension_values"] == [
             "facebook",
             "feed",
@@ -1462,9 +1417,7 @@ class TestFBOrganicMetricName:
                 date(2026, 3, 15),
             )
 
-        fb_reach_calls = [
-            p for p in captured_params if "page_impressions" in p.get("metric", "")
-        ]
+        fb_reach_calls = [p for p in captured_params if "page_impressions" in p.get("metric", "")]
         assert len(fb_reach_calls) >= 1
         assert fb_reach_calls[0]["metric"] == "page_impressions_organic_unique"
 
@@ -1922,9 +1875,7 @@ class TestInstagramFollowTypeBreakdown:
             )
 
         # The follow_type call must have happened at least once
-        assert calls_seen >= 1, (
-            "Daily extractor skipped the single-day window — off-by-one bug"
-        )
+        assert calls_seen >= 1, "Daily extractor skipped the single-day window — off-by-one bug"
 
         gained = [m for m in result.metrics if m.metric_name == "ig_follows_gained"]
         assert len(gained) == 1
@@ -2037,16 +1988,11 @@ class TestInstagramFollowTypeBreakdown:
         assert followers[0].value == 993.0
 
         # Cross-check consistency: end-of-D minus end-of-D-1 must equal net(D)
-        net_by_date = {
-            m.date: m.value
-            for m in result.metrics
-            if m.metric_name == "ig_follows_and_unfollows"
-        }
+        net_by_date = {m.date: m.value for m in result.metrics if m.metric_name == "ig_follows_and_unfollows"}
         for i in range(1, len(followers)):
             delta = followers[i].value - followers[i - 1].value
             assert delta == net_by_date.get(followers[i].date, 0.0), (
-                f"Reconstruction drift on {followers[i].date}: "
-                f"delta={delta}, net={net_by_date.get(followers[i].date)}"
+                f"Reconstruction drift on {followers[i].date}: delta={delta}, net={net_by_date.get(followers[i].date)}"
             )
 
     @pytest.mark.asyncio
@@ -2095,6 +2041,5 @@ class TestInstagramFollowTypeBreakdown:
             )
 
         assert calls_without_breakdown == [], (
-            f"follows_and_unfollows was requested without breakdown=follow_type: "
-            f"{calls_without_breakdown}"
+            f"follows_and_unfollows was requested without breakdown=follow_type: {calls_without_breakdown}"
         )

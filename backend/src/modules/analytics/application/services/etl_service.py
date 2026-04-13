@@ -477,10 +477,7 @@ class ETLService:
             start_date,
             end_date,
         )
-        all_days = {
-            start_date + timedelta(days=i)
-            for i in range((end_date - start_date).days + 1)
-        }
+        all_days = {start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)}
         missing_days = all_days - existing
 
         total = len(all_days)
@@ -671,9 +668,7 @@ class ETLService:
         mapping_repo = ExternalProductMappingRepository(self.db)
 
         # Build set of completed checkout tokens for abandoned-checkout filtering
-        completed_tokens: set[str] = {
-            str(token) for order in orders if (token := order.get("checkout_token"))
-        }
+        completed_tokens: set[str] = {str(token) for order in orders if (token := order.get("checkout_token"))}
 
         orders_processed, sales_created = self._process_shopify_orders(
             tenant_id,
@@ -830,11 +825,7 @@ class ETLService:
     ) -> int:
         """Create SaleModel per line_item. Returns count of sales created."""
         product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
-        resolved_mappings = (
-            mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids)
-            if product_ids
-            else {}
-        )
+        resolved_mappings = mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids) if product_ids else {}
 
         sales_created = 0
         for item in line_items_data:

@@ -125,9 +125,7 @@ def render_conversations_page():
                 "Titulo": title,
                 "Msgs": msg_count,
                 "Tools": tool_count,
-                "Fecha": conv.updated_at.strftime("%Y-%m-%d %H:%M")
-                if conv.updated_at
-                else "—",
+                "Fecha": conv.updated_at.strftime("%Y-%m-%d %H:%M") if conv.updated_at else "—",
             },
         )
 
@@ -215,10 +213,7 @@ def render_conversations_page():
                             tool_counts[name] = tool_counts.get(name, 0) + 1
 
         if tool_counts:
-            tool_rows = [
-                {"Tool": k, "Invocaciones": v}
-                for k, v in sorted(tool_counts.items(), key=lambda x: -x[1])
-            ]
+            tool_rows = [{"Tool": k, "Invocaciones": v} for k, v in sorted(tool_counts.items(), key=lambda x: -x[1])]
             st.dataframe(
                 pd.DataFrame(tool_rows),
                 use_container_width=True,

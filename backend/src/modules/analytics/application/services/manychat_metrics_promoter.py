@@ -46,8 +46,6 @@ class ManyChatMetricsPromoter:
             value=value,
             unit="count",
             metric_date=metric_date,
-            cost_type=cost_type.value
-            if cost_type and hasattr(cost_type, "value")
-            else cost_type,
+            cost_type=cost_type.value if cost_type and hasattr(cost_type, "value") else cost_type,
             extra=extra or {},
         )

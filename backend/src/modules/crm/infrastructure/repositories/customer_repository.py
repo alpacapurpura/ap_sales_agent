@@ -120,10 +120,7 @@ class CustomerRepository:
         """
         profile_id = uuid.uuid4()
 
-        full_name = (
-            f"{profile_data.get('first_name', '')} {profile_data.get('last_name', '')}".strip()
-            or None
-        )
+        full_name = f"{profile_data.get('first_name', '')} {profile_data.get('last_name', '')}".strip() or None
 
         profile_model = CustomerProfileModel(
             id=profile_id,
@@ -164,8 +161,7 @@ class CustomerRepository:
         """
         stmt = select(CustomerProfileModel).where(
             CustomerProfileModel.tenant_id == tenant_id,
-            func.jsonb_extract_path_text(CustomerProfileModel.traits, trait_key)
-            == trait_value,
+            func.jsonb_extract_path_text(CustomerProfileModel.traits, trait_key) == trait_value,
             CustomerProfileModel.is_inactive == False,
         )
         model = self.db.execute(stmt).scalars().first()

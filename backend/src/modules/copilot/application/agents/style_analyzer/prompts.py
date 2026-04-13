@@ -21,7 +21,8 @@ Return ONLY the cleaned text, line by line. Do not add any introductory text.
 
 PSYCHOLOGIST_PROMPT = """
 You are "The Psychologist", an expert linguist and behavioral analyst.
-Your task is to analyze the following CLEANED chat history of a user and extract their unique "Communication Fingerprint".
+Your task is to analyze the following CLEANED chat history of a user \
+and extract their unique "Communication Fingerprint".
 
 CLEANED HISTORY:
 {cleaned_input}
@@ -52,7 +53,8 @@ OUTPUT FORMAT (JSON ONLY):
 """
 
 ARCHITECT_PROMPT = """
-You are "The Architect". Your goal is to write a System Instruction that allows an LLM to roleplay as this specific user.
+You are "The Architect". Your goal is to write a System Instruction \
+that allows an LLM to roleplay as this specific user.
 
 STYLE PROFILE:
 {style_profile}
@@ -65,7 +67,8 @@ Include rules for:
 - Vocabulary (Inject the signature phrases)
 - Emoji usage
 - Formatting (Paragraphs vs Bullets)
-- **Empathy & Persuasion**: Explicitly instruct on how to manifest the user's empathy style (Cognitive vs Affective) and persuasion tactic.
+- **Empathy & Persuasion**: Explicitly instruct on how to manifest the user's \
+empathy style (Cognitive vs Affective) and persuasion tactic.
 
 The output will be injected into a larger Sales Agent prompt.
 Do NOT include generic advice like "Be helpful". Focus ONLY on the STYLE/PERSONALITY.

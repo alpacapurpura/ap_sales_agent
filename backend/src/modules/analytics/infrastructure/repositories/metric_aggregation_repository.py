@@ -80,9 +80,7 @@ class MetricAggregationRepository:
                     "unit": agg["unit"],
                     "currency": agg.get("currency"),
                     "cost_type": agg.get("cost_type"),
-                    "extraction_run_id": str(agg["extraction_run_id"])
-                    if agg.get("extraction_run_id")
-                    else None,
+                    "extraction_run_id": str(agg["extraction_run_id"]) if agg.get("extraction_run_id") else None,
                 },
             )
 

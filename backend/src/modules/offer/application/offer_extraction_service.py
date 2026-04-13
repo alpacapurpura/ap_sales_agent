@@ -367,10 +367,7 @@ class OfferExtractionService:
             content = crawled or ""
 
         if text:
-            if content:
-                content = content + "\n\n--- Texto adicional ---\n" + text
-            else:
-                content = text
+            content = content + "\n\n--- Texto adicional ---\n" + text if content else text
 
         if not content.strip():
             logger.warning("offer_extraction_no_content", offer_id=str(self.offer_id))

@@ -18,11 +18,7 @@ class UserRepository(BaseRepository):
             except ValueError:
                 return None
 
-        user_orm = (
-            self.db.execute(select(UserModel).where(UserModel.id == user_id))
-            .scalars()
-            .first()
-        )
+        user_orm = self.db.execute(select(UserModel).where(UserModel.id == user_id)).scalars().first()
         if user_orm:
             return User.model_validate(user_orm)
         return None
@@ -31,11 +27,7 @@ class UserRepository(BaseRepository):
         """
         Fetch user by email.
         """
-        user_orm = (
-            self.db.execute(select(UserModel).where(UserModel.email == email))
-            .scalars()
-            .first()
-        )
+        user_orm = self.db.execute(select(UserModel).where(UserModel.email == email)).scalars().first()
         if user_orm:
             return User.model_validate(user_orm)
         return None
@@ -44,11 +36,7 @@ class UserRepository(BaseRepository):
         """
         Fetch user by Clerk ID.
         """
-        user_orm = (
-            self.db.execute(select(UserModel).where(UserModel.clerk_id == clerk_id))
-            .scalars()
-            .first()
-        )
+        user_orm = self.db.execute(select(UserModel).where(UserModel.clerk_id == clerk_id)).scalars().first()
         if user_orm:
             return User.model_validate(user_orm)
         return None
@@ -79,11 +67,7 @@ class UserRepository(BaseRepository):
         """
         Update existing user from Domain Model.
         """
-        user_orm = (
-            self.db.execute(select(UserModel).where(UserModel.id == user.id))
-            .scalars()
-            .first()
-        )
+        user_orm = self.db.execute(select(UserModel).where(UserModel.id == user.id)).scalars().first()
         if not user_orm:
             msg = f"User {user.id} not found"
             raise ValueError(msg)

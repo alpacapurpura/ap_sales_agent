@@ -95,12 +95,7 @@ async def get_pipeline(
     for lead in leads_orm:
         customer_name = lead.customer.full_name if lead.customer else None
         profile = lead.profile_data or {}
-        name = (
-            customer_name
-            or profile.get("full_name")
-            or profile.get("name")
-            or "Unknown Lead"
-        )
+        name = customer_name or profile.get("full_name") or profile.get("name") or "Unknown Lead"
         results.append(
             PipelineItem(
                 id=lead.id,
@@ -159,9 +154,7 @@ async def override_stage(
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    previous_stage = (
-        profile.lifecycle_stage.value if profile.lifecycle_stage else "unknown"
-    )
+    previous_stage = profile.lifecycle_stage.value if profile.lifecycle_stage else "unknown"
 
     svc.force_stage(
         profile_id=profile_id,

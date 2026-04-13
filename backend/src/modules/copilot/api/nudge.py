@@ -138,7 +138,9 @@ def _check_cross_module_gaps(completions: dict) -> list[dict]:
                 "type": "cross_module_gap",
                 "module_id": "connections",
                 "title": "Conecta tu primer canal",
-                "message": "Tu marca y ofertas están listas. Conecta Instagram, WhatsApp u otro canal para empezar a vender.",
+                "message": (
+                    "Tu marca y ofertas están listas. Conecta Instagram, WhatsApp u otro canal para empezar a vender."
+                ),
                 "suggested_prompt": "Quiero conectar mi primer canal de ventas",
                 "priority": 3,
             },

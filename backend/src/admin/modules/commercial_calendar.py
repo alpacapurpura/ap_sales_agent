@@ -190,9 +190,7 @@ def render_commercial_calendar_page():
                         country_code=pais,
                         name=nombre,
                         date_start=fecha_inicio,
-                        date_end=fecha_fin
-                        if fecha_fin and fecha_fin >= fecha_inicio
-                        else None,
+                        date_end=fecha_fin if fecha_fin and fecha_fin >= fecha_inicio else None,
                         category=categoria,
                         description=descripcion or None,
                         tenant_id=None,  # admin crea eventos del sistema
@@ -244,7 +242,8 @@ def render_commercial_calendar_page():
                             value=sel_event.description or "",
                         )
                         st.caption(
-                            f"⚠️ Solo se editará la primera fila encontrada ({sel_event.date}). Para rangos, eliminar y recrear.",
+                            f"⚠️ Solo se editará la primera fila encontrada ({sel_event.date})."
+                            " Para rangos, eliminar y recrear.",
                         )
                         submitted_edit = st.form_submit_button(
                             "💾 Guardar cambios",
@@ -362,10 +361,7 @@ def render_commercial_calendar_page():
             with col_b:
                 st.subheader("Eventos por categoría")
                 cat_counts = (
-                    df.groupby("category")
-                    .size()
-                    .reset_index(name="count")
-                    .sort_values("count", ascending=False)
+                    df.groupby("category").size().reset_index(name="count").sort_values("count", ascending=False)
                 )
                 cat_counts["cat_label"] = cat_counts["category"].apply(
                     lambda v: CATEGORY_LABELS.get(v, v),

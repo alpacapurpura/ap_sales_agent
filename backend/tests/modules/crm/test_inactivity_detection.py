@@ -121,8 +121,7 @@ class TestScoreDecay:
             db,
             stage=LifecycleStage.MQL,
             score=40.0,
-            last_activity_at=datetime.now(timezone.utc)
-            - timedelta(days=7 + INACTIVITY_CONFIG.inactive_days),
+            last_activity_at=datetime.now(timezone.utc) - timedelta(days=7 + INACTIVITY_CONFIG.inactive_days),
         )
         svc = InactivityService(db)
         svc.run_batch(tenant_id=SAMPLE_TENANT_ID)
@@ -131,9 +130,7 @@ class TestScoreDecay:
         # 40 * (1-0.05)^(7+14) = 40 * 0.95^21 ~ 13.6
         # Actually the days_inactive = total days since last activity
         # days_inactive = 21, so score = 40 * 0.95^21
-        expected = 40.0 * (1 - DECAY_CONFIG.daily_decay_rate) ** (
-            7 + INACTIVITY_CONFIG.inactive_days
-        )
+        expected = 40.0 * (1 - DECAY_CONFIG.daily_decay_rate) ** (7 + INACTIVITY_CONFIG.inactive_days)
         assert abs(profile.lead_score - expected) < 0.1
 
     def test_decay_clamps_to_floor(self, db: Session):
@@ -191,8 +188,7 @@ class TestDecayTransitions:
             db,
             stage=LifecycleStage.MQL,
             score=42.0,
-            last_activity_at=datetime.now(timezone.utc)
-            - timedelta(days=days_past_threshold),
+            last_activity_at=datetime.now(timezone.utc) - timedelta(days=days_past_threshold),
         )
         svc = InactivityService(db)
         result = svc.run_batch(tenant_id=SAMPLE_TENANT_ID)

@@ -137,9 +137,7 @@ class PeriodExtractionPipeline:
                         "campaign_id": m.campaign_id,
                         "ad_set_id": m.ad_set_id,
                         "ad_id": m.ad_id,
-                        "cost_type": cost_type.value
-                        if hasattr(cost_type, "value")
-                        else cost_type,
+                        "cost_type": cost_type.value if hasattr(cost_type, "value") else cost_type,
                         "extra": m.extra,
                         "source_extraction_run_id": run_id,
                     },

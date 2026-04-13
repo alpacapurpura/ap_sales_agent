@@ -47,10 +47,7 @@ class TestCampaignTypeClassification:
         assert classify_campaign_type("Newsletter Semanal #12", "") == "newsletter"
 
     def test_newsletter_from_subject(self):
-        assert (
-            classify_campaign_type("Edicion 5", "Novedades de la semana")
-            == "newsletter"
-        )
+        assert classify_campaign_type("Edicion 5", "Novedades de la semana") == "newsletter"
 
     def test_newsletter_digest(self):
         assert classify_campaign_type("Digest mensual", "") == "newsletter"
@@ -59,26 +56,19 @@ class TestCampaignTypeClassification:
         assert classify_campaign_type("Lanzamiento Curso Premium", "") == "lanzamiento"
 
     def test_launch_exclusivo(self):
-        assert (
-            classify_campaign_type("Acceso exclusivo", "Estreno del programa")
-            == "lanzamiento"
-        )
+        assert classify_campaign_type("Acceso exclusivo", "Estreno del programa") == "lanzamiento"
 
     def test_promo_from_name(self):
         assert classify_campaign_type("Promo Black Friday -40%", "") == "promocion"
 
     def test_promo_from_discount(self):
-        assert (
-            classify_campaign_type("Oferta especial", "50% de descuento") == "promocion"
-        )
+        assert classify_campaign_type("Oferta especial", "50% de descuento") == "promocion"
 
     def test_promo_free(self):
         assert classify_campaign_type("Recurso gratis", "") == "promocion"
 
     def test_content_default(self):
-        assert (
-            classify_campaign_type("5 Tips de Fotografia", "Aprende mas") == "contenido"
-        )
+        assert classify_campaign_type("5 Tips de Fotografia", "Aprende mas") == "contenido"
 
     def test_reengagement(self):
         assert classify_campaign_type("Te extranamos", "Vuelve") == "reengagement"
@@ -207,25 +197,15 @@ class TestCampaignMetadataInExtra:
 
         # Per-campaign rows must exist with campaign_id set
         per_campaign = [m for m in metrics if m.campaign_id is not None]
-        assert len(per_campaign) > 0, (
-            "No per-campaign metrics emitted — Campañas tab will be empty"
-        )
+        assert len(per_campaign) > 0, "No per-campaign metrics emitted — Campañas tab will be empty"
 
         # Check campaign_001 has emails_sent metric
-        camp1_sent = [
-            m
-            for m in per_campaign
-            if m.campaign_id == "camp_001" and m.metric_name == "emails_sent"
-        ]
+        camp1_sent = [m for m in per_campaign if m.campaign_id == "camp_001" and m.metric_name == "emails_sent"]
         assert len(camp1_sent) == 1
         assert camp1_sent[0].value == 100
 
         # Check campaign_002 has emails_sent metric
-        camp2_sent = [
-            m
-            for m in per_campaign
-            if m.campaign_id == "camp_002" and m.metric_name == "emails_sent"
-        ]
+        camp2_sent = [m for m in per_campaign if m.campaign_id == "camp_002" and m.metric_name == "emails_sent"]
         assert len(camp2_sent) == 1
         assert camp2_sent[0].value == 200
 
@@ -542,11 +522,7 @@ class TestExtractAutomationsPerRow:
     def test_rates_converted_to_percentage(self):
         metrics = self._run_extract()
         auto_001_open = next(
-            (
-                m
-                for m in metrics
-                if m.campaign_id == "auto_001" and m.metric_name == "open_rate"
-            ),
+            (m for m in metrics if m.campaign_id == "auto_001" and m.metric_name == "open_rate"),
             None,
         )
         assert auto_001_open is not None

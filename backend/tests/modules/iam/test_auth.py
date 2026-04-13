@@ -66,10 +66,7 @@ class TestVerifyTokenPayload:
                 verify_token_payload("expired.jwt.token")
 
         assert exc_info.value.status_code == 401
-        assert (
-            "Invalid Token" in exc_info.value.detail
-            or "expired" in exc_info.value.detail.lower()
-        )
+        assert "Invalid Token" in exc_info.value.detail or "expired" in exc_info.value.detail.lower()
 
     def test_invalid_signature_raises_401(self):
         """A token with a bad signature must raise HTTPException 401."""
@@ -107,10 +104,7 @@ class TestVerifyTokenPayload:
                 verify_token_payload("any.jwt.token")
 
         assert exc_info.value.status_code == 500
-        assert (
-            "misconfiguration" in exc_info.value.detail.lower()
-            or "CLERK_ISSUER" in exc_info.value.detail
-        )
+        assert "misconfiguration" in exc_info.value.detail.lower() or "CLERK_ISSUER" in exc_info.value.detail
 
     def test_jwks_client_error_raises_401(self):
         """If JWKS key lookup fails (network/format error), return 401."""

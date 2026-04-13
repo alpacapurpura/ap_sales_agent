@@ -198,9 +198,7 @@ def get_trace_details(
         input_state=trace["input"],
         output_state=trace["output"],
         execution_time_ms=trace["execution_time"],
-        created_at=created_at_val.isoformat()
-        if hasattr(created_at_val, "isoformat")
-        else created_at_val,
+        created_at=created_at_val.isoformat() if hasattr(created_at_val, "isoformat") else created_at_val,
         llm_logs=[
             LLMLogDetail(
                 id=log["id"],

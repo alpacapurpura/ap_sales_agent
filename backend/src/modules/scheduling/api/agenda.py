@@ -54,11 +54,7 @@ async def get_agenda(
     lead_map = {}
     if lead_ids:
         # Use joinedload to fetch Customer Profile efficiently
-        leads_stmt = (
-            select(LeadModel)
-            .options(joinedload(LeadModel.customer))
-            .where(LeadModel.id.in_(lead_ids))
-        )
+        leads_stmt = select(LeadModel).options(joinedload(LeadModel.customer)).where(LeadModel.id.in_(lead_ids))
         leads = db.execute(leads_stmt).scalars().all()
 
         for lead in leads:
@@ -66,12 +62,7 @@ async def get_agenda(
             customer_name = lead.customer.full_name if lead.customer else None
             profile = lead.profile_data or {}
 
-            name = (
-                customer_name
-                or profile.get("full_name")
-                or profile.get("name")
-                or "Unknown Lead"
-            )
+            name = customer_name or profile.get("full_name") or profile.get("name") or "Unknown Lead"
             lead_map[lead.id] = name
 
     return [

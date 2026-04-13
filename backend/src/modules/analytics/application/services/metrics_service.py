@@ -265,14 +265,9 @@ class MetricsService:
             for group_key in ("organic_social", "ga4_search", "paid", "outbound"):
                 group = cache.get(group_key, {})
                 totals = group.get("totals", {})
-                total_visitors += (
-                    totals.get("reach", 0)
-                    + totals.get("sessions", 0)
-                    + totals.get("contacts", 0)
-                )
+                total_visitors += totals.get("reach", 0) + totals.get("sessions", 0) + totals.get("contacts", 0)
             connected_count = sum(
-                len(cache.get(g, {}).get("channels", []))
-                for g in ("organic_social", "ga4_search", "paid", "outbound")
+                len(cache.get(g, {}).get("channels", [])) for g in ("organic_social", "ga4_search", "paid", "outbound")
             )
             return (
                 StageSummaryKpiDTO(
@@ -628,10 +623,7 @@ class MetricsService:
         # 4. Build data points
         date_map, channels_seen = self._build_date_map(rows, granularity)
 
-        data_points = [
-            TimeSeriesPointDTO(date=d.isoformat(), channels=ch_vals)
-            for d, ch_vals in date_map.items()
-        ]
+        data_points = [TimeSeriesPointDTO(date=d.isoformat(), channels=ch_vals) for d, ch_vals in date_map.items()]
 
         # 5. Period totals
         period_totals = _compute_period_totals(date_map)
@@ -728,9 +720,7 @@ class MetricsService:
                 if week_start not in weekly_map:
                     weekly_map[week_start] = {}
                 for slug, val in ch_vals.items():
-                    weekly_map[week_start][slug] = (
-                        weekly_map[week_start].get(slug, 0) + val
-                    )
+                    weekly_map[week_start][slug] = weekly_map[week_start].get(slug, 0) + val
             date_map = weekly_map
 
         return date_map, channels_seen

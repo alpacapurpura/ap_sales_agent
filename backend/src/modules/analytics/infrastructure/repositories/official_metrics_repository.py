@@ -350,8 +350,7 @@ class OfficialMetricsRepository:
             (row.metric_date, row.metric_name): float(row.value) for row in account_rows
         }
         campaign_map: dict[tuple[date, str], float] = {
-            (row.metric_date, row.metric_name): float(row.total_value)
-            for row in campaign_rows
+            (row.metric_date, row.metric_name): float(row.total_value) for row in campaign_rows
         }
 
         merged: dict[tuple[date, str], float] = dict(campaign_map)

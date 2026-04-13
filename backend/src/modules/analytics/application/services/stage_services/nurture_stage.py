@@ -96,9 +96,7 @@ class NurtureStageService:
         metrics: list[MetricValueDTO] = []
         for agg in agg_rows:
             extra_data = getattr(agg, "extra", None) or {}
-            breakdown = (
-                extra_data if isinstance(extra_data, dict) and extra_data else None
-            )
+            breakdown = extra_data if isinstance(extra_data, dict) and extra_data else None
             metrics.append(
                 MetricValueDTO(
                     name=agg.metric_name,
@@ -243,9 +241,7 @@ class NurtureStageService:
 
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = (
-                conn_config.get(display_name_key) if display_name_key else None
-            )
+            source_display = conn_config.get(display_name_key) if display_name_key else None
 
             groups[group_key].append(
                 ChannelMetricDTO(
@@ -280,14 +276,8 @@ class NurtureStageService:
         if automation_cpm is not None:
             automation_totals["cost_per_mql"] = automation_cpm
 
-        conversion_rate = (
-            round(total_mqls / total_leads * 100, 2) if total_leads > 0 else 0.0
-        )
-        available_dto = (
-            AvailableChannelsDTO(channels=available_channels)
-            if available_channels
-            else None
-        )
+        conversion_rate = round(total_mqls / total_leads * 100, 2) if total_leads > 0 else 0.0
+        available_dto = AvailableChannelsDTO(channels=available_channels) if available_channels else None
 
         result = NurtureDetailDTO(
             header_kpis=NurtureHeaderKpisDTO(

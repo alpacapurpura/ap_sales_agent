@@ -59,8 +59,8 @@ exclude = [
     "venv",
 ]
 
-# Same as Black.
-line-length = 88
+# Industry standard for FastAPI projects (was 88, raised in Wave 5).
+line-length = 120
 indent-width = 4
 
 # Assume Python 3.11
@@ -120,6 +120,8 @@ select = [
     "INT",                     # flake8-gettext
     "T10",                     # flake8-debugger
     "EXE",                     # flake8-executable
+    # --- Wave 5 ---
+    "E501",                    # line-too-long (line-length=120)
     # --- Wave 4: fix + activate ---
     "NPY",                     # numpy deprecated APIs
     "PYI",                     # stub file / typing best practices

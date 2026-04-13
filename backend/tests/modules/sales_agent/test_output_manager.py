@@ -11,29 +11,21 @@ class TestParseResponseBlockStripping:
     """Internal blocks must never reach the user."""
 
     def test_strip_qualification_data_block(self):
-        raw = (
-            "Hola, ¿cómo estás? "
-            '[QUALIFICATION_DATA: {"budget": "5000", "timeline": "Q3"}]'
-        )
+        raw = 'Hola, ¿cómo estás? [QUALIFICATION_DATA: {"budget": "5000", "timeline": "Q3"}]'
         chunks = OutputManager._parse_response(raw)
         joined = " ".join(chunks)
         assert "QUALIFICATION_DATA" not in joined
         assert "Hola" in joined
 
     def test_strip_signals_block(self):
-        raw = (
-            'Me alegra que te interese. [SIGNALS: {"intent": "high", "urgency": true}]'
-        )
+        raw = 'Me alegra que te interese. [SIGNALS: {"intent": "high", "urgency": true}]'
         chunks = OutputManager._parse_response(raw)
         joined = " ".join(chunks)
         assert "SIGNALS" not in joined
         assert "Me alegra" in joined
 
     def test_strip_tool_request_block(self):
-        raw = (
-            "Déjame revisar tu agenda. "
-            '[TOOL_REQUEST: {"tool": "check_calendar", "args": {"date": "2026-04-01"}}]'
-        )
+        raw = 'Déjame revisar tu agenda. [TOOL_REQUEST: {"tool": "check_calendar", "args": {"date": "2026-04-01"}}]'
         chunks = OutputManager._parse_response(raw)
         joined = " ".join(chunks)
         assert "TOOL_REQUEST" not in joined

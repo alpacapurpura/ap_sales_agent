@@ -90,9 +90,7 @@ class YouTubeAnalyticsAdapter:
     def _rows_to_dicts(response: dict[str, Any]) -> list[dict[str, Any]]:
         """Converts the columnHeaders + rows response into a list of dicts."""
         headers = [h["name"] for h in response.get("columnHeaders", [])]
-        return [
-            dict(zip(headers, row, strict=False)) for row in response.get("rows", [])
-        ]
+        return [dict(zip(headers, row, strict=False)) for row in response.get("rows", [])]
 
     # ── Public Methods ─────────────────────────────────────────────────────
 

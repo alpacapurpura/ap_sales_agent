@@ -67,9 +67,7 @@ class TestMetaAdsDataIntegrity:
         rows = self._fetch_metrics(db_session, tenant_id)
         if not rows:
             pytest.skip("No meta-ads data in DB")
-        negatives = [
-            (r.metric_name, r.metric_date, r.value) for r in rows if r.value < 0
-        ]
+        negatives = [(r.metric_name, r.metric_date, r.value) for r in rows if r.value < 0]
         assert not negatives, f"Found negative values: {negatives[:5]}"
 
     def test_meta_ads_spend_has_currency(self, db_session, tenant_id):
@@ -82,8 +80,7 @@ class TestMetaAdsDataIntegrity:
             pytest.skip("No spend rows")
         missing_currency = [r for r in spend_rows if not r.currency]
         assert not missing_currency, (
-            f"{len(missing_currency)} spend rows missing currency "
-            f"(first: date={missing_currency[0].metric_date})"
+            f"{len(missing_currency)} spend rows missing currency (first: date={missing_currency[0].metric_date})"
         )
 
     def test_meta_ads_daily_continuity(self, db_session, tenant_id):
@@ -156,9 +153,7 @@ class TestIgOrganicDataIntegrity:
         # Delta metrics can be negative (unfollows, un-reposts, etc.)
         delta_metrics = {"ig_follows_and_unfollows", "ig_reposts", "ig_follows_lost"}
         negatives = [
-            (r.metric_name, r.metric_date, r.value)
-            for r in rows
-            if r.value < 0 and r.metric_name not in delta_metrics
+            (r.metric_name, r.metric_date, r.value) for r in rows if r.value < 0 and r.metric_name not in delta_metrics
         ]
         assert not negatives, f"Found negative values: {negatives[:5]}"
 

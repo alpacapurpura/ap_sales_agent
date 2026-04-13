@@ -66,9 +66,7 @@ class SearchConsoleAdapter:
             }
             if dimensions:
                 body["dimensions"] = dimensions
-            response = (
-                service.searchanalytics().query(siteUrl=site_url, body=body).execute()
-            )
+            response = service.searchanalytics().query(siteUrl=site_url, body=body).execute()
             return response.get("rows", [])
         except (RefreshError, TransportError) as exc:
             logger.warning(

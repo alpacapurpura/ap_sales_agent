@@ -52,14 +52,9 @@ class SummaryStageService:
             total_visitors = 0
             for group_key in ("organic_social", "ga4_search", "paid", "outbound"):
                 totals = cache.get(group_key, {}).get("totals", {})
-                total_visitors += (
-                    totals.get("reach", 0)
-                    + totals.get("sessions", 0)
-                    + totals.get("contacts", 0)
-                )
+                total_visitors += totals.get("reach", 0) + totals.get("sessions", 0) + totals.get("contacts", 0)
             connected_count = sum(
-                len(cache.get(g, {}).get("channels", []))
-                for g in ("organic_social", "ga4_search", "paid", "outbound")
+                len(cache.get(g, {}).get("channels", [])) for g in ("organic_social", "ga4_search", "paid", "outbound")
             )
             return StageSummaryKpiDTO(
                 stage="attraction",
@@ -258,9 +253,7 @@ class SummaryStageService:
 
         # --- Capture ---
         capture_cache = await _get_stage_cache("capture")
-        fallback_leads = (
-            self.lead_repo.count_total(tenant_id) if not capture_cache else 0
-        )
+        fallback_leads = self.lead_repo.count_total(tenant_id) if not capture_cache else 0
         stages.append(
             self._build_simple_header_kpi(
                 capture_cache,
@@ -275,11 +268,7 @@ class SummaryStageService:
 
         # --- Nurture ---
         nurture_cache = await _get_stage_cache("nurture")
-        fallback_mqls = (
-            self.customer_repo.count_by_stage(tenant_id, LifecycleStage.MQL)
-            if not nurture_cache
-            else 0
-        )
+        fallback_mqls = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.MQL) if not nurture_cache else 0
         stages.append(
             self._build_simple_header_kpi(
                 nurture_cache,

@@ -57,8 +57,7 @@ class CalendarEventRepository:
         )
         if tenant_id is not None:
             stmt = stmt.where(
-                (CalendarEventModel.tenant_id == None)
-                | (CalendarEventModel.tenant_id == tenant_id),
+                (CalendarEventModel.tenant_id == None) | (CalendarEventModel.tenant_id == tenant_id),
             )
         else:
             stmt = stmt.where(CalendarEventModel.tenant_id == None)
@@ -81,8 +80,7 @@ class CalendarEventRepository:
         )
         if tenant_id is not None:
             stmt = stmt.where(
-                (CalendarEventModel.tenant_id == tenant_id)
-                | (CalendarEventModel.tenant_id == None),
+                (CalendarEventModel.tenant_id == tenant_id) | (CalendarEventModel.tenant_id == None),
             )
         result = self.db.execute(stmt)
         model = result.scalar_one_or_none()

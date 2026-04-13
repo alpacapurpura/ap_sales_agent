@@ -158,10 +158,7 @@ class OfferPersister:
             # Serialize complex types to dicts for the mapa_global
             if field_name in COMPLEX_FIELD_TYPES and isinstance(value, list):
                 result[field_name] = [
-                    item.model_dump(mode="json")
-                    if hasattr(item, "model_dump")
-                    else item
-                    for item in value
+                    item.model_dump(mode="json") if hasattr(item, "model_dump") else item for item in value
                 ]
             elif hasattr(value, "value"):
                 # Enums → string value

@@ -158,8 +158,7 @@ def test_catalog_metrics_appear_in_contract() -> None:
                 continue
             if metric.name not in _contract_metric_names(contract):
                 missing.append(
-                    f"{contract_provider}/{metric.name} "
-                    f"(declared in catalog by '{catalog_provider}')",
+                    f"{contract_provider}/{metric.name} (declared in catalog by '{catalog_provider}')",
                 )
 
     # Allowlist for KNOWN gaps that we are tracking and intentionally tolerate.

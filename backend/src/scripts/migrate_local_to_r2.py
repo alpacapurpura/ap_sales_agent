@@ -51,9 +51,7 @@ def migrate(dry_run: bool = False):
     db = SessionLocal()
 
     try:
-        assets = (
-            db.query(AssetModel).filter(AssetModel.storage_provider == "LOCAL").all()
-        )
+        assets = db.query(AssetModel).filter(AssetModel.storage_provider == "LOCAL").all()
         print(f"Found {len(assets)} local asset(s) to migrate.\n")
 
         success = 0

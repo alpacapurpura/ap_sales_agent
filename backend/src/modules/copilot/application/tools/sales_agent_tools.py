@@ -29,8 +29,7 @@ def get_sales_agent_status() -> str:
         total_convs = (
             db.execute(
                 text(
-                    "SELECT COUNT(DISTINCT user_id) FROM messages "
-                    "WHERE tenant_id = :tid",
+                    "SELECT COUNT(DISTINCT user_id) FROM messages WHERE tenant_id = :tid",
                 ),
                 {"tid": str(tenant_id)},
             ).scalar()

@@ -47,11 +47,7 @@ class OfferContextLoader:
             Human-readable string describing the tenant's offer ladder.
 
         """
-        stmt = (
-            select(ProductModel)
-            .where(ProductModel.tenant_id == tenant_id)
-            .where(ProductModel.deleted_at.is_(None))
-        )
+        stmt = select(ProductModel).where(ProductModel.tenant_id == tenant_id).where(ProductModel.deleted_at.is_(None))
         if entity_id:
             stmt = stmt.where(ProductModel.id != entity_id)
 
@@ -72,11 +68,7 @@ class OfferContextLoader:
             price_display = "sin precio"
             pricing = getattr(offer, "pricing", None)
             if pricing and isinstance(pricing, list) and len(pricing) > 0:
-                pay_full = (
-                    pricing[0].get("pay_in_full")
-                    if isinstance(pricing[0], dict)
-                    else None
-                )
+                pay_full = pricing[0].get("pay_in_full") if isinstance(pricing[0], dict) else None
                 if pay_full is not None:
                     price_display = str(pay_full)
 
@@ -86,8 +78,7 @@ class OfferContextLoader:
             status = getattr(offer, "status", "draft")
 
             lines.append(
-                f"- {offer.name} ({archetype}, {value_level}): "
-                f"{currency} {price_display} — {status}",
+                f"- {offer.name} ({archetype}, {value_level}): {currency} {price_display} — {status}",
             )
 
         # Identify ladder gaps

@@ -53,9 +53,7 @@ async def test_generate_psychology_success():
     assert response.pains[0] == "p1"
     assert response.desires[0] == "d1"
     render_mock.assert_called_once()
-    assert (
-        render_mock.call_args.kwargs["template_name"] == "offer_psychology_generator.j2"
-    )
+    assert render_mock.call_args.kwargs["template_name"] == "offer_psychology_generator.j2"
 
 
 @pytest.mark.asyncio

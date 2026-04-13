@@ -73,8 +73,7 @@ LEVEL_ORDER = [
 
 GAP_REASONING = {
     "lead_magnet": (
-        "Sin lead magnet no hay entrada al embudo. Es lo primero que un prospecto "
-        "descarga a cambio de su contacto."
+        "Sin lead magnet no hay entrada al embudo. Es lo primero que un prospecto descarga a cambio de su contacto."
     ),
     "activacion": (
         "Una oferta de activacion convierte leads frios en compradores. "
@@ -89,8 +88,7 @@ GAP_REASONING = {
         "comprometidos que quieren atencion personalizada."
     ),
     "corporativo": (
-        "Una oferta corporativa o done-for-you abre un canal de alto ticket "
-        "con empresas o clientes premium."
+        "Una oferta corporativa o done-for-you abre un canal de alto ticket con empresas o clientes premium."
     ),
 }
 
@@ -214,18 +212,15 @@ def _calculate_completeness(groups: dict[str, list[dict]]) -> str:
 
     if pct == 100:
         lines.append(
-            "Tu offer ladder esta completo. Revisa cada oferta para asegurar "
-            "que los detalles esten bien configurados.",
+            "Tu offer ladder esta completo. Revisa cada oferta para asegurar que los detalles esten bien configurados.",
         )
     elif pct >= 60:
         lines.append(
-            "Buen avance. Completa los niveles faltantes para maximizar "
-            "el valor de cada cliente en tu embudo.",
+            "Buen avance. Completa los niveles faltantes para maximizar el valor de cada cliente en tu embudo.",
         )
     else:
         lines.append(
-            "Tu offer ladder necesita mas ofertas. Empieza por los gaps "
-            "marcados como CRITICO.",
+            "Tu offer ladder necesita mas ofertas. Empieza por los gaps marcados como CRITICO.",
         )
 
     return "\n".join(lines)

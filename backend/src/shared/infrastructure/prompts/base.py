@@ -47,9 +47,7 @@ class PromptLoader:
                 .mappings()
                 .first()
             )
-            config = (
-                result["config_json"] if result and result.get("config_json") else {}
-            )
+            config = result["config_json"] if result and result.get("config_json") else {}
             self._tenant_config_cache[tenant_id] = config
         except Exception as exc:  # noqa: BLE001 — prompt loading resilience
             logger.warning("Error loading tenant config: %s", exc)

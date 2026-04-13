@@ -110,12 +110,7 @@ class GmailAdapter:
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
 
         try:
-            message = (
-                service.users()
-                .messages()
-                .send(userId="me", body={"raw": raw_message})
-                .execute()
-            )
+            message = service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
         except Exception:
             logger.exception("Error sending email to %s", to_email)
             raise

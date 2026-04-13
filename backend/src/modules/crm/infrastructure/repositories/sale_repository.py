@@ -33,11 +33,7 @@ class SaleRepository:
         )
 
     def save(self, sale: Sale) -> Sale:
-        model = (
-            self.db.execute(select(SaleModel).where(SaleModel.id == sale.id))
-            .scalars()
-            .first()
-        )
+        model = self.db.execute(select(SaleModel).where(SaleModel.id == sale.id)).scalars().first()
         if not model:
             model = SaleModel(id=sale.id)
             self.db.add(model)
@@ -60,11 +56,7 @@ class SaleRepository:
         return self._to_domain(model)
 
     def find_by_id(self, sale_id: UUID) -> Sale | None:
-        model = (
-            self.db.execute(select(SaleModel).where(SaleModel.id == sale_id))
-            .scalars()
-            .first()
-        )
+        model = self.db.execute(select(SaleModel).where(SaleModel.id == sale_id)).scalars().first()
         return self._to_domain(model) if model else None
 
     def find_by_customer_id(self, customer_id: UUID) -> list[Sale]:

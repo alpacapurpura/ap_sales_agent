@@ -60,9 +60,7 @@ def render_events_page():
                 accepted = summary.get("proposal_accepted", 0)
                 rejected = summary.get("proposal_rejected", 0)
                 total_p = accepted + rejected
-                acceptance_rate = (
-                    f"{round(accepted / total_p * 100)}%" if total_p else "N/A"
-                )
+                acceptance_rate = f"{round(accepted / total_p * 100)}%" if total_p else "N/A"
 
                 c1, c2, c3, c4 = st.columns(4)
                 c1.metric("Total Eventos", total_events, help=TOOLTIPS["total_events"])
@@ -86,10 +84,7 @@ def render_events_page():
                 if summary:
                     st.subheader("Distribucion de Eventos")
                     df_events = pd.DataFrame(
-                        [
-                            {"Tipo": k, "Cantidad": v}
-                            for k, v in sorted(summary.items(), key=lambda x: -x[1])
-                        ],
+                        [{"Tipo": k, "Cantidad": v} for k, v in sorted(summary.items(), key=lambda x: -x[1])],
                     )
                     st.bar_chart(df_events.set_index("Tipo"))
                     st.dataframe(df_events, use_container_width=True, hide_index=True)
@@ -196,12 +191,7 @@ def render_events_page():
                         hide_index=True,
                     )
 
-                    low = [
-                        r
-                        for r in rows
-                        if int(r["% Completado"].rstrip("%")) < 50
-                        and r["Abandonados"] > 0
-                    ]
+                    low = [r for r in rows if int(r["% Completado"].rstrip("%")) < 50 and r["Abandonados"] > 0]
                     for r in low:
                         st.warning(
                             f"**{r['Procedimiento']}** — {r['% Completado']} completado. "
@@ -319,15 +309,12 @@ def render_events_page():
                         data_str = str(ev.event_data or {})
                         rows.append(
                             {
-                                "Fecha": ev.created_at.strftime("%Y-%m-%d %H:%M")
-                                if ev.created_at
-                                else "—",
+                                "Fecha": ev.created_at.strftime("%Y-%m-%d %H:%M") if ev.created_at else "—",
                                 "Tenant": get_tenant_name(ev.tenant_id),
                                 "Usuario": str(ev.user_id)[:8],
                                 "Tipo": ev.event_type,
                                 "Ruta": ev.route or "—",
-                                "Data": data_str[:100]
-                                + ("..." if len(data_str) > 100 else ""),
+                                "Data": data_str[:100] + ("..." if len(data_str) > 100 else ""),
                             },
                         )
                     st.dataframe(

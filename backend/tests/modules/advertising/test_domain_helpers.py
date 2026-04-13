@@ -17,16 +17,10 @@ from src.modules.advertising.domain.text_matching import (
 
 class TestNormalizeUrl:
     def test_strips_scheme_and_www_and_trailing_slash(self):
-        assert (
-            normalize_url("https://www.Visionarias.com/masterclass/")
-            == "visionarias.com/masterclass"
-        )
+        assert normalize_url("https://www.Visionarias.com/masterclass/") == "visionarias.com/masterclass"
 
     def test_strips_query_string(self):
-        assert (
-            normalize_url("https://visionarias.com/masterclass/?utm_source=fb")
-            == "visionarias.com/masterclass"
-        )
+        assert normalize_url("https://visionarias.com/masterclass/?utm_source=fb") == "visionarias.com/masterclass"
 
     def test_empty_input(self):
         assert normalize_url(None) == ""
@@ -174,21 +168,13 @@ class TestResolveExpectedMetric:
 
 class TestExpectedMetricForObjective:
     def test_sales_maps_to_purchase(self):
-        assert (
-            expected_metric_for_objective("OUTCOME_SALES")
-            == OfferExpectedMetric.PURCHASE
-        )
+        assert expected_metric_for_objective("OUTCOME_SALES") == OfferExpectedMetric.PURCHASE
 
     def test_messages_maps_to_message(self):
-        assert (
-            expected_metric_for_objective("OUTCOME_MESSAGES")
-            == OfferExpectedMetric.MESSAGE
-        )
+        assert expected_metric_for_objective("OUTCOME_MESSAGES") == OfferExpectedMetric.MESSAGE
 
     def test_leads_maps_to_lead(self):
-        assert (
-            expected_metric_for_objective("OUTCOME_LEADS") == OfferExpectedMetric.LEAD
-        )
+        assert expected_metric_for_objective("OUTCOME_LEADS") == OfferExpectedMetric.LEAD
 
     def test_traffic_is_none(self):
         assert expected_metric_for_objective("OUTCOME_TRAFFIC") is None

@@ -39,9 +39,7 @@ SESSION_TIMEOUT_HOURS = 6  # Hours before session is considered expired
 MESSAGE_HISTORY_LIMIT = 10  # Max messages loaded from audit history
 
 # ─── Question Fatigue (Fase 3) ───────────────────────────────────────────────
-CONSECUTIVE_QUESTION_FATIGUE_LIMIT = (
-    3  # Max consecutive qualifier turns before forcing value
-)
+CONSECUTIVE_QUESTION_FATIGUE_LIMIT = 3  # Max consecutive qualifier turns before forcing value
 
 # ─── Follow-up Cadences (Fase 4) ─────────────────────────────────────────────
 FOLLOW_UP_CADENCES = {

@@ -71,9 +71,7 @@ class TestRunCampaignSyncTask:
         # The pipeline must receive a flat dict, NOT a ConnectionCredentials object
         call_args = mock_pipeline.run_sync.call_args
         passed_creds = call_args[0][1]  # second positional arg
-        assert isinstance(passed_creds, dict), (
-            f"Expected dict, got {type(passed_creds).__name__}"
-        )
+        assert isinstance(passed_creds, dict), f"Expected dict, got {type(passed_creds).__name__}"
         assert passed_creds["access_token"] == "tok123"
         assert passed_creds["ad_account_id"] == "act_456"
         assert result["status"] == "success"

@@ -103,8 +103,7 @@ class AdoptionMetricsRepository:
                 func.avg(
                     func.extract(
                         "epoch",
-                        first_event.c.first_event_at
-                        - CustomerProfileModel.first_conversion_at,
+                        first_event.c.first_event_at - CustomerProfileModel.first_conversion_at,
                     )
                     / 86400,
                 ).label("avg_ttv"),
@@ -128,11 +127,7 @@ class AdoptionMetricsRepository:
             .group_by(SaleModel.offer_id)
         )
         results = self.db.execute(stmt).all()
-        return {
-            str(row[0]): round(float(row[1]), 1)
-            for row in results
-            if row[1] is not None
-        }
+        return {str(row[0]): round(float(row[1]), 1) for row in results if row[1] is not None}
 
     def get_total_customers_and_sales(
         self,

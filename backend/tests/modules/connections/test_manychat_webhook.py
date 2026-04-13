@@ -105,9 +105,7 @@ async def test_subscriber_new_creates_message_received_event():
         await _handle_manychat_event(mock_db, tenant_id, payload, "instagram")
 
     # db.add should be called TWICE: manychat_subscriber_created + message_received
-    assert mock_db.add.call_count == 2, (
-        f"Expected 2 db.add calls, got {mock_db.add.call_count}"
-    )
+    assert mock_db.add.call_count == 2, f"Expected 2 db.add calls, got {mock_db.add.call_count}"
 
     # First call: manychat_subscriber_created
     first_event = mock_db.add.call_args_list[0][0][0]
@@ -163,9 +161,7 @@ async def test_tag_applied_does_not_create_message_received():
         await _handle_manychat_event(mock_db, tenant_id, payload, "instagram")
 
     # db.add should be called ONCE: only manychat_tag_applied
-    assert mock_db.add.call_count == 1, (
-        f"Expected 1 db.add call, got {mock_db.add.call_count}"
-    )
+    assert mock_db.add.call_count == 1, f"Expected 1 db.add call, got {mock_db.add.call_count}"
 
     event = mock_db.add.call_args_list[0][0][0]
     assert event.event_name == "manychat_tag_applied"

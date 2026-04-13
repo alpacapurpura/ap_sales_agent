@@ -212,9 +212,7 @@ class LifecycleService:
         self._transition(
             profile,
             new_stage,
-            reason=f"Manual stage override: {note}"
-            if note
-            else "Manual stage override",
+            reason=f"Manual stage override: {note}" if note else "Manual stage override",
             triggered_by="manual",
             metadata={
                 "admin_user_id": str(admin_user_id) if admin_user_id else "",
@@ -371,7 +369,10 @@ class LifecycleService:
             self._transition(
                 profile,
                 new_stage,
-                reason=f"Score {'crossed' if new_stage.value > profile.lifecycle_stage.value else 'dropped below'} {new_stage.value.upper()} threshold ({score:.1f})",
+                reason=(
+                    f"Score {'crossed' if new_stage.value > profile.lifecycle_stage.value else 'dropped below'}"
+                    f" {new_stage.value.upper()} threshold ({score:.1f})"
+                ),
                 triggered_by="scoring_rule",
             )
 

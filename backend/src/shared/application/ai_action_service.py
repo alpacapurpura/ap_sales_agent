@@ -90,9 +90,7 @@ class AIActionService:
                 )
             except (json.JSONDecodeError, ValidationError, Exception) as error:  # noqa: BLE001 — service resilience
                 last_error = error
-                raw_preview = (
-                    llm_response[:300] if "llm_response" in locals() else "N/A"
-                )
+                raw_preview = llm_response[:300] if "llm_response" in locals() else "N/A"
                 self.logger.warning(
                     "ai_action_retry",
                     action_name=action_name,

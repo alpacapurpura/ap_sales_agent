@@ -128,11 +128,7 @@ class TestTenantServiceUpdateTenant:
         )
         assert tenant is None
         assert error is not None
-        assert (
-            "no encontrado" in error.lower()
-            or "not found" in error.lower()
-            or "Error" in error
-        )
+        assert "no encontrado" in error.lower() or "not found" in error.lower() or "Error" in error
 
     def test_update_tenant_deactivate(self, db, seed_tenant, tenant_id):
         service = TenantService(db)

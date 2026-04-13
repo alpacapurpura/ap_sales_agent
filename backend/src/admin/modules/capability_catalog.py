@@ -272,11 +272,7 @@ def render_capability_catalog():
                                 tool_calls = msg.get("tool_calls", [])
                                 if isinstance(tool_calls, list):
                                     for tc in tool_calls:
-                                        name = (
-                                            tc.get("name", "unknown")
-                                            if isinstance(tc, dict)
-                                            else "unknown"
-                                        )
+                                        name = tc.get("name", "unknown") if isinstance(tc, dict) else "unknown"
                                         tool_counts[name] = tool_counts.get(name, 0) + 1
                                         conv_has_tools = True
                         if conv_has_tools:

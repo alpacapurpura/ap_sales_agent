@@ -168,8 +168,7 @@ async def run_tenant_extraction(
         defer_seconds = FIBONACCI_BACKOFF[fib_index] * 60
 
         logger.warning(
-            "Extraction failed for tenant=%s provider=%s (attempt %d), "
-            "retrying in %d seconds: %s",
+            "Extraction failed for tenant=%s provider=%s (attempt %d), retrying in %d seconds: %s",
             tenant_id,
             provider,
             job_try,
@@ -275,8 +274,7 @@ async def run_initial_load(
         defer_seconds = FIBONACCI_BACKOFF[fib_index] * 60
 
         logger.warning(
-            "Initial load failed for tenant=%s provider=%s (attempt %d), "
-            "retrying in %d seconds: %s",
+            "Initial load failed for tenant=%s provider=%s (attempt %d), retrying in %d seconds: %s",
             tenant_id,
             provider,
             job_try,
@@ -472,8 +470,7 @@ async def run_campaign_sync(
         defer_seconds = FIBONACCI_BACKOFF[fib_index] * 60
 
         logger.warning(
-            "Campaign sync failed for tenant=%s provider=%s (attempt %d), "
-            "retrying in %d seconds: %s",
+            "Campaign sync failed for tenant=%s provider=%s (attempt %d), retrying in %d seconds: %s",
             tenant_id,
             provider,
             job_try,
@@ -648,8 +645,7 @@ async def _sync_single_tenant(db, conn, tenant_id) -> int:
                     JourneyEventModel.profile_id == profile.id,
                     JourneyEventModel.tenant_id == tenant_id,
                     JourneyEventModel.event_name == event_name,
-                    JourneyEventModel.properties["campaign_id"].astext
-                    == str(campaign_id),
+                    JourneyEventModel.properties["campaign_id"].astext == str(campaign_id),
                 ),
             ),
         )

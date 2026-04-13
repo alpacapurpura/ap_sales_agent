@@ -134,9 +134,7 @@ class AttractionStageService:
 
         for agg in agg_rows:
             extra_data = getattr(agg, "extra", None) or {}
-            breakdown = (
-                extra_data if isinstance(extra_data, dict) and extra_data else None
-            )
+            breakdown = extra_data if isinstance(extra_data, dict) and extra_data else None
 
             metrics.append(
                 MetricValueDTO(
@@ -178,9 +176,7 @@ class AttractionStageService:
         if latest_run.status == "partial_success":
             failures = latest_run.sub_extractor_failures or []
             if failures:
-                names = [
-                    f["extractor_name"].replace("_", " ").title() for f in failures[:2]
-                ]
+                names = [f["extractor_name"].replace("_", " ").title() for f in failures[:2]]
                 return False, f"Parcial ({', '.join(names)})"
 
         return False, None
@@ -244,9 +240,7 @@ class AttractionStageService:
             # Build metrics from aggregation rows
             agg_rows = agg_by_slug.get(slug, [])
             metrics, last_updated = self._build_agg_metrics(agg_rows)
-            if last_updated and (
-                latest_updated is None or last_updated > latest_updated
-            ):
+            if last_updated and (latest_updated is None or last_updated > latest_updated):
                 latest_updated = last_updated
 
             # Stale detection
@@ -288,9 +282,7 @@ class AttractionStageService:
             # Resolve display name from connection config
             conn_config = ch.get("connection_config", {})
             display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = (
-                conn_config.get(display_name_key) if display_name_key else None
-            )
+            source_display = conn_config.get(display_name_key) if display_name_key else None
 
             dto = ChannelMetricDTO(
                 slug=slug,
@@ -323,11 +315,7 @@ class AttractionStageService:
         ]
 
         # 6. Compute group totals
-        available_dto = (
-            AvailableChannelsDTO(channels=available_channels)
-            if available_channels
-            else None
-        )
+        available_dto = AvailableChannelsDTO(channels=available_channels) if available_channels else None
 
         result = AttractionDetailDTO(
             organic_social=TrafficGroupDTO(

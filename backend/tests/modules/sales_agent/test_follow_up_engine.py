@@ -191,10 +191,7 @@ class TestCadenceInitialization:
         )
         result = nodes_mod.node_signal_accumulator(state)
         # Should NOT overwrite existing cadence
-        assert (
-            result.get("follow_up_cadence") is None
-            or result.get("follow_up_cadence") == existing_cadence
-        )
+        assert result.get("follow_up_cadence") is None or result.get("follow_up_cadence") == existing_cadence
 
     @patch(_TRACE_PATCH, _noop_trace)
     def test_cadence_default_mid_when_no_price(self):
@@ -235,11 +232,7 @@ class TestFollowUpNudgeTemplate:
             offer_name="Programa Premium",
             channel_type="instagram",
         )
-        assert (
-            "tip" in result.lower()
-            or "recurso" in result.lower()
-            or "dato" in result.lower()
-        )
+        assert "tip" in result.lower() or "recurso" in result.lower() or "dato" in result.lower()
         assert "Maria" in result
         assert "Programa Premium" in result
 

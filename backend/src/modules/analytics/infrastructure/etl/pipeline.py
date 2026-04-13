@@ -283,9 +283,7 @@ class ETLPipeline:
         final_status = _determine_status(result)
         final_error = None
         if result.failures and not result.metrics:
-            final_error = "; ".join(
-                f"{f.extractor_name}: {f.error[:100]}" for f in result.failures
-            )
+            final_error = "; ".join(f"{f.extractor_name}: {f.error[:100]}" for f in result.failures)
 
         self.run_repo.update_status(
             run_id=run_id,
