@@ -3,12 +3,16 @@
 # Ensure domain configs are registered on import
 from uuid import UUID, uuid4
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 import src.modules.copilot.domain.interview_configs.brand_config  # noqa: F401
 from src.modules.copilot.domain.interview_config import (
     DOMAIN_CONFIGS,
     get_interview_config,
+)
+from src.modules.copilot.domain.interview_configs.offer_config import (
+    get_offer_interview_config,
 )
 from src.modules.copilot.domain.interview_session import (
     InterviewSession,
@@ -20,12 +24,32 @@ from src.modules.copilot.infrastructure.repositories.conversation_repository imp
 from src.modules.copilot.infrastructure.repositories.interview_session_repository import (
     InterviewSessionRepository,
 )
+from src.modules.offer.infrastructure.models.product_model import ProductModel
 
 DOMAIN_LABELS = {
     "brand": "Brand Studio",
     "buyer_persona": "Buyer Persona",
     "offer": "Offer Studio",
 }
+
+
+def _load_offer_archetype(
+    db: Session,
+    tenant_id: UUID,
+    entity_id: UUID,
+) -> str | None:
+    """Query the offer's archetype from the database.
+
+    Returns the archetype string if the offer exists and belongs to the tenant,
+    or None if the offer is not found.
+    """
+    result = db.execute(
+        select(ProductModel.archetype).where(
+            ProductModel.id == entity_id,
+            ProductModel.tenant_id == tenant_id,
+        )
+    )
+    return result.scalar_one_or_none()
 
 
 class InterviewService:
@@ -70,7 +94,11 @@ class InterviewService:
             msg = "Active session exists for this domain"
             raise ValueError(msg)
 
-        config = get_interview_config(domain)
+        if domain == "offer" and entity_id:
+            archetype = _load_offer_archetype(self.db, tenant_id, entity_id)
+            config = get_offer_interview_config(archetype or "")
+        else:
+            config = get_interview_config(domain)
 
         conversation_id = uuid4()
         self.conversation_repo.create(
