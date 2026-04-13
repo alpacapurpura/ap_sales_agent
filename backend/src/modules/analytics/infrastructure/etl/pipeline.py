@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.analytics.application.cost_type_mapping import get_cost_type
 from src.modules.analytics.domain.enums import ExtractionStatus
-from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 from src.modules.analytics.domain.period_config import TenantPeriodConfig
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
@@ -243,7 +243,7 @@ class ETLPipeline:
 
             return run
 
-        except ConnectionRevokedException as exc:
+        except ConnectionRevokedError as exc:
             # Connection revoked — mark FAILED, no retry
             self.db.rollback()
             duration = time.monotonic() - start_time

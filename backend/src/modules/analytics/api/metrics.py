@@ -170,7 +170,7 @@ async def get_summary_metrics(
 ):
     """Lightweight KPIs for the Bowtie funnel row.
 
-    Returns ~15 fields total (2 KPIs per stage × 8 stages) instead of
+    Returns ~15 fields total (2 KPIs per stage x 8 stages) instead of
     the ~2000+ fields from 8 individual detail endpoints.
     Cache-first: reads from per-stage Redis caches with 60s summary TTL.
     """

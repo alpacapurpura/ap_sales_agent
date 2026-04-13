@@ -130,17 +130,18 @@ class LaunchEditionRepository:
             msg = f"Edition {edition_id} not found"
             raise ValueError(msg)
 
-        for key, value in data.items():
+        for key, raw_value in data.items():
+            resolved = raw_value
             if (
                 key == "pricing_override"
-                and value is not None
-                and isinstance(value, list)
-                and value
-                and hasattr(value[0], "model_dump")
+                and raw_value is not None
+                and isinstance(raw_value, list)
+                and raw_value
+                and hasattr(raw_value[0], "model_dump")
             ):
-                value = [p.model_dump(mode="json") for p in value]
+                resolved = [p.model_dump(mode="json") for p in raw_value]
             if hasattr(model, key):
-                setattr(model, key, value)
+                setattr(model, key, resolved)
 
         self.db.flush()
         self.db.refresh(model)

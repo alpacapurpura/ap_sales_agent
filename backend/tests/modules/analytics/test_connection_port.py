@@ -56,27 +56,27 @@ class TestConnectionCredentials:
 
 class TestDomainExceptions:
     def test_connection_revoked_is_exception(self):
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 
-        exc = ConnectionRevokedException("Token expired")
+        exc = ConnectionRevokedError("Token expired")
         assert isinstance(exc, Exception)
         assert str(exc) == "Token expired"
 
     def test_connection_revoked_with_channel_type(self):
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 
-        exc = ConnectionRevokedException("Revoked", channel_type="meta")
+        exc = ConnectionRevokedError("Revoked", channel_type="meta")
         assert exc.channel_type == "meta"
 
     def test_token_refresh_failed_is_exception(self):
-        from src.modules.analytics.domain.exceptions import TokenRefreshFailed
+        from src.modules.analytics.domain.exceptions import TokenRefreshError
 
-        exc = TokenRefreshFailed("Refresh failed")
+        exc = TokenRefreshError("Refresh failed")
         assert isinstance(exc, Exception)
         assert str(exc) == "Refresh failed"
 
     def test_token_refresh_failed_with_provider(self):
-        from src.modules.analytics.domain.exceptions import TokenRefreshFailed
+        from src.modules.analytics.domain.exceptions import TokenRefreshError
 
-        exc = TokenRefreshFailed("Failed", provider="google")
+        exc = TokenRefreshError("Failed", provider="google")
         assert exc.provider == "google"

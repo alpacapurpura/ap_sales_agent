@@ -1,8 +1,7 @@
 import json
 from datetime import UTC, datetime
 from typing import Literal
-from uuid import UUID as UUIDType
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import structlog
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -121,7 +120,7 @@ async def get_offer_extraction_status(
     current_user: User = Depends(get_current_user),
 ):
     try:
-        UUIDType(job_id)
+        UUID(job_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid job ID format") from None
 

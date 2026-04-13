@@ -100,7 +100,9 @@ class VelvetRopeContent(BaseEntity):
     headline: str = Field(..., description="Exclusividad y Pertenencia")
     manifesto_text: str = Field(..., description="Valores y visión del grupo")
     who_is_this_for: list[str] = Field(..., description="Filtro positivo")
-    who_is_NOT_for: list[str] = Field(..., description="Filtro negativo")
+    who_is_not_for: list[str] = Field(
+        ..., alias="who_is_NOT_for", description="Filtro negativo"
+    )
     experience_image_urls: list[str] = Field([], description="Fotos de eventos pasados")
     scarcity_text: str = Field(..., description="Ej: 'Solo 10 cupos anuales'")
     cta_text: str = Field("Aplicar para una entrevista", description="Texto del botón")

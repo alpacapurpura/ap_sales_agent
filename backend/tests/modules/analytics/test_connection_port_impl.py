@@ -2,9 +2,9 @@
 
 Tests cover:
 - Credential retrieval for active connections
-- ConnectionRevokedException for missing connections
+- ConnectionRevokedError for missing connections
 - Token refresh detection and execution for expired tokens
-- TokenRefreshFailed when refresh fails
+- TokenRefreshError when refresh fails
 - list_active_connections for multiple/empty connections
 """
 
@@ -16,8 +16,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.modules.analytics.domain.exceptions import (
-    ConnectionRevokedException,
-    TokenRefreshFailed,
+    ConnectionRevokedError,
+    TokenRefreshError,
 )
 from src.modules.analytics.domain.ports import ConnectionCredentials
 
@@ -71,7 +71,7 @@ class TestConnectionPortImplGetCredentials:
         assert result.credentials["access_token"] == "valid-token"  # noqa: S105
 
     def test_raises_connection_revoked_when_no_active_connection(self):
-        """No active connection -> ConnectionRevokedException."""
+        """No active connection -> ConnectionRevokedError."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
@@ -84,7 +84,7 @@ class TestConnectionPortImplGetCredentials:
 
         with (
             patch("asyncio.to_thread", _sync_to_thread),
-            pytest.raises(ConnectionRevokedException),
+            pytest.raises(ConnectionRevokedError),
         ):
             asyncio.get_event_loop().run_until_complete(
                 port.get_credentials(TENANT_ID, "meta")
@@ -135,7 +135,7 @@ class TestConnectionPortImplGetCredentials:
         port.repo.update_credentials.assert_called_once()
 
     def test_raises_token_refresh_failed_on_refresh_error(self):
-        """When _refresh_token fails, raises TokenRefreshFailed."""
+        """When _refresh_token fails, raises TokenRefreshError."""
         from src.modules.connections.application.services.connection_port_impl import (
             ConnectionPortImpl,
         )
@@ -157,13 +157,13 @@ class TestConnectionPortImplGetCredentials:
 
         async def mock_refresh_fail(c):
             msg = "Token refresh failed"
-            raise TokenRefreshFailed(msg, provider="meta")
+            raise TokenRefreshError(msg, provider="meta")
 
         port._refresh_token = mock_refresh_fail
 
         with (
             patch("asyncio.to_thread", _sync_to_thread),
-            pytest.raises(TokenRefreshFailed),
+            pytest.raises(TokenRefreshError),
         ):
             asyncio.get_event_loop().run_until_complete(
                 port.get_credentials(TENANT_ID, "meta")

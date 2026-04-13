@@ -804,7 +804,7 @@ def _google_analytics_contract() -> ProviderContract:
         ),
         known_issues=(
             "Production token for Visionarias is invalid_grant (expired) as "
-            "of 2026-04-11. The provider raises ConnectionRevokedException "
+            "of 2026-04-11. The provider raises ConnectionRevokedError "
             "for RefreshError/TransportError but no UI surface notifies the "
             "user — they must hit the /etl/status endpoint to discover this.",
         ),

@@ -95,58 +95,58 @@ def db_engine():
     # Import all models to ensure they are registered and relationships can be resolved
     try:
         from src.modules.brand.infrastructure.models.avatar_model import (
-            AvatarModel as _AvatarModel,  # noqa: F401
+            AvatarModel,  # noqa: F401
         )
         from src.modules.brand.infrastructure.models.extraction_trace_model import (
-            BrandExtractionTrace as _BET,  # noqa: F401
+            BrandExtractionTrace,  # noqa: F401
         )
         from src.modules.commercial_calendar.infrastructure.models.calendar_event_model import (
-            CalendarEventModel as _CEM,  # noqa: F401
+            CalendarEventModel,  # noqa: F401
         )
         from src.modules.connections.infrastructure.models.channel_connection_model import (
-            ChannelConnectionModel as _CCM,  # noqa: F401
+            ChannelConnectionModel,  # noqa: F401
         )
         from src.modules.copilot.infrastructure.models.interview_session_model import (
-            InterviewSessionModel as _ISM,  # noqa: F401
+            InterviewSessionModel,  # noqa: F401
         )
         from src.modules.crm.infrastructure.models.lead_model import (
-            LeadModel as _LM,  # noqa: F401
+            LeadModel,  # noqa: F401
         )
         from src.modules.crm.infrastructure.models.lifecycle_transition_model import (
-            LifecycleTransitionModel as _LTM,  # noqa: F401
+            LifecycleTransitionModel,  # noqa: F401
         )
         from src.modules.crm.infrastructure.models.sale_model import (
-            SaleModel as _SM,  # noqa: F401
+            SaleModel,  # noqa: F401
         )
         from src.modules.iam.infrastructure.models.tenant_model import (
-            TenantModel as _TM,  # noqa: F401
+            TenantModel,  # noqa: F401
         )
         from src.modules.landing.infrastructure.models.landing_model import (
-            LandingPageModel as _LPM,  # noqa: F401
+            LandingPageModel,  # noqa: F401
         )
         from src.modules.offer.infrastructure.models.knowledge_source_model import (
-            KnowledgeSourceModel as _KSM,  # noqa: F401
+            KnowledgeSourceModel,  # noqa: F401
         )
         from src.modules.offer.infrastructure.models.launch_edition_model import (
-            LaunchEditionModel as _LEM,  # noqa: F401
+            LaunchEditionModel,  # noqa: F401
         )
         from src.modules.offer.infrastructure.models.offer_asset_model import (
-            OfferAssetModel as _OAM,  # noqa: F401
+            OfferAssetModel,  # noqa: F401
         )
         from src.modules.offer.infrastructure.models.product_model import (
-            ProductModel as _PM,  # noqa: F401
+            ProductModel,  # noqa: F401
         )
         from src.modules.sales_agent.infrastructure.models.agent_state_checkpoint_model import (
-            AgentStateCheckpointModel as _ASCM,  # noqa: F401
+            AgentStateCheckpointModel,  # noqa: F401
         )
         from src.modules.sales_agent.infrastructure.models.message_model import (
-            MessageModel as _MM,  # noqa: F401
+            MessageModel,  # noqa: F401
         )
         from src.modules.scheduling.infrastructure.models.appointment_model import (
-            AppointmentModel as _AM,  # noqa: F401
+            AppointmentModel,  # noqa: F401
         )
         from src.modules.tenant_domains.infrastructure.models.tenant_domain_model import (
-            TenantDomainModel as _TDM,  # noqa: F401
+            TenantDomainModel,  # noqa: F401
         )
     except ImportError as e:
         print(f"Warning: Could not import some models: {e}")

@@ -4,7 +4,7 @@ Tests cover:
 - Happy path: extract -> stage -> transform -> official -> aggregate -> cache invalidate
 - ExtractionRun created with SUCCESS on happy path
 - ExtractionRun created with FAILED and rollback on provider error
-- ConnectionRevokedException marks run FAILED without retry
+- ConnectionRevokedError marks run FAILED without retry
 """
 
 import asyncio
@@ -225,9 +225,9 @@ class TestETLPipelineFailure:
         mock_cache.invalidate_tenant.assert_not_called()
 
     def test_run_marks_failed_on_connection_revoked(self):
-        """ConnectionRevokedException -> FAILED, no retry."""
+        """ConnectionRevokedError -> FAILED, no retry."""
         from src.modules.analytics.domain.enums import ExtractionStatus
-        from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+        from src.modules.analytics.domain.exceptions import ConnectionRevokedError
         from src.modules.analytics.infrastructure.etl.pipeline import ETLPipeline
 
         mock_db = MagicMock()
@@ -235,7 +235,7 @@ class TestETLPipelineFailure:
         mock_provider.provider_name.return_value = "meta"
 
         mock_connection_port = AsyncMock()
-        mock_connection_port.get_credentials.side_effect = ConnectionRevokedException(
+        mock_connection_port.get_credentials.side_effect = ConnectionRevokedError(
             "Connection revoked", channel_type="meta"
         )
 

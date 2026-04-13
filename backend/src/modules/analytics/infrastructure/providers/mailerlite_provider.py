@@ -376,7 +376,7 @@ class MailerLiteProvider(BaseMetricsProvider):
 
         extract_metrics() already fetches all campaigns/subscribers in the
         range and groups by date internally. The base class default would
-        call it once per day (N API calls × N days). This override calls
+        call it once per day (N API calls x N days). This override calls
         it once with the full range.
         """
         return await self.extract_metrics(

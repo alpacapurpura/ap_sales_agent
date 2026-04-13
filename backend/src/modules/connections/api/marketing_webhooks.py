@@ -155,7 +155,7 @@ async def _handle_manychat_event(
     profile = None
     if ig_username:
         from src.modules.crm.infrastructure.models.customer_model import (
-            CustomerProfileModel as _CPM,
+            CustomerProfileModel as _CustomerProfile,
         )
         from src.modules.crm.infrastructure.repositories.customer_repository import (
             CustomerRepository,
@@ -168,7 +168,7 @@ async def _handle_manychat_event(
             trait_value=ig_username.lstrip("@"),
         )
         if existing:
-            stmt = select(_CPM).where(_CPM.id == existing.id)
+            stmt = select(_CustomerProfile).where(_CustomerProfile.id == existing.id)
             profile = db.execute(stmt).scalar_one_or_none()
 
     if not profile and (email or phone):

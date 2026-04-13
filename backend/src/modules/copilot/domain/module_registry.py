@@ -6,6 +6,7 @@ The copilot never hardcodes field names; instead it uses the model_class for
 Pydantic introspection and the repo/read functions for data access.
 """
 
+import functools
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -222,12 +223,8 @@ def _landing_read_fn(repo, tenant_id):
 
 # ── Singleton ─────────────────────────────────────────────────────────
 
-_registry: dict[str, ModuleDescriptor] | None = None
 
-
+@functools.lru_cache(maxsize=1)
 def get_module_registry() -> dict[str, ModuleDescriptor]:
     """Return the module registry, building it on first access."""
-    global _registry
-    if _registry is None:
-        _registry = _build_registry()
-    return _registry
+    return _build_registry()

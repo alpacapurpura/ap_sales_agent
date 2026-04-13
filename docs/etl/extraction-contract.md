@@ -440,7 +440,7 @@ Sessions referred by AI search engines: perplexity.ai, chatgpt.com, claude.ai, c
 
 ### Known issues
 
-- Production token for Visionarias is invalid_grant (expired) as of 2026-04-11. The provider raises ConnectionRevokedException for RefreshError/TransportError but no UI surface notifies the user — they must hit the /etl/status endpoint to discover this.
+- Production token for Visionarias is invalid_grant (expired) as of 2026-04-11. The provider raises ConnectionRevokedError for RefreshError/TransportError but no UI surface notifies the user — they must hit the /etl/status endpoint to discover this.
 
 ---
 

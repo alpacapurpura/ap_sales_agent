@@ -16,8 +16,8 @@ import httpx
 from sqlalchemy.orm import Session
 
 from src.modules.analytics.domain.exceptions import (
-    ConnectionRevokedException,
-    TokenRefreshFailed,
+    ConnectionRevokedError,
+    TokenRefreshError,
 )
 from src.modules.analytics.domain.ports import ConnectionCredentials, ConnectionPort
 from src.modules.connections.domain.enums import ChannelType
@@ -95,7 +95,7 @@ class ConnectionPortImpl(ConnectionPort):
             channel_enum = ChannelType(resolved)
         except ValueError:
             msg = f"Unknown channel type: {channel_type}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type=channel_type,
             ) from None
@@ -104,7 +104,7 @@ class ConnectionPortImpl(ConnectionPort):
 
         if conn is None:
             msg = f"No active connection for {channel_type}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type=channel_type,
             )
@@ -123,11 +123,11 @@ class ConnectionPortImpl(ConnectionPort):
                 conn.credentials = refreshed
                 await asyncio.to_thread(self.repo.update_credentials, conn, refreshed)
                 credentials = refreshed
-            except TokenRefreshFailed:
+            except TokenRefreshError:
                 raise
             except Exception as exc:
                 msg = f"Token refresh failed for {channel_type}: {exc}"
-                raise TokenRefreshFailed(
+                raise TokenRefreshError(
                     msg,
                     provider=channel_type,
                 ) from exc
@@ -151,7 +151,7 @@ class ConnectionPortImpl(ConnectionPort):
             child_enum = ChannelType(child_type)
         except ValueError:
             msg = f"Unknown channel type: {child_type}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type=child_type,
             ) from None
@@ -160,7 +160,7 @@ class ConnectionPortImpl(ConnectionPort):
         )
         if child_conn is None:
             msg = f"No active connection for {child_type}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type=child_type,
             )
@@ -220,7 +220,7 @@ class ConnectionPortImpl(ConnectionPort):
         if channel_type in GOOGLE_CHANNEL_TYPES:
             return await self._refresh_google_token(credentials, config)
         msg = f"Token refresh not implemented for {channel_type}"
-        raise TokenRefreshFailed(
+        raise TokenRefreshError(
             msg,
             provider=channel_type,
         )
@@ -233,7 +233,7 @@ class ConnectionPortImpl(ConnectionPort):
 
         if not access_token:
             msg = "No access_token for Meta refresh"
-            raise TokenRefreshFailed(msg, provider="meta")
+            raise TokenRefreshError(msg, provider="meta")
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
@@ -248,7 +248,7 @@ class ConnectionPortImpl(ConnectionPort):
 
         if response.status_code != 200:
             msg = f"Meta token refresh failed: {response.status_code} {response.text}"
-            raise TokenRefreshFailed(msg, provider="meta")
+            raise TokenRefreshError(msg, provider="meta")
 
         data = response.json()
         new_credentials = {**credentials}
@@ -267,7 +267,7 @@ class ConnectionPortImpl(ConnectionPort):
 
         if not refresh_token:
             msg = "No refresh_token for Google refresh"
-            raise TokenRefreshFailed(msg, provider="google")
+            raise TokenRefreshError(msg, provider="google")
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
@@ -282,7 +282,7 @@ class ConnectionPortImpl(ConnectionPort):
 
         if response.status_code != 200:
             msg = f"Google token refresh failed: {response.status_code} {response.text}"
-            raise TokenRefreshFailed(msg, provider="google")
+            raise TokenRefreshError(msg, provider="google")
 
         data = response.json()
         new_credentials = {**credentials}

@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from src.modules.analytics.application.cost_type_mapping import get_cost_type
 from src.modules.analytics.domain.enums import ExtractionStatus
-from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 from src.modules.analytics.domain.metric_catalog import get_non_aggregable_for_provider
 from src.modules.analytics.domain.ports import ConnectionPort
 from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCache
@@ -185,7 +185,7 @@ class PeriodExtractionPipeline:
                 "period_type": period_type,
             }
 
-        except ConnectionRevokedException as exc:
+        except ConnectionRevokedError as exc:
             self.db.rollback()
             duration = time.monotonic() - start_time
             self.run_repo.update_status(

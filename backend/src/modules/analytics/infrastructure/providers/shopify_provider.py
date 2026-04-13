@@ -280,9 +280,9 @@ class ShopifyProvider(BaseMetricsProvider):
         if not link_header:
             return None
         for part in link_header.split(","):
-            part = part.strip()
-            if 'rel="next"' in part:
-                url = part.split(";")[0].strip().strip("<>")
+            segment = part.strip()
+            if 'rel="next"' in segment:
+                url = segment.split(";")[0].strip().strip("<>")
                 return url
         return None
 

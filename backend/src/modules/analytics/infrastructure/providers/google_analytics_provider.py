@@ -18,7 +18,7 @@ from uuid import UUID
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
 
-from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
@@ -111,7 +111,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             )
         except (RefreshError, TransportError) as exc:
             msg = f"Google Analytics OAuth token revoked/expired: {exc}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type="google_analytics",
             ) from exc
@@ -195,7 +195,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 error=str(exc),
             )
             msg = f"Google Analytics OAuth token revoked/expired: {exc}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type="google_analytics",
             ) from exc
@@ -493,14 +493,14 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
             channel_data[slug]["engagementRate"] += engagement_rate * sessions
 
         # Finalize weighted bounceRate and engagementRate
-        for slug in channel_data:
+        for slug, ch_data in channel_data.items():
             total_sess = _session_counts[slug]
             if total_sess > 0:
-                channel_data[slug]["bounceRate"] /= total_sess
-                channel_data[slug]["engagementRate"] /= total_sess
+                ch_data["bounceRate"] /= total_sess
+                ch_data["engagementRate"] /= total_sess
             else:
-                channel_data[slug]["bounceRate"] = 0.0
-                channel_data[slug]["engagementRate"] = 0.0
+                ch_data["bounceRate"] = 0.0
+                ch_data["engagementRate"] = 0.0
 
         # Convert to ExtractedMetric objects (skip channels with zero data)
         metrics: list[ExtractedMetric] = []
@@ -566,7 +566,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 error=str(exc),
             )
             msg = f"Google Analytics OAuth token revoked/expired: {exc}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type="google_analytics",
             ) from exc
@@ -597,6 +597,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         end_date: date,
     ) -> list[ExtractedMetric]:
         """Website-total metrics per day — date dimension only, no source/medium."""
+        from datetime import UTC
         from datetime import datetime as dt
 
         report = await adapter.run_report(
@@ -615,7 +616,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
                 continue
 
             try:
-                metric_date = dt.strptime(dims[0], "%Y%m%d").date()
+                metric_date = dt.strptime(dims[0], "%Y%m%d").replace(tzinfo=UTC).date()
             except ValueError:
                 continue
 
@@ -637,6 +638,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
 
     def _segment_report_daily(self, report: dict) -> list[ExtractedMetric]:
         """Segment GA4 report rows with date dimension into per-day metrics."""
+        from datetime import UTC
         from datetime import datetime as dt
 
         _METRIC_NAMES = [
@@ -702,7 +704,7 @@ class GoogleAnalyticsProvider(BaseMetricsProvider):
         for (slug, date_str), data in day_data.items():
             # Parse GA4 date (YYYYMMDD)
             try:
-                metric_date = dt.strptime(date_str, "%Y%m%d").date()
+                metric_date = dt.strptime(date_str, "%Y%m%d").replace(tzinfo=UTC).date()
             except ValueError:
                 continue
 

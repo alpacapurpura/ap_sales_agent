@@ -156,7 +156,7 @@ class TestVelvetRopeContent:
             headline="Exclusive Inner Circle",
             manifesto_text="We believe in excellence and results",
             who_is_this_for=["Coaches earning $5k+/mo", "Serious entrepreneurs"],
-            who_is_NOT_for=["Hobbyists", "Tire-kickers"],
+            who_is_not_for=["Hobbyists", "Tire-kickers"],
             scarcity_text="Only 10 annual spots",
         )
         assert content.who_is_this_for == [
@@ -171,7 +171,7 @@ class TestVelvetRopeContent:
                 headline="headline",
                 # missing manifesto_text
                 who_is_this_for=["a"],
-                who_is_NOT_for=["b"],
+                who_is_not_for=["b"],
                 scarcity_text="limited",
             )
 

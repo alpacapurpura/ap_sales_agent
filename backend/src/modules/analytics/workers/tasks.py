@@ -93,9 +93,9 @@ async def run_tenant_extraction(
     """Execute ETL extraction for a single tenant and provider.
 
     On transient errors, retries with Fibonacci backoff.
-    On ConnectionRevokedException, fails permanently (no retry).
+    On ConnectionRevokedError, fails permanently (no retry).
     """
-    from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+    from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 
     db_factory = ctx["db_factory"]
     db = db_factory()
@@ -146,7 +146,7 @@ async def run_tenant_extraction(
         )
         return {"status": "success", "tenant_id": tenant_id, "provider": provider}
 
-    except ConnectionRevokedException as exc:
+    except ConnectionRevokedError as exc:
         # Permanent failure — do not retry revoked connections
         logger.error(
             "Connection revoked for tenant=%s provider=%s: %s",
@@ -203,7 +203,7 @@ async def run_initial_load(
     Extracts the last `initial_days` days of data immediately,
     without waiting for the next scheduled cron tick.
     """
-    from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+    from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 
     db_factory = ctx["db_factory"]
     db = db_factory()
@@ -260,7 +260,7 @@ async def run_initial_load(
             **result,
         }
 
-    except ConnectionRevokedException as exc:
+    except ConnectionRevokedError as exc:
         logger.error(
             "Connection revoked during initial load for tenant=%s provider=%s: %s",
             tenant_id,
@@ -392,9 +392,9 @@ async def run_campaign_sync(
 
     Separate from metrics ETL — this extracts campaign *structure*, not time-series data.
     On transient errors, retries with Fibonacci backoff.
-    On ConnectionRevokedException, fails permanently (no retry).
+    On ConnectionRevokedError, fails permanently (no retry).
     """
-    from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+    from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 
     db_factory = ctx["db_factory"]
     db = db_factory()
@@ -456,7 +456,7 @@ async def run_campaign_sync(
         )
         return sync_result
 
-    except ConnectionRevokedException as exc:
+    except ConnectionRevokedError as exc:
         logger.error(
             "Connection revoked for campaign sync tenant=%s provider=%s: %s",
             tenant_id,

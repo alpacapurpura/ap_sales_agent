@@ -18,7 +18,7 @@ from uuid import UUID
 import structlog
 from google.auth.exceptions import RefreshError, TransportError
 
-from src.modules.analytics.domain.exceptions import ConnectionRevokedException
+from src.modules.analytics.domain.exceptions import ConnectionRevokedError
 from src.modules.analytics.domain.extraction_result import ExtractionResult
 from src.modules.analytics.infrastructure.providers.base import (
     BaseMetricsProvider,
@@ -149,7 +149,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 error=str(exc),
             )
             msg = f"Google Ads OAuth token revoked/expired: {exc}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type="google_ads",
             ) from exc
@@ -391,7 +391,7 @@ class GoogleAdsProvider(BaseMetricsProvider):
                 error=str(exc),
             )
             msg = f"Google Ads OAuth token revoked/expired: {exc}"
-            raise ConnectionRevokedException(
+            raise ConnectionRevokedError(
                 msg,
                 channel_type="google_ads",
             ) from exc
