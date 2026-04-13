@@ -54,6 +54,9 @@ class CopilotState(TypedDict):
     # Active procedure (set by procedure tools)
     active_procedure: dict[str, Any] | None
 
+    # Entity data loaded when Focus Mode is active (None when no focus is set)
+    focus_entity_data: dict[str, Any] | None
+
     # Error tracking
     error: str | None
 
@@ -74,5 +77,6 @@ def create_initial_copilot_state(
         "pending_ui_actions": [],
         "active_tool_names": [],
         "active_procedure": None,
+        "focus_entity_data": None,
         "error": None,
     }
