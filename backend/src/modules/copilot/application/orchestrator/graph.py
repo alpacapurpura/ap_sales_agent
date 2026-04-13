@@ -25,6 +25,11 @@ from src.modules.copilot.application.tools.registry import (
 )
 from src.modules.copilot.domain.module_registry import get_module_registry
 from src.modules.copilot.infrastructure.prompts.base import prompt_loader
+from src.modules.copilot.infrastructure.prompts.sanitizer import (
+    sanitize_entity_snapshot,
+    sanitize_mapa_global,
+    sanitize_selected_fields,
+)
 from src.shared.infrastructure.llm.factory import LLMFactory
 
 logger = structlog.get_logger()
@@ -205,13 +210,15 @@ def _build_focus_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-arg]
     focus_ctx = ctx["focus"]
     entity_data = state["focus_entity_data"]
     domain = focus_ctx.get("domain", "")
+    # Sanitize entity snapshot before template insertion to prevent prompt injection
+    safe_entity_data = sanitize_entity_snapshot(entity_data) if isinstance(entity_data, dict) else entity_data
     empty_fields = [k for k, v in entity_data.items() if not v] if isinstance(entity_data, dict) else []
     try:
         return prompt_loader.render(
             "copilot_focus",
             domain=domain,
             entity_id=focus_ctx.get("entity_id", ""),
-            entity_snapshot=entity_data,
+            entity_snapshot=safe_entity_data,
             empty_fields=empty_fields,
             domain_label=_DOMAIN_LABELS.get(domain, domain),
         )
@@ -230,6 +237,9 @@ def _build_interview_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-
     current_block = next((b for b in bloques if b["id"] == session.bloque_actual), None)
     coverage = session.coverage_for_block(session.bloque_actual) if current_block else 0.0
     block_coverage = {b["id"]: round(session.coverage_for_block(b["id"]) * 100) for b in bloques}
+    # Sanitize user interview data before template insertion to prevent prompt injection
+    raw_mapa = session.mapa_global
+    safe_mapa = sanitize_mapa_global(raw_mapa) if isinstance(raw_mapa, dict) else raw_mapa
     try:
         return prompt_loader.render(
             "copilot_interview",
@@ -238,7 +248,7 @@ def _build_interview_layer(ctx: dict, state: dict) -> str:  # type: ignore[type-
             blocks_completed_count=len(session.bloques_completados),
             total_blocks=len(bloques),
             coverage_pct=round(coverage * 100),
-            mapa_global=session.mapa_global,
+            mapa_global=safe_mapa,
             block_coverage_status=block_coverage,
         )
     except Exception:
@@ -299,11 +309,14 @@ def build_system_prompt(state: CopilotState) -> str:
                     "tips": step.tips,
                 }
 
+    # Sanitize user-provided values before template insertion to prevent prompt injection
+    safe_selected_fields = sanitize_selected_fields(ctx.get("selected_fields", []))
+
     try:
         base_prompt = prompt_loader.render(
             "copilot_system",
             current_route=ctx.get("current_route"),
-            selected_fields=ctx.get("selected_fields", []),
+            selected_fields=safe_selected_fields,
             completion_snapshot=snapshot,
             behavior_summary=behavior_summary,
             modules=modules,
