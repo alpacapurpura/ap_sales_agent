@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
@@ -45,6 +46,7 @@ export function InterviewSplitView({
   const params = useParams();
   const tenantId = params.tenantId as string;
   const queryClient = useQueryClient();
+  const { getToken } = useAuth();
 
   // Resolve the preview config from the registry
   const preview = getPreview(domain);
@@ -72,7 +74,11 @@ export function InterviewSplitView({
 
   const { data: activeInterviewData, isLoading: isCheckingActive } = useQuery({
     queryKey: ["interview-active", domain],
-    queryFn: getActiveInterview,
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) return null;
+      return getActiveInterview(token);
+    },
     enabled: !sessionIdProp,
     staleTime: 0,
     retry: false,
@@ -81,7 +87,11 @@ export function InterviewSplitView({
   // Load interview state when sessionId is available
   const { data: interviewState, isLoading: isLoadingState } = useQuery({
     queryKey: ["interview-state", sessionId],
-    queryFn: () => getInterviewState(sessionId!),
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+      return getInterviewState(token, sessionId!);
+    },
     enabled: !!sessionId,
     staleTime: 0,
     retry: false,
@@ -132,7 +142,9 @@ export function InterviewSplitView({
   const handleStartNewSession = useCallback(async () => {
     setIsStarting(true);
     try {
-      const response = await startInterview(domain);
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+      const response = await startInterview(token, domain);
       setSessionId(response.session_id);
       setConversationId(response.conversation_id);
       router.replace(
@@ -147,7 +159,7 @@ export function InterviewSplitView({
     } finally {
       setIsStarting(false);
     }
-  }, [domain, tenantId, resolvedRouteBase, router, addInitialMessage, queryClient]);
+  }, [domain, tenantId, resolvedRouteBase, router, addInitialMessage, queryClient, getToken]);
 
   const handleContinueSession = useCallback(() => {
     if (!activeInterview) return;
@@ -162,7 +174,8 @@ export function InterviewSplitView({
     setIsStarting(true);
     try {
       if (activeInterview) {
-        await abandonInterview(activeInterview.session_id);
+        const token = await getToken();
+        if (token) await abandonInterview(token, activeInterview.session_id);
       }
       setShowRestoreModal(false);
       await handleStartNewSession();
@@ -170,7 +183,7 @@ export function InterviewSplitView({
       console.error("Error abandoning session:", err);
       setIsStarting(false);
     }
-  }, [activeInterview, handleStartNewSession]);
+  }, [activeInterview, handleStartNewSession, getToken]);
 
   // ── Loading state ────────────────────────────────────────────────────────
 

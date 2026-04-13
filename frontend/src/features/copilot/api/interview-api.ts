@@ -28,34 +28,41 @@ export interface InterviewStateResponse {
   messages_count: number;
 }
 
-export async function startInterview(domain: string = "brand"): Promise<StartInterviewResponse> {
+export async function startInterview(token: string, domain: string = "brand"): Promise<StartInterviewResponse> {
   const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/start`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ domain }),
   });
   return res.json() as Promise<StartInterviewResponse>;
 }
 
-export async function getActiveInterview(): Promise<ActiveInterviewResponse | null> {
-  const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/active`);
+export async function getActiveInterview(token: string): Promise<ActiveInterviewResponse | null> {
+  const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/active`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
   if (res.status === 204) return null;
   return res.json() as Promise<ActiveInterviewResponse>;
 }
 
-export async function getInterviewState(sessionId: string): Promise<InterviewStateResponse> {
-  const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/state`);
+export async function getInterviewState(token: string, sessionId: string): Promise<InterviewStateResponse> {
+  const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/state`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.json() as Promise<InterviewStateResponse>;
 }
 
-export async function pauseInterview(sessionId: string): Promise<void> {
+export async function pauseInterview(token: string, sessionId: string): Promise<void> {
   await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/pause`, {
     method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
-export async function abandonInterview(sessionId: string): Promise<void> {
+export async function abandonInterview(token: string, sessionId: string): Promise<void> {
   await fetchClient(`${API_URL}/api/v1/copilot/interview/${sessionId}/abandon`, {
     method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
   });
 }

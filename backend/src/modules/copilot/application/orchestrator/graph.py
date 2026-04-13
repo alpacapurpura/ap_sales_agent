@@ -17,6 +17,7 @@ from langchain_core.messages import AIMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 
 from src.core.enums import ModelRole
+from src.modules.copilot.application.orchestrator.context_budget import truncate_history
 from src.modules.copilot.application.orchestrator.state import CopilotState
 from src.modules.copilot.application.tools.registry import (
     get_all_tools,
@@ -338,7 +339,8 @@ def agent_node(state: CopilotState) -> dict:
         llm = llm.bind_tools(tools)
 
     system_prompt = build_system_prompt(state)
-    messages = [SystemMessage(content=system_prompt), *list(state["messages"])]
+    history = truncate_history(list(state["messages"]))
+    messages = [SystemMessage(content=system_prompt), *history]
     response = llm.invoke(messages)
 
     # Store active tool names for logging/state

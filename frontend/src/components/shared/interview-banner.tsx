@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useParams } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { getActiveInterview } from "@/features/copilot/api/interview-api";
 
@@ -9,14 +10,19 @@ export function InterviewBanner() {
   const pathname = usePathname();
   const params = useParams();
   const tenantId = params.tenantId as string;
+  const { getToken } = useAuth();
 
   const { data: active } = useQuery({
     queryKey: ["interview", "active"],
-    queryFn: getActiveInterview,
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) return null;
+      return getActiveInterview(token);
+    },
     staleTime: 60_000,
   });
 
-  if (!active || pathname.includes("/brand-studio/interview")) return null;
+  if (!active?.bloques_completados || pathname.includes("/brand-studio/interview")) return null;
 
   return (
     <div className="mx-4 mt-2 flex items-center justify-between rounded-lg border border-purple-500 bg-[#1e1b4b] px-4 py-2.5">

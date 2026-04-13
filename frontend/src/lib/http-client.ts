@@ -61,10 +61,10 @@ export async function fetchClient(input: RequestInfo | URL, init?: RequestInit):
   }
 
   // Interceptor de sesión expirada (401)
+  // Only redirect if we're not already on /sign-in (prevents infinite loop
+  // when Clerk redirects back to / after sign-in and a 401 fires again).
   if (response.status === 401) {
-    if (typeof window !== "undefined") {
-      // Redirigir al login si el token es inválido o expiró
-      // Clerk manejará la redirección de vuelta tras el login
+    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/sign-in")) {
       window.location.href = "/sign-in";
     }
   }
