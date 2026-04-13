@@ -1,10 +1,15 @@
 """Tests for OfferPersister and its registry entry."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
+from src.modules.copilot.infrastructure.persisters.brand_persister import (
+    BrandPersister,
+)
 from src.modules.copilot.infrastructure.persisters.offer_persister import (
     OfferPersister,
 )
@@ -27,7 +32,7 @@ from src.modules.offer.domain.offer import (
 from src.shared.domain.enums import FinancialCapacity
 
 
-def _make_offer(**overrides) -> Offer:
+def _make_offer(**overrides: object) -> Offer:
     """Build a minimal valid Offer entity for testing."""
     defaults = {
         "id": uuid4(),
@@ -51,7 +56,9 @@ def _make_offer(**overrides) -> Offer:
 
 
 class TestOfferPersister:
-    def test_persist_simple_fields(self):
+    """Tests for OfferPersister persist and load methods."""
+
+    def test_persist_simple_fields(self) -> None:
         """Persist flat string/list fields from mapa_global."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -81,7 +88,7 @@ class TestOfferPersister:
                 "No visibility",
             ]
 
-    def test_persist_objections_complex_type(self):
+    def test_persist_objections_complex_type(self) -> None:
         """Persist objections as list[ObjectionItem] from raw dicts."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -113,7 +120,7 @@ class TestOfferPersister:
             assert updated_offer.objections[0].type == "price"
             assert updated_offer.objections[0].strategy == "ROI Reframing"
 
-    def test_persist_pricing_options_complex_type(self):
+    def test_persist_pricing_options_complex_type(self) -> None:
         """Persist pricing_options as list[PricingStructure] from raw dicts."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -152,7 +159,7 @@ class TestOfferPersister:
             assert updated_offer.pricing_options[0].label == "Pago único"
             assert updated_offer.pricing_options[0].total_amount == 997.0
 
-    def test_persist_deliverables_complex_type(self):
+    def test_persist_deliverables_complex_type(self) -> None:
         """Persist deliverables as list[DeliverableItem] from raw dicts."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -184,7 +191,7 @@ class TestOfferPersister:
             assert updated_offer.deliverables[0].name == "Guía PDF"
             assert updated_offer.deliverables[0].format == DeliverableFormat.PDF
 
-    def test_persist_skips_missing_fields(self):
+    def test_persist_skips_missing_fields(self) -> None:
         """Fields in fields_to_persist but not in mapa_global are skipped."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -210,7 +217,7 @@ class TestOfferPersister:
             # primary_outcome remains as original (not in mapa_global)
             assert updated_offer.primary_outcome == "Doubled revenue"
 
-    def test_persist_requires_entity_id(self):
+    def test_persist_requires_entity_id(self) -> None:
         """OfferPersister requires entity_id (offer_id) — not creating new offers."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -219,7 +226,7 @@ class TestOfferPersister:
         with pytest.raises(ValueError, match=r"entity_id.*required"):
             persister.persist(tenant_id, {"x": "y"}, ["x"], entity_id=None)
 
-    def test_persist_returns_early_if_offer_not_found(self):
+    def test_persist_returns_early_if_offer_not_found(self) -> None:
         """If the offer doesn't exist, do nothing."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -231,7 +238,7 @@ class TestOfferPersister:
             persister.persist(tenant_id, {"x": "y"}, ["x"], offer_id)
             mock_repo.update.assert_not_called()
 
-    def test_load_existing_returns_flat_dict(self):
+    def test_load_existing_returns_flat_dict(self) -> None:
         """load_existing returns a flat dict from Offer entity fields."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -249,14 +256,14 @@ class TestOfferPersister:
                     trigger_phrases=["es caro"],
                     strategy="ROI",
                     rebuttal="Vale la inversión",
-                )
+                ),
             ],
             pricing_options=[
                 PricingStructure(
                     label="Pago único",
                     plan_type=PaymentPlanType.ONE_TIME,
                     total_amount=997.0,
-                )
+                ),
             ],
             deliverables=[
                 DeliverableItem(
@@ -264,7 +271,7 @@ class TestOfferPersister:
                     format=DeliverableFormat.VIDEO,
                     quantity="10 videos",
                     value_stack_price=297.0,
-                )
+                ),
             ],
         )
 
@@ -285,7 +292,7 @@ class TestOfferPersister:
             assert isinstance(result["deliverables"], list)
             assert result["deliverables"][0]["name"] == "Módulo 1"
 
-    def test_load_existing_returns_empty_if_not_found(self):
+    def test_load_existing_returns_empty_if_not_found(self) -> None:
         """If offer not found, return empty dict."""
         db = MagicMock()
         persister = OfferPersister(db)
@@ -299,17 +306,16 @@ class TestOfferPersister:
 
 
 class TestPersisterRegistryOffer:
-    def test_get_offer_persister(self):
+    """Tests for persister registry offer entry."""
+
+    def test_get_offer_persister(self) -> None:
+        """Test retrieving OfferPersister from registry."""
         db = MagicMock()
         persister = get_persister("offer", db)
         assert isinstance(persister, OfferPersister)
 
-    def test_brand_persister_still_works(self):
+    def test_brand_persister_still_works(self) -> None:
         """Ensure adding offer didn't break brand."""
-        from src.modules.copilot.infrastructure.persisters.brand_persister import (
-            BrandPersister,
-        )
-
         db = MagicMock()
         persister = get_persister("brand", db)
         assert isinstance(persister, BrandPersister)

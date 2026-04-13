@@ -69,7 +69,8 @@ class OfferPersister:
     to their domain types.
     """
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
+        """Initialize with database session."""
         self.db = db
         self.repo = OfferRepository(db)
 
@@ -90,12 +91,15 @@ class OfferPersister:
 
         Raises:
             ValueError: If entity_id is not provided.
+
         """
         if entity_id is None:
-            raise ValueError(
+            msg = (
                 "entity_id is required for OfferPersister — "
-                "offer interviews update existing offers, they do not create new ones."
+                "offer interviews update existing offers, "
+                "they do not create new ones."
             )
+            raise ValueError(msg)
 
         offer = self.repo.get_by_id(entity_id, tenant_id)
         if not offer:
@@ -139,6 +143,7 @@ class OfferPersister:
 
         Returns:
             A flat dict of offer field values, or empty dict if not found.
+
         """
         offer = self.repo.get_by_id(entity_id, tenant_id)
         if not offer:

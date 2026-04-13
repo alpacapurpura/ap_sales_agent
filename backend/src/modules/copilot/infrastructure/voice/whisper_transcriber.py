@@ -29,13 +29,20 @@ class WhisperTranscriber:
     Implements ``TranscriptionPort`` structurally (duck typing / Protocol).
     """
 
-    async def transcribe(self, audio: bytes, mime_type: str) -> TranscriptionResult:
+    async def transcribe(
+        self,
+        audio: bytes,
+        mime_type: str,
+    ) -> TranscriptionResult:
+        """Transcribe audio bytes to text via Whisper API."""
         ext = MIME_TO_EXT.get(mime_type, "webm")
         audio_file = io.BytesIO(audio)
         audio_file.name = f"recording.{ext}"
 
         logger.info(
-            "whisper_transcribe_start", size_bytes=len(audio), mime_type=mime_type
+            "whisper_transcribe_start",
+            size_bytes=len(audio),
+            mime_type=mime_type,
         )
 
         response = await openai_client.audio.transcriptions.create(

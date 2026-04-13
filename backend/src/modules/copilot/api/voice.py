@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Annotated
+from uuid import UUID  # noqa: TC003 — runtime for FastAPI DI
 
 import structlog
 from fastapi import APIRouter, Depends, File, UploadFile
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 from src.modules.copilot.api.voice_dto import TranscriptionResponse
 from src.modules.copilot.infrastructure.voice.whisper_transcriber import (
@@ -23,8 +21,8 @@ router = APIRouter(tags=["Copilot - Voice"])
 
 @router.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio(
-    file: UploadFile = File(...),
-    tenant_id: UUID = Depends(get_tenant_context),
+    file: Annotated[UploadFile, File(...)],
+    tenant_id: Annotated[UUID, Depends(get_tenant_context)],
 ) -> TranscriptionResponse:
     """Receive an audio blob and return transcribed text via Whisper."""
     audio_bytes = await file.read()

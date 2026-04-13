@@ -8,21 +8,27 @@ from src.modules.copilot.infrastructure.voice.whisper_transcriber import (
     WhisperTranscriber,
 )
 
+_WHISPER_PATCH = (
+    "src.modules.copilot.infrastructure.voice.whisper_transcriber.openai_client"
+)
+
 
 @pytest.mark.asyncio
-async def test_transcribe_returns_result():
+async def test_transcribe_returns_result() -> None:
+    """Test successful transcription result."""
     mock_response = MagicMock()
     mock_response.text = "hola, soy un test de voz"
     mock_response.language = "es"
     mock_response.duration = 3.2
 
-    with patch(
-        "src.modules.copilot.infrastructure.voice.whisper_transcriber.openai_client"
-    ) as mock_client:
+    with patch(_WHISPER_PATCH) as mock_client:
         mock_client.audio.transcriptions.create = AsyncMock(return_value=mock_response)
 
         transcriber = WhisperTranscriber()
-        result = await transcriber.transcribe(b"fake-audio-bytes", "audio/webm")
+        result = await transcriber.transcribe(
+            b"fake-audio-bytes",
+            "audio/webm",
+        )
 
         assert result.text == "hola, soy un test de voz"
         assert result.language == "es"
@@ -30,34 +36,40 @@ async def test_transcribe_returns_result():
 
 
 @pytest.mark.asyncio
-async def test_transcribe_handles_empty_audio():
-    with patch(
-        "src.modules.copilot.infrastructure.voice.whisper_transcriber.openai_client"
-    ) as mock_client:
+async def test_transcribe_handles_empty_audio() -> None:
+    """Test transcribe raises on invalid audio."""
+    with patch(_WHISPER_PATCH) as mock_client:
         mock_client.audio.transcriptions.create = AsyncMock(
-            side_effect=Exception("Invalid audio")
+            side_effect=Exception("Invalid audio"),
         )
 
         transcriber = WhisperTranscriber()
-        with pytest.raises(Exception, match="Invalid audio"):
-            await transcriber.transcribe(b"", "audio/webm")
+        with pytest.raises(
+            Exception,
+            match="Invalid audio",
+        ):
+            await transcriber.transcribe(
+                b"",
+                "audio/webm",
+            )
 
 
 @pytest.mark.asyncio
-async def test_transcribe_uses_correct_file_extension():
-    """Verify MIME type maps to the correct file extension."""
+async def test_transcribe_uses_correct_file_extension() -> None:
+    """Verify MIME type maps to correct extension."""
     mock_response = MagicMock()
     mock_response.text = "test"
     mock_response.language = "en"
     mock_response.duration = 1.0
 
-    with patch(
-        "src.modules.copilot.infrastructure.voice.whisper_transcriber.openai_client"
-    ) as mock_client:
+    with patch(_WHISPER_PATCH) as mock_client:
         mock_client.audio.transcriptions.create = AsyncMock(return_value=mock_response)
 
         transcriber = WhisperTranscriber()
-        await transcriber.transcribe(b"fake-audio", "audio/mp4")
+        await transcriber.transcribe(
+            b"fake-audio",
+            "audio/mp4",
+        )
 
         call_kwargs = mock_client.audio.transcriptions.create.call_args
         audio_file = call_kwargs.kwargs.get("file") or call_kwargs[1].get("file")
@@ -65,20 +77,21 @@ async def test_transcribe_uses_correct_file_extension():
 
 
 @pytest.mark.asyncio
-async def test_transcribe_defaults_to_webm_for_unknown_mime():
-    """Unknown MIME type should default to webm extension."""
+async def test_transcribe_defaults_to_webm_for_unknown_mime() -> None:
+    """Unknown MIME defaults to webm extension."""
     mock_response = MagicMock()
     mock_response.text = "test"
     mock_response.language = "en"
     mock_response.duration = 1.0
 
-    with patch(
-        "src.modules.copilot.infrastructure.voice.whisper_transcriber.openai_client"
-    ) as mock_client:
+    with patch(_WHISPER_PATCH) as mock_client:
         mock_client.audio.transcriptions.create = AsyncMock(return_value=mock_response)
 
         transcriber = WhisperTranscriber()
-        await transcriber.transcribe(b"fake-audio", "audio/unknown-format")
+        await transcriber.transcribe(
+            b"fake-audio",
+            "audio/unknown-format",
+        )
 
         call_kwargs = mock_client.audio.transcriptions.create.call_args
         audio_file = call_kwargs.kwargs.get("file") or call_kwargs[1].get("file")
@@ -86,38 +99,40 @@ async def test_transcribe_defaults_to_webm_for_unknown_mime():
 
 
 @pytest.mark.asyncio
-async def test_transcribe_handles_missing_language():
-    """When Whisper returns None for language, default to 'es'."""
+async def test_transcribe_handles_missing_language() -> None:
+    """Whisper None language defaults to 'es'."""
     mock_response = MagicMock()
     mock_response.text = "hello"
     mock_response.language = None
     mock_response.duration = 2.0
 
-    with patch(
-        "src.modules.copilot.infrastructure.voice.whisper_transcriber.openai_client"
-    ) as mock_client:
+    with patch(_WHISPER_PATCH) as mock_client:
         mock_client.audio.transcriptions.create = AsyncMock(return_value=mock_response)
 
         transcriber = WhisperTranscriber()
-        result = await transcriber.transcribe(b"fake-audio", "audio/webm")
+        result = await transcriber.transcribe(
+            b"fake-audio",
+            "audio/webm",
+        )
 
         assert result.language == "es"
 
 
 @pytest.mark.asyncio
-async def test_transcribe_handles_missing_duration():
-    """When Whisper returns None for duration, default to 0.0."""
+async def test_transcribe_handles_missing_duration() -> None:
+    """Whisper None duration defaults to 0.0."""
     mock_response = MagicMock()
     mock_response.text = "hello"
     mock_response.language = "en"
     mock_response.duration = None
 
-    with patch(
-        "src.modules.copilot.infrastructure.voice.whisper_transcriber.openai_client"
-    ) as mock_client:
+    with patch(_WHISPER_PATCH) as mock_client:
         mock_client.audio.transcriptions.create = AsyncMock(return_value=mock_response)
 
         transcriber = WhisperTranscriber()
-        result = await transcriber.transcribe(b"fake-audio", "audio/webm")
+        result = await transcriber.transcribe(
+            b"fake-audio",
+            "audio/webm",
+        )
 
         assert result.duration_seconds == 0.0

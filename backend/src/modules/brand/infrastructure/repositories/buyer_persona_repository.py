@@ -21,10 +21,12 @@ from src.shared.domain.datetime_utils import utc_now
 class BuyerPersonaRepository:
     """CRUD repository for BuyerPersona with mandatory tenant isolation."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
+        """Initialize with a database session."""
         self.db = db
 
     def create(self, persona: BuyerPersona) -> BuyerPersona:
+        """Persist a new BuyerPersona and return the validated entity."""
         db_model = BuyerPersonaModel(
             id=persona.id,
             tenant_id=persona.tenant_id,
@@ -53,6 +55,7 @@ class BuyerPersonaRepository:
         return BuyerPersona.model_validate(db_model)
 
     def get_by_id(self, tenant_id: UUID, persona_id: UUID) -> BuyerPersona | None:
+        """Return a single persona by id, or ``None`` if not found."""
         stmt = select(BuyerPersonaModel).where(
             BuyerPersonaModel.tenant_id == tenant_id,
             BuyerPersonaModel.id == persona_id,
@@ -69,6 +72,7 @@ class BuyerPersonaRepository:
         tenant_id: UUID,
         scope: str | None = None,
     ) -> list[BuyerPersona]:
+        """List active personas for a tenant, optionally filtered by scope."""
         stmt = select(BuyerPersonaModel).where(
             BuyerPersonaModel.tenant_id == tenant_id,
             BuyerPersonaModel.deleted_at.is_(None),
@@ -85,6 +89,7 @@ class BuyerPersonaRepository:
         persona_id: UUID,
         updates: dict,
     ) -> BuyerPersona | None:
+        """Apply partial updates and return the refreshed entity."""
         stmt = select(BuyerPersonaModel).where(
             BuyerPersonaModel.tenant_id == tenant_id,
             BuyerPersonaModel.id == persona_id,
@@ -104,6 +109,7 @@ class BuyerPersonaRepository:
         return BuyerPersona.model_validate(model)
 
     def soft_delete(self, tenant_id: UUID, persona_id: UUID) -> bool:
+        """Soft-delete a persona by setting ``deleted_at``."""
         stmt = select(BuyerPersonaModel).where(
             BuyerPersonaModel.tenant_id == tenant_id,
             BuyerPersonaModel.id == persona_id,

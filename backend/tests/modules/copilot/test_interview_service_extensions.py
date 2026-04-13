@@ -1,15 +1,25 @@
-"""Tests for InterviewSession and InterviewService extensions (entity_id, initial_mapa)."""
+"""Tests for InterviewSession extensions.
+
+Covers entity_id and initial_mapa behavior.
+"""
 
 from uuid import uuid4
 
-from src.modules.copilot.domain.interview_config import InterviewBlock, InterviewConfig
+from src.modules.copilot.domain.interview_config import (
+    InterviewBlock,
+    InterviewConfig,
+)
 from src.modules.copilot.domain.interview_session import (
     InterviewSession,
     InterviewStatus,
 )
+from src.modules.copilot.infrastructure.models.interview_session_model import (
+    InterviewSessionModel,
+)
 
 
-def test_interview_session_accepts_entity_id():
+def test_interview_session_accepts_entity_id() -> None:
+    """Test session accepts entity_id parameter."""
     config = InterviewConfig(
         domain="offer",
         objetivo="test",
@@ -19,7 +29,7 @@ def test_interview_session_accepts_entity_id():
                 label="B1",
                 campos_objetivo=["f1"],
                 prompt_context="ctx",
-            )
+            ),
         ],
         output_schema_path="test",
         datos_previos_fields=[],
@@ -38,12 +48,15 @@ def test_interview_session_accepts_entity_id():
     )
 
     assert session.entity_id == entity_id
-    assert session.mapa_global == {"public_name": "Test Offer"}
+    assert session.mapa_global == {
+        "public_name": "Test Offer",
+    }
     assert session.status == InterviewStatus.ACTIVE
     assert session.bloque_actual == "b1"
 
 
-def test_interview_session_entity_id_defaults_to_none():
+def test_interview_session_entity_id_defaults_to_none() -> None:
+    """Test entity_id defaults to None."""
     config = InterviewConfig(
         domain="brand",
         objetivo="test",
@@ -53,7 +66,7 @@ def test_interview_session_entity_id_defaults_to_none():
                 label="B1",
                 campos_objetivo=["f1"],
                 prompt_context="ctx",
-            )
+            ),
         ],
         output_schema_path="test",
         datos_previos_fields=[],
@@ -72,7 +85,8 @@ def test_interview_session_entity_id_defaults_to_none():
     assert session.mapa_global == {}
 
 
-def test_interview_session_initial_mapa_defaults_to_empty():
+def test_interview_session_initial_mapa_defaults_to_empty() -> None:
+    """Test initial_mapa defaults to empty dict."""
     config = InterviewConfig(
         domain="offer",
         objetivo="test",
@@ -82,7 +96,7 @@ def test_interview_session_initial_mapa_defaults_to_empty():
                 label="B1",
                 campos_objetivo=["f1"],
                 prompt_context="ctx",
-            )
+            ),
         ],
         output_schema_path="test",
         datos_previos_fields=[],
@@ -101,8 +115,8 @@ def test_interview_session_initial_mapa_defaults_to_empty():
     assert session.mapa_global == {}
 
 
-def test_interview_session_entity_id_preserved_after_operations():
-    """entity_id should persist through session operations like advance_block."""
+def test_interview_session_entity_id_preserved_after_operations() -> None:
+    """Test entity_id persists through session operations."""
     config = InterviewConfig(
         domain="offer",
         objetivo="test",
@@ -143,11 +157,7 @@ def test_interview_session_entity_id_preserved_after_operations():
     assert session.mapa_global == {"name": "Test"}
 
 
-def test_interview_session_model_has_entity_id():
+def test_interview_session_model_has_entity_id() -> None:
     """Verify the SQLAlchemy model has entity_id column."""
-    from src.modules.copilot.infrastructure.models.interview_session_model import (
-        InterviewSessionModel,
-    )
-
     columns = {c.name for c in InterviewSessionModel.__table__.columns}
     assert "entity_id" in columns

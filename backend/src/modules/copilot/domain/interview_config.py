@@ -54,5 +54,6 @@ def register_interview_config(domain: str, config: InterviewConfig) -> None:
 def get_interview_config(domain: str) -> InterviewConfig:
     """Retrieve interview config by domain. Raises ValueError if not found."""
     if domain not in DOMAIN_CONFIGS:
-        raise ValueError(f"No interview config registered for domain: {domain}")
+        msg = f"No interview config registered for domain: {domain}"
+        raise ValueError(msg)
     return DOMAIN_CONFIGS[domain]

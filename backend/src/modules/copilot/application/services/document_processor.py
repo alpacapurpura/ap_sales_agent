@@ -8,6 +8,10 @@ from typing import TYPE_CHECKING
 import structlog
 from pydantic import BaseModel, ConfigDict
 
+from src.shared.infrastructure.files.file_parsing_service import (
+    FileParsingService,
+)
+
 if TYPE_CHECKING:
     from uuid import UUID
 
@@ -57,10 +61,6 @@ class FileParserProtocol:
 
     async def parse_file(self, file: UploadFile) -> str:
         """Parse a file and return its text content."""
-        from src.shared.infrastructure.files.file_parsing_service import (
-            FileParsingService,
-        )
-
         return await FileParsingService.parse_file(file)
 
 
@@ -84,7 +84,8 @@ class DocumentProcessor:
         self,
         ai_service: AIActionService,
         file_parser: FileParserProtocol | None = None,
-    ):
+    ) -> None:
+        """Initialize with AI service and optional file parser."""
         self.ai_service = ai_service
         self.file_parser = file_parser or FileParserProtocol()
 
@@ -154,11 +155,11 @@ class DocumentProcessor:
         }
 
         summary_parts = [
-            f"Extraídos {fields_extracted} campos de {len(source_docs)} documento(s)."
+            f"Extraídos {fields_extracted} campos de {len(source_docs)} documento(s).",
         ]
         if fields_skipped:
             summary_parts.append(
-                f"{fields_skipped} campos ya tenían valor y no se sobrescribieron."
+                f"{fields_skipped} campos ya tenían valor y no se sobrescribieron.",
             )
 
         logger.info(

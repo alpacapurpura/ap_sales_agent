@@ -5,7 +5,8 @@ from uuid import uuid4
 from src.modules.brand.domain.buyer_persona import BuyerPersona
 
 
-def test_create_buyer_persona():
+def test_create_buyer_persona() -> None:
+    """Test creating a buyer persona with minimal fields."""
     persona = BuyerPersona(
         id=uuid4(),
         tenant_id=uuid4(),
@@ -21,15 +22,20 @@ def test_create_buyer_persona():
     assert persona.completeness_score == 0.0
 
 
-def test_buyer_persona_with_full_profile():
+def test_buyer_persona_with_full_profile() -> None:
+    """Test buyer persona with demographics and pain points."""
     persona = BuyerPersona(
         id=uuid4(),
         tenant_id=uuid4(),
         user_id=uuid4(),
         name="Carlos",
         demographics={"age_range": "30-40", "location": "LATAM"},
-        pain_points=[{"description": "No puede escalar", "intensity": "high"}],
-        desires=[{"description": "Automatizar ventas", "priority": "high"}],
+        pain_points=[
+            {"description": "No puede escalar", "intensity": "high"},
+        ],
+        desires=[
+            {"description": "Automatizar ventas", "priority": "high"},
+        ],
         completeness_score=45.0,
     )
     assert persona.demographics["age_range"] == "30-40"
@@ -37,7 +43,8 @@ def test_buyer_persona_with_full_profile():
     assert persona.completeness_score == 45.0
 
 
-def test_buyer_persona_offer_scope():
+def test_buyer_persona_offer_scope() -> None:
+    """Test buyer persona with OFFER scope."""
     offer_id = uuid4()
     persona = BuyerPersona(
         id=uuid4(),
@@ -51,7 +58,8 @@ def test_buyer_persona_offer_scope():
     assert persona.offer_id == offer_id
 
 
-def test_buyer_persona_defaults():
+def test_buyer_persona_defaults() -> None:
+    """Test default values for optional fields."""
     persona = BuyerPersona(
         id=uuid4(),
         tenant_id=uuid4(),
@@ -70,7 +78,7 @@ def test_buyer_persona_defaults():
     assert persona.deleted_at is None
 
 
-def test_buyer_persona_from_attributes():
+def test_buyer_persona_from_attributes() -> None:
     """Verify from_attributes=True (ORM mode) works via model_config."""
     persona = BuyerPersona(
         id=uuid4(),

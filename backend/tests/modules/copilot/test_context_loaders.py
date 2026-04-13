@@ -13,19 +13,22 @@ from src.modules.copilot.infrastructure.context.offer_context_loader import (
 )
 
 
-def test_get_context_loader_offer():
+def test_get_context_loader_offer() -> None:
+    """Test get_context_loader returns OfferContextLoader."""
     db = MagicMock()
     loader = get_context_loader("offer_context", db)
     assert isinstance(loader, OfferContextLoader)
 
 
-def test_get_context_loader_unknown_raises():
+def test_get_context_loader_unknown_raises() -> None:
+    """Test get_context_loader raises for unknown type."""
     with pytest.raises(ValueError, match="No context loader"):
         get_context_loader("nonexistent", MagicMock())
 
 
 @pytest.mark.asyncio
-async def test_offer_context_loader_with_no_offers():
+async def test_offer_context_loader_with_no_offers() -> None:
+    """Test offer context loader with no offers."""
     mock_scalars = MagicMock()
     mock_scalars.all.return_value = []
     mock_result = MagicMock()
@@ -34,14 +37,18 @@ async def test_offer_context_loader_with_no_offers():
     mock_db.execute = AsyncMock(return_value=mock_result)
 
     loader = OfferContextLoader(mock_db)
-    result = await loader.load(tenant_id=uuid4(), entity_id=uuid4())
+    result = await loader.load(
+        tenant_id=uuid4(),
+        entity_id=uuid4(),
+    )
 
     assert isinstance(result, str)
     assert "primero" in result.lower() or "no hay" in result.lower()
 
 
 @pytest.mark.asyncio
-async def test_offer_context_loader_with_offers():
+async def test_offer_context_loader_with_offers() -> None:
+    """Test offer context loader with existing offers."""
     mock_offer_1 = MagicMock()
     mock_offer_1.name = "Coaching Premium"
     mock_offer_1.archetype = "COURSE"
@@ -75,8 +82,8 @@ async def test_offer_context_loader_with_offers():
 
 
 @pytest.mark.asyncio
-async def test_offer_context_loader_excludes_entity_id():
-    """When entity_id is given, that offer should be excluded from results."""
+async def test_offer_context_loader_excludes_entity_id() -> None:
+    """Test entity_id offer is excluded from results."""
     mock_scalars = MagicMock()
     mock_scalars.all.return_value = []
     mock_result = MagicMock()

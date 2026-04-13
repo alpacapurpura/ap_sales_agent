@@ -23,6 +23,7 @@ async def web_research(query: str, max_results: int = 5) -> str:
     Args:
         query: Search query describing what to research.
         max_results: Maximum number of results to return (default 5).
+
     """
     service = TavilySearchService()
     results = await service.search(query=query, max_results=max_results)
@@ -37,7 +38,7 @@ async def web_research(query: str, max_results: int = 5) -> str:
                     "relevance": r.relevance_score,
                 }
                 for r in results
-            ]
+            ],
         },
         ensure_ascii=False,
     )

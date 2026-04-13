@@ -27,7 +27,8 @@ class SearchResult:
 class TavilySearchService:
     """Web search via Tavily API — purpose-built for AI agents."""
 
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: str | None = None) -> None:
+        """Initialize with optional API key override."""
         self.api_key = api_key or settings.TAVILY_API_KEY
 
     async def search(
@@ -45,6 +46,7 @@ class TavilySearchService:
 
         Returns:
             List of SearchResult dataclasses sorted by relevance.
+
         """
         logger.info("tavily_search_start", query=query, max_results=max_results)
 

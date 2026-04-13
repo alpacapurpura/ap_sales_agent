@@ -20,7 +20,7 @@ CONTEXT_LOADERS: dict[str, type] = {
 }
 
 
-def get_context_loader(key: str, db: AsyncSession):
+def get_context_loader(key: str, db: AsyncSession) -> OfferContextLoader:
     """Get context loader by key.
 
     Args:
@@ -32,8 +32,10 @@ def get_context_loader(key: str, db: AsyncSession):
 
     Raises:
         ValueError: If no loader is registered for the given key.
+
     """
     loader_cls = CONTEXT_LOADERS.get(key)
     if not loader_cls:
-        raise ValueError(f"No context loader registered for key: {key}")
+        msg = f"No context loader registered for key: {key}"
+        raise ValueError(msg)
     return loader_cls(db)

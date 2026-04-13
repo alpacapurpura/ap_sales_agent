@@ -12,7 +12,10 @@ from src.modules.copilot.application.services.document_processor import (
 
 
 class TestDocumentProcessingResult:
-    def test_structure(self):
+    """Tests for DocumentProcessingResult dataclass."""
+
+    def test_structure(self) -> None:
+        """Test result structure fields."""
         result = DocumentProcessingResult(
             delta={"field1": "value1"},
             summary="Extracted 1 field from 1 document",
@@ -26,7 +29,8 @@ class TestDocumentProcessingResult:
         assert result.source_documents == ["test.pdf"]
         assert "Extracted 1 field" in result.summary
 
-    def test_empty_result(self):
+    def test_empty_result(self) -> None:
+        """Test empty result defaults."""
         result = DocumentProcessingResult(
             delta={},
             summary="No data",
@@ -39,15 +43,20 @@ class TestDocumentProcessingResult:
 
 
 class TestDocumentProcessor:
+    """Tests for DocumentProcessor service."""
+
     @pytest.mark.asyncio
-    async def test_process_single_document(self):
+    async def test_process_single_document(
+        self,
+    ) -> None:
+        """Test processing a single document."""
         mock_file = MagicMock()
         mock_file.filename = "brief.pdf"
         mock_file.content_type = "application/pdf"
 
         mock_parser = MagicMock()
         mock_parser.parse_file = AsyncMock(
-            return_value="Somos una marca de coaching para emprendedoras"
+            return_value=("Somos una marca de coaching para emprendedoras"),
         )
 
         mock_ai = MagicMock()
@@ -55,12 +64,15 @@ class TestDocumentProcessor:
             return_value=MagicMock(
                 extracted_fields={
                     "identity.brand_name": "CoachPro",
-                    "positioning.uvp": "Transforma tu negocio",
-                }
-            )
+                    "positioning.uvp": ("Transforma tu negocio"),
+                },
+            ),
         )
 
-        processor = DocumentProcessor(ai_service=mock_ai, file_parser=mock_parser)
+        processor = DocumentProcessor(
+            ai_service=mock_ai,
+            file_parser=mock_parser,
+        )
         result = await processor.process_for_interview(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
@@ -76,12 +88,17 @@ class TestDocumentProcessor:
         assert result.delta["positioning.uvp"] == "Transforma tu negocio"
 
     @pytest.mark.asyncio
-    async def test_process_skips_existing_non_empty_fields(self):
+    async def test_process_skips_existing_non_empty_fields(
+        self,
+    ) -> None:
+        """Test processing skips existing non-empty fields."""
         mock_file = MagicMock()
         mock_file.filename = "brief.pdf"
 
         mock_parser = MagicMock()
-        mock_parser.parse_file = AsyncMock(return_value="Some content")
+        mock_parser.parse_file = AsyncMock(
+            return_value="Some content",
+        )
 
         mock_ai = MagicMock()
         mock_ai.run_structured_action = MagicMock(
@@ -89,15 +106,20 @@ class TestDocumentProcessor:
                 extracted_fields={
                     "identity.brand_name": "NewName",
                     "positioning.uvp": "New UVP",
-                }
-            )
+                },
+            ),
         )
 
-        processor = DocumentProcessor(ai_service=mock_ai, file_parser=mock_parser)
+        processor = DocumentProcessor(
+            ai_service=mock_ai,
+            file_parser=mock_parser,
+        )
         result = await processor.process_for_interview(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
-            existing_mapa={"identity.brand_name": "OldName"},
+            existing_mapa={
+                "identity.brand_name": "OldName",
+            },
             tenant_id=uuid4(),
         )
 
@@ -109,19 +131,31 @@ class TestDocumentProcessor:
         assert result.delta["positioning.uvp"] == "New UVP"
 
     @pytest.mark.asyncio
-    async def test_process_overwrites_empty_existing_fields(self):
+    async def test_process_overwrites_empty_existing_fields(
+        self,
+    ) -> None:
+        """Test processing overwrites empty existing fields."""
         mock_file = MagicMock()
         mock_file.filename = "brief.pdf"
 
         mock_parser = MagicMock()
-        mock_parser.parse_file = AsyncMock(return_value="Some content")
+        mock_parser.parse_file = AsyncMock(
+            return_value="Some content",
+        )
 
         mock_ai = MagicMock()
         mock_ai.run_structured_action = MagicMock(
-            return_value=MagicMock(extracted_fields={"identity.brand_name": "NewName"})
+            return_value=MagicMock(
+                extracted_fields={
+                    "identity.brand_name": "NewName",
+                },
+            ),
         )
 
-        processor = DocumentProcessor(ai_service=mock_ai, file_parser=mock_parser)
+        processor = DocumentProcessor(
+            ai_service=mock_ai,
+            file_parser=mock_parser,
+        )
         result = await processor.process_for_interview(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
@@ -134,7 +168,10 @@ class TestDocumentProcessor:
         assert result.delta["identity.brand_name"] == "NewName"
 
     @pytest.mark.asyncio
-    async def test_process_multiple_documents(self):
+    async def test_process_multiple_documents(
+        self,
+    ) -> None:
+        """Test processing multiple documents."""
         file1 = MagicMock()
         file1.filename = "brief.pdf"
         file2 = MagicMock()
@@ -142,7 +179,10 @@ class TestDocumentProcessor:
 
         mock_parser = MagicMock()
         mock_parser.parse_file = AsyncMock(
-            side_effect=["Content from PDF", "Content from DOCX"]
+            side_effect=[
+                "Content from PDF",
+                "Content from DOCX",
+            ],
         )
 
         mock_ai = MagicMock()
@@ -150,12 +190,15 @@ class TestDocumentProcessor:
             return_value=MagicMock(
                 extracted_fields={
                     "identity.brand_name": "BrandX",
-                    "values.core_values": "honestidad, calidad",
-                }
-            )
+                    "values.core_values": ("honestidad, calidad"),
+                },
+            ),
         )
 
-        processor = DocumentProcessor(ai_service=mock_ai, file_parser=mock_parser)
+        processor = DocumentProcessor(
+            ai_service=mock_ai,
+            file_parser=mock_parser,
+        )
         result = await processor.process_for_interview(
             files=[file1, file2],
             extraction_template="brand_doc_extraction",
@@ -168,16 +211,22 @@ class TestDocumentProcessor:
         assert "values.docx" in result.source_documents
 
     @pytest.mark.asyncio
-    async def test_process_empty_files(self):
+    async def test_process_empty_files(self) -> None:
+        """Test processing empty files."""
         mock_file = MagicMock()
         mock_file.filename = "empty.pdf"
 
         mock_parser = MagicMock()
-        mock_parser.parse_file = AsyncMock(return_value="")
+        mock_parser.parse_file = AsyncMock(
+            return_value="",
+        )
 
         mock_ai = MagicMock()
 
-        processor = DocumentProcessor(ai_service=mock_ai, file_parser=mock_parser)
+        processor = DocumentProcessor(
+            ai_service=mock_ai,
+            file_parser=mock_parser,
+        )
         result = await processor.process_for_interview(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
@@ -191,19 +240,29 @@ class TestDocumentProcessor:
         mock_ai.run_structured_action.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_process_with_none_filename(self):
+    async def test_process_with_none_filename(
+        self,
+    ) -> None:
+        """Test processing file with None filename."""
         mock_file = MagicMock()
         mock_file.filename = None
 
         mock_parser = MagicMock()
-        mock_parser.parse_file = AsyncMock(return_value="Some content")
+        mock_parser.parse_file = AsyncMock(
+            return_value="Some content",
+        )
 
         mock_ai = MagicMock()
         mock_ai.run_structured_action = MagicMock(
-            return_value=MagicMock(extracted_fields={"field1": "value1"})
+            return_value=MagicMock(
+                extracted_fields={"field1": "value1"},
+            ),
         )
 
-        processor = DocumentProcessor(ai_service=mock_ai, file_parser=mock_parser)
+        processor = DocumentProcessor(
+            ai_service=mock_ai,
+            file_parser=mock_parser,
+        )
         result = await processor.process_for_interview(
             files=[mock_file],
             extraction_template="brand_doc_extraction",
@@ -214,19 +273,29 @@ class TestDocumentProcessor:
         assert "unknown" in result.source_documents
 
     @pytest.mark.asyncio
-    async def test_process_ai_returns_empty(self):
+    async def test_process_ai_returns_empty(
+        self,
+    ) -> None:
+        """Test processing when AI returns empty."""
         mock_file = MagicMock()
         mock_file.filename = "brief.pdf"
 
         mock_parser = MagicMock()
-        mock_parser.parse_file = AsyncMock(return_value="Some content")
+        mock_parser.parse_file = AsyncMock(
+            return_value="Some content",
+        )
 
         mock_ai = MagicMock()
         mock_ai.run_structured_action = MagicMock(
-            return_value=MagicMock(extracted_fields={})
+            return_value=MagicMock(
+                extracted_fields={},
+            ),
         )
 
-        processor = DocumentProcessor(ai_service=mock_ai, file_parser=mock_parser)
+        processor = DocumentProcessor(
+            ai_service=mock_ai,
+            file_parser=mock_parser,
+        )
         result = await processor.process_for_interview(
             files=[mock_file],
             extraction_template="brand_doc_extraction",

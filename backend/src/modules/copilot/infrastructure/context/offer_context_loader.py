@@ -32,7 +32,8 @@ class OfferContextLoader:
     so the agent can advise on pricing, gaps, and differentiation.
     """
 
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession) -> None:
+        """Initialize with database session."""
         self.db = db
 
     async def load(self, tenant_id: UUID, entity_id: UUID | None = None) -> str:
@@ -44,6 +45,7 @@ class OfferContextLoader:
 
         Returns:
             Human-readable string describing the tenant's offer ladder.
+
         """
         stmt = (
             select(ProductModel)
@@ -85,7 +87,7 @@ class OfferContextLoader:
 
             lines.append(
                 f"- {offer.name} ({archetype}, {value_level}): "
-                f"{currency} {price_display} — {status}"
+                f"{currency} {price_display} — {status}",
             )
 
         # Identify ladder gaps

@@ -18,10 +18,22 @@ class TranscriptionResult:
 class TranscriptionPort(Protocol):
     """Port for speech-to-text. Implemented by Whisper today, extensible."""
 
-    async def transcribe(self, audio: bytes, mime_type: str) -> TranscriptionResult: ...
+    async def transcribe(
+        self,
+        audio: bytes,
+        mime_type: str,
+    ) -> TranscriptionResult:
+        """Transcribe audio bytes to text."""
+        ...
 
 
 class SynthesisPort(Protocol):
     """Port for text-to-speech. Not implemented in Phase 3. Prepared for future TTS."""
 
-    async def synthesize(self, text: str, voice: str) -> bytes: ...
+    async def synthesize(
+        self,
+        text: str,
+        voice: str,
+    ) -> bytes:
+        """Synthesize text into audio bytes."""
+        ...

@@ -5,11 +5,13 @@ from src.modules.brand.infrastructure.models.buyer_persona_model import (
 )
 
 
-def test_buyer_persona_model_tablename():
+def test_buyer_persona_model_tablename() -> None:
+    """Test table name is buyer_personas."""
     assert BuyerPersonaModel.__tablename__ == "buyer_personas"
 
 
-def test_buyer_persona_model_has_required_columns():
+def test_buyer_persona_model_has_required_columns() -> None:
+    """Test all required columns exist in the model."""
     columns = {c.name for c in BuyerPersonaModel.__table__.columns}
     expected = {
         "id",
@@ -39,9 +41,8 @@ def test_buyer_persona_model_has_required_columns():
     assert expected.issubset(columns)
 
 
-def test_buyer_persona_model_tenant_id_indexed():
-    """tenant_id column must have an index for performance."""
-    # Check there's an index on tenant_id (either single or composite)
+def test_buyer_persona_model_tenant_id_indexed() -> None:
+    """Test tenant_id column has an index for performance."""
     tenant_indexed = False
     for idx in BuyerPersonaModel.__table__.indexes:
         col_names = {c.name for c in idx.columns}
@@ -51,7 +52,7 @@ def test_buyer_persona_model_tenant_id_indexed():
     assert tenant_indexed, "tenant_id must be indexed"
 
 
-def test_buyer_persona_model_has_composite_index():
-    """Composite index on (tenant_id, scope) should exist."""
+def test_buyer_persona_model_has_composite_index() -> None:
+    """Test composite index on (tenant_id, scope) exists."""
     indexes = {idx.name for idx in BuyerPersonaModel.__table__.indexes}
     assert "ix_buyer_personas_tenant_scope" in indexes

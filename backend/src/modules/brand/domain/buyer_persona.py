@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
+from pydantic import Field
+
 from src.shared.domain.base_entity import BaseEntity
 
 
@@ -31,15 +33,15 @@ class BuyerPersona(BaseEntity):
     is_primary: bool = False
 
     # Profile (JSONB — flexible, evolves with interview)
-    demographics: dict = {}
-    psychographics: dict = {}
-    pain_points: list[dict] = []
-    desires: list[dict] = []
-    objections: list[dict] = []
-    preferred_channels: list[dict] = []
-    buyer_journey: dict = {}
-    purchase_triggers: list[str] = []
-    anti_patterns: list[str] = []
+    demographics: dict = Field(default_factory=dict)
+    psychographics: dict = Field(default_factory=dict)
+    pain_points: list[dict] = Field(default_factory=list)
+    desires: list[dict] = Field(default_factory=list)
+    objections: list[dict] = Field(default_factory=list)
+    preferred_channels: list[dict] = Field(default_factory=list)
+    buyer_journey: dict = Field(default_factory=dict)
+    purchase_triggers: list[str] = Field(default_factory=list)
+    anti_patterns: list[str] = Field(default_factory=list)
 
     # Metadata
     completeness_score: float = 0.0

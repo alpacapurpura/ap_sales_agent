@@ -12,6 +12,8 @@ from src.shared.domain.base_entity import Base
 
 
 class BuyerPersonaModel(Base):
+    """SQLAlchemy model mapping to the ``buyer_personas`` table."""
+
     __tablename__ = "buyer_personas"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -42,7 +44,9 @@ class BuyerPersonaModel(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
     updated_at = Column(
         DateTime(timezone=True),
