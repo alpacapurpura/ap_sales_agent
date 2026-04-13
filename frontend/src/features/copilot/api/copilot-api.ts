@@ -11,6 +11,11 @@ export interface CopilotChatPayload {
     selected_fields?: Array<Record<string, string>>;
     form_data?: Record<string, unknown>;
     locale?: string;
+    focus?: {
+      domain: string;
+      entity_id?: string | null;
+    } | null;
+    interview_session_id?: string | null;
   };
 }
 

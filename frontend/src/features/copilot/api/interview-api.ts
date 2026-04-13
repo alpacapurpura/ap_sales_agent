@@ -28,11 +28,17 @@ export interface InterviewStateResponse {
   messages_count: number;
 }
 
-export async function startInterview(token: string, domain: string = "brand"): Promise<StartInterviewResponse> {
+export async function startInterview(
+  token: string,
+  domain: string = "brand",
+  entityId?: string,
+): Promise<StartInterviewResponse> {
+  const body: Record<string, unknown> = { domain };
+  if (entityId) body.entity_id = entityId;
   const res = await fetchClient(`${API_URL}/api/v1/copilot/interview/start`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ domain }),
+    body: JSON.stringify(body),
   });
   return res.json() as Promise<StartInterviewResponse>;
 }
