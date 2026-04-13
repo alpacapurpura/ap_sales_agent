@@ -122,6 +122,67 @@ class AttractionStageService:
                 return msg
         return "Servicio no disponible"
 
+    def _build_agg_metrics(
+        self,
+        agg_rows: list,
+    ) -> tuple[list[MetricValueDTO], str | None]:
+        """Build MetricValueDTO list from aggregation rows, returning latest timestamp."""
+        metrics: list[MetricValueDTO] = []
+        last_updated: str | None = None
+
+        for agg in agg_rows:
+            extra_data = getattr(agg, "extra", None) or {}
+            breakdown = (
+                extra_data if isinstance(extra_data, dict) and extra_data else None
+            )
+
+            metrics.append(
+                MetricValueDTO(
+                    name=agg.metric_name,
+                    value=agg.value,
+                    unit=agg.unit or "count",
+                    currency=getattr(agg, "currency", None),
+                    breakdown=breakdown,
+                )
+            )
+
+            if hasattr(agg, "computed_at") and agg.computed_at:
+                ts = agg.computed_at.isoformat()
+                if last_updated is None or ts > last_updated:
+                    last_updated = ts
+
+        return metrics, last_updated
+
+    def _detect_stale_status(
+        self,
+        provider_name: str,
+        tenant_id: UUID,
+        provider_runs: dict[str, object],
+        run_repo: "object",
+    ) -> tuple[bool, str | None]:
+        """Check extraction run status and return (stale, error_message)."""
+        if not provider_name or provider_name in ("internal", "manual"):
+            return False, None
+
+        if provider_name not in provider_runs:
+            provider_runs[provider_name] = run_repo.get_latest(tenant_id, provider_name)
+        latest_run = provider_runs[provider_name]
+        if not latest_run:
+            return False, None
+
+        if latest_run.status in ("failed", "retrying"):
+            return True, self._classify_error(latest_run.error)
+
+        if latest_run.status == "partial_success":
+            failures = latest_run.sub_extractor_failures or []
+            if failures:
+                names = [
+                    f["extractor_name"].replace("_", " ").title() for f in failures[:2]
+                ]
+                return False, f"Parcial ({', '.join(names)})"
+
+        return False, None
+
     async def get_metrics(
         self, tenant_id: UUID, period: str = "last_30_days"
     ) -> AttractionDetailDTO:
@@ -148,7 +209,6 @@ class AttractionStageService:
         repo = OfficialMetricsRepository(self.db)
         aggregations = repo.get_channel_summary(tenant_id, "attraction", "last_30_days")
 
-        # Build lookup: channel_slug -> list of aggregation rows (multi-metric)
         agg_by_slug: dict[str, list] = defaultdict(list)
         for agg in aggregations:
             agg_by_slug[agg.channel_slug].append(agg)
@@ -159,8 +219,6 @@ class AttractionStageService:
         )
 
         run_repo = ExtractionRunRepository(self.db)
-
-        # Build provider -> latest run lookup (deduplicate per provider)
         provider_runs: dict[str, object] = {}
 
         # 5. Build ChannelMetricDTO lists grouped by section
@@ -173,64 +231,27 @@ class AttractionStageService:
         available_channels: list[ChannelMetricDTO] = []
         latest_updated: str | None = None
 
-        # Connected channels
         for ch in channel_split.get("connected", []):
             slug = ch["slug"]
             channel_type = ch["channel_type"]
             group_key = _GROUP_MAP.get(channel_type, "organic_social")
-
-            # Build MetricValueDTO list from aggregation rows
-            agg_rows = agg_by_slug.get(slug, [])
-            metrics: list[MetricValueDTO] = []
-            last_updated: str | None = None
-
-            for agg in agg_rows:
-                extra_data = getattr(agg, "extra", None) or {}
-                breakdown = (
-                    extra_data if isinstance(extra_data, dict) and extra_data else None
-                )
-
-                metrics.append(
-                    MetricValueDTO(
-                        name=agg.metric_name,
-                        value=agg.value,
-                        unit=agg.unit or "count",
-                        currency=getattr(agg, "currency", None),
-                        breakdown=breakdown,
-                    )
-                )
-
-                # Track latest computed_at for this channel
-                if hasattr(agg, "computed_at") and agg.computed_at:
-                    ts = agg.computed_at.isoformat()
-                    if last_updated is None or ts > last_updated:
-                        last_updated = ts
-                    if latest_updated is None or ts > latest_updated:
-                        latest_updated = ts
-
-            # Stale detection: check extraction run for provider
             provider_name = ch.get("provider_name", "")
-            stale = False
-            error_message = None
 
-            if provider_name and provider_name not in ("internal", "manual"):
-                if provider_name not in provider_runs:
-                    provider_runs[provider_name] = run_repo.get_latest(
-                        tenant_id, provider_name
-                    )
-                latest_run = provider_runs[provider_name]
-                if latest_run:
-                    if latest_run.status in ("failed", "retrying"):
-                        stale = True
-                        error_message = self._classify_error(latest_run.error)
-                    elif latest_run.status == "partial_success":
-                        failures = latest_run.sub_extractor_failures or []
-                        if failures:
-                            names = [
-                                f["extractor_name"].replace("_", " ").title()
-                                for f in failures[:2]
-                            ]
-                            error_message = f"Parcial ({', '.join(names)})"
+            # Build metrics from aggregation rows
+            agg_rows = agg_by_slug.get(slug, [])
+            metrics, last_updated = self._build_agg_metrics(agg_rows)
+            if last_updated and (
+                latest_updated is None or last_updated > latest_updated
+            ):
+                latest_updated = last_updated
+
+            # Stale detection
+            stale, error_message = self._detect_stale_status(
+                provider_name,
+                tenant_id,
+                provider_runs,
+                run_repo,
+            )
 
             # For ManyChat channels, read from official_metrics directly
             if provider_name == "manychat":
@@ -285,8 +306,8 @@ class AttractionStageService:
             groups[group_key].append(dto)
 
         # Available (unconnected) channels
-        for ch in channel_split.get("available", []):
-            dto = ChannelMetricDTO(
+        available_channels = [
+            ChannelMetricDTO(
                 slug=ch["slug"],
                 name=ch["name"],
                 channel_type=ch["channel_type"],
@@ -294,7 +315,8 @@ class AttractionStageService:
                 source_label=ch["source_label"],
                 connected=False,
             )
-            available_channels.append(dto)
+            for ch in channel_split.get("available", [])
+        ]
 
         # 6. Compute group totals
         available_dto = (

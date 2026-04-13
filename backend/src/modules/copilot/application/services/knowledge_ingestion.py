@@ -16,6 +16,75 @@ from src.modules.copilot.infrastructure.knowledge.vector_store import (
 logger = structlog.get_logger()
 
 
+def _summarize_brand(registry, db, tenant_id: str) -> list[str]:
+    """Summarize brand data into markdown lines."""
+    parts: list[str] = []
+    brand_desc = registry.get("brand")
+    if not brand_desc or not brand_desc.repo_factory or not brand_desc.read_fn:
+        return parts
+
+    repo = brand_desc.repo_factory(db)
+    data = brand_desc.read_fn(repo, tenant_id)
+    if not data:
+        return parts
+
+    raw = data.model_dump(mode="json") if hasattr(data, "model_dump") else {}
+    if not raw:
+        return parts
+
+    parts.append("## Brand Studio\n")
+    for key, val in raw.items():
+        if val and not isinstance(val, (dict, list)):
+            parts.append(f"- **{key}**: {val}")
+        elif isinstance(val, dict):
+            non_empty = {k: v for k, v in val.items() if v}
+            if non_empty:
+                parts.append(f"### {key}")
+                for k, v in non_empty.items():
+                    parts.append(f"- {k}: {v}")
+    return parts
+
+
+def _summarize_offers(registry, db, tenant_id: str) -> list[str]:
+    """Summarize offer data into markdown lines."""
+    parts: list[str] = []
+    offer_desc = registry.get("offer")
+    if not offer_desc or not offer_desc.repo_factory or not offer_desc.read_fn:
+        return parts
+
+    repo = offer_desc.repo_factory(db)
+    offers = offer_desc.read_fn(repo, tenant_id)
+    if not offers:
+        return parts
+
+    parts.append("\n## Ofertas")
+    for o in offers if isinstance(offers, list) else [offers]:
+        name = getattr(o, "name", None) or getattr(o, "title", "Sin nombre")
+        parts.append(f"- {name}")
+    return parts
+
+
+def _summarize_connections(registry, db, tenant_id: str) -> list[str]:
+    """Summarize active connections into markdown lines."""
+    parts: list[str] = []
+    conn_desc = registry.get("connections")
+    if not conn_desc or not conn_desc.repo_factory or not conn_desc.read_fn:
+        return parts
+
+    repo = conn_desc.repo_factory(db)
+    conns = conn_desc.read_fn(repo, tenant_id)
+    if not conns:
+        return parts
+
+    parts.append("\n## Conexiones Activas")
+    for c in conns if isinstance(conns, list) else [conns]:
+        ch_type = getattr(c, "channel_type", "unknown")
+        active = getattr(c, "is_active", False)
+        if active:
+            parts.append(f"- {ch_type}")
+    return parts
+
+
 class KnowledgeIngestionService:
     """Handles document chunking, embedding, and upsert into Qdrant."""
 
@@ -63,57 +132,12 @@ class KnowledgeIngestionService:
         """Auto-generate a summary from Brand+Offer+Connections and ingest as help scope."""
         registry = get_module_registry()
         db = SessionLocal()
-        parts = []
+        parts: list[str] = []
 
         try:
-            # Brand
-            brand_desc = registry.get("brand")
-            if brand_desc and brand_desc.repo_factory and brand_desc.read_fn:
-                repo = brand_desc.repo_factory(db)
-                data = brand_desc.read_fn(repo, tenant_id)
-                if data:
-                    raw = (
-                        data.model_dump(mode="json")
-                        if hasattr(data, "model_dump")
-                        else {}
-                    )
-                    if raw:
-                        parts.append("## Brand Studio\n")
-                        for key, val in raw.items():
-                            if val and not isinstance(val, (dict, list)):
-                                parts.append(f"- **{key}**: {val}")
-                            elif isinstance(val, dict):
-                                non_empty = {k: v for k, v in val.items() if v}
-                                if non_empty:
-                                    parts.append(f"### {key}")
-                                    for k, v in non_empty.items():
-                                        parts.append(f"- {k}: {v}")
-
-            # Offer
-            offer_desc = registry.get("offer")
-            if offer_desc and offer_desc.repo_factory and offer_desc.read_fn:
-                repo = offer_desc.repo_factory(db)
-                offers = offer_desc.read_fn(repo, tenant_id)
-                if offers:
-                    parts.append("\n## Ofertas")
-                    for o in offers if isinstance(offers, list) else [offers]:
-                        name = getattr(o, "name", None) or getattr(
-                            o, "title", "Sin nombre"
-                        )
-                        parts.append(f"- {name}")
-
-            # Connections
-            conn_desc = registry.get("connections")
-            if conn_desc and conn_desc.repo_factory and conn_desc.read_fn:
-                repo = conn_desc.repo_factory(db)
-                conns = conn_desc.read_fn(repo, tenant_id)
-                if conns:
-                    parts.append("\n## Conexiones Activas")
-                    for c in conns if isinstance(conns, list) else [conns]:
-                        ch_type = getattr(c, "channel_type", "unknown")
-                        active = getattr(c, "is_active", False)
-                        if active:
-                            parts.append(f"- {ch_type}")
+            parts.extend(_summarize_brand(registry, db, tenant_id))
+            parts.extend(_summarize_offers(registry, db, tenant_id))
+            parts.extend(_summarize_connections(registry, db, tenant_id))
         finally:
             db.close()
 

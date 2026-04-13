@@ -22,6 +22,64 @@ from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCach
 from src.shared.domain.currency import convert_to_usd
 
 
+def _build_expansion_offers(
+    raw_items: list[tuple],
+    offer_map: dict,
+    display_currency: str,
+) -> list[ExpansionOfferDTO]:
+    """Build ExpansionOfferDTO list from raw repository tuples."""
+    result_offers = []
+    for item in raw_items:
+        offer_id_str = str(item[0])
+        count = item[1]
+        revenue = item[2]
+        currency = item[3] if len(item) > 3 else display_currency
+        offer = offer_map.get(offer_id_str)
+        name = offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
+        usd_rev = convert_to_usd(revenue, currency)
+        result_offers.append(
+            ExpansionOfferDTO(
+                offer_id=offer_id_str,
+                public_name=name,
+                count=count,
+                revenue=revenue,
+                currency=currency,
+                usd_revenue=usd_rev,
+            )
+        )
+    return result_offers
+
+
+def _build_expansion_group(
+    group_key: str,
+    group_label: str,
+    group_subtitle: str,
+    offers: list[ExpansionOfferDTO],
+    rate_pct: float,
+    display_currency: str,
+    *,
+    total_count_override: int | None = None,
+) -> ExpansionGroupDTO:
+    """Build a single ExpansionGroupDTO with totals from its offers."""
+    total_count = (
+        total_count_override
+        if total_count_override is not None
+        else sum(o.count for o in offers)
+    )
+    total_revenue = sum(o.revenue for o in offers)
+    return ExpansionGroupDTO(
+        group_key=group_key,
+        group_label=group_label,
+        group_subtitle=group_subtitle,
+        total_count=total_count,
+        total_revenue=total_revenue,
+        total_revenue_usd=convert_to_usd(total_revenue, display_currency),
+        currency=display_currency,
+        rate_pct=rate_pct,
+        offers=offers,
+    )
+
+
 class ExpansionStageService:
     """Provides expansion stage metrics for the Bowtie dashboard."""
 
@@ -100,35 +158,7 @@ class ExpansionStageService:
             display_currency = upsells[0][3]
 
         # 4. Build ExpansionGroupDTOs
-
-        def _build_offers(
-            raw_items: list[tuple], is_churn: bool = False
-        ) -> list[ExpansionOfferDTO]:
-            result_offers = []
-            for item in raw_items:
-                offer_id_str = str(item[0])
-                count = item[1]
-                revenue = item[2]
-                currency = item[3] if len(item) > 3 else display_currency
-                offer = offer_map.get(offer_id_str)
-                name = offer.public_name if offer else f"Oferta {offer_id_str[:8]}"
-                usd_rev = convert_to_usd(revenue, currency)
-                result_offers.append(
-                    ExpansionOfferDTO(
-                        offer_id=offer_id_str,
-                        public_name=name,
-                        count=count,
-                        revenue=revenue,
-                        currency=currency,
-                        usd_revenue=usd_rev,
-                    )
-                )
-            return result_offers
-
-        # Retencion group (renewals)
-        renewal_offers = _build_offers(renewals)
-        renewal_total_count = sum(o.count for o in renewal_offers)
-        renewal_total_revenue = sum(o.revenue for o in renewal_offers)
+        renewal_offers = _build_expansion_offers(renewals, offer_map, display_currency)
         retention_rate = (
             round(
                 (active_customer_count - total_churn_count)
@@ -139,65 +169,54 @@ class ExpansionStageService:
             if active_customer_count > 0
             else 100.0
         )
-
-        retencion = ExpansionGroupDTO(
-            group_key="retencion",
-            group_label="Retencion",
-            group_subtitle="Renovaciones de suscripciones activas",
-            total_count=renewal_total_count,
-            total_revenue=renewal_total_revenue,
-            total_revenue_usd=convert_to_usd(renewal_total_revenue, display_currency),
-            currency=display_currency,
-            rate_pct=retention_rate,
-            offers=renewal_offers,
+        retencion = _build_expansion_group(
+            "retencion",
+            "Retencion",
+            "Renovaciones de suscripciones activas",
+            renewal_offers,
+            retention_rate,
+            display_currency,
         )
 
-        # Crecimiento group (upsells)
-        upsell_offers = _build_offers(upsells)
-        upsell_total_count = sum(o.count for o in upsell_offers)
-        upsell_total_revenue = sum(o.revenue for o in upsell_offers)
+        upsell_offers = _build_expansion_offers(upsells, offer_map, display_currency)
         expansion_rate = (
             round(upsell_customer_count / active_customer_count * 100, 1)
             if active_customer_count > 0
             else 0.0
         )
-
-        crecimiento = ExpansionGroupDTO(
-            group_key="crecimiento",
-            group_label="Crecimiento",
-            group_subtitle="Ventas adicionales y upgrades a clientes existentes",
-            total_count=upsell_total_count,
-            total_revenue=upsell_total_revenue,
-            total_revenue_usd=convert_to_usd(upsell_total_revenue, display_currency),
-            currency=display_currency,
-            rate_pct=expansion_rate,
-            offers=upsell_offers,
+        crecimiento = _build_expansion_group(
+            "crecimiento",
+            "Crecimiento",
+            "Ventas adicionales y upgrades a clientes existentes",
+            upsell_offers,
+            expansion_rate,
+            display_currency,
         )
 
-        # Cancelaciones group (churn)
-        churn_offers = _build_offers(churn_by_offer, is_churn=True)
-        churn_total_count = total_churn_count
-        churn_total_revenue = sum(o.revenue for o in churn_offers)
+        churn_offers = _build_expansion_offers(
+            churn_by_offer, offer_map, display_currency
+        )
         churn_rate_pct = (
             round(total_churn_count / active_customer_count * 100, 1)
             if active_customer_count > 0
             else 0.0
         )
-
-        cancelaciones = ExpansionGroupDTO(
-            group_key="cancelaciones",
-            group_label="Cancelaciones",
-            group_subtitle="Suscripciones perdidas y ingreso afectado",
-            total_count=churn_total_count,
-            total_revenue=churn_total_revenue,
-            total_revenue_usd=convert_to_usd(churn_total_revenue, display_currency),
-            currency=display_currency,
-            rate_pct=churn_rate_pct,
-            offers=churn_offers,
+        cancelaciones = _build_expansion_group(
+            "cancelaciones",
+            "Cancelaciones",
+            "Suscripciones perdidas y ingreso afectado",
+            churn_offers,
+            churn_rate_pct,
+            display_currency,
+            total_count_override=total_churn_count,
         )
 
         # 5. Header KPIs
-        net_mrr = renewal_total_revenue + upsell_total_revenue - churn_total_revenue
+        net_mrr = (
+            retencion.total_revenue
+            + crecimiento.total_revenue
+            - cancelaciones.total_revenue
+        )
         net_mrr_usd = convert_to_usd(net_mrr, display_currency)
         avg_ltv_usd = convert_to_usd(avg_ltv, ltv_currency)
 
@@ -211,7 +230,7 @@ class ExpansionStageService:
         )
 
         # 6. Mini funnel: Activos -> Expansion
-        total_expansion_count = renewal_total_count + upsell_total_count
+        total_expansion_count = retencion.total_count + crecimiento.total_count
         expansion_conv_rate = (
             round(total_expansion_count / active_customer_count * 100, 1)
             if active_customer_count > 0
@@ -230,7 +249,6 @@ class ExpansionStageService:
         bottlenecks: list[BottleneckDTO] = []
 
         if churn_rate_pct > 5.0:
-            tip = "Revisa la calidad y satisfaccion de tu producto o servicio"
             bottlenecks.append(
                 BottleneckDTO(
                     type="high_churn_rate",
@@ -238,7 +256,7 @@ class ExpansionStageService:
                     current_rate=churn_rate_pct,
                     severity="critical",
                     threshold=5.0,
-                    tip=tip,
+                    tip="Revisa la calidad y satisfaccion de tu producto o servicio",
                 )
             )
         elif churn_rate_pct > 3.0:

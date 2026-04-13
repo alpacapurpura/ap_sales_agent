@@ -93,6 +93,58 @@ async def list_product_mappings(
     return mappings
 
 
+def _aggregate_events_by_product(events: list, source: str) -> dict[str, dict]:
+    """Aggregate journey_events into a product metrics map by external_id."""
+    product_map: dict[str, dict] = {}
+    for (props,) in events:
+        if not props:
+            continue
+        line_items = props.get("line_items", [])
+        for item in line_items:
+            pid = str(item.get("product_id", ""))
+            if not pid:
+                continue
+            if pid not in product_map:
+                product_map[pid] = {
+                    "external_id": pid,
+                    "external_name": item.get("title"),
+                    "source": source,
+                    "total_price": 0.0,
+                    "currency": props.get("currency", "USD"),
+                    "event_count": 0,
+                }
+            product_map[pid]["total_price"] += float(item.get("price", 0))
+            product_map[pid]["event_count"] += 1
+    return product_map
+
+
+def _merge_mappings_into_products(
+    product_map: dict[str, dict],
+    mapping_dict: dict[str, dict],
+    offer_names: dict[UUID, str],
+    source: str,
+) -> None:
+    """Enrich product_map with mapping info and add mapped products without events."""
+    for ext_id, minfo in mapping_dict.items():
+        if ext_id not in product_map:
+            product_map[ext_id] = {
+                "external_id": ext_id,
+                "external_name": minfo["external_name"],
+                "source": source,
+                "total_price": 0.0,
+                "currency": None,
+                "event_count": 0,
+            }
+        product_map[ext_id]["is_mapped"] = True
+        product_map[ext_id]["offer_id"] = minfo["offer_id"]
+        product_map[ext_id]["offer_name"] = offer_names.get(minfo["offer_id"])
+        product_map[ext_id]["mapping_id"] = minfo["mapping_id"]
+
+    for pdata in product_map.values():
+        if "is_mapped" not in pdata:
+            pdata["is_mapped"] = False
+
+
 @router.get("/product-mappings/source-products", response_model=list[SourceProductOut])
 async def list_source_products(
     source: str = Query(default="shopify"),
@@ -134,9 +186,7 @@ async def list_source_products(
         offer_names = dict(db.execute(offer_stmt).all())
 
     # 3. Scan journey_events (checkout_initiated + checkout_completed)
-    stmt = select(
-        JourneyEventModel.properties,
-    ).where(
+    stmt = select(JourneyEventModel.properties).where(
         JourneyEventModel.tenant_id == user.tenant_id,
         JourneyEventModel.event_name.in_(["checkout_initiated", "checkout_completed"]),
         sa_func.jsonb_extract_path_text(JourneyEventModel.properties, "source")
@@ -145,53 +195,13 @@ async def list_source_products(
     events = db.execute(stmt).all()
 
     # 4. Aggregate by external_id
-    product_map: dict[str, dict] = {}
-    for (props,) in events:
-        if not props:
-            continue
-        line_items = props.get("line_items", [])
-        if not line_items:
-            continue
-        for item in line_items:
-            pid = str(item.get("product_id", ""))
-            if not pid:
-                continue
-            if pid not in product_map:
-                product_map[pid] = {
-                    "external_id": pid,
-                    "external_name": item.get("title"),
-                    "source": source,
-                    "total_price": 0.0,
-                    "currency": props.get("currency", "USD"),
-                    "event_count": 0,
-                }
-            product_map[pid]["total_price"] += float(item.get("price", 0))
-            product_map[pid]["event_count"] += 1
+    product_map = _aggregate_events_by_product(events, source)
 
-    # 5. Merge: enrich with mapping info; add mappings without events
-    for ext_id, minfo in mapping_dict.items():
-        if ext_id not in product_map:
-            product_map[ext_id] = {
-                "external_id": ext_id,
-                "external_name": minfo["external_name"],
-                "source": source,
-                "total_price": 0.0,
-                "currency": None,
-                "event_count": 0,
-            }
-        product_map[ext_id]["is_mapped"] = True
-        product_map[ext_id]["offer_id"] = minfo["offer_id"]
-        product_map[ext_id]["offer_name"] = offer_names.get(minfo["offer_id"])
-        product_map[ext_id]["mapping_id"] = minfo["mapping_id"]
-
-    # Fill is_mapped=False for products without mapping
-    for pdata in product_map.values():
-        if "is_mapped" not in pdata:
-            pdata["is_mapped"] = False
+    # 5. Merge mapping info
+    _merge_mappings_into_products(product_map, mapping_dict, offer_names, source)
 
     # 6. Sort by total_price DESC
-    result = sorted(product_map.values(), key=lambda x: x["total_price"], reverse=True)
-    return result
+    return sorted(product_map.values(), key=lambda x: x["total_price"], reverse=True)
 
 
 @router.get("/product-mappings/unmatched", response_model=list[UnmatchedProductOut])

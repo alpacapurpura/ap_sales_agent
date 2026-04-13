@@ -252,190 +252,690 @@ class ChatOrchestrator:
         except Exception as e:
             logger.error(f"Error in smart debounce task: {e}", exc_info=True)
 
-    async def process_chat_flow(  # noqa: C901
+    # ── Helpers for process_chat_flow ──────────────────────────────────────
+
+    @staticmethod
+    def _fetch_tenant_config(db: Session, tenant_id: str) -> tuple[UUID | None, dict]:
+        """Resolve tenant UUID and config dict from tenant_id string."""
+        if not tenant_id:
+            return None, {}
+        try:
+            tenant_uuid = UUID(tenant_id)
+            tenant_obj = (
+                db.execute(select(TenantModel).where(TenantModel.id == tenant_uuid))
+                .scalars()
+                .first()
+            )
+            if tenant_obj:
+                return tenant_uuid, tenant_obj.config_json or {}
+            return tenant_uuid, {}
+        except Exception as e:
+            logger.error(f"Error fetching tenant config: {e}")
+            return None, {}
+
+    @staticmethod
+    def _resolve_customer(
+        _db: Session,
+        identity_service: IdentityService,
+        incoming: IncomingMessage,
+        tenant_uuid: UUID | None,
+    ) -> tuple:
+        """Resolve or create customer profile from incoming message.
+
+        Returns (customer, was_created, capture_slug, channel_type, identity_type).
+        """
+        channel_type = incoming.channel_type
+        try:
+            identity_type = IdentityType(channel_type)
+        except ValueError:
+            identity_type = IdentityType.EXTERNAL_ID
+
+        profile_data = {
+            "first_name": incoming.metadata.get("first_name"),
+            "last_name": incoming.metadata.get("last_name"),
+            "traits": incoming.metadata,
+        }
+
+        capture_slug = CHANNEL_TYPE_TO_CAPTURE_SLUG.get(channel_type, channel_type)
+        customer, was_created = identity_service.get_or_create_customer(
+            tenant_id=tenant_uuid,
+            identity_type=identity_type,
+            identity_value=incoming.user_id,
+            profile_data=profile_data,
+            lead_source=capture_slug,
+            lead_source_detail=channel_type,
+        )
+        return customer, was_created, capture_slug, channel_type, identity_type
+
+    @staticmethod
+    async def _enrich_instagram_profile(
+        db: Session, tenant_uuid: UUID, user_id_str: str, customer, was_created: bool
+    ) -> None:
+        """Enrich Instagram profile with name/username/pic from User Profile API."""
+        if not (was_created or not (customer.traits or {}).get("instagram_username")):
+            return
+        try:
+            from src.modules.connections.application.services.connection_port_impl import (
+                ConnectionPortImpl,
+            )
+            from src.modules.crm.application.services.ig_profile_enricher import (
+                InstagramProfileEnricher,
+            )
+
+            connection_port = ConnectionPortImpl(db)
+            creds = await connection_port.get_credentials(tenant_uuid, "meta")
+            enricher = InstagramProfileEnricher(db)
+            await enricher.enrich(
+                tenant_id=tenant_uuid,
+                igsid=user_id_str,
+                customer_profile_id=customer.id,
+                access_token=creds.credentials.get("access_token", ""),
+            )
+        except Exception:
+            logger.warning("ig_profile_enrichment_failed", exc_info=True)
+
+    @staticmethod
+    def _track_message_event(
+        db: Session,
+        tenant_uuid: UUID,
+        customer,
+        capture_slug: str,
+        channel_type: str,
+        incoming: IncomingMessage,
+    ) -> None:
+        """Track message_received journey event for capture conversation metrics."""
+        try:
+            from src.modules.crm.infrastructure.repositories.customer_repository import (
+                JourneyEventRepository,
+            )
+
+            journey_repo = JourneyEventRepository(db)
+            event_props = {
+                "channel_slug": capture_slug,
+                "channel_type": channel_type,
+                "message_direction": "inbound",
+            }
+            mid = incoming.metadata.get("message_id")
+            if mid:
+                event_props["message_id"] = mid
+            journey_repo.track_event(
+                profile_id=customer.id,
+                tenant_id=tenant_uuid,
+                event_name="message_received",
+                event_type="track",
+                properties=event_props,
+            )
+        except Exception:
+            logger.warning("failed_to_track_message_received", exc_info=True)
+
+    @staticmethod
+    def _update_customer_traits(
+        db: Session, customer, incoming: IncomingMessage
+    ) -> None:
+        """Update customer profile traits from incoming message metadata."""
+        if not incoming.metadata:
+            return
+        current_traits = dict(customer.traits) if customer.traits else {}
+        needs_update = False
+        for k, v in incoming.metadata.items():
+            if k not in current_traits or current_traits[k] != v:
+                current_traits[k] = v
+                needs_update = True
+
+        if not needs_update:
+            return
+
+        from src.modules.crm.infrastructure.models.customer_model import (
+            CustomerProfileModel,
+        )
+
+        profile_model = (
+            db.execute(
+                select(CustomerProfileModel).where(
+                    CustomerProfileModel.id == customer.id
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if profile_model:
+            profile_model.traits = current_traits
+            if "first_name" in incoming.metadata:
+                profile_model.full_name = f"{incoming.metadata.get('first_name', '')} {incoming.metadata.get('last_name', '')}".strip()
+            db.commit()
+
+    @staticmethod
+    async def _handle_human_mode(
+        db: Session,
+        checkpoint,
+        user,
+        tenant_uuid: UUID | None,
+        tenant_id: str | None,
+        incoming: IncomingMessage,
+    ) -> bool:
+        """Handle human handler_mode: increment unread, emit WS, return True to skip AI."""
+        if not (checkpoint and checkpoint.handler_mode == "human"):
+            return False
+
+        logger.info(
+            "handler_mode_human_skip",
+            lead_id=str(user.id),
+            tenant_id=tenant_id,
+        )
+        checkpoint.unread_count = (checkpoint.unread_count or 0) + 1
+        checkpoint.last_human_message_at = datetime.now(timezone.utc)
+        db.commit()
+
+        try:
+            from src.modules.sales_agent.infrastructure.ws_manager import (
+                ws_manager,
+            )
+
+            await ws_manager.emit(
+                str(tenant_uuid),
+                {
+                    "type": "new_message",
+                    "lead_id": str(user.id),
+                    "role": "user",
+                    "content": incoming.text[:200],
+                    "handler_mode": "human",
+                },
+            )
+        except Exception:  # noqa: S110 — WS is best-effort
+            pass
+        return True
+
+    @staticmethod
+    def _determine_session_state(audit_repo: AuditRepository, user) -> dict:
+        """Determine session state from last message. Returns dict with state fields."""
+        last_msg = audit_repo.get_last_message(user.id)
+        result = {
+            "session_active": True,
+            "last_intent": None,
+            "session_gap_hours": None,
+            "is_returning_user": False,
+        }
+
+        if not (last_msg and last_msg.created_at):
+            return result
+
+        msg_time = last_msg.created_at
+        if msg_time.tzinfo is None:
+            msg_time = msg_time.replace(tzinfo=timezone.utc)
+        time_diff = datetime.now(timezone.utc) - msg_time
+        result["session_gap_hours"] = time_diff.total_seconds() / 3600
+        result["is_returning_user"] = True
+        if time_diff > timedelta(hours=SESSION_TIMEOUT_HOURS):
+            result["session_active"] = False
+
+        if last_msg.metadata_log and isinstance(last_msg.metadata_log, dict):
+            result["last_intent"] = last_msg.metadata_log.get("intent")
+
+        return result
+
+    @staticmethod
+    def _build_checkpoint_data(
+        checkpoint,
+        session_active: bool,
+        history: list,
+        base_profile: dict,
+        state_repo: StateRepository,
+        tenant_uuid: UUID | None,
+        user,
+    ) -> tuple[dict, str | None]:
+        """Build checkpoint_data dict and last_session_summary from checkpoint state."""
+        checkpoint_data: dict = {}
+        last_session_summary = None
+
+        if checkpoint and session_active:
+            checkpoint_data = {
+                "current_state": checkpoint.current_stage,
+                "lead_score": checkpoint.lead_score,
+                "lead_data": checkpoint.lead_data or {},
+                "buying_signals": checkpoint.buying_signals or [],
+                "objection_history": checkpoint.objection_history or [],
+                "qualification_answers": checkpoint.qualification_answers or {},
+                "turn_count": checkpoint.turn_count or 0,
+                "close_strategy": checkpoint.close_strategy,
+                "consecutive_questions": checkpoint.consecutive_questions or 0,
+                "follow_up_cadence": checkpoint.follow_up_cadence,
+            }
+            last_session_summary = (checkpoint.lead_data or {}).get("session_summary")
+        elif checkpoint and not session_active:
+            if checkpoint.lead_data is not None:
+                last_session_summary = (checkpoint.lead_data or {}).get(
+                    "session_summary"
+                )
+                if not last_session_summary and history:
+                    try:
+                        from src.modules.sales_agent.infrastructure.prompts.base import (
+                            prompt_loader,
+                        )
+
+                        summary_prompt = prompt_loader.render(
+                            "summary_generator",
+                            messages=history[-10:],
+                            user_profile=base_profile,
+                        )
+                        summary = LLMFactory.get_service().generate_response(
+                            messages=[],
+                            system_prompt=summary_prompt,
+                            model_type=ModelRole.FAST,
+                            temperature=0.0,
+                            max_output_tokens=100,
+                            metadata={"prompt_template": "summary_generator"},
+                        )
+                        last_session_summary = summary.strip()
+                    except Exception as e:
+                        logger.warning(
+                            "session_summary_generation_failed", error=str(e)
+                        )
+            state_repo.deactivate(tenant_uuid, user.id)
+
+        return checkpoint_data, last_session_summary
+
+    @staticmethod
+    def _build_user_profile(user) -> dict:
+        """Build base profile dict from user's profile_data + style fields."""
+        if user and user.profile_data:
+            base_profile = (
+                user.profile_data.model_dump()
+                if hasattr(user.profile_data, "model_dump")
+                else dict(user.profile_data)
+            )
+        else:
+            base_profile = {}
+
+        if getattr(user, "custom_system_instruction", None):
+            base_profile["custom_instruction"] = user.custom_system_instruction
+        if getattr(user, "style_profile", None):
+            base_profile["style_profile"] = user.style_profile
+
+        return base_profile
+
+    @staticmethod
+    async def _sanitize_text(text: str, direction: str = "input") -> str:
+        """Sanitize text through SafetyLayerService. Returns original on failure."""
+        try:
+            from src.modules.sales_agent.infrastructure.external.safety_service import (
+                SafetyLayerService,
+            )
+
+            safety = SafetyLayerService()
+            sanitized, was_modified = await safety.sanitize_content(text)
+            if was_modified:
+                logger.warning(f"{direction}_sanitized", original_preview=text[:50])
+            return sanitized
+        except Exception as e:
+            logger.warning(f"safety_{direction}_sanitization_failed", error=str(e))
+            return text
+
+    @staticmethod
+    def _save_checkpoint(
+        db: Session,
+        state_repo: StateRepository,
+        tenant_uuid: UUID,
+        user,
+        customer,
+        channel_type: str,
+        initial_state: dict,
+        result: dict,
+        last_session_summary: str | None,
+    ) -> None:
+        """Persist agent state checkpoint after graph execution."""
+        try:
+            result_lead_data = result.get("lead_data", {}) or {}
+            if last_session_summary:
+                result_lead_data["session_summary"] = last_session_summary
+
+            state_repo.save_checkpoint(
+                tenant_id=tenant_uuid,
+                lead_id=user.id,
+                session_id=initial_state.get("session_id", ""),
+                customer_profile_id=customer.id,
+                channel_type=channel_type,
+                current_stage=result.get("current_state", "rapport"),
+                lead_score=result.get("lead_score", 0),
+                lead_data=result_lead_data,
+                buying_signals=result.get("buying_signals", []),
+                objection_history=result.get("objection_history", []),
+                qualification_answers=result.get("qualification_answers", {}),
+                turn_count=result.get("turn_count", 0),
+                last_specialist=result.get("next_node"),
+                close_strategy=result.get("close_strategy"),
+                consecutive_questions=result.get("consecutive_questions", 0),
+                follow_up_cadence=result.get("follow_up_cadence"),
+            )
+            db.commit()
+        except Exception as e:
+            logger.error("checkpoint_save_failed", error=str(e))
+            with contextlib.suppress(Exception):
+                db.rollback()
+
+    @staticmethod
+    async def _emit_assistant_ws_event(
+        tenant_uuid: UUID, user, bot_text: str, result: dict
+    ) -> None:
+        """Emit WS event for Closer Studio real-time updates (best-effort)."""
+        try:
+            from src.modules.sales_agent.infrastructure.ws_manager import (
+                ws_manager,
+            )
+
+            await ws_manager.emit(
+                str(tenant_uuid),
+                {
+                    "type": "new_message",
+                    "lead_id": str(user.id),
+                    "role": "assistant",
+                    "content": bot_text[:200],
+                    "handler_mode": "ai",
+                    "lead_score": result.get("lead_score", 0),
+                    "funnel_stage": result.get("current_state", "rapport"),
+                },
+            )
+        except Exception:  # noqa: S110 — WS is best-effort
+            pass
+
+    # ── Additional helpers for process_chat_flow ─────────────────────────
+
+    async def _process_customer_lifecycle(
+        self,
+        db: Session,
+        identity_service: IdentityService,
+        incoming: IncomingMessage,
+        tenant_uuid: UUID | None,
+    ) -> tuple:
+        """Handle customer resolution, enrichment, events, and trait updates.
+
+        Returns (customer, was_created, capture_slug, channel_type, user_id_str).
+        """
+        customer, was_created, capture_slug, channel_type, _ = self._resolve_customer(
+            db, identity_service, incoming, tenant_uuid
+        )
+
+        if channel_type == "instagram" and tenant_uuid:
+            await self._enrich_instagram_profile(
+                db, tenant_uuid, incoming.user_id, customer, was_created
+            )
+
+        if tenant_uuid:
+            self._track_message_event(
+                db, tenant_uuid, customer, capture_slug, channel_type, incoming
+            )
+        if was_created and tenant_uuid:
+            EventBus.publish(
+                LeadCapturedEvent.create(
+                    tenant_id=tenant_uuid,
+                    profile_id=customer.id,
+                    channel_slug=capture_slug,
+                    extracted_field="external_id",
+                    source_channel_type=channel_type,
+                ),
+                session=db,
+            )
+
+        self._update_customer_traits(db, customer, incoming)
+        return customer, was_created, capture_slug, channel_type
+
+    @staticmethod
+    def _build_agent_identity(db: Session, tenant_uuid: UUID | None) -> str | None:
+        """Build agent identity string, rolling back on failure."""
+        if not tenant_uuid:
+            return None
+        try:
+            knowledge_builder = TenantKnowledgeBuilder(db)
+            return knowledge_builder.build_identity(tenant_uuid)
+        except Exception as e:
+            logger.warning(f"Could not build agent identity: {e}")
+            with contextlib.suppress(Exception):
+                db.rollback()
+            return None
+
+    def _build_initial_state(
+        self,
+        *,
+        db,
+        biz_repo,
+        audit_repo,
+        user,
+        customer,
+        tenant_id,
+        tenant_uuid,
+        tenant_config,
+        incoming,
+        session_state,
+        agent_identity,
+        checkpoint,
+        state_repo,
+    ) -> tuple[dict, str | None]:
+        """Prepare the initial agent state dict. Returns (initial_state, last_session_summary)."""
+        active_product, launch_stage = biz_repo.get_current_launch_product()
+        active_enrollment = None
+        active_product_dict = None
+        if active_product:
+            active_enrollment = biz_repo.get_enrollment(user.id, active_product.id)
+            active_product_dict = {
+                "id": str(active_product.id),
+                "name": getattr(active_product, "name", None),
+                "status": getattr(active_product, "status", None),
+                "price": getattr(active_product, "price", None),
+            }
+
+        raw_history = audit_repo.get_chat_history(user.id, limit=MESSAGE_HISTORY_LIMIT)
+        history = [
+            {"role": msg.role, "content": msg.content}
+            for msg in raw_history
+            if msg.content
+        ]
+
+        base_profile = self._build_user_profile(user)
+        checkpoint_data, last_session_summary = self._build_checkpoint_data(
+            checkpoint,
+            session_state["session_active"],
+            history,
+            base_profile,
+            state_repo,
+            tenant_uuid,
+            user,
+        )
+
+        initial_state = create_initial_state(
+            user_id=str(user.id),
+            tenant_id=str(tenant_id) if tenant_id else str(uuid.uuid4()),
+            tenant_config=tenant_config,
+            history=history,
+            user_profile={**base_profile, **incoming.metadata},
+            session_active=session_state["session_active"],
+            active_enrollment=active_enrollment,
+            active_product=active_product_dict,
+            last_intent=session_state["last_intent"],
+            agent_identity=agent_identity,
+            customer_profile_id=customer.id,
+            channel_type=incoming.channel_type,
+            session_gap_hours=session_state["session_gap_hours"],
+            last_session_summary=last_session_summary,
+            is_returning_user=session_state["is_returning_user"],
+            **checkpoint_data,
+        )
+
+        if launch_stage:
+            initial_state["launch_stage"] = launch_stage
+
+        # Clear follow-up cadence when user re-engages (Fase 4)
+        if checkpoint and checkpoint.follow_up_cadence:
+            checkpoint.follow_up_cadence = None
+            db.flush()
+            initial_state["follow_up_cadence"] = None
+
+        return initial_state, last_session_summary
+
+    async def _prepare_messages_and_intent(
+        self,
+        incoming: IncomingMessage,
+        initial_state: dict,
+        checkpoint,
+        db: Session,
+        tenant_uuid: UUID | None,
+    ) -> None:
+        """Sanitize input, inject messages, detect intent, and apply resume_objective."""
+        sanitized_text = await self._sanitize_text(incoming.text, "user_input")
+        initial_state["messages"] = [{"role": "user", "content": sanitized_text}]
+
+        if checkpoint and checkpoint.resume_objective:
+            initial_state["messages"].insert(
+                0,
+                {
+                    "role": "system",
+                    "content": f"[INSTRUCCION DEL OPERADOR] {checkpoint.resume_objective}",
+                },
+            )
+            checkpoint.resume_objective = None
+            db.flush()
+
+        try:
+            detected_intent, intent_score, updated_signals = (
+                SemanticRouter.detect_and_accumulate(
+                    incoming.text,
+                    existing_signals=initial_state.get("buying_signals", []),
+                    tenant_id=tenant_uuid,
+                )
+            )
+            if detected_intent:
+                initial_state["detected_intent"] = detected_intent
+                initial_state["buying_signals"] = updated_signals
+                logger.debug(
+                    f"Semantic intent: {detected_intent} (score={intent_score:.2f})"
+                )
+        except Exception as e:
+            logger.warning(f"Semantic router failed, continuing without intent: {e}")
+
+    async def _invoke_agent_with_typing(
+        self,
+        channel_adapter,
+        incoming: IncomingMessage,
+        initial_state: dict,
+    ) -> dict:
+        """Invoke the agent graph while sending periodic typing indicators."""
+
+        async def _keep_typing():
+            while True:
+                await asyncio.sleep(3)
+                with contextlib.suppress(Exception):
+                    await channel_adapter.set_typing_status(incoming.user_id)
+
+        typing_task = asyncio.create_task(_keep_typing())
+        try:
+            return await agent_app.ainvoke(initial_state)
+        finally:
+            typing_task.cancel()
+
+    async def _deliver_response(
+        self,
+        channel_adapter,
+        incoming: IncomingMessage,
+        result: dict,
+        audit_repo: AuditRepository,
+        user,
+        channel_type: str,
+        tenant_uuid: UUID | None,
+    ) -> None:
+        """Extract, sanitize, log, and send the agent response."""
+        last_msg = result["messages"][-1]
+        bot_text = (
+            last_msg.get("content", "") if isinstance(last_msg, dict) else str(last_msg)
+        )
+        bot_text = await self._sanitize_text(bot_text, "bot_output")
+
+        audit_repo.log_message(
+            user_id=user.id,
+            role="assistant",
+            content=bot_text,
+            channel=channel_type,
+            tenant_id=tenant_uuid,
+        )
+
+        await OutputManager.process_response(
+            incoming.user_id, bot_text, channel_adapter, channel_type=channel_type
+        )
+
+        if tenant_uuid:
+            await self._emit_assistant_ws_event(tenant_uuid, user, bot_text, result)
+
+    # ── Main flow ──────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _init_repos(db: Session) -> tuple:
+        """Initialize all repositories needed for chat flow.
+
+        Returns (lead_repo, identity_service, audit_repo, biz_repo).
+        """
+        lead_repo = LeadRepository(db)
+        customer_repo = CustomerRepository(db)
+        identity_service = IdentityService(customer_repo)
+        audit_repo = AuditRepository(db)
+        biz_repo = BusinessRepository(db)
+        return lead_repo, identity_service, audit_repo, biz_repo
+
+    @staticmethod
+    def _load_checkpoint(
+        db: Session, state_repo: StateRepository, tenant_uuid, user_id
+    ):
+        """Load active checkpoint, rolling back on failure."""
+        if not tenant_uuid:
+            return None
+        try:
+            return state_repo.get_active_checkpoint(tenant_uuid, user_id)
+        except Exception as e:
+            logger.warning("checkpoint_load_failed", error=str(e))
+            with contextlib.suppress(Exception):
+                db.rollback()
+            return None
+
+    @staticmethod
+    def _resolve_lead(lead_repo, customer_id, channel_type: str, user_id_str: str):
+        """Get or create active lead for customer."""
+        user = lead_repo.get_active_lead(customer_id)
+        if not user:
+            user = lead_repo.create_lead(
+                customer_id=customer_id,
+                channel=channel_type,
+                channel_user_id=user_id_str,
+            )
+        return user
+
+    async def process_chat_flow(
         self, channel_adapter, incoming: IncomingMessage, tenant_id: str = None
     ):
-        """
-        Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced).
-        """
-        # Set Tenant Context
-        tenant_config = {}
+        """Core Logic: Ejecuta el agente con un mensaje YA CONSTRUIDO (y debounced)."""
         if tenant_id:
             try:
                 set_tenant_id(UUID(tenant_id))
             except Exception:
                 logger.error(f"Invalid tenant_id format: {tenant_id}")
 
-        # 0. Reforzar indicador de "Escribiendo..." ahora que empezamos a procesar de verdad
         try:
             await channel_adapter.set_typing_status(incoming.user_id)
         except Exception as e:
             logger.warning(f"Could not set typing status in flow: {e}")
 
         db = SessionLocal()
-        lead_repo = LeadRepository(db)
-        customer_repo = CustomerRepository(db)
-        identity_service = IdentityService(customer_repo)
-        audit_repo = AuditRepository(db)
-        biz_repo = BusinessRepository(db)
+        lead_repo, identity_service, audit_repo, biz_repo = self._init_repos(db)
 
         try:
-            # 1. Fetch Tenant Config if tenant_id is present
-            tenant_uuid = None
-            if tenant_id:
-                try:
-                    tenant_uuid = UUID(tenant_id)
-                    tenant_obj = (
-                        db.execute(
-                            select(TenantModel).where(TenantModel.id == tenant_uuid)
-                        )
-                        .scalars()
-                        .first()
-                    )
-                    if tenant_obj:
-                        tenant_config = tenant_obj.config_json or {}
-                except Exception as e:
-                    logger.error(f"Error fetching tenant config: {e}")
-
-            # 2. Persistencia: Asegurar usuario y loguear mensaje entrante
-            channel_type = incoming.channel_type
-            user_id_str = incoming.user_id
-
-            # Map channel to IdentityType
-            try:
-                identity_type = IdentityType(channel_type)
-            except ValueError:
-                identity_type = IdentityType.EXTERNAL_ID
-
-            # Prepare Profile Data
-            profile_data = {
-                "first_name": incoming.metadata.get("first_name"),
-                "last_name": incoming.metadata.get("last_name"),
-                "traits": incoming.metadata,
-            }
-
-            # Get or Create Customer (with lead_source for capture tracking)
-            capture_slug = CHANNEL_TYPE_TO_CAPTURE_SLUG.get(channel_type, channel_type)
-            customer, was_created = identity_service.get_or_create_customer(
-                tenant_id=tenant_uuid,
-                identity_type=identity_type,
-                identity_value=user_id_str,
-                profile_data=profile_data,
-                lead_source=capture_slug,
-                lead_source_detail=channel_type,
+            tenant_uuid, tenant_config = self._fetch_tenant_config(db, tenant_id)
+            (
+                customer,
+                _,
+                _capture_slug,
+                channel_type,
+            ) = await self._process_customer_lifecycle(
+                db, identity_service, incoming, tenant_uuid
             )
 
-            # Enrich Instagram profiles with name/username/pic from User Profile API
-            if (
-                channel_type == "instagram"
-                and tenant_uuid
-                and (
-                    was_created or not (customer.traits or {}).get("instagram_username")
-                )
-            ):
-                try:
-                    from src.modules.connections.application.services.connection_port_impl import (
-                        ConnectionPortImpl,
-                    )
-                    from src.modules.crm.application.services.ig_profile_enricher import (
-                        InstagramProfileEnricher,
-                    )
-
-                    connection_port = ConnectionPortImpl(db)
-                    creds = await connection_port.get_credentials(tenant_uuid, "meta")
-                    enricher = InstagramProfileEnricher(db)
-                    await enricher.enrich(
-                        tenant_id=tenant_uuid,
-                        igsid=user_id_str,
-                        customer_profile_id=customer.id,
-                        access_token=creds.credentials.get("access_token", ""),
-                    )
-                except Exception:
-                    logger.warning("ig_profile_enrichment_failed", exc_info=True)
-
-            # Track message_received journey event for capture conversation metrics
-            if tenant_uuid:
-                try:
-                    from src.modules.crm.infrastructure.repositories.customer_repository import (
-                        JourneyEventRepository,
-                    )
-
-                    journey_repo = JourneyEventRepository(db)
-                    event_props = {
-                        "channel_slug": capture_slug,
-                        "channel_type": channel_type,
-                        "message_direction": "inbound",
-                    }
-                    # Propagate message_id for dedup (IG DM sync + webhook overlap)
-                    mid = incoming.metadata.get("message_id")
-                    if mid:
-                        event_props["message_id"] = mid
-                    journey_repo.track_event(
-                        profile_id=customer.id,
-                        tenant_id=tenant_uuid,
-                        event_name="message_received",
-                        event_type="track",
-                        properties=event_props,
-                    )
-                except Exception:
-                    logger.warning("failed_to_track_message_received", exc_info=True)
-
-            # Emit LeadCapturedEvent only for NEW profiles (not returning visitors)
-            if was_created and tenant_uuid:
-                EventBus.publish(
-                    LeadCapturedEvent.create(
-                        tenant_id=tenant_uuid,
-                        profile_id=customer.id,
-                        channel_slug=capture_slug,
-                        extracted_field="external_id",
-                        source_channel_type=channel_type,
-                    ),
-                    session=db,
-                )
-
-            # Update Customer Profile Traits if needed (Metadata Update)
-            if incoming.metadata:
-                needs_update = False
-                # Ensure traits is a dict
-                current_traits = dict(customer.traits) if customer.traits else {}
-
-                for k, v in incoming.metadata.items():
-                    # Update if new or different
-                    if k not in current_traits or current_traits[k] != v:
-                        current_traits[k] = v
-                        needs_update = True
-
-                if needs_update:
-                    from src.modules.crm.infrastructure.models.customer_model import (
-                        CustomerProfileModel,
-                    )
-
-                    profile_model = (
-                        db.execute(
-                            select(CustomerProfileModel).where(
-                                CustomerProfileModel.id == customer.id
-                            )
-                        )
-                        .scalars()
-                        .first()
-                    )
-                    if profile_model:
-                        profile_model.traits = current_traits
-                        if "first_name" in incoming.metadata:
-                            profile_model.full_name = f"{incoming.metadata.get('first_name', '')} {incoming.metadata.get('last_name', '')}".strip()
-                        db.commit()
-
-            # Get or Create Active Lead linked to Customer
-            user = lead_repo.get_active_lead(customer.id)
-            if not user:
-                user = lead_repo.create_lead(
-                    customer_id=customer.id,
-                    channel=channel_type,
-                    channel_user_id=user_id_str,
-                )
-
-            # Log User Message FIRST (before checkpoint) so audit trail
-            # is preserved even if downstream steps fail
+            user = self._resolve_lead(
+                lead_repo, customer.id, channel_type, incoming.user_id
+            )
             audit_repo.log_message(
                 user_id=user.id,
                 role="user",
@@ -444,369 +944,71 @@ class ChatOrchestrator:
                 tenant_id=tenant_uuid,
             )
 
-            # Load existing state checkpoint (if any)
             state_repo = StateRepository(db)
-            checkpoint = None
-            try:
-                checkpoint = (
-                    state_repo.get_active_checkpoint(tenant_uuid, user.id)
-                    if tenant_uuid
-                    else None
-                )
-            except Exception as e:
-                logger.warning("checkpoint_load_failed", error=str(e))
-                with contextlib.suppress(Exception):
-                    db.rollback()
+            checkpoint = self._load_checkpoint(db, state_repo, tenant_uuid, user.id)
 
-            # ── Closer Studio: handler_mode check ──
-            # If handler_mode is "human", the owner is in control.
-            # Store the message, increment unread, but do NOT run the AI graph.
-            if checkpoint and checkpoint.handler_mode == "human":
-                logger.info(
-                    "handler_mode_human_skip",
-                    lead_id=str(user.id),
-                    tenant_id=tenant_id,
-                )
-                checkpoint.unread_count = (checkpoint.unread_count or 0) + 1
-                checkpoint.last_human_message_at = datetime.now(timezone.utc)
-                db.commit()
-
-                # Emit WS event so Closer Studio UI gets the new message in real-time
-                try:
-                    from src.modules.sales_agent.infrastructure.ws_manager import (
-                        ws_manager,
-                    )
-
-                    await ws_manager.emit(
-                        str(tenant_uuid),
-                        {
-                            "type": "new_message",
-                            "lead_id": str(user.id),
-                            "role": "user",
-                            "content": incoming.text[:200],
-                            "handler_mode": "human",
-                        },
-                    )
-                except Exception:  # noqa: S110 — WS is best-effort
-                    pass
+            if await self._handle_human_mode(
+                db, checkpoint, user, tenant_uuid, tenant_id, incoming
+            ):
                 return
 
-            # Determine Session State
-            last_msg = audit_repo.get_last_message(user.id)
-            session_active = True
-            last_intent = None
-            session_gap_hours = None
-            is_returning_user = False
+            session_state = self._determine_session_state(audit_repo, user)
+            agent_identity = self._build_agent_identity(db, tenant_uuid)
 
-            if last_msg and last_msg.created_at:
-                msg_time = last_msg.created_at
-                if msg_time.tzinfo is None:
-                    msg_time = msg_time.replace(tzinfo=timezone.utc)
-                time_diff = datetime.now(timezone.utc) - msg_time
-                session_gap_hours = time_diff.total_seconds() / 3600
-                is_returning_user = True
-                if time_diff > timedelta(hours=SESSION_TIMEOUT_HOURS):
-                    session_active = False
-
-                if last_msg.metadata_log and isinstance(last_msg.metadata_log, dict):
-                    last_intent = last_msg.metadata_log.get("intent")
-
-            # 2.5 Build Agent Identity (AKS)
-            agent_identity = None
-            if tenant_uuid:
-                try:
-                    knowledge_builder = TenantKnowledgeBuilder(db)
-                    agent_identity = knowledge_builder.build_identity(tenant_uuid)
-                except Exception as e:
-                    logger.warning(f"Could not build agent identity: {e}")
-                    # Rollback to clear any failed transaction state on shared db session
-                    with contextlib.suppress(Exception):
-                        db.rollback()
-
-            # 3. Prepare Initial State
-            active_product, launch_stage = biz_repo.get_current_launch_product()
-            active_enrollment = None
-
-            # Convert ORM product to dict for serialization
-            active_product_dict = None
-            if active_product:
-                active_enrollment = biz_repo.get_enrollment(user.id, active_product.id)
-                active_product_dict = {
-                    "id": str(active_product.id),
-                    "name": getattr(active_product, "name", None),
-                    "status": getattr(active_product, "status", None),
-                    "price": getattr(active_product, "price", None),
-                }
-
-            # Convert ORM history to dicts
-            raw_history = audit_repo.get_chat_history(
-                user.id, limit=MESSAGE_HISTORY_LIMIT
-            )
-            history = [
-                {"role": msg.role, "content": msg.content}
-                for msg in raw_history
-                if msg.content
-            ]
-
-            # Prepare Profile + Style Data (ensure dict, not Pydantic model)
-            if user and user.profile_data:
-                base_profile = (
-                    user.profile_data.model_dump()
-                    if hasattr(user.profile_data, "model_dump")
-                    else dict(user.profile_data)
-                )
-            else:
-                base_profile = {}
-
-            # Inject Onboarding Style Data
-            if getattr(user, "custom_system_instruction", None):
-                base_profile["custom_instruction"] = user.custom_system_instruction
-            if getattr(user, "style_profile", None):
-                base_profile["style_profile"] = user.style_profile
-
-            # Build checkpoint data for state restoration
-            checkpoint_data = {}
-            last_session_summary = None
-            if checkpoint and session_active:
-                checkpoint_data = {
-                    "current_state": checkpoint.current_stage,
-                    "lead_score": checkpoint.lead_score,
-                    "lead_data": checkpoint.lead_data or {},
-                    "buying_signals": checkpoint.buying_signals or [],
-                    "objection_history": checkpoint.objection_history or [],
-                    "qualification_answers": checkpoint.qualification_answers or {},
-                    "turn_count": checkpoint.turn_count or 0,
-                    "close_strategy": checkpoint.close_strategy,
-                    "consecutive_questions": checkpoint.consecutive_questions or 0,
-                    "follow_up_cadence": checkpoint.follow_up_cadence,
-                }
-                last_session_summary = (checkpoint.lead_data or {}).get(
-                    "session_summary"
-                )
-            elif checkpoint and not session_active:
-                if checkpoint.lead_data is not None:
-                    last_session_summary = (checkpoint.lead_data or {}).get(
-                        "session_summary"
-                    )
-                    if not last_session_summary and history:
-                        try:
-                            from src.modules.sales_agent.infrastructure.prompts.base import (
-                                prompt_loader,
-                            )
-
-                            summary_prompt = prompt_loader.render(
-                                "summary_generator",
-                                messages=history[-10:],
-                                user_profile=base_profile,
-                            )
-                            summary = LLMFactory.get_service().generate_response(
-                                messages=[],
-                                system_prompt=summary_prompt,
-                                model_type=ModelRole.FAST,
-                                temperature=0.0,
-                                max_output_tokens=100,
-                                metadata={"prompt_template": "summary_generator"},
-                            )
-                            last_session_summary = summary.strip()
-                        except Exception as e:
-                            logger.warning(
-                                "session_summary_generation_failed", error=str(e)
-                            )
-                state_repo.deactivate(tenant_uuid, user.id)
-
-            initial_state = create_initial_state(
-                user_id=str(user.id),
-                tenant_id=str(tenant_id) if tenant_id else str(uuid.uuid4()),
+            initial_state, last_session_summary = self._build_initial_state(
+                db=db,
+                biz_repo=biz_repo,
+                audit_repo=audit_repo,
+                user=user,
+                customer=customer,
+                tenant_id=tenant_id,
+                tenant_uuid=tenant_uuid,
                 tenant_config=tenant_config,
-                history=history,
-                user_profile={**base_profile, **incoming.metadata},
-                session_active=session_active,
-                active_enrollment=active_enrollment,
-                active_product=active_product_dict,
-                last_intent=last_intent,
+                incoming=incoming,
+                session_state=session_state,
                 agent_identity=agent_identity,
-                customer_profile_id=customer.id,
-                channel_type=channel_type,
-                session_gap_hours=session_gap_hours,
-                last_session_summary=last_session_summary,
-                is_returning_user=is_returning_user,
-                **checkpoint_data,
+                checkpoint=checkpoint,
+                state_repo=state_repo,
             )
 
-            if launch_stage:
-                initial_state["launch_stage"] = launch_stage
+            await self._prepare_messages_and_intent(
+                incoming, initial_state, checkpoint, db, tenant_uuid
+            )
 
-            # Clear follow-up cadence when user re-engages (Fase 4)
-            if checkpoint and checkpoint.follow_up_cadence:
-                checkpoint.follow_up_cadence = None
-                db.flush()
-                initial_state["follow_up_cadence"] = None
+            result = await self._invoke_agent_with_typing(
+                channel_adapter, incoming, initial_state
+            )
 
-            # Sanitize user input
-            sanitized_text = incoming.text
-            try:
-                from src.modules.sales_agent.infrastructure.external.safety_service import (
-                    SafetyLayerService,
-                )
-
-                safety = SafetyLayerService()
-                sanitized_text, was_modified = await safety.sanitize_content(
-                    incoming.text
-                )
-                if was_modified:
-                    logger.warning(
-                        "user_input_sanitized", original_preview=incoming.text[:50]
-                    )
-            except Exception as e:
-                logger.warning("safety_sanitization_failed", error=str(e))
-                sanitized_text = incoming.text
-
-            # Add the current user message to state["messages"] so LLM nodes can read it
-            initial_state["messages"] = [{"role": "user", "content": sanitized_text}]
-
-            # ── Closer Studio: inject resume_objective as operator instruction ──
-            if checkpoint and checkpoint.resume_objective:
-                initial_state["messages"].insert(
-                    0,
-                    {
-                        "role": "system",
-                        "content": f"[INSTRUCCION DEL OPERADOR] {checkpoint.resume_objective}",
-                    },
-                )
-                # One-shot: clear after injection
-                checkpoint.resume_objective = None
-                db.flush()
-
-            # 3.5 Semantic Intent Detection + Signal Accumulation
-            try:
-                detected_intent, intent_score, updated_signals = (
-                    SemanticRouter.detect_and_accumulate(
-                        incoming.text,
-                        existing_signals=initial_state.get("buying_signals", []),
-                        tenant_id=tenant_uuid,
-                    )
-                )
-                if detected_intent:
-                    initial_state["detected_intent"] = detected_intent
-                    initial_state["buying_signals"] = updated_signals
-                    logger.debug(
-                        f"Semantic intent: {detected_intent} (score={intent_score:.2f})"
-                    )
-            except Exception as e:
-                logger.warning(
-                    f"Semantic router failed, continuing without intent: {e}"
-                )
-
-            # Invoke Agent (with typing polling every 3s)
-            async def _keep_typing():
-                while True:
-                    await asyncio.sleep(3)
-                    with contextlib.suppress(Exception):
-                        await channel_adapter.set_typing_status(incoming.user_id)
-
-            typing_task = asyncio.create_task(_keep_typing())
-            try:
-                result = await agent_app.ainvoke(initial_state)
-            finally:
-                typing_task.cancel()
-
-            # Save state checkpoint after graph execution
             if tenant_uuid and user:
-                try:
-                    result_lead_data = result.get("lead_data", {}) or {}
-                    if last_session_summary:
-                        result_lead_data["session_summary"] = last_session_summary
-
-                    state_repo.save_checkpoint(
-                        tenant_id=tenant_uuid,
-                        lead_id=user.id,
-                        session_id=initial_state.get("session_id", ""),
-                        customer_profile_id=customer.id,
-                        channel_type=channel_type,
-                        current_stage=result.get("current_state", "rapport"),
-                        lead_score=result.get("lead_score", 0),
-                        lead_data=result_lead_data,
-                        buying_signals=result.get("buying_signals", []),
-                        objection_history=result.get("objection_history", []),
-                        qualification_answers=result.get("qualification_answers", {}),
-                        turn_count=result.get("turn_count", 0),
-                        last_specialist=result.get("next_node"),
-                        close_strategy=result.get("close_strategy"),
-                        consecutive_questions=result.get("consecutive_questions", 0),
-                        follow_up_cadence=result.get("follow_up_cadence"),
-                    )
-                    db.commit()
-                except Exception as e:
-                    logger.error("checkpoint_save_failed", error=str(e))
-                    with contextlib.suppress(Exception):
-                        db.rollback()
-
-            # 4. Extract Response
-            last_msg = result["messages"][-1]
-            bot_text = (
-                last_msg.get("content", "")
-                if isinstance(last_msg, dict)
-                else str(last_msg)
-            )
-
-            # Sanitize bot output
-            try:
-                from src.modules.sales_agent.infrastructure.external.safety_service import (
-                    SafetyLayerService,
+                self._save_checkpoint(
+                    db,
+                    state_repo,
+                    tenant_uuid,
+                    user,
+                    customer,
+                    channel_type,
+                    initial_state,
+                    result,
+                    last_session_summary,
                 )
 
-                safety = SafetyLayerService()
-                bot_text, was_modified = await safety.sanitize_content(bot_text)
-                if was_modified:
-                    logger.warning(
-                        "bot_output_sanitized", original_preview=bot_text[:50]
-                    )
-            except Exception as e:
-                logger.warning("safety_output_sanitization_failed", error=str(e))
-
-            # Log Assistant Message
-            audit_repo.log_message(
-                user_id=user.id,
-                role="assistant",
-                content=bot_text,
-                channel=channel_type,
-                tenant_id=tenant_uuid,
+            await self._deliver_response(
+                channel_adapter,
+                incoming,
+                result,
+                audit_repo,
+                user,
+                channel_type,
+                tenant_uuid,
             )
-
-            # 5. Send using OutputManager (Chunks + Human Typing)
-            await OutputManager.process_response(
-                incoming.user_id, bot_text, channel_adapter, channel_type=channel_type
-            )
-
-            # 6. Closer Studio: emit WS event for real-time updates
-            if tenant_uuid:
-                try:
-                    from src.modules.sales_agent.infrastructure.ws_manager import (
-                        ws_manager,
-                    )
-
-                    await ws_manager.emit(
-                        str(tenant_uuid),
-                        {
-                            "type": "new_message",
-                            "lead_id": str(user.id),
-                            "role": "assistant",
-                            "content": bot_text[:200],
-                            "handler_mode": "ai",
-                            "lead_score": result.get("lead_score", 0),
-                            "funnel_stage": result.get("current_state", "rapport"),
-                        },
-                    )
-                except Exception:  # noqa: S110 — WS is best-effort
-                    pass
 
         except Exception as e:
             logger.error(f"Error processing message: {e}", exc_info=True)
             try:
-                if "incoming" in locals() and incoming and incoming.user_id:
+                if incoming and incoming.user_id:
                     error_msg = OutgoingMessage(
                         user_id=incoming.user_id,
-                        text="⚠️ Lo siento, ocurrió un error técnico interno.",
+                        text="Lo siento, ocurrio un error tecnico interno.",
                     )
                     await channel_adapter.send_message(error_msg)
             except Exception as e_fallback:

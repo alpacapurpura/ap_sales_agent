@@ -52,6 +52,156 @@ _ASSET_CHANNEL_TYPES = [
 ]
 
 
+def _upsert_asset(
+    repo: ChannelConnectionRepository,
+    tenant_id,
+    channel_type: ChannelType,
+    asset_id: str,
+    config: dict,
+    credentials: dict,
+) -> None:
+    """Upsert a single Meta business asset (page, IG, ad account, pixel, WABA)."""
+    conn = repo.get_by_asset_id(tenant_id, channel_type, asset_id)
+    if conn:
+        if credentials:
+            conn.credentials = credentials
+        conn.config = config
+        repo.db.commit()
+    else:
+        repo.create_asset(
+            tenant_id=tenant_id,
+            channel_type=channel_type,
+            credentials=credentials,
+            config=config,
+        )
+
+
+def _sync_pages(repo, tenant_id, raw: dict, master: ChannelConnectionModel) -> None:
+    for page in raw.get("pages", []):
+        page_id = page["page_id"]
+        page_token = page.pop("page_access_token", None)
+        config = {
+            "asset_id": page_id,
+            "page_name": page["page_name"],
+            "category": page.get("category"),
+            "picture_url": page.get("picture_url"),
+            "fan_count": page.get("fan_count"),
+            "instagram_account_id": page.get("instagram_account_id"),
+            "instagram_username": page.get("instagram_username"),
+            "parent_connection_id": str(master.id),
+        }
+        credentials = {"access_token": page_token} if page_token else master.credentials
+        _upsert_asset(
+            repo, tenant_id, ChannelType.FACEBOOK_PAGE, page_id, config, credentials
+        )
+
+
+def _sync_instagram_accounts(
+    repo, tenant_id, raw: dict, master: ChannelConnectionModel
+) -> None:
+    for ig in raw.get("instagram_accounts", []):
+        ig_id = ig["ig_account_id"]
+        page_token = ig.pop("page_access_token", None)
+        config = {
+            "asset_id": ig_id,
+            "ig_username": ig["ig_username"],
+            "profile_picture_url": ig.get("profile_picture_url"),
+            "follower_count": ig.get("follower_count"),
+            "linked_page_id": ig.get("linked_page_id"),
+            "linked_page_name": ig.get("linked_page_name"),
+            "parent_connection_id": str(master.id),
+        }
+        credentials = {"access_token": page_token} if page_token else master.credentials
+        _upsert_asset(
+            repo, tenant_id, ChannelType.INSTAGRAM_ACCOUNT, ig_id, config, credentials
+        )
+
+
+def _sync_ad_accounts(
+    repo, tenant_id, raw: dict, master: ChannelConnectionModel
+) -> None:
+    for ad in raw.get("ads_accounts", []):
+        ad_id = ad["ad_account_id"]
+        config = {
+            "asset_id": ad_id,
+            "ad_account_name": ad["ad_account_name"],
+            "currency": ad.get("currency"),
+            "account_status": ad.get("account_status"),
+            "parent_connection_id": str(master.id),
+        }
+        _upsert_asset(repo, tenant_id, ChannelType.META_ADS_ACCOUNT, ad_id, config, {})
+
+
+def _sync_pixels(repo, tenant_id, raw: dict, master: ChannelConnectionModel) -> None:
+    for px in raw.get("pixels", []):
+        px_id = px["pixel_id"]
+        config = {
+            "asset_id": px_id,
+            "pixel_name": px["pixel_name"],
+            "linked_ad_account_id": px.get("linked_ad_account_id"),
+            "parent_connection_id": str(master.id),
+        }
+        _upsert_asset(repo, tenant_id, ChannelType.META_PIXEL, px_id, config, {})
+
+
+def _sync_whatsapp_accounts(
+    repo, tenant_id, raw: dict, master: ChannelConnectionModel
+) -> None:
+    for wa in raw.get("whatsapp_accounts", []):
+        waba_id = wa["waba_id"]
+        config = {
+            "asset_id": waba_id,
+            "waba_name": wa["waba_name"],
+            "currency": wa.get("currency"),
+            "timezone_id": wa.get("timezone_id"),
+            "business_id": wa.get("business_id"),
+            "business_name": wa.get("business_name"),
+            "phone_numbers": wa.get("phone_numbers", []),
+            "parent_connection_id": str(master.id),
+        }
+        _upsert_asset(
+            repo,
+            tenant_id,
+            ChannelType.WHATSAPP_BUSINESS_ACCOUNT,
+            waba_id,
+            config,
+            master.credentials,
+        )
+
+
+def _cleanup_stale_assets(
+    repo: ChannelConnectionRepository, tenant_id, raw: dict
+) -> None:
+    """Remove assets from DB that Meta no longer returns (e.g. permissions revoked)."""
+    synced_ids = {
+        ChannelType.FACEBOOK_PAGE: {p["page_id"] for p in raw.get("pages", [])},
+        ChannelType.INSTAGRAM_ACCOUNT: {
+            ig["ig_account_id"] for ig in raw.get("instagram_accounts", [])
+        },
+        ChannelType.META_ADS_ACCOUNT: {
+            ad["ad_account_id"] for ad in raw.get("ads_accounts", [])
+        },
+        ChannelType.META_PIXEL: {px["pixel_id"] for px in raw.get("pixels", [])},
+        ChannelType.WHATSAPP_BUSINESS_ACCOUNT: {
+            wa["waba_id"] for wa in raw.get("whatsapp_accounts", [])
+        },
+    }
+
+    existing = repo.get_all_by_tenant_and_types(tenant_id, list(synced_ids.keys()))
+    for conn in existing:
+        cfg = conn.config or {}
+        asset_id = cfg.get("asset_id", "")
+        ct = ChannelType(conn.channel_type)
+        if asset_id and asset_id not in synced_ids.get(ct, set()):
+            logger.info(
+                "meta_sync_removing_stale_asset",
+                channel_type=ct.value,
+                asset_id=asset_id,
+                tenant_id=str(tenant_id),
+            )
+            repo.delete(conn)
+
+
 async def _sync_assets_for_tenant(
     adapter: MetaAdapter,
     repo: ChannelConnectionRepository,
@@ -84,160 +234,12 @@ async def _sync_assets_for_tenant(
 
     raw = await adapter.get_business_assets()
 
-    # Pages
-    for page in raw.get("pages", []):
-        page_id = page["page_id"]
-        page_token = page.pop("page_access_token", None)
-        config = {
-            "asset_id": page_id,
-            "page_name": page["page_name"],
-            "category": page.get("category"),
-            "picture_url": page.get("picture_url"),
-            "fan_count": page.get("fan_count"),
-            "instagram_account_id": page.get("instagram_account_id"),
-            "instagram_username": page.get("instagram_username"),
-            "parent_connection_id": str(master.id),
-        }
-        credentials = {"access_token": page_token} if page_token else master.credentials
-        conn = repo.get_by_asset_id(tenant_id, ChannelType.FACEBOOK_PAGE, page_id)
-        if conn:
-            conn.credentials = credentials
-            conn.config = config
-            repo.db.commit()
-        else:
-            repo.create_asset(
-                tenant_id=tenant_id,
-                channel_type=ChannelType.FACEBOOK_PAGE,
-                credentials=credentials,
-                config=config,
-            )
-
-    # Instagram accounts
-    for ig in raw.get("instagram_accounts", []):
-        ig_id = ig["ig_account_id"]
-        page_token = ig.pop("page_access_token", None)
-        config = {
-            "asset_id": ig_id,
-            "ig_username": ig["ig_username"],
-            "profile_picture_url": ig.get("profile_picture_url"),
-            "follower_count": ig.get("follower_count"),
-            "linked_page_id": ig.get("linked_page_id"),
-            "linked_page_name": ig.get("linked_page_name"),
-            "parent_connection_id": str(master.id),
-        }
-        credentials = {"access_token": page_token} if page_token else master.credentials
-        conn = repo.get_by_asset_id(tenant_id, ChannelType.INSTAGRAM_ACCOUNT, ig_id)
-        if conn:
-            conn.credentials = credentials
-            conn.config = config
-            repo.db.commit()
-        else:
-            repo.create_asset(
-                tenant_id=tenant_id,
-                channel_type=ChannelType.INSTAGRAM_ACCOUNT,
-                credentials=credentials,
-                config=config,
-            )
-
-    # Ad accounts
-    for ad in raw.get("ads_accounts", []):
-        ad_id = ad["ad_account_id"]
-        config = {
-            "asset_id": ad_id,
-            "ad_account_name": ad["ad_account_name"],
-            "currency": ad.get("currency"),
-            "account_status": ad.get("account_status"),
-            "parent_connection_id": str(master.id),
-        }
-        conn = repo.get_by_asset_id(tenant_id, ChannelType.META_ADS_ACCOUNT, ad_id)
-        if conn:
-            conn.config = config
-            repo.db.commit()
-        else:
-            repo.create_asset(
-                tenant_id=tenant_id,
-                channel_type=ChannelType.META_ADS_ACCOUNT,
-                credentials={},
-                config=config,
-            )
-
-    # Pixels
-    for px in raw.get("pixels", []):
-        px_id = px["pixel_id"]
-        config = {
-            "asset_id": px_id,
-            "pixel_name": px["pixel_name"],
-            "linked_ad_account_id": px.get("linked_ad_account_id"),
-            "parent_connection_id": str(master.id),
-        }
-        conn = repo.get_by_asset_id(tenant_id, ChannelType.META_PIXEL, px_id)
-        if conn:
-            conn.config = config
-            repo.db.commit()
-        else:
-            repo.create_asset(
-                tenant_id=tenant_id,
-                channel_type=ChannelType.META_PIXEL,
-                credentials={},
-                config=config,
-            )
-
-    # WhatsApp Business Accounts
-    for wa in raw.get("whatsapp_accounts", []):
-        waba_id = wa["waba_id"]
-        config = {
-            "asset_id": waba_id,
-            "waba_name": wa["waba_name"],
-            "currency": wa.get("currency"),
-            "timezone_id": wa.get("timezone_id"),
-            "business_id": wa.get("business_id"),
-            "business_name": wa.get("business_name"),
-            "phone_numbers": wa.get("phone_numbers", []),
-            "parent_connection_id": str(master.id),
-        }
-        conn = repo.get_by_asset_id(
-            tenant_id, ChannelType.WHATSAPP_BUSINESS_ACCOUNT, waba_id
-        )
-        if conn:
-            conn.config = config
-            repo.db.commit()
-        else:
-            repo.create_asset(
-                tenant_id=tenant_id,
-                channel_type=ChannelType.WHATSAPP_BUSINESS_ACCOUNT,
-                credentials=master.credentials,
-                config=config,
-            )
-
-    # ── Cleanup stale assets ──────────────────────────────────────────────
-    # Remove assets from DB that Meta no longer returns (e.g. permissions revoked)
-    synced_ids = {
-        ChannelType.FACEBOOK_PAGE: {p["page_id"] for p in raw.get("pages", [])},
-        ChannelType.INSTAGRAM_ACCOUNT: {
-            ig["ig_account_id"] for ig in raw.get("instagram_accounts", [])
-        },
-        ChannelType.META_ADS_ACCOUNT: {
-            ad["ad_account_id"] for ad in raw.get("ads_accounts", [])
-        },
-        ChannelType.META_PIXEL: {px["pixel_id"] for px in raw.get("pixels", [])},
-        ChannelType.WHATSAPP_BUSINESS_ACCOUNT: {
-            wa["waba_id"] for wa in raw.get("whatsapp_accounts", [])
-        },
-    }
-
-    existing = repo.get_all_by_tenant_and_types(tenant_id, list(synced_ids.keys()))
-    for conn in existing:
-        cfg = conn.config or {}
-        asset_id = cfg.get("asset_id", "")
-        ct = ChannelType(conn.channel_type)
-        if asset_id and asset_id not in synced_ids.get(ct, set()):
-            logger.info(
-                "meta_sync_removing_stale_asset",
-                channel_type=ct.value,
-                asset_id=asset_id,
-                tenant_id=str(tenant_id),
-            )
-            repo.delete(conn)
+    _sync_pages(repo, tenant_id, raw, master)
+    _sync_instagram_accounts(repo, tenant_id, raw, master)
+    _sync_ad_accounts(repo, tenant_id, raw, master)
+    _sync_pixels(repo, tenant_id, raw, master)
+    _sync_whatsapp_accounts(repo, tenant_id, raw, master)
+    _cleanup_stale_assets(repo, tenant_id, raw)
 
     # Warn if pages exist but none have IG linked
     if raw.get("pages") and not raw.get("instagram_accounts"):
@@ -249,20 +251,78 @@ async def _sync_assets_for_tenant(
     return raw, warnings
 
 
+def _resolve_primary_asset(
+    assets: list[ChannelConnectionModel],
+    preferred_id: str | None,
+) -> ChannelConnectionModel | None:
+    """Find the primary asset by preferred ID, falling back to first active."""
+    if preferred_id:
+        match = next(
+            (a for a in assets if (a.config or {}).get("asset_id") == preferred_id),
+            None,
+        )
+        if match:
+            return match
+    return assets[0] if assets else None
+
+
+def _flatten_page(
+    page: ChannelConnectionModel | None, master: ChannelConnectionModel
+) -> tuple[dict, dict]:
+    """Extract credentials/config updates from the resolved primary page."""
+    if not page:
+        return {}, {}
+    page_cfg = page.config or {}
+    page_creds = page.credentials or {}
+    creds = {
+        "page_id": page_cfg.get("asset_id"),
+        "page_access_token": page_creds.get(
+            "access_token", master.credentials.get("access_token")
+        ),
+    }
+    config = {
+        "tracked_page_name": page_cfg.get("page_name"),
+        "tracked_page_id": page_cfg.get("asset_id"),
+    }
+    return creds, config
+
+
+def _flatten_ig(ig: ChannelConnectionModel | None) -> tuple[dict, dict]:
+    """Extract credentials/config updates from the resolved primary IG account."""
+    if not ig:
+        return {}, {}
+    ig_cfg = ig.config or {}
+    creds = {"instagram_account_id": ig_cfg.get("asset_id")}
+    config = {
+        "tracked_ig_username": ig_cfg.get("ig_username"),
+        "tracked_ig_id": ig_cfg.get("asset_id"),
+    }
+    return creds, config
+
+
+def _flatten_ad_account(ad: ChannelConnectionModel | None) -> tuple[dict, dict]:
+    """Extract credentials/config updates from the resolved primary ad account."""
+    if not ad:
+        return {}, {}
+    ad_cfg = ad.config or {}
+    creds: dict = {"ad_account_id": ad_cfg.get("asset_id")}
+    config: dict = {
+        "tracked_ad_account_name": ad_cfg.get("ad_account_name"),
+        "tracked_ad_account_id": ad_cfg.get("asset_id"),
+    }
+    if ad_cfg.get("currency"):
+        creds["currency"] = ad_cfg["currency"]
+    return creds, config
+
+
 def _flatten_asset_ids_to_master(
     repo: ChannelConnectionRepository,
     tenant_id,
     master: ChannelConnectionModel,
 ) -> dict:
-    """Resolve primary assets and flatten their IDs into the master META connection.
-
-    Reads primary_page_id/primary_ig_id/primary_ad_account_id from master.config,
-    falls back to first active asset of each type.
-    Returns dict with resolved display info.
-    """
+    """Resolve primary assets and flatten their IDs into the master META connection."""
     master_config = master.config or {}
 
-    # Get all child assets
     children = repo.get_all_by_tenant_and_types(
         tenant_id,
         [
@@ -273,97 +333,43 @@ def _flatten_asset_ids_to_master(
     )
 
     # Group by type
-    pages = [
-        c
-        for c in children
-        if c.channel_type == ChannelType.FACEBOOK_PAGE.value and c.is_active
-    ]
-    ig_accounts = [
-        c
-        for c in children
-        if c.channel_type == ChannelType.INSTAGRAM_ACCOUNT.value and c.is_active
-    ]
-    ad_accounts = [
-        c
-        for c in children
-        if c.channel_type == ChannelType.META_ADS_ACCOUNT.value and c.is_active
-    ]
+    by_type: dict[str, list] = {}
+    for c in children:
+        if c.is_active:
+            by_type.setdefault(c.channel_type, []).append(c)
 
-    creds_update = {}
-    config_update = {}
+    page = _resolve_primary_asset(
+        by_type.get(ChannelType.FACEBOOK_PAGE.value, []),
+        master_config.get("primary_page_id"),
+    )
+    ig = _resolve_primary_asset(
+        by_type.get(ChannelType.INSTAGRAM_ACCOUNT.value, []),
+        master_config.get("primary_ig_id"),
+    )
+    ad = _resolve_primary_asset(
+        by_type.get(ChannelType.META_ADS_ACCOUNT.value, []),
+        master_config.get("primary_ad_account_id"),
+    )
 
-    # Resolve primary page
-    primary_page_id = master_config.get("primary_page_id")
-    page = None
-    if primary_page_id:
-        page = next(
-            (p for p in pages if (p.config or {}).get("asset_id") == primary_page_id),
-            None,
-        )
-    if not page and pages:
-        page = pages[0]
+    creds_update: dict = {}
+    config_update: dict = {}
 
-    if page:
-        page_cfg = page.config or {}
-        page_creds = page.credentials or {}
-        creds_update["page_id"] = page_cfg.get("asset_id")
-        creds_update["page_access_token"] = page_creds.get(
-            "access_token", master.credentials.get("access_token")
-        )
-        config_update["tracked_page_name"] = page_cfg.get("page_name")
-        config_update["tracked_page_id"] = page_cfg.get("asset_id")
+    page_c, page_cfg = _flatten_page(page, master)
+    ig_c, ig_cfg = _flatten_ig(ig)
+    ad_c, ad_cfg = _flatten_ad_account(ad)
 
-    # Resolve primary IG account
-    primary_ig_id = master_config.get("primary_ig_id")
-    ig = None
-    if primary_ig_id:
-        ig = next(
-            (
-                i
-                for i in ig_accounts
-                if (i.config or {}).get("asset_id") == primary_ig_id
-            ),
-            None,
-        )
-    if not ig and ig_accounts:
-        ig = ig_accounts[0]
+    creds_update.update(page_c)
+    creds_update.update(ig_c)
+    creds_update.update(ad_c)
+    config_update.update(page_cfg)
+    config_update.update(ig_cfg)
+    config_update.update(ad_cfg)
 
-    if ig:
-        ig_cfg = ig.config or {}
-        creds_update["instagram_account_id"] = ig_cfg.get("asset_id")
-        config_update["tracked_ig_username"] = ig_cfg.get("ig_username")
-        config_update["tracked_ig_id"] = ig_cfg.get("asset_id")
-
-    # Resolve primary ad account
-    primary_ad_id = master_config.get("primary_ad_account_id")
-    ad = None
-    if primary_ad_id:
-        ad = next(
-            (
-                a
-                for a in ad_accounts
-                if (a.config or {}).get("asset_id") == primary_ad_id
-            ),
-            None,
-        )
-    if not ad and ad_accounts:
-        ad = ad_accounts[0]
-
-    if ad:
-        ad_cfg = ad.config or {}
-        creds_update["ad_account_id"] = ad_cfg.get("asset_id")
-        config_update["tracked_ad_account_name"] = ad_cfg.get("ad_account_name")
-        config_update["tracked_ad_account_id"] = ad_cfg.get("asset_id")
-        if ad_cfg.get("currency"):
-            creds_update["currency"] = ad_cfg["currency"]
-
-    # Merge into master credentials
     if creds_update:
         existing_creds = dict(master.credentials) if master.credentials else {}
         existing_creds.update(creds_update)
         repo.update_credentials(master, existing_creds)
 
-    # Merge into master config
     if config_update:
         repo.update_config(master, config_update)
 

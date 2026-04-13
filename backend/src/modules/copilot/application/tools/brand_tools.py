@@ -50,6 +50,19 @@ def _format_section(section_name: str, data: dict) -> str:
     return "\n".join(lines)
 
 
+def _format_brand_section_detail(section: str, section_data: object) -> str:
+    """Format a single brand section for display."""
+    if section_data is None:
+        return f"La sección '{section}' no tiene datos configurados."
+    if isinstance(section_data, dict):
+        return _format_section(section.title(), section_data)
+    if isinstance(section_data, list):
+        if not section_data:
+            return f"La sección '{section}' está vacía."
+        return f"### {section.title()}\n{json.dumps(section_data, ensure_ascii=False, indent=2, default=str)}"
+    return f"### {section.title()}\n{section_data}"
+
+
 @tool
 def get_brand_data(section: str | None = None) -> str:
     """Read the current brand configuration for this tenant.
@@ -93,17 +106,7 @@ def get_brand_data(section: str | None = None) -> str:
 
         if section:
             section_key = section_map.get(section, section)
-            section_data = data.get(section_key)
-            if section_data is None:
-                return f"La sección '{section}' no tiene datos configurados."
-
-            if isinstance(section_data, dict):
-                return _format_section(section.title(), section_data)
-            if isinstance(section_data, list):
-                if not section_data:
-                    return f"La sección '{section}' está vacía."
-                return f"### {section.title()}\n{json.dumps(section_data, ensure_ascii=False, indent=2, default=str)}"
-            return f"### {section.title()}\n{section_data}"
+            return _format_brand_section_detail(section, data.get(section_key))
 
         # Return summary of all sections
         lines = ["## Datos de Marca\n"]

@@ -464,64 +464,7 @@ class ShopifyProvider(BaseMetricsProvider):
         )
 
         for order in orders:
-            # Skip cancelled/voided orders
-            fin_status = order.get("financial_status", "")
-            if fin_status == "voided":
-                continue
-
-            d = self._parse_date(
-                order.get("processed_at") or order.get("created_at", "")
-            )
-            if not d:
-                continue
-
-            total_price = float(order.get("total_price", 0))
-            current_total_price = float(order.get("current_total_price", 0) or 0)
-
-            # Fully refunded orders: don't count revenue but track refund
-            if fin_status == "refunded":
-                by_date[d]["refund_amount"] += total_price
-                by_date[d]["refund_count"] += 1
-                by_date[d]["currency"] = order.get("currency", "USD")
-                continue
-
-            by_date[d]["revenue"] += total_price
-            by_date[d]["order_count"] += 1
-            by_date[d]["currency"] = order.get("currency", "USD")
-
-            # Discounts
-            discounts = float(order.get("total_discounts", 0))
-            by_date[d]["total_discounts"] += discounts
-
-            # Tax
-            by_date[d]["total_tax"] += float(order.get("total_tax", 0))
-
-            # Shipping revenue
-            for sl in order.get("shipping_lines", []):
-                by_date[d]["shipping_revenue"] += float(sl.get("price", 0))
-
-            # Discount usage
-            if order.get("discount_codes"):
-                by_date[d]["discount_usage_count"] += 1
-
-            # Partial refunds (order still active but partially refunded)
-            if fin_status == "partially_refunded":
-                refund_diff = total_price - current_total_price
-                if refund_diff > 0:
-                    by_date[d]["refund_amount"] += refund_diff
-                    by_date[d]["refund_count"] += 1
-
-            # Repeat customers
-            customer = order.get("customer")
-            if customer:
-                cust_id = customer.get("id")
-                orders_count = customer.get("orders_count", 1)
-                if cust_id and orders_count and int(orders_count) > 1:
-                    by_date[d]["repeat_customer_ids"].add(cust_id)
-
-            # Units sold
-            for item in order.get("line_items", []):
-                by_date[d]["units_sold"] += int(item.get("quantity", 1))
+            self._accumulate_order(order, by_date)
 
         metrics: list[ExtractedMetric] = []
         for metric_date, data in by_date.items():
@@ -572,6 +515,63 @@ class ShopifyProvider(BaseMetricsProvider):
                 )
 
         return metrics
+
+    def _accumulate_order(self, order: dict, by_date: dict[date, dict]) -> None:
+        """Accumulate a single Shopify order into the by-date buckets."""
+        fin_status = order.get("financial_status", "")
+        if fin_status == "voided":
+            return
+
+        d = self._parse_date(order.get("processed_at") or order.get("created_at", ""))
+        if not d:
+            return
+
+        total_price = float(order.get("total_price", 0))
+        current_total_price = float(order.get("current_total_price", 0) or 0)
+
+        # Fully refunded orders: don't count revenue but track refund
+        if fin_status == "refunded":
+            by_date[d]["refund_amount"] += total_price
+            by_date[d]["refund_count"] += 1
+            by_date[d]["currency"] = order.get("currency", "USD")
+            return
+
+        by_date[d]["revenue"] += total_price
+        by_date[d]["order_count"] += 1
+        by_date[d]["currency"] = order.get("currency", "USD")
+
+        # Discounts
+        by_date[d]["total_discounts"] += float(order.get("total_discounts", 0))
+
+        # Tax
+        by_date[d]["total_tax"] += float(order.get("total_tax", 0))
+
+        # Shipping revenue
+        for sl in order.get("shipping_lines", []):
+            by_date[d]["shipping_revenue"] += float(sl.get("price", 0))
+
+        # Discount usage
+        if order.get("discount_codes"):
+            by_date[d]["discount_usage_count"] += 1
+
+        # Partial refunds (order still active but partially refunded)
+        if fin_status == "partially_refunded":
+            refund_diff = total_price - current_total_price
+            if refund_diff > 0:
+                by_date[d]["refund_amount"] += refund_diff
+                by_date[d]["refund_count"] += 1
+
+        # Repeat customers
+        customer = order.get("customer")
+        if customer:
+            cust_id = customer.get("id")
+            orders_count = customer.get("orders_count", 1)
+            if cust_id and orders_count and int(orders_count) > 1:
+                by_date[d]["repeat_customer_ids"].add(cust_id)
+
+        # Units sold
+        for item in order.get("line_items", []):
+            by_date[d]["units_sold"] += int(item.get("quantity", 1))
 
     @staticmethod
     def _parse_date(iso_str: str) -> date | None:

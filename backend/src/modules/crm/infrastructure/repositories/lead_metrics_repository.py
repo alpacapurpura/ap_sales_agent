@@ -11,8 +11,32 @@ from src.modules.crm.infrastructure.models.customer_model import (
 )
 from src.modules.crm.infrastructure.models.lead_model import LeadModel
 
+# Maps channel name to the LeadModel attribute that stores channel-specific IDs
+_CHANNEL_ATTR_MAP: dict[str, str] = {
+    "telegram": "telegram_id",
+    "whatsapp": "whatsapp_id",
+    "instagram": "instagram_id",
+    "tiktok": "tiktok_id",
+    "api": "api_id",
+    "manychat": "api_id",
+    "web": "api_id",
+}
+
 
 class LeadRepository(BaseRepository):
+    @staticmethod
+    def _set_channel_id(
+        lead_orm: LeadModel,
+        channel: str | None,
+        channel_user_id: str | None,
+    ) -> None:
+        """Set the channel-specific ID attribute on a LeadModel instance."""
+        if not channel or not channel_user_id:
+            return
+        attr = _CHANNEL_ATTR_MAP.get(channel)
+        if attr:
+            setattr(lead_orm, attr, channel_user_id)
+
     def count_total(self, tenant_id: uuid.UUID) -> int:
         """
         Cuenta el total de leads activos.
@@ -71,16 +95,10 @@ class LeadRepository(BaseRepository):
         """
         Find a lead by their channel-specific ID (Telegram, WhatsApp, etc).
         """
-        if channel == "telegram":
-            channel_filter = LeadModel.telegram_id == user_id
-        elif channel == "whatsapp":
-            channel_filter = LeadModel.whatsapp_id == user_id
-        elif channel == "instagram":
-            channel_filter = LeadModel.instagram_id == user_id
-        elif channel == "tiktok":
-            channel_filter = LeadModel.tiktok_id == user_id
-        else:
+        attr = _CHANNEL_ATTR_MAP.get(channel)
+        if not attr:
             return None
+        channel_filter = getattr(LeadModel, attr) == user_id
 
         stmt = (
             select(LeadModel)
@@ -156,16 +174,7 @@ class LeadRepository(BaseRepository):
             lead_orm = LeadModel(customer_id=customer_id)
 
             if channel and channel_user_id:
-                if channel == "telegram":
-                    lead_orm.telegram_id = channel_user_id
-                elif channel == "whatsapp":
-                    lead_orm.whatsapp_id = channel_user_id
-                elif channel == "instagram":
-                    lead_orm.instagram_id = channel_user_id
-                elif channel == "tiktok":
-                    lead_orm.tiktok_id = channel_user_id
-                elif channel in ["api", "manychat", "web"]:
-                    lead_orm.api_id = channel_user_id
+                self._set_channel_id(lead_orm, channel, channel_user_id)
 
             self._set_tenant(lead_orm)
             self.db.add(lead_orm)
@@ -184,16 +193,7 @@ class LeadRepository(BaseRepository):
 
         lead_orm = LeadModel(customer_id=customer.id)
 
-        if channel == "telegram":
-            lead_orm.telegram_id = channel_user_id
-        elif channel == "whatsapp":
-            lead_orm.whatsapp_id = channel_user_id
-        elif channel == "instagram":
-            lead_orm.instagram_id = channel_user_id
-        elif channel == "tiktok":
-            lead_orm.tiktok_id = channel_user_id
-        elif channel in ["api", "manychat", "web"]:
-            lead_orm.api_id = channel_user_id
+        self._set_channel_id(lead_orm, channel, channel_user_id)
 
         self._set_tenant(lead_orm)
         # Also set tenant for customer if needed, usually linked

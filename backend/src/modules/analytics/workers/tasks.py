@@ -502,8 +502,6 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
 
     This catches events missed by webhooks (webhook downtime, delivery failures).
     """
-    from sqlalchemy import and_, select
-
     logger.info("Starting Mailerlite ETL backup sync")
     db_factory = ctx.get("db_factory")
     if not db_factory:
@@ -522,128 +520,8 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
 
     db = db_factory()
     try:
-        # 1. Get all tenants with active Mailerlite connections
-        from src.modules.connections.infrastructure.models.channel_connection_model import (
-            ChannelConnectionModel,
-        )
-
-        result = db.execute(
-            select(ChannelConnectionModel).where(
-                and_(
-                    ChannelConnectionModel.channel_type == "mailerlite",
-                    ChannelConnectionModel.is_active == True,  # noqa: E712
-                )
-            )
-        )
-        connections = result.scalars().all()
-
-        synced_count = 0
-        for conn in connections:
-            tenant_id = conn.tenant_id
-            try:
-                # 2. Initialize Mailerlite connector with tenant credentials
-                from src.modules.connections.infrastructure.marketing_connectors.mailerlite import (
-                    MailerLiteConnector,
-                )
-
-                api_key = conn.credentials.get("api_key") if conn.credentials else None
-                if not api_key:
-                    logger.warning(
-                        "No Mailerlite API key for tenant %s, skipping",
-                        tenant_id,
-                    )
-                    continue
-
-                connector = MailerLiteConnector(api_key=api_key)
-
-                # 3. Fetch recent campaign activity (last 7 hours to overlap with 6h interval)
-                # NOTE: get_recent_campaign_activity() may not be implemented yet.
-                if not hasattr(connector, "get_recent_campaign_activity"):
-                    logger.warning(
-                        "MailerLiteConnector.get_recent_campaign_activity() not implemented yet. "
-                        "Skipping tenant %s. Add method to connector when Mailerlite API "
-                        "integration is complete.",
-                        tenant_id,
-                    )
-                    continue
-
-                activities = await connector.get_recent_campaign_activity(hours=7)
-
-                # 4. For each activity, check if journey_event already exists
-                from src.modules.crm.application.services.lifecycle_service import (
-                    LifecycleService,
-                )
-                from src.modules.crm.infrastructure.models.customer_model import (
-                    CustomerProfileModel,
-                    JourneyEventModel,
-                )
-
-                lifecycle_svc = LifecycleService(db)
-
-                for activity in activities:
-                    email = activity.get("email")
-                    campaign_id = activity.get("campaign_id")
-                    event_type = activity.get("event_type")  # "open" or "click"
-
-                    # Look up profile by email
-                    profile_result = db.execute(
-                        select(CustomerProfileModel).where(
-                            and_(
-                                CustomerProfileModel.tenant_id == tenant_id,
-                                CustomerProfileModel.primary_email == email,
-                                CustomerProfileModel.is_inactive == False,  # noqa: E712
-                            )
-                        )
-                    )
-                    profile = profile_result.scalar_one_or_none()
-                    if not profile:
-                        continue
-
-                    event_name = (
-                        "email_opened" if event_type == "open" else "email_clicked"
-                    )
-
-                    # Dedup: check if this exact event already exists
-
-                    existing = db.execute(
-                        select(JourneyEventModel.id).where(
-                            and_(
-                                JourneyEventModel.profile_id == profile.id,
-                                JourneyEventModel.tenant_id == tenant_id,
-                                JourneyEventModel.event_name == event_name,
-                                JourneyEventModel.properties["campaign_id"].astext
-                                == str(campaign_id),
-                            )
-                        )
-                    )
-                    if existing.scalar_one_or_none():
-                        continue  # Already recorded
-
-                    # 5. Create missing journey_event
-                    journey_event = JourneyEventModel(
-                        profile_id=profile.id,
-                        tenant_id=tenant_id,
-                        event_name=event_name,
-                        event_type="track",
-                        properties={
-                            "campaign_id": str(campaign_id),
-                            "campaign_name": activity.get("campaign_name", ""),
-                            "source": "mailerlite_etl_sync",
-                        },
-                    )
-                    db.add(journey_event)
-
-                    # 6. Recalculate score for affected profile
-                    lifecycle_svc.recalculate_score(profile.id, tenant_id)
-                    synced_count += 1
-
-                db.commit()
-            except Exception as e:
-                logger.error(
-                    "Mailerlite ETL sync failed for tenant %s: %s", tenant_id, e
-                )
-                sentry_sdk.capture_exception(e)
-                db.rollback()
+        connections = _get_active_mailerlite_connections(db)
+        synced_count = await _sync_mailerlite_tenants(db, connections)
 
         logger.info(
             "Mailerlite ETL backup sync complete: %d events synced", synced_count
@@ -668,6 +546,129 @@ async def run_mailerlite_etl_sync(ctx: dict) -> dict:
 
     finally:
         db.close()
+
+
+def _get_active_mailerlite_connections(db):
+    """Fetch all active Mailerlite connections."""
+    from sqlalchemy import and_, select
+
+    from src.modules.connections.infrastructure.models.channel_connection_model import (
+        ChannelConnectionModel,
+    )
+
+    result = db.execute(
+        select(ChannelConnectionModel).where(
+            and_(
+                ChannelConnectionModel.channel_type == "mailerlite",
+                ChannelConnectionModel.is_active == True,  # noqa: E712
+            )
+        )
+    )
+    return result.scalars().all()
+
+
+async def _sync_mailerlite_tenants(db, connections) -> int:
+    """Sync campaign activities for each tenant with a Mailerlite connection."""
+    synced_count = 0
+    for conn in connections:
+        tenant_id = conn.tenant_id
+        try:
+            synced_count += await _sync_single_tenant(db, conn, tenant_id)
+            db.commit()
+        except Exception as e:
+            logger.error("Mailerlite ETL sync failed for tenant %s: %s", tenant_id, e)
+            sentry_sdk.capture_exception(e)
+            db.rollback()
+    return synced_count
+
+
+async def _sync_single_tenant(db, conn, tenant_id) -> int:
+    """Sync a single tenant's Mailerlite activities. Returns events synced."""
+    from sqlalchemy import and_, select
+
+    from src.modules.connections.infrastructure.marketing_connectors.mailerlite import (
+        MailerLiteConnector,
+    )
+
+    api_key = conn.credentials.get("api_key") if conn.credentials else None
+    if not api_key:
+        logger.warning("No Mailerlite API key for tenant %s, skipping", tenant_id)
+        return 0
+
+    connector = MailerLiteConnector(api_key=api_key)
+
+    if not hasattr(connector, "get_recent_campaign_activity"):
+        logger.warning(
+            "MailerLiteConnector.get_recent_campaign_activity() not implemented yet. "
+            "Skipping tenant %s. Add method to connector when Mailerlite API "
+            "integration is complete.",
+            tenant_id,
+        )
+        return 0
+
+    activities = await connector.get_recent_campaign_activity(hours=7)
+
+    from src.modules.crm.application.services.lifecycle_service import (
+        LifecycleService,
+    )
+    from src.modules.crm.infrastructure.models.customer_model import (
+        CustomerProfileModel,
+        JourneyEventModel,
+    )
+
+    lifecycle_svc = LifecycleService(db)
+    synced = 0
+
+    for activity in activities:
+        email = activity.get("email")
+        campaign_id = activity.get("campaign_id")
+        event_type = activity.get("event_type")
+
+        profile_result = db.execute(
+            select(CustomerProfileModel).where(
+                and_(
+                    CustomerProfileModel.tenant_id == tenant_id,
+                    CustomerProfileModel.primary_email == email,
+                    CustomerProfileModel.is_inactive == False,  # noqa: E712
+                )
+            )
+        )
+        profile = profile_result.scalar_one_or_none()
+        if not profile:
+            continue
+
+        event_name = "email_opened" if event_type == "open" else "email_clicked"
+
+        existing = db.execute(
+            select(JourneyEventModel.id).where(
+                and_(
+                    JourneyEventModel.profile_id == profile.id,
+                    JourneyEventModel.tenant_id == tenant_id,
+                    JourneyEventModel.event_name == event_name,
+                    JourneyEventModel.properties["campaign_id"].astext
+                    == str(campaign_id),
+                )
+            )
+        )
+        if existing.scalar_one_or_none():
+            continue
+
+        journey_event = JourneyEventModel(
+            profile_id=profile.id,
+            tenant_id=tenant_id,
+            event_name=event_name,
+            event_type="track",
+            properties={
+                "campaign_id": str(campaign_id),
+                "campaign_name": activity.get("campaign_name", ""),
+                "source": "mailerlite_etl_sync",
+            },
+        )
+        db.add(journey_event)
+        lifecycle_svc.recalculate_score(profile.id, tenant_id)
+        synced += 1
+
+    return synced
 
 
 async def run_manychat_subscriber_sync(

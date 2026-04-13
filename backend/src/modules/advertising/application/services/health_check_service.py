@@ -13,7 +13,7 @@ targets, and actionable recommendations.
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from src.modules.advertising.application.dto.association_dto import AssociationDTO
 from src.modules.advertising.application.dto.health_check_dto import (
@@ -372,6 +372,20 @@ class HealthCheckService:
         return status, summary
 
     # ── helpers ────────────────────────────────────────────────────────────
+    _OBJECTIVE_OUTCOME_TEXT: ClassVar[dict[str, str]] = {
+        "OUTCOME_TRAFFIC": "Esperá: visitas a tu landing, CTR alto, CPC bajo. NO esperés: ventas atribuidas ni mensajes.",
+        "OUTCOME_ENGAGEMENT": "Esperá: likes, comentarios, shares. NO esperés: clicks a tu web ni conversiones.",
+        "OUTCOME_AWARENESS": "Esperá: alcance amplio y frecuencia controlada. NO esperés: clicks ni conversiones.",
+        "REACH": "Esperá: alcance amplio y frecuencia controlada. NO esperés: clicks ni conversiones.",
+        "BRAND_AWARENESS": "Esperá: alcance amplio y frecuencia controlada. NO esperés: clicks ni conversiones.",
+    }
+
+    _EXPECTED_METRIC_TEXT: ClassVar[dict[OfferExpectedMetric, str]] = {
+        OfferExpectedMetric.PURCHASE: "Esperá: ventas atribuidas y ROAS medible (requiere píxel configurado).",
+        OfferExpectedMetric.LEAD: "Esperá: leads capturados (formulario o suscripción).",
+        OfferExpectedMetric.MESSAGE: "Esperá: conversaciones iniciadas por DM o Messenger.",
+    }
+
     def _expected_outcome_text(
         self, objective: str | None, expected: OfferExpectedMetric | None
     ) -> str:
@@ -379,23 +393,10 @@ class HealthCheckService:
             return "Sin objetivo definido."
         label = objective_label_es(objective)
         if expected is None:
-            upper = objective.upper()
-            if upper == "OUTCOME_TRAFFIC":
-                return "Esperá: visitas a tu landing, CTR alto, CPC bajo. NO esperés: ventas atribuidas ni mensajes."
-            if upper == "OUTCOME_ENGAGEMENT":
-                return "Esperá: likes, comentarios, shares. NO esperés: clicks a tu web ni conversiones."
-            if upper in {"OUTCOME_AWARENESS", "REACH", "BRAND_AWARENESS"}:
-                return "Esperá: alcance amplio y frecuencia controlada. NO esperés: clicks ni conversiones."
-            return f"Objetivo: {label}."
-        if expected == OfferExpectedMetric.PURCHASE:
-            return (
-                "Esperá: ventas atribuidas y ROAS medible (requiere píxel configurado)."
+            return self._OBJECTIVE_OUTCOME_TEXT.get(
+                objective.upper(), f"Objetivo: {label}."
             )
-        if expected == OfferExpectedMetric.LEAD:
-            return "Esperá: leads capturados (formulario o suscripción)."
-        if expected == OfferExpectedMetric.MESSAGE:
-            return "Esperá: conversaciones iniciadas por DM o Messenger."
-        return f"Objetivo: {label}."
+        return self._EXPECTED_METRIC_TEXT.get(expected, f"Objetivo: {label}.")
 
     def _has_recent_purchases(self, tenant_id: UUID, campaign_external_id: str) -> bool:
         today = utc_today()

@@ -327,33 +327,24 @@ class MetricResolver:
         grouped: dict[str, list[tuple[date, float]]],
     ) -> float | None:
         """Aggregate a single metric according to its AggregationType."""
-        canonical = defn.name
-        entries = grouped.get(canonical, [])
-
-        if defn.aggregation == AggregationType.ADDITIVE:
-            if not entries:
-                return None
-            return sum(v for _, v in entries)
-
-        if defn.aggregation in (
-            AggregationType.NON_AGGREGABLE,
-            AggregationType.SNAPSHOT,
-        ):
-            if not entries:
-                return None
-            latest = max(entries, key=lambda x: x[0])
-            return latest[1]
-
         if defn.aggregation in (
             AggregationType.DERIVED,
             AggregationType.WEIGHTED_AVERAGE,
         ):
             return self._recalculate_from_components(defn, grouped)
 
-        # Unknown aggregation type — try sum as fallback
-        if entries:
-            return sum(v for _, v in entries)
-        return None
+        entries = grouped.get(defn.name, [])
+        if not entries:
+            return None
+
+        if defn.aggregation in (
+            AggregationType.NON_AGGREGABLE,
+            AggregationType.SNAPSHOT,
+        ):
+            return max(entries, key=lambda x: x[0])[1]
+
+        # ADDITIVE or unknown — sum as fallback
+        return sum(v for _, v in entries)
 
     def _recalculate_from_components(
         self,

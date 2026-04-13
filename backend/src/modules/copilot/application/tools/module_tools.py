@@ -7,6 +7,8 @@ via model_dump(). No copilot code changes needed.
 """
 
 import json
+from collections.abc import Callable
+from uuid import UUID
 
 import structlog
 from langchain_core.tools import tool
@@ -144,6 +146,59 @@ def _format_landing_list(pages: list) -> str:
     return "\n".join(lines)
 
 
+_LIST_FORMATTERS: dict[str, Callable[[list], str]] = {
+    "offer": _format_offer_list,
+    "connections": _format_connections_list,
+    "landing": _format_landing_list,
+}
+
+
+def _format_model_result(data: object, descriptor: object, section: str | None) -> str:
+    """Format a Pydantic model or dict result from a module."""
+    if hasattr(data, "model_dump"):
+        raw = data.model_dump(mode="json")  # type: ignore[union-attr]
+    else:
+        raw = data if isinstance(data, dict) else {}
+
+    if section:
+        section_data = raw.get(section)
+        if section_data is None:
+            available_sections = ", ".join(raw.keys())
+            return f"La sección '{section}' no tiene datos. Secciones disponibles: {available_sections}"
+        return _format_section_data(section.replace("_", " ").title(), section_data)
+
+    if descriptor.model_class:  # type: ignore[union-attr]
+        sections = get_model_sections(descriptor.model_class)  # type: ignore[union-attr]
+        return _format_module_summary(descriptor.label, raw, sections)  # type: ignore[union-attr]
+    return _format_section_data(descriptor.label, raw)  # type: ignore[union-attr]
+
+
+def _read_and_format_module(
+    descriptor: object, module: str, tenant_id: UUID, section: str | None
+) -> str:
+    """Read module data and format the result."""
+    db = SessionLocal()
+    try:
+        repo = descriptor.repo_factory(db)  # type: ignore[union-attr]
+        data = descriptor.read_fn(repo, tenant_id)  # type: ignore[union-attr]
+
+        if data is None:
+            return f"No hay datos configurados para {descriptor.label}."  # type: ignore[union-attr]
+        if isinstance(data, list):
+            formatter = _LIST_FORMATTERS.get(module)
+            return (
+                formatter(data)
+                if formatter
+                else f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"
+            )  # type: ignore[union-attr]
+        return _format_model_result(data, descriptor, section)
+    except Exception as e:
+        logger.error("module_tools_error", module=module, error=str(e))
+        return f"Error leyendo {descriptor.label}: {e!s}"  # type: ignore[union-attr]
+    finally:
+        db.close()
+
+
 @tool
 def get_module_data(module: str, section: str | None = None) -> str:
     """Lee datos de cualquier módulo del sistema.
@@ -174,48 +229,7 @@ def get_module_data(module: str, section: str | None = None) -> str:
     if not tenant_id:
         return "Error: No se pudo determinar el tenant. Asegúrate de estar autenticado."
 
-    db = SessionLocal()
-    try:
-        repo = descriptor.repo_factory(db)
-        data = descriptor.read_fn(repo, tenant_id)
-
-        if data is None:
-            return f"No hay datos configurados para {descriptor.label}."
-
-        # Handle list results (offers, connections, landing pages)
-        if isinstance(data, list):
-            if module == "offer":
-                return _format_offer_list(data)
-            if module == "connections":
-                return _format_connections_list(data)
-            if module == "landing":
-                return _format_landing_list(data)
-            return f"## {descriptor.label}\n{len(data)} elemento(s) encontrado(s)"
-
-        # Handle Pydantic model with introspection
-        if hasattr(data, "model_dump"):
-            raw = data.model_dump(mode="json")
-        else:
-            raw = data if isinstance(data, dict) else {}
-
-        if section:
-            section_data = raw.get(section)
-            if section_data is None:
-                available_sections = ", ".join(raw.keys())
-                return f"La sección '{section}' no tiene datos. Secciones disponibles: {available_sections}"
-            return _format_section_data(section.replace("_", " ").title(), section_data)
-
-        # Full module summary with introspection
-        if descriptor.model_class:
-            sections = get_model_sections(descriptor.model_class)
-            return _format_module_summary(descriptor.label, raw, sections)
-        return _format_section_data(descriptor.label, raw)
-
-    except Exception as e:
-        logger.error("module_tools_error", module=module, error=str(e))
-        return f"Error leyendo {descriptor.label}: {e!s}"
-    finally:
-        db.close()
+    return _read_and_format_module(descriptor, module, tenant_id, section)
 
 
 MODULE_TOOLS = [get_module_data]

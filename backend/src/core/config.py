@@ -69,15 +69,15 @@ class Settings(BaseSettings):
         return _map[role]
 
     @property
-    def OPENAI_MODEL(self) -> str:
+    def openai_model(self) -> str:
         return self.AI_MODEL_REASONING
 
     @property
-    def OPENAI_FAST_MODEL(self) -> str:
+    def openai_fast_model(self) -> str:
         return self.AI_MODEL_FAST
 
     @property
-    def OPENAI_EMBEDDING_MODEL(self) -> str:
+    def openai_embedding_model(self) -> str:
         return self.AI_MODEL_EMBEDDING
 
     # Gemini
@@ -154,7 +154,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = []
 
     @property
-    def DATABASE_URL(self) -> str:
+    def database_url(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     class Config:

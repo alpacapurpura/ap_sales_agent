@@ -877,6 +877,54 @@ class MailerLiteProvider(BaseMetricsProvider):
         campaign_count = len(campaigns)
 
         # Build per-campaign metadata for the Campanas tab
+        campaigns_metadata = self._build_campaigns_metadata(
+            campaigns,
+            totals,
+            rate_sums,
+        )
+
+        metrics: list[ExtractedMetric] = []
+
+        # --- Per-campaign rows (for the Campañas tab) ---
+        self._emit_per_campaign_rows(
+            campaigns,
+            campaigns_metadata,
+            slug,
+            metric_date,
+            metrics,
+        )
+
+        # --- Daily aggregate rows (for trend charts) ---
+        self._emit_daily_aggregates(
+            totals,
+            rate_sums,
+            campaign_count,
+            slug,
+            metric_date,
+            metrics,
+        )
+
+        # --- Derived rates ---
+        self._emit_derived_rates(totals, slug, metric_date, metrics)
+
+        # Attach campaign metadata to all metrics for the Campanas tab
+        if metrics and campaigns_metadata:
+            for metric in metrics:
+                metric.extra["campaigns"] = campaigns_metadata
+
+        # Attach updated config info for traceability (new group auto-mapping)
+        if metrics and known_groups_set:
+            metrics[0].extra["updated_known_groups"] = sorted(known_groups_set)
+
+        return metrics
+
+    def _build_campaigns_metadata(
+        self,
+        campaigns: list[dict],
+        totals: dict[str, float],
+        rate_sums: dict[str, float],
+    ) -> list[dict[str, str | None]]:
+        """Build per-campaign metadata and accumulate totals/rate_sums."""
         campaigns_metadata: list[dict[str, str | None]] = []
         for campaign in campaigns:
             stats = campaign.get("stats", campaign.get("campaign_stats", {}))
@@ -888,7 +936,6 @@ class MailerLiteProvider(BaseMetricsProvider):
                 else:
                     totals[name] = totals.get(name, 0.0) + value
 
-            # Extract campaign metadata
             campaign_name = campaign.get("name", "")
             emails_list = campaign.get("emails") or [{}]
             first_email = emails_list[0] if emails_list else {}
@@ -905,10 +952,17 @@ class MailerLiteProvider(BaseMetricsProvider):
                     "preview_url": preview_url,
                 }
             )
+        return campaigns_metadata
 
-        metrics: list[ExtractedMetric] = []
-
-        # --- Per-campaign rows (for the Campañas tab) ---
+    def _emit_per_campaign_rows(
+        self,
+        campaigns: list[dict],
+        campaigns_metadata: list[dict[str, str | None]],
+        slug: str,
+        metric_date: date,
+        metrics: list[ExtractedMetric],
+    ) -> None:
+        """Emit per-campaign metric rows for the Campañas tab."""
         for campaign, meta in zip(campaigns, campaigns_metadata, strict=True):
             cid = str(campaign.get("id", ""))
             if not cid:
@@ -935,9 +989,16 @@ class MailerLiteProvider(BaseMetricsProvider):
                     )
                 )
 
-        # --- Daily aggregate rows (for trend charts) ---
-
-        # Emit summed count metrics
+    @staticmethod
+    def _emit_daily_aggregates(
+        totals: dict[str, float],
+        rate_sums: dict[str, float],
+        campaign_count: int,
+        slug: str,
+        metric_date: date,
+        metrics: list[ExtractedMetric],
+    ) -> None:
+        """Emit summed count metrics and averaged rate metrics."""
         for name, value in totals.items():
             metrics.append(
                 ExtractedMetric(
@@ -950,7 +1011,6 @@ class MailerLiteProvider(BaseMetricsProvider):
                 )
             )
 
-        # Emit averaged rate metrics
         if campaign_count > 0:
             for name, total in rate_sums.items():
                 metrics.append(
@@ -964,38 +1024,45 @@ class MailerLiteProvider(BaseMetricsProvider):
                     )
                 )
 
-        # Derive bounce_rate from sent, hard_bounces, soft_bounces
+    @staticmethod
+    def _emit_derived_rates(
+        totals: dict[str, float],
+        slug: str,
+        metric_date: date,
+        metrics: list[ExtractedMetric],
+    ) -> None:
+        """Derive bounce_rate, unsubscribe_rate, and reactivation_rate."""
         sent = totals.get("emails_sent", 0.0)
+        if sent <= 0:
+            return
+
         hard = totals.get("hard_bounces", 0.0)
         soft = totals.get("soft_bounces", 0.0)
-        if sent > 0:
-            metrics.append(
-                ExtractedMetric(
-                    provider="mailerlite",
-                    channel_slug=slug,
-                    metric_name="bounce_rate",
-                    value=(hard + soft) / sent * 100,
-                    unit="percentage",
-                    date=metric_date,
-                )
+        metrics.append(
+            ExtractedMetric(
+                provider="mailerlite",
+                channel_slug=slug,
+                metric_name="bounce_rate",
+                value=(hard + soft) / sent * 100,
+                unit="percentage",
+                date=metric_date,
             )
+        )
 
-        # Derive unsubscribe_rate from unsubscribes and sent
         unsubs = totals.get("unsubscribes", 0.0)
-        if sent > 0:
-            metrics.append(
-                ExtractedMetric(
-                    provider="mailerlite",
-                    channel_slug=slug,
-                    metric_name="unsubscribe_rate",
-                    value=unsubs / sent * 100,
-                    unit="percentage",
-                    date=metric_date,
-                )
+        metrics.append(
+            ExtractedMetric(
+                provider="mailerlite",
+                channel_slug=slug,
+                metric_name="unsubscribe_rate",
+                value=unsubs / sent * 100,
+                unit="percentage",
+                date=metric_date,
             )
+        )
 
         # For retention stage: derive reactivation_rate
-        if slug == STAGE_TO_SLUG.get("retention") and sent > 0:
+        if slug == STAGE_TO_SLUG.get("retention"):
             opens = totals.get("unique_opens", 0.0)
             metrics.append(
                 ExtractedMetric(
@@ -1007,17 +1074,6 @@ class MailerLiteProvider(BaseMetricsProvider):
                     date=metric_date,
                 )
             )
-
-        # Attach campaign metadata to all metrics for the Campanas tab
-        if metrics and campaigns_metadata:
-            for metric in metrics:
-                metric.extra["campaigns"] = campaigns_metadata
-
-        # Attach updated config info for traceability (new group auto-mapping)
-        if metrics and known_groups_set:
-            metrics[0].extra["updated_known_groups"] = sorted(known_groups_set)
-
-        return metrics
 
     # ------------------------------------------------------------------
     # AUTOMATION extraction (per-automation detail rows)

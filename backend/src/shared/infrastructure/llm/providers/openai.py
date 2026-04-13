@@ -57,6 +57,78 @@ class OpenAIService(BaseLLMService):
             return model_type
         return _LEGACY_MODEL_TYPE_MAP.get(model_type, ModelRole.REASONING)
 
+    @staticmethod
+    def _convert_to_lc_messages(
+        messages: list[dict[str, str]], system_prompt: str | None
+    ) -> list:
+        """Convert generic message dicts to LangChain message objects."""
+        role_map = {
+            "user": HumanMessage,
+            "assistant": AIMessage,
+            "system": SystemMessage,
+        }
+        lc_messages = []
+        if system_prompt:
+            lc_messages.append(SystemMessage(content=system_prompt))
+        for msg in messages:
+            msg_cls = role_map.get(msg.get("role"))
+            if msg_cls:
+                lc_messages.append(msg_cls(content=msg.get("content")))
+        return lc_messages
+
+    @staticmethod
+    def _extract_call_params(kwargs: dict) -> tuple[dict, dict]:
+        """Extract OpenAI call params and metadata from kwargs. Returns (call_params, meta_log)."""
+        param_keys = (
+            "temperature",
+            "max_tokens",
+            "top_p",
+            "presence_penalty",
+            "frequency_penalty",
+        )
+        call_params = {}
+        for key in param_keys:
+            if key in kwargs:
+                call_params[key] = kwargs.pop(key)
+        # max_output_tokens is an alias for max_tokens
+        if "max_output_tokens" in kwargs:
+            call_params["max_tokens"] = kwargs.pop("max_output_tokens")
+        meta_log = kwargs.pop("metadata", {})
+        return call_params, meta_log
+
+    def _log_to_trace(
+        self,
+        system_prompt: str | None,
+        messages: list,
+        selected_model,
+        response_text: str,
+        tokens_in: int,
+        tokens_out: int,
+        meta_log: dict,
+    ) -> None:
+        """Log LLM call to the tracing audit repository if a trace is active."""
+        trace_id = current_trace_id.get()
+        if not trace_id:
+            return
+        try:
+            db = SessionLocal()
+            repo = AuditRepository(db)
+            full_prompt_str = f"System: {system_prompt}\nMessages: {messages}"
+            model_name = selected_model.model_name if selected_model else "unknown"
+            repo.create_llm_log(
+                trace_id=trace_id,
+                model=model_name,
+                prompt_template=meta_log.get("prompt_template", "unknown"),
+                prompt_rendered=full_prompt_str,
+                response_text=response_text,
+                tokens_input=tokens_in,
+                tokens_output=tokens_out,
+                metadata=meta_log,
+            )
+            repo.close()
+        except Exception as log_err:
+            logger.warning("llm_call_logging_failed", error=str(log_err))
+
     def generate_response(
         self,
         messages: list[dict[str, str]],
@@ -64,119 +136,44 @@ class OpenAIService(BaseLLMService):
         model_type: str | ModelRole = "smart",
         **kwargs,
     ) -> str:
-        """
-        Adapts the generic message format to LangChain's format and invokes the model.
-        Args:
-            model_type: ModelRole enum or legacy string ("smart"/"fast")
-        """
-        # Init vars for logging in finally block
+        """Adapts the generic message format to LangChain's format and invokes the model."""
         response_text = ""
         tokens_in = 0
         tokens_out = 0
         selected_model = None
-        meta_log = {}
+        meta_log: dict = {}
 
         try:
-            # --- ROBUSTNESS CHECK ---
             if isinstance(messages, str):
                 messages = [{"role": "user", "content": messages}]
 
-            lc_messages = []
-
-            if system_prompt:
-                lc_messages.append(SystemMessage(content=system_prompt))
-
-            for msg in messages:
-                role = msg.get("role")
-                content = msg.get("content")
-                if role == "user":
-                    lc_messages.append(HumanMessage(content=content))
-                elif role == "assistant":
-                    lc_messages.append(AIMessage(content=content))
-                elif role == "system":
-                    lc_messages.append(SystemMessage(content=content))
-
-            # Select Model based on Role
+            lc_messages = self._convert_to_lc_messages(messages, system_prompt)
             resolved_role = self._resolve_role(model_type)
             selected_model = self._get_chat_model(resolved_role)
 
-            # --- PARAMETER OVERRIDE ---
-            # Allow overriding generation parameters per call
-            # Note: LangChain 'invoke' might not accept all params directly as kwargs depending on version/method.
-            # For ChatOpenAI, we usually pass them to the constructor OR bind them.
-            # But 'invoke' often propagates extra args to the underlying API call (e.g. temperature, max_tokens).
-
-            # Explicitly extract known OpenAI params
-            # temperature, max_tokens, top_p, presence_penalty, frequency_penalty
-
-            call_params = {}
-            if "temperature" in kwargs:
-                call_params["temperature"] = kwargs.pop("temperature")
-            if "max_tokens" in kwargs:
-                call_params["max_tokens"] = kwargs.pop("max_tokens")
-            if "max_output_tokens" in kwargs:
-                call_params["max_tokens"] = kwargs.pop("max_output_tokens")  # Alias
-            if "top_p" in kwargs:
-                call_params["top_p"] = kwargs.pop("top_p")
-            if "presence_penalty" in kwargs:
-                call_params["presence_penalty"] = kwargs.pop("presence_penalty")
-            if "frequency_penalty" in kwargs:
-                call_params["frequency_penalty"] = kwargs.pop("frequency_penalty")
-
-            # Extract metadata passed in kwargs (e.g. RAG context) BEFORE invoke
-            # to avoid collision with LangChain internals
-            if "metadata" in kwargs:
-                meta_log = kwargs.pop("metadata")
-
-            # If we have params, we might need to bind them or pass to invoke.
-            # LangChain's invoke(..., **kwargs) usually passes extra params to the model run.
-            # Let's merge them back into kwargs for invoke.
+            call_params, meta_log = self._extract_call_params(kwargs)
             kwargs.update(call_params)
 
-            # --- LLM CALL ---
             response = selected_model.invoke(lc_messages, **kwargs)
             response_text = response.content
 
-            # Extract Usage Metadata
             usage = response.response_metadata.get("token_usage", {})
             tokens_in = usage.get("prompt_tokens", 0)
             tokens_out = usage.get("completion_tokens", 0)
 
         except Exception as e:
-            # We still want to log the error if possible
             response_text = f"ERROR: {e!s}"
             raise e
         finally:
-            # --- TRACING LOGIC ---
-            trace_id = current_trace_id.get()
-            if trace_id:
-                try:
-                    db = SessionLocal()
-                    repo = AuditRepository(db)
-                    # Reconstruct prompt for logging
-                    full_prompt_str = f"System: {system_prompt}\nMessages: {messages}"
-
-                    # Ensure model name is captured even if selection failed
-                    model_name = (
-                        selected_model.model_name if selected_model else "unknown"
-                    )
-
-                    # Extract metadata passed in kwargs (e.g. RAG context)
-                    meta_log = kwargs.get("metadata", {})
-
-                    repo.create_llm_log(
-                        trace_id=trace_id,
-                        model=model_name,
-                        prompt_template=meta_log.get("prompt_template", "unknown"),
-                        prompt_rendered=full_prompt_str,
-                        response_text=response_text,
-                        tokens_input=tokens_in,
-                        tokens_output=tokens_out,
-                        metadata=meta_log,
-                    )
-                    repo.close()
-                except Exception as log_err:
-                    logger.warning("llm_call_logging_failed", error=str(log_err))
+            self._log_to_trace(
+                system_prompt,
+                messages,
+                selected_model,
+                response_text,
+                tokens_in,
+                tokens_out,
+                meta_log,
+            )
 
         return response_text
 

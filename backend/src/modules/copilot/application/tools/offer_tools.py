@@ -95,6 +95,16 @@ def _format_offer_summary(offer: dict) -> str:
     return "\n".join(lines)
 
 
+def _parse_json_list(value) -> list | None:
+    """Parse a value that may be a JSON string or list, return list or None."""
+    if isinstance(value, str):
+        with contextlib.suppress(json.JSONDecodeError, TypeError):
+            value = json.loads(value)
+    if isinstance(value, list) and value:
+        return value
+    return None
+
+
 def _format_offer_detail(offer: dict) -> str:
     """Format a single offer with full details."""
     lines = [_format_offer_summary(offer)]
@@ -104,33 +114,19 @@ def _format_offer_detail(offer: dict) -> str:
         if offer.get("guarantee_terms"):
             lines.append(f"  Términos: {offer['guarantee_terms']}")
 
-    if offer.get("marketing_pain_points"):
-        pains = offer["marketing_pain_points"]
-        if isinstance(pains, str):
-            with contextlib.suppress(json.JSONDecodeError, TypeError):
-                pains = json.loads(pains)
-        if isinstance(pains, list) and pains:
-            lines.append(f"  Puntos de dolor: {', '.join(str(p) for p in pains)}")
-
-    if offer.get("marketing_desires"):
-        desires = offer["marketing_desires"]
-        if isinstance(desires, str):
-            with contextlib.suppress(json.JSONDecodeError, TypeError):
-                desires = json.loads(desires)
-        if isinstance(desires, list) and desires:
-            lines.append(f"  Deseos: {', '.join(str(d) for d in desires)}")
-
-    if offer.get("objections"):
-        objs = offer["objections"]
-        if isinstance(objs, str):
-            with contextlib.suppress(json.JSONDecodeError, TypeError):
-                objs = json.loads(objs)
-        if isinstance(objs, list) and objs:
-            lines.append(f"  Objeciones: {', '.join(str(o) for o in objs)}")
+    # JSON-list fields: label → offer key
+    _list_fields = [
+        ("Puntos de dolor", "marketing_pain_points"),
+        ("Deseos", "marketing_desires"),
+        ("Objeciones", "objections"),
+    ]
+    for label, key in _list_fields:
+        parsed = _parse_json_list(offer.get(key))
+        if parsed:
+            lines.append(f"  {label}: {', '.join(str(v) for v in parsed)}")
 
     if offer.get("requires_application"):
         lines.append("  Requiere aplicación: Sí")
-
     if offer.get("checkout_page_url"):
         lines.append(f"  Checkout URL: {offer['checkout_page_url']}")
 

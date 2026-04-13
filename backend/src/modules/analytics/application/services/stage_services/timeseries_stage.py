@@ -38,6 +38,30 @@ _CHANNEL_COLORS: dict[str, str] = {
 }
 
 
+def _build_date_map(rows: list) -> tuple[OrderedDict, set]:
+    """Build date→channel→value map and set of seen channels from query rows."""
+    date_map: OrderedDict = OrderedDict()
+    channels_seen: set = set()
+    for row in rows:
+        d = row.metric_date
+        channels_seen.add(row.channel_slug)
+        if d not in date_map:
+            date_map[d] = {}
+        date_map[d][row.channel_slug] = date_map[d].get(row.channel_slug, 0) + float(
+            row.total
+        )
+    return date_map, channels_seen
+
+
+def _compute_period_totals(date_map: OrderedDict) -> dict[str, float]:
+    """Sum values per channel across all dates."""
+    totals: dict[str, float] = {}
+    for ch_vals in date_map.values():
+        for slug, val in ch_vals.items():
+            totals[slug] = totals.get(slug, 0) + val
+    return totals
+
+
 class TimeseriesStageService:
     """Provides time-series data for funnel stages."""
 
@@ -51,6 +75,97 @@ class TimeseriesStageService:
         self.cache = cache
         self.connection_port = connection_port
 
+    @staticmethod
+    def _resolve_metric_aliases(metric_name: str) -> list[str]:
+        """Map frontend metric names to possible DB column names."""
+        aliases: dict[str, list[str]] = {
+            "visitors": ["sessions", "users", "visitors"],
+            "leads": ["leads", "new_subscribers"],
+        }
+        return aliases.get(metric_name, [metric_name])
+
+    @staticmethod
+    def _aggregate_weekly(
+        date_map: "OrderedDict",
+    ) -> "OrderedDict":
+        """Collapse daily data points into ISO-week buckets."""
+        from datetime import timedelta
+
+        weekly_map: OrderedDict = OrderedDict()
+        for d, ch_vals in date_map.items():
+            week_start = d - timedelta(days=d.weekday())
+            if week_start not in weekly_map:
+                weekly_map[week_start] = {}
+            for slug, val in ch_vals.items():
+                weekly_map[week_start][slug] = weekly_map[week_start].get(slug, 0) + val
+        return weekly_map
+
+    def _query_current_period(
+        self,
+        tenant_id: UUID,
+        channel_slugs: list[str],
+        db_metric_names: list[str],
+        start_date,
+        now,
+    ) -> list:
+        """Query official_metrics for the current period."""
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
+
+        from src.modules.analytics.infrastructure.models.official_metrics_model import (
+            OfficialMetricModel,
+        )
+
+        m = OfficialMetricModel
+        stmt = (
+            sa_select(m.metric_date, m.channel_slug, sa_f.sum(m.value).label("total"))
+            .where(
+                m.tenant_id == tenant_id,
+                m.channel_slug.in_(channel_slugs),
+                m.metric_name.in_(db_metric_names),
+                m.metric_date >= start_date,
+                m.metric_date <= now,
+            )
+            .group_by(m.metric_date, m.channel_slug)
+            .order_by(m.metric_date)
+        )
+        return self.db.execute(stmt).all()
+
+    def _query_previous_period(
+        self,
+        tenant_id: UUID,
+        channel_slugs: list[str],
+        db_metric_names: list[str],
+        prev_start,
+        start_date,
+    ) -> dict[str, float] | None:
+        """Query previous period totals for delta% calculation."""
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
+
+        from src.modules.analytics.infrastructure.models.official_metrics_model import (
+            OfficialMetricModel,
+        )
+
+        m = OfficialMetricModel
+        prev_stmt = (
+            sa_select(m.channel_slug, sa_f.sum(m.value).label("total"))
+            .where(
+                m.tenant_id == tenant_id,
+                m.channel_slug.in_(channel_slugs),
+                m.metric_name.in_(db_metric_names),
+                m.metric_date >= prev_start,
+                m.metric_date < start_date,
+            )
+            .group_by(m.channel_slug)
+        )
+        prev_rows = self.db.execute(prev_stmt).all()
+        return (
+            {row.channel_slug: float(row.total) for row in prev_rows}
+            if prev_rows
+            else None
+        )
+
     async def get_timeseries(
         self,
         tenant_id: UUID,
@@ -59,12 +174,7 @@ class TimeseriesStageService:
         range_days: int = 30,
         granularity: str = "daily",
     ) -> StageTimeSeriesDTO:
-        """Return time-series data for a funnel stage, grouped by channel and date.
-
-        Queries official_metrics WHERE tenant_id AND channel_slug IN (stage channels)
-        AND metric_name = X, GROUP BY metric_date, channel_slug.
-        Includes previous-period totals for delta% calculation.
-        """
+        """Return time-series data for a funnel stage, grouped by channel and date."""
         from src.modules.analytics.application.services.channel_registry import (
             get_stage_channels,
         )
@@ -95,123 +205,47 @@ class TimeseriesStageService:
                 previous_period_totals=None,
             )
 
-        # 3. Query current period
-        from datetime import date as date_type
+        # 3. Date ranges
         from datetime import timedelta
 
         now = datetime.now(UTC).date()
         start_date = now - timedelta(days=range_days)
         prev_start = start_date - timedelta(days=range_days)
+        db_metric_names = self._resolve_metric_aliases(metric_name)
 
-        # Map metric aliases: frontend sends "visitors" but DB may have "sessions"
-        db_metric_names = [metric_name]
-        if metric_name == "visitors":
-            db_metric_names = ["sessions", "users", "visitors"]
-        elif metric_name == "leads":
-            db_metric_names = ["leads", "new_subscribers"]
-
-        from sqlalchemy import func as sa_f
-        from sqlalchemy import select as sa_select
-
-        from src.modules.analytics.infrastructure.models.official_metrics_model import (
-            OfficialMetricModel,
+        # 4. Query & build data points
+        rows = self._query_current_period(
+            tenant_id, channel_slugs, db_metric_names, start_date, now
         )
+        date_map, channels_seen = _build_date_map(rows)
 
-        m = OfficialMetricModel
-
-        # Current period: group by date, channel_slug
-        stmt = (
-            sa_select(
-                m.metric_date,
-                m.channel_slug,
-                sa_f.sum(m.value).label("total"),
-            )
-            .where(
-                m.tenant_id == tenant_id,
-                m.channel_slug.in_(channel_slugs),
-                m.metric_name.in_(db_metric_names),
-                m.metric_date >= start_date,
-                m.metric_date <= now,
-            )
-            .group_by(m.metric_date, m.channel_slug)
-            .order_by(m.metric_date)
-        )
-        rows = self.db.execute(stmt).all()
-
-        # 4. Build data points
-        date_map: dict[date_type, dict[str, float]] = OrderedDict()
-        channels_seen: set = set()
-
-        for row in rows:
-            d = row.metric_date
-            slug = row.channel_slug
-            val = float(row.total)
-            channels_seen.add(slug)
-            if d not in date_map:
-                date_map[d] = {}
-            date_map[d][slug] = date_map[d].get(slug, 0) + val
-
-        # Weekly aggregation if requested
         if granularity == "weekly" and date_map:
-            weekly_map: dict[date_type, dict[str, float]] = OrderedDict()
-            for d, ch_vals in date_map.items():
-                # ISO week start (Monday)
-                week_start = d - timedelta(days=d.weekday())
-                if week_start not in weekly_map:
-                    weekly_map[week_start] = {}
-                for slug, val in ch_vals.items():
-                    weekly_map[week_start][slug] = (
-                        weekly_map[week_start].get(slug, 0) + val
-                    )
-            date_map = weekly_map
+            date_map = self._aggregate_weekly(date_map)
 
         data_points = [
-            TimeSeriesPointDTO(
-                date=d.isoformat(),
-                channels=ch_vals,
-            )
+            TimeSeriesPointDTO(date=d.isoformat(), channels=ch_vals)
             for d, ch_vals in date_map.items()
         ]
 
-        # 5. Period totals
-        period_totals: dict[str, float] = {}
-        for ch_vals in date_map.values():
-            for slug, val in ch_vals.items():
-                period_totals[slug] = period_totals.get(slug, 0) + val
-
-        # 6. Previous period totals
-        prev_stmt = (
-            sa_select(
-                m.channel_slug,
-                sa_f.sum(m.value).label("total"),
-            )
-            .where(
-                m.tenant_id == tenant_id,
-                m.channel_slug.in_(channel_slugs),
-                m.metric_name.in_(db_metric_names),
-                m.metric_date >= prev_start,
-                m.metric_date < start_date,
-            )
-            .group_by(m.channel_slug)
-        )
-        prev_rows = self.db.execute(prev_stmt).all()
-        previous_period_totals = (
-            {row.channel_slug: float(row.total) for row in prev_rows}
-            if prev_rows
-            else None
+        # 5. Totals
+        period_totals = _compute_period_totals(date_map)
+        previous_period_totals = self._query_previous_period(
+            tenant_id,
+            channel_slugs,
+            db_metric_names,
+            prev_start,
+            start_date,
         )
 
-        # 7. Build channels_present
-        channels_present = []
-        for slug in sorted(channels_seen):
-            info = slug_to_info.get(slug, {})
-            channels_present.append(
-                ChannelInfoDTO(
-                    slug=slug,
-                    name=info.get("name", slug),
-                    color=_CHANNEL_COLORS.get(slug, "#6B7280"),
-                )
+        # 6. Build channels_present
+        channels_present = [
+            ChannelInfoDTO(
+                slug=slug,
+                name=slug_to_info.get(slug, {}).get("name", slug),
+                color=_CHANNEL_COLORS.get(slug, "#6B7280"),
             )
+            for slug in sorted(channels_seen)
+        ]
 
         result = StageTimeSeriesDTO(
             stage=stage,
@@ -224,7 +258,6 @@ class TimeseriesStageService:
             previous_period_totals=previous_period_totals,
         )
 
-        # 8. Cache (5 min)
         if self.cache is not None:
             await self.cache.set(tid, stage, cache_period, result.model_dump())
 

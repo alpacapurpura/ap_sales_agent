@@ -195,6 +195,89 @@ def node_closer(state: AgentState) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+def _accumulate_qualification(
+    state: AgentState, qual_data: dict | None, updates: dict
+) -> None:
+    """Merge qualification data into updates."""
+    if qual_data:
+        current_qa = dict(state.get("qualification_answers") or {})
+        current_qa.update(qual_data)
+        updates["qualification_answers"] = current_qa
+
+
+def _accumulate_signals(state: AgentState, signals: dict | None, updates: dict) -> None:
+    """Merge buying signals and objections into updates."""
+    if not signals:
+        return
+    current_signals = list(state.get("buying_signals") or [])
+    turn = state.get("turn_count", 0)
+    current_signals.extend(
+        {"type": sig, "turn": turn} for sig in signals.get("buying", [])
+    )
+    updates["buying_signals"] = current_signals
+
+    current_obj = list(state.get("objection_history") or [])
+    current_obj.extend(
+        {"type": obj, "turn": turn, "resolved": False}
+        for obj in signals.get("objections", [])
+    )
+    updates["objection_history"] = current_obj
+
+
+def _compute_lead_score(
+    state: AgentState, qual_data: dict | None, signals: dict | None
+) -> int:
+    """Compute updated lead score based on qualification data and signals."""
+    score = state.get("lead_score", 0)
+    if qual_data:
+        score += QUALIFICATION_FIELD_WEIGHT * len(qual_data)
+    if signals and signals.get("buying"):
+        score += BUYING_SIGNAL_WEIGHT * len(signals["buying"])
+    return min(score, LEAD_SCORE_MAX)
+
+
+def _build_follow_up_cadence(state: AgentState, updates: dict) -> dict | None:
+    """Build follow-up cadence dict when transitioning to closing stage."""
+    prev_stage = state.get("current_state")
+    new_stage = updates.get("current_state", prev_stage)
+    if (
+        new_stage != "closing"
+        or prev_stage == "closing"
+        or state.get("follow_up_cadence")
+    ):
+        return None
+
+    product = state.get("active_product") or {}
+    price = product.get("price") or 0
+    try:
+        price = float(price)
+    except (ValueError, TypeError):
+        price = 0
+
+    tier = "high" if price > 500 else ("mid" if price > 100 else "low")
+
+    from datetime import datetime, timezone
+
+    return {
+        **FOLLOW_UP_CADENCES.get(tier, FOLLOW_UP_CADENCES["mid"]),
+        "tier": tier,
+        "follow_ups_sent": 0,
+        "last_follow_up_at": None,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def _decide_route(updates: dict, tool_req: dict | None) -> None:
+    """Set next_node and pending tool in updates based on routing logic."""
+    if tool_req:
+        updates["next_node"] = "tool_executor"
+        updates["_pending_tool"] = tool_req
+    elif updates.get("internal_turn", 0) >= MAX_INTERNAL_TURNS:
+        updates["next_node"] = "respond"  # Force output after 3 internal loops
+    else:
+        updates["next_node"] = "respond"  # Default: send to user
+
+
 @trace_node("signal_accumulator")
 def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
     """Post-processes specialist output: extracts structured blocks, updates scores, strips blocks."""
@@ -206,78 +289,28 @@ def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
     signals = _extract_json_block(last_msg, "SIGNALS")
     tool_req = _extract_json_block(last_msg, "TOOL_REQUEST")
 
-    # Update qualification answers
-    if qual_data:
-        current_qa = dict(state.get("qualification_answers") or {})
-        current_qa.update(qual_data)
-        updates["qualification_answers"] = current_qa
+    # Accumulate structured data
+    _accumulate_qualification(state, qual_data, updates)
+    _accumulate_signals(state, signals, updates)
+    updates["lead_score"] = _compute_lead_score(state, qual_data, signals)
 
-    # Accumulate buying signals
-    current_signals = list(state.get("buying_signals") or [])
-    if signals:
-        current_signals.extend(
-            {"type": sig, "turn": state.get("turn_count", 0)}
-            for sig in signals.get("buying", [])
-        )
-        updates["buying_signals"] = current_signals
-
-        # Update objection history
-        current_obj = list(state.get("objection_history") or [])
-        current_obj.extend(
-            {"type": obj, "turn": state.get("turn_count", 0), "resolved": False}
-            for obj in signals.get("objections", [])
-        )
-        updates["objection_history"] = current_obj
-
-    # Update lead score
-    score = state.get("lead_score", 0)
-    if qual_data:
-        score += QUALIFICATION_FIELD_WEIGHT * len(qual_data)
-    if signals and signals.get("buying"):
-        score += BUYING_SIGNAL_WEIGHT * len(signals["buying"])
-    updates["lead_score"] = min(score, LEAD_SCORE_MAX)
-
-    # Stage transition logic
+    # Stage transition + counters
     updates["current_state"] = _determine_stage(state, updates)
     updates["turn_count"] = (state.get("turn_count") or 0) + 1
     updates["internal_turn"] = (state.get("internal_turn") or 0) + 1
 
     # Track consecutive questions (Fase 3: fatigue detection)
     current_next = state.get("next_node")
-    if current_next == "qualifier":
-        updates["consecutive_questions"] = (state.get("consecutive_questions") or 0) + 1
-    else:
-        updates["consecutive_questions"] = 0
+    updates["consecutive_questions"] = (
+        (state.get("consecutive_questions") or 0) + 1
+        if current_next == "qualifier"
+        else 0
+    )
 
     # Initialize follow-up cadence when transitioning to closing (Fase 4)
-    prev_stage = state.get("current_state")
-    new_stage = updates.get("current_state", prev_stage)
-    if (
-        new_stage == "closing"
-        and prev_stage != "closing"
-        and not state.get("follow_up_cadence")
-    ):
-        product = state.get("active_product") or {}
-        price = product.get("price") or 0
-        try:
-            price = float(price)
-        except (ValueError, TypeError):
-            price = 0
-        if price > 500:
-            tier = "high"
-        elif price > 100:
-            tier = "mid"
-        else:
-            tier = "low"
-        from datetime import datetime, timezone
-
-        updates["follow_up_cadence"] = {
-            **FOLLOW_UP_CADENCES.get(tier, FOLLOW_UP_CADENCES["mid"]),
-            "tier": tier,
-            "follow_ups_sent": 0,
-            "last_follow_up_at": None,
-            "started_at": datetime.now(timezone.utc).isoformat(),
-        }
+    cadence = _build_follow_up_cadence(state, updates)
+    if cadence is not None:
+        updates["follow_up_cadence"] = cadence
 
     # Clean structured blocks from message for user output
     clean_text = _strip_blocks(last_msg)
@@ -285,13 +318,7 @@ def node_signal_accumulator(state: AgentState) -> dict[str, Any]:
         updates["messages"] = [{"role": "assistant", "content": clean_text}]
 
     # Route decision
-    if tool_req:
-        updates["next_node"] = "tool_executor"
-        updates["_pending_tool"] = tool_req
-    elif updates.get("internal_turn", 0) >= MAX_INTERNAL_TURNS:
-        updates["next_node"] = "respond"  # Force output after 3 internal loops
-    else:
-        updates["next_node"] = "respond"  # Default: send to user
+    _decide_route(updates, tool_req)
 
     return updates
 

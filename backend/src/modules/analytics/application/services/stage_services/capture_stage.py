@@ -69,7 +69,6 @@ class CaptureStageService:
         manychat-ig card is removed and the ig-dm card gets sub_sources
         showing the per-source breakdown.
         """
-        # Each pair maps a Meta slug to its ManyChat equivalent
         merge_pairs = [
             ("ig-dm", "manychat-ig"),
             ("whatsapp-inbound", "manychat-wa"),
@@ -82,7 +81,6 @@ class CaptureStageService:
             if not meta_dto or not mc_dto:
                 continue
 
-            # Build sub_sources from raw (unconsolidated) counts
             meta_leads = detailed_leads.get(meta_slug, 0)
             mc_leads = detailed_leads.get(mc_slug, 0)
             meta_convs = conversation_counts.get(meta_slug, 0)
@@ -95,30 +93,239 @@ class CaptureStageService:
                 SubSourceDTO(name="ManyChat", leads=mc_leads, conversations=mc_convs),
             ]
 
-            # Append ManyChat-exclusive metrics to the unified card
             existing_names = {m.name for m in meta_dto.metrics}
             for m in mc_dto.metrics:
                 if m.name not in existing_names:
                     meta_dto.metrics.append(m)
 
-            # Remove the standalone manychat card
             channels.remove(mc_dto)
+
+    def _build_website_capture_dto(
+        self,
+        ch: dict,
+        tenant_id: UUID,
+        start_date: "object",
+        end_date: "object",
+    ) -> ChannelMetricDTO:
+        """Build the website-capture channel DTO from GA4 + Meta data."""
+        official_repo = OfficialMetricsRepository(self.db)
+        sd = start_date.date() if hasattr(start_date, "date") else start_date
+        ed = end_date.date() if hasattr(end_date, "date") else end_date
+
+        ga4_organic = official_repo.get_channel_metrics(
+            tenant_id, "google_analytics", "google-organic", sd, ed
+        )
+        ga4_ai = official_repo.get_channel_metrics(
+            tenant_id, "google_analytics", "ai-search-organic", sd, ed
+        )
+        ga4_direct = official_repo.get_channel_metrics(
+            tenant_id, "google_analytics", "direct", sd, ed
+        )
+        ga4_total = official_repo.get_channel_metrics(
+            tenant_id, "google_analytics", "website-total", sd, ed
+        )
+        meta_ads = official_repo.get_channel_metrics(
+            tenant_id, "meta", "meta-ads", sd, ed
+        )
+
+        seo = ga4_organic.get("sessions", 0)
+        ai_search = ga4_ai.get("sessions", 0)
+        direct = ga4_direct.get("sessions", 0)
+        campaign_visitors = meta_ads.get("meta_landing_page_views", 0)
+        total = ga4_total.get("sessions", 0)
+
+        if total == 0:
+            total = seo + ai_search + direct + campaign_visitors
+
+        wc_metrics = [
+            MetricValueDTO(
+                name="visitors",
+                value=float(total),
+                breakdown={
+                    "campaigns": float(campaign_visitors),
+                    "seo": float(seo),
+                    "ai_search": float(ai_search),
+                    "direct": float(direct),
+                },
+            ),
+        ]
+
+        return ChannelMetricDTO(
+            slug=ch["slug"],
+            name=ch["name"],
+            channel_type=ch["channel_type"],
+            metrics=wc_metrics,
+            source_label=ch["source_label"],
+            connected=total > 0 or campaign_visitors > 0,
+            provider_name="internal",
+        )
+
+    def _supplement_manychat_metrics(
+        self,
+        metrics: list[MetricValueDTO],
+        tenant_id: UUID,
+        slug: str,
+        start_date: "object",
+        end_date: "object",
+    ) -> None:
+        """Append ManyChat-specific metrics from official_metrics (in-place)."""
+        official_repo = OfficialMetricsRepository(self.db)
+        mc_metrics = official_repo.get_channel_metrics(
+            tenant_id,
+            "manychat",
+            slug,
+            start_date.date() if hasattr(start_date, "date") else start_date,
+            end_date.date() if hasattr(end_date, "date") else end_date,
+        )
+        existing_names = {m.name for m in metrics}
+        for m_name, m_value in mc_metrics.items():
+            if m_name not in existing_names:
+                metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+
+    def _supplement_mailerlite_metrics(
+        self,
+        metrics: list[MetricValueDTO],
+        lead_count: int,
+        tenant_id: UUID,
+        slug: str,
+        start_date: "object",
+        end_date: "object",
+    ) -> list[MetricValueDTO]:
+        """Append MailerLite metrics; substitute leads from new_subscribers if needed."""
+        official_repo = OfficialMetricsRepository(self.db)
+        ml_metrics = official_repo.get_channel_metrics(
+            tenant_id,
+            "mailerlite",
+            slug,
+            start_date.date() if hasattr(start_date, "date") else start_date,
+            end_date.date() if hasattr(end_date, "date") else end_date,
+        )
+        existing_names = {m.name for m in metrics}
+        ns = ml_metrics.get("new_subscribers", 0)
+        if lead_count == 0 and ns > 0:
+            metrics = [m for m in metrics if m.name != "leads"]
+            metrics.insert(0, MetricValueDTO(name="leads", value=float(ns)))
+        for m_name, m_value in ml_metrics.items():
+            if m_name not in existing_names and m_name != "new_subscribers":
+                metrics.append(MetricValueDTO(name=m_name, value=float(m_value)))
+        return metrics
+
+    def _get_merged_costs(
+        self,
+        tenant_id: UUID,
+        connected_slugs: list[str],
+    ) -> tuple["CaptureCostService", dict[str, float]]:
+        """Load channel + prorated agency costs, return service and merged dict."""
+        cost_service = CaptureCostService(self.db)
+        channel_costs = cost_service.get_channel_costs(tenant_id)
+        prorated_costs = cost_service.get_prorated_agency_costs(
+            tenant_id, connected_slugs
+        )
+        all_costs: dict[str, float] = {}
+        for slug, amount in channel_costs.items():
+            all_costs[slug] = all_costs.get(slug, 0.0) + amount
+        for slug, amount in prorated_costs.items():
+            all_costs[slug] = all_costs.get(slug, 0.0) + amount
+        return cost_service, all_costs
+
+    def _get_stage0_visitors(self, tenant_id: UUID) -> int:
+        """Query aggregated visitor total (reach + sessions) for attraction stage."""
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select
+
+        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+            MetricAggregationModel,
+        )
+
+        visitor_stmt = select(
+            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+        ).where(
+            MetricAggregationModel.tenant_id == tenant_id,
+            MetricAggregationModel.metric_name.in_(("reach", "sessions")),
+            MetricAggregationModel.period_type == "last_30_days",
+        )
+        return int(self.db.execute(visitor_stmt).scalar() or 0)
+
+    def _build_capture_channel_dto(
+        self,
+        ch: dict,
+        tenant_id: UUID,
+        lead_counts: dict[str, int],
+        conversation_counts: dict[str, int],
+        all_costs: dict[str, float],
+        stage0_visitors: int,
+        start_date: "object",
+        end_date: "object",
+    ) -> ChannelMetricDTO:
+        """Build a single capture ChannelMetricDTO for a non-website channel."""
+        slug = ch["slug"]
+        channel_type = ch["channel_type"]
+        lead_count = lead_counts.get(slug, 0)
+        channel_cost = all_costs.get(slug, 0.0)
+        conv_count = conversation_counts.get(slug, 0)
+        conv_rate = (
+            round(lead_count / stage0_visitors * 100, 2) if stage0_visitors > 0 else 0.0
+        )
+
+        metrics: list[MetricValueDTO] = [
+            MetricValueDTO(name="leads", value=float(lead_count)),
+            MetricValueDTO(
+                name="cost",
+                value=channel_cost,
+                unit="currency",
+                currency="USD",
+            ),
+            MetricValueDTO(
+                name="conversion_rate",
+                value=conv_rate,
+                unit="percentage",
+            ),
+        ]
+
+        if channel_type == "messaging":
+            metrics.append(
+                MetricValueDTO(name="conversations", value=float(conv_count))
+            )
+
+        provider_name = ch.get("provider_name", "")
+        if provider_name == "manychat":
+            self._supplement_manychat_metrics(
+                metrics,
+                tenant_id,
+                slug,
+                start_date,
+                end_date,
+            )
+        elif provider_name == "email_marketing":
+            metrics = self._supplement_mailerlite_metrics(
+                metrics,
+                lead_count,
+                tenant_id,
+                slug,
+                start_date,
+                end_date,
+            )
+
+        conn_config = ch.get("connection_config", {})
+        display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
+        source_display = conn_config.get(display_name_key) if display_name_key else None
+
+        return ChannelMetricDTO(
+            slug=slug,
+            name=ch["name"],
+            channel_type=channel_type,
+            metrics=metrics,
+            source_label=ch["source_label"],
+            connected=True,
+            cost_type="EXPENSE",
+            source_display_name=source_display,
+            provider_name=provider_name,
+        )
 
     async def get_metrics(
         self, tenant_id: UUID, period: str = "last_30_days"
     ) -> CaptureDetailDTO:
-        """Return capture-stage (Stage 1) metrics.
-
-        Flow:
-        1. Check MetricsCache (300s TTL for capture stage)
-        2. On miss: query CaptureMetricsRepository for lead counts by lead_source
-        3. Query CaptureCostService for per-channel costs
-        4. Get Stage 0 visitor total from MetricAggregationModel
-        5. Map channels from STAGE_CHANNEL_MAP["capture"] via ChannelRegistry
-        6. Group into web_infrastructure and ai_agent
-        7. Calculate header KPIs and mini funnel
-        8. Cache result and return CaptureDetailDTO
-        """
+        """Return capture-stage (Stage 1) metrics."""
         # 1. Check cache
         if self.cache is not None:
             cached = await self.cache.get(str(tenant_id), "capture", "last_30_days")
@@ -145,38 +352,11 @@ class CaptureStageService:
         )
 
         # 4. Get costs
-        cost_service = CaptureCostService(self.db)
-        channel_costs = cost_service.get_channel_costs(tenant_id)
-
-        # Get prorated agency costs
         connected_slugs = [ch["slug"] for ch in channel_split.get("connected", [])]
-        prorated_costs = cost_service.get_prorated_agency_costs(
-            tenant_id, connected_slugs
-        )
+        cost_service, all_costs = self._get_merged_costs(tenant_id, connected_slugs)
 
-        # Merge costs
-        all_costs: dict[str, float] = {}
-        for slug, amount in channel_costs.items():
-            all_costs[slug] = all_costs.get(slug, 0.0) + amount
-        for slug, amount in prorated_costs.items():
-            all_costs[slug] = all_costs.get(slug, 0.0) + amount
-
-        # 5. Get Stage 0 visitor total from aggregations
-        from sqlalchemy import func as sa_func
-        from sqlalchemy import select
-
-        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
-            MetricAggregationModel,
-        )
-
-        visitor_stmt = select(
-            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
-        ).where(
-            MetricAggregationModel.tenant_id == tenant_id,
-            MetricAggregationModel.metric_name.in_(("reach", "sessions")),
-            MetricAggregationModel.period_type == "last_30_days",
-        )
-        stage0_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
+        # 5. Get Stage 0 visitor total
+        stage0_visitors = self._get_stage0_visitors(tenant_id)
 
         # 6. Build ChannelMetricDTO lists grouped by section
         groups: dict[str, list[ChannelMetricDTO]] = {
@@ -187,156 +367,23 @@ class CaptureStageService:
 
         for ch in channel_split.get("connected", []):
             slug = ch["slug"]
-            channel_type = ch["channel_type"]
-            group_key = _CAPTURE_GROUP_MAP.get(channel_type, "web_infrastructure")
+            group_key = _CAPTURE_GROUP_MAP.get(ch["channel_type"], "web_infrastructure")
 
-            # -- website-capture: aggregate GA4 sessions + Meta landing_page_views --
             if slug == "website-capture":
-                official_repo = OfficialMetricsRepository(self.db)
-                sd = start_date.date() if hasattr(start_date, "date") else start_date
-                ed = end_date.date() if hasattr(end_date, "date") else end_date
-
-                ga4_organic = official_repo.get_channel_metrics(
-                    tenant_id, "google_analytics", "google-organic", sd, ed
+                groups["web_infrastructure"].append(
+                    self._build_website_capture_dto(ch, tenant_id, start_date, end_date)
                 )
-                ga4_ai = official_repo.get_channel_metrics(
-                    tenant_id, "google_analytics", "ai-search-organic", sd, ed
-                )
-                ga4_direct = official_repo.get_channel_metrics(
-                    tenant_id, "google_analytics", "direct", sd, ed
-                )
-                ga4_total = official_repo.get_channel_metrics(
-                    tenant_id, "google_analytics", "website-total", sd, ed
-                )
-                meta_ads = official_repo.get_channel_metrics(
-                    tenant_id, "meta", "meta-ads", sd, ed
-                )
-
-                seo = ga4_organic.get("sessions", 0)
-                ai_search = ga4_ai.get("sessions", 0)
-                direct = ga4_direct.get("sessions", 0)
-                campaign_visitors = meta_ads.get("meta_landing_page_views", 0)
-                total = ga4_total.get("sessions", 0)
-
-                if total == 0:
-                    total = seo + ai_search + direct + campaign_visitors
-
-                wc_metrics = [
-                    MetricValueDTO(
-                        name="visitors",
-                        value=float(total),
-                        breakdown={
-                            "campaigns": float(campaign_visitors),
-                            "seo": float(seo),
-                            "ai_search": float(ai_search),
-                            "direct": float(direct),
-                        },
-                    ),
-                ]
-
-                has_data = total > 0 or campaign_visitors > 0
-
-                dto = ChannelMetricDTO(
-                    slug=slug,
-                    name=ch["name"],
-                    channel_type=channel_type,
-                    metrics=wc_metrics,
-                    source_label=ch["source_label"],
-                    connected=has_data,
-                    provider_name="internal",
-                )
-                groups["web_infrastructure"].append(dto)
                 continue
 
-            lead_count = lead_counts.get(slug, 0)
-            channel_cost = all_costs.get(slug, 0.0)
-            conv_count = conversation_counts.get(slug, 0)
-
-            # Conversion rate: leads / stage0_visitors * 100
-            conv_rate = (
-                round(lead_count / stage0_visitors * 100, 2)
-                if stage0_visitors > 0
-                else 0.0
-            )
-
-            metrics: list[MetricValueDTO] = [
-                MetricValueDTO(name="leads", value=float(lead_count)),
-                MetricValueDTO(
-                    name="cost",
-                    value=channel_cost,
-                    unit="currency",
-                    currency="USD",
-                ),
-                MetricValueDTO(
-                    name="conversion_rate",
-                    value=conv_rate,
-                    unit="percentage",
-                ),
-            ]
-
-            # AI Agent channels: add conversation volume
-            if channel_type == "messaging":
-                metrics.append(
-                    MetricValueDTO(name="conversations", value=float(conv_count))
-                )
-
-            # For ManyChat channels, supplement with metrics from official_metrics
-            provider_name = ch.get("provider_name", "")
-            if provider_name == "manychat":
-                official_repo = OfficialMetricsRepository(self.db)
-                mc_metrics = official_repo.get_channel_metrics(
-                    tenant_id,
-                    "manychat",
-                    slug,
-                    start_date.date() if hasattr(start_date, "date") else start_date,
-                    end_date.date() if hasattr(end_date, "date") else end_date,
-                )
-                existing_names = {m.name for m in metrics}
-                for m_name, m_value in mc_metrics.items():
-                    if m_name not in existing_names:
-                        metrics.append(
-                            MetricValueDTO(name=m_name, value=float(m_value))
-                        )
-
-            # For email_marketing channels, supplement with MailerLite official_metrics
-            if provider_name == "email_marketing":
-                official_repo = OfficialMetricsRepository(self.db)
-                ml_metrics = official_repo.get_channel_metrics(
-                    tenant_id,
-                    "mailerlite",
-                    slug,
-                    start_date.date() if hasattr(start_date, "date") else start_date,
-                    end_date.date() if hasattr(end_date, "date") else end_date,
-                )
-                existing_names = {m.name for m in metrics}
-                # Use new_subscribers as "leads" if CRM has no data
-                ns = ml_metrics.get("new_subscribers", 0)
-                if lead_count == 0 and ns > 0:
-                    metrics = [m for m in metrics if m.name != "leads"]
-                    metrics.insert(0, MetricValueDTO(name="leads", value=float(ns)))
-                for m_name, m_value in ml_metrics.items():
-                    if m_name not in existing_names and m_name != "new_subscribers":
-                        metrics.append(
-                            MetricValueDTO(name=m_name, value=float(m_value))
-                        )
-
-            # Resolve display name from connection config
-            conn_config = ch.get("connection_config", {})
-            display_name_key = _DISPLAY_NAME_MAP.get(provider_name, "")
-            source_display = (
-                conn_config.get(display_name_key) if display_name_key else None
-            )
-
-            dto = ChannelMetricDTO(
-                slug=slug,
-                name=ch["name"],
-                channel_type=channel_type,
-                metrics=metrics,
-                source_label=ch["source_label"],
-                connected=True,
-                cost_type="EXPENSE",
-                source_display_name=source_display,
-                provider_name=provider_name,
+            dto = self._build_capture_channel_dto(
+                ch,
+                tenant_id,
+                lead_counts,
+                conversation_counts,
+                all_costs,
+                stage0_visitors,
+                start_date,
+                end_date,
             )
             groups[group_key].append(dto)
 
@@ -350,10 +397,8 @@ class CaptureStageService:
 
         # Available (unconnected) channels -- remove manychat-ig/wa if merged
         merged_slugs = {"manychat-ig", "manychat-wa"}
-        for ch in channel_split.get("available", []):
-            if ch["slug"] in merged_slugs:
-                continue
-            dto = ChannelMetricDTO(
+        available_channels = [
+            ChannelMetricDTO(
                 slug=ch["slug"],
                 name=ch["name"],
                 channel_type=ch["channel_type"],
@@ -361,7 +406,9 @@ class CaptureStageService:
                 source_label=ch["source_label"],
                 connected=False,
             )
-            available_channels.append(dto)
+            for ch in channel_split.get("available", [])
+            if ch["slug"] not in merged_slugs
+        ]
 
         # 7. Compute group totals
         total_leads = sum(lead_counts.values())

@@ -4,6 +4,7 @@ Returns enriched connection details, extraction status, and data range
 for a given provider. Used by the ChannelDetailSidebar in the frontend.
 """
 
+from collections.abc import Callable
 from datetime import date
 
 import structlog
@@ -81,48 +82,47 @@ def _get_repo(db: Session = Depends(get_db)) -> ChannelConnectionRepository:
     return ChannelConnectionRepository(db)
 
 
+_DETAIL_BUILDERS: dict[str, Callable[[dict, dict], dict]] = {
+    "google_analytics": lambda c, _cr: {
+        "property_id": c.get("property_id"),
+        "property_display_name": c.get("property_display_name"),
+        "account_name": c.get("account_name"),
+    },
+    "youtube": lambda c, _cr: {
+        "channel_id": c.get("channel_id"),
+        "channel_title": c.get("channel_title"),
+        "customUrl": c.get("customUrl"),
+        "statistics": c.get("statistics", {}),
+    },
+    "meta": lambda c, _cr: {
+        "name": c.get("name"),
+        "user_id": c.get("user_id"),
+        "tracked_page_name": c.get("tracked_page_name"),
+        "tracked_ig_username": c.get("tracked_ig_username"),
+        "tracked_ad_account_name": c.get("tracked_ad_account_name"),
+        "granted_permissions": c.get("granted_permissions", []),
+    },
+    "google_ads": lambda c, cr: {
+        "property_id": c.get("property_id"),
+        "property_display_name": c.get("property_display_name"),
+        "developer_token_configured": bool(cr.get("developer_token")),
+    },
+    "shopify": lambda c, _cr: {
+        "shop_url": c.get("shop_url"),
+        "shop_name": (c.get("shop_info") or {}).get("name"),
+    },
+    "meta_pixel": lambda c, _cr: {
+        "pixel_id": c.get("asset_id"),
+        "pixel_name": c.get("pixel_name"),
+        "linked_ad_account_id": c.get("linked_ad_account_id"),
+    },
+}
+
+
 def _build_details(provider: str, config: dict, credentials: dict) -> dict:
     """Build provider-specific detail dict from connection config/credentials."""
-    if provider == "google_analytics":
-        return {
-            "property_id": config.get("property_id"),
-            "property_display_name": config.get("property_display_name"),
-            "account_name": config.get("account_name"),
-        }
-    if provider == "youtube":
-        return {
-            "channel_id": config.get("channel_id"),
-            "channel_title": config.get("channel_title"),
-            "customUrl": config.get("customUrl"),
-            "statistics": config.get("statistics", {}),
-        }
-    if provider == "meta":
-        return {
-            "name": config.get("name"),
-            "user_id": config.get("user_id"),
-            "tracked_page_name": config.get("tracked_page_name"),
-            "tracked_ig_username": config.get("tracked_ig_username"),
-            "tracked_ad_account_name": config.get("tracked_ad_account_name"),
-            "granted_permissions": config.get("granted_permissions", []),
-        }
-    if provider == "google_ads":
-        return {
-            "property_id": config.get("property_id"),
-            "property_display_name": config.get("property_display_name"),
-            "developer_token_configured": bool(credentials.get("developer_token")),
-        }
-    if provider == "shopify":
-        return {
-            "shop_url": config.get("shop_url"),
-            "shop_name": (config.get("shop_info") or {}).get("name"),
-        }
-    if provider == "meta_pixel":
-        return {
-            "pixel_id": config.get("asset_id"),
-            "pixel_name": config.get("pixel_name"),
-            "linked_ad_account_id": config.get("linked_ad_account_id"),
-        }
-    return {}
+    builder = _DETAIL_BUILDERS.get(provider)
+    return builder(config, credentials) if builder else {}
 
 
 def _get_meta_children(repo: ChannelConnectionRepository, tenant_id) -> list[dict]:

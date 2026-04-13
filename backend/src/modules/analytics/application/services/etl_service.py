@@ -61,6 +61,20 @@ PROVIDER_STAGES: dict[str, list[str]] = {
 }
 
 
+def _parse_shopify_line_items(line_items_raw: list[dict]) -> list[dict]:
+    """Parse Shopify line_items into a normalized list of dicts."""
+    return [
+        {
+            "product_id": str(item.get("product_id", "")),
+            "variant_id": str(item.get("variant_id", "")),
+            "title": item.get("title", ""),
+            "price": float(item.get("price", 0)),
+            "quantity": int(item.get("quantity", 1)),
+        }
+        for item in line_items_raw
+    ]
+
+
 class ETLService:
     """Application-level orchestration for ETL extractions.
 
@@ -516,6 +530,67 @@ class ETLService:
         )
         run_id = run.id
 
+        self._stage_transform_upsert_aggregate(
+            tenant_id,
+            provider_name,
+            extracted,
+            run_id,
+            period_config,
+            staging_repo,
+            official_repo,
+        )
+
+        # Create CRM records (journey_events + SaleModel) for Shopify backfill
+        if provider_name == "shopify":
+            crm_result = self._create_shopify_crm_records(
+                tenant_id=tenant_id,
+                provider=provider,
+            )
+            logger.info(
+                "Shopify CRM backfill: orders=%d checkouts=%d sales=%d",
+                crm_result["orders_processed"],
+                crm_result["checkouts_processed"],
+                crm_result["sales_created"],
+            )
+
+        self.db.commit()
+        await self.cache.invalidate_tenant(str(tenant_id))
+
+        loaded = len({m.date for m in extracted})
+
+        # Step: Period extraction for NON_AGGREGABLE metrics (reach, frequency, etc.)
+        await self._try_period_extraction(
+            tenant_id, provider_name, start_date, end_date, run_repo
+        )
+
+        if progress_callback:
+            progress_callback(total, total, "completed")
+
+        logger.info(
+            "Initial load completed: tenant=%s provider=%s stages=%s loaded=%d skipped=%d",
+            tenant_id,
+            provider_name,
+            stages,
+            loaded,
+            len(existing),
+        )
+        return {"total": total, "loaded": loaded, "skipped": len(existing)}
+
+    # ------------------------------------------------------------------
+    # Shopify CRM backfill helpers
+    # ------------------------------------------------------------------
+
+    def _stage_transform_upsert_aggregate(
+        self,
+        tenant_id: UUID,
+        provider_name: str,
+        extracted: list,
+        run_id: UUID,
+        period_config,
+        staging_repo: StagingMetricsRepository,
+        official_repo: OfficialMetricsRepository,
+    ) -> None:
+        """Stage extracted metrics, transform to official, upsert, and aggregate."""
         staging_models = [
             StagingMetricModel(
                 id=uuid.uuid4(),
@@ -559,46 +634,6 @@ class ETLService:
                 ch_aggs = [a for a in agg_dicts if a["channel_slug"] == ch]
                 agg_repo.replace_aggregations(tenant_id, ch, ch_aggs)
 
-        # Create CRM records (journey_events + SaleModel) for Shopify backfill
-        if provider_name == "shopify":
-            crm_result = self._create_shopify_crm_records(
-                tenant_id=tenant_id,
-                provider=provider,
-            )
-            logger.info(
-                "Shopify CRM backfill: orders=%d checkouts=%d sales=%d",
-                crm_result["orders_processed"],
-                crm_result["checkouts_processed"],
-                crm_result["sales_created"],
-            )
-
-        self.db.commit()
-        await self.cache.invalidate_tenant(str(tenant_id))
-
-        loaded = len({m.date for m in extracted})
-
-        # Step: Period extraction for NON_AGGREGABLE metrics (reach, frequency, etc.)
-        await self._try_period_extraction(
-            tenant_id, provider_name, start_date, end_date, run_repo
-        )
-
-        if progress_callback:
-            progress_callback(total, total, "completed")
-
-        logger.info(
-            "Initial load completed: tenant=%s provider=%s stages=%s loaded=%d skipped=%d",
-            tenant_id,
-            provider_name,
-            stages,
-            loaded,
-            len(existing),
-        )
-        return {"total": total, "loaded": loaded, "skipped": len(existing)}
-
-    # ------------------------------------------------------------------
-    # Shopify CRM backfill helpers
-    # ------------------------------------------------------------------
-
     def _create_shopify_crm_records(
         self,
         tenant_id: UUID,
@@ -609,20 +644,12 @@ class ETLService:
         Replicates what webhooks produce so that UnmatchedProducts and
         OfferLadder widgets work after an ETL backfill.
         """
-        from sqlalchemy import func as sa_func
-        from sqlalchemy import select as sa_select
-
         from src.modules.crm.application.services.customer_service import (
             CustomerService,
         )
-        from src.modules.crm.infrastructure.models.customer_model import (
-            JourneyEventModel,
-        )
-        from src.modules.crm.infrastructure.models.sale_model import SaleModel
         from src.modules.offer.infrastructure.repositories.external_product_mapping_repository import (
             ExternalProductMappingRepository,
         )
-        from src.shared.domain.enums import SaleStage, SaleStatus
 
         orders = provider.get_last_extracted_orders()
         checkouts = provider.get_last_extracted_checkouts()
@@ -635,17 +662,59 @@ class ETLService:
         mapping_repo = ExternalProductMappingRepository(self.db)
 
         # Build set of completed checkout tokens for abandoned-checkout filtering
-        completed_tokens: set[str] = set()
-        for order in orders:
-            token = order.get("checkout_token")
-            if token:
-                completed_tokens.add(str(token))
+        completed_tokens: set[str] = {
+            str(token) for order in orders if (token := order.get("checkout_token"))
+        }
+
+        orders_processed, sales_created = self._process_shopify_orders(
+            tenant_id,
+            orders,
+            customer_svc,
+            mapping_repo,
+        )
+        checkouts_processed = self._process_shopify_checkouts(
+            tenant_id,
+            checkouts,
+            completed_tokens,
+            customer_svc,
+        )
+
+        # Flush to catch constraint violations before caller commits
+        self.db.flush()
+
+        logger.info(
+            "shopify_etl_crm_records_created tenant=%s orders=%d checkouts=%d sales=%d",
+            tenant_id,
+            orders_processed,
+            checkouts_processed,
+            sales_created,
+        )
+        return {
+            "orders_processed": orders_processed,
+            "checkouts_processed": checkouts_processed,
+            "sales_created": sales_created,
+        }
+
+    def _process_shopify_orders(
+        self,
+        tenant_id: UUID,
+        orders: list[dict],
+        customer_svc,
+        mapping_repo,
+    ) -> tuple[int, int]:
+        """Process completed orders into journey_events + SaleModel. Returns (orders_processed, sales_created)."""
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select as sa_select
+
+        from src.modules.crm.infrastructure.models.customer_model import (
+            JourneyEventModel,
+        )
+        from src.modules.crm.infrastructure.models.sale_model import SaleModel
+        from src.shared.domain.enums import SaleStage, SaleStatus
 
         orders_processed = 0
-        checkouts_processed = 0
         sales_created = 0
 
-        # --- Completed orders → checkout_completed + SaleModel ---
         for order in orders:
             fin_status = order.get("financial_status", "")
             if fin_status in ("voided", "refunded"):
@@ -689,19 +758,7 @@ class ETLService:
                 identities={},
             )
 
-            # Extract line items (same structure as webhook)
-            line_items_raw = order.get("line_items", [])
-            line_items_data = [
-                {
-                    "product_id": str(item.get("product_id", "")),
-                    "variant_id": str(item.get("variant_id", "")),
-                    "title": item.get("title", ""),
-                    "price": float(item.get("price", 0)),
-                    "quantity": int(item.get("quantity", 1)),
-                }
-                for item in line_items_raw
-            ]
-
+            line_items_data = _parse_shopify_line_items(order.get("line_items", []))
             checkout_token = str(order.get("checkout_token", ""))
             total_price = float(order.get("total_price", 0))
             currency = order.get("currency", "USD")
@@ -729,62 +786,107 @@ class ETLService:
             )
             self.db.add(event)
 
-            # Bulk resolve product → offer mappings
-            product_ids = [
-                li["product_id"] for li in line_items_data if li["product_id"]
-            ]
-            resolved_mappings = (
-                mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids)
-                if product_ids
-                else {}
+            # Create SaleModel per line_item
+            sales_created += self._create_sales_from_line_items(
+                tenant_id,
+                order_id,
+                profile.id,
+                line_items_data,
+                currency,
+                occurred_at,
+                mapping_repo,
+                sa_select,
+                SaleModel,
+                SaleStage,
+                SaleStatus,
             )
-
-            # Create SaleModel per line_item (direct — no SaleCompletedEvent)
-            for item in line_items_data:
-                product_id = item["product_id"]
-                if not product_id:
-                    continue
-
-                txn_id = f"shopify-{order_id}-{product_id}"
-
-                # Dedup by transaction_id
-                existing_sale = self.db.execute(
-                    sa_select(SaleModel.id)
-                    .where(
-                        SaleModel.tenant_id == tenant_id,
-                        SaleModel.transaction_id == txn_id,
-                    )
-                    .limit(1)
-                ).scalar_one_or_none()
-                if existing_sale:
-                    continue
-
-                offer_id = resolved_mappings.get(product_id)
-                if not offer_id:
-                    # No product→offer mapping — skip SaleModel (FK requires valid offer)
-                    continue
-                line_amount = item["price"] * item["quantity"]
-
-                sale = SaleModel(
-                    id=uuid.uuid4(),
-                    tenant_id=tenant_id,
-                    customer_id=profile.id,
-                    offer_id=offer_id,
-                    transaction_id=txn_id,
-                    amount=line_amount,
-                    currency=currency,
-                    status=SaleStatus.COMPLETED,
-                    stage=SaleStage.CONVERSION,
-                    source="SHOPIFY",
-                    metadata_info={"etl_backfill": True, "shopify_order_id": order_id},
-                    occurred_at=occurred_at,
-                )
-                self.db.add(sale)
-                sales_created += 1
-
             orders_processed += 1
 
-        # --- Abandoned checkouts → checkout_initiated ---
+        return orders_processed, sales_created
+
+    def _create_sales_from_line_items(
+        self,
+        tenant_id: UUID,
+        order_id: str,
+        profile_id: UUID,
+        line_items_data: list[dict],
+        currency: str,
+        occurred_at,
+        mapping_repo,
+        sa_select,
+        SaleModel,  # noqa: N803
+        SaleStage,  # noqa: N803
+        SaleStatus,  # noqa: N803
+    ) -> int:
+        """Create SaleModel per line_item. Returns count of sales created."""
+        product_ids = [li["product_id"] for li in line_items_data if li["product_id"]]
+        resolved_mappings = (
+            mapping_repo.bulk_resolve(tenant_id, "shopify", product_ids)
+            if product_ids
+            else {}
+        )
+
+        sales_created = 0
+        for item in line_items_data:
+            product_id = item["product_id"]
+            if not product_id:
+                continue
+
+            txn_id = f"shopify-{order_id}-{product_id}"
+
+            # Dedup by transaction_id
+            existing_sale = self.db.execute(
+                sa_select(SaleModel.id)
+                .where(
+                    SaleModel.tenant_id == tenant_id,
+                    SaleModel.transaction_id == txn_id,
+                )
+                .limit(1)
+            ).scalar_one_or_none()
+            if existing_sale:
+                continue
+
+            offer_id = resolved_mappings.get(product_id)
+            if not offer_id:
+                continue
+            line_amount = item["price"] * item["quantity"]
+
+            sale = SaleModel(
+                id=uuid.uuid4(),
+                tenant_id=tenant_id,
+                customer_id=profile_id,
+                offer_id=offer_id,
+                transaction_id=txn_id,
+                amount=line_amount,
+                currency=currency,
+                status=SaleStatus.COMPLETED,
+                stage=SaleStage.CONVERSION,
+                source="SHOPIFY",
+                metadata_info={"etl_backfill": True, "shopify_order_id": order_id},
+                occurred_at=occurred_at,
+            )
+            self.db.add(sale)
+            sales_created += 1
+
+        return sales_created
+
+    def _process_shopify_checkouts(
+        self,
+        tenant_id: UUID,
+        checkouts: list[dict],
+        completed_tokens: set[str],
+        customer_svc,
+    ) -> int:
+        """Process abandoned checkouts into journey_events. Returns checkouts_processed."""
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select as sa_select
+
+        from src.modules.crm.infrastructure.models.customer_model import (
+            JourneyEventModel,
+        )
+
+        checkouts_processed = 0
+
         for checkout in checkouts:
             token = str(checkout.get("token", ""))
 
@@ -820,18 +922,7 @@ class ETLService:
                 identities={},
             )
 
-            line_items_raw = checkout.get("line_items", [])
-            line_items_data = [
-                {
-                    "product_id": str(item.get("product_id", "")),
-                    "variant_id": str(item.get("variant_id", "")),
-                    "title": item.get("title", ""),
-                    "price": float(item.get("price", 0)),
-                    "quantity": int(item.get("quantity", 1)),
-                }
-                for item in line_items_raw
-            ]
-
+            line_items_data = _parse_shopify_line_items(checkout.get("line_items", []))
             occurred_at = self._parse_shopify_datetime(checkout.get("created_at", ""))
 
             event = JourneyEventModel(
@@ -853,21 +944,7 @@ class ETLService:
             self.db.add(event)
             checkouts_processed += 1
 
-        # Flush to catch constraint violations before caller commits
-        self.db.flush()
-
-        logger.info(
-            "shopify_etl_crm_records_created tenant=%s orders=%d checkouts=%d sales=%d",
-            tenant_id,
-            orders_processed,
-            checkouts_processed,
-            sales_created,
-        )
-        return {
-            "orders_processed": orders_processed,
-            "checkouts_processed": checkouts_processed,
-            "sales_created": sales_created,
-        }
+        return checkouts_processed
 
     async def _try_period_extraction(
         self,

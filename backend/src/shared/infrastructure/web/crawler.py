@@ -246,95 +246,73 @@ def extract_css_relevant(css_text: str, max_chars: int = 8000) -> str:
     return result
 
 
-def extract_html_with_styles(html: str, external_css: str = "") -> str:  # noqa: C901
-    """Parse HTML preserving CSS data for visual identity analysis.
-
-    Unlike extract_text_from_html which strips <style> tags, this method
-    extracts and preserves CSS variables, inline styles, class names,
-    Google Font links and theme-color meta — everything needed for
-    accurate color/font extraction by the LLM.
-
-    Args:
-        html: Raw HTML of the page.
-        external_css: Pre-fetched content from external <link rel="stylesheet"> files,
-                      already filtered for brand-relevant rules.
-    """
-    soup = BeautifulSoup(html, "html.parser")
-
-    # --- Extract WebFont.load() fonts from scripts BEFORE decomposing ---
-    webfont_fonts: list[str] = []
+def _extract_webfont_fonts(soup: BeautifulSoup) -> list[str]:
+    """Extract WebFont.load() font names from script tags."""
+    fonts: list[str] = []
     for script_tag in soup.find_all("script"):
         script_text = script_tag.string or ""
-        if "WebFont.load" in script_text or "webfont" in script_text.lower():
-            families_match = re.findall(
-                r"families\s*:\s*\[(.*?)\]", script_text, re.DOTALL
-            )
-            for families_str in families_match:
-                for fam in re.findall(r'"([^"]+)"|\'([^\']+)\'', families_str):
-                    font_raw = fam[0] or fam[1]
-                    font_name = font_raw.split(":")[0].strip()
-                    if font_name:
-                        webfont_fonts.append(f"WebFont: {font_name}")
+        if "WebFont.load" not in script_text and "webfont" not in script_text.lower():
+            continue
+        families_match = re.findall(r"families\s*:\s*\[(.*?)\]", script_text, re.DOTALL)
+        for families_str in families_match:
+            for fam in re.findall(r'"([^"]+)"|\'([^\']+)\'', families_str):
+                font_raw = fam[0] or fam[1]
+                font_name = font_raw.split(":")[0].strip()
+                if font_name:
+                    fonts.append(f"WebFont: {font_name}")
+    return fonts
 
-    # Remove only scripts (keep styles!)
-    for tag in soup.find_all("script"):
-        tag.decompose()
 
-    # --- [CSS_STYLES] section ---
+def _build_css_section(
+    soup: BeautifulSoup, external_css: str, webfont_fonts: list[str]
+) -> str:
+    """Build the [CSS_STYLES] section from style tags, meta, links, and webfonts."""
     css_parts: list[str] = []
 
-    # External CSS (fetched from <link rel="stylesheet"> files)
     if external_css.strip():
         css_parts.append(f"/* === EXTERNAL STYLESHEETS === */\n{external_css}")
 
-    # <style> tag contents
     for style_tag in soup.find_all("style"):
         text = style_tag.get_text(strip=True)
         if text:
             css_parts.append(text)
 
-    # <meta name="theme-color">
     for meta in soup.find_all("meta", attrs={"name": "theme-color"}):
         color = meta.get("content", "")
         if color:
             css_parts.append(f"theme-color: {color}")
 
-    # Google Fonts links — extract font family names
     for link in soup.find_all("link", href=True):
         href = link["href"]
         if "fonts.googleapis.com" in href:
-            match = re.findall(r"family=([^&]+)", href)
-            for fam in match:
+            for fam in re.findall(r"family=([^&]+)", href):
                 font_name = fam.split(":")[0].replace("+", " ")
                 css_parts.append(f"Google Font: {font_name}")
 
-    # WebFont.load() fonts (extracted before script decomposition)
     css_parts.extend(webfont_fonts)
 
-    # Favicon links
     for link in soup.find_all("link", href=True):
         rel = " ".join(link.get("rel", []))
         if any(k in rel for k in ("icon", "shortcut", "apple-touch-icon")):
             css_parts.append(f"Favicon: {link['href']}")
 
-    css_section = "\n".join(css_parts) if css_parts else "(no CSS data found)"
+    return "\n".join(css_parts) if css_parts else "(no CSS data found)"
 
-    # --- [INLINE_STYLES] section ---
+
+def _build_inline_section(soup: BeautifulSoup) -> str:
+    """Build the [INLINE_STYLES] section from elements with style attributes."""
     inline_parts: list[str] = []
     for i, el in enumerate(soup.find_all(attrs={"style": True})):
         if i >= 50:
             break
-        tag_name = el.name
         classes = " ".join(el.get("class", []))
-        style_val = el.get("style", "")
-        label = f"{tag_name}.{classes}" if classes else tag_name
-        inline_parts.append(f"{label}: {style_val}")
+        label = f"{el.name}.{classes}" if classes else el.name
+        inline_parts.append(f"{label}: {el.get('style', '')}")
+    return "\n".join(inline_parts) if inline_parts else "(no inline styles found)"
 
-    inline_section = (
-        "\n".join(inline_parts) if inline_parts else "(no inline styles found)"
-    )
 
-    # --- [KEY_ELEMENTS] section ---
+def _build_elements_section(soup: BeautifulSoup) -> str:
+    """Build the [KEY_ELEMENTS] section from key HTML tags with class attributes."""
     key_tags = [
         "body",
         "header",
@@ -358,23 +336,45 @@ def extract_html_with_styles(html: str, external_css: str = "") -> str:  # noqa:
             classes = el.get("class")
             if classes:
                 element_parts.append(f'<{tag_name} class="{" ".join(classes)}">')
+    return "\n".join(element_parts) if element_parts else "(no class attributes found)"
 
-    elements_section = (
-        "\n".join(element_parts) if element_parts else "(no class attributes found)"
-    )
 
-    # --- [TEXT_CONTENT] section (lightweight body text for context) ---
+def _build_text_content_section(soup: BeautifulSoup) -> str:
+    """Build the [TEXT_CONTENT] section from body text."""
     body = soup.find("body")
-    text_content = ""
     if body:
         body_copy = BeautifulSoup(str(body), "html.parser")
         for s in body_copy.find_all("style"):
             s.decompose()
-        text_content = body_copy.get_text(separator="\n", strip=True)
-    else:
-        text_content = soup.get_text(separator="\n", strip=True)
+        return body_copy.get_text(separator="\n", strip=True)
+    return soup.get_text(separator="\n", strip=True)
 
-    # Combine sections
+
+def extract_html_with_styles(html: str, external_css: str = "") -> str:
+    """Parse HTML preserving CSS data for visual identity analysis.
+
+    Unlike extract_text_from_html which strips <style> tags, this method
+    extracts and preserves CSS variables, inline styles, class names,
+    Google Font links and theme-color meta — everything needed for
+    accurate color/font extraction by the LLM.
+
+    Args:
+        html: Raw HTML of the page.
+        external_css: Pre-fetched content from external <link rel="stylesheet"> files,
+                      already filtered for brand-relevant rules.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+
+    webfont_fonts = _extract_webfont_fonts(soup)
+
+    for tag in soup.find_all("script"):
+        tag.decompose()
+
+    css_section = _build_css_section(soup, external_css, webfont_fonts)
+    inline_section = _build_inline_section(soup)
+    elements_section = _build_elements_section(soup)
+    text_content = _build_text_content_section(soup)
+
     return (
         f"[CSS_STYLES]\n{css_section}\n[/CSS_STYLES]\n\n"
         f"[INLINE_STYLES]\n{inline_section}\n[/INLINE_STYLES]\n\n"

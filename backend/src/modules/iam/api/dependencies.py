@@ -137,63 +137,112 @@ async def get_optional_tenant_context(
     return tenant_id
 
 
+def _resolve_email_from_clerk_api(
+    user_id: str, clerk_secret: str
+) -> tuple[str | None, dict | None]:
+    """Fetch email from Clerk API as fallback when JWT lacks email claim.
+
+    Returns (email, clerk_user_data) tuple.
+    """
+    try:
+        logger.warning("fetching_email_from_clerk_api_fallback", user_id=user_id)
+        resp = httpx.get(
+            f"https://api.clerk.com/v1/users/{user_id}",
+            headers={"Authorization": f"Bearer {clerk_secret}"},
+            timeout=5.0,
+        )
+        if resp.status_code != 200:
+            return None, None
+
+        clerk_user = resp.json()
+        email_addresses = clerk_user.get("email_addresses", [])
+        primary_id = clerk_user.get("primary_email_address_id")
+
+        email = None
+        for e in email_addresses:
+            if e.get("id") == primary_id:
+                email = e.get("email_address")
+                break
+
+        if not email and email_addresses:
+            email = email_addresses[0].get("email_address")
+
+        if email:
+            logger.info("email_resolved_via_clerk_api", email=email)
+
+        return email, clerk_user
+    except Exception as e:
+        logger.error("clerk_api_fallback_failed", error=str(e))
+        return None, None
+
+
+def _resolve_name(token_payload: dict, clerk_user_data: dict | None) -> str | None:
+    """Resolve user's full name from token claims or Clerk API fallback data."""
+    name = token_payload.get("name")
+    if not name:
+        given = token_payload.get("given_name", "")
+        family = token_payload.get("family_name", "")
+        if given or family:
+            name = f"{given} {family}".strip()
+
+    if not name and clerk_user_data:
+        first = clerk_user_data.get("first_name", "")
+        last = clerk_user_data.get("last_name", "")
+        if first or last:
+            name = f"{first} {last}".strip()
+
+    return name
+
+
+def _sync_clerk_fields(
+    db: Session, user_orm, clerk_id: str, name: str | None, email: str
+) -> None:
+    """Sync Clerk ID and full name to the user ORM model if needed."""
+    should_update = False
+
+    if user_orm.clerk_id != clerk_id:
+        logger.info(
+            "updating_user_clerk_id",
+            email=email,
+            old_id=user_orm.clerk_id,
+            new_id=clerk_id,
+        )
+        user_orm.clerk_id = clerk_id
+        should_update = True
+
+    if name and user_orm.full_name != name:
+        logger.info(
+            "updating_user_full_name",
+            email=email,
+            old_name=user_orm.full_name,
+            new_name=name,
+        )
+        user_orm.full_name = name
+        should_update = True
+
+    if should_update:
+        db.add(user_orm)
+        db.commit()
+        db.refresh(user_orm)
+
+
 def get_user_from_token(
     db: Session = Depends(get_db),
     token_payload: dict[str, Any] = Depends(verify_clerk_token),
 ) -> User:
-    """
-    Core dependency to resolve User from Token.
-    Does NOT check Tenant Context.
-    """
-    # Clerk JWT structure varies. Checking standard claims.
-    # 'sub' is the Clerk User ID.
-    # 'email' is often a custom claim or under 'email_addresses'.
-    # We will try 'email' top-level claim first (if configured in Clerk Session)
-    # If not found, we might need to handle it.
-
+    """Core dependency to resolve User from Token. Does NOT check Tenant Context."""
     email = token_payload.get("email")
     clerk_user_data = None
 
     if not email:
-        # Fallback: Fetch from Clerk API using 'sub' (Clerk User ID)
-        # This is slower but handles cases where JWT template is not configured.
         user_id = token_payload.get("sub")
         clerk_secret = os.getenv("CLERK_SECRET_KEY")
-
         if user_id and clerk_secret:
-            try:
-                logger.warning(
-                    "fetching_email_from_clerk_api_fallback", user_id=user_id
-                )
-                # Synchronous call (blocking but necessary for fallback)
-                resp = httpx.get(
-                    f"https://api.clerk.com/v1/users/{user_id}",
-                    headers={"Authorization": f"Bearer {clerk_secret}"},
-                    timeout=5.0,
-                )
-                if resp.status_code == 200:
-                    clerk_user = resp.json()
-                    clerk_user_data = clerk_user
-                    # Try to find primary email
-                    email_addresses = clerk_user.get("email_addresses", [])
-                    primary_id = clerk_user.get("primary_email_address_id")
-
-                    for e in email_addresses:
-                        if e.get("id") == primary_id:
-                            email = e.get("email_address")
-                            break
-
-                    # If not found, take the first one
-                    if not email and email_addresses:
-                        email = email_addresses[0].get("email_address")
-
-                    if email:
-                        logger.info("email_resolved_via_clerk_api", email=email)
-            except Exception as e:
-                logger.error("clerk_api_fallback_failed", error=str(e))
+            email, clerk_user_data = _resolve_email_from_clerk_api(
+                user_id, clerk_secret
+            )
 
     if not email:
-        # Fallback failed or not possible
         available_keys = ", ".join(token_payload.keys())
         logger.error("token_payload_missing_email", keys=list(token_payload.keys()))
         raise HTTPException(
@@ -201,7 +250,6 @@ def get_user_from_token(
             detail=f"Token missing email claim. Available claims: {available_keys}. Please configure Clerk JWT Template to include 'email'.",
         )
 
-    # Resolve User
     user_orm = (
         db.execute(select(UserModel).where(UserModel.email == email)).scalars().first()
     )
@@ -213,54 +261,10 @@ def get_user_from_token(
             detail="Acceso Denegado. Su usuario no está registrado en nuestra base de datos. Por favor contacte a su administrador para solicitar acceso.",
         )
 
-    # Sync Clerk ID and Full Name if needed
     clerk_id_from_token = token_payload.get("sub")
-
-    # Try to get name from token
-    name_from_token = token_payload.get("name")
-    if not name_from_token:
-        # Construct from given/family name
-        given = token_payload.get("given_name", "")
-        family = token_payload.get("family_name", "")
-        if given or family:
-            name_from_token = f"{given} {family}".strip()
-
-    # If not in token, try fallback data
-    if not name_from_token and clerk_user_data:
-        first = clerk_user_data.get("first_name", "")
-        last = clerk_user_data.get("last_name", "")
-        if first or last:
-            name_from_token = f"{first} {last}".strip()
-
     if clerk_id_from_token:
-        should_update = False
-
-        # Check Clerk ID mismatch
-        if user_orm.clerk_id != clerk_id_from_token:
-            logger.info(
-                "updating_user_clerk_id",
-                email=email,
-                old_id=user_orm.clerk_id,
-                new_id=clerk_id_from_token,
-            )
-            user_orm.clerk_id = clerk_id_from_token
-            should_update = True
-
-        # Check Full Name
-        if name_from_token and user_orm.full_name != name_from_token:
-            logger.info(
-                "updating_user_full_name",
-                email=email,
-                old_name=user_orm.full_name,
-                new_name=name_from_token,
-            )
-            user_orm.full_name = name_from_token
-            should_update = True
-
-        if should_update:
-            db.add(user_orm)
-            db.commit()
-            db.refresh(user_orm)
+        name_from_token = _resolve_name(token_payload, clerk_user_data)
+        _sync_clerk_fields(db, user_orm, clerk_id_from_token, name_from_token, email)
 
     return User.model_validate(user_orm)
 

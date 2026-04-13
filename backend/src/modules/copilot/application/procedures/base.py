@@ -73,10 +73,8 @@ class Procedure:
         if not data:
             return False
 
-        # For modules without model_class (offer, connections), "has_any_data" = has data
+        # "has_any_data" — data exists and passed `not data` check, so it's complete
         if step.validation == "has_any_data":
-            if isinstance(data, list):
-                return len(data) > 0
             return True
 
         # For modules with model_class, verify specific section

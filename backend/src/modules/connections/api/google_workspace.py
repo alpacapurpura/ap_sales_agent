@@ -378,6 +378,74 @@ _SERVICE_TESTS: dict[str, callable] = {
 }
 
 
+def _run_service_test(
+    test_fn: callable,
+    creds_data: dict,
+    service_slug: str,
+    tenant_id: Any,
+) -> dict:
+    """Execute a single service test and return a result dict.
+
+    Returns a dict with 'status' and context. Adds '_auth_error': True
+    on auth-related failures (stripped before sending to client).
+    """
+    try:
+        data = test_fn(creds_data)
+        return {"status": "ok", "data": data}
+    except RefreshError as exc:
+        logger.warning(
+            "google_workspace_test_refresh_error",
+            tenant_id=str(tenant_id),
+            service=service_slug,
+            error=str(exc),
+        )
+        return {
+            "status": "error",
+            "_auth_error": True,
+            "error": "Token expirado o revocado. Reconecta tu cuenta de Google.",
+            "detail": str(exc),
+        }
+    except HttpError as exc:
+        error_reason = str(exc)
+        if exc.resp.status >= 500:
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("tenant_id", str(tenant_id))
+                scope.set_tag("provider", "google_workspace")
+                scope.set_tag("service", service_slug)
+                scope.set_tag("failure_type", "google_api_5xx")
+                sentry_sdk.capture_exception(exc)
+        logger.error(
+            "google_workspace_test_http_error",
+            tenant_id=str(tenant_id),
+            service=service_slug,
+            status_code=exc.resp.status,
+            error=error_reason,
+        )
+        return {
+            "status": "error",
+            "error": f"Error de API de Google: {exc.resp.status}",
+            "detail": error_reason,
+        }
+    except Exception as exc:
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("tenant_id", str(tenant_id))
+            scope.set_tag("provider", "google_workspace")
+            scope.set_tag("service", service_slug)
+            scope.set_tag("failure_type", "unexpected")
+            sentry_sdk.capture_exception(exc)
+        logger.error(
+            "google_workspace_test_unexpected_error",
+            tenant_id=str(tenant_id),
+            service=service_slug,
+            error=str(exc),
+        )
+        return {
+            "status": "error",
+            "error": f"Error inesperado: {type(exc).__name__}",
+            "detail": str(exc),
+        }
+
+
 @router.post("/test", response_model=ConnectionTestResponse)
 async def test_connection(
     user: User = Depends(get_current_user),
@@ -419,64 +487,12 @@ async def test_connection(
             }
             continue
 
-        try:
-            data = test_fn(creds_data)
-            results[service_slug] = {"status": "ok", "data": data}
+        result = _run_service_test(test_fn, creds_data, service_slug, user.tenant_id)
+        results[service_slug] = result
+        if result["status"] == "ok":
             any_success = True
-        except RefreshError as exc:
+        elif result.get("_auth_error"):
             has_auth_error = True
-            results[service_slug] = {
-                "status": "error",
-                "error": "Token expirado o revocado. Reconecta tu cuenta de Google.",
-                "detail": str(exc),
-            }
-            logger.warning(
-                "google_workspace_test_refresh_error",
-                tenant_id=str(user.tenant_id),
-                service=service_slug,
-                error=str(exc),
-            )
-        except HttpError as exc:
-            error_reason = str(exc)
-            results[service_slug] = {
-                "status": "error",
-                "error": f"Error de API de Google: {exc.resp.status}",
-                "detail": error_reason,
-            }
-            # 4xx = user/config issue, 5xx = Google infra → report to Sentry
-            if exc.resp.status >= 500:
-                with sentry_sdk.push_scope() as scope:
-                    scope.set_tag("tenant_id", str(user.tenant_id))
-                    scope.set_tag("provider", "google_workspace")
-                    scope.set_tag("service", service_slug)
-                    scope.set_tag("failure_type", "google_api_5xx")
-                    sentry_sdk.capture_exception(exc)
-            logger.error(
-                "google_workspace_test_http_error",
-                tenant_id=str(user.tenant_id),
-                service=service_slug,
-                status_code=exc.resp.status,
-                error=error_reason,
-            )
-        except Exception as exc:
-            results[service_slug] = {
-                "status": "error",
-                "error": f"Error inesperado: {type(exc).__name__}",
-                "detail": str(exc),
-            }
-            # Unexpected errors are programming bugs → always report to Sentry
-            with sentry_sdk.push_scope() as scope:
-                scope.set_tag("tenant_id", str(user.tenant_id))
-                scope.set_tag("provider", "google_workspace")
-                scope.set_tag("service", service_slug)
-                scope.set_tag("failure_type", "unexpected")
-                sentry_sdk.capture_exception(exc)
-            logger.error(
-                "google_workspace_test_unexpected_error",
-                tenant_id=str(user.tenant_id),
-                service=service_slug,
-                error=str(exc),
-            )
 
     if has_auth_error:
         return ConnectionTestResponse(

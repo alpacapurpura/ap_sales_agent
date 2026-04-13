@@ -6,6 +6,7 @@ score recalculation for MQL transitions. Shopify webhooks process checkout
 events into journey_events with identity resolution and scoring.
 """
 
+from collections.abc import Callable
 from uuid import UUID
 
 import structlog
@@ -39,70 +40,69 @@ router = APIRouter()
 # -- ManyChat helper functions --
 
 
+_TAG_METRIC_MAP: dict[str, str] = {
+    "Solicito_reunion": "meetings_requested",
+    "link_clicked": "link_clicks",
+    "quiz_started": "qualified_leads",
+    "Estrategia": "qualified_leads",
+    "Orden": "qualified_leads",
+    "Bienestar": "qualified_leads",
+    "Liderazgo": "qualified_leads",
+    "Claridad": "qualified_leads",
+}
+
+
+def _tag_to_metric(payload: dict) -> str:
+    return _TAG_METRIC_MAP.get(payload.get("tag_name", ""), "tag_applied")
+
+
+def _flow_to_metric(payload: dict) -> str:
+    flow_name = payload.get("flow_name", "")
+    if "BOFU" in flow_name.upper():
+        return "bofu_flows_triggered"
+    if "FollowUp" in flow_name or "Sequence" in flow_name:
+        return "sequences_sent"
+    return "flows_triggered"
+
+
+def _field_to_metric(payload: dict) -> str | None:
+    return (
+        "consultations" if payload.get("custom_field_name", "") == "Consultas" else None
+    )
+
+
+_EVENT_METRIC_HANDLERS: dict[str, Callable[[dict], str | None]] = {
+    "subscriber.new": lambda _: "new_subscribers",
+    "comment.trigger": lambda _: "comment_triggers",
+    "tag.applied": _tag_to_metric,
+    "flow.triggered": _flow_to_metric,
+    "field.updated": _field_to_metric,
+}
+
+
 def _event_to_metric_name(event_type: str, payload: dict) -> str | None:
     """Map ManyChat event type to a metric_name for staging_metrics."""
-    mapping = {
-        "subscriber.new": "new_subscribers",
-        "comment.trigger": "comment_triggers",
-    }
+    handler = _EVENT_METRIC_HANDLERS.get(event_type)
+    return handler(payload) if handler else None
 
-    if event_type == "tag.applied":
-        tag = payload.get("tag_name", "")
-        if tag == "Solicito_reunion":
-            return "meetings_requested"
-        if tag == "link_clicked":
-            return "link_clicks"
-        if tag in (
-            "quiz_started",
-            "Estrategia",
-            "Orden",
-            "Bienestar",
-            "Liderazgo",
-            "Claridad",
-        ):
-            return "qualified_leads"
-        return "tag_applied"
 
-    if event_type == "flow.triggered":
-        flow_name = payload.get("flow_name", "")
-        if "BOFU" in flow_name.upper():
-            return "bofu_flows_triggered"
-        if "FollowUp" in flow_name or "Sequence" in flow_name:
-            return "sequences_sent"
-        return "flows_triggered"
-
-    if event_type == "field.updated":
-        field = payload.get("custom_field_name", "")
-        if field == "Consultas":
-            return "consultations"
-        return None
-
-    return mapping.get(event_type)
+_EVENT_STAGE_HANDLERS: dict[str, Callable[[dict], str]] = {
+    "comment.trigger": lambda _: "attraction",
+    "subscriber.new": lambda _: "capture",
+    "tag.applied": lambda p: (
+        "opportunity" if p.get("tag_name", "") == "Solicito_reunion" else "nurture"
+    ),
+    "flow.triggered": lambda p: (
+        "opportunity" if "BOFU" in p.get("flow_name", "").upper() else "nurture"
+    ),
+    "field.updated": lambda _: "nurture",
+}
 
 
 def _event_to_stage(event_type: str, payload: dict) -> str | None:
     """Map ManyChat event to funnel stage."""
-    if event_type == "comment.trigger":
-        return "attraction"
-    if event_type == "subscriber.new":
-        return "capture"
-
-    if event_type == "tag.applied":
-        tag = payload.get("tag_name", "")
-        if tag == "Solicito_reunion":
-            return "opportunity"
-        return "nurture"
-
-    if event_type == "flow.triggered":
-        flow_name = payload.get("flow_name", "")
-        if "BOFU" in flow_name.upper():
-            return "opportunity"
-        return "nurture"
-
-    if event_type == "field.updated":
-        return "nurture"
-
-    return None
+    handler = _EVENT_STAGE_HANDLERS.get(event_type)
+    return handler(payload) if handler else None
 
 
 def _event_to_channel_suffix(event_type: str, payload: dict) -> str:
@@ -122,31 +122,19 @@ def _event_to_channel_suffix(event_type: str, payload: dict) -> str:
     return "ig"
 
 
-async def _handle_manychat_event(
-    db: Session, tenant_id: UUID, payload: dict, channel: str
-) -> None:
-    """Process a ManyChat webhook event into journey_events + official_metrics."""
-    from src.modules.analytics.application.services.manychat_metrics_promoter import (
-        ManyChatMetricsPromoter,
-    )
+def _resolve_manychat_profile(
+    db: Session, tenant_id: UUID, payload: dict, channel_slug: str
+):
+    """Resolve or create a customer profile from ManyChat subscriber data."""
     from src.modules.crm.application.services.customer_service import CustomerService
-    from src.modules.crm.application.services.lifecycle_service import LifecycleService
-    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
-    from src.shared.domain.datetime_utils import utc_today as date_cls_today
 
-    event_type = payload.get("event_type", "")
-    event_name = _MANYCHAT_EVENT_MAP.get(event_type, f"manychat_{event_type}")
-    channel_slug = _MANYCHAT_CHANNEL_SLUG.get(channel, "manychat-ig")
-
-    subscriber_id = payload.get("subscriber_id", "")
+    ig_username = payload.get("ig_username")
     email = payload.get("email")
     phone = payload.get("phone")
     first_name = payload.get("first_name", "")
     last_name = payload.get("last_name", "")
-    ig_username = payload.get("ig_username")
 
-    # 1. Identity resolution
-    # First, try to match by instagram_username trait (bridge Meta ↔ ManyChat).
+    # First, try to match by instagram_username trait (bridge Meta <-> ManyChat).
     # When a user sends a DM, Meta webhook arrives first (~100ms) and the
     # InstagramProfileEnricher sets traits.instagram_username on the profile.
     # ManyChat processes the same message ~1-3s later with ig_username.
@@ -189,7 +177,13 @@ async def _handle_manychat_event(
         if not profile.lead_source:
             profile.lead_source = channel_slug
 
-    # 2. Create journey_event
+    return profile
+
+
+def _build_manychat_event_properties(
+    payload: dict, subscriber_id: str, channel: str, event_type: str
+) -> dict[str, str | dict[str, str]]:
+    """Build journey_event properties dict from ManyChat payload."""
     properties: dict[str, str | dict[str, str]] = {
         "source": "manychat_webhook",
         "manychat_subscriber_id": subscriber_id,
@@ -206,66 +200,127 @@ async def _handle_manychat_event(
         properties["custom_field_value"] = payload.get("custom_field_value", "")
     if payload.get("custom_fields"):
         properties["custom_fields_snapshot"] = payload["custom_fields"]
+    return properties
 
-    if profile:
-        journey_event = JourneyEventModel(
+
+def _create_journey_events(
+    db: Session,
+    tenant_id: UUID,
+    profile,
+    event_name: str,
+    event_type: str,
+    properties: dict,
+    channel_slug: str,
+    channel: str,
+    subscriber_id: str,
+) -> None:
+    """Create journey_event(s) and recalculate lead score."""
+    from src.modules.crm.application.services.lifecycle_service import LifecycleService
+    from src.modules.crm.infrastructure.models.customer_model import JourneyEventModel
+
+    journey_event = JourneyEventModel(
+        profile_id=profile.id,
+        tenant_id=tenant_id,
+        event_name=event_name,
+        event_type="track",
+        properties=properties,
+    )
+    db.add(journey_event)
+
+    # Bridge: subscriber.new -> message_received for conversation counting.
+    if event_type == "subscriber.new":
+        msg_event = JourneyEventModel(
             profile_id=profile.id,
             tenant_id=tenant_id,
-            event_name=event_name,
+            event_name="message_received",
             event_type="track",
-            properties=properties,
+            properties={
+                "channel_slug": channel_slug,
+                "channel_type": channel,
+                "message_direction": "inbound",
+                "source": "manychat_webhook",
+                "manychat_subscriber_id": subscriber_id,
+            },
         )
-        db.add(journey_event)
+        db.add(msg_event)
 
-        # Bridge: subscriber.new → message_received for conversation counting.
-        # The capture dashboard counts conversations via journey_events where
-        # event_name='message_received', grouped by channel_slug. Without this,
-        # ManyChat leads show up but conversations show as 0.
-        if event_type == "subscriber.new":
-            msg_event = JourneyEventModel(
-                profile_id=profile.id,
-                tenant_id=tenant_id,
-                event_name="message_received",
-                event_type="track",
-                properties={
-                    "channel_slug": channel_slug,
-                    "channel_type": channel,
-                    "message_direction": "inbound",
-                    "source": "manychat_webhook",
-                    "manychat_subscriber_id": subscriber_id,
-                },
-            )
-            db.add(msg_event)
+    lifecycle_svc = LifecycleService(db)
+    lifecycle_svc.recalculate_score(profile.id, tenant_id)
 
-        # 3. Recalculate score
-        lifecycle_svc = LifecycleService(db)
-        lifecycle_svc.recalculate_score(profile.id, tenant_id)
 
-    # 4. Promote metric to official_metrics for Growth Studio
-    today = date_cls_today()
+def _promote_manychat_metric(
+    db: Session,
+    tenant_id: UUID,
+    event_type: str,
+    payload: dict,
+    channel_slug: str,
+    subscriber_id: str,
+) -> None:
+    """Promote ManyChat event to official_metrics for Growth Studio."""
+    from src.modules.analytics.application.services.manychat_metrics_promoter import (
+        ManyChatMetricsPromoter,
+    )
+    from src.shared.domain.datetime_utils import utc_today as date_cls_today
+
     metric_name = _event_to_metric_name(event_type, payload)
     stage_slug = _event_to_stage(event_type, payload)
+    if not metric_name or not stage_slug:
+        return
 
-    if metric_name and stage_slug:
-        resolved_channel = (
-            channel_slug
-            if stage_slug in ("capture", "attraction")
-            else f"manychat-{_event_to_channel_suffix(event_type, payload)}"
-        )
-        # For attraction stage, use the dedicated slug
-        if stage_slug == "attraction":
-            resolved_channel = "manychat-comments"
+    resolved_channel = (
+        channel_slug
+        if stage_slug in ("capture", "attraction")
+        else f"manychat-{_event_to_channel_suffix(event_type, payload)}"
+    )
+    # For attraction stage, use the dedicated slug
+    if stage_slug == "attraction":
+        resolved_channel = "manychat-comments"
 
-        promoter = ManyChatMetricsPromoter(db)
-        promoter.promote_event(
-            tenant_id=tenant_id,
-            channel_slug=resolved_channel,
-            metric_name=metric_name,
-            metric_date=today,
-            stage_slug=stage_slug,
-            value=1.0,
-            extra={"subscriber_id": subscriber_id, "event_type": event_type},
+    promoter = ManyChatMetricsPromoter(db)
+    promoter.promote_event(
+        tenant_id=tenant_id,
+        channel_slug=resolved_channel,
+        metric_name=metric_name,
+        metric_date=date_cls_today(),
+        stage_slug=stage_slug,
+        value=1.0,
+        extra={"subscriber_id": subscriber_id, "event_type": event_type},
+    )
+
+
+async def _handle_manychat_event(
+    db: Session, tenant_id: UUID, payload: dict, channel: str
+) -> None:
+    """Process a ManyChat webhook event into journey_events + official_metrics."""
+    event_type = payload.get("event_type", "")
+    event_name = _MANYCHAT_EVENT_MAP.get(event_type, f"manychat_{event_type}")
+    channel_slug = _MANYCHAT_CHANNEL_SLUG.get(channel, "manychat-ig")
+    subscriber_id = payload.get("subscriber_id", "")
+
+    # 1. Identity resolution
+    profile = _resolve_manychat_profile(db, tenant_id, payload, channel_slug)
+
+    # 2. Create journey_event(s) + recalculate score
+    if profile:
+        properties = _build_manychat_event_properties(
+            payload, subscriber_id, channel, event_type
         )
+        _create_journey_events(
+            db,
+            tenant_id,
+            profile,
+            event_name,
+            event_type,
+            properties,
+            channel_slug,
+            channel,
+            subscriber_id,
+        )
+
+    # 3. Promote metric to official_metrics for Growth Studio
+    _promote_manychat_metric(
+        db, tenant_id, event_type, payload, channel_slug, subscriber_id
+    )
 
     db.commit()
 

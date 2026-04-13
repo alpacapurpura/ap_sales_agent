@@ -114,6 +114,156 @@ def is_empty(model: BaseModel) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Merge helpers (used by _merge_and_save)
+# ---------------------------------------------------------------------------
+
+
+def _merge_simple_model(current: BaseModel | None, new: BaseModel | None) -> dict:
+    """Merge a new model's non-null fields into the current model's dict."""
+    existing = current.model_dump() if current else {}
+    if new:
+        new_dict = new.model_dump(exclude_unset=True, exclude_none=True)
+        existing.update(new_dict)
+    return existing
+
+
+def _merge_story(current: BrandStory | None, new: BrandStory) -> dict:
+    """Merge story — lists replace, scalars update."""
+    existing = current.model_dump() if current else {}
+    new_dict = new.model_dump(exclude_unset=True, exclude_none=True)
+    if new_dict.get("milestones"):
+        existing["milestones"] = new_dict.pop("milestones")
+    existing.update(new_dict)
+    return existing
+
+
+def _merge_strategy(current: BrandStrategy | None, new: BrandStrategy) -> dict:
+    """Merge strategy — lists replace, scalars update."""
+    existing = current.model_dump() if current else {}
+    new_dict = new.model_dump(exclude_unset=True, exclude_none=True)
+    for list_key in ("competitors", "methodology_pillars"):
+        if new_dict.get(list_key):
+            existing[list_key] = new_dict.pop(list_key)
+    existing.update(new_dict)
+    return existing
+
+
+def _parse_locations(raw_locations) -> list[str]:
+    """Normalize locations from LLM output (string, list, or other)."""
+    if isinstance(raw_locations, str):
+        return [loc.strip() for loc in raw_locations.split(",") if loc.strip()]
+    if isinstance(raw_locations, list):
+        return raw_locations
+    return [str(raw_locations)]
+
+
+def _merge_people(
+    current_team: list | None,
+    current_team_metadata: BrandTeam | None,
+    people_contact: BrandPeopleContactExtraction,
+) -> tuple[list | None, BrandTeam | None]:
+    """Merge team + team_metadata from people_contact extraction."""
+    updated_team = current_team
+    if people_contact.key_leadership:
+        updated_team = people_contact.key_leadership
+
+    updated_metadata = current_team_metadata
+    if people_contact.culture_vibe or people_contact.locations:
+        existing_meta = updated_metadata.model_dump() if updated_metadata else {}
+        if people_contact.culture_vibe:
+            existing_meta["culture_vibe"] = people_contact.culture_vibe
+        if people_contact.locations:
+            existing_meta["locations"] = _parse_locations(people_contact.locations)
+        updated_metadata = BrandTeam(**existing_meta)
+
+    return updated_team, updated_metadata
+
+
+def _merge_contact(
+    current: BrandContact | None, new: BrandContact | None
+) -> BrandContact | None:
+    """Merge contact — deep update existing or replace."""
+    if not new:
+        return current
+    if current:
+        existing_dict = current.model_dump()
+        new_dict = new.model_dump(exclude_unset=True, exclude_none=True)
+        existing_dict.update(new_dict)
+        return BrandContact(**existing_dict)
+    return new
+
+
+def _deep_merge_with_nested(
+    existing_dict: dict, new_dict: dict, list_fields: tuple, nested_fields: tuple
+) -> dict:
+    """Deep merge: lists replace, nested objects merge, rest updates."""
+    for list_field in list_fields:
+        if new_dict.get(list_field):
+            existing_dict[list_field] = new_dict.pop(list_field)
+    for nested in nested_fields:
+        if new_dict.get(nested):
+            existing_nested = existing_dict.get(nested) or {}
+            existing_nested.update(new_dict.pop(nested))
+            existing_dict[nested] = existing_nested
+    existing_dict.update(new_dict)
+    return existing_dict
+
+
+def _merge_positioning(
+    current: BrandPositioning | None, new: BrandPositioning | None
+) -> BrandPositioning | None:
+    """Merge positioning with deep merge for nested objects."""
+    if not new or is_empty(new):
+        return current
+    if not current:
+        return new
+    existing = current.model_dump()
+    new_dict = new.model_dump(exclude_unset=True, exclude_none=True)
+    _deep_merge_with_nested(
+        existing,
+        new_dict,
+        list_fields=("reasons_to_believe",),
+        nested_fields=("competitive_environment", "insight", "benefits", "values"),
+    )
+    return BrandPositioning(**existing)
+
+
+def _merge_narrative(
+    current: BrandNarrative | None, new: BrandNarrative | None
+) -> BrandNarrative | None:
+    """Merge narrative with deep merge for nested StoryBrand objects."""
+    if not new or is_empty(new):
+        return current
+    if not current:
+        return new
+    existing = current.model_dump()
+    new_dict = new.model_dump(exclude_unset=True, exclude_none=True)
+    _deep_merge_with_nested(
+        existing,
+        new_dict,
+        list_fields=("plan",),
+        nested_fields=("hero", "problem", "guide", "cta", "outcome"),
+    )
+    return BrandNarrative(**existing)
+
+
+def _merge_communication_assets(
+    current: CommunicationAssets | None, new: CommunicationAssets | None
+) -> CommunicationAssets | None:
+    """Merge communication assets — replace sub-collections if non-empty."""
+    if not new or is_empty(new):
+        return current
+    if not current:
+        return new
+    existing = current.model_dump()
+    new_dump = new.model_dump()
+    for key in ("creative_concepts", "assets", "custom_asset_types"):
+        if getattr(new, key):
+            existing[key] = new_dump[key]
+    return CommunicationAssets(**existing)
+
+
+# ---------------------------------------------------------------------------
 # ExtractionOrchestrator
 # ---------------------------------------------------------------------------
 
@@ -129,179 +279,78 @@ class ExtractionOrchestrator:
     def __init__(self, service: BrandExtractionService) -> None:
         self.service = service
 
-    async def run(
+    async def _crawl_content(
         self,
-        url: str | None = None,
-        text: str | None = None,
-        mode: Literal["initial", "update"] = "initial",
-        update_instructions: str | None = None,
-        dry_run: bool = False,
-        include_visuals: bool = False,
-        include_assets: bool = False,
-        progress_callback: Callable[[int, str], None] | None = None,
-        trace: ExtractionTraceCollector | None = None,
-    ) -> BrandSettings:
-        """Orchestrate the full brand extraction process.
-
-        include_visuals=True adds visual identity extraction (colors, fonts, design).
-        include_assets=True adds communication assets extraction (taglines, CTAs).
-        """
+        url: str,
+        include_visuals: bool,
+        progress_callback: Callable[[int, str], None] | None,
+        trace: ExtractionTraceCollector | None,
+    ) -> tuple[str, str]:
+        """Crawl URL content and optionally styles. Returns (content, visual_content)."""
         svc = self.service
-        # Store trace on service so _run_section can access it
-        svc._trace = trace
-
-        # 1. Get Content
-        content = text or ""
-        enriched_visual_content = ""
-        has_url = bool(url)
-
-        if url:
-            logger.info("starting_crawl", url=url)
-            if trace:
-                trace.crawl_start(url)
-
-            t0 = time.time()
-
-            async def safe_crawl() -> str:
-                try:
-                    return await svc.crawler.crawl_content(url)
-                except Exception as e:
-                    logger.error("crawl_failed", error=str(e))
-                    return ""
-
-            async def safe_crawl_styles() -> str:
-                try:
-                    return await svc.crawler.crawl_content_with_styles(url)
-                except Exception as e:
-                    logger.error("crawl_styles_failed", error=str(e))
-                    return ""
-
-            # Parallel: regular crawl (for text sections) + CSS-enriched crawl (only when visuals requested)
-            if include_visuals:
-                crawled_content, enriched_visual_content = await asyncio.gather(
-                    safe_crawl(), safe_crawl_styles()
-                )
-            else:
-                crawled_content = await safe_crawl()
-
-            t1 = time.time()
-            crawl_dur = t1 - t0
-            logger.info(
-                "parallel_crawl_completed",
-                duration=crawl_dur,
-                crawl_length=len(crawled_content),
-                enriched_length=len(enriched_visual_content),
-            )
-            if trace:
-                trace.crawl_end(
-                    crawl_dur,
-                    content_len=len(crawled_content),
-                    visual_len=len(enriched_visual_content),
-                )
-            if progress_callback:
-                progress_callback(10, "Escaneando sitio web...")
-
-            if crawled_content:
-                content = f"{content}\n\n{crawled_content}"
-
-        if not content.strip() and not update_instructions:
-            logger.warning("no_content_to_extract", tenant_id=svc.tenant_id)
-            return svc.repository.get_settings(svc.tenant_id)
-
-        logger.info("extraction_context_prepared", total_content_length=len(content))
-
-        # 2. Prepare Context (Current Data)
-        current_settings = svc.repository.get_settings(svc.tenant_id)
-        current_data_str = ""
-        if mode == "update":
-            current_data_str = json.dumps(
-                current_settings.model_dump(mode="json"), indent=2
-            )
-
-        logger.info(
-            "extraction_content_ready",
-            content_length=len(content),
-            current_data_length=len(current_data_str),
-        )
-
-        # 3. Run LLM extractions (wave strategy from profile)
-        waves = svc.profile.concurrency_waves
-        base_sections = (
-            6  # identity, story, strategy, people_contact, testimonials, authority
-        )
-        want_visuals = include_visuals and has_url and enriched_visual_content.strip()
-        total_sections = (
-            base_sections
-            + 2
-            + (1 if want_visuals else 0)
-            + (1 if include_assets else 0)
-        )
-        logger.info(
-            "starting_llm_extractions",
-            sections=total_sections,
-            waves=waves,
-            profile=svc.profile.name,
-        )
+        logger.info("starting_crawl", url=url)
         if trace:
-            trace.set_content_length(len(content))
-            trace.set_sections_total(total_sections)
+            trace.crawl_start(url)
 
-        extracted_visuals = None
-        positioning = BrandPositioning()
-        narrative = BrandNarrative()
-        communication_assets = CommunicationAssets()
+        t0 = time.time()
 
-        if waves >= 2:
-            (
-                extracted_visuals,
-                positioning,
-                narrative,
-                communication_assets,
-            ) = await self._run_multi_wave(
-                svc,
-                content,
-                current_data_str,
-                update_instructions,
-                enriched_visual_content,
-                want_visuals,
-                include_assets,
-                progress_callback,
-                trace,
+        async def safe_crawl() -> str:
+            try:
+                return await svc.crawler.crawl_content(url)
+            except Exception as e:
+                logger.error("crawl_failed", error=str(e))
+                return ""
+
+        async def safe_crawl_styles() -> str:
+            try:
+                return await svc.crawler.crawl_content_with_styles(url)
+            except Exception as e:
+                logger.error("crawl_styles_failed", error=str(e))
+                return ""
+
+        enriched_visual_content = ""
+        if include_visuals:
+            crawled_content, enriched_visual_content = await asyncio.gather(
+                safe_crawl(), safe_crawl_styles()
             )
         else:
-            (
-                extracted_visuals,
-                positioning,
-                narrative,
-                communication_assets,
-            ) = await self._run_single_wave(
-                svc,
-                content,
-                current_data_str,
-                update_instructions,
-                enriched_visual_content,
-                want_visuals,
-                include_assets,
-                progress_callback,
-                trace,
+            crawled_content = await safe_crawl()
+
+        crawl_dur = time.time() - t0
+        logger.info(
+            "parallel_crawl_completed",
+            duration=crawl_dur,
+            crawl_length=len(crawled_content),
+            enriched_length=len(enriched_visual_content),
+        )
+        if trace:
+            trace.crawl_end(
+                crawl_dur,
+                content_len=len(crawled_content),
+                visual_len=len(enriched_visual_content),
             )
+        if progress_callback:
+            progress_callback(10, "Escaneando sitio web...")
 
-        # Log extraction results summary
-        # Retrieve the per-section results that were set during wave execution
-        identity = self._last_identity
-        story = self._last_story
-        strategy = self._last_strategy
-        people_contact = self._last_people_contact
-        testimonials_data = self._last_testimonials
-        authority_data = self._last_authority
+        return crawled_content, enriched_visual_content
 
+    def _log_extraction_summary(
+        self,
+        positioning,
+        narrative,
+        communication_assets,
+        extracted_visuals,
+        include_assets: bool,
+        total_sections: int,
+    ) -> int:
+        """Log extraction results and return succeeded count."""
         results = {
-            "identity": not is_empty(identity),
-            "story": not is_empty(story),
-            "strategy": not is_empty(strategy),
-            "people_contact": not is_empty(people_contact),
-            "testimonials": not is_empty(testimonials_data),
-            "authority": not is_empty(authority_data),
+            "identity": not is_empty(self._last_identity),
+            "story": not is_empty(self._last_story),
+            "strategy": not is_empty(self._last_strategy),
+            "people_contact": not is_empty(self._last_people_contact),
+            "testimonials": not is_empty(self._last_testimonials),
+            "authority": not is_empty(self._last_authority),
             "positioning": not is_empty(positioning),
             "narrative": not is_empty(narrative),
         }
@@ -316,18 +365,106 @@ class ExtractionOrchestrator:
             succeeded=succeeded,
             total=total_sections,
         )
+        return succeeded
+
+    async def run(
+        self,
+        url: str | None = None,
+        text: str | None = None,
+        mode: Literal["initial", "update"] = "initial",
+        update_instructions: str | None = None,
+        dry_run: bool = False,
+        include_visuals: bool = False,
+        include_assets: bool = False,
+        progress_callback: Callable[[int, str], None] | None = None,
+        trace: ExtractionTraceCollector | None = None,
+    ) -> BrandSettings:
+        """Orchestrate the full brand extraction process."""
+        svc = self.service
+        svc._trace = trace
+
+        # 1. Get Content
+        content = text or ""
+        enriched_visual_content = ""
+        has_url = bool(url)
+
+        if url:
+            crawled_content, enriched_visual_content = await self._crawl_content(
+                url, include_visuals, progress_callback, trace
+            )
+            if crawled_content:
+                content = f"{content}\n\n{crawled_content}"
+
+        if not content.strip() and not update_instructions:
+            logger.warning("no_content_to_extract", tenant_id=svc.tenant_id)
+            return svc.repository.get_settings(svc.tenant_id)
+
+        logger.info("extraction_context_prepared", total_content_length=len(content))
+
+        # 2. Prepare Context (Current Data)
+        current_data_str = ""
+        if mode == "update":
+            current_settings = svc.repository.get_settings(svc.tenant_id)
+            current_data_str = json.dumps(
+                current_settings.model_dump(mode="json"), indent=2
+            )
+
+        logger.info(
+            "extraction_content_ready",
+            content_length=len(content),
+            current_data_length=len(current_data_str),
+        )
+
+        # 3. Run LLM extractions (wave strategy from profile)
+        waves = svc.profile.concurrency_waves
+        want_visuals = (
+            include_visuals and has_url and bool(enriched_visual_content.strip())
+        )
+        total_sections = 8 + (1 if want_visuals else 0) + (1 if include_assets else 0)
+        logger.info(
+            "starting_llm_extractions",
+            sections=total_sections,
+            waves=waves,
+            profile=svc.profile.name,
+        )
+        if trace:
+            trace.set_content_length(len(content))
+            trace.set_sections_total(total_sections)
+
+        wave_fn = self._run_multi_wave if waves >= 2 else self._run_single_wave
+        extracted_visuals, positioning, narrative, communication_assets = await wave_fn(
+            svc,
+            content,
+            current_data_str,
+            update_instructions,
+            enriched_visual_content,
+            want_visuals,
+            include_assets,
+            progress_callback,
+            trace,
+        )
+
+        # Log extraction results summary
+        succeeded = self._log_extraction_summary(
+            positioning,
+            narrative,
+            communication_assets,
+            extracted_visuals,
+            include_assets,
+            total_sections,
+        )
 
         # 4. Merge & Save
         if trace:
             trace.merge_start()
         merge_t0 = time.time()
         result = self._merge_and_save(
-            identity,
-            story,
-            strategy,
-            people_contact,
-            testimonials_data,
-            authority_data,
+            self._last_identity,
+            self._last_story,
+            self._last_strategy,
+            self._last_people_contact,
+            self._last_testimonials,
+            self._last_authority,
             extracted_visuals,
             new_positioning=positioning,
             new_narrative=narrative,
@@ -343,6 +480,95 @@ class ExtractionOrchestrator:
     # ------------------------------------------------------------------
     # Wave execution strategies
     # ------------------------------------------------------------------
+
+    async def _run_wave(
+        self,
+        wave_num: int,
+        sections: list[str],
+        coros: list,
+        svc: BrandExtractionService,
+        trace: ExtractionTraceCollector | None,
+    ) -> list:
+        """Execute a single wave of concurrent extractions with logging."""
+        logger.info("extraction_wave_starting", wave=wave_num, sections=sections)
+        if trace:
+            trace.wave_start(wave_num, sections)
+        return await asyncio.gather(*coros)
+
+    async def _pause_between_waves(
+        self,
+        wave_num: int,
+        svc: BrandExtractionService,
+        trace: ExtractionTraceCollector | None,
+    ) -> None:
+        """Pause between waves to let TPM budget recover."""
+        logger.info("extraction_wave_pause", delay=svc.profile.wave_delay_seconds)
+        if trace:
+            trace.wave_pause(wave_num, svc.profile.wave_delay_seconds)
+        await asyncio.sleep(svc.profile.wave_delay_seconds)
+
+    async def _extract_assets_if_requested(
+        self,
+        svc: BrandExtractionService,
+        include_assets: bool,
+        content: str,
+        current_data_str: str,
+        update_instructions: str | None,
+        positioning,
+        narrative,
+        wave_num: int | None = None,
+        trace: ExtractionTraceCollector | None = None,
+    ) -> CommunicationAssets:
+        """Extract communication assets if requested, otherwise return empty."""
+        if not include_assets:
+            return CommunicationAssets()
+
+        if wave_num:
+            await self._pause_between_waves(wave_num, svc, trace)
+
+        positioning_ctx = (
+            json.dumps(positioning.model_dump(exclude_none=True), indent=2)
+            if not is_empty(positioning)
+            else ""
+        )
+        narrative_ctx = (
+            json.dumps(narrative.model_dump(exclude_none=True), indent=2)
+            if not is_empty(narrative)
+            else ""
+        )
+
+        next_wave = (wave_num or 0) + 1
+        logger.info(
+            "extraction_wave_starting",
+            wave=next_wave,
+            sections=["communication_assets"],
+        )
+        if trace:
+            trace.wave_start(next_wave, ["communication_assets"])
+        return await svc._extract_communication_assets(
+            content,
+            current_data_str,
+            update_instructions,
+            positioning_ctx,
+            narrative_ctx,
+        )
+
+    def _store_section_results(
+        self,
+        identity,
+        story,
+        strategy,
+        people_contact,
+        testimonials_data,
+        authority_data,
+    ) -> None:
+        """Store per-section results for summary logging."""
+        self._last_identity = identity
+        self._last_story = story
+        self._last_strategy = strategy
+        self._last_people_contact = people_contact
+        self._last_testimonials = testimonials_data
+        self._last_authority = authority_data
 
     async def _run_multi_wave(
         self,
@@ -373,10 +599,7 @@ class ExtractionOrchestrator:
                 )
             )
 
-        logger.info("extraction_wave_starting", wave=1, sections=wave1_sections)
-        if trace:
-            trace.wave_start(1, wave1_sections)
-        wave1_results = await asyncio.gather(*wave1_coros)
+        wave1_results = await self._run_wave(1, wave1_sections, wave1_coros, svc, trace)
         identity, story, testimonials_data = (
             wave1_results[0],
             wave1_results[1],
@@ -386,84 +609,61 @@ class ExtractionOrchestrator:
         if progress_callback:
             progress_callback(45, "Analizando identidad y narrativa...")
 
-        # Pause between waves to let TPM budget recover
-        logger.info("extraction_wave_pause", delay=svc.profile.wave_delay_seconds)
-        if trace:
-            trace.wave_pause(1, svc.profile.wave_delay_seconds)
-        await asyncio.sleep(svc.profile.wave_delay_seconds)
-
         # Wave 2: strategy, people_contact, authority
-        wave2_sections = ["strategy", "people_contact", "authority"]
-        logger.info("extraction_wave_starting", wave=2, sections=wave2_sections)
-        if trace:
-            trace.wave_start(2, wave2_sections)
-        strategy, people_contact, authority_data = await asyncio.gather(
-            svc._extract_strategy(content, current_data_str, update_instructions),
-            svc._extract_people_contact(content, current_data_str, update_instructions),
-            svc._extract_authority(content, current_data_str, update_instructions),
+        await self._pause_between_waves(1, svc, trace)
+        wave2_results = await self._run_wave(
+            2,
+            ["strategy", "people_contact", "authority"],
+            [
+                svc._extract_strategy(content, current_data_str, update_instructions),
+                svc._extract_people_contact(
+                    content, current_data_str, update_instructions
+                ),
+                svc._extract_authority(content, current_data_str, update_instructions),
+            ],
+            svc,
+            trace,
         )
+        strategy, people_contact, authority_data = wave2_results
         if progress_callback:
             progress_callback(65, "Extrayendo estrategia...")
 
         # Wave 3: positioning, narrative
-        logger.info("extraction_wave_pause", delay=svc.profile.wave_delay_seconds)
-        if trace:
-            trace.wave_pause(2, svc.profile.wave_delay_seconds)
-        await asyncio.sleep(svc.profile.wave_delay_seconds)
-
-        wave3_sections = ["positioning", "narrative"]
-        logger.info("extraction_wave_starting", wave=3, sections=wave3_sections)
-        if trace:
-            trace.wave_start(3, wave3_sections)
-        positioning, narrative = await asyncio.gather(
-            svc._extract_positioning(content, current_data_str, update_instructions),
-            svc._extract_narrative(content, current_data_str, update_instructions),
+        await self._pause_between_waves(2, svc, trace)
+        wave3_results = await self._run_wave(
+            3,
+            ["positioning", "narrative"],
+            [
+                svc._extract_positioning(
+                    content, current_data_str, update_instructions
+                ),
+                svc._extract_narrative(content, current_data_str, update_instructions),
+            ],
+            svc,
+            trace,
         )
+        positioning, narrative = wave3_results
         if progress_callback:
             progress_callback(85, "Extrayendo posicionamiento y narrativa...")
 
-        # Wave 4: communication_assets (depends on positioning + narrative) — only if requested
-        communication_assets = CommunicationAssets()
-        if include_assets:
-            logger.info("extraction_wave_pause", delay=svc.profile.wave_delay_seconds)
-            if trace:
-                trace.wave_pause(3, svc.profile.wave_delay_seconds)
-            await asyncio.sleep(svc.profile.wave_delay_seconds)
-
-            positioning_ctx = (
-                json.dumps(positioning.model_dump(exclude_none=True), indent=2)
-                if not is_empty(positioning)
-                else ""
-            )
-            narrative_ctx = (
-                json.dumps(narrative.model_dump(exclude_none=True), indent=2)
-                if not is_empty(narrative)
-                else ""
-            )
-
-            logger.info(
-                "extraction_wave_starting", wave=4, sections=["communication_assets"]
-            )
-            if trace:
-                trace.wave_start(4, ["communication_assets"])
-            communication_assets = await svc._extract_communication_assets(
-                content,
-                current_data_str,
-                update_instructions,
-                positioning_ctx,
-                narrative_ctx,
-            )
+        # Wave 4: communication_assets (depends on positioning + narrative)
+        communication_assets = await self._extract_assets_if_requested(
+            svc,
+            include_assets,
+            content,
+            current_data_str,
+            update_instructions,
+            positioning,
+            narrative,
+            wave_num=3,
+            trace=trace,
+        )
         if progress_callback:
             progress_callback(95, "Finalizando extraccion...")
 
-        # Store per-section results for summary logging
-        self._last_identity = identity
-        self._last_story = story
-        self._last_strategy = strategy
-        self._last_people_contact = people_contact
-        self._last_testimonials = testimonials_data
-        self._last_authority = authority_data
-
+        self._store_section_results(
+            identity, story, strategy, people_contact, testimonials_data, authority_data
+        )
         return extracted_visuals, positioning, narrative, communication_assets
 
     async def _run_single_wave(
@@ -490,10 +690,6 @@ class ExtractionOrchestrator:
             "positioning",
             "narrative",
         ]
-        if want_visuals:
-            all_sections.append("visuals")
-        if trace:
-            trace.wave_start(1, all_sections)
         coros = [
             svc._extract_identity(content, current_data_str, update_instructions),
             svc._extract_story(content, current_data_str, update_instructions),
@@ -505,12 +701,14 @@ class ExtractionOrchestrator:
             svc._extract_narrative(content, current_data_str, update_instructions),
         ]
         if want_visuals:
+            all_sections.append("visuals")
             coros.append(
                 svc._extract_visuals(
                     enriched_visual_content, current_data_str, update_instructions
                 )
             )
-        all_results = await asyncio.gather(*coros)
+
+        all_results = await self._run_wave(1, all_sections, coros, svc, trace)
         identity, story, strategy, people_contact, testimonials_data, authority_data = (
             all_results[:6]
         )
@@ -519,44 +717,28 @@ class ExtractionOrchestrator:
         if progress_callback:
             progress_callback(80, "Extrayendo secciones...")
 
-        # Communication assets depend on positioning + narrative — only if requested
-        communication_assets = CommunicationAssets()
-        if include_assets:
-            positioning_ctx = (
-                json.dumps(positioning.model_dump(exclude_none=True), indent=2)
-                if not is_empty(positioning)
-                else ""
-            )
-            narrative_ctx = (
-                json.dumps(narrative.model_dump(exclude_none=True), indent=2)
-                if not is_empty(narrative)
-                else ""
-            )
-            communication_assets = await svc._extract_communication_assets(
-                content,
-                current_data_str,
-                update_instructions,
-                positioning_ctx,
-                narrative_ctx,
-            )
+        communication_assets = await self._extract_assets_if_requested(
+            svc,
+            include_assets,
+            content,
+            current_data_str,
+            update_instructions,
+            positioning,
+            narrative,
+        )
         if progress_callback:
             progress_callback(95, "Finalizando extraccion...")
 
-        # Store per-section results for summary logging
-        self._last_identity = identity
-        self._last_story = story
-        self._last_strategy = strategy
-        self._last_people_contact = people_contact
-        self._last_testimonials = testimonials_data
-        self._last_authority = authority_data
-
+        self._store_section_results(
+            identity, story, strategy, people_contact, testimonials_data, authority_data
+        )
         return extracted_visuals, positioning, narrative, communication_assets
 
     # ------------------------------------------------------------------
     # Merge & Save
     # ------------------------------------------------------------------
 
-    def _merge_and_save(  # noqa: C901
+    def _merge_and_save(
         self,
         new_identity: BrandIdentity,
         new_story: BrandStory,
@@ -574,171 +756,30 @@ class ExtractionOrchestrator:
         svc = self.service
         current_settings = svc.repository.get_settings(svc.tenant_id)
 
-        # Merge Identity (Update non-null fields)
-        updated_identity = (
-            current_settings.identity.model_dump() if current_settings.identity else {}
+        updated_identity = _merge_simple_model(current_settings.identity, new_identity)
+        updated_story = _merge_story(current_settings.story, new_story)
+        updated_strategy = _merge_strategy(current_settings.strategy, new_strategy)
+        updated_team, updated_team_metadata = _merge_people(
+            current_settings.team, current_settings.team_metadata, new_people_contact
         )
-        new_identity_dict = new_identity.model_dump(
-            exclude_unset=True, exclude_none=True
+        updated_contact = _merge_contact(
+            current_settings.contact, new_people_contact.contact
         )
-        updated_identity.update(new_identity_dict)
-
-        # Merge Story
-        updated_story = (
-            current_settings.story.model_dump() if current_settings.story else {}
+        updated_testimonials = new_testimonials.testimonials or (
+            current_settings.testimonials or []
         )
-        new_story_dict = new_story.model_dump(exclude_unset=True, exclude_none=True)
-        if new_story_dict.get("milestones"):
-            updated_story["milestones"] = new_story_dict["milestones"]
-            del new_story_dict["milestones"]
-        updated_story.update(new_story_dict)
-
-        # Merge Strategy
-        updated_strategy = (
-            current_settings.strategy.model_dump() if current_settings.strategy else {}
+        updated_authority = new_authority.authority_vault or (
+            current_settings.authority_vault or []
         )
-        new_strategy_dict = new_strategy.model_dump(
-            exclude_unset=True, exclude_none=True
+        updated_visuals = _merge_simple_model(current_settings.visuals, new_visuals)
+        updated_positioning = _merge_positioning(
+            current_settings.positioning, new_positioning
         )
-        if new_strategy_dict.get("competitors"):
-            updated_strategy["competitors"] = new_strategy_dict["competitors"]
-            del new_strategy_dict["competitors"]
-        if new_strategy_dict.get("methodology_pillars"):
-            updated_strategy["methodology_pillars"] = new_strategy_dict[
-                "methodology_pillars"
-            ]
-            del new_strategy_dict["methodology_pillars"]
-        updated_strategy.update(new_strategy_dict)
-
-        # Merge Team (from people_contact)
-        updated_team = current_settings.team
-        if new_people_contact.key_leadership:
-            updated_team = new_people_contact.key_leadership
-
-        # Merge team_metadata (culture_vibe, locations)
-        updated_team_metadata = current_settings.team_metadata
-        if new_people_contact.culture_vibe or new_people_contact.locations:
-            existing_meta = (
-                updated_team_metadata.model_dump() if updated_team_metadata else {}
-            )
-            if new_people_contact.culture_vibe:
-                existing_meta["culture_vibe"] = new_people_contact.culture_vibe
-            if new_people_contact.locations:
-                # BrandTeam.locations expects List[str], but LLM may return a plain string
-                raw_locations = new_people_contact.locations
-                if isinstance(raw_locations, str):
-                    existing_meta["locations"] = [
-                        loc.strip() for loc in raw_locations.split(",") if loc.strip()
-                    ]
-                elif isinstance(raw_locations, list):
-                    existing_meta["locations"] = raw_locations
-                else:
-                    existing_meta["locations"] = [str(raw_locations)]
-            updated_team_metadata = BrandTeam(**existing_meta)
-
-        # Merge Contact (from people_contact)
-        updated_contact = current_settings.contact
-        if new_people_contact.contact:
-            if updated_contact:
-                existing_contact_dict = updated_contact.model_dump()
-                new_contact_dict = new_people_contact.contact.model_dump(
-                    exclude_unset=True, exclude_none=True
-                )
-                existing_contact_dict.update(new_contact_dict)
-                updated_contact = BrandContact(**existing_contact_dict)
-            else:
-                updated_contact = new_people_contact.contact
-
-        # Merge Testimonials (replace if non-empty)
-        updated_testimonials = current_settings.testimonials or []
-        if new_testimonials.testimonials:
-            updated_testimonials = new_testimonials.testimonials
-
-        # Merge Authority (replace if non-empty)
-        updated_authority = current_settings.authority_vault or []
-        if new_authority.authority_vault:
-            updated_authority = new_authority.authority_vault
-
-        # Merge Visuals
-        updated_visuals = (
-            current_settings.visuals.model_dump() if current_settings.visuals else {}
+        updated_narrative = _merge_narrative(current_settings.narrative, new_narrative)
+        updated_comm_assets = _merge_communication_assets(
+            current_settings.communication_assets, new_communication_assets
         )
-        if new_visuals:
-            new_visuals_dict = new_visuals.model_dump(
-                exclude_unset=True, exclude_none=True
-            )
-            updated_visuals.update(new_visuals_dict)
 
-        # Merge Positioning (deep merge — preserve existing if new is None/empty)
-        updated_positioning = current_settings.positioning
-        if new_positioning and not is_empty(new_positioning):
-            if updated_positioning:
-                existing_pos = updated_positioning.model_dump()
-                new_pos = new_positioning.model_dump(
-                    exclude_unset=True, exclude_none=True
-                )
-                # Lists replace if non-empty
-                for list_field in ("reasons_to_believe",):
-                    if new_pos.get(list_field):
-                        existing_pos[list_field] = new_pos.pop(list_field)
-                # Nested objects: deep merge
-                for nested in (
-                    "competitive_environment",
-                    "insight",
-                    "benefits",
-                    "values",
-                ):
-                    if new_pos.get(nested):
-                        existing_nested = existing_pos.get(nested) or {}
-                        existing_nested.update(new_pos.pop(nested))
-                        existing_pos[nested] = existing_nested
-                existing_pos.update(new_pos)
-                updated_positioning = BrandPositioning(**existing_pos)
-            else:
-                updated_positioning = new_positioning
-
-        # Merge Narrative (deep merge)
-        updated_narrative = current_settings.narrative
-        if new_narrative and not is_empty(new_narrative):
-            if updated_narrative:
-                existing_narr = updated_narrative.model_dump()
-                new_narr = new_narrative.model_dump(
-                    exclude_unset=True, exclude_none=True
-                )
-                if new_narr.get("plan"):
-                    existing_narr["plan"] = new_narr.pop("plan")
-                for nested in ("hero", "problem", "guide", "cta", "outcome"):
-                    if new_narr.get(nested):
-                        existing_nested = existing_narr.get(nested) or {}
-                        existing_nested.update(new_narr.pop(nested))
-                        existing_narr[nested] = existing_nested
-                existing_narr.update(new_narr)
-                updated_narrative = BrandNarrative(**existing_narr)
-            else:
-                updated_narrative = new_narrative
-
-        # Merge Communication Assets (replace concepts and assets if non-empty)
-        updated_comm_assets = current_settings.communication_assets
-        if new_communication_assets and not is_empty(new_communication_assets):
-            if updated_comm_assets:
-                existing_ca = updated_comm_assets.model_dump()
-                if new_communication_assets.creative_concepts:
-                    existing_ca["creative_concepts"] = (
-                        new_communication_assets.model_dump()["creative_concepts"]
-                    )
-                if new_communication_assets.assets:
-                    existing_ca["assets"] = new_communication_assets.model_dump()[
-                        "assets"
-                    ]
-                if new_communication_assets.custom_asset_types:
-                    existing_ca["custom_asset_types"] = (
-                        new_communication_assets.model_dump()["custom_asset_types"]
-                    )
-                updated_comm_assets = CommunicationAssets(**existing_ca)
-            else:
-                updated_comm_assets = new_communication_assets
-
-        # Construct new Settings
         final_settings = current_settings.model_copy(
             update={
                 "identity": BrandIdentity(**updated_identity),

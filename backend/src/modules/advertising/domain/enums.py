@@ -82,6 +82,12 @@ def objective_label_es(objective: str | None) -> str:
     return _OBJECTIVE_LABELS_ES.get(objective.upper(), objective)
 
 
+_ACTION_METRIC_MAP: dict[str, OfferExpectedMetric] = {
+    "BOOK_KICKOFF_CALL": OfferExpectedMetric.CALL_BOOKED,
+    "FILL_INTAKE_FORM": OfferExpectedMetric.FORM_SUBMIT,
+}
+
+
 def resolve_expected_metric(
     archetype: str | None,
     onboarding_action: str | None,
@@ -95,21 +101,24 @@ def resolve_expected_metric(
     the presence of a checkout URL differentiates PURCHASE vs lead-like
     outcomes.
     """
-    normalized_archetype = (archetype or "").strip().upper()
-    normalized_action = (onboarding_action or "").strip().upper() or None
-
     if is_lead_magnet:
         return OfferExpectedMetric.LEAD
-    if normalized_action == "BOOK_KICKOFF_CALL":
-        return OfferExpectedMetric.CALL_BOOKED
-    if normalized_action == "FILL_INTAKE_FORM":
-        return OfferExpectedMetric.FORM_SUBMIT
-    if normalized_action == "JOIN_COMMUNITY" and not has_checkout_url:
-        return OfferExpectedMetric.LEAD
+
+    normalized_action = (onboarding_action or "").strip().upper() or None
+    if normalized_action:
+        mapped = _ACTION_METRIC_MAP.get(normalized_action)
+        if mapped:
+            return mapped
+        if normalized_action == "JOIN_COMMUNITY" and not has_checkout_url:
+            return OfferExpectedMetric.LEAD
+
+    normalized_archetype = (archetype or "").strip().upper()
     if has_checkout_url:
-        if normalized_archetype == "MEMBRESIA":
-            return OfferExpectedMetric.SUBSCRIPTION
-        return OfferExpectedMetric.PURCHASE
+        return (
+            OfferExpectedMetric.SUBSCRIPTION
+            if normalized_archetype == "MEMBRESIA"
+            else OfferExpectedMetric.PURCHASE
+        )
     if normalized_archetype == "SERVICIO":
         return OfferExpectedMetric.MESSAGE
     return OfferExpectedMetric.LEAD

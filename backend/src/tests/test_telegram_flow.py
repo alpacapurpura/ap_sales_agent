@@ -106,7 +106,7 @@ def cleanup_test_data(db):
     db.commit()
 
 
-class TestStep1_IdentityResolution:
+class TestStep1IdentityResolution:
     """Step 1: IdentityType mapping from channel_type string."""
 
     def test_telegram_maps_to_identity_type(self):
@@ -133,7 +133,7 @@ class TestStep1_IdentityResolution:
             assert identity_type == IdentityType.EXTERNAL_ID
 
 
-class TestStep2_CustomerProfileCreation:
+class TestStep2CustomerProfileCreation:
     """Step 2: get_or_create_customer — creates CustomerProfile + CustomerIdentity."""
 
     def test_create_new_customer_via_identity_service(self, db, cleanup_test_data):
@@ -224,7 +224,7 @@ class TestStep2_CustomerProfileCreation:
         assert profile.lifecycle_stage == LifecycleStage.SUBSCRIBER
 
 
-class TestStep3_LeadCreation:
+class TestStep3LeadCreation:
     """Step 3: get_active_lead / create_lead — Lead linked to Customer."""
 
     def test_create_lead_for_new_customer(self, db, cleanup_test_data):
@@ -284,7 +284,7 @@ class TestStep3_LeadCreation:
         assert lead1.id == lead2.id, "Should return same lead, not create duplicate"
 
 
-class TestStep4_AuditLogging:
+class TestStep4AuditLogging:
     """Step 4: Message logging in audit repository."""
 
     def test_log_and_retrieve_message(self, db, cleanup_test_data):
@@ -325,7 +325,7 @@ class TestStep4_AuditLogging:
         assert len(history) >= 1
 
 
-class TestStep5_FullFlowIntegration:
+class TestStep5FullFlowIntegration:
     """Step 5: Full flow simulation (everything before agent invocation)."""
 
     def test_complete_pre_agent_flow(self, db, cleanup_test_data):

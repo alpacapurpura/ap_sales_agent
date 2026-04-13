@@ -96,75 +96,14 @@ class CopilotOrchestrator:
         try:
             yield SSEEvent(event="status", data={"state": "streaming"}).to_sse()
 
-            # Use astream_events for granular streaming
             async for event in copilot_graph.astream_events(state, version="v2"):
-                kind = event.get("event")
-
-                # Stream text chunks from the LLM
-                if kind == "on_chat_model_stream":
-                    chunk = event.get("data", {}).get("chunk")
-                    if chunk and hasattr(chunk, "content") and chunk.content:
-                        full_response += chunk.content
-                        yield SSEEvent(
-                            event="text_chunk",
-                            data={"content": chunk.content},
-                        ).to_sse()
-
-                # Capture complete AIMessages (with tool_calls)
-                elif kind == "on_chat_model_end":
-                    output = event.get("data", {}).get("output")
-                    if isinstance(output, AIMessage):
-                        accumulated_messages.append(output)
-                        if output.tool_calls:
-                            for tc in output.tool_calls:
-                                last_tool_call_ids[tc["name"]] = tc["id"]
-
-                # Tool execution events
-                elif kind == "on_tool_start":
-                    tool_name = event.get("name", "unknown")
-                    tool_input = event.get("data", {}).get("input", {})
-                    yield SSEEvent(
-                        event="tool_start",
-                        data={"tool": tool_name, "args": tool_input},
-                    ).to_sse()
-
-                elif kind == "on_tool_end":
-                    tool_name = event.get("name", "unknown")
-                    tool_output = event.get("data", {}).get("output", "")
-
-                    # Capture ToolMessage for persistence
-                    if isinstance(tool_output, ToolMessage):
-                        accumulated_messages.append(tool_output)
-                    elif isinstance(tool_output, str):
-                        tool_call_id = last_tool_call_ids.pop(tool_name, "")
-                        accumulated_messages.append(
-                            ToolMessage(
-                                content=tool_output,
-                                name=tool_name,
-                                tool_call_id=tool_call_id,
-                            )
-                        )
-
-                    yield SSEEvent(
-                        event="tool_result",
-                        data={
-                            "tool": tool_name,
-                            "result": str(tool_output)[:500],
-                        },
-                    ).to_sse()
-
-                    # If tool result contains a ui_action, emit it
-                    parsed = tool_output if isinstance(tool_output, dict) else None
-                    if not parsed and isinstance(tool_output, str):
-                        try:
-                            parsed = json.loads(tool_output)
-                        except (json.JSONDecodeError, ValueError):
-                            parsed = None
-                    if isinstance(parsed, dict) and "ui_action" in parsed:
-                        yield SSEEvent(
-                            event="ui_action",
-                            data=parsed["ui_action"],
-                        ).to_sse()
+                sse_event, text_chunk = self._process_stream_event(
+                    event, accumulated_messages, last_tool_call_ids
+                )
+                if text_chunk:
+                    full_response += text_chunk
+                if sse_event:
+                    yield sse_event
 
         except Exception as e:
             logger.error("copilot_stream_error", error=str(e), conversation_id=conv_id)
@@ -178,32 +117,140 @@ class CopilotOrchestrator:
             accumulated_messages = []
 
         # 6. Persist messages (full chain including tool_calls)
-        if full_response or accumulated_messages:
-            new_messages = self._serialize_messages(
-                [HumanMessage(content=message), *accumulated_messages]
-            )
-            # Fallback: if no accumulated messages, persist simple format
-            if not accumulated_messages:
-                new_messages = [
-                    {"role": "user", "content": message},
-                    {"role": "assistant", "content": full_response},
-                ]
-
-            self.conv_repo.append_messages(conv_uuid, tenant_id, new_messages)
-
-            # Auto-title on first message
-            if not existing_conv.title and message:
-                title = message[:80] + ("..." if len(message) > 80 else "")
-                self.conv_repo.update_title(conv_uuid, tenant_id, title)
-
-            self.db.commit()
-
-            # Cache in Redis for fast access
-            self._cache_history(conv_id, tenant_id, new_messages)
+        self._persist_messages(
+            conv_uuid,
+            tenant_id,
+            conv_id,
+            message,
+            full_response,
+            accumulated_messages,
+            existing_conv,
+        )
 
         # 7. Emit done
         yield SSEEvent(event="status", data={"state": "done"}).to_sse()
         yield SSEEvent(event="done", data={"conversation_id": conv_id}).to_sse()
+
+    def _process_stream_event(
+        self,
+        event: dict,
+        accumulated_messages: list,
+        last_tool_call_ids: dict[str, str],
+    ) -> tuple[str | None, str | None]:
+        """Process a single LangGraph stream event.
+
+        Returns (sse_string | None, text_chunk | None).
+        """
+        kind = event.get("event")
+
+        if kind == "on_chat_model_stream":
+            chunk = event.get("data", {}).get("chunk")
+            if chunk and hasattr(chunk, "content") and chunk.content:
+                return (
+                    SSEEvent(
+                        event="text_chunk", data={"content": chunk.content}
+                    ).to_sse(),
+                    chunk.content,
+                )
+            return None, None
+
+        if kind == "on_chat_model_end":
+            output = event.get("data", {}).get("output")
+            if isinstance(output, AIMessage):
+                accumulated_messages.append(output)
+                if output.tool_calls:
+                    for tc in output.tool_calls:
+                        last_tool_call_ids[tc["name"]] = tc["id"]
+            return None, None
+
+        if kind == "on_tool_start":
+            tool_name = event.get("name", "unknown")
+            tool_input = event.get("data", {}).get("input", {})
+            return (
+                SSEEvent(
+                    event="tool_start", data={"tool": tool_name, "args": tool_input}
+                ).to_sse(),
+                None,
+            )
+
+        if kind == "on_tool_end":
+            return self._handle_tool_end(
+                event, accumulated_messages, last_tool_call_ids
+            ), None
+
+        return None, None
+
+    def _handle_tool_end(
+        self,
+        event: dict,
+        accumulated_messages: list,
+        last_tool_call_ids: dict[str, str],
+    ) -> str:
+        """Handle on_tool_end event: capture ToolMessage and emit SSE events."""
+        tool_name = event.get("name", "unknown")
+        tool_output = event.get("data", {}).get("output", "")
+
+        if isinstance(tool_output, ToolMessage):
+            accumulated_messages.append(tool_output)
+        elif isinstance(tool_output, str):
+            tool_call_id = last_tool_call_ids.pop(tool_name, "")
+            accumulated_messages.append(
+                ToolMessage(
+                    content=tool_output, name=tool_name, tool_call_id=tool_call_id
+                )
+            )
+
+        result_sse = SSEEvent(
+            event="tool_result",
+            data={"tool": tool_name, "result": str(tool_output)[:500]},
+        ).to_sse()
+
+        # If tool result contains a ui_action, emit it
+        parsed = tool_output if isinstance(tool_output, dict) else None
+        if not parsed and isinstance(tool_output, str):
+            try:
+                parsed = json.loads(tool_output)
+            except (json.JSONDecodeError, ValueError):
+                parsed = None
+
+        if isinstance(parsed, dict) and "ui_action" in parsed:
+            result_sse += SSEEvent(event="ui_action", data=parsed["ui_action"]).to_sse()
+
+        return result_sse
+
+    def _persist_messages(
+        self,
+        conv_uuid: UUID,
+        tenant_id: UUID,
+        conv_id: str,
+        message: str,
+        full_response: str,
+        accumulated_messages: list,
+        existing_conv,
+    ) -> None:
+        """Persist conversation messages to DB and Redis cache."""
+        if not full_response and not accumulated_messages:
+            return
+
+        new_messages = self._serialize_messages(
+            [HumanMessage(content=message), *accumulated_messages]
+        )
+        # Fallback: if no accumulated messages, persist simple format
+        if not accumulated_messages:
+            new_messages = [
+                {"role": "user", "content": message},
+                {"role": "assistant", "content": full_response},
+            ]
+
+        self.conv_repo.append_messages(conv_uuid, tenant_id, new_messages)
+
+        # Auto-title on first message
+        if not existing_conv.title and message:
+            title = message[:80] + ("..." if len(message) > 80 else "")
+            self.conv_repo.update_title(conv_uuid, tenant_id, title)
+
+        self.db.commit()
+        self._cache_history(conv_id, tenant_id, new_messages)
 
     def _load_history(self, conv_id: str, tenant_id: UUID, conv_model) -> list:
         """Load conversation history, preferring Redis cache."""

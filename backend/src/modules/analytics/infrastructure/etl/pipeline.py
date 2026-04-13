@@ -48,6 +48,42 @@ from src.modules.analytics.infrastructure.repositories.staging_repository import
 logger = structlog.get_logger(__name__)
 
 
+def _build_staging_models(
+    extracted: list,
+    tenant_id: UUID,
+    run_id: UUID,
+) -> list[StagingMetricModel]:
+    """Convert ExtractedMetric list to StagingMetricModel list."""
+    return [
+        StagingMetricModel(
+            id=uuid.uuid4(),
+            tenant_id=tenant_id,
+            provider=m.provider,
+            channel_slug=m.channel_slug,
+            metric_name=m.metric_name,
+            value=m.value,
+            unit=m.unit,
+            currency=m.currency,
+            metric_date=m.date,
+            campaign_id=m.campaign_id,
+            ad_set_id=m.ad_set_id,
+            ad_id=m.ad_id,
+            extra=m.extra,
+            extraction_run_id=run_id,
+        )
+        for m in extracted
+    ]
+
+
+def _determine_status(result) -> ExtractionStatus:
+    """Determine final extraction status from result."""
+    if result.failures and result.metrics:
+        return ExtractionStatus.PARTIAL_SUCCESS
+    if result.failures and not result.metrics:
+        return ExtractionStatus.FAILED
+    return ExtractionStatus.SUCCESS
+
+
 class ETLPipeline:
     """Orchestrates the full ETL extraction flow for a single provider.
 
@@ -126,117 +162,37 @@ class ETLPipeline:
         self.db.commit()
 
         try:
-            # Step 2: Get credentials
-            creds = await self.connection_port.get_credentials(tenant_id, provider_name)
-
-            # Step 3: Extract metrics from provider API
-            # Merge config into credentials so providers have access to
-            # connection-level config (e.g. shop_domain for Shopify)
-            provider_creds = {**creds.credentials, **creds.config}
-            result = await self.provider.extract_metrics(
-                tenant_id=tenant_id,
-                credentials=provider_creds,
-                start_date=start_date,
-                end_date=end_date,
-                stage=stage,
-            )
-            extracted = result.metrics
-
-            # Step 4: Convert to staging models and bulk insert
-            staging_models = [
-                StagingMetricModel(
-                    id=uuid.uuid4(),
-                    tenant_id=tenant_id,
-                    provider=m.provider,
-                    channel_slug=m.channel_slug,
-                    metric_name=m.metric_name,
-                    value=m.value,
-                    unit=m.unit,
-                    currency=m.currency,
-                    metric_date=m.date,
-                    campaign_id=m.campaign_id,
-                    ad_set_id=m.ad_set_id,
-                    ad_id=m.ad_id,
-                    extra=m.extra,
-                    extraction_run_id=run_id,
-                )
-                for m in extracted
-            ]
-            self.staging_repo.delete_by_tenant_provider(tenant_id, provider_name)
-            rows_staged = self.staging_repo.bulk_insert(staging_models)
-
-            # Step 5: Transform staging -> official format
-            official_dicts = transform_staging_to_official(
-                staging_rows=staging_models,
-                cost_type_fn=get_cost_type,
-                extraction_run_id=run_id,
-                stage_slug=stage,
-                period_config=self.period_config,
+            # Steps 2-7: Extract, stage, transform, upsert, aggregate
+            result, rows_staged = await self._extract_and_load(
+                tenant_id,
+                provider_name,
+                start_date,
+                end_date,
+                stage,
+                run_id,
             )
 
-            # Step 6: Upsert official metrics
-            _rows_official = self.official_repo.upsert_from_staging(official_dicts)
-
-            # Step 7: Compute aggregations
-            agg_dicts = compute_aggregations(
-                official_rows=official_dicts,
-                tenant_id=tenant_id,
-                extraction_run_id=run_id,
-                period_config=self.period_config,
-            )
-            if agg_dicts:
-                # Group agg_dicts by channel_slug for scoped replace
-                channels_in_batch: set[str] = {a["channel_slug"] for a in agg_dicts}
-                agg_repo = MetricAggregationRepository(self.db)
-                for ch in channels_in_batch:
-                    ch_aggs = [a for a in agg_dicts if a["channel_slug"] == ch]
-                    agg_repo.replace_aggregations(tenant_id, ch, ch_aggs)
-
-            # Step 8: Determine final status based on partial failures
+            # Step 8: Determine final status and record it
             duration = time.monotonic() - start_time
-            if result.failures and extracted:
-                final_status = ExtractionStatus.PARTIAL_SUCCESS
-                final_error = None
-            elif result.failures and not extracted:
-                final_status = ExtractionStatus.FAILED
-                final_error = "; ".join(
-                    f"{f.extractor_name}: {f.error[:100]}" for f in result.failures
-                )
-            else:
-                final_status = ExtractionStatus.SUCCESS
-                final_error = None
-
-            self.run_repo.update_status(
-                run_id=run_id,
-                status=final_status,
-                error=final_error,
-                metrics_count=len(extracted),
-                rows_extracted=rows_staged,
-                duration_seconds=round(duration, 2),
-                sub_extractor_failures=[
-                    {
-                        "extractor_name": f.extractor_name,
-                        "error": f.error,
-                        "error_type": f.error_type,
-                    }
-                    for f in result.failures
-                ]
-                if result.failures
-                else None,
+            self._record_run_result(
+                run_id,
+                result,
+                rows_staged,
+                duration,
             )
 
-            # Commit the transaction
             self.db.commit()
 
             # Step 9: Invalidate cache (outside transaction — cache is best-effort)
             await self.cache.invalidate_tenant(str(tenant_id))
 
+            final_status = _determine_status(result)
             logger.info(
                 "ETL pipeline completed: tenant=%s provider=%s status=%s metrics=%d failures=%d duration=%.2fs",
                 tenant_id,
                 provider_name,
                 final_status.value,
-                len(extracted),
+                len(result.metrics),
                 len(result.failures),
                 duration,
             )
@@ -244,51 +200,150 @@ class ETLPipeline:
             return run
 
         except ConnectionRevokedError as exc:
-            # Connection revoked — mark FAILED, no retry
-            self.db.rollback()
-            duration = time.monotonic() - start_time
-            self.run_repo.update_status(
-                run_id=run_id,
-                status=ExtractionStatus.FAILED,
-                error=f"Connection revoked: {exc}",
-                duration_seconds=round(duration, 2),
-            )
-            self.db.commit()
-            with sentry_sdk.push_scope() as scope:
-                scope.set_tag("tenant_id", str(tenant_id))
-                scope.set_tag("provider", provider_name)
-                scope.set_tag("etl_run_id", str(run_id))
-                scope.set_tag("failure_type", "connection_revoked")
-                sentry_sdk.capture_exception(exc)
-            logger.warning(
-                "ETL pipeline failed (connection revoked): tenant=%s provider=%s",
+            self._handle_pipeline_failure(
+                run_id,
+                start_time,
                 tenant_id,
                 provider_name,
+                f"Connection revoked: {exc}",
+                "connection_revoked",
+                exc,
+                log_level="warning",
             )
             return run
 
         except Exception as exc:
-            # General failure — mark FAILED, allow retry
-            self.db.rollback()
-            duration = time.monotonic() - start_time
-            self.run_repo.update_status(
-                run_id=run_id,
-                status=ExtractionStatus.FAILED,
-                error=str(exc),
-                duration_seconds=round(duration, 2),
+            self._handle_pipeline_failure(
+                run_id,
+                start_time,
+                tenant_id,
+                provider_name,
+                str(exc),
+                "general",
+                exc,
+                log_level="error",
             )
-            self.db.commit()
-            with sentry_sdk.push_scope() as scope:
-                scope.set_tag("tenant_id", str(tenant_id))
-                scope.set_tag("provider", provider_name)
-                scope.set_tag("etl_run_id", str(run_id))
-                scope.set_tag("failure_type", "general")
-                sentry_sdk.capture_exception(exc)
-            logger.error(
+            return run
+
+    async def _extract_and_load(
+        self,
+        tenant_id,
+        provider_name,
+        start_date,
+        end_date,
+        stage,
+        run_id,
+    ):
+        """Steps 2-7: Extract, stage, transform, upsert, aggregate. Returns (result, rows_staged)."""
+        creds = await self.connection_port.get_credentials(tenant_id, provider_name)
+        provider_creds = {**creds.credentials, **creds.config}
+        result = await self.provider.extract_metrics(
+            tenant_id=tenant_id,
+            credentials=provider_creds,
+            start_date=start_date,
+            end_date=end_date,
+            stage=stage,
+        )
+
+        staging_models = _build_staging_models(
+            result.metrics,
+            tenant_id,
+            run_id,
+        )
+        self.staging_repo.delete_by_tenant_provider(tenant_id, provider_name)
+        rows_staged = self.staging_repo.bulk_insert(staging_models)
+
+        official_dicts = transform_staging_to_official(
+            staging_rows=staging_models,
+            cost_type_fn=get_cost_type,
+            extraction_run_id=run_id,
+            stage_slug=stage,
+            period_config=self.period_config,
+        )
+        self.official_repo.upsert_from_staging(official_dicts)
+
+        agg_dicts = compute_aggregations(
+            official_rows=official_dicts,
+            tenant_id=tenant_id,
+            extraction_run_id=run_id,
+            period_config=self.period_config,
+        )
+        if agg_dicts:
+            channels_in_batch: set[str] = {a["channel_slug"] for a in agg_dicts}
+            agg_repo = MetricAggregationRepository(self.db)
+            for ch in channels_in_batch:
+                ch_aggs = [a for a in agg_dicts if a["channel_slug"] == ch]
+                agg_repo.replace_aggregations(tenant_id, ch, ch_aggs)
+
+        return result, rows_staged
+
+    def _record_run_result(self, run_id, result, rows_staged, duration):
+        """Determine final status from extraction result and update the run."""
+        final_status = _determine_status(result)
+        final_error = None
+        if result.failures and not result.metrics:
+            final_error = "; ".join(
+                f"{f.extractor_name}: {f.error[:100]}" for f in result.failures
+            )
+
+        self.run_repo.update_status(
+            run_id=run_id,
+            status=final_status,
+            error=final_error,
+            metrics_count=len(result.metrics),
+            rows_extracted=rows_staged,
+            duration_seconds=round(duration, 2),
+            sub_extractor_failures=[
+                {
+                    "extractor_name": f.extractor_name,
+                    "error": f.error,
+                    "error_type": f.error_type,
+                }
+                for f in result.failures
+            ]
+            if result.failures
+            else None,
+        )
+
+    def _handle_pipeline_failure(
+        self,
+        run_id,
+        start_time,
+        tenant_id,
+        provider_name,
+        error_msg,
+        failure_type,
+        exc,
+        *,
+        log_level="error",
+    ):
+        """Rollback, record failure, report to Sentry."""
+        self.db.rollback()
+        duration = time.monotonic() - start_time
+        self.run_repo.update_status(
+            run_id=run_id,
+            status=ExtractionStatus.FAILED,
+            error=error_msg,
+            duration_seconds=round(duration, 2),
+        )
+        self.db.commit()
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("tenant_id", str(tenant_id))
+            scope.set_tag("provider", provider_name)
+            scope.set_tag("etl_run_id", str(run_id))
+            scope.set_tag("failure_type", failure_type)
+            sentry_sdk.capture_exception(exc)
+        if log_level == "warning":
+            logger.warning(
+                "ETL pipeline failed (%s): tenant=%s provider=%s",
+                failure_type,
+                tenant_id,
+                provider_name,
+            )
+        else:
+            logger.exception(
                 "ETL pipeline failed: tenant=%s provider=%s error=%s",
                 tenant_id,
                 provider_name,
                 exc,
-                exc_info=True,
             )
-            return run

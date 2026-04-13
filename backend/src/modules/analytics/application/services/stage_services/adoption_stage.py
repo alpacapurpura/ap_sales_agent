@@ -21,6 +21,57 @@ from src.modules.analytics.infrastructure.cache.metrics_cache import MetricsCach
 from src.shared.domain.currency import convert_to_usd
 
 
+def _build_adoption_bottlenecks(
+    health_pct: float,
+    avg_ttv: float | None,
+    offer_list: list[OfferHealthDTO],
+) -> list[BottleneckDTO]:
+    """Detect adoption bottlenecks based on health thresholds."""
+    bottlenecks: list[BottleneckDTO] = []
+
+    # Overall health bottleneck
+    if health_pct < 70.0:
+        if avg_ttv is not None and avg_ttv > 7:
+            tip = (
+                "Mejora tu proceso de bienvenida -- tus clientes tardan "
+                "mucho en empezar a usar tu producto"
+            )
+        else:
+            tip = (
+                "Contacta a tus clientes inactivos con un mensaje "
+                "personalizado o una oferta especial para reactivarlos"
+            )
+        bottlenecks.append(
+            BottleneckDTO(
+                type="low_adoption_health",
+                metric_label="Salud del cliente",
+                current_rate=health_pct,
+                severity="warning",
+                threshold=70.0,
+                tip=tip,
+            )
+        )
+
+    # Per-offer bottleneck
+    bottlenecks.extend(
+        BottleneckDTO(
+            type="offer_low_health",
+            metric_label=f"Salud: {offer.public_name}",
+            current_rate=offer.health_pct,
+            severity="warning",
+            threshold=60.0,
+            tip=(
+                "Revisa el engagement de este producto -- mas de "
+                "la mitad de sus clientes estan inactivos"
+            ),
+        )
+        for offer in offer_list
+        if offer.health_pct < 60.0
+    )
+
+    return bottlenecks
+
+
 class AdoptionStageService:
     """Provides adoption stage metrics for the Bowtie dashboard."""
 
@@ -154,47 +205,7 @@ class AdoptionStageService:
         )
 
         # 7. Bottleneck detection
-        bottlenecks: list[BottleneckDTO] = []
-
-        # Overall health bottleneck
-        if health_pct < 70.0:
-            if avg_ttv is not None and avg_ttv > 7:
-                tip = (
-                    "Mejora tu proceso de bienvenida -- tus clientes tardan "
-                    "mucho en empezar a usar tu producto"
-                )
-            else:
-                tip = (
-                    "Contacta a tus clientes inactivos con un mensaje "
-                    "personalizado o una oferta especial para reactivarlos"
-                )
-            bottlenecks.append(
-                BottleneckDTO(
-                    type="low_adoption_health",
-                    metric_label="Salud del cliente",
-                    current_rate=health_pct,
-                    severity="warning",
-                    threshold=70.0,
-                    tip=tip,
-                )
-            )
-
-        # Per-offer bottleneck
-        bottlenecks.extend(
-            BottleneckDTO(
-                type="offer_low_health",
-                metric_label=f"Salud: {offer.public_name}",
-                current_rate=offer.health_pct,
-                severity="warning",
-                threshold=60.0,
-                tip=(
-                    "Revisa el engagement de este producto -- mas de "
-                    "la mitad de sus clientes estan inactivos"
-                ),
-            )
-            for offer in offer_list
-            if offer.health_pct < 60.0
-        )
+        bottlenecks = _build_adoption_bottlenecks(health_pct, avg_ttv, offer_list)
 
         now = dt_cls.now(UTC)
 

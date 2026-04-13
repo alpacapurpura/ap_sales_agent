@@ -48,6 +48,15 @@ _CHANNEL_CONNECTION_MAP: dict[str, ChannelType] = {
 }
 
 
+def _compute_period_totals(date_map: dict) -> dict[str, float]:
+    """Sum values per channel slug across all dates."""
+    period_totals: dict[str, float] = {}
+    for ch_vals in date_map.values():
+        for slug, val in ch_vals.items():
+            period_totals[slug] = period_totals.get(slug, 0) + val
+    return period_totals
+
+
 class MetricsService:
     """Provides dashboard metrics for marketing funnel stages.
 
@@ -188,283 +197,47 @@ class MetricsService:
                 return None
             return await self.cache.get(tid, stage, "last_30_days")
 
-        # --- Attraction ---
-        attraction_cache = await _get_stage_cache("attraction")
-        if attraction_cache:
-            total_visitors = 0
-            for group_key in ("organic_social", "ga4_search", "paid", "outbound"):
-                group = attraction_cache.get(group_key, {})
-                totals = group.get("totals", {})
-                total_visitors += (
-                    totals.get("reach", 0)
-                    + totals.get("sessions", 0)
-                    + totals.get("contacts", 0)
-                )
-            connected_count = sum(
-                len(attraction_cache.get(g, {}).get("channels", []))
-                for g in ("organic_social", "ga4_search", "paid", "outbound")
-            )
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="attraction",
-                    main_kpi=total_visitors,
-                    main_label="visitantes",
-                    secondary_kpi=connected_count,
-                    secondary_label="canales activos",
-                )
-            )
-            if attraction_cache.get("last_updated"):
-                latest_updated = attraction_cache["last_updated"]
-        else:
-            # Fallback: lightweight query
-            from sqlalchemy import func as sa_func
-            from sqlalchemy import select
+        # Build each stage's KPI
+        attraction_result = self._build_attraction_kpi(
+            tenant_id,
+            await _get_stage_cache("attraction"),
+        )
+        stages.append(attraction_result[0])
+        if attraction_result[1]:
+            latest_updated = attraction_result[1]
 
-            from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
-                MetricAggregationModel,
+        stages.append(
+            self._build_capture_kpi(
+                tenant_id,
+                await _get_stage_cache("capture"),
             )
-
-            visitor_stmt = select(
-                sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
-            ).where(
-                MetricAggregationModel.tenant_id == tenant_id,
-                MetricAggregationModel.metric_name.in_(("reach", "sessions")),
-                MetricAggregationModel.period_type == "last_30_days",
+        )
+        stages.append(
+            self._build_nurture_kpi(
+                tenant_id,
+                await _get_stage_cache("nurture"),
             )
-            total_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="attraction",
-                    main_kpi=total_visitors,
-                    main_label="visitantes",
-                    secondary_kpi=0,
-                    secondary_label="canales activos",
-                )
+        )
+        stages.append(
+            self._build_opportunity_kpi(
+                tenant_id,
+                await _get_stage_cache("opportunity"),
             )
-
-        # --- Capture ---
-        capture_cache = await _get_stage_cache("capture")
-        if capture_cache:
-            hk = capture_cache.get("header_kpis", {})
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="capture",
-                    main_kpi=hk.get("total_leads", 0),
-                    main_label="leads",
-                    secondary_kpi=hk.get("conversion_rate", 0),
-                    secondary_label="tasa conversion",
-                    secondary_unit="%",
-                )
+        )
+        stages.append(
+            self._build_sales_kpi(
+                tenant_id,
+                await _get_stage_cache("sales"),
             )
-        else:
-            total_leads = self.lead_repo.count_total(tenant_id)
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="capture",
-                    main_kpi=total_leads,
-                    main_label="leads",
-                    secondary_kpi=0,
-                    secondary_label="tasa conversion",
-                    secondary_unit="%",
-                )
+        )
+        stages.append(self._build_adoption_kpi(await _get_stage_cache("adoption")))
+        stages.append(self._build_expansion_kpi(await _get_stage_cache("expansion")))
+        stages.append(
+            self._build_evangelization_kpi(
+                tenant_id,
+                await _get_stage_cache("evangelization"),
             )
-
-        # --- Nurture ---
-        nurture_cache = await _get_stage_cache("nurture")
-        if nurture_cache:
-            hk = nurture_cache.get("header_kpis", {})
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="nurture",
-                    main_kpi=hk.get("total_mqls", 0),
-                    main_label="MQLs",
-                    secondary_kpi=hk.get("conversion_rate", 0),
-                    secondary_label="engagement rate",
-                    secondary_unit="%",
-                )
-            )
-        else:
-            mql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.MQL)
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="nurture",
-                    main_kpi=mql_count,
-                    main_label="MQLs",
-                    secondary_kpi=0,
-                    secondary_label="engagement rate",
-                    secondary_unit="%",
-                )
-            )
-
-        # --- Opportunity ---
-        opportunity_cache = await _get_stage_cache("opportunity")
-        if opportunity_cache:
-            hk = opportunity_cache.get("header_kpis", {})
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="opportunity",
-                    main_kpi=hk.get("total_sqls", 0),
-                    main_label="SQLs",
-                    secondary_kpi=hk.get("conversion_rate", 0),
-                    secondary_label="pipeline value",
-                    secondary_unit="%",
-                )
-            )
-        else:
-            sql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.SQL)
-            opp_count = self.customer_repo.count_by_stage(
-                tenant_id, LifecycleStage.OPPORTUNITY
-            )
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="opportunity",
-                    main_kpi=sql_count + opp_count,
-                    main_label="SQLs",
-                    secondary_kpi=0,
-                    secondary_label="pipeline value",
-                    secondary_unit="%",
-                )
-            )
-
-        # --- Sales ---
-        sales_cache = await _get_stage_cache("sales")
-        if sales_cache:
-            hk = sales_cache.get("header_kpis", {})
-            mf = sales_cache.get("mini_funnel", {})
-            main_val = hk.get("total_revenue", 0)
-            conv_rate = mf.get("conversion_rate", 0)
-            new_cust = hk.get("new_customers", 0)
-            secondary = conv_rate if conv_rate > 0 else new_cust
-            secondary_unit = "%" if conv_rate > 0 else None
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="sales",
-                    main_kpi=main_val,
-                    main_label="revenue",
-                    main_unit="$",
-                    secondary_kpi=secondary,
-                    secondary_label="conversion"
-                    if conv_rate > 0
-                    else "clientes nuevos",
-                    secondary_unit=secondary_unit,
-                )
-            )
-        else:
-            from datetime import datetime as dt_cls
-            from datetime import timedelta as td
-            from datetime import timezone as tz
-
-            from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
-                SalesMetricsRepository,
-            )
-
-            now = dt_cls.now(tz.utc)
-            start_30d = now - td(days=30)
-            sales_repo = SalesMetricsRepository(self.db)
-            raw_sales = sales_repo.get_sales_summary(tenant_id, start_30d, now)
-            total_revenue = sum(float(r.total_revenue) for r in raw_sales)
-            new_customers = sum(int(r.unique_customers) for r in raw_sales)
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="sales",
-                    main_kpi=total_revenue,
-                    main_label="revenue",
-                    main_unit="$",
-                    secondary_kpi=new_customers,
-                    secondary_label="clientes nuevos",
-                )
-            )
-
-        # --- Adoption ---
-        adoption_cache = await _get_stage_cache("adoption")
-        if adoption_cache:
-            hk = adoption_cache.get("header_kpis", {})
-            mf = adoption_cache.get("mini_funnel", {})
-            health = hk.get("health_pct", 0)
-            active = hk.get("active_customers", 0)
-            conv_rate = mf.get("conversion_rate", 0)
-            secondary = conv_rate if conv_rate > 0 else active
-            secondary_unit = "%" if conv_rate > 0 else None
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="adoption",
-                    main_kpi=health,
-                    main_label="salud %",
-                    main_unit="%",
-                    secondary_kpi=secondary,
-                    secondary_label="activacion" if conv_rate > 0 else "activos",
-                    secondary_unit=secondary_unit,
-                )
-            )
-        else:
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="adoption",
-                    main_kpi=0,
-                    main_label="salud %",
-                    main_unit="%",
-                    secondary_kpi=0,
-                    secondary_label="activos",
-                )
-            )
-
-        # --- Expansion ---
-        expansion_cache = await _get_stage_cache("expansion")
-        if expansion_cache:
-            hk = expansion_cache.get("header_kpis", {})
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="expansion",
-                    main_kpi=hk.get("net_mrr", 0),
-                    main_label="net MRR",
-                    main_unit="$",
-                    secondary_kpi=hk.get("churn_rate_pct", 0),
-                    secondary_label="churn rate",
-                    secondary_unit="%",
-                )
-            )
-        else:
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="expansion",
-                    main_kpi=0,
-                    main_label="net MRR",
-                    main_unit="$",
-                    secondary_kpi=0,
-                    secondary_label="churn rate",
-                    secondary_unit="%",
-                )
-            )
-
-        # --- Evangelization ---
-        evangelization_cache = await _get_stage_cache("evangelization")
-        if evangelization_cache:
-            hk = evangelization_cache.get("header_kpis", {})
-            mf = evangelization_cache.get("mini_funnel", {})
-            conv_rate = mf.get("conversion_rate", 0)
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="evangelization",
-                    main_kpi=hk.get("k_factor", 0),
-                    main_label="k-factor",
-                    secondary_kpi=conv_rate,
-                    secondary_label="conversion",
-                    secondary_unit="%" if conv_rate > 0 else None,
-                )
-            )
-        else:
-            evangelists = self.customer_repo.count_by_stage(
-                tenant_id, LifecycleStage.EVANGELIST
-            )
-            stages.append(
-                StageSummaryKpiDTO(
-                    stage="evangelization",
-                    main_kpi=0,
-                    main_label="k-factor",
-                    secondary_kpi=evangelists,
-                    secondary_label="evangelistas",
-                )
-            )
+        )
 
         result = BowtiesSummaryDTO(
             stages=stages,
@@ -477,6 +250,264 @@ class MetricsService:
             await self.cache.set(tid, "summary", "last_30_days", result.model_dump())
 
         return result
+
+    def _build_attraction_kpi(
+        self,
+        tenant_id: UUID,
+        cache: dict | None,
+    ) -> tuple[StageSummaryKpiDTO, str | None]:
+        """Build attraction stage KPI. Returns (dto, last_updated)."""
+        if cache:
+            total_visitors = 0
+            for group_key in ("organic_social", "ga4_search", "paid", "outbound"):
+                group = cache.get(group_key, {})
+                totals = group.get("totals", {})
+                total_visitors += (
+                    totals.get("reach", 0)
+                    + totals.get("sessions", 0)
+                    + totals.get("contacts", 0)
+                )
+            connected_count = sum(
+                len(cache.get(g, {}).get("channels", []))
+                for g in ("organic_social", "ga4_search", "paid", "outbound")
+            )
+            return (
+                StageSummaryKpiDTO(
+                    stage="attraction",
+                    main_kpi=total_visitors,
+                    main_label="visitantes",
+                    secondary_kpi=connected_count,
+                    secondary_label="canales activos",
+                ),
+                cache.get("last_updated"),
+            )
+
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select
+
+        from src.modules.analytics.infrastructure.models.metric_aggregation_model import (
+            MetricAggregationModel,
+        )
+
+        visitor_stmt = select(
+            sa_func.coalesce(sa_func.sum(MetricAggregationModel.value), 0.0)
+        ).where(
+            MetricAggregationModel.tenant_id == tenant_id,
+            MetricAggregationModel.metric_name.in_(("reach", "sessions")),
+            MetricAggregationModel.period_type == "last_30_days",
+        )
+        total_visitors = int(self.db.execute(visitor_stmt).scalar() or 0)
+        return (
+            StageSummaryKpiDTO(
+                stage="attraction",
+                main_kpi=total_visitors,
+                main_label="visitantes",
+                secondary_kpi=0,
+                secondary_label="canales activos",
+            ),
+            None,
+        )
+
+    def _build_capture_kpi(
+        self,
+        tenant_id: UUID,
+        cache: dict | None,
+    ) -> StageSummaryKpiDTO:
+        if cache:
+            hk = cache.get("header_kpis", {})
+            return StageSummaryKpiDTO(
+                stage="capture",
+                main_kpi=hk.get("total_leads", 0),
+                main_label="leads",
+                secondary_kpi=hk.get("conversion_rate", 0),
+                secondary_label="tasa conversion",
+                secondary_unit="%",
+            )
+        return StageSummaryKpiDTO(
+            stage="capture",
+            main_kpi=self.lead_repo.count_total(tenant_id),
+            main_label="leads",
+            secondary_kpi=0,
+            secondary_label="tasa conversion",
+            secondary_unit="%",
+        )
+
+    def _build_nurture_kpi(
+        self,
+        tenant_id: UUID,
+        cache: dict | None,
+    ) -> StageSummaryKpiDTO:
+        if cache:
+            hk = cache.get("header_kpis", {})
+            return StageSummaryKpiDTO(
+                stage="nurture",
+                main_kpi=hk.get("total_mqls", 0),
+                main_label="MQLs",
+                secondary_kpi=hk.get("conversion_rate", 0),
+                secondary_label="engagement rate",
+                secondary_unit="%",
+            )
+        return StageSummaryKpiDTO(
+            stage="nurture",
+            main_kpi=self.customer_repo.count_by_stage(tenant_id, LifecycleStage.MQL),
+            main_label="MQLs",
+            secondary_kpi=0,
+            secondary_label="engagement rate",
+            secondary_unit="%",
+        )
+
+    def _build_opportunity_kpi(
+        self,
+        tenant_id: UUID,
+        cache: dict | None,
+    ) -> StageSummaryKpiDTO:
+        if cache:
+            hk = cache.get("header_kpis", {})
+            return StageSummaryKpiDTO(
+                stage="opportunity",
+                main_kpi=hk.get("total_sqls", 0),
+                main_label="SQLs",
+                secondary_kpi=hk.get("conversion_rate", 0),
+                secondary_label="pipeline value",
+                secondary_unit="%",
+            )
+        sql_count = self.customer_repo.count_by_stage(tenant_id, LifecycleStage.SQL)
+        opp_count = self.customer_repo.count_by_stage(
+            tenant_id, LifecycleStage.OPPORTUNITY
+        )
+        return StageSummaryKpiDTO(
+            stage="opportunity",
+            main_kpi=sql_count + opp_count,
+            main_label="SQLs",
+            secondary_kpi=0,
+            secondary_label="pipeline value",
+            secondary_unit="%",
+        )
+
+    def _build_sales_kpi(
+        self,
+        tenant_id: UUID,
+        cache: dict | None,
+    ) -> StageSummaryKpiDTO:
+        if cache:
+            hk = cache.get("header_kpis", {})
+            mf = cache.get("mini_funnel", {})
+            main_val = hk.get("total_revenue", 0)
+            conv_rate = mf.get("conversion_rate", 0)
+            new_cust = hk.get("new_customers", 0)
+            secondary = conv_rate if conv_rate > 0 else new_cust
+            secondary_unit = "%" if conv_rate > 0 else None
+            return StageSummaryKpiDTO(
+                stage="sales",
+                main_kpi=main_val,
+                main_label="revenue",
+                main_unit="$",
+                secondary_kpi=secondary,
+                secondary_label="conversion" if conv_rate > 0 else "clientes nuevos",
+                secondary_unit=secondary_unit,
+            )
+
+        from datetime import datetime as dt_cls
+        from datetime import timedelta as td
+        from datetime import timezone as tz
+
+        from src.modules.analytics.infrastructure.repositories.sales_metrics_repository import (
+            SalesMetricsRepository,
+        )
+
+        now = dt_cls.now(tz.utc)
+        start_30d = now - td(days=30)
+        sales_repo = SalesMetricsRepository(self.db)
+        raw_sales = sales_repo.get_sales_summary(tenant_id, start_30d, now)
+        total_revenue = sum(float(r.total_revenue) for r in raw_sales)
+        new_customers = sum(int(r.unique_customers) for r in raw_sales)
+        return StageSummaryKpiDTO(
+            stage="sales",
+            main_kpi=total_revenue,
+            main_label="revenue",
+            main_unit="$",
+            secondary_kpi=new_customers,
+            secondary_label="clientes nuevos",
+        )
+
+    @staticmethod
+    def _build_adoption_kpi(cache: dict | None) -> StageSummaryKpiDTO:
+        if cache:
+            hk = cache.get("header_kpis", {})
+            mf = cache.get("mini_funnel", {})
+            health = hk.get("health_pct", 0)
+            active = hk.get("active_customers", 0)
+            conv_rate = mf.get("conversion_rate", 0)
+            secondary = conv_rate if conv_rate > 0 else active
+            secondary_unit = "%" if conv_rate > 0 else None
+            return StageSummaryKpiDTO(
+                stage="adoption",
+                main_kpi=health,
+                main_label="salud %",
+                main_unit="%",
+                secondary_kpi=secondary,
+                secondary_label="activacion" if conv_rate > 0 else "activos",
+                secondary_unit=secondary_unit,
+            )
+        return StageSummaryKpiDTO(
+            stage="adoption",
+            main_kpi=0,
+            main_label="salud %",
+            main_unit="%",
+            secondary_kpi=0,
+            secondary_label="activos",
+        )
+
+    @staticmethod
+    def _build_expansion_kpi(cache: dict | None) -> StageSummaryKpiDTO:
+        if cache:
+            hk = cache.get("header_kpis", {})
+            return StageSummaryKpiDTO(
+                stage="expansion",
+                main_kpi=hk.get("net_mrr", 0),
+                main_label="net MRR",
+                main_unit="$",
+                secondary_kpi=hk.get("churn_rate_pct", 0),
+                secondary_label="churn rate",
+                secondary_unit="%",
+            )
+        return StageSummaryKpiDTO(
+            stage="expansion",
+            main_kpi=0,
+            main_label="net MRR",
+            main_unit="$",
+            secondary_kpi=0,
+            secondary_label="churn rate",
+            secondary_unit="%",
+        )
+
+    def _build_evangelization_kpi(
+        self,
+        tenant_id: UUID,
+        cache: dict | None,
+    ) -> StageSummaryKpiDTO:
+        if cache:
+            hk = cache.get("header_kpis", {})
+            mf = cache.get("mini_funnel", {})
+            conv_rate = mf.get("conversion_rate", 0)
+            return StageSummaryKpiDTO(
+                stage="evangelization",
+                main_kpi=hk.get("k_factor", 0),
+                main_label="k-factor",
+                secondary_kpi=conv_rate,
+                secondary_label="conversion",
+                secondary_unit="%" if conv_rate > 0 else None,
+            )
+        evangelists = self.customer_repo.count_by_stage(
+            tenant_id, LifecycleStage.EVANGELIST
+        )
+        return StageSummaryKpiDTO(
+            stage="evangelization",
+            main_kpi=0,
+            main_label="k-factor",
+            secondary_kpi=evangelists,
+            secondary_label="evangelistas",
+        )
 
     # ------------------------------------------------------------------
     # Time Series — generic daily/weekly chart data for any stage
@@ -521,6 +552,12 @@ class MetricsService:
         "checkout-lp": "#FB923C",
     }
 
+    # Metric alias map: frontend sends "visitors" but DB may have "sessions"
+    _METRIC_ALIAS_MAP: dict[str, list[str]] = {
+        "visitors": ["sessions", "users", "visitors"],
+        "leads": ["leads", "new_subscribers"],
+    }
+
     async def get_stage_timeseries(
         self,
         tenant_id: UUID,
@@ -553,138 +590,65 @@ class MetricsService:
         slug_to_info = {ch["slug"]: ch for ch in stage_channels}
         channel_slugs = list(slug_to_info.keys())
 
+        empty_result = StageTimeSeriesDTO(
+            stage=stage,
+            metric_name=metric_name,
+            granularity=granularity,
+            range_days=range_days,
+            data_points=[],
+            channels_present=[],
+            period_totals={},
+            previous_period_totals=None,
+        )
         if not channel_slugs:
-            return StageTimeSeriesDTO(
-                stage=stage,
-                metric_name=metric_name,
-                granularity=granularity,
-                range_days=range_days,
-                data_points=[],
-                channels_present=[],
-                period_totals={},
-                previous_period_totals=None,
-            )
+            return empty_result
 
         # 3. Query current period
-        from datetime import date as date_type
         from datetime import timedelta
         from datetime import timezone as tz
 
         now = datetime.now(tz.utc).date()
         start_date = now - timedelta(days=range_days)
         prev_start = start_date - timedelta(days=range_days)
+        db_metric_names = self._METRIC_ALIAS_MAP.get(metric_name, [metric_name])
 
-        # Map metric aliases: frontend sends "visitors" but DB may have "sessions"
-        db_metric_names = [metric_name]
-        if metric_name == "visitors":
-            db_metric_names = ["sessions", "users", "visitors"]
-        elif metric_name == "leads":
-            db_metric_names = ["leads", "new_subscribers"]
-
-        from sqlalchemy import func as sa_f
-        from sqlalchemy import select as sa_select
-
-        from src.modules.analytics.infrastructure.models.official_metrics_model import (
-            OfficialMetricModel,
+        rows = self._query_timeseries_rows(
+            tenant_id,
+            channel_slugs,
+            db_metric_names,
+            start_date,
+            now,
         )
-
-        m = OfficialMetricModel
-
-        # Current period: group by date, channel_slug
-        stmt = (
-            sa_select(
-                m.metric_date,
-                m.channel_slug,
-                sa_f.sum(m.value).label("total"),
-            )
-            .where(
-                m.tenant_id == tenant_id,
-                m.channel_slug.in_(channel_slugs),
-                m.metric_name.in_(db_metric_names),
-                m.metric_date >= start_date,
-                m.metric_date <= now,
-            )
-            .group_by(m.metric_date, m.channel_slug)
-            .order_by(m.metric_date)
-        )
-        rows = self.db.execute(stmt).all()
 
         # 4. Build data points
-        from collections import OrderedDict
-
-        date_map: dict[date_type, dict[str, float]] = OrderedDict()
-        channels_seen: set = set()
-
-        for row in rows:
-            d = row.metric_date
-            slug = row.channel_slug
-            val = float(row.total)
-            channels_seen.add(slug)
-            if d not in date_map:
-                date_map[d] = {}
-            date_map[d][slug] = date_map[d].get(slug, 0) + val
-
-        # Weekly aggregation if requested
-        if granularity == "weekly" and date_map:
-            weekly_map: dict[date_type, dict[str, float]] = OrderedDict()
-            for d, ch_vals in date_map.items():
-                # ISO week start (Monday)
-                week_start = d - timedelta(days=d.weekday())
-                if week_start not in weekly_map:
-                    weekly_map[week_start] = {}
-                for slug, val in ch_vals.items():
-                    weekly_map[week_start][slug] = (
-                        weekly_map[week_start].get(slug, 0) + val
-                    )
-            date_map = weekly_map
+        date_map, channels_seen = self._build_date_map(rows, granularity)
 
         data_points = [
-            TimeSeriesPointDTO(
-                date=d.isoformat(),
-                channels=ch_vals,
-            )
+            TimeSeriesPointDTO(date=d.isoformat(), channels=ch_vals)
             for d, ch_vals in date_map.items()
         ]
 
         # 5. Period totals
-        period_totals: dict[str, float] = {}
-        for ch_vals in date_map.values():
-            for slug, val in ch_vals.items():
-                period_totals[slug] = period_totals.get(slug, 0) + val
+        period_totals = _compute_period_totals(date_map)
 
         # 6. Previous period totals
-        prev_stmt = (
-            sa_select(
-                m.channel_slug,
-                sa_f.sum(m.value).label("total"),
-            )
-            .where(
-                m.tenant_id == tenant_id,
-                m.channel_slug.in_(channel_slugs),
-                m.metric_name.in_(db_metric_names),
-                m.metric_date >= prev_start,
-                m.metric_date < start_date,
-            )
-            .group_by(m.channel_slug)
-        )
-        prev_rows = self.db.execute(prev_stmt).all()
-        previous_period_totals = (
-            {row.channel_slug: float(row.total) for row in prev_rows}
-            if prev_rows
-            else None
+        previous_period_totals = self._query_previous_period_totals(
+            tenant_id,
+            channel_slugs,
+            db_metric_names,
+            prev_start,
+            start_date,
         )
 
         # 7. Build channels_present
-        channels_present = []
-        for slug in sorted(channels_seen):
-            info = slug_to_info.get(slug, {})
-            channels_present.append(
-                ChannelInfoDTO(
-                    slug=slug,
-                    name=info.get("name", slug),
-                    color=self._CHANNEL_COLORS.get(slug, "#6B7280"),
-                )
+        channels_present = [
+            ChannelInfoDTO(
+                slug=slug,
+                name=slug_to_info.get(slug, {}).get("name", slug),
+                color=self._CHANNEL_COLORS.get(slug, "#6B7280"),
             )
+            for slug in sorted(channels_seen)
+        ]
 
         result = StageTimeSeriesDTO(
             stage=stage,
@@ -702,3 +666,99 @@ class MetricsService:
             await self.cache.set(tid, stage, cache_period, result.model_dump())
 
         return result
+
+    def _query_timeseries_rows(
+        self,
+        tenant_id,
+        channel_slugs,
+        db_metric_names,
+        start_date,
+        end_date,
+    ):
+        """Query official_metrics for current period, grouped by date and channel."""
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
+
+        from src.modules.analytics.infrastructure.models.official_metrics_model import (
+            OfficialMetricModel,
+        )
+
+        m = OfficialMetricModel
+        stmt = (
+            sa_select(m.metric_date, m.channel_slug, sa_f.sum(m.value).label("total"))
+            .where(
+                m.tenant_id == tenant_id,
+                m.channel_slug.in_(channel_slugs),
+                m.metric_name.in_(db_metric_names),
+                m.metric_date >= start_date,
+                m.metric_date <= end_date,
+            )
+            .group_by(m.metric_date, m.channel_slug)
+            .order_by(m.metric_date)
+        )
+        return self.db.execute(stmt).all()
+
+    @staticmethod
+    def _build_date_map(rows, granularity):
+        """Build date_map from query rows and optionally aggregate to weekly."""
+        from collections import OrderedDict
+        from datetime import timedelta
+
+        date_map = OrderedDict()
+        channels_seen: set = set()
+
+        for row in rows:
+            d = row.metric_date
+            slug = row.channel_slug
+            val = float(row.total)
+            channels_seen.add(slug)
+            if d not in date_map:
+                date_map[d] = {}
+            date_map[d][slug] = date_map[d].get(slug, 0) + val
+
+        if granularity == "weekly" and date_map:
+            weekly_map = OrderedDict()
+            for d, ch_vals in date_map.items():
+                week_start = d - timedelta(days=d.weekday())
+                if week_start not in weekly_map:
+                    weekly_map[week_start] = {}
+                for slug, val in ch_vals.items():
+                    weekly_map[week_start][slug] = (
+                        weekly_map[week_start].get(slug, 0) + val
+                    )
+            date_map = weekly_map
+
+        return date_map, channels_seen
+
+    def _query_previous_period_totals(
+        self,
+        tenant_id,
+        channel_slugs,
+        db_metric_names,
+        prev_start,
+        start_date,
+    ) -> dict[str, float] | None:
+        """Query previous period totals for delta% calculation."""
+        from sqlalchemy import func as sa_f
+        from sqlalchemy import select as sa_select
+
+        from src.modules.analytics.infrastructure.models.official_metrics_model import (
+            OfficialMetricModel,
+        )
+
+        m = OfficialMetricModel
+        prev_stmt = (
+            sa_select(m.channel_slug, sa_f.sum(m.value).label("total"))
+            .where(
+                m.tenant_id == tenant_id,
+                m.channel_slug.in_(channel_slugs),
+                m.metric_name.in_(db_metric_names),
+                m.metric_date >= prev_start,
+                m.metric_date < start_date,
+            )
+            .group_by(m.channel_slug)
+        )
+        prev_rows = self.db.execute(prev_stmt).all()
+        if prev_rows:
+            return {row.channel_slug: float(row.total) for row in prev_rows}
+        return None

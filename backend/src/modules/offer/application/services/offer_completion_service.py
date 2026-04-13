@@ -145,6 +145,49 @@ def _sections_for(archetype: OfferArchetype | str | None) -> tuple[str, ...]:
     return _ARCHETYPE_SECTIONS[archetype]
 
 
+def _check_all(offer: Offer, *fields: str) -> str:
+    """Return "complete" if all fields are present, else "incomplete"."""
+    return (
+        "complete"
+        if all(_has(getattr(offer, f, None)) for f in fields)
+        else "incomplete"
+    )
+
+
+def _check_any(offer: Offer, *fields: str) -> str:
+    """Return "complete" if any field is present, else "incomplete"."""
+    return (
+        "complete"
+        if any(_has(getattr(offer, f, None)) for f in fields)
+        else "incomplete"
+    )
+
+
+_SECTION_VALIDATORS: dict[str, tuple[str, tuple[str, ...]]] = {
+    "identity": ("all", ("public_name", "archetype", "value_level")),
+    "strategy": ("any", ("target_avatar_match", "marketing_pain_points")),
+    "psychology": ("all", ("marketing_pain_points", "marketing_desires")),
+    "promise": ("all", ("headline_promise",)),
+    "pricing": ("all", ("pricing_options",)),
+    "closing": ("all", ("guarantee_type",)),
+}
+
+
+def _validate_details(offer: Offer) -> str:
+    """Validate archetype-specific details section."""
+    details = getattr(offer, "specific_details", None)
+    if details is None:
+        return "incomplete"
+    if isinstance(details, dict):
+        return "complete" if len(details) > 0 else "incomplete"
+    # Pydantic model — any non-empty model_dump counts as present.
+    try:
+        dumped = details.model_dump(exclude_none=True)
+    except AttributeError:
+        return "complete" if bool(details) else "incomplete"
+    return "complete" if dumped else "incomplete"
+
+
 def _validate_section(section_id: str, offer: Offer) -> str:
     """Return one of ``"complete"``, ``"incomplete"``, ``"optional"``."""
     if section_id in _OPTIONAL_SECTIONS:
@@ -152,56 +195,15 @@ def _validate_section(section_id: str, offer: Offer) -> str:
             return "complete"
         return "optional"
 
-    if section_id == "identity":
-        if (
-            _has(getattr(offer, "public_name", None))
-            and _has(getattr(offer, "archetype", None))
-            and _has(getattr(offer, "value_level", None))
-        ):
-            return "complete"
-        return "incomplete"
-
-    if section_id == "strategy":
-        if _has(getattr(offer, "target_avatar_match", None)) or _has(
-            getattr(offer, "marketing_pain_points", None)
-        ):
-            return "complete"
-        return "incomplete"
-
-    if section_id == "psychology":
-        if _has(getattr(offer, "marketing_pain_points", None)) and _has(
-            getattr(offer, "marketing_desires", None)
-        ):
-            return "complete"
-        return "incomplete"
-
-    if section_id == "promise":
-        if _has(getattr(offer, "headline_promise", None)):
-            return "complete"
-        return "incomplete"
-
-    if section_id == "pricing":
-        if _has(getattr(offer, "pricing_options", None)):
-            return "complete"
-        return "incomplete"
-
-    if section_id == "closing":
-        if _has(getattr(offer, "guarantee_type", None)):
-            return "complete"
-        return "incomplete"
+    validator = _SECTION_VALIDATORS.get(section_id)
+    if validator:
+        mode, fields = validator
+        return (
+            _check_all(offer, *fields) if mode == "all" else _check_any(offer, *fields)
+        )
 
     if section_id in _DETAILS_SECTIONS:
-        details = getattr(offer, "specific_details", None)
-        if details is None:
-            return "incomplete"
-        if isinstance(details, dict):
-            return "complete" if len(details) > 0 else "incomplete"
-        # Pydantic model — any non-empty model_dump counts as present.
-        try:
-            dumped = details.model_dump(exclude_none=True)
-        except AttributeError:
-            return "complete" if bool(details) else "incomplete"
-        return "complete" if dumped else "incomplete"
+        return _validate_details(offer)
 
     return "optional"
 

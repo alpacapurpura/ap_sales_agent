@@ -71,40 +71,29 @@ def compute_aggregations(
     for (channel_slug, metric_name, unit, currency, cost_type), rows in groups.items():
         sorted_rows = sorted(rows, key=lambda r: r["metric_date"])
 
-        # Look up metric in catalog to determine aggregation strategy
-        defn = get_metric_def(metric_name)
-        if defn is None:
-            logger.warning(
-                "Metric '%s' not in METRIC_CATALOG — using SUM (backward compat). "
-                "Add to metric_catalog.py to fix.",
-                metric_name,
-            )
-            agg_type = AggregationType.ADDITIVE
-        else:
-            agg_type = defn.aggregation
+        agg_type = _resolve_aggregation_type(metric_name)
 
         # Daily aggregations (always compute — intra-day SUM is always correct)
-        daily_by_date: dict[date, float] = defaultdict(float)
-        for row in sorted_rows:
-            metric_date = row["metric_date"]
-            if isinstance(metric_date, str):
-                metric_date = date.fromisoformat(metric_date)
-            daily_by_date[metric_date] += row["value"]
+        daily_by_date = _build_daily_values(sorted_rows)
+
+        common = {
+            "tenant_id": tenant_id,
+            "channel_slug": channel_slug,
+            "metric_name": metric_name,
+            "unit": unit,
+            "currency": currency,
+            "cost_type": cost_type,
+            "extraction_run_id": extraction_run_id,
+        }
 
         for d, total in daily_by_date.items():
             aggregations.append(
                 _agg_dict(
-                    tenant_id=tenant_id,
-                    channel_slug=channel_slug,
-                    metric_name=metric_name,
                     period_type="daily",
                     period_start=d,
                     period_end=d,
                     value=total,
-                    unit=unit,
-                    currency=currency,
-                    cost_type=cost_type,
-                    extraction_run_id=extraction_run_id,
+                    **common,
                 )
             )
 
@@ -116,89 +105,12 @@ def compute_aggregations(
         if not sorted_rows:
             continue
 
-        all_dates = sorted(daily_by_date.keys())
-
-        def _aggregate_period(period_values: dict[date, float]) -> float:
-            """Aggregate values for a period based on metric type."""
-            if agg_type == AggregationType.SNAPSHOT:  # noqa: B023
-                # Last value in the period (snapshot = state, not flow)
-                last_date = max(period_values.keys())
-                return period_values[last_date]
-            # Additive metrics are summed
-            return sum(period_values.values())
-
-        # Weekly aggregations
-        weeks = _group_by_week(all_dates, daily_by_date, period_config)
-        for (ws, we), week_daily in weeks.items():
-            aggregations.append(
-                _agg_dict(
-                    tenant_id=tenant_id,
-                    channel_slug=channel_slug,
-                    metric_name=metric_name,
-                    period_type="weekly",
-                    period_start=ws,
-                    period_end=we,
-                    value=_aggregate_period(week_daily),
-                    unit=unit,
-                    currency=currency,
-                    cost_type=cost_type,
-                    extraction_run_id=extraction_run_id,
-                )
-            )
-
-        # Monthly aggregations
-        months = _group_by_month(daily_by_date)
-        for (ms, me), month_daily in months.items():
-            aggregations.append(
-                _agg_dict(
-                    tenant_id=tenant_id,
-                    channel_slug=channel_slug,
-                    metric_name=metric_name,
-                    period_type="monthly",
-                    period_start=ms,
-                    period_end=me,
-                    value=_aggregate_period(month_daily),
-                    unit=unit,
-                    currency=currency,
-                    cost_type=cost_type,
-                    extraction_run_id=extraction_run_id,
-                )
-            )
-
-        # Quarterly aggregations
-        quarters = _group_by_quarter(daily_by_date, period_config)
-        for (qs, qe), quarter_daily in quarters.items():
-            aggregations.append(
-                _agg_dict(
-                    tenant_id=tenant_id,
-                    channel_slug=channel_slug,
-                    metric_name=metric_name,
-                    period_type="quarterly",
-                    period_start=qs,
-                    period_end=qe,
-                    value=_aggregate_period(quarter_daily),
-                    unit=unit,
-                    currency=currency,
-                    cost_type=cost_type,
-                    extraction_run_id=extraction_run_id,
-                )
-            )
-
-        # Last 30 days aggregation
-        aggregations.append(
-            _agg_dict(
-                tenant_id=tenant_id,
-                channel_slug=channel_slug,
-                metric_name=metric_name,
-                period_type="last_30_days",
-                period_start=all_dates[0],
-                period_end=all_dates[-1],
-                value=_aggregate_period(daily_by_date),
-                unit=unit,
-                currency=currency,
-                cost_type=cost_type,
-                extraction_run_id=extraction_run_id,
-            )
+        _append_multi_period_aggregations(
+            aggregations,
+            daily_by_date,
+            agg_type,
+            period_config,
+            common,
         )
 
     logger.info(
@@ -207,6 +119,81 @@ def compute_aggregations(
         tenant_id,
     )
     return aggregations
+
+
+def _resolve_aggregation_type(metric_name: str) -> AggregationType:
+    """Look up metric aggregation strategy, defaulting to ADDITIVE for unknown metrics."""
+    defn = get_metric_def(metric_name)
+    if defn is None:
+        logger.warning(
+            "Metric '%s' not in METRIC_CATALOG — using SUM (backward compat). "
+            "Add to metric_catalog.py to fix.",
+            metric_name,
+        )
+        return AggregationType.ADDITIVE
+    return defn.aggregation
+
+
+def _build_daily_values(sorted_rows: list[dict]) -> dict[date, float]:
+    """Sum intra-day values, coercing string dates to date objects."""
+    daily: dict[date, float] = defaultdict(float)
+    for row in sorted_rows:
+        metric_date = row["metric_date"]
+        if isinstance(metric_date, str):
+            metric_date = date.fromisoformat(metric_date)
+        daily[metric_date] += row["value"]
+    return daily
+
+
+def _aggregate_period_values(
+    period_values: dict[date, float],
+    agg_type: AggregationType,
+) -> float:
+    """Aggregate values for a period based on metric type."""
+    if agg_type == AggregationType.SNAPSHOT:
+        last_date = max(period_values.keys())
+        return period_values[last_date]
+    return sum(period_values.values())
+
+
+def _append_multi_period_aggregations(
+    aggregations: list[dict],
+    daily_by_date: dict[date, float],
+    agg_type: AggregationType,
+    period_config: TenantPeriodConfig,
+    common: dict,
+) -> None:
+    """Append weekly, monthly, quarterly, and last_30_days aggregations."""
+    all_dates = sorted(daily_by_date.keys())
+
+    period_groups: list[tuple[str, dict[tuple, dict[date, float]]]] = [
+        ("weekly", _group_by_week(all_dates, daily_by_date, period_config)),
+        ("monthly", _group_by_month(daily_by_date)),
+        ("quarterly", _group_by_quarter(daily_by_date, period_config)),
+    ]
+
+    for period_type, groups in period_groups:
+        for (ps, pe), period_daily in groups.items():
+            aggregations.append(
+                _agg_dict(
+                    period_type=period_type,
+                    period_start=ps,
+                    period_end=pe,
+                    value=_aggregate_period_values(period_daily, agg_type),
+                    **common,
+                )
+            )
+
+    # Last 30 days aggregation
+    aggregations.append(
+        _agg_dict(
+            period_type="last_30_days",
+            period_start=all_dates[0],
+            period_end=all_dates[-1],
+            value=_aggregate_period_values(daily_by_date, agg_type),
+            **common,
+        )
+    )
 
 
 def _agg_dict(**kwargs) -> dict:

@@ -9,7 +9,7 @@ logger = structlog.get_logger(__name__)
 
 # Create engine
 engine = create_engine(
-    settings.DATABASE_URL,
+    settings.database_url,
     pool_pre_ping=True,
     pool_recycle=300,
 )
